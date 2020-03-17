@@ -1,0 +1,8 @@
+{
+ "locator":"libWPEFrameworkCoPilot.so",
+ "classname":"CoPilot",
+ "precondition":[
+  "Platform"
+ ],
+ "autostart":true
+}

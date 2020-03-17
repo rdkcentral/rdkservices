@@ -1,0 +1,28 @@
+# - Try to find IARMBus
+# Once done this will define
+#  IARMBUS_FOUND - System has IARMBus
+#  IARMBUS_INCLUDE_DIRS - The IARMBus include directories
+#  IARMBUS_LIBRARIES - The libraries needed to use IARMBus
+#  IARMBUS_FLAGS - The flags needed to use IARMBus
+#
+
+find_package(PkgConfig)
+
+find_library(IARMBUS_LIBRARIES NAMES IARMBus)
+find_path(IARMBUS_INCLUDE_DIRS NAMES libIARM.h PATH_SUFFIXES rdk/iarmbus)
+find_path(IARMIR_INCLUDE_DIRS NAMES irMgr.h PATH_SUFFIXES rdk/iarmmgrs/ir)
+
+set(IARMBUS_LIBRARIES ${IARMBUS_LIBRARIES} CACHE PATH "Path to IARMBus library")
+set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS} ${IARMIR_INCLUDE_DIRS})
+set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS} ${IARMIR_INCLUDE_DIRS} CACHE PATH "Path to IARMBus include")
+
+
+include(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(IARMBUS DEFAULT_MSG IARMBUS_INCLUDE_DIRS IARMBUS_LIBRARIES)
+
+mark_as_advanced(
+    IARMBUS_FOUND
+    IARMBUS_INCLUDE_DIRS
+    IARMBUS_LIBRARIES
+    IARMBUS_LIBRARY_DIRS
+    IARMBUS_FLAGS)

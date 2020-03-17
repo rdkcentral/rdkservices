@@ -1,0 +1,8 @@
+{
+ "locator":"libWPEFrameworkDisplaySettings.so",
+ "classname":"DisplaySettings",
+ "precondition":[
+  "Platform"
+ ],
+ "autostart":true
+}
