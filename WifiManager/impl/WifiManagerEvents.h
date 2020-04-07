@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2019 RDK Management
+* Copyright 2020 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,39 +19,28 @@
 
 #pragma once
 
-#include "Module.h"
+#include "../Module.h"
 
-#include "utils.h"
-#include "AbstractPlugin.h"
+// Forward declaration
+typedef int IARM_EventId_t;
 
 namespace WPEFramework {
-
     namespace Plugin {
-
-        class Proxies : public AbstractPlugin {
-        private:
-
-            Proxies(const Proxies&) = delete;
-            Proxies& operator=(const Proxies&) = delete;
-
-            //Begin methods
-            uint32_t getProxy(const JsonObject& parameters, JsonObject& response);
-            uint32_t setProxy(const JsonObject& parameters, JsonObject& response);
-            //End methods
-
-            //Begin events
-            //End events
-
+        /**
+         * The internal implementation of the functionality in WifiManager relating to event generation.
+         *
+         */
+        class WifiManagerEvents {
         public:
-            Proxies();
-            virtual ~Proxies();
+            WifiManagerEvents() = default;
+            virtual ~WifiManagerEvents() = default;
+            WifiManagerEvents(WifiManagerEvents const&) = delete;
+            WifiManagerEvents& operator=(WifiManagerEvents const&) = delete;
 
-        private:
-            bool createKeyFileIfNotExists();
+            std::string Initialize(WPEFramework::PluginHost::IShell* service);
+            void Deinitialize(WPEFramework::PluginHost::IShell* service);
 
-        public:
-            static Proxies* _instance;
-
+            static void iarmEventHandler(char const* owner, IARM_EventId_t eventId, void* data, size_t len);
         };
     } // namespace Plugin
 } // namespace WPEFramework
