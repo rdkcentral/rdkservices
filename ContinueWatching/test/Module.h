@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2019 RDK Management
+* Copyright 2020 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,12 +18,10 @@
 **/
 
 #pragma once
+
 #ifndef MODULE_NAME
-#define MODULE_NAME CoPilot
+#define MODULE_NAME JSONRPC_Test
 #endif
 
-#include <plugins/plugins.h>
-#include <tracing/tracing.h>
-
-#undef EXTERNAL
-#define EXTERNAL
+#include <core/core.h>
+#include <jsonrpc/jsonrpc.h>
