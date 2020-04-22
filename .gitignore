@@ -37,3 +37,17 @@
 .DS_Store
 .Spotlight-V100
 .Trashes
+.vscode
+/.vs
+/artifacts
+*/*.so
+
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+uninstall.cmake
+install_manifest.txt
+CTestTestfile.cmake
+output/
