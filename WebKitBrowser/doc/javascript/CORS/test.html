@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == XMLHttpRequest.DONE) {
+            console.log('done');
+        }
+    };
+    xhr.open('GET', 'https://www.youtube.com/feed/trending?pbj=1', true);
+    xhr.send(null);
+
+
+</script>
+</body>
+</html>

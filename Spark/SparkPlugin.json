@@ -1,0 +1,34 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "Spark Plugin",
+    "callsign": "Spark",
+    "locator": "libWPEFrameworkSpark.so",
+    "status": "alpha",
+    "description": "The Spark plugin provides web browsing functionality based on the Spark engine.",
+    "version": "1.0"
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The URL that is loaded upon starting the browser"
+          }
+        }
+      }
+    },
+    "required": [
+      "callsign",
+      "classname",
+      "locator"
+    ]
+  },
+  "interface": {
+    "$ref": "{interfacedir}/Spark.json#"
+  }
+}
