@@ -1,0 +1,2 @@
+# WPEPluginSpark
+Spark Engine plugin
