@@ -15,8 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Intel specifics
+message("Building for Intel...")
+
 # Canmore specifics
 add_definitions (-DPLATFORM_CANMORE)
+add_definitions (-DPLATFORM_INTEL)
 #Uncomment this for IP Only
 
 add_definitions (-DUSE_DS)
