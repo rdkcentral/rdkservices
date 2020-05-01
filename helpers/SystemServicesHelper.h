@@ -32,9 +32,18 @@
 #include "utils.h"
 
 /* Status-keeper files */
+
+#ifdef PLATFORM_BROADCOM
+#define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/secure/reboot/reboot.info"
+#define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/secure/reboot/previousreboot.info"
+#define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/secure/reboot/hardpower.info"
+#else
 #define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/persistent/reboot.info"
 #define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/persistent/previousreboot.info"
 #define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/persistent/hardpower.info"
+#endif
+
+
 
 #define SYSTEM_UP_TIME_FILE                     "/proc/uptime"
 #define MOCA_FILE                               "/opt/enablemoca"
