@@ -542,16 +542,16 @@ uint32_t enableXREConnectionRetentionHelper(bool enable)
                 return SysSrv_FileAccessFailed;
             }
         } else {
-            /* Nothing To Do. */
-            ;
+            result=SysSrv_OK;
+            
         }
     } else {
         if (fileExists(RECEIVER_STANDBY_PREFS)) {
             remove(RECEIVER_STANDBY_PREFS);
             result = SysSrv_OK ;
         } else {
-            /* Nothing To Do. */
-            ;
+         result = SysSrv_OK;
+            
         }
     }
     return result;

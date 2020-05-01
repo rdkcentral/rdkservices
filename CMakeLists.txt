@@ -14,8 +14,13 @@ option(PLUGIN_TTSRESOURCE "Include TTSResource Plugin plugin" ON)
 option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
 option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
 option(PLUGIN_PROXIES "Include Proxies plugin" ON)
+option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
 option(PLUGIN_HOMENETWORKING "Include HomeNetworking plugin" ON)
-
+option(PLUGIN_PLUGANDPLAY "Include PlugAndPlay plugin" ON)
+option(PLUGIN_VREXMANAGER "Include VrexManager plugin" ON)
+option(PLUGIN_LINEARSEGMENTEDADVERTISING "Include LinearSegmentedAdvertising plugin" ON)
+option(PLUGIN_DEEP_LINK "Include DeepLink plugin" ON)
+option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -33,9 +38,21 @@ if(PLUGIN_VREXMANAGER)
     add_subdirectory(VrexManager)
 endif()
 
+if(PLUGIN_CONTROLSERVICE)
+    add_subdirectory(ControlService)
+endif()
+
 if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue is fixed on Samsung Xg2v2
+    if(PLUGIN_SYSTEMSERVICES)
+        add_subdirectory(SystemServices)
+    endif()
+
     if(PLUGIN_HOMENETWORKING)
         add_subdirectory(HomeNetworking)
+    endif()
+
+    if(PLUGIN_PLUGANDPLAY)
+        add_subdirectory(PlugAndPlay)
     endif()
 
     if(PLUGIN_LOGGING_PREFERENCES)
@@ -70,6 +87,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(FrameRate)
     endif()
 
+    if(HAS_API_WEBSOCKET_PROXY)
+        add_subdirectory(WebSocketProxy)
+    endif()
+
     if(HAS_ACTIVITY_MONITOR)
         add_subdirectory(ActivityMonitor)
     endif()
@@ -81,6 +102,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
     # if(HAS_API_HDMI_CEC)
     #   add_subdirectory(HdmiCec)
     # endif()
+
+    if(HAS_API_SOUND)
+        add_subdirectory(SoundPlayer)
+    endif()
 
     if (HAS_API_DEVICEDIAGNOSTICS)
         add_subdirectory(DeviceDiagnostics)
@@ -110,8 +135,33 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(TTSResource)
     endif()
 
+    if(HAS_API_CONTINUE_WATCHING)
+        add_subdirectory(ContinueWatching)
+    endif()
+
+    if(HAS_API_APPLICATION)
+        add_subdirectory(Application)
+    endif()
+
     if(HAS_STATE_OBSERVER)
         add_subdirectory(StateObserver)
+    endif()
+
+
+    if(PLUGIN_WIFIMANAGER)
+        add_subdirectory(WifiManager)
+    endif()
+
+    if(PLUGIN_LOSTANDFOUND)
+        add_subdirectory(LostAndFound)
+    endif()
+
+    if(PLUGIN_LINEARSEGMENTEDADVERTISING)
+        add_subdirectory(LinearSegmentedAdvertising)
+    endif()
+
+    if(PLUGIN_DEEP_LINK)
+        add_subdirectory(DeepLink)
     endif()
 
 endif()
