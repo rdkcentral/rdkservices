@@ -664,7 +664,7 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                vPort.setResolution(resolution);
+                vPort.setResolution(resolution, persist);
             }
             catch (const device::Exception& err)
             {
@@ -677,7 +677,7 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"soundMode":"AUTO (Dolby Digital 5.1)"}
             LOGINFOMETHOD();
-            string videoDisplay = parameters["videoDisplay"].String();//empty value will browse all ports
+            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
             bool validPortName = true;
 
             if (videoDisplay.empty())
@@ -858,6 +858,8 @@ namespace WPEFramework {
             }
             else
             {
+                LOGWARN("Sound mode '%s' is empty or incompatible with known values, hence sound mode will not changed!", soundMode.c_str());
+                returnResponse(success);
             }
 
             bool validPortName = true;
