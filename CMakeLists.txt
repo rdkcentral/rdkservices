@@ -1,3 +1,20 @@
+# If not stated otherwise in this file or this component's license file the
+# following copyright and licenses apply:
+#
+# Copyright 2020 RDK Management
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 cmake_minimum_required(VERSION 3.3)
 
 find_package(WPEFramework)
@@ -14,8 +31,13 @@ option(PLUGIN_TTSRESOURCE "Include TTSResource Plugin plugin" ON)
 option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
 option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
 option(PLUGIN_PROXIES "Include Proxies plugin" ON)
+option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
 option(PLUGIN_HOMENETWORKING "Include HomeNetworking plugin" ON)
-
+option(PLUGIN_PLUGANDPLAY "Include PlugAndPlay plugin" ON)
+option(PLUGIN_VREXMANAGER "Include VrexManager plugin" ON)
+option(PLUGIN_LINEARSEGMENTEDADVERTISING "Include LinearSegmentedAdvertising plugin" ON)
+option(PLUGIN_DEEP_LINK "Include DeepLink plugin" ON)
+option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -33,9 +55,21 @@ if(PLUGIN_VREXMANAGER)
     add_subdirectory(VrexManager)
 endif()
 
+if(PLUGIN_CONTROLSERVICE)
+    add_subdirectory(ControlService)
+endif()
+
 if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue is fixed on Samsung Xg2v2
+    if(PLUGIN_SYSTEMSERVICES)
+        add_subdirectory(SystemServices)
+    endif()
+
     if(PLUGIN_HOMENETWORKING)
         add_subdirectory(HomeNetworking)
+    endif()
+
+    if(PLUGIN_PLUGANDPLAY)
+        add_subdirectory(PlugAndPlay)
     endif()
 
     if(PLUGIN_LOGGING_PREFERENCES)
@@ -57,7 +91,7 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
     if(HAS_API_COPILOT)
         add_subdirectory(CoPilot)
     endif()
-    
+
     if(HAS_API_STORAGE_MANAGER)
         add_subdirectory(StorageManager)
     endif()
@@ -68,6 +102,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
 
     if(HAS_API_FRAME_RATE)
         add_subdirectory(FrameRate)
+    endif()
+
+    if(HAS_API_WEBSOCKET_PROXY)
+        add_subdirectory(WebSocketProxy)
     endif()
 
     if(HAS_ACTIVITY_MONITOR)
@@ -81,6 +119,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
     # if(HAS_API_HDMI_CEC)
     #   add_subdirectory(HdmiCec)
     # endif()
+
+    if(HAS_API_SOUND)
+        add_subdirectory(SoundPlayer)
+    endif()
 
     if (HAS_API_DEVICEDIAGNOSTICS)
         add_subdirectory(DeviceDiagnostics)
@@ -110,8 +152,33 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(TTSResource)
     endif()
 
+    if(HAS_API_CONTINUE_WATCHING)
+        add_subdirectory(ContinueWatching)
+    endif()
+
+    if(HAS_API_APPLICATION)
+        add_subdirectory(Application)
+    endif()
+
     if(HAS_STATE_OBSERVER)
         add_subdirectory(StateObserver)
+    endif()
+
+
+    if(PLUGIN_WIFIMANAGER)
+        add_subdirectory(WifiManager)
+    endif()
+
+    if(PLUGIN_LOSTANDFOUND)
+        add_subdirectory(LostAndFound)
+    endif()
+
+    if(PLUGIN_LINEARSEGMENTEDADVERTISING)
+        add_subdirectory(LinearSegmentedAdvertising)
+    endif()
+
+    if(PLUGIN_DEEP_LINK)
+        add_subdirectory(DeepLink)
     endif()
 
 endif()

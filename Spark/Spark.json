@@ -1,0 +1,15 @@
+{
+ "locator":"libWPEFrameworkSpark.so",
+ "classname":"Spark",
+ "precondition":[
+  "Internet",
+  "Graphics"
+ ],
+ "autostart":false,
+ "configuration":{
+  "url":"browser.js",
+  "root":{
+   "threads":2
+  }
+ }
+}

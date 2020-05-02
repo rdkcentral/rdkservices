@@ -17,32 +17,13 @@
 * limitations under the License.
 **/
 
-/*
- * If not stated otherwise in this file or this component's license file the
- * following copyright and licenses apply:
- *
- * Copyright 2018 RDK Management
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
- 
  /**
  * @file StateObserver.h
  * @brief Thunder Plugin based Implementation for StateObserver service API's (RDK-25848).
  */
- 
+
  /**
-  @mainpage StateObserver 
+  @mainpage StateObserver
   */
 
 #pragma once
@@ -113,11 +94,11 @@ namespace WPEFramework {
 		/**
 		 * @brief This class provides the interface to get the value of various device properties
 		 * and set up event listeners to be notified when the state of the device changes.
-		 * 
+		 *
  		 */
 
 		class StateObserver : public AbstractPlugin {
-		public: 
+		public:
 			static const string STATE_OBSERVER_PLUGIN_NAME;
 			static const string EVT_STATE_OBSERVER_PROPERTY_CHANGED;
 
@@ -142,7 +123,7 @@ namespace WPEFramework {
 			void InitializeIARM();
 			void DeinitializeIARM();
 			//End methods
-			
+
 
 			virtual string getName();
 			virtual unsigned int getApiVersionNumber();
@@ -172,7 +153,3 @@ namespace WPEFramework {
 
 
 #endif //STATEOBSERVER_H
-
-
-
-
