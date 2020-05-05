@@ -112,9 +112,11 @@ namespace Plugin {
         }
 
         // Stop processing of the browser:
-        _browser->Release();
-        // FIXME: Destruction is not always properly reported, which leaves hanging processes (Bartjes Law)
-        if (_connectionId != 0) {
+        if (_browser->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+
+            ASSERT(_connectionId != 0);
+
+            TRACE_L1("Browser Plugin is not properly destructed. %d", _connectionId);
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
