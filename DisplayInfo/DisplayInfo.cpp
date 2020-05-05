@@ -129,7 +129,8 @@ namespace Plugin {
         displayInfo.Connected = _connectionProperties->Connected();
         displayInfo.Width = _connectionProperties->Width();
         displayInfo.Height = _connectionProperties->Height();
-        displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(_connectionProperties->HDCPProtection());
+        displayInfo.Hdcpmajor = _connectionProperties->HDCPMajor();
+        displayInfo.Hdcpminor = _connectionProperties->HDCPMinor();
         displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(_connectionProperties->Type());
     }
 
