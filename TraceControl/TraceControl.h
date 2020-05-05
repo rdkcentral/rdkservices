@@ -816,12 +816,10 @@ namespace Plugin {
                 : Core::JSON::Container()
                 , Console(false)
                 , SysLog(true)
-                , Abbreviated(true)
                 , Remote()
             {
                 Add(_T("console"), &Console);
                 Add(_T("syslog"), &SysLog);
-                Add(_T("abbreviated"), &Abbreviated);
                 Add(_T("remote"), &Remote);
             }
             ~Config()
@@ -831,7 +829,6 @@ namespace Plugin {
         public:
             Core::JSON::Boolean Console;
             Core::JSON::Boolean SysLog;
-            Core::JSON::Boolean Abbreviated;
             NetworkNode Remote;
         };
         class Data : public Core::JSON::Container {
