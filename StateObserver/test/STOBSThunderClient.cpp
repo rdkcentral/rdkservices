@@ -28,7 +28,7 @@
 using namespace std;
 using namespace WPEFramework;
 
-JSONRPC::Client* remoteObject = NULL;
+JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = NULL;
 void showMenu()
 {
         cout<<"Enter your choice\n";
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 	
 	Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
 	if(NULL == remoteObject) {
-		remoteObject = new JSONRPC::Client(_T("StateObserver.1"), _T(""));
+		remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T("StateObserver.1"), _T(""));
 		while(1)
 		{
 			showMenu();

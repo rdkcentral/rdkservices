@@ -15,7 +15,7 @@
   - **cacheContains**
 
     To check if key value present in cache.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **clearLastDeepSleepReason**
 
@@ -25,12 +25,12 @@
   - **enableMoca/disableMoca**
 
     Supports to enable/disable Moca Settings.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","value":<bool>}}`  
+  _**Request payload:**_ `{"params":{"value":<bool>}}`  
   _**Response payload:**_ `{"success":<bool>}`
   - **enableXREConnectionRetention**
 
     Enables XRE Connection Retension option.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":<bool>}}`  
+  _**Request payload:**_ `{"params":{"param":<bool>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **getAvailableStandbyModes**
 
@@ -40,7 +40,7 @@
   - **getCachedValue**
 
     To get cached value.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
   _**Response payload:**_ `{"result":{"<cachekey>":"<string>","success":<bool>}}`
   - **getCoreTemperature**
 
@@ -50,7 +50,7 @@
   - **getDeviceInfo**
 
     This method supports to query DeviceInfo details.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","params":["<key>"]}}`  
+  _**Request payload:**_ `{"params":{"params":["<key>"]}}`  
   _**Response payload:**_ `{"result":{<key>:<Device Info Details>,"success":<bool>}}`
   - **getDownloadedFirmwareInfo**
 
@@ -120,7 +120,7 @@
   - **getRFCConfig**
 
     To retrieve information related to RFC Configurations.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","rfclist":["<rfc1>","<rfc2>"]}}`  
+  _**Request payload:**_ `{"params":{"rfclist":["<rfc1>","<rfc2>"]}}`  
   _**Response payload:**_ `{"result":{"RFCConfig":{"<rfc1>":"<value>","<rfc2>":"<value>"},"success":<bool>}}`
   - **getSerialNumber**
 
@@ -130,7 +130,7 @@
   - **getStateInfo**
 
     To query device state information of various properties.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":"<queryState>"}`  
+  _**Request payload:**_ `{"params":{"param":"<queryState>"}`  
   _**Response payload:**_ `{"result":{"<queryState>":<value>,"success":<bool>}}`
   - **getSystemVersions**
 
@@ -170,12 +170,12 @@
   - **reboot**
 
     This method shall be used to request the system to perform `reboot`.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"cacheKey":"sampleCache"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"cacheKey":"sampleCache"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **removeCacheKey**
 
     To delete the key value present in cache.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **requestSystemUptime**
 
@@ -185,43 +185,43 @@
   - **setCachedValue**
 
     To set cache value.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"cacheKey":"<string>","cacheValue":<double>}}}`  
+  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>","cacheValue":<double>}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setDeepSleepTimer**
 
     Sets the deep sleep time out period, specified in seconds by invoking the corresponding system service method.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"seconds":<unsigned int>}}}`  
+  _**Request payload:**_ `{"params":{"param":{"seconds":<unsigned int>}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setGzEnabled**
 
     To set GZ Status.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":true}}`  
+  _**Request payload:**_ `{"params":{"param":true}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setMode**
 
     Sets the mode of the STB. The object consists of two properties, mode (String) and duration (Integer) mode can be one of following: `NORMAL` - the STB is operating in normal mode, `EAS` - the STB is operating in EAS mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display, or preventing the user from using the diagnostics menu. `WAREHOUSE` - the STB is operating in warehouse mode.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","modeInfo":{"mode":"<string>","duration":<int>}}}`  
+  _**Request payload:**_ `{"params":{"modeInfo":{"mode":"<string>","duration":<int>}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setPowerState**
 
     To set the Device Power State. The possible values are `STANDBY,DEEP_SLEEP,LIGHT_SLEEP,ON`.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"powerState":<string>, "standbyReason":<string>}}}`  
+  _**Request payload:**_ `{"params":{"param":{"powerState":<string>, "standbyReason":<string>}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setPreferredStandbyMode**
 
     Sets and persists the preferred standby mode.  
     Invoking this function does not change the power state of the device, but sets only the user preference for preferred action when setPowerState is invoked with a value of "STANDBY".  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"mode":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"mode":"<string>"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setTemperatureThresholds**
 
     To set Temperature Threshold values.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","thresholds":{"WARN":"99.000000","MAX":"199.000000"}}}`  
+  _**Request payload:**_ `{"params":{"thresholds":{"WARN":"99.000000","MAX":"199.000000"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setTimeZoneDST**
 
     To set the Time to System TZ_FILE.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName","param":{"timezone":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"param":{"timezone":"<string>"}}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **updateFirmware**
 
@@ -264,46 +264,46 @@
 
 Method | Request Payload | Response Payload
 :--- | :--- | :---
-| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.SystemServices.1.cacheContains","params":{"appName":"abc","param":{"cacheKey":"sampleCache"}}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
-| clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.SystemServices.1.clearLastDeepSleepReason","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
-| enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.SystemServices.1.enableMoca","params":{"appName":"abc","value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
-| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.SystemServices.1.enableXREConnectionRetention","params":{"appName":"abc","param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
-| getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.SystemServices.1.getAvailableStandbyModes","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
-| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.getCachedValue","params":{"appName":"abc","param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
-| getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.SystemServices.1.getCoreTemperature","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
-| getDeviceInfo | {"jsonrpc":"2.0","id":"5","method":"org.rdk.SystemServices.1.getDeviceInfo","params":{"appName":"abc","params":["estb_mac"]}} | {"jsonrpc":"2.0","id":5,"result":{"estb_mac":"20:F1:9E:EE:62:08","success":true}} |  
-| getDownloadedFirmwareInfo | {"jsonrpc":"2.0","id":"6","method":"org.rdk.SystemServices.1.getDownloadedFirmwareInfo","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":6,"result":{"currentFWVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","downloadedFWVersion":"","downloadedFWLocation":"","isRebootDeferred":false,"success":true}} |  
-| getFirmwareDownloadPercent | {"jsonrpc":"2.0","id":"7","method":"org.rdk.SystemServices.1.getFirmwareDownloadPercent","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":7,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
-| getFirmwareUpdateInfo | {"jsonrpc":"2.0","id":"8","method":"org.rdk.SystemServices.1.getFirmwareUpdateInfo","params":{"appName":"abc","param":{"GUID":"string"}}} | {"jsonrpc":"2.0","id":8,"result":{"asyncResponse":true,"success":true}} |  
-| getFirmwareUpdateState | {"jsonrpc":"2.0","id":"9","method":"org.rdk.SystemServices.1.getFirmwareUpdateState","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":9,"result":{"firmwareUpdateState":0,"success":true}} |  
-| getLastDeepSleepReason | {"jsonrpc":"2.0","id":"10","method":"org.rdk.SystemServices.1.getLastDeepSleepReason","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":10,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
-| getMacAddresses | {"jsonrpc":"2.0","id":"11","method":"org.rdk.SystemServices.1.getMacAddresses","params":{"appName":"abc","param":{"GUID":"61734787891723481"}}} | {"jsonrpc":"2.0","id":11,"result":{"asyncResponse":true,"success":true}} |  
-| getMilestones | {"jsonrpc":"2.0","id":"12","method":"org.rdk.SystemServices.1.getMilestones","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":12,"result":{"milestones":["RDK_STARTED:20410","2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service...","-- Subject: Unit log-rdk-start.service has begun with start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has begun starting up.","2020 Jan 28 08:24:06.791823 arrisxi6 systemd[1]: Started Log RDK Started Service.","-- Subject: Unit log-rdk-start.service has finished start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has finished starting up.","-- ","-- The start-up result is done.","UPNP_START_DISCOVERY:52660","IP_ACQUISTION_COMPLETED:53230","PWIFI_CONNECTED:56270","SEND_DHCP_REQUEST:56370","RECV_DHCP_RESPONSE:56940","IP_ACQUISTION_COMPLETED:57070","CONNECT_TO_APPLICATION:78340","CONNECT_TO_NTP_SERVER:79460","SPLASH_SCREEN_DISPLAYED:81300","SET_XSCT_TOKEN:106480","CONNECT_TO_APPLICATION:113490","CONNECT_TO_APPLICATION:116590","CONNECT_TO_APPLICATION:119460"],"success":true}} |  
-| getMode | {"jsonrpc":"2.0","id":"13","method":"org.rdk.SystemServices.1.getMode","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":13,"result":{"modeInfo":{"mode":"NORMAL","duration":0},"success":true}} |  
-| getPowerState | {"jsonrpc":"2.0","id":"14","method":"org.rdk.SystemServices.1.getPowerState","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":14,"result":{"powerState":"ON","success":true}} |  
-| getPreferredStandbyMode | {"jsonrpc":"2.0","id":"15","method":"org.rdk.SystemServices.1.getPreferredStandbyMode","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":15,"result":{"preferredStandbyMode":"DEEP_SLEEP","success":true}} |  
-| getPreviousRebootInfo2 | {"jsonrpc":"2.0","id":"17","method":"org.rdk.SystemServices.1.getPreviousRebootInfo2","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":17,"result":{"rebootInfo":{"timestamp":"Tue Jan 28 08:35:40 UTC 2020","source":"SystemPlugin","reason":"FIRMWARE_FAILURE","customReason":"API Validation","lastHardPowerReset":"Tue Jan 28 08:22:22 UTC 2020"},"success":true}} |  
-| getPreviousRebootInfo | {"jsonrpc":"2.0","id":"16","method":"org.rdk.SystemServices.1.getPreviousRebootInfo","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":16,"result":{"timeStamp":"20200128083540","reason":" Triggered from System Plugin API Validation","success":true}} |  
-| getPreviousRebootReason | {"jsonrpc":"2.0","id":"18","method":"org.rdk.SystemServices.1.getPreviousRebootReason","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":18,"result":{"reason":"FIRMWARE_FAILURE","success":true}} |  
-| getRFCConfig | {"jsonrpc":"2.0","id":"19","method":"org.rdk.SystemServices.1.getRFCConfig","params":{"appName":"abc","rfclist":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled","Device.DeviceInfo.MemoryStatus.Total","Device.DeviceInfo.MemoryStatus.Free"]}} | {"jsonrpc":"2.0","id":19,"result":{"RFCConfig":{"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID":"1181405614235499371","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled":"Empty response received","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled":"Empty response received","Device.DeviceInfo.MemoryStatus.Total":"1144560","Device.DeviceInfo.MemoryStatus.Free":"732144"},"success":true}} |  
-| getSerialNumber | {"jsonrpc":"2.0","id":"20","method":"org.rdk.SystemServices.1.getSerialNumber","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":20,"result":{"serialNumber":"M11806TK0024","success":true}} |  
-| getStateInfo | {"jsonrpc":"2.0","id":"43","method":"org.rdk.SystemServices.1.getStateInfo","params":{"appName":"abc","param":"com.comcast.channel_map"}} | {"jsonrpc":"2.0","id":43,"result":{"com.comcast.channel_map":2,"success":true}} |  
-| getSystemVersions | {"jsonrpc":"2.0","id":"21","method":"org.rdk.SystemServices.1.getSystemVersions","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":21,"result":{"stbVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","receiverVersion":"3.14.0.0","stbTimestamp":"Thu 09 Jan 2020 04:04:24 AP UTC","success":true}} |  
-| getTemperatureThresholds | {"jsonrpc":"2.0","id":"22","method":"org.rdk.SystemServices.1.getTemperatureThresholds","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":22,"result":{"temperatureThresholds":{"WARN":"100.000000","MAX":"110.000000","temperature":"48.000000"},"success":true}} |  
-| getTimeZoneDST | {"jsonrpc":"2.0","id":"23","method":"org.rdk.SystemServices.1.getTimeZoneDST","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":23,"result":{"timeZone":"America/New_York","success":true}} |  
-| getXconfParams | {"jsonrpc":"2.0","id":"24","method":"org.rdk.SystemServices.1.getXconfParams","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":24,"result":{"xconfParams":{"env":"vbn","eStbMac":"20:F1:9E:EE:62:08","model":"AX061AEI","firmwareVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy"},"success":true}} |  
-| hasRebootBeenRequested | {"jsonrpc":"2.0","id":"25","method":"org.rdk.SystemServices.1.hasRebootBeenRequested","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":25,"result":{"rebootRequested":false,"success":true}} |  
-| isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.SystemServices.1.isGzEnabled","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
-| queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.SystemServices.1.queryMocaStatus","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
-| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.SystemServices.1.reboot","params":{"appName":"abc","params":{"reason":"API Validation"}}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
-| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.SystemServices.1.removeCacheKey","params":{"appName":"abc","param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
-| requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.SystemServices.1.requestSystemUptime","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
-| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.SystemServices.1.setCachedValue","params":{"appName":"abc","param":{"cacheKey":"sampleCache","cacheValue":4343.3434}}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
-| setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.SystemServices.1.setDeepSleepTimer","params":{"appName":"abc","param":{"seconds":3}}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
-| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.SystemServices.1.setGzEnabled","params":{"appName":"abc","param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
-| setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.SystemServices.1.setMode","params":{"appName":"abc","modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
-| setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.SystemServices.1.setPowerState","params":{"appName":"abc","param":{"powerState":"ON", "standbyReason":"APIUnitTest"}}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
-| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.SystemServices.1.setPreferredStandbyMode","params":{"appName":"abc","param":{"mode":"DEEP_SLEEP"}}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
-| setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.SystemServices.1.setTemperatureThresholds","params":{"appName":"abc","thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
-| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.SystemServices.1.setTimeZoneDST","params":{"appName":"abc","param":{"timezone":"UTC-5"}}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
-| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.SystemServices.1.updateFirmware","params":{"appName":"abc"}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.SystemServices.1.cacheContains","params":{"param":{"cacheKey":"sampleCache"}}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
+| clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.SystemServices.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
+| enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.SystemServices.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
+| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.SystemServices.1.enableXREConnectionRetention","params":{"param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
+| getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.SystemServices.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
+| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.getCachedValue","params":{"param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
+| getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.SystemServices.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
+| getDeviceInfo | {"jsonrpc":"2.0","id":"5","method":"org.rdk.SystemServices.1.getDeviceInfo","params":{"params":["estb_mac"]}} | {"jsonrpc":"2.0","id":5,"result":{"estb_mac":"20:F1:9E:EE:62:08","success":true}} |  
+| getDownloadedFirmwareInfo | {"jsonrpc":"2.0","id":"6","method":"org.rdk.SystemServices.1.getDownloadedFirmwareInfo","params":{}} | {"jsonrpc":"2.0","id":6,"result":{"currentFWVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","downloadedFWVersion":"","downloadedFWLocation":"","isRebootDeferred":false,"success":true}} |  
+| getFirmwareDownloadPercent | {"jsonrpc":"2.0","id":"7","method":"org.rdk.SystemServices.1.getFirmwareDownloadPercent","params":{}} | {"jsonrpc":"2.0","id":7,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
+| getFirmwareUpdateInfo | {"jsonrpc":"2.0","id":"8","method":"org.rdk.SystemServices.1.getFirmwareUpdateInfo","params":{"param":{"GUID":"string"}}} | {"jsonrpc":"2.0","id":8,"result":{"asyncResponse":true,"success":true}} |  
+| getFirmwareUpdateState | {"jsonrpc":"2.0","id":"9","method":"org.rdk.SystemServices.1.getFirmwareUpdateState","params":{}} | {"jsonrpc":"2.0","id":9,"result":{"firmwareUpdateState":0,"success":true}} |  
+| getLastDeepSleepReason | {"jsonrpc":"2.0","id":"10","method":"org.rdk.SystemServices.1.getLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":10,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
+| getMacAddresses | {"jsonrpc":"2.0","id":"11","method":"org.rdk.SystemServices.1.getMacAddresses","params":{"param":{"GUID":"61734787891723481"}}} | {"jsonrpc":"2.0","id":11,"result":{"asyncResponse":true,"success":true}} |  
+| getMilestones | {"jsonrpc":"2.0","id":"12","method":"org.rdk.SystemServices.1.getMilestones","params":{}} | {"jsonrpc":"2.0","id":12,"result":{"milestones":["RDK_STARTED:20410","2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service...","-- Subject: Unit log-rdk-start.service has begun with start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has begun starting up.","2020 Jan 28 08:24:06.791823 arrisxi6 systemd[1]: Started Log RDK Started Service.","-- Subject: Unit log-rdk-start.service has finished start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has finished starting up.","-- ","-- The start-up result is done.","UPNP_START_DISCOVERY:52660","IP_ACQUISTION_COMPLETED:53230","PWIFI_CONNECTED:56270","SEND_DHCP_REQUEST:56370","RECV_DHCP_RESPONSE:56940","IP_ACQUISTION_COMPLETED:57070","CONNECT_TO_APPLICATION:78340","CONNECT_TO_NTP_SERVER:79460","SPLASH_SCREEN_DISPLAYED:81300","SET_XSCT_TOKEN:106480","CONNECT_TO_APPLICATION:113490","CONNECT_TO_APPLICATION:116590","CONNECT_TO_APPLICATION:119460"],"success":true}} |  
+| getMode | {"jsonrpc":"2.0","id":"13","method":"org.rdk.SystemServices.1.getMode","params":{}} | {"jsonrpc":"2.0","id":13,"result":{"modeInfo":{"mode":"NORMAL","duration":0},"success":true}} |  
+| getPowerState | {"jsonrpc":"2.0","id":"14","method":"org.rdk.SystemServices.1.getPowerState","params":{}} | {"jsonrpc":"2.0","id":14,"result":{"powerState":"ON","success":true}} |  
+| getPreferredStandbyMode | {"jsonrpc":"2.0","id":"15","method":"org.rdk.SystemServices.1.getPreferredStandbyMode","params":{}} | {"jsonrpc":"2.0","id":15,"result":{"preferredStandbyMode":"DEEP_SLEEP","success":true}} |  
+| getPreviousRebootInfo2 | {"jsonrpc":"2.0","id":"17","method":"org.rdk.SystemServices.1.getPreviousRebootInfo2","params":{}} | {"jsonrpc":"2.0","id":17,"result":{"rebootInfo":{"timestamp":"Tue Jan 28 08:35:40 UTC 2020","source":"SystemPlugin","reason":"FIRMWARE_FAILURE","customReason":"API Validation","lastHardPowerReset":"Tue Jan 28 08:22:22 UTC 2020"},"success":true}} |  
+| getPreviousRebootInfo | {"jsonrpc":"2.0","id":"16","method":"org.rdk.SystemServices.1.getPreviousRebootInfo","params":{}} | {"jsonrpc":"2.0","id":16,"result":{"timeStamp":"20200128083540","reason":" Triggered from System Plugin API Validation","success":true}} |  
+| getPreviousRebootReason | {"jsonrpc":"2.0","id":"18","method":"org.rdk.SystemServices.1.getPreviousRebootReason","params":{}} | {"jsonrpc":"2.0","id":18,"result":{"reason":"FIRMWARE_FAILURE","success":true}} |  
+| getRFCConfig | {"jsonrpc":"2.0","id":"19","method":"org.rdk.SystemServices.1.getRFCConfig","params":{"rfclist":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled","Device.DeviceInfo.MemoryStatus.Total","Device.DeviceInfo.MemoryStatus.Free"]}} | {"jsonrpc":"2.0","id":19,"result":{"RFCConfig":{"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID":"1181405614235499371","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled":"Empty response received","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled":"Empty response received","Device.DeviceInfo.MemoryStatus.Total":"1144560","Device.DeviceInfo.MemoryStatus.Free":"732144"},"success":true}} |  
+| getSerialNumber | {"jsonrpc":"2.0","id":"20","method":"org.rdk.SystemServices.1.getSerialNumber","params":{}} | {"jsonrpc":"2.0","id":20,"result":{"serialNumber":"M11806TK0024","success":true}} |  
+| getStateInfo | {"jsonrpc":"2.0","id":"43","method":"org.rdk.SystemServices.1.getStateInfo","params":{"param":"com.comcast.channel_map"}} | {"jsonrpc":"2.0","id":43,"result":{"com.comcast.channel_map":2,"success":true}} |  
+| getSystemVersions | {"jsonrpc":"2.0","id":"21","method":"org.rdk.SystemServices.1.getSystemVersions","params":{}} | {"jsonrpc":"2.0","id":21,"result":{"stbVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","receiverVersion":"3.14.0.0","stbTimestamp":"Thu 09 Jan 2020 04:04:24 AP UTC","success":true}} |  
+| getTemperatureThresholds | {"jsonrpc":"2.0","id":"22","method":"org.rdk.SystemServices.1.getTemperatureThresholds","params":{}} | {"jsonrpc":"2.0","id":22,"result":{"temperatureThresholds":{"WARN":"100.000000","MAX":"110.000000","temperature":"48.000000"},"success":true}} |  
+| getTimeZoneDST | {"jsonrpc":"2.0","id":"23","method":"org.rdk.SystemServices.1.getTimeZoneDST","params":{}} | {"jsonrpc":"2.0","id":23,"result":{"timeZone":"America/New_York","success":true}} |  
+| getXconfParams | {"jsonrpc":"2.0","id":"24","method":"org.rdk.SystemServices.1.getXconfParams","params":{}} | {"jsonrpc":"2.0","id":24,"result":{"xconfParams":{"env":"vbn","eStbMac":"20:F1:9E:EE:62:08","model":"AX061AEI","firmwareVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy"},"success":true}} |  
+| hasRebootBeenRequested | {"jsonrpc":"2.0","id":"25","method":"org.rdk.SystemServices.1.hasRebootBeenRequested","params":{}} | {"jsonrpc":"2.0","id":25,"result":{"rebootRequested":false,"success":true}} |  
+| isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.SystemServices.1.isGzEnabled","params":{}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
+| queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.SystemServices.1.queryMocaStatus","params":{}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
+| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.SystemServices.1.reboot","params":{"params":{"reason":"API Validation"}}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
+| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.SystemServices.1.removeCacheKey","params":{"param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
+| requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.SystemServices.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
+| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.SystemServices.1.setCachedValue","params":{"param":{"cacheKey":"sampleCache","cacheValue":4343.3434}}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
+| setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.SystemServices.1.setDeepSleepTimer","params":{"param":{"seconds":3}}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
+| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.SystemServices.1.setGzEnabled","params":{"param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
+| setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.SystemServices.1.setMode","params":{"modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
+| setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.SystemServices.1.setPowerState","params":{"param":{"powerState":"ON", "standbyReason":"APIUnitTest"}}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
+| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.SystemServices.1.setPreferredStandbyMode","params":{"param":{"mode":"DEEP_SLEEP"}}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
+| setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.SystemServices.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
+| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.SystemServices.1.setTimeZoneDST","params":{"param":{"timezone":"UTC-5"}}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
+| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.SystemServices.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  

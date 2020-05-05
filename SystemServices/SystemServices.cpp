@@ -34,7 +34,6 @@
 #include <ctime>
 #include <iomanip>
 #include <bits/stdc++.h>
-#include <sys/stat.h>
 #include <algorithm>
 #include <curl/curl.h>
 
@@ -78,7 +77,7 @@ bool getMocaStatus(void)
 {
     bool status = false;
 
-    if (fileExists(MOCA_FILE)) {
+    if (Utils::fileExists(MOCA_FILE)) {
         status = true;
     } else {
         /* Nothing to do. */
@@ -248,7 +247,7 @@ namespace WPEFramework {
                 JsonObject mode,param,response;
                 param["duration"] = -1;
                 param["mode"] = MODE_NORMAL;
-                mode["param"] = param;
+                mode["modeInfo"] = param;
 
                 LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
                         (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
@@ -258,7 +257,7 @@ namespace WPEFramework {
                 JsonObject mode,param,response;
                 param["duration"] = m_temp_settings.getValue("mode_duration");
                 param["mode"] = m_temp_settings.getValue("mode");
-                mode["param"] = param;
+                mode["modeInfo"] = param;
 
                 LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
                         (param["mode"].String()).c_str(), (int)param["duration"].Number());
@@ -439,9 +438,9 @@ namespace WPEFramework {
                             process. nfxResult = %ld\n", (long int)nfxResult);
                 }
             }
-            if (fileExists("/rebootNow.sh")) {
+            if (Utils::fileExists("/rebootNow.sh")) {
                 rebootCommand = "/rebootNow.sh";
-            } else if (fileExists("/lib/rdk/rebootNow.sh")) {
+            } else if (Utils::fileExists("/lib/rdk/rebootNow.sh")) {
                 rebootCommand = "/lib/rdk/rebootNow.sh";
             } else {
                 LOGINFO("rebootNow.sh is not present in /lib/rdk or \
@@ -476,8 +475,7 @@ namespace WPEFramework {
 
                 /* Trigger rebootRequest event if IARMCALL is success. */
                 if (IARM_RESULT_SUCCESS == iarmcallstatus) {
-                    string appName = parameters["appName"].String();
-                    SystemServices::_instance->onRebootRequest(appName, customReason);
+                    SystemServices::_instance->onRebootRequest(customReason);
                 } else {
                     LOGERR("iarmcallstatus = %d; onRebootRequest event will not be fired.\n",
                             iarmcallstatus);
@@ -507,7 +505,7 @@ namespace WPEFramework {
 
         /**
          * @breif : to enable Moca Settings
-         * @param1[in] : {"params":{"appName":"abc","value":true}}
+         * @param1[in] : {"params":{"enableMoca":true}}
          * @param2[out] :  {"success":<bool>}
          */
         uint32_t SystemServices::requestEnableMoca(const JsonObject& parameters,
@@ -529,7 +527,7 @@ namespace WPEFramework {
                 }
             } else {
                 std::remove(MOCA_FILE);
-                if (!fileExists(MOCA_FILE)) {
+                if (!Utils::fileExists(MOCA_FILE)) {
                     /* TODO: replace system() */
                     eRetval = system("/etc/init.d/moca_init start");
                 } else {
@@ -543,41 +541,37 @@ namespace WPEFramework {
 
         /**
          * @brief  : To fetch system uptime
-         * @param1[in] : {"params":{"appName":"abc"}}
          * @param2[out] : {"result":{"systemUptime":"378641.03","success":true}}
          */
         uint32_t SystemServices::requestSystemUptime(const JsonObject& parameters,
                 JsonObject& response)
         {
-            uint32_t result = E_NOK;
-            char lines[128] = {'\0'};
-            string upTime = " ";
-            char* splitToken;
+            struct timespec time;
+            bool result = false;
 
-            /*
-             *@brief: Parse proc file to parse system up time
-             **/
-            if (fileExists(SYSTEM_UP_TIME_FILE)) {
-                if (getFileContentToCharBuffer(SYSTEM_UP_TIME_FILE, lines)) {
-                    splitToken = strtok(lines," ");
-                    upTime = splitToken;
-                    LOGWARN("uptime: %s\n", upTime.c_str());
-                    response["systemUptime"] = upTime.c_str();
-                    result = E_OK;
-                } else {
-                    LOGERR("unable to read uptime from file.\n");
-                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+            if (clock_gettime(CLOCK_MONOTONIC_RAW, &time) == 0)
+            {
+                float uptime = (float)time.tv_sec + (float)time.tv_nsec / 1e9;
+                std::string value = std::to_string(uptime);
+                value = value.erase(value.find_last_not_of("0") + 1);
+
+                if (value.back() == '.')
+                    value += '0';
+
+                response["systemUptime"] = value;
+                LOGINFO("uptime is %s seconds", value.c_str());
+                result = true;
                 }
-            } else {
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-            }
-            returnResponse((E_OK == result)? true: false);
+            else
+                LOGERR("unable to evaluate uptime by clock_gettime");
+
+            returnResponse(result);
         }
 
         /**
          * @brief : API to query DeviceInfo details
          *
-         * @param1[in]  : {"params":{"appName":"abc","params":["<key>"]}}
+         * @param1[in]  : {"params":{"params":["<key>"]}}
          * @param2[out] : "result":{<key>:<Device Info Details>,"success":<bool>}
          * @return      : Core::<StatusCode>
          */
@@ -585,15 +579,13 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            string appName = parameters["appName"].String();
-            if (appName.length() >= 0) {
                 string queryParams = parameters["params"].String();
                 removeCharsFromString(queryParams, "[\"]");
                 string methodType = queryParams;
                 string respBuffer;
                 string fileName = "/tmp/." + methodType;
                 LOGERR("accessing fileName : %s\n", fileName.c_str());
-                if (fileExists(fileName.c_str())) {
+            if (Utils::fileExists(fileName.c_str())) {
                     respBuffer = collectDeviceInfo(methodType);
                     removeCharsFromString(respBuffer, "\n\r");
                     LOGERR("respBuffer : %s\n", respBuffer.c_str());
@@ -606,9 +598,6 @@ namespace WPEFramework {
                     }
                 } else {
                     populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
             }
             returnResponse(retAPIStatus);
         }
@@ -616,24 +605,15 @@ namespace WPEFramework {
         /***
          * @brief : Checks if Moca is Enabled or Not.
          *
-         * @param1[in]  : {"params":{"appName":"abc"}}
+         * @param1[in]  : {"params":{}}
          * @param2[out] : "result":{"mocaEnabled":<bool>,"success":<bool>}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::queryMocaStatus(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool status = false;
-            string appName = parameters["appName"].String();
-
-            if (appName.length()) {
                 response["mocaEnabled"] = getMocaStatus();
-                status = true;
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-                status = false;
-            }
-            returnResponse(status);
+            returnResponse(true);
         }
 
         /***
@@ -655,7 +635,7 @@ namespace WPEFramework {
          * This has no affect if update is not available. The State Observer API
          * may be used to listen to firmware update events.
          *
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -664,14 +644,14 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService updatingFirmware\n");
             string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
-            cRunScript(command.c_str());
+            Utils::cRunScript(command.c_str());
             returnResponse(true);
         }
 
         /***
          * @brief : Returns mode Information, defines two parameters mode and duration.
          *
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"modeInfo":{"mode":"<string>","duration":<int>},"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -696,7 +676,7 @@ namespace WPEFramework {
          *   or preventing the user from using the diagnostics menu.
          * - WAREHOUSE - the STB is operating in warehouse mode.
          *
-         * @param1[in]	: {"params":{"appName":"abc","modeInfo":{"mode":"<string>","duration":<int>}}}
+         * @param1[in]	: {"params":{"modeInfo":{"mode":"<string>","duration":<int>}}}
          * @param2[out]	: {"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -802,10 +782,9 @@ namespace WPEFramework {
             } else {
                 m_operatingModeTimer.stop();
                 JsonObject parameters, param, response;
-                parameters["appName"] = "";
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
-                parameters["param"] = param;
+                parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
                 } else {
@@ -907,13 +886,13 @@ namespace WPEFramework {
                 fullCommand.replace(start_pos, match.length(), "https://");
             }
 
-            pdriVersion = cRunScript("/usr/bin/mfr_util --PDRIVersion");
+            pdriVersion = Utils::cRunScript("/usr/bin/mfr_util --PDRIVersion");
             pdriVersion = trim(pdriVersion);
 
-            partnerId = cRunScript("sh -c \". /lib/rdk/getPartnerId.sh; getPartnerId\"");
+            partnerId = Utils::cRunScript("sh -c \". /lib/rdk/getPartnerId.sh; getPartnerId\"");
             partnerId = trim(partnerId);
 
-            accountId = cRunScript("sh -c \". /lib/rdk/getAccountId.sh; getAccountId\"");
+            accountId = Utils::cRunScript("sh -c \". /lib/rdk/getAccountId.sh; getAccountId\"");
             accountId = trim(accountId);
 
             fullCommand += "?eStbMac=" + eStbMac
@@ -974,7 +953,7 @@ namespace WPEFramework {
 
         /***
          * @brief  : To check Firmware Update Info
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : {"result":{"asyncResponse":true,"success":true}}
          */
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
@@ -982,29 +961,22 @@ namespace WPEFramework {
         {
             bool result = false;
             string callGUID;
-            string appName = parameters["appName"].String();
 
-            if (appName.length()) {
                 callGUID = parameters["GUID"].String();
-                LOGINFO("appName = %s GUID = %s\n", appName.c_str(), callGUID.c_str());
+            LOGINFO("GUID = %s\n", callGUID.c_str());
                 if (m_getFirmwareInfoThread.joinable()) {
                     m_getFirmwareInfoThread.join();
                 }
                 m_getFirmwareInfoThread = std::thread(firmwareUpdateInfoReceived);
                 response["asyncResponse"] = true;
-                result = true;
-            } else {
-                LOGERR("method invoked without argument\n");
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            }
-            returnResponse(result);
+            returnResponse(true);
         } // get FirmwareUpdateInfo
 
         /***
          * @brief Sets the deep sleep time out period, specified in seconds by invoking the corresponding
          * systemService method. This function used as an interface function in Java script.
          * @param1[in]	: {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.setDeepSleepTimer",
-         *				"params":{"appName":"abc","param":{"seconds":<unsigned int>}}}
+         *				"params":{"param":{"seconds":<unsigned int>}}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1035,7 +1007,7 @@ namespace WPEFramework {
          * the user preference for preferred action when setPowerState is invoked with a value of "STANDBY".
          *
          * @param1[in]	: {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.setPreferredStandbyMode",
-         *				   "params":{"appName":"abc","param":{"standbyMode":"<string>"}}}
+         *				   "params":{"param":{"standbyMode":"<string>"}}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1061,7 +1033,7 @@ namespace WPEFramework {
          * Possible values are either "LIGHT_SLEEP" or "DEEP_SLEEP". This Will return
          * an empty string if the preferred mode has not been set.
          *
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"preferredStandbyMode":"<string>","success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1085,7 +1057,7 @@ namespace WPEFramework {
          * @brief Returns an array of strings containing the supported standby modes.
          * Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".
          *
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"supportedStandbyModes":["<string1>", "<string2>"],"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1110,7 +1082,7 @@ namespace WPEFramework {
 
         /***
          * @brief This will return configuration parameters such as firmware version, Mac, Model etc.
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"xconfParams":{"eStbMac":"<string>",
          *			"firmwareVersion":"<string>", "env":"<string>",
          *			"model":"<string>"},"success":<bool>}}
@@ -1221,7 +1193,7 @@ namespace WPEFramework {
                 return retAPIStatus;
             }
             if (0 == pid) {
-                if (fileExists("/lib/rdk/getStateDetails.sh")) {
+                if (Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
                     execl("/bin/sh", "sh", "-c",
                             "/lib/rdk/getStateDetails.sh STB_SER_NO", (char *)0);
                 } else {
@@ -1232,7 +1204,7 @@ namespace WPEFramework {
                 retAPIStatus = false;
                 wait(NULL); //wait for child process to finish, only then start reading the file
                 std::vector<string> lines;
-                if (true == fileExists(TMP_SERIAL_NUMBER_FILE)) {
+                if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
                     if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
                         string serialNumber = lines.front();
                         response["serialNumber"] = serialNumber;
@@ -1249,7 +1221,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To retrieve Device Serial Number
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : {"result":{"serialNumber":"<string>","success":true}}
          * @return      : Core::<StatusCode>
          */
@@ -1267,7 +1239,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To fetch Firmware Download Percentage Info.
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : {"result":{"downloadPercent":<long int>, "success":false}}
          * @return      : Core::<StatusCode>
          */
@@ -1276,7 +1248,7 @@ namespace WPEFramework {
         {
             bool retStatus = false;
             int m_downloadPercent = -1;
-            if (fileExists("/opt/curl_progress")) {
+            if (Utils::fileExists("/opt/curl_progress")) {
                 /* TODO: replace with new implementation. */
                 FILE* fp = popen(CAT_DWNLDPROGRESSFILE_AND_GET_INFO, "r");
                 if (NULL != fp) {
@@ -1307,7 +1279,7 @@ namespace WPEFramework {
 
         /***
          * @brief : gets firmware downloaded info.
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : "result":{"currentFWVersion":"<string>",
          *			"downloadedFWVersion":"<string>","downloadedFWLocation":"<string>",
          *			"isRebootDeferred":<bool>, "success":<bool>}
@@ -1390,7 +1362,7 @@ namespace WPEFramework {
             bool retStatus = false;
             FirmwareUpdateState fwUpdateState = FirmwareUpdateStateUninitialized;
             std::vector<string> lines;
-            if (!fileExists(FWDNLDSTATUS_FILE_NAME)) {
+            if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
                 populateResponseWithError(SysSrv_FileNotPresent, response);
                 returnResponse(retStatus);
             }
@@ -1471,7 +1443,7 @@ namespace WPEFramework {
                 cmdBuffer += macTypeList[i];
                 LOGWARN("cmd = %s\n", cmdBuffer.c_str());
                 tempBuffer.clear();
-                tempBuffer = cRunScript(cmdBuffer.c_str());
+                tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
                 if (!tempBuffer.empty()) {
                     removeCharsFromString(tempBuffer, "\n\r");
                     LOGWARN("resp = %s\n", tempBuffer.c_str());
@@ -1503,11 +1475,10 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            string appName = parameters["appName"].String();
             string guid = parameters["GUID"].String();
 
-            LOGINFO("appName = %s guid = %s\n", appName.c_str(), guid.c_str());
-            if (!fileExists("/lib/rdk/getDeviceDetails.sh")) {
+            LOGINFO("guid = %s\n", guid.c_str());
+            if (!Utils::fileExists("/lib/rdk/getDeviceDetails.sh")) {
                 response["SysSrv_Message"] = "File: getDeviceDetails.sh";
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             } else {
@@ -1542,7 +1513,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To set the Time to TZ_FILE.
-         * @param1[in]	: {"params":{"appName":"abc","param":{"timeZone":"<string>"}}}
+         * @param1[in]	: {"params":{"param":{"timeZone":"<string>"}}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1558,7 +1529,7 @@ namespace WPEFramework {
 
             if (!dirExists(dir)) {
                 std::string command = "mkdir -p " + dir + " \0";
-                cRunScript(command.c_str());
+                Utils::cRunScript(command.c_str());
             } else {
                 //Do nothing//
             }
@@ -1579,7 +1550,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {","id":3,"result":{"timeZone":"<String>","success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1589,7 +1560,7 @@ namespace WPEFramework {
             std::string timezone;
             bool resp = false;
 
-            if (fileExists(TZ_FILE)) {
+            if (Utils::fileExists(TZ_FILE)) {
                 if(readFromFile(TZ_FILE, timezone)) {
                     LOGWARN("Fetch TimeZone: %s\n", timezone.c_str());
                     response["timeZone"] = timezone;
@@ -1609,7 +1580,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To fetch core temperature
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"temperature":<float>,"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
@@ -1633,7 +1604,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To get cashed value .
-         * @param1[in]  : {"params":{"appName":"abc","param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
          * @param2[out] : {"result":{"<cachekey>":"<string>","success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1650,7 +1621,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To set cache value.
-         * @param1[in]  : {"params":{"appName":"abc","param":{"cacheKey":"<string>",
+         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>",
          *                 "cacheValue":<double>}}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
@@ -1674,7 +1645,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To check if key value present in cache.
-         * @param1[in]  : {"params":{"appName":"abc","param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1695,7 +1666,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To delete the key value present in cache.
-         * @param1[in]  : {"params":{"appName":"abc","param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1716,7 +1687,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To get previous boot info.
-         * @param1[in]	: {"params":{"appName":"abc"}}
+         * @param1[in]	: {"params":{}}
          * @param2[out]	: {"result":{"timeStamp":"<string>","reason":"<string>",
          *				   "success":<bool>}}
          * @return		: Core::<StatusCode>
@@ -1724,7 +1695,7 @@ namespace WPEFramework {
         uint32_t SystemServices::getPreviousRebootInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            if (!fileExists(REBOOT_INFO_LOG_FILE)) {
+            if (!Utils::fileExists(REBOOT_INFO_LOG_FILE)) {
                 LOGERR("Cant't determine previous reboot info, %s not found or can't be opened for reading", REBOOT_INFO_LOG_FILE);
                 returnResponse(false);
             }
@@ -1783,10 +1754,8 @@ namespace WPEFramework {
         {
             bool retAPIStatus = false;
             string reason;
-            string appName = parameters["appName"].String();
 
-            if (appName.length()) {
-                if (fileExists(STANDBY_REASON_FILE)) {
+            if (Utils::fileExists(STANDBY_REASON_FILE)) {
                     std::ifstream inFile(STANDBY_REASON_FILE);
                     if (inFile) {
                         std::getline(inFile, reason);
@@ -1801,9 +1770,6 @@ namespace WPEFramework {
 
                 if (retAPIStatus && reason.length()) {
                     response["lastDeepSleepReason"] = reason;
-                }
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
             }
             returnResponse(retAPIStatus);
         }
@@ -1818,9 +1784,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            string appName = parameters["appName"].String();
 
-            if (appName.length()) {
                 /* FIXME: popen in use */
                 FILE *pipe = NULL;
                 char cmd[128] = {'\0'};
@@ -1834,9 +1798,6 @@ namespace WPEFramework {
                     }
                 } else {
                     populateResponseWithError(SysSrv_Unexpected, response);
-                }
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
             }
 
             returnResponse(retAPIStatus);
@@ -1845,7 +1806,7 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
          * @brief : To retrieve Temperature Threshold values.
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : "result":{"temperatureThresholds":{"WARN":"100.000000",
          *     "MAX":"200.000000","temperature":"62.000000"},"success":<bool>}
          * @return      : Core::<StatusCode>
@@ -1874,8 +1835,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To set Temperature Threshold values.
-         * @param1[in] : {"params":{"appName":"abc",
-         *             "thresholds":{"WARN":"99.000000","MAX":"199.000000"}}}
+         * @param1[in] : {"params":{"thresholds":{"WARN":"99.000000","MAX":"199.000000"}}}
          * @param2[out] : {"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1917,14 +1877,7 @@ namespace WPEFramework {
             char rebootInfo[1024] = {'\0'};
             char hardPowerInfo[1024] = {'\0'};
 
-            string appName = parameters["appName"].String();
-
-            if (!appName.length()) {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-                returnResponse(retAPIStatus);
-            }
-
-            if (fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
+            if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
                 if (retAPIStatus && strlen(rebootInfo)) {
@@ -1943,7 +1896,7 @@ namespace WPEFramework {
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             }
 
-            if (fileExists(SYSTEM_SERVICE_HARD_POWER_INFO_FILE)) {
+            if (Utils::fileExists(SYSTEM_SERVICE_HARD_POWER_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
                         SYSTEM_SERVICE_HARD_POWER_INFO_FILE, hardPowerInfo);
                 if (retAPIStatus && strlen(hardPowerInfo)) {
@@ -1986,14 +1939,7 @@ namespace WPEFramework {
             string reason;
             char rebootInfo[1024] = {'\0'};
 
-            string appName = parameters["appName"].String();
-
-            if (!appName.length()) {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-                returnResponse(retAPIStatus);
-            }
-
-            if (fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
+            if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
                 if (retAPIStatus && strlen(rebootInfo)) {
@@ -2018,7 +1964,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To get RFC Configs.
-         * @param1[in]  : "params":{"appName":"abc","rfclist":["<rfc>","<rfc>"]}.
+         * @param1[in]  : "params":{"rfclist":["<rfc>","<rfc>"]}.
          * @param2[out] : {"result":{"RFCConfig":{"<rfc>":"<value>","<rfc>":"<value>"},
          *          "success":<bool>}}
          * @return      : Core::<StatusCode>
@@ -2032,11 +1978,10 @@ namespace WPEFramework {
             bool retAPIStatus = false;
             JsonObject hash;
             JsonArray jsonRFCList;
-            std::string appName = parameters["appName"].String();
             jsonRFCList = parameters["rfcList"].Array();
             std::string cmdParams, cmdResponse;
 
-            if ((!jsonRFCList.Length()) || (!appName.length())) {
+            if (!jsonRFCList.Length()) {
                 populateResponseWithError(SysSrv_UnSupportedFormat, response);
             } else {
                 for (int i = 0; i < jsonRFCList.Length(); i++) {
@@ -2052,7 +1997,7 @@ namespace WPEFramework {
                         cmdResponse = "";
                         cmdParams = baseCommand + jsonRFCList[i].String() + redirection + "\0";
                         LOGINFO("executing %s\n", cmdParams.c_str());
-                        cmdResponse = cRunScript(cmdParams.c_str());
+                        cmdResponse = Utils::cRunScript(cmdParams.c_str());
                         if (!cmdResponse.empty()) {
                             removeCharsFromString(cmdResponse, "\n\r");
                             hash[jsonRFCList[i].String().c_str()] = cmdResponse;
@@ -2069,7 +2014,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To fetch the list of milestones.
-         * @param1[in]  : {params":{"appName":"abc"}}
+         * @param1[in]  : {params":{}}
          * @param2[out] : "result":{"milestones":["<string>","<string>","<string>"],
          *      "success":<bool>}
          * @return      : Core::<StatusCode>
@@ -2079,14 +2024,8 @@ namespace WPEFramework {
         {
             bool retAPIStatus = false;
             vector<string> milestones;
-            string appName = parameters["appName"].String();
 
-            if (!appName.length()) {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-                returnResponse(retAPIStatus);
-            }
-
-            if (fileExists(MILESTONES_LOG_FILE)) {
+            if (Utils::fileExists(MILESTONES_LOG_FILE)) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
                 if (retAPIStatus) {
                     setJSONResponseArray(response, "milestones", milestones);
@@ -2101,7 +2040,7 @@ namespace WPEFramework {
 
         /***
          * @brief : Enables XRE Connection Retension option.
-         * @param1[in]  : {"params":{"appName":"abc","param":<bool>}}
+         * @param1[in]  : {"params":{"param":<bool>}}
          * @param2[out] : "result":{"success":<bool>}
          * @return      : Core::<StatusCode>
          */
@@ -2110,24 +2049,19 @@ namespace WPEFramework {
         {
             bool enable = false, retstatus = false;
             int status = SysSrv_Unexpected;
-            string appName = parameters["appName"].String();
 
-            if (!appName.length()) {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            } else {
                 enable = parameters["param"].Boolean();
                 if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
                     retstatus = true;
                 } else {
                     populateResponseWithError(status, response);
-                }
             }
             returnResponse(retstatus);
         }
 
         /***
          * @brief : collect device state info.
-         * @param1[in]  : {"params":{"appName":"abc","param":"<queryState>"}}
+         * @param1[in]  : {"params":{"param":"<queryState>"}}
          * @param2[out] : {"result":{"<queryState>":<value>,"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -2138,8 +2072,7 @@ namespace WPEFramework {
             JsonObject param;
             JsonObject resParam;
             string methodType;
-            string appName = parameters["appName"].String();
-            if (appName.length() > 0) {
+
                 methodType = parameters["param"].String();
 #ifdef HAS_STATE_OBSERVER
                 if (SYSTEM_CHANNEL_MAP == methodType) {
@@ -2234,16 +2167,13 @@ namespace WPEFramework {
 #else /* !HAS_STATE_OBSERVER */
                 populateResponseWithError(SysSrv_SupportNotAvailable, response);
 #endif /* !HAS_STATE_OBSERVER */
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            }
             returnResponse(( E_OK == retVal)? true: false);
         }//end of getStateInfo
 
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
         /***
          * @brief : To retrieve Device Power State.
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @param2[out] : {"result":{"powerState":"<mode>","success":<bool>}}
          * @return     : Core::<StatusCode>
          */
@@ -2267,7 +2197,7 @@ namespace WPEFramework {
          * LIGHT_SLEEP, ON.
          *
          * @param1[in] : {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.setPowerState",
-         * "params":{"appName":"abc","param":{"powerState":<string>, "standbyReason":<string>}}}
+         * "params":{"param":{"powerState":<string>, "standbyReason":<string>}}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
 
          * @return : Core::<StatusCode>
@@ -2277,10 +2207,8 @@ namespace WPEFramework {
         {
             bool retVal = false;
             string sleepMode;
-            string appName = parameters["appName"].String();
             ofstream outfile;
             outfile.open(STANDBY_REASON_FILE, ios::out);
-            if (appName.length()) {
                 JsonObject paramIn, paramOut;
                 string state = parameters["powerState"].String();
                 string reason = parameters["standbyReason"].String();
@@ -2296,7 +2224,7 @@ namespace WPEFramework {
                         sleepMode= paramOut["preferredStandbyMode"].String();
 
 
-                        LOGWARN("Output of preferredstandbyMode", sleepMode.c_str());
+                    LOGWARN("Output of preferredStandbyMode: '%s'", sleepMode.c_str());
 
                     }
                     else {
@@ -2326,11 +2254,6 @@ namespace WPEFramework {
                 else {
                     retVal = CPowerState::instance()->setPowerState(state);
                     LOGERR("this platform has no API System and/or Powerstate\n");
-                }
-
-            } else {
-                LOGERR("No arguments\n");
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
             }
             returnResponse(retVal);
         }//end of setPower State
@@ -2353,7 +2276,7 @@ namespace WPEFramework {
         /***
          * @brief : To set GZ Status.
          *
-         * @param1[in]  : {"params":{"appName":"abc","enabled":true}}
+         * @param1[in]  : {"params":{"enabled":true}}
          * @param2[out] : "result":{"success":<bool>}
          * @return      : Core::<StatusCode>
          */
@@ -2363,18 +2286,13 @@ namespace WPEFramework {
             bool enabled = false;
             bool result = false;
             int32_t retVal = E_NOK;
-            string appName = parameters["appName"].String();
-            if (appName.length()) {
+
                 enabled = parameters["enabled"].Boolean();
                 result  = setGzEnabled(enabled);
                 if (true == result) {
                     retVal = E_OK;
                 } else {
                     //do nothing
-                }
-            } else {
-                LOGERR("method invoked without argument\n");
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
             }
             returnResponse(( E_OK == retVal)? true: false);
         } //ent of SetGZEnabled
@@ -2382,7 +2300,7 @@ namespace WPEFramework {
         /***
          * @brief : To check GZ Status.
          *
-         * @param1[in]  : {"params":{"appName":"abc"}}
+         * @param1[in]  : {"params":{}}
          * @param2[out] : {"result":{"enabled":false,"success":true}}
          * @return      : Core::<StatusCode>
          */
@@ -2391,15 +2309,9 @@ namespace WPEFramework {
         {
             bool enabled = false;
             bool result = false;
-            string appName = parameters["appName"].String();
-            if (appName.length()) {
+
                 result = isGzEnabledHelper(enabled);
                 response["enabled"] = enabled;
-            } else {
-                LOGERR("method invoked without argument\n");
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            }
-
             returnResponse(result);
         } //end of isGZEnbaled
 
@@ -2558,7 +2470,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To retrieve system version details
-         * @param1[in] : {"params":{"appName":"abc"}}
+         * @param1[in] : {"params":{}}
          * @aparm2[in] : {"result":{"stbVersion":"<string>",
          *      "receiverVersion":"<string>","stbTimestamp":"<string>","success":<bool>}}
          */
@@ -2774,15 +2686,15 @@ namespace WPEFramework {
          *
          * @param1[in]  : string; requested application name
          * @param2[in]  : string; reboot reason
-         * @Event [out] : {"requestorApp": <string_rebootRequestorAppName>, "rebootReason": <string_ReasonForReboot>}
+         * @Event [out] : {"rebootReason": <string_ReasonForReboot>}
          */
-        void SystemServices::onRebootRequest(string requestingAppName, string reason)
+        void SystemServices::onRebootRequest(string reason)
         {
             JsonObject params;
-            params["requestorApp"] = requestingAppName;
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
+

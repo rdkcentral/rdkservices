@@ -133,7 +133,7 @@ namespace WPEFramework {
                 void onFirmwareUpdateStateChange(int state);
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
-                void onRebootRequest(string requestApp, string reason);
+                void onRebootRequest(string reason);
                 /* Events : End */
 
                 /* Methods : Begin */
