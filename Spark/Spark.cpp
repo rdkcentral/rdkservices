@@ -55,7 +55,7 @@ namespace Plugin {
         // instantiation.
         _service->Register(&_notification);
 
-        _spark = _service->Root<Exchange::IBrowser>(_connectionId, 3000, _T("SparkImplementation"));
+        _spark = _service->Root<Exchange::IBrowser>(_connectionId, 2000, _T("SparkImplementation"));
 
         if (_spark != nullptr) {
 
