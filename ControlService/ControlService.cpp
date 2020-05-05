@@ -39,11 +39,8 @@ typedef enum
 // Find My Remote event types
 typedef enum
 {
-    FMR_EVENT_VALUE_BEGIN_SUCCESS   = 0,
-    FMR_EVENT_VALUE_BEGIN_FAILURE   = 1,
-    FMR_EVENT_VALUE_END_INTERACT    = 2,
-    FMR_EVENT_VALUE_END_TIMEOUT     = 3,
-    FMR_EVENT_VALUE_END_FAILURE     = 4
+    FMR_EVENT_VALUE_INTERACTION_SUCCESS = 0,
+    FMR_EVENT_VALUE_SESSION_TIMEOUT     = 1
 } eFindMyRemoteEventValue;
 
 // Ghost code values for event handling
@@ -87,9 +84,10 @@ namespace WPEFramework {
             registerMethod("startPairingMode", &ControlService::startPairingModeWrapper, this);
             registerMethod("endPairingMode", &ControlService::endPairingModeWrapper, this);
 
+            registerMethod("canFindMyRemote", &ControlService::canFindMyRemoteWrapper, this);
             registerMethod("findMyRemote", &ControlService::findMyRemoteWrapper, this);
 
-            setApiVersionNumber(6);
+            setApiVersionNumber(7);
         }
 
         ControlService::~ControlService()
@@ -140,7 +138,6 @@ namespace WPEFramework {
             IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
             IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
             // Register for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN, controlEventHandler) );
             IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
             // Register for ControlMgr API 6+ onControl event pass-through
             IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
@@ -165,7 +162,6 @@ namespace WPEFramework {
             IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
             IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
             // Remove handlers for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN, controlEventHandler) );
             IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
             // Remove handler for ControlMgr API 6+ onControl event pass-through
             IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
@@ -202,7 +198,6 @@ namespace WPEFramework {
                 if ((eventId == CTRLM_RCU_IARM_EVENT_KEY_GHOST) ||
                     (eventId == CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE) ||
                     (eventId == CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT) ||
-                    (eventId == CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN) ||
                     (eventId == CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END) ||
                     (eventId == CTRLM_RCU_IARM_EVENT_CONTROL))
                 {
@@ -401,63 +396,6 @@ namespace WPEFramework {
                     LOGERR("ERROR - NULL data from CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT event!\n");
                 }
             }
-            else if (eventId == CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN)
-            {
-                LOGINFO("Got a controlMgr reverse cmd begin event!");
-                // Allow for variable size event, dictated by this event type
-                if (len < sizeof(ctrlm_rcu_iarm_event_reverse_cmd_t))
-                {
-                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN event with bad data length: %u, should be: %u!!\n",
-                           len, sizeof(ctrlm_rcu_iarm_event_reverse_cmd_t));
-                    return;
-                }
-                if (data != NULL)
-                {
-                    ctrlm_rcu_iarm_event_reverse_cmd_t *msg = (ctrlm_rcu_iarm_event_reverse_cmd_t*)data;
-                    if (msg->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
-                    {
-                        ctrlm_rcu_reverse_cmd_t cmd = msg->action;
-                        if (cmd == CTRLM_RCU_REVERSE_CMD_FIND_MY_REMOTE) {
-
-                            int remoteId = msg->controller_id;
-                            int value = 0;
-
-                            string source   = "RF";
-                            string type     = "findMyRemote";
-                            string data     = "";
-
-                            // Lookup eventValue from the "result"
-                            switch (msg->result) {
-                                case CTRLM_RCU_REVERSE_CMD_SUCCESS:                 value = FMR_EVENT_VALUE_BEGIN_SUCCESS;  break;
-                                case CTRLM_RCU_REVERSE_CMD_FAILURE:                 value = FMR_EVENT_VALUE_BEGIN_FAILURE;  break;
-                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_FOUND:    value = FMR_EVENT_VALUE_BEGIN_FAILURE;  break;
-                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_FOUND:        value = FMR_EVENT_VALUE_BEGIN_SUCCESS;  break;
-                                case CTRLM_RCU_REVERSE_CMD_USER_INTERACTION:        value = FMR_EVENT_VALUE_BEGIN_FAILURE;  break;
-                                default:                                            value = FMR_EVENT_VALUE_BEGIN_FAILURE;  break;
-                            }
-
-                            LOGINFO("Got FIND_MY_REMOTE in CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN event, remoteId: %d, eventValue: %d. Event result: %d.\n.",
-                                    remoteId, value, msg->result);
-
-                            onControl(remoteId, value, source, type, data);
-                        }
-                        else
-                        {
-                            LOGWARN("Got CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN event for cmd: %d, instead of CTRLM_RCU_REVERSE_CMD_FIND_MY_REMOTE.\n",
-                                    (int)cmd);
-                        }
-                    }
-                    else
-                    {
-                        LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN event with bad ctrlm RCU API revision: %u, should be: %u!!\n",
-                               (unsigned)msg->api_revision, CTRLM_RCU_IARM_BUS_API_REVISION);
-                    }
-                }
-                else
-                {
-                    LOGERR("ERROR - NULL data from CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_BEGIN event!\n");
-                }
-            }
             else if (eventId == CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END)
             {
                 LOGINFO("Got a controlMgr reverse cmd end event!");
@@ -485,12 +423,12 @@ namespace WPEFramework {
 
                             // Lookup eventValue from the "result"
                             switch (msg->result) {
-                                case CTRLM_RCU_REVERSE_CMD_SUCCESS:                 value = FMR_EVENT_VALUE_END_INTERACT;   break;
-                                case CTRLM_RCU_REVERSE_CMD_FAILURE:                 value = FMR_EVENT_VALUE_END_FAILURE;    break;
-                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_FOUND:    value = FMR_EVENT_VALUE_END_FAILURE;    break;
-                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_FOUND:        value = FMR_EVENT_VALUE_END_TIMEOUT;    break;
-                                case CTRLM_RCU_REVERSE_CMD_USER_INTERACTION:        value = FMR_EVENT_VALUE_END_INTERACT;   break;
-                                default:                                            value = FMR_EVENT_VALUE_END_FAILURE;    break;
+                                case CTRLM_RCU_REVERSE_CMD_SUCCESS:                 value = FMR_EVENT_VALUE_INTERACTION_SUCCESS;    break;
+                                case CTRLM_RCU_REVERSE_CMD_FAILURE:                 value = FMR_EVENT_VALUE_SESSION_TIMEOUT;        break;
+                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_FOUND:    value = FMR_EVENT_VALUE_SESSION_TIMEOUT;        break;
+                                case CTRLM_RCU_REVERSE_CMD_CONTROLLER_FOUND:        value = FMR_EVENT_VALUE_SESSION_TIMEOUT;        break;
+                                case CTRLM_RCU_REVERSE_CMD_USER_INTERACTION:        value = FMR_EVENT_VALUE_INTERACTION_SUCCESS;    break;
+                                default:                                            value = FMR_EVENT_VALUE_SESSION_TIMEOUT;        break;
                             }
 
                             LOGINFO("Got FIND_MY_REMOTE in CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END event, remoteId: %d, eventValue: %d. Event result: %d.\n.",
@@ -523,6 +461,7 @@ namespace WPEFramework {
                    ctrlm_rcu_iarm_event_control_t *msg = (ctrlm_rcu_iarm_event_control_t*)data;
                    int remoteId     = msg->controller_id;
                    int value        = msg->event_value;
+                   int spare_value  = msg->spare_value;
                    string source    = msg->event_source;
                    string type      = msg->event_type;
                    string data      = msg->event_data;
@@ -535,6 +474,25 @@ namespace WPEFramework {
 
                    LOGINFO("Got CTRLM_RCU_IARM_EVENT_CONTROL event, remoteId: %d, source: %s, type: %s, data: %s, value: %d.\n.",
                            remoteId, source.c_str(), type.c_str(), data.c_str(), value);
+
+                   if(type == "sfm")
+                   {
+                        switch (spare_value) {
+                            //Ignore these sfm's
+                            case CTRLM_RCU_FUNCTION_SETUP:
+                            case CTRLM_RCU_FUNCTION_BLINK_SOFTWARE_VERSION:
+                            case CTRLM_RCU_FUNCTION_BLINK_AVR_CODE:
+                            case CTRLM_RCU_FUNCTION_BLINK_TV_CODE:
+                            case CTRLM_RCU_FUNCTION_BLINK_IR_DB_VERSION:
+                            case CTRLM_RCU_FUNCTION_BLINK_BATTERY_LEVEL:
+                            case CTRLM_RCU_FUNCTION_INVALID_KEY_COMBO:
+                            case CTRLM_RCU_FUNCTION_RESET_SOFT:
+                            case CTRLM_RCU_FUNCTION_KEY_REMAPPING:
+                            case CTRLM_RCU_FUNCTION_INVALID:
+                                LOGWARN("Ignoring sfm <%s>\n", data.c_str());
+                                return;
+                        }
+                   }
 
                    onControl(remoteId, value, source, type, data);
                }
@@ -976,43 +934,79 @@ namespace WPEFramework {
             returnResponse(status_code == STATUS_OK);
         }
 
+        uint32_t ControlService::canFindMyRemoteWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false;
+
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            result = canFindMyRemote();
+
+            response["result"] = result;
+            returnResponse(true);
+        }
+
         uint32_t ControlService::findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             StatusCode status_code = STATUS_OK;
             const char* paramKey = NULL;
-            int remoteId = -1;
+            int timeOutPeriod = -1;
+            bool bOnlyLastUsed = true;
 
-            if (!parameters.IsSet() || !parameters.HasLabel("remoteId"))
+            if (!parameters.IsSet())
             {
                 // There are either NO parameters, or no remoteId.  We will treat this as a fatal error. Exit now.
-                LOGERR("ERROR - this method requires a 'remoteId' parameter!");
+                LOGERR("ERROR - this method requires a 'timeOutPeriod' parameter and a bOnlyLastUsed parameter!");
+                response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
+                returnResponse(false);
+            }
+            else if (!parameters.HasLabel("timeOutPeriod"))
+            {
+
+                LOGERR("ERROR - this method requires a 'timeOutPeriod' parameter!");
+                response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
+                returnResponse(false);
+            }
+            else if (!parameters.HasLabel("bOnlyLastUsed"))
+            {
+            // Get the remoteId from the parameters
+                LOGERR("ERROR - this method requires a 'bOnlyLastUsed' parameter!");
                 response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                 returnResponse(false);
             }
 
-            // Get the remoteId from the parameters
-            paramKey = "remoteId";
+            // Get the timeOutPeriod from the parameters
+            paramKey = "timeOutPeriod";
             if (parameters.HasLabel(paramKey))
             {
                 int value = 0;
                 getNumberParameter(paramKey, value);
-                // There are special "last used remote" and "all remotes" values that the remoteId can take on, for this method.
-                if (((value <= 0) || (value > CTRLM_MAIN_MAX_BOUND_CONTROLLERS)) &&
-                    !((value == CTRLM_MAIN_CONTROLLER_ID_LAST_USED) || (value == CTRLM_MAIN_CONTROLLER_ID_ALL)))
+                if ((value < 5) || (value > 30))    // These are expressed in seconds, not milliseconds!
                 {
                     // The remoteId value is not in range.  We will treat this as a fatal error. Exit now.
-                    LOGERR("ERROR - Bad 'remoteId' parameter value: %d!", value);
+                    LOGERR("ERROR - Bad 'timeOutPeriod' parameter value: %d!", value);
                     response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                     returnResponse(false);
                 }
-                remoteId = value;
-                LOGINFO("remoteId passed in is %d.", remoteId);
+                timeOutPeriod = value;
+                LOGINFO("timeOutPeriod passed in is %d.", timeOutPeriod);
+            }
+
+            // Get the bOnlyLastUsed from the parameters
+            paramKey = "bOnlyLastUsed";
+            if (parameters.HasLabel(paramKey))
+            {
+                bool value = 0;
+                getBoolParameter(paramKey, value);
+                bOnlyLastUsed = value;
+                LOGINFO("bOnlyLastUsed passed in is %d.", bOnlyLastUsed);
             }
 
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            status_code = findMyRemote(remoteId);
+            status_code = findMyRemote(timeOutPeriod, bOnlyLastUsed);
 
             response["status_code"] = (int)status_code;
             returnResponse(status_code == STATUS_OK);
@@ -1488,7 +1482,7 @@ namespace WPEFramework {
             return status_code;
         }
 
-        StatusCode ControlService::findMyRemote(int remoteId)
+        StatusCode ControlService::findMyRemote(int timeOutPeriod, bool bOnlyLastUsed)
         {
             StatusCode      status_code = STATUS_OK;
             IARM_Result_t   res;
@@ -1499,7 +1493,7 @@ namespace WPEFramework {
             int exsize = alert_flags_param_data_size + alert_duration_param_data_size - 1;      // minus 1 for the one param_data byte, already part of the structure.
             size_t totalsize = sizeof(ctrlm_main_iarm_call_rcu_reverse_cmd_t) + (size_t)exsize;
             unsigned char alert_flags = (CTRLM_RCU_ALERT_AUDIBLE | CTRLM_RCU_ALERT_VISUAL);     // Audio and visual flags both set
-            unsigned short alert_duration = 15000;                                              // Alert duration (in milliseconds)
+            unsigned short alert_duration = (unsigned short)timeOutPeriod * 1000;               // Alert duration (in milliseconds)
 
             ctrlm_main_iarm_call_rcu_reverse_cmd_t* pCmd = (ctrlm_main_iarm_call_rcu_reverse_cmd_t*)calloc(1, totalsize);
             if (pCmd == NULL)
@@ -1510,7 +1504,7 @@ namespace WPEFramework {
 
             pCmd->api_revision = CTRLM_RCU_IARM_BUS_API_REVISION;
             pCmd->network_type = CTRLM_NETWORK_TYPE_RF4CE;
-            pCmd->controller_id = remoteId;
+            pCmd->controller_id = (bOnlyLastUsed ? CTRLM_MAIN_CONTROLLER_ID_LAST_USED : CTRLM_MAIN_CONTROLLER_ID_ALL);
             pCmd->cmd = CTRLM_RCU_REVERSE_CMD_FIND_MY_REMOTE;
             pCmd->total_size = totalsize;
             pCmd->num_params = 2;
@@ -1558,6 +1552,39 @@ namespace WPEFramework {
                 free(pCmd);
             }
             return status_code;
+        }
+
+        bool ControlService::canFindMyRemote()
+        {
+            bool result = false;
+
+#if (CTRLM_MAIN_IARM_BUS_API_REVISION > 8)
+            IARM_Result_t retval;
+            ctrlm_main_iarm_call_control_service_can_find_my_remote_t call;
+
+            memset((void*)&call, 0, sizeof(call));
+            call.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
+
+            // Make the IARM bus call to controlMgr
+            retval = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_CONTROL_SERVICE_CAN_FIND_MY_REMOTE, (void *)&call, sizeof(call));
+            if (retval != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_CONTROL_SERVICE_CAN_FIND_MY_REMOTE - IARM_Bus_Call FAILED, retval: %d.", (int)retval);
+            }
+            else
+            {
+                if (call.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_CONTROL_SERVICE_CAN_FIND_MY_REMOTE - FAILED, result: %d.", (int)call.result);
+                }
+                else
+                {
+                    result = (bool)call.is_supported;
+                }
+            }
+#endif // CTRLM_MAIN_IARM_BUS_API_REVISION > 8
+
+            return result;
         }
         // End private method implementations
 
@@ -1958,6 +1985,10 @@ namespace WPEFramework {
             remoteInfo["totalNumberOfSpeakersWorking"]   = JsonValue((int)ctrlStatus.status.total_number_of_speakers_working);
             remoteInfo["endOfSpeechInitialTimeoutCount"] = JsonValue((int)ctrlStatus.status.end_of_speech_initial_timeout_count);
             remoteInfo["endOfSpeechTimeoutCount"]        = JsonValue((int)ctrlStatus.status.end_of_speech_timeout_count);
+            remoteInfo["uptimeStartTime"]                = JsonValue((long long)ctrlStatus.status.time_uptime_start * 1000LL);
+            remoteInfo["uptimeInSeconds"]                = JsonValue((long long)ctrlStatus.status.uptime_seconds);
+            remoteInfo["privacyTimeInSeconds"]           = JsonValue((long long)ctrlStatus.status.privacy_time_seconds);
+            remoteInfo["versionDSPBuildId"]              = std::string(ctrlStatus.status.version_dsp_build_id);
 
             LOGINFO("controller_id: %d, type: %s, SW version: %s, HW version: %s, time_last_key: %lu.",
                     (int)ctrlStatus.controller_id, ctrlStatus.status.type,

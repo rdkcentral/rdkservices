@@ -15,19 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(jsonrpc REQUIRED)
+set(PLUGIN_NAME CWTestThunderClient)
+find_package(${NAMESPACE}Protocols REQUIRED)
 
-add_executable(CWTestThunderClient CWTestThunderClient.cpp)
+add_executable(${PLUGIN_NAME} CWTestThunderClient.cpp)
 
-set_target_properties(CWTestThunderClient PROPERTIES
+set_target_properties(${PLUGIN_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
         )
 
 
-target_link_libraries(CWTestThunderClient
+target_link_libraries(${PLUGIN_NAME}
     PRIVATE
-    jsonrpc::jsonrpc
+    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
         )
 
-install(TARGETS CWTestThunderClient DESTINATION bin)
+install(TARGETS ${PLUGIN_NAME} DESTINATION bin)

@@ -89,6 +89,11 @@ add_definitions (-DBUILD_ENABLE_THERMAL_PROTECTION)
    add_definitions (-DENABLE_THERMAL_PROTECTION)
 endif()
 
+if (SCREENCAP_SVP_ENABLED)
+    message("Building with SCREENCAP_SVP_ENABLED")
+    add_definitions (-DSCREENCAP_SVP_ENABLED)
+endif()
+
 if (BUILD_XG1)
     message("Building for XG1")
     add_definitions (-DBUILD_XG1)

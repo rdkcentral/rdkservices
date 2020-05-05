@@ -61,7 +61,7 @@
 
 #define STATEOBSERVER_MAJOR_VERSION 1
 #define STATEOBSERVER_MINOR_VERSION 0
-#define DEBUG_INFO 0
+#define DEBUG_INFO 1
 
 namespace WPEFramework {
 
@@ -93,6 +93,7 @@ namespace WPEFramework {
 			Register("unregisterListeners", &StateObserver::unregisterListeners, this);	
 			Register("setApiVersionNumber", &StateObserver::setApiVersionNumberWrapper, this);
 			Register("getApiVersionNumber", &StateObserver::getApiVersionNumberWrapper, this);
+			Register("getRegisteredPropertyNames", &StateObserver::getRegisteredPropertyNames, this);
 			Register("getName", &StateObserver::getNameWrapper, this);
 			setApiVersionNumber(1);
 		}
@@ -122,17 +123,11 @@ namespace WPEFramework {
 		void StateObserver::InitializeIARM()
 		{
 			LOGINFO("initializing IARM bus...\n");
-			int isRegistered;
-			IARM_Result_t res = IARM_Bus_IsConnected(IARM_BUS_SYSMGR_NAME , &isRegistered);
-			if(res != IARM_RESULT_SUCCESS)
-			{
-				IARM_CHECK( IARM_Bus_Init(IARM_BUS_SYSMGR_NAME) );
-				IARM_CHECK( IARM_Bus_Connect() );
-				m_iarmConnected = true;
-			}
+			IARM_Result_t res;
 
 			//Register iarm event handler
 			IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, onReportStateObserverEvents) );
+			m_iarmConnected = true;
 		}
 
 		void StateObserver::DeinitializeIARM()
@@ -143,8 +138,6 @@ namespace WPEFramework {
 				IARM_Result_t res;
 				m_iarmConnected = false;
 				IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) );
-				IARM_CHECK( IARM_Bus_Disconnect() );
-				IARM_CHECK( IARM_Bus_Term() );
 			}
 		}
 
@@ -173,6 +166,16 @@ namespace WPEFramework {
 			returnResponse(true);
 		}
 
+		uint32_t StateObserver::getRegisteredPropertyNames(const JsonObject &parameters, JsonObject &response)
+		{
+			JsonArray response_arr;
+			for(const auto &propertyName: registeredPropertyNames)
+			{
+        		response_arr.Add(propertyName);
+			}
+			response["properties"] = response_arr;
+			returnResponse(true);
+		}
 
 		/**
 		 * @brief This function is used to get the version number of the state observer Plugin.
@@ -239,12 +242,12 @@ namespace WPEFramework {
 		 * @return Core::ERROR_NONE
 		 *
 		 *Request example: curl -d '{"jsonrpc":"2.0","id":"3","method": "StateObserver.1.getValues" ,"params":{"PropertyNames":["com.comcast.channel_map"]}}' http://127.0.0.1:9998/jsonrpc
-		 *Response success:{"jsonrpc":"2.0","id":3,"result":{"properties":[{"PropertyName":"com.comcast.channel_map","state":2}],"success":true}}
+		 *Response success:{"jsonrpc":"2.0","id":3,"result":{"properties":[{"propertyName":"com.comcast.channel_map","value":2}],"success":true}}
 		 *Response failure:{"jsonrpc":"2.0","id":3,"result":{"success":false}}
 		 */
 		uint32_t StateObserver::getValues(const JsonObject& parameters, JsonObject& response)
 		{	
-			LOGINFO();
+			LOGINFOMETHOD();
 			bool ret=false;
 			string json;
 			parameters.ToString(json);
@@ -278,6 +281,7 @@ namespace WPEFramework {
 				}
 				getVal(pname,response);
 			}
+			LOGTRACEMETHODFIN();
 			returnResponse(ret);
 		}
 
@@ -328,8 +332,8 @@ namespace WPEFramework {
 						channelMapState = 2;
 						channelMapError = 0;
 					}
-					devProp["PropertyName"]=SYSTEM_CHANNEL_MAP;
-					devProp["state"]=channelMapState;
+					devProp["propertyName"]=SYSTEM_CHANNEL_MAP;
+					devProp["value"]=channelMapState;
 					if(channelMapError == 1)
 					{
 						err_str="RDK-03005";
@@ -347,8 +351,8 @@ namespace WPEFramework {
 						systemCardState = 0;
 						systemCardError = 0;
 					}
-					devProp["PropertyName"]=SYSTEM_CARD_DISCONNECTED;
-					devProp["state"]=systemCardState;
+					devProp["propertyName"]=SYSTEM_CARD_DISCONNECTED;
+					devProp["value"]=systemCardState;
 					if(systemCardError==1) 
 					{
 						err_str = "RDK-03007";
@@ -363,22 +367,22 @@ namespace WPEFramework {
 					{
 						tuneReadyState = 1;
 					}
-					devProp["PropertyName"]=SYSTEM_TUNE_READY;
-					devProp["state"]=tuneReadyState;
+					devProp["propertyName"]=SYSTEM_TUNE_READY;
+					devProp["value"]=tuneReadyState;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it  == SYSTEM_EXIT_OK) 
 				{
-					devProp["PropertyName"]=SYSTEM_EXIT_OK;
-					devProp["state"]=param.exit_ok_key_sequence.state;
+					devProp["propertyName"]=SYSTEM_EXIT_OK;
+					devProp["value"]=param.exit_ok_key_sequence.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it ==SYSTEM_CMAC ) 
 				{
-					devProp["PropertyName"]=SYSTEM_CMAC ;
-					devProp["state"]=param.cmac.state;
+					devProp["propertyName"]=SYSTEM_CMAC ;
+					devProp["value"]=param.cmac.state;
 					if(param.cmac.error == 1)
 					{
 						err_str  = "RDK-03002";
@@ -388,122 +392,132 @@ namespace WPEFramework {
 				}
 				else if(*it ==SYSTEM_MOTO_ENTITLEMENT ) 
 				{
-					devProp["PropertyName"]=SYSTEM_MOTO_ENTITLEMENT;
-					devProp["state"]=param.card_moto_entitlements.state;
+					devProp["propertyName"]=SYSTEM_MOTO_ENTITLEMENT;
+					devProp["value"]=param.card_moto_entitlements.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_DAC_INIT_TIMESTAMP) 
 				{
-					devProp["PropertyName"]=SYSTEM_DAC_INIT_TIMESTAMP;
+					devProp["propertyName"]=SYSTEM_DAC_INIT_TIMESTAMP;
 					string dac_init_str(param.dac_init_timestamp.payload);
-					devProp["state"]=dac_init_str;
+					devProp["value"]=dac_init_str;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_CARD_SERIAL_NO ) 
 				{
 					string card_serial_str(param.card_serial_no.payload);
-					devProp["PropertyName"]=SYSTEM_CARD_SERIAL_NO;
-					devProp["state"]=card_serial_str;
+					devProp["propertyName"]=SYSTEM_CARD_SERIAL_NO;
+					devProp["value"]=card_serial_str;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_STB_SERIAL_NO ) 
 				{
 					string stb_string(param.stb_serial_no.payload);
-					devProp["PropertyName"]=SYSTEM_STB_SERIAL_NO;
-					devProp["state"]=stb_string;
+					devProp["propertyName"]=SYSTEM_STB_SERIAL_NO;
+					devProp["value"]=stb_string;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it ==SYSTEM_ECM_MAC ) 
 				{
 					string ecm_mac_str(param.ecm_mac.payload);
-					devProp["PropertyName"]=SYSTEM_ECM_MAC;
-					devProp["state"]=ecm_mac_str;
+					devProp["propertyName"]=SYSTEM_ECM_MAC;
+					devProp["value"]=ecm_mac_str;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_MOTO_HRV_RX) 
 				{
-					devProp["PropertyName"]=SYSTEM_MOTO_HRV_RX;
-					devProp["state"]=param.card_moto_hrv_rx.state;
+					devProp["propertyName"]=SYSTEM_MOTO_HRV_RX;
+					devProp["value"]=param.card_moto_hrv_rx.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_CARD_CISCO_STATUS ) 
 				{
 					LOGINFO("property SYSTEM_CARD_CISCO_STATUS \n");
-					devProp["PropertyName"]=SYSTEM_CARD_CISCO_STATUS;
-					devProp["state"]=param.card_cisco_status.state;
+					devProp["propertyName"]=SYSTEM_CARD_CISCO_STATUS;
+					devProp["value"]=param.card_cisco_status.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_VIDEO_PRESENTING) 
 				{
-					devProp["PropertyName"]=SYSTEM_VIDEO_PRESENTING;
-					devProp["state"]=param.video_presenting.state;
+					devProp["propertyName"]=SYSTEM_VIDEO_PRESENTING;
+					devProp["value"]=param.video_presenting.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_HDMI_OUT ) 
 				{
-					devProp["PropertyName"]=SYSTEM_HDMI_OUT;
-					devProp["state"]=param.hdmi_out.state;
+					devProp["propertyName"]=SYSTEM_HDMI_OUT;
+					devProp["value"]=param.hdmi_out.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_HDCP_ENABLED ) 
 				{
-					devProp["PropertyName"]=SYSTEM_HDCP_ENABLED;
-					devProp["state"]=param.hdcp_enabled.state;
+					devProp["propertyName"]=SYSTEM_HDCP_ENABLED;
+					devProp["value"]=param.hdcp_enabled.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_HDMI_EDID_READ ) 
 				{			
-					devProp["PropertyName"]=SYSTEM_HDMI_EDID_READ;
-					devProp["state"]=param.hdmi_edid_read.state;
+					devProp["propertyName"]=SYSTEM_HDMI_EDID_READ;
+					devProp["value"]=param.hdmi_edid_read.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_FIRMWARE_DWNLD ) 
 				{
-					devProp["PropertyName"]=SYSTEM_FIRMWARE_DWNLD;
-					devProp["state"]=param.firmware_download.state;
+					devProp["propertyName"]=SYSTEM_FIRMWARE_DWNLD;
+					devProp["value"]=param.firmware_download.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_TIME_SOURCE) 
 				{
-					devProp["PropertyName"]=SYSTEM_TIME_SOURCE;
-					devProp["state"]=param.time_source.state;
+					LOGWARN("%s PropertyName: %s Time source state: %d, time source error: %d",
+						__FUNCTION__,
+						SYSTEM_TIME_SOURCE.c_str(),
+						param.time_source.state,
+						param.time_source.error);
+
+					devProp["propertyName"]=SYSTEM_TIME_SOURCE;
+					devProp["value"]=param.time_source.state;
 					if(param.time_source.error == 1)
 					{
 						err_str  = "RDK-03006";
 					}
 					devProp["error"]=err_str;
+
+					std::string json;
+					devProp.ToString(json);
+					LOGWARN("%s devProp=%s", __FUNCTION__, json.c_str());
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_TIME_ZONE) 
 				{
-					devProp["PropertyName"]=SYSTEM_TIME_ZONE;
-					devProp["state"]=param.time_zone_available.state;
+					devProp["propertyName"]=SYSTEM_TIME_ZONE;
+					devProp["value"]=param.time_zone_available.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_CA_SYSTEM) 
 				{
-					devProp["PropertyName"]=SYSTEM_CA_SYSTEM;
-					devProp["state"]=param.ca_system.state;
+					devProp["propertyName"]=SYSTEM_CA_SYSTEM;
+					devProp["value"]=param.ca_system.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_ESTB_IP) 
 				{
-					devProp["PropertyName"]=SYSTEM_ESTB_IP;
-					devProp["state"]=param.estb_ip.state;
+					devProp["propertyName"]=SYSTEM_ESTB_IP;
+					devProp["value"]=param.estb_ip.state;
 					if(param.estb_ip.error == 1)
 					{
 						err_str  = "RDK-03009";
@@ -513,8 +527,8 @@ namespace WPEFramework {
 				}
 				else if(*it == SYSTEM_ECM_IP) 
 				{
-					devProp["PropertyName"]=SYSTEM_ECM_IP;
-					devProp["state"]=param.ecm_ip.state;
+					devProp["propertyName"]=SYSTEM_ECM_IP;
+					devProp["value"]=param.ecm_ip.state;
 					if(param.ecm_ip.error == 1)
 					{
 						err_str  = "RDK-03004";
@@ -524,22 +538,22 @@ namespace WPEFramework {
 				}
 				else if(*it == SYSTEM_LAN_IP) 
 				{
-					devProp["PropertyName"]=SYSTEM_LAN_IP;
-					devProp["state"]=param.lan_ip.state;
+					devProp["propertyName"]=SYSTEM_LAN_IP;
+					devProp["value"]=param.lan_ip.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_DOCSIS) 
 				{
-					devProp["PropertyName"]=SYSTEM_DOCSIS;
-					devProp["state"]=param.docsis.state;
+					devProp["propertyName"]=SYSTEM_DOCSIS;
+					devProp["value"]=param.docsis.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
 				else if(*it == SYSTEM_DSG_CA_TUNNEL) 
 				{
-					devProp["PropertyName"]=SYSTEM_DSG_CA_TUNNEL;
-					devProp["state"]=param.dsg_ca_tunnel.state;
+					devProp["propertyName"]=SYSTEM_DSG_CA_TUNNEL;
+					devProp["value"]=param.dsg_ca_tunnel.state;
 					if(param.dsg_ca_tunnel.error == 1)
 					{
 						err_str  = "RDK-03003";
@@ -549,8 +563,8 @@ namespace WPEFramework {
 				}
 				else if(*it == SYSTEM_CABLE_CARD ) 
 				{
-					devProp["PropertyName"]=SYSTEM_CABLE_CARD;
-					devProp["state"]=param.cable_card.state;
+					devProp["propertyName"]=SYSTEM_CABLE_CARD;
+					devProp["value"]=param.cable_card.state;
 					if(param.cable_card.error == 1)
 					{
 						err_str  = "RDK-03001";
@@ -560,8 +574,8 @@ namespace WPEFramework {
 				}
 				else if(*it == SYSTEM_VOD_AD) 
 				{
-					devProp["PropertyName"]=SYSTEM_VOD_AD;
-					devProp["state"]=param.vod_ad.state;
+					devProp["propertyName"]=SYSTEM_VOD_AD;
+					devProp["value"]=param.vod_ad.state;
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
@@ -569,8 +583,8 @@ namespace WPEFramework {
 				{
 					int ipState=param.ip_mode.state;
 					int ipError=param.ip_mode.error;
-					devProp["PropertyName"]=SYSTEM_IP_MODE;
-					devProp["state"]=ipState;
+					devProp["propertyName"]=SYSTEM_IP_MODE;
+					devProp["value"]=ipState;
 					devProp["error"]=ipError;
 					response_arr.Add(devProp);
 				}
@@ -579,7 +593,7 @@ namespace WPEFramework {
 				{
 					LOGINFO("Invalid property Name\n");
 					string res="Invalid property Name";
- 					devProp["PropertyName"] = *it;
+ 					devProp["propertyName"] = *it;
 					devProp["error"]=res;
 					response_arr.Add(devProp);
 				}
@@ -604,12 +618,12 @@ namespace WPEFramework {
 		 *
 		 * @return Core::ERROR_NONE
 		 *Request example: curl -d '{"jsonrpc":"2.0","id":"3","method": "StateObserver.1.registerListeners" ,"params":{"PropertyNames":["com.comcast.channel_map"]}}' http://127.0.0.1:9998/jsonrpc
-		 *Response success:{"jsonrpc":"2.0","id":3,"result":{"properties":[{"PropertyName":"com.comcast.channel_map","state":2}],"success":true}}
+		 *Response success:{"jsonrpc":"2.0","id":3,"result":{"properties":[{"propertyName":"com.comcast.channel_map","value":2}],"success":true}}
 		 *Response failure:{"jsonrpc":"2.0","id":3,"result":{"success":false}}
 		 */
 		uint32_t StateObserver::registerListeners(const JsonObject& parameters, JsonObject& response)	
 		{
-			LOGINFO();
+			LOGINFOMETHOD();
 			bool ret=false;
 			string json;
 			parameters.ToString(json);
@@ -644,12 +658,13 @@ namespace WPEFramework {
 				{
 					if (std::find(registeredPropertyNames.begin(), registeredPropertyNames.end(), *it) == registeredPropertyNames.end())
 					{
-						LOGINFO("prop being added to listeners %s",*it);
+						LOGINFO("prop being added to listeners %s",it->c_str());
 						registeredPropertyNames.push_back(*it);
 					}
 				}
 				getVal(pname,response);
 			}
+			LOGTRACEMETHODFIN();
 			returnResponse(ret);
 		}
 
@@ -668,7 +683,7 @@ namespace WPEFramework {
 		 */
 		uint32_t StateObserver::unregisterListeners(const JsonObject& parameters, JsonObject& response)	
 		{
-			LOGINFO();
+			LOGINFOMETHOD();
 			bool ret=false;
 			string json;
 			parameters.ToString(json);
@@ -704,11 +719,12 @@ namespace WPEFramework {
 					if(itr!=registeredPropertyNames.end())
 					{
 						//property found hence remove it
-						LOGINFO("prop being removed %s",*it);
+						LOGINFO("prop being removed %s",it->c_str());
 						registeredPropertyNames.erase(itr);
 					}
 				}
 			}
+			LOGTRACEMETHODFIN();
 			returnResponse(ret);
 		}
 
@@ -817,7 +833,7 @@ namespace WPEFramework {
 						systemStates.card_serial_no.error =error;
 						strncpy(systemStates.card_serial_no.payload,payload,strlen(payload));
 						systemStates.card_serial_no.payload[strlen(payload)]='\0';
-						params["PropertyName"]=SYSTEM_CARD_SERIAL_NO;
+						params["propertyName"]=SYSTEM_CARD_SERIAL_NO;
 						params["error"]=error;
 						string payload_str(payload);
 						params["payload"].FromString(payload_str);
@@ -829,7 +845,7 @@ namespace WPEFramework {
 						systemStates.stb_serial_no.error =error;
 						strncpy(systemStates.stb_serial_no.payload,payload,strlen(payload));
 						systemStates.stb_serial_no.payload[strlen(payload)]='\0';
-						params["PropertyName"]=SYSTEM_STB_SERIAL_NO;
+						params["propertyName"]=SYSTEM_STB_SERIAL_NO;
 						params["error"]=error;
 						string payload_str(payload);
 						params["payload"].FromString(payload_str);
@@ -965,7 +981,7 @@ namespace WPEFramework {
 						systemStates.ecm_mac.error =error;
 						strncpy(systemStates.ecm_mac.payload,payload,strlen(payload));
 						systemStates.ecm_mac.payload[strlen(payload)]='\0';
-						params["PropertyName"]=SYSTEM_ECM_MAC;
+						params["propertyName"]=SYSTEM_ECM_MAC;
 						params["error"]=error;
 						string payload_str(payload);
 						params["payload"].FromString(payload_str);
@@ -1012,7 +1028,7 @@ namespace WPEFramework {
 		 */
 		void StateObserver::notify(string eventname, JsonObject& params)
 		{	
-			string property_name=params["PropertyName"].String();
+			string property_name=params["propertyName"].String();
 			if(std::find(registeredPropertyNames.begin(), registeredPropertyNames.end(), property_name) != registeredPropertyNames.end())	
 			{
 				LOGINFO("calling send notify\n");
@@ -1022,7 +1038,7 @@ namespace WPEFramework {
 					LOGINFO("send notify request  %s \n",json_str.c_str());
 				#endif
 				//property added in registeredProperty list hence call sendNotify
-				sendNotify(eventname, params);
+				sendNotify(eventname.c_str(), params);
 			}
 		}
 		
@@ -1036,11 +1052,11 @@ namespace WPEFramework {
 		 * param[out] JsonObject Property's values in a JsonObject.
 		 *
 		 */
-		void StateObserver::setProp(JsonObject& params,string propName,int state,int error)
+		void StateObserver::setProp(JsonObject& params,string propName,int value,int error)
 		{
 			string property(propName);
-			params["PropertyName"]=property;
-			params["state"]=state;
+			params["propertyName"]=property;
+			params["value"]=value;
 			params["error"]=error;
 			#if(DEBUG_INFO)
 				string json;

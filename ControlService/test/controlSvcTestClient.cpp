@@ -53,7 +53,8 @@ void showMenu()
     std::cout<<"7.getValues\n";
     std::cout<<"8.startPairingMode\n";
     std::cout<<"9.endPairingMode\n";
-    std::cout<<"10.findMyRemote\n";
+    std::cout<<"10.canFindMyRemote\n";
+    std::cout<<"11.findMyRemote\n";
     std::cout<<"\nEnter your choice: ";
 }
 
@@ -306,6 +307,13 @@ int main(int argc, char** argv)
     uint32_t ret;
     string json;
     string cmd;
+    string lastCmd;
+    int remoteId = 255;
+    int timeOutPeriod = 0;
+    bool bOnlyLastUsed = false;
+    int pairingMode = 255;
+    int restrictPairing;
+    bool bNeedExtraLineRead = false;
 
 
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
@@ -352,11 +360,11 @@ int main(int argc, char** argv)
             /* API Validation Logic. */
             while (true) {
                 json.clear();
-                cmd.clear();
                 while (cmd.empty())
                 {
                     showMenu();
                     std::getline(std::cin, cmd);
+                    lastCmd = cmd;
                 }
                 if ((cmd[0] >= '0') && (cmd[0] <= '9'))
                 {
@@ -425,10 +433,13 @@ int main(int argc, char** argv)
                             {
                                 JsonObject params;
                                 string res;
-                                int remoteId;
 
+                                if(remoteId == 255)
+                                {
                                 std::cout<<"\nEnter a 'remoteId' parameter (e.g., 1 thru 9) : ";
                                 std::cin>> remoteId;
+                                    bNeedExtraLineRead = true;
+                                }
                                 params["remoteId"] = remoteId;
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
@@ -500,6 +511,7 @@ int main(int argc, char** argv)
                                 std::cout<<"\nEnter a choice for parameter to set: ";
 
                                 std::cin >> param_choice;
+                                bNeedExtraLineRead = true;
 
                                 std::cout<<"enter value ";
 
@@ -638,15 +650,17 @@ int main(int argc, char** argv)
                             {
                                 JsonObject params;
                                 string res;
-                                int pairingMode;
-                                int restrictPairing;
 
+                                if(pairingMode == 255)
+                                {
                                 std::cout<<"\nEnter a 'pairingMode' integer [BUTTON_BUTTON(0), SCREENBIND(1), ONE_PRESS_AUTO(2)] : ";
                                 std::cin>> pairingMode;
-                                params["pairingMode"] = pairingMode;
+                                    bNeedExtraLineRead = true;
 
                                 std::cout<<"\nEnter a 'restrictPairing' integer [NO_RESTRICTIONS(0), VOICE_REMOTES_ONLY(1), VOICE_ASSISTANTS_ONLY(2)] : ";
                                 std::cin>> restrictPairing;
+                                }
+                                params["pairingMode"] = pairingMode;
                                 params["restrictPairing"] = restrictPairing;
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
@@ -683,11 +697,36 @@ int main(int argc, char** argv)
                             {
                                 JsonObject params;
                                 string res;
-                                int remoteId;
+                                ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                                                    _T("canFindMyRemote"), params, result);
+                                std::cout<<"ControlService Invoke ret : "<< ret <<"\n";
+                                result.ToString(res);
+                                if (result["success"].Boolean()) {
+                                    std::cout<<"ControlService canFindMyRemote call - Success!\n";
+                                } else {
+                                    std::cout<<"ControlService canFindMyRemote call - failed!\n";
+                                }
+                                std::cout<<"result : "<<res<<"\n";
+                            }
+                            break;
 
-                                std::cout<<"\nEnter a 'remoteId' integer [SINGLE_REMOTE(1 thru 9), LAST_USED_REMOTE(253), ALL_REMOTES(254)] : ";
-                                std::cin>> remoteId;
-                                params["remoteId"] = remoteId;
+                        case 11:
+                            {
+                                JsonObject params;
+                                string res;
+
+                                if(timeOutPeriod == 0)
+                                {
+                                    std::cout<<"\nEnter a 'timeout period' [5 - 30] : ";
+                                    std::cin>> timeOutPeriod;
+                                    bNeedExtraLineRead = true;
+
+                                    std::cout<<"\nEnter 'bOnlyLastUsed' integer [true(1), false(0)] : ";
+                                    std::cin>> bOnlyLastUsed;
+                                }
+
+                                params["timeOutPeriod"] = timeOutPeriod;
+                                params["bOnlyLastUsed"] = (bOnlyLastUsed==1 ? true : false);
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                                     _T("findMyRemote"), params, result);
@@ -711,12 +750,36 @@ int main(int argc, char** argv)
 
                 std::cout<<"\n\nTo continue press ENTER; To quit press any other key --> ";
 
+                if(bNeedExtraLineRead)
+                {
                 if (std::cin.peek() == '\n')
+                    {
                     std::getline(std::cin, cmd);
+                    }
+                    bNeedExtraLineRead = false;
+                }
+                else
+                    cmd.clear();
 
                 std::getline(std::cin, cmd);
                 if (cmd.empty())
-                    continue;
+                {
+                    remoteId = 255;
+                    timeOutPeriod = 0;
+                    pairingMode = 255;
+                    cmd.clear();
+                    lastCmd.clear();
+                }
+                else if ((cmd[0] == 'r') || (cmd[0] == 'R'))
+                    cmd = lastCmd;
+                else if ((cmd[0] >= '0') && (cmd[0] <= '9'))
+                {
+                    choice = stoi(cmd);
+                    remoteId = 255;
+                    timeOutPeriod = 0;
+                    pairingMode = 255;
+                    lastCmd = cmd;
+                }
                 else
                     break;
             }

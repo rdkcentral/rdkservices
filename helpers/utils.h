@@ -88,6 +88,13 @@
         returnResponse(false);\
     }
 
+#define returnIfArrayParamNotFound(param, name)\
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::ARRAY)\
+    {\
+        LOGERR("No argument '%s' or it has incorrect type", name);\
+        returnResponse(false);\
+    }
+
 #define returnIfNumberParamNotFound(param, name)\
     if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::NUMBER)\
     {\
@@ -215,6 +222,26 @@ namespace Utils
             bool res = (pos == 0) && (string.length() == string2.length());
             return res;
         }
+
+        // Trim space characters (' ', '\n', '\v', '\f', \r') on the left side of string
+        inline void ltrim(std::string &s) {
+            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+                return !std::isspace(ch);
+            }));
+        }
+
+        // Trim space characters (' ', '\n', '\v', '\f', \r') on the right side of string
+        inline void rtrim(std::string &s) {
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return !std::isspace(ch);
+            }).base(), s.end());
+        }
+
+        // Trim space characters (' ', '\n', '\v', '\f', \r') on both sides of string
+        inline void trim(std::string &s) {
+            ltrim(s);
+            rtrim(s);
+        }
     }
 
     /**
@@ -225,4 +252,22 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
+
+    /***
+     * @brief	: Execute shell script and get response
+     * @param1[in]	: script to be executed with args
+     * @return		: string; response.
+     */
+    std::string cRunScript(const char *cmd);
+
+    /***
+     * @brief	: Checks that file exists
+     * @param1[in]	: pFileName name of file
+     * @return		: true if file exists.
+     */
+    inline bool fileExists(const char *pFileName)
+    {
+        struct stat fileStat;
+        return stat(pFileName, &fileStat) == 0;
+    }
 }

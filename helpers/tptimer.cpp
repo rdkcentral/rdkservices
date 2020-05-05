@@ -24,16 +24,13 @@ namespace WPEFramework
 
     namespace Plugin
     {    
-        WPEFramework::Core::TimerType<TpTimerJob>& TpTimer::baseTimer = WPEFramework::Core::SingletonType < WPEFramework::Core::TimerType<TpTimerJob> >::Instance(64 * 1024, "ThunderPluginBaseTimer");
-
         TpTimer::TpTimer() :
-          m_timerJob(this)
+                baseTimer(64 * 1024, "ThunderPluginBaseTimer")
+                , m_timerJob(this)
         , m_isActive(false)
         , m_isSingleShot(false)
         , m_intervalInMs(-1)
-        {
-            
-        }
+        {}
 
         TpTimer::~TpTimer()
         {
@@ -48,7 +45,6 @@ namespace WPEFramework
         void TpTimer::stop()
         {
             baseTimer.Revoke(m_timerJob);
-            
             m_isActive = false;
         }
         
@@ -56,14 +52,12 @@ namespace WPEFramework
         {
             baseTimer.Revoke(m_timerJob);
             baseTimer.Schedule(Core::Time::Now().Add(m_intervalInMs), m_timerJob);
-            
             m_isActive = true;
         }
 
         void TpTimer::start(int msec)
         {
             setInterval(msec);
-            
             start();
         }
         
@@ -75,8 +69,6 @@ namespace WPEFramework
         void TpTimer::setInterval(int msec)
         {
             m_intervalInMs = msec;
-            
-            //needs to restart timer?
         }
         
         void TpTimer::connect(std::function< void() > callback)
@@ -86,23 +78,25 @@ namespace WPEFramework
 
         void TpTimer::Timed()
         {
-            if(onTimeoutCallback != nullptr)
+            if(onTimeoutCallback != nullptr) {
                 onTimeoutCallback();
+            }
             
-            //restart timer?
-            if(!m_isSingleShot)
+            if (m_isActive) {
+                if(m_isSingleShot) {
+                    stop();
+                } else{
                 start();
-            else
-                m_isActive = false;
+                }
+            }
         }
         
         uint64_t TpTimerJob::Timed(const uint64_t scheduledTime)
         {
-            if(m_tptimer)
+            if(m_tptimer) {
                 m_tptimer->Timed();
-            
+            }
             return 0;
         }
     }
-    
 }
