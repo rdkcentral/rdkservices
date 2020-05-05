@@ -745,61 +745,67 @@ namespace WPEFramework
         void FrontPanel::setClockTestPattern(bool show)
         {
         #ifdef CLOCK_BRIGHTNESS_ENABLED
-            device::FrontPanelTextDisplay& display = device::FrontPanelConfig::getInstance().getTextDisplay("Text");
+            try{
+                device::FrontPanelTextDisplay& display = device::FrontPanelConfig::getInstance().getTextDisplay("Text");
 
-            if (show)
-            {
-                if (m_LedDisplayPatternUpdateTimerInterval > 0 && m_LedDisplayPatternUpdateTimerInterval < 61)
+                if (show)
                 {
+                    if (m_LedDisplayPatternUpdateTimerInterval > 0 && m_LedDisplayPatternUpdateTimerInterval < 61)
                     {
-                        std::lock_guard<std::mutex> lock(m_updateTimerMutex);
-                        m_runUpdateTimer = true;
-                    }
-                    patternUpdateTimer.Schedule(Core::Time::Now().Add(m_LedDisplayPatternUpdateTimerInterval * 1000), m_updateTimer);
+                        {
+                            std::lock_guard<std::mutex> lock(m_updateTimerMutex);
+                            m_runUpdateTimer = true;
+                        }
+                        patternUpdateTimer.Schedule(Core::Time::Now().Add(m_LedDisplayPatternUpdateTimerInterval * 1000), m_updateTimer);
 
-                    LOGWARN("%s: LED FP display update timer activated with interval %ds", __FUNCTION__, m_LedDisplayPatternUpdateTimerInterval);
+                        LOGWARN("%s: LED FP display update timer activated with interval %ds", __FUNCTION__, m_LedDisplayPatternUpdateTimerInterval);
+                    }
+                    else
+                    {
+                        LOGWARN("%s: LED FP display update timer didn't used for interval value %d. To activate it, interval should be in bound of values from 1 till 60"
+                                , __FUNCTION__, m_LedDisplayPatternUpdateTimerInterval);
+
+                        {
+                            std::lock_guard<std::mutex> lock(m_updateTimerMutex);
+                            m_runUpdateTimer = false;
+                        }
+                        patternUpdateTimer.Revoke(m_updateTimer);
+                    }
+
+                    if (-1 == m_savedClockBrightness)
+                    {
+                        m_savedClockBrightness = getClockBrightness();
+                        LOGWARN("%s: brightness of LED FP display %d was saved", __FUNCTION__, m_savedClockBrightness);
+                    }
+
+                    display.setMode(1); //Set Front Panel Display to Text Mode
+                    display.setText(ALL_SEGMENTS_TEXT_PATTERN);
+                    setClockBrightness(100);
+                    LOGWARN("%s: pattern " ALL_SEGMENTS_TEXT_PATTERN " activated on LED FP display with max brightness", __FUNCTION__);
                 }
                 else
                 {
-                    LOGWARN("%s: LED FP display update timer didn't used for interval value %d. To activate it, interval should be in bound of values from 1 till 60"
-                            , __FUNCTION__, m_LedDisplayPatternUpdateTimerInterval);
-
                     {
                         std::lock_guard<std::mutex> lock(m_updateTimerMutex);
                         m_runUpdateTimer = false;
                     }
                     patternUpdateTimer.Revoke(m_updateTimer);
-                }
 
-                if (-1 == m_savedClockBrightness)
-                {
-                    m_savedClockBrightness = getClockBrightness();
-                    LOGWARN("%s: brightness of LED FP display %d was saved", __FUNCTION__, m_savedClockBrightness);
-                }
+                    display.setMode(0);//Set Front Panel Display to Default Mode
+                    display.setText("    ");
+                    LOGWARN("%s: pattern " ALL_SEGMENTS_TEXT_PATTERN " deactivated on LED FP display", __FUNCTION__);
 
-                display.setMode(1); //Set Front Panel Display to Text Mode
-                display.setText(ALL_SEGMENTS_TEXT_PATTERN);
-                setClockBrightness(100);
-                LOGWARN("%s: pattern " ALL_SEGMENTS_TEXT_PATTERN " activated on LED FP display with max brightness", __FUNCTION__);
+                    if (-1 != m_savedClockBrightness)
+                    {
+                        setClockBrightness(m_savedClockBrightness);
+                        LOGWARN("%s: brightness %d of LED FP display restored", __FUNCTION__, m_savedClockBrightness);
+                        m_savedClockBrightness = -1;
+                    }
+                }
             }
-            else
+            catch (...)
             {
-                {
-                    std::lock_guard<std::mutex> lock(m_updateTimerMutex);
-                    m_runUpdateTimer = false;
-                }
-                patternUpdateTimer.Revoke(m_updateTimer);
-
-                display.setMode(0);//Set Front Panel Display to Default Mode
-                display.setText("    ");
-                LOGWARN("%s: pattern " ALL_SEGMENTS_TEXT_PATTERN " deactivated on LED FP display", __FUNCTION__);
-
-                if (-1 != m_savedClockBrightness)
-                {
-                    setClockBrightness(m_savedClockBrightness);
-                    LOGWARN("%s: brightness %d of LED FP display restored", __FUNCTION__, m_savedClockBrightness);
-                    m_savedClockBrightness = -1;
-                }
+                LOGERR("Exception while getTextDisplay");
             }
         #else
             LOGWARN("%s: disabled for this platform", __FUNCTION__);

@@ -16,17 +16,20 @@
 # limitations under the License.
 
 find_package(jsonrpc REQUIRED)
+set(PLUGIN_NAME STOBSThunderClient)
+find_package(${NAMESPACE}Protocols REQUIRED)
 
-   add_executable(STOBSThunderClient STOBSThunderClient.cpp)
+add_executable(${PLUGIN_NAME} STOBSThunderClient.cpp)
 
-   set_target_properties(STOBSThunderClient PROPERTIES
-           CXX_STANDARD 11
-           CXX_STANDARD_REQUIRED YES
-           )
+set_target_properties(${PLUGIN_NAME} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+        )
 
-  target_link_libraries(STOBSThunderClient
-      PRIVATE
-      jsonrpc::jsonrpc
-          )
+target_link_libraries(${PLUGIN_NAME}
+    PRIVATE
+    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    )
 
-  install(TARGETS STOBSThunderClient DESTINATION bin)
+install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
+

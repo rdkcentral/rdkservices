@@ -79,9 +79,9 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
         response["bssid"] = string(connectedSsid.bssid);
         response["rate"] = to_string(connectedSsid.rate);
         response["noise"] = to_string(connectedSsid.noise);
-        response["security"] = string(connectedSsid.securityMode);
+        response["security"] = to_string(connectedSsid.securityMode);
         response["signalStrength"] = to_string(connectedSsid.signalStrength);
-        response["frequency"] = to_string(connectedSsid.frequency);
+        response["frequency"] = to_string(((float)connectedSsid.frequency)/1000);
     }
 
     returnResponse(retVal == IARM_RESULT_SUCCESS);

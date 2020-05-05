@@ -50,7 +50,7 @@ bool cSettings::readFromFile()
 {
     bool retStatus = false;
     std::string content;
-    if (!fileExists(filename.c_str())) {
+    if (!Utils::fileExists(filename.c_str())) {
         return retStatus;
     }
     fstream ifile(filename,ios::in);
@@ -77,7 +77,7 @@ bool cSettings::writeToFile()
 {
     bool status = false;
 
-    if (fileExists(filename.c_str())) {
+    if (Utils::fileExists(filename.c_str())) {
         ofstream ofile;
         ofile.open(filename.c_str(),ios::out);
         if (ofile) {
