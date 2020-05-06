@@ -31,21 +31,21 @@ option(PLUGIN_TTSRESOURCE "Include TTSResource Plugin plugin" OFF)
 option(PLUGIN_TTSSESSIONSERVICE "Include TTSSession Plugin plugin" OFF)
 option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
 option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
-option(PLUGIN_PROXIES "Include Proxies plugin" ON)
+option(PLUGIN_PROXIES "Include Proxies plugin" OFF)
 #option(PLUGIN_DATA_CAPTURE "Include DataCapture plugin" ON)
-option(PLUGIN_AVINPUT "Include AVInput plugin" ON)
+option(PLUGIN_AVINPUT "Include AVInput plugin" OFF)
 option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
-option(PLUGIN_HOMENETWORKING "Include HomeNetworking plugin" ON)
-option(PLUGIN_REMOTEACTIONMAPPING "Include RemoteActionMapping plugin" ON)
-option(PLUGIN_PLUGANDPLAY "Include PlugAndPlay plugin" ON)
-option(PLUGIN_VREXMANAGER "Include VrexManager plugin" ON)
-option(PLUGIN_PLATFORMPLAYER "Include PlatformPlayer plugin" ON)
-option(PLUGIN_LINEARSEGMENTEDADVERTISING "Include LinearSegmentedAdvertising plugin" ON)
-option(PLUGIN_DEEP_LINK "Include DeepLink plugin" ON)
+option(PLUGIN_HOMENETWORKING "Include HomeNetworking plugin" OFF)
+option(PLUGIN_REMOTEACTIONMAPPING "Include RemoteActionMapping plugin" OFF)
+option(PLUGIN_PLUGANDPLAY "Include PlugAndPlay plugin" OFF)
+option(PLUGIN_VREXMANAGER "Include VrexManager plugin" OFF)
+option(PLUGIN_PLATFORMPLAYER "Include PlatformPlayer plugin" OFF)
+option(PLUGIN_LINEARSEGMENTEDADVERTISING "Include LinearSegmentedAdvertising plugin" OFF)
+option(PLUGIN_DEEP_LINK "Include DeepLink plugin" OFF)
 option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
-option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" ON)
-option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" ON)
-option(PLUGIN_RDKSHELL "Include RDKShell plugin" ON)
+option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" OFF)
+option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" OFF)
+option(PLUGIN_RDKSHELL "Include RDKShell plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -148,6 +148,22 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
        add_subdirectory(HdmiCec)
     endif()
 
+    if(ENABLE_LOCATION_SYNC)
+        add_subdirectory(LocationSync)
+    endif()
+
+    if (ENABLE_DEVICE_IDENTIFICATION)
+        add_subdirectory(DeviceIdentification)
+    endif()
+
+    if (ENABLE_DEVICE_INFO)
+        add_subdirectory(DeviceInfo)
+    endif()
+
+    if (ENABLE_DISPLAY_INFO)
+        add_subdirectory(DisplayInfo)
+    endif()
+
     if(HAS_API_SOUND)
         add_subdirectory(SoundPlayer)
     endif()
@@ -172,6 +188,30 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(SleepTimer)
     endif()
 
+    if(ENABLE_MESSENGER)
+        add_subdirectory(Messenger)
+    endif()
+
+    if(ENABLE_MONITOR)
+        add_subdirectory(Monitor)
+    endif()
+
+    if(ENABLE_OPEN_CDMI)
+        add_subdirectory(OpenCDMi)
+    endif()
+
+    if(ENABLE_PLAYER_INFO)
+        add_subdirectory(PlayerInfo)
+    endif()
+
+    if(ENABLE_SECURITY_AGENT)
+        add_subdirectory(SecurityAgent)
+    endif()
+
+    if(ENABLE_SPARK)
+        add_subdirectory(Spark)
+    endif()
+
     if(HAS_AUTHSERVICE)
         add_subdirectory(AuthService)
     endif()
@@ -192,9 +232,9 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(ContinueWatching)
     endif()
 
-    if(HAS_API_APPLICATION)
-        add_subdirectory(Application)
-    endif()
+    #if(HAS_API_APPLICATION)
+    #    add_subdirectory(Application)
+    #endif()
 
     if(HAS_STATE_OBSERVER)
         add_subdirectory(StateObserver)
@@ -202,6 +242,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
 
     if(PLUGIN_WIFIMANAGER)
         add_subdirectory(WifiManager)
+    endif()
+
+    if(ENABLE_TRACE_CONTROL)
+        add_subdirectory(TraceControl)
     endif()
 
     if(PLUGIN_LOSTANDFOUND)
@@ -234,6 +278,10 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
 
     if(PLUGIN_RDKSHELL)
         add_subdirectory(RDKShell)
+    endif()
+
+    if(ENABLE_WEBKIT_BROWSER)
+        add_subdirectory(WebKitBrowser)
     endif()
 endif()
 
