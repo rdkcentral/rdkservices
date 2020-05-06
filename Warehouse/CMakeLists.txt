@@ -45,7 +45,7 @@ else (DS_FOUND)
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 endif(DS_FOUND)
 
-find_package(RFC)
+#find_package(RFC)
 
 #find_package(IARMBus)
 
