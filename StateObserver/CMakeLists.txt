@@ -26,7 +26,7 @@ add_library(${MODULE_NAME} SHARED
         StateObserver.cpp
         Module.cpp)
 
-add_subdirectory(test)
+#add_subdirectory(test)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
