@@ -108,8 +108,17 @@ namespace WPEFramework
         {
             LOGINFO();
 
+            dsHdcpProtocolVersion_t hdcpProtocol = dsHDCP_VERSION_MAX;
+
+            try
+            {
             device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
-            dsHdcpProtocolVersion_t hdcpProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
+                hdcpProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
+            }
+            catch (const std::exception e)
+            {
+                LOGWARN("DS exception caught from %s\r\n", __FUNCTION__);
+            }
 
             if(hdcpProtocol == dsHDCP_VERSION_2X)
             {

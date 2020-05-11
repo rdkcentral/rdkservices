@@ -321,7 +321,7 @@ namespace WPEFramework
 
             file.Open();
             JsonObject parameters;
-            parameters.FromFile(file);
+            parameters.IElement::FromFile(file);
 
             file.Close();
 
@@ -342,7 +342,7 @@ namespace WPEFramework
             JsonObject cecSetting;
             cecSetting[CEC_SETTING_ENABLED] = enableStatus;
 
-            cecSetting.ToFile(file);
+            cecSetting.IElement::ToFile(file);
 
             file.Close();
 

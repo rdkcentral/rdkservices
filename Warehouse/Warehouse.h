@@ -86,16 +86,15 @@ namespace WPEFramework {
             void setFrontPanelState(int state, JsonObject& response);
             void internalReset(JsonObject& response);
             void lightReset(JsonObject& response);
+            void isClean(JsonObject& response);
 
             //Begin methods
-            uint32_t setApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t getApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
-
             uint32_t resetDeviceWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setFrontPanelStateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t internalResetWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t lightResetWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t isCleanWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:
@@ -109,14 +108,11 @@ namespace WPEFramework {
         private:
             void getDeviceInfo(JsonObject &params);
 
-            //TODO/FIXME -- these are carried over from ServiceManager FrontPanel - we need to munge this around to support the Thunder plugin version number
-            uint32_t getApiVersionNumber();
-            void setApiVersionNumber(uint32_t apiVersionNumber);
-
             std::thread m_resetThread;
 
 #ifdef HAS_FRONT_PANEL
-            LedInfo m_ledTimer;
+            Core::TimerType<LedInfo> m_ledTimer;
+            LedInfo m_ledInfo;
             int m_ledTimerIteration;
             int m_ledState;
 #endif

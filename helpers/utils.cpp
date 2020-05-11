@@ -22,10 +22,10 @@
  *
  */
 
-#include "utils.h"
-
-// std
+#include <string.h>
+#include <sys/stat.h>
 #include <sstream>
+#include "utils.h"
 
 std::string Utils::formatIARMResult(IARM_Result_t result)
 {
@@ -41,3 +41,28 @@ std::string Utils::formatIARMResult(IARM_Result_t result)
             return tmp.str();
     }
 }
+
+/***
+ * @brief	: Execute shell script and get response
+ * @param1[in]	: script to be executed with args
+ * @return		: string; response.
+ */
+std::string Utils::cRunScript(const char *cmd)
+{
+    std::string totalStr = "";
+    FILE *pipe = NULL;
+    char buff[1024] = {'\0'};
+
+    if ((pipe = popen(cmd, "r"))) {
+        memset(buff, 0, sizeof(buff));
+        while (fgets(buff, sizeof(buff), pipe)) {
+            totalStr += buff;
+            memset(buff, 0, sizeof(buff));
+        }
+        pclose(pipe);
+    } else {
+        /* popen failed. */
+    }
+    return totalStr;
+}
+

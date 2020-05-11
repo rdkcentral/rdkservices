@@ -100,6 +100,7 @@ namespace WPEFramework {
             uint32_t startPairingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t endPairingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t canFindMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
@@ -135,7 +136,8 @@ namespace WPEFramework {
             StatusCode getValues(JsonObject& settings);
             StatusCode startPairingMode(int mode, int restrictions);
             StatusCode endPairingMode(int& bindStatus);
-            StatusCode findMyRemote(int remoteId);
+            StatusCode findMyRemote(int timeOutPeriod, bool bOnlyLastUsed);
+            bool       canFindMyRemote();
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);

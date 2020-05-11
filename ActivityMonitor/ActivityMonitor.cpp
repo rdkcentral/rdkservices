@@ -358,7 +358,7 @@ namespace WPEFramework
             LOGINFO("Loading registry from %s", registryFilename);
 
             file.Open();
-            regObj.FromFile(file);
+            regObj.IElement::FromFile(file);
 
             file.Close();
 

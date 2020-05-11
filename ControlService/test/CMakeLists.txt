@@ -15,18 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(jsonrpc REQUIRED)
+set(PLUGIN_NAME controlSvcTestClient)
+find_package(${NAMESPACE}Protocols REQUIRED)
 
-add_executable(controlSvcTestClient controlSvcTestClient.cpp)
+add_executable(${PLUGIN_NAME} controlSvcTestClient.cpp)
 
-set_target_properties(controlSvcTestClient PROPERTIES
+set_target_properties(${PLUGIN_NAME} PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     )
 
-target_link_libraries(controlSvcTestClient
+target_link_libraries(${PLUGIN_NAME}
     PRIVATE
-    jsonrpc::jsonrpc
+    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
     )
 
-install(TARGETS controlSvcTestClient DESTINATION bin)
+install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
