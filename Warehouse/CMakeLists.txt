@@ -25,6 +25,7 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
         ../helpers/frontpanel.cpp
         ../helpers/powerstate.cpp
+        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -44,6 +45,7 @@ else (DS_FOUND)
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 endif(DS_FOUND)
 
+#find_package(RFC)
 
 #find_package(IARMBus)
 

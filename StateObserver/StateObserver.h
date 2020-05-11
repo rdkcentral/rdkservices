@@ -118,6 +118,7 @@ namespace WPEFramework {
 			uint32_t unregisterListeners(const JsonObject& parameters, JsonObject& response);
 			uint32_t setApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getRegisteredPropertyNames(const JsonObject &parameters, JsonObject &response);
 			uint32_t getNameWrapper(const JsonObject& parameters, JsonObject& response);
 			void getVal(std::vector<string> pname,JsonObject& response);
 			void InitializeIARM();

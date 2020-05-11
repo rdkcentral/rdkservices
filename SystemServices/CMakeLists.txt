@@ -31,7 +31,9 @@ add_library(${MODULE_NAME} SHARED
         ../helpers/cSettings.cpp
         ../helpers/powerstate.cpp
         ../helpers/thermonitor.cpp
-        ../helpers/SystemServicesHelper.cpp)
+        ../helpers/SystemServicesHelper.cpp
+        ../helpers/utils.cpp
+)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -76,3 +78,4 @@ install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
+

@@ -75,6 +75,24 @@ namespace WPEFramework {
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
             //End methods
+            uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
+            uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
+            uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
+            //End methods
 
             //Begin events
             void resolutionPreChange();

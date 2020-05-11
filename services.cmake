@@ -27,7 +27,10 @@ option(WAREHOUSE_API "WAREHOUSE_API" ON)
 #add_definitions (-DSCREEN_CAPTURE)
 
 add_definitions (-DSLEEP_TIMER)
-option(SLEEP_TIMER "SLEEP_TIMER" ON)
+option(SLEEP_TIMER "SLEEP_TIMER" OFF)
+
+add_definitions (-DHAS_AUTHSERVICE)
+option(HAS_AUTHSERVICE "HAS_AUTHSERVICE" OFF)
 
 add_definitions (-DHAS_TIMER)
 option(HAS_TIMER "HAS_TIMER" ON)
@@ -51,16 +54,19 @@ option(HAS_API_APPLICATION "HAS_API_APPLICATION" ON)
 #add_definitions (-DHAS_API_DATA_CAPTURE)
 
 add_definitions (-DHAS_API_COPILOT)
-option(HAS_API_COPILOT "HAS_API_COPILOT" ON)
+option(HAS_API_COPILOT "HAS_API_COPILOT" OFF)
 
 add_definitions (-DHAS_API_FRAME_RATE)
 option(HAS_API_FRAME_RATE "HAS_API_FRAME_RATE" ON)
 
 add_definitions (-DHAS_API_WEBSOCKET_PROXY)
-option(HAS_API_WEBSOCKET_PROXY "HAS_API_WEBSOCKET_PROXY" ON)
+option(HAS_API_WEBSOCKET_PROXY "HAS_API_WEBSOCKET_PROXY" OFF)
+
+add_definitions (-DHAS_API_SCREEN_CAPTURE)
+option(HAS_API_SCREEN_CAPTURE "HAS_API_SCREEN_CAPTURE" OFF)
 
 add_definitions (-DHAS_API_STORAGE_MANAGER)
-option(HAS_API_STORAGE_MANAGER "HAS_API_STORAGE_MANAGER" ON)
+option(HAS_API_STORAGE_MANAGER "HAS_API_STORAGE_MANAGER" OFF)
 
 #add_definitions (-DHAS_API_INTRUSION_DETECTION)
 #add_definitions (-DHAS_API_LINEAR_SEGMENTED_ADVERTISING)
@@ -74,7 +80,7 @@ option(HAS_API_DEVICEDIAGNOSTICS "HAS_API_DEVICEDIAGNOSTICS" ON)
 #add_definitions (-DHAS_API_DEVICEPROVISIONING)
 
 add_definitions (-DHAS_API_SOUND)
-option(HAS_API_SOUND "HAS_API_SOUND" ON)
+option(HAS_API_SOUND "HAS_API_SOUND" OFF)
 
 add_definitions (-DENABLE_HDCP_PROFILE)
 option(ENABLE_HDCP_PROFILE "ENABLE_HDCP_PROFILE" ON)
@@ -113,19 +119,29 @@ add_definitions (-DENABLE_SYSTEM_15)
 add_definitions (-DENABLE_SYSTEM_16)
 add_definitions (-DENABLE_SYSTEM_17)
 
-
 add_definitions (-DHAS_STATE_OBSERVER)
 option(HAS_STATE_OBSERVER "HAS_STATE_OBSERVER" ON)
+
+if (ENABLE_XCAST_PLUGIN)
+    message("Enabling Xcast plugin")
+    add_definitions (-DHAS_API_XCASTSERVICE)
+    option(HAS_API_XCASTSERVICE "HAS_API_XCASTSERVICE" OFF)
+endif()
 
 add_definitions (-DDISABLE_WEBKIT_WIDGETS)
 
 add_definitions (-DENABLE_DEVICE_PROVISIONING)
-option(DEVICE_PROVISIONING "DEVICE_PROVISIONING" ON)
+option(DEVICE_PROVISIONING "DEVICE_PROVISIONING" OFF)
 
 if (ENABLE_BLUETOOTH_CONTROL)
+    message("Building with Bluetooth support")
     add_definitions (-DENABLE_BLUETOOTH_CONTROL)
     add_definitions (-DHAS_API_BLUETOOTH)
+    option(BLUETOOTH_SETTINGS "BLUETOOTH_SETTINGS" OFF)
 endif()
+
+message("Building with DataCapture support")
+option(PLUGIN_DATA_CAPTURE "Include DataCapture plugin" OFF)
 
 if(BUILD_ENABLE_TSB)
     message("Building with TSB")
@@ -162,6 +178,13 @@ endif()
 
 if (BUILD_ENABLE_EXTENDED_ALL_SEGMENTS_TEXT_PATTERN)
     add_definitions (-DUSE_EXTENDED_ALL_SEGMENTS_TEXT_PATTERN)
+endif()
+
+if (BUILD_ENABLE_AV_INPUT)
+    message("Building with AV input support")
+    add_definitions (-DBUILD_ENABLE_AV_INPUT)
+    add_definitions (-DHAS_API_AVINPUT)
+    add_definitions (-DUSE_AVINPUT)
 endif()
 
 if (BUILD_ENABLE_TR69)
@@ -210,9 +233,16 @@ endif()
 if(BUILD_ENABLE_WIFI_MANAGER)
     message("Building with wifi manager")
     option(PLUGIN_WIFIMANAGER "Include Wifi plugin" ON)
-    option(PLUGIN_LOSTANDFOUND "Include LostAndFound plugin" ON)
+    option(PLUGIN_LOSTANDFOUND "Include LostAndFound plugin" OFF)
     add_definitions (-DBUILD_ENABLE_WIFI_MANAGER)
     add_definitions (-DHAS_WIFI_MANAGER)
+endif()
+
+if(BUILD_ENABLE_NETWORK_MANAGER)
+    message("Building with network manager")
+    option(PLUGIN_NETWORK "Include Network plugin" OFF)
+    add_definitions (-DBUILD_ENABLE_NETWORK_MANAGER)
+    add_definitions (-DHAS_NETWORK_MANAGER)
 endif()
 
 if(BUILD_ENABLE_CEF)
