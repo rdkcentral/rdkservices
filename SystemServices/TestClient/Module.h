@@ -24,4 +24,4 @@
 #endif
 
 #include <core/core.h>
-#include <jsonrpc/jsonrpc.h>
+#include <websocket/websocket.h>
