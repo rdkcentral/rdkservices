@@ -55,6 +55,10 @@ include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
 
+if(PLUGIN_BLUETOOTH)
+    add_subdirectory(Bluetooth)
+endif()
+
 if(PLUGIN_DISPLAYSETTINGS)
     add_subdirectory(DisplaySettings)
 endif()
