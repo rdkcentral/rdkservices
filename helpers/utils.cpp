@@ -23,9 +23,53 @@
  */
 
 #include <string.h>
-#include <sys/stat.h>
 #include <sstream>
 #include "utils.h"
+#include "libIBus.h"
+
+using namespace WPEFramework;
+using namespace std;
+
+bool Utils::IARM::init()
+{
+    string memberName = "Thunder_Plugins";
+    LOGINFO("%s", memberName.c_str());
+
+    IARM_Result_t res;
+    int isRegistered = 0;
+    IARM_CHECK(IARM_Bus_IsConnected(memberName.c_str(), &isRegistered));
+
+    m_connected = false;
+    if (isRegistered > 0)
+    {
+        LOGINFO("%s has already connected with IARM", memberName.c_str());
+        m_connected = true;
+        return true;
+    }
+
+    IARM_CHECK( IARM_Bus_Init(memberName.c_str()));
+    if (res == IARM_RESULT_SUCCESS)
+    {
+        IARM_CHECK(IARM_Bus_Connect());
+        if (res != IARM_RESULT_SUCCESS)
+        {
+            LOGERR("IARM_Bus_Connect failure");
+            IARM_CHECK(IARM_Bus_Term());
+            return false;
+        }
+    }
+    else
+    {
+        LOGERR("IARM_Bus_Init failure");
+        return false;
+    }
+
+    LOGINFO("%s inited and connected with IARM", memberName.c_str());
+    m_connected = true;
+    return true;
+}
+
+bool Utils::IARM::m_connected = false;
 
 std::string Utils::formatIARMResult(IARM_Result_t result)
 {
