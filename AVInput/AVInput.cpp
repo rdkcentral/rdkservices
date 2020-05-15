@@ -22,7 +22,7 @@
 
 const short WPEFramework::Plugin::AVInput::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::AVInput::API_VERSION_NUMBER_MINOR = 0;
-const string WPEFramework::Plugin::AVInput::SERVICE_NAME = "com.comcast.AVInput";
+const string WPEFramework::Plugin::AVInput::SERVICE_NAME = "org.rdk.AVInput";
 //methods
 const string WPEFramework::Plugin::AVInput::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
 const string WPEFramework::Plugin::AVInput::AVINPUT_METHOD_NUMBER_OF_INPUTS = "numberOfInputs";
@@ -32,7 +32,7 @@ const string WPEFramework::Plugin::AVInput::AVINPUT_METHOD_CONTENT_PROTECTED = "
 const string WPEFramework::Plugin::AVInput::AVINPUT_EVENT_ON_AV_INPUT_ACTIVE = "onAVInputActive";
 const string WPEFramework::Plugin::AVInput::AVINPUT_EVENT_ON_AV_INPUT_INACTIVE = "onAVInputInactive";
 
-#define SUBSCRIPTION_CALLSIGN "com.comcast.HdmiInput"
+#define SUBSCRIPTION_CALLSIGN "org.rdk.HdmiInput"
 #define SUBSCRIPTION_CALLSIGN_VER SUBSCRIPTION_CALLSIGN".1"
 #define SUBSCRIPTION_EVENT "onDevicesChanged"
 #define SERVER_DETAILS  "127.0.0.1:9998"
