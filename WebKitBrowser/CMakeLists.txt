@@ -22,6 +22,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/")
 
 include(CmakeHelperFunctions)
 
+# Library installation section
+string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
+
 if(BUILD_REFERENCE)
     add_definitions(-DBUILD_REFERENCE=${BUILD_REFERENCE})
 endif()
