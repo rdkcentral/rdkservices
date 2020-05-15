@@ -156,6 +156,15 @@
 
 namespace Utils
 {
+    struct IARM
+    {
+        static bool init();
+        static bool isConnected() { return m_connected; }
+
+    private:
+        static bool m_connected;
+    };
+
     namespace String
     {
         // locale-wise comparison
