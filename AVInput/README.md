@@ -2,14 +2,14 @@
 # AVInput
 
 ## Versions
-`com.comcast.AVInput.1`
+`org.rdk.AVInput.1`
 
 ## Methods:
 ```
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "com.comcast.AVInput.1.getApiVersionNumber"}' http://127.0.0.1:9998/jsonrpc
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "com.comcast.AVInput.1.numberOfInputs"}' http://127.0.0.1:9998/jsonrpc
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "com.comcast.AVInput.1.currentVideoMode"}' http://127.0.0.1:9998/jsonrpc
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "com.comcast.AVInput.1.contentProtected"}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.AVInput.1.getApiVersionNumber"}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.AVInput.1.numberOfInputs"}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.AVInput.1.currentVideoMode"}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.AVInput.1.contentProtected"}' http://127.0.0.1:9998/jsonrpc
 ```
 ## Responses
 ```
