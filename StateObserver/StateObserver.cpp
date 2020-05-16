@@ -42,7 +42,7 @@
 
 #define STATEOBSERVER_MAJOR_VERSION 1
 #define STATEOBSERVER_MINOR_VERSION 0
-#define DEBUG_INFO 1
+#define DEBUG_INFO 0
 
 namespace WPEFramework {
 
