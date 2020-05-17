@@ -110,3 +110,41 @@ std::string Utils::cRunScript(const char *cmd)
     return totalStr;
 }
 
+using namespace WPEFramework;
+
+/***
+ * @brief	: Checks that file exists
+ * @param1[in]	: pFileName name of file
+ * @return		: true if file exists.
+ */
+bool Utils::fileExists(const char *pFileName)
+{
+    struct stat fileStat;
+    return 0 == stat(pFileName, &fileStat);
+}
+
+/***
+ * @brief	: Checks that file exists and modified at least pointed seconds ago
+ * @param1[in]	: pFileName name of file
+ * @param1[in]	: age modification age in seconds
+ * @return		: true if file exists and modifies 'age' seconds ago.
+ */
+bool Utils::isFileExistsAndOlderThen(const char *pFileName, long age /*= -1*/)
+{
+    struct stat fileStat;
+    int res = stat(pFileName, &fileStat);
+    if (0 != res)
+        return false;
+
+    if (-1 == age)
+        return true;
+
+    time_t currentTime = time(nullptr);
+    //LOGWARN("current time of %s: %lu", pFileName, currentTime);
+
+    time_t modifiedSecondsAgo = difftime(currentTime, fileStat.st_mtime);
+    //LOGWARN("elapsed time is %lu, %s", modifiedSecondsAgo, modifiedSecondsAgo <= age ? "updated recently (doesn't exists)" : "updated long time ago (exists)");
+
+    return modifiedSecondsAgo > age;
+}
+
