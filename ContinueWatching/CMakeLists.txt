@@ -32,7 +32,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins crypto sec_api rfcapi trower-base64)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins crypto ${SECAPI_LIB} rfcapi trower-base64)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 install(TARGETS ${MODULE_NAME}
