@@ -86,7 +86,7 @@ namespace WPEFramework {
             void setFrontPanelState(int state, JsonObject& response);
             void internalReset(JsonObject& response);
             void lightReset(JsonObject& response);
-            void isClean(JsonObject& response);
+            void isClean(int age, JsonObject& response);
 
             //Begin methods
             uint32_t resetDeviceWrapper(const JsonObject& parameters, JsonObject& response);

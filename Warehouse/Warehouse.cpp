@@ -506,7 +506,7 @@ namespace WPEFramework
 #endif
         }
 
-        void Warehouse::isClean(JsonObject& response)
+        void Warehouse::isClean(int age, JsonObject& response)
         {
             LOGINFO();
 
@@ -582,7 +582,11 @@ namespace WPEFramework
                     if (pathLength > 1 && path.find("/*", path.length() - 2) != std::string::npos)
                         maxDepth = "";
 
-                    std::string script = ". /etc/device.properties; fp=\"" + path + "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 " + maxDepth + "! -path \"*/\\.*\" -name \"$f\" 2>&1 | head -n 10";
+                    std::string script = ". /etc/device.properties; fp=\"";
+                    script += path;
+                    script += "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 ";
+                    script += maxDepth;
+                    script += "! -path \"*/\\.*\" -name \"$f\" 2>&1 | head -n 10";
                     std::string result = Utils::cRunScript(script.c_str());
                     Utils::String::trim(result);
 
@@ -592,8 +596,23 @@ namespace WPEFramework
                         std::string line;
                         while(getline( ss, line, '\n' ))
                         {
-                            LOGINFO("object %d by path '%s' : '%s' exists !!!", ++totalPathsCounter, path.c_str(), line.c_str());
-                            existedObjects.Add(line);
+                            if (age > -1)
+                            {
+                                bool objectExists = Utils::isFileExistsAndOlderThen(line.c_str(), (long)age);
+                                if (objectExists)
+                                    existedObjects.Add(line);
+
+                                std::string strAge = std::to_string(age) + " seconds";
+                                LOGINFO("object %d by path '%s' : '%s' %s", ++totalPathsCounter, path.c_str(), line.c_str()
+                                        , objectExists
+                                        ? (std::string("exists and was modified more than ") + strAge + " ago").c_str()
+                                        : (std::string("doesn't exist or was modified in ") + strAge).c_str());
+                            }
+                            else
+                            {
+                                existedObjects.Add(line);
+                                LOGINFO("object %d by path '%s' : '%s' exists", ++totalPathsCounter, path.c_str(), line.c_str());
+                            }
                         }
                     }
                     else
@@ -601,11 +620,20 @@ namespace WPEFramework
                 }
                 else
                 {
-                    bool objectExists = Utils::fileExists(path.c_str());
+                    bool objectExists = Utils::isFileExistsAndOlderThen(path.c_str(), (long)age);
                     if (objectExists)
                         existedObjects.Add(path);
 
-                    LOGINFO("object %d by path '%s' %s", ++totalPathsCounter, path.c_str(), objectExists ? "exists !!!" : "doesn't exist");
+                    if (age > -1)
+                    {
+                        std::string strAge = std::to_string(age) + " seconds";
+                        LOGINFO("object %d by path '%s' : '%s' %s", ++totalPathsCounter, path.c_str(), path.c_str()
+                                , objectExists
+                                ? (std::string("exists and was modified more than ") + strAge + " ago").c_str()
+                                : (std::string("doesn't exist or was modified in ") + strAge).c_str());
+                    }
+                    else
+                        LOGINFO("object %d by path '%s' %s", ++totalPathsCounter, path.c_str(), objectExists ? "exists" : "doesn't exist");
                 }
             }
 
@@ -684,7 +712,10 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            isClean(response);
+            int age;
+            getDefaultNumberParameter("age", age, -1);
+
+            isClean(age, response);
             return Core::ERROR_NONE;
         }
 
