@@ -54,19 +54,6 @@ std::string getErrorDescription(int errCode)
     return errMsg;
 }
 
-bool fileExists(const char *pFileName)
-{
-    struct stat fileStat;
-    int32_t eRetval = E_NOK;
-    if (stat(pFileName, &fileStat) == 0) {
-        eRetval = E_OK;
-    }
-    if (S_ISREG(fileStat.st_mode)) {
-        eRetval = E_OK;
-    }
-    return ((eRetval == E_OK)? true: false);
-}
-
 std::string dirnameOf(const std::string& fname)
 {
     size_t pos = fname.find_last_of("/");
@@ -101,7 +88,7 @@ bool readFromFile(const char* filename, string &content)
 {
     bool retStatus = false;
 
-    if (!fileExists(filename)) {
+    if (!Utils::fileExists(filename)) {
         return retStatus;
     }
 
@@ -388,7 +375,7 @@ string getXconfOverrideUrl(void)
     string xconfUrl = "";
     vector<string> lines;
 
-    if (!fileExists(XCONF_OVERRIDE_FILE)) {
+    if (!Utils::fileExists(XCONF_OVERRIDE_FILE)) {
         return xconfUrl;
     }
 
@@ -414,7 +401,7 @@ string getTimeZoneDSTHelper(void)
     string timeZone = "";
     vector<string> lines;
 
-    if (!fileExists(TZ_FILE)) {
+    if (!Utils::fileExists(TZ_FILE)) {
         return timeZone;
     }
 
@@ -472,30 +459,6 @@ std::string url_encode(std::string urlIn)
     return retval;
 }
 
-/***
- * @brief	: Execute shell script and get response
- * @param1[in]	: script to be executed with args
- * @return		: string; response.
- */
-std::string cRunScript(const char *cmd)
-{
-    std::string totalStr = "";
-    FILE *pipe = NULL;
-    char buff[1024] = {'\0'};
-
-    if ((pipe = popen(cmd, "r"))) {
-        memset(buff, 0, sizeof(buff));
-        while (fgets(buff, sizeof(buff), pipe)) {
-            totalStr += buff;
-            memset(buff, 0, sizeof(buff));
-        }
-        pclose(pipe);
-    } else {
-        /* popen failed. */
-    }
-    return totalStr;
-}
-
 /**
  * @brief : curl write handler
  */
@@ -533,7 +496,7 @@ uint32_t enableXREConnectionRetentionHelper(bool enable)
     uint32_t result = SysSrv_Unexpected;
 
     if (enable) {
-        if (!fileExists(RECEIVER_STANDBY_PREFS)) {
+        if (!Utils::fileExists(RECEIVER_STANDBY_PREFS)) {
             FILE *fp = NULL;
             if ((fp = fopen(RECEIVER_STANDBY_PREFS, "w"))) {
                 fclose(fp);
@@ -542,16 +505,16 @@ uint32_t enableXREConnectionRetentionHelper(bool enable)
                 return SysSrv_FileAccessFailed;
             }
         } else {
-            /* Nothing To Do. */
-            ;
+            result=SysSrv_OK;
+            
         }
     } else {
-        if (fileExists(RECEIVER_STANDBY_PREFS)) {
+        if (Utils::fileExists(RECEIVER_STANDBY_PREFS)) {
             remove(RECEIVER_STANDBY_PREFS);
             result = SysSrv_OK ;
         } else {
-            /* Nothing To Do. */
-            ;
+         result = SysSrv_OK;
+            
         }
     }
     return result;

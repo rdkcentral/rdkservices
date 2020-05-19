@@ -22,10 +22,54 @@
  *
  */
 
-#include "utils.h"
-
-// std
+#include <string.h>
 #include <sstream>
+#include "utils.h"
+#include "libIBus.h"
+
+using namespace WPEFramework;
+using namespace std;
+
+bool Utils::IARM::init()
+{
+    string memberName = "Thunder_Plugins";
+    LOGINFO("%s", memberName.c_str());
+
+    IARM_Result_t res;
+    int isRegistered = 0;
+    IARM_CHECK(IARM_Bus_IsConnected(memberName.c_str(), &isRegistered));
+
+    m_connected = false;
+    if (isRegistered > 0)
+    {
+        LOGINFO("%s has already connected with IARM", memberName.c_str());
+        m_connected = true;
+        return true;
+    }
+
+    IARM_CHECK( IARM_Bus_Init(memberName.c_str()));
+    if (res == IARM_RESULT_SUCCESS)
+    {
+        IARM_CHECK(IARM_Bus_Connect());
+        if (res != IARM_RESULT_SUCCESS)
+        {
+            LOGERR("IARM_Bus_Connect failure");
+            IARM_CHECK(IARM_Bus_Term());
+            return false;
+        }
+    }
+    else
+    {
+        LOGERR("IARM_Bus_Init failure");
+        return false;
+    }
+
+    LOGINFO("%s inited and connected with IARM", memberName.c_str());
+    m_connected = true;
+    return true;
+}
+
+bool Utils::IARM::m_connected = false;
 
 std::string Utils::formatIARMResult(IARM_Result_t result)
 {
@@ -41,3 +85,28 @@ std::string Utils::formatIARMResult(IARM_Result_t result)
             return tmp.str();
     }
 }
+
+/***
+ * @brief	: Execute shell script and get response
+ * @param1[in]	: script to be executed with args
+ * @return		: string; response.
+ */
+std::string Utils::cRunScript(const char *cmd)
+{
+    std::string totalStr = "";
+    FILE *pipe = NULL;
+    char buff[1024] = {'\0'};
+
+    if ((pipe = popen(cmd, "r"))) {
+        memset(buff, 0, sizeof(buff));
+        while (fgets(buff, sizeof(buff), pipe)) {
+            totalStr += buff;
+            memset(buff, 0, sizeof(buff));
+        }
+        pclose(pipe);
+    } else {
+        /* popen failed. */
+    }
+    return totalStr;
+}
+
