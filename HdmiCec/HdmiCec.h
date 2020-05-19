@@ -69,7 +69,6 @@ namespace WPEFramework {
         public:
             static HdmiCec* _instance;
         private:
-            bool m_iarmConnected;
             std::string logicalAddressDeviceType;
             unsigned int logicalAddress;
             unsigned int physicalAddress;
