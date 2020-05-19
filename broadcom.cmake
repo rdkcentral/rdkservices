@@ -44,6 +44,9 @@ add_definitions (-DHAS_API_PING)
 add_definitions (-DHAS_API_HDCP_COMPLIANCE)
 add_definitions (-DHAS_API_DOWNLOADS)
 
+add_definitions (-DUSE_SWMP3_DECODER)
+add_definitions (-DRDK_USE_NXCLIENT)
+
 # Enabling image caching for all broadcom devices
 add_definitions (-DHAS_API_DEVICEPROVISIONING)
 
@@ -84,6 +87,11 @@ endif()
 if (BUILD_ENABLE_THERMAL_PROTECTION)
 add_definitions (-DBUILD_ENABLE_THERMAL_PROTECTION)
    add_definitions (-DENABLE_THERMAL_PROTECTION)
+endif()
+
+if (SCREENCAP_SVP_ENABLED)
+    message("Building with SCREENCAP_SVP_ENABLED")
+    add_definitions (-DSCREENCAP_SVP_ENABLED)
 endif()
 
 if (BUILD_XG1)

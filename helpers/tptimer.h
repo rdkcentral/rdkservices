@@ -72,7 +72,7 @@ namespace WPEFramework
             
             void Timed();
             
-            static WPEFramework::Core::TimerType<TpTimerJob>& baseTimer;
+            WPEFramework::Core::TimerType<TpTimerJob> baseTimer;
             TpTimerJob m_timerJob;
             bool m_isActive;
             bool m_isSingleShot;

@@ -32,9 +32,18 @@
 #include "utils.h"
 
 /* Status-keeper files */
+
+#ifdef PLATFORM_BROADCOM
+#define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/secure/reboot/reboot.info"
+#define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/secure/reboot/previousreboot.info"
+#define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/secure/reboot/hardpower.info"
+#else
 #define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/persistent/reboot.info"
 #define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/persistent/previousreboot.info"
 #define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/persistent/hardpower.info"
+#endif
+
+
 
 #define SYSTEM_UP_TIME_FILE                     "/proc/uptime"
 #define MOCA_FILE                               "/opt/enablemoca"
@@ -113,13 +122,6 @@ using namespace std;
   * @return : string; error message.
   */
 std::string getErrorDescription(int errCode);
-
-/**
-  * @brief : To check the existance of a file.
-  * @param1[in] : file name with absolute path.
-  * @return : <bool>; true if file present, else false.
-  */
-bool fileExists(const char *pFileName);
 
 std::string dirnameOf(const std::string& fname);
 
@@ -241,13 +243,6 @@ string currentDateTimeUtc(const char *fmt);
  * @return		: string; encoded url
  */
 std::string url_encode(std::string urlIn);
-
-/***
- * @brief	: Execute shell script and get response
- * @param1[in]	: script to be executed with args
- * @return		: string; response.
- */
-std::string cRunScript(const char *cmd);
 
 /***
  * @brief	: To retrieve model details
