@@ -137,7 +137,7 @@ if (ENABLE_BLUETOOTH_CONTROL)
     message("Building with Bluetooth support")
     add_definitions (-DENABLE_BLUETOOTH_CONTROL)
     add_definitions (-DHAS_API_BLUETOOTH)
-    option(BLUETOOTH_SETTINGS "BLUETOOTH_SETTINGS" OFF)
+    option(PLUGIN_BLUETOOTH "PLUGIN_BLUETOOTH" ON)
 endif()
 
 message("Building with DataCapture support")
