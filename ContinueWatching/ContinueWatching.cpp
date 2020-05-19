@@ -728,7 +728,7 @@ namespace WPEFramework {
 			bool retVal = false;
 			RFC_ParamData_t param         = {0};
 
-			WDMP_STATUS status = getRFCParameter("ServiceManager", feature.c_str(), &param);
+			WDMP_STATUS status = getRFCParameter(const_cast<char *>("ServiceManager"), feature.c_str(), &param);
 			if (status == WDMP_SUCCESS) {
 				LOGINFO("%s name = %s, type = %d, value = %s\n", __FUNCTION__, param.name, param.type, param.value);
 
@@ -863,7 +863,7 @@ namespace WPEFramework {
 
 			string dectokenbase64;
 			std::stringstream listdecydec;
-			for (int i=0; i<decnum_chars; ++i){
+			for (unsigned int i=0; i<decnum_chars; ++i){
 				listdecydec << decworkspace[i];
 			}
 			dectokenbase64 = listdecydec.str();
@@ -893,7 +893,7 @@ namespace WPEFramework {
 			b64_encode(encodebuff,tokenVec.size(),workspace);
 
 			std::stringstream list1;
-			for (int i=0; i<workspace_size; ++i){
+			for (unsigned int i=0; i<workspace_size; ++i){
 				list1 << workspace[i];
 			}
 			tokenbase64 = list1.str();
@@ -927,7 +927,7 @@ namespace WPEFramework {
 
 			string jsontokenbase64;
 			std::stringstream listwritetofile;
-			for (int i=0; i<jsonworkspace_size; ++i){
+			for (unsigned int i=0; i<jsonworkspace_size; ++i){
 				listwritetofile << jsonworkspace[i];
 			}
 			jsontokenbase64 = listwritetofile.str();

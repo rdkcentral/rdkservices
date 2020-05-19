@@ -1,8 +1,0 @@
-{
- "locator":"libWPEFrameworkWarehouse.so",
- "classname":"Warehouse",
- "precondition":[
-  "Platform"
- ],
- "autostart":true
-}
