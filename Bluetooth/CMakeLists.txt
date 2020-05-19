@@ -38,8 +38,6 @@ if(BTMGR_FOUND)
     message("Found BTMGR")
     target_include_directories(${MODULE_NAME} PRIVATE ${BTMGR_INCLUDE_DIRS})
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${BTMGR_LIBRARIES})
-else (BTMGR_FOUND)
-    message(SEND_ERROR "BTMGR not found")
 endif(BTMGR_FOUND)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
