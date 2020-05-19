@@ -253,8 +253,8 @@ endif()
 
 if(BUILD_BROADCOM)
     include(broadcom.cmake)
-elseif(BUILD_INTEL)
-    include(intel.cmake)
+elseif(BUILD_RASPBERRYPI)
+    include(raspberrypi.cmake)
 endif()
 
 
