@@ -212,10 +212,6 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
         add_subdirectory(SecurityAgent)
     endif()
 
-    if(ENABLE_SPARK)
-        add_subdirectory(Spark)
-    endif()
-
     if(HAS_AUTHSERVICE)
         add_subdirectory(AuthService)
     endif()
