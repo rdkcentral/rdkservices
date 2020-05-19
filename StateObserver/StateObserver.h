@@ -146,7 +146,6 @@ namespace WPEFramework {
 			static StateObserver* _instance;
 		private:
 			uint32_t m_apiVersionNumber;
-			bool m_iarmConnected;
 		};
 
 	} // namespace Plugin

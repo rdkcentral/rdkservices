@@ -370,34 +370,32 @@ namespace WPEFramework {
         void SystemServices::InitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_Init("SystemServices"));
-            IARM_CHECK(IARM_Bus_Connect());
-            IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange);
-            IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME,
-                    IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _firmwareUpdateStateChanged);
-            IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler);
+
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _firmwareUpdateStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
 #ifdef ENABLE_THERMAL_PROTECTION
-            IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler);
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
+            }
         }
 
         void SystemServices::DeinitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME,
-                    IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE);
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_MODECHANGED);
-#ifdef ENABLE_THERMAL_PROTECTION
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED);
-#endif //ENABLE_THERMAL_PROTECTION
-            IARM_CHECK(IARM_Bus_Disconnect());
-            IARM_CHECK(IARM_Bus_Term());
+
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE));
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+    #ifdef ENABLE_THERMAL_PROTECTION
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED));
+    #endif //ENABLE_THERMAL_PROTECTION
+            }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
@@ -959,7 +957,6 @@ namespace WPEFramework {
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool result = false;
             string callGUID;
 
                 callGUID = parameters["GUID"].String();

@@ -86,14 +86,14 @@ namespace WPEFramework
             Timer::_instance = nullptr;
         }
 
-        bool Timer::checkTimers()
+        void Timer::checkTimers()
         {
             LOGINFO();
 
             double minTimeout = 100000;
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
             {
-                int timerId = *it;
+                unsigned int timerId = *it;
                 if (timerId < 0 || timerId >= m_timerItems.size())
                 {
                     LOGERR("Internal error: wrong timerId");
@@ -186,7 +186,7 @@ namespace WPEFramework
 
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
             {
-                int timerId = *it;
+                unsigned int timerId = *it;
                 if (timerId < 0 || timerId >= m_timerItems.size())
                 {
                     LOGERR("Internal error: wrong timerId");
@@ -313,7 +313,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
-            int timerId;
+            unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
             if (timerId >=0 && timerId < m_timerItems.size())
@@ -343,7 +343,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
-            int timerId;
+            unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
             if (timerId >=0 && timerId < m_timerItems.size())
@@ -373,7 +373,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
-            int timerId;
+            unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
             if (timerId >=0 && timerId < m_timerItems.size())
@@ -404,7 +404,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
-            int timerId;
+            unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
             if (timerId >= 0 && timerId < m_timerItems.size())
@@ -427,7 +427,7 @@ namespace WPEFramework
             LOGINFO();
 
             JsonArray timers;
-            for (int n = 0; n < m_timerItems.size(); n++)
+            for (unsigned int n = 0; n < m_timerItems.size(); n++)
             {
                 JsonObject timer;
                 getTimerStatus(n, timer, true);

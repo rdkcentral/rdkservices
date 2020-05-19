@@ -64,7 +64,6 @@ namespace WPEFramework {
 		StateObserver::StateObserver()
 		: AbstractPlugin()
 		, m_apiVersionNumber((uint32_t)-1)
-		, m_iarmConnected(false)
 		{
 			LOGINFO();
 
@@ -103,23 +102,24 @@ namespace WPEFramework {
 
 		void StateObserver::InitializeIARM()
 		{
-			LOGINFO("initializing IARM bus...\n");
-			IARM_Result_t res;
+		    LOGINFO();
 
-			//Register iarm event handler
-			IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, onReportStateObserverEvents) );
-			m_iarmConnected = true;
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+			    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, onReportStateObserverEvents) );
+            }
 		}
 
 		void StateObserver::DeinitializeIARM()
 		{
-			LOGINFO("disconnecting from IARM Bus...\n");
-			if (m_iarmConnected)
-			{
-				IARM_Result_t res;
-				m_iarmConnected = false;
-				IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) );
-			}
+		    LOGINFO();
+
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) );
+            }
 		}
 
 		/**

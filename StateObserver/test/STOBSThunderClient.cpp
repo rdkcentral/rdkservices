@@ -43,15 +43,14 @@ void showMenu()
 
 int main(int argc, char** argv)
 {
-        int choice;
-	JsonObject result;
-        JsonObject param;
-        uint32_t ret;
-	int size;
-	int i;
-	string req;
-	
-	
+    int choice;
+    JsonObject result;
+    JsonObject param;
+    int size;
+    int i;
+    string req;
+
+
 	Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
 	if(NULL == remoteObject) {
 		remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T("StateObserver.1"), _T(""));
@@ -80,7 +79,7 @@ int main(int argc, char** argv)
 					req+="]";
 					cout<<"request string is"<<req<<"\n";
 					param["PropertyNames"].FromString(req);
-					ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getValues"), param, result);
+					remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getValues"), param, result);
                                 	if (result["success"].Boolean())
                                 	{
 						string resp=result["properties"].String();
@@ -114,7 +113,7 @@ int main(int argc, char** argv)
                                 	cout<<"request string is"<<req<<"\n";
                                 	param["PropertyNames"].FromString(req);
 
-					ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("registerListeners"), param, result);
+					remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("registerListeners"), param, result);
                                 	if (result["success"].Boolean())
                                 	{
                                         	string resp=result["properties"].String();
@@ -148,7 +147,7 @@ int main(int argc, char** argv)
                                 	cout<<"request string is"<<req<<"\n";
                                 	param["PropertyNames"].FromString(req);
 
-                                	ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("unregisterListeners"), param, result);
+                                	remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("unregisterListeners"), param, result);
                                 	if (result["success"].Boolean())
                                 	{  
                                 	        cout<<"StateObserver unregister listeners call Success\n";
@@ -163,7 +162,7 @@ int main(int argc, char** argv)
 				case 4:
 				{
 					cout<<"getName API\n";
-					ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getName"), param, result);
+					remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getName"), param, result);
 					if (result["success"].Boolean())
                                 	{
 						string pluginName=result["Name"].String();
@@ -180,7 +179,7 @@ int main(int argc, char** argv)
 				case 5:
 				{
 					cout<<"getApiVersionNumber API\n";
-					ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getApiVersionNumber"), param, result);
+					remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("getApiVersionNumber"), param, result);
 					if (result["success"].Boolean())
                                 	{
                                 	        string version=result["version"].String();
@@ -202,7 +201,7 @@ int main(int argc, char** argv)
 					cin>>version;
 					string ver="\"" + std::to_string(version) + "\"";
 					param["version"].FromString(ver);
-                                	ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("setApiVersionNumber"), param, result);
+                                	remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("setApiVersionNumber"), param, result);
                                 	if (result["success"].Boolean())
                                 	{
                                         	cout<<"StateObserver setApiVersionNumber call Success\n";

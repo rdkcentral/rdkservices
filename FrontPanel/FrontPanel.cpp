@@ -158,7 +158,6 @@ namespace WPEFramework
 
         FrontPanel::FrontPanel()
         : AbstractPlugin()
-        , m_iarmConnected(false)
         , m_updateTimer(this)
         {
             LOGINFO();
@@ -204,28 +203,12 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            int isRegistered;
-            IARM_Result_t res = IARM_Bus_IsConnected("Front_Panel" , &isRegistered);
-            if(res != IARM_RESULT_SUCCESS)
-            {
-                IARM_CHECK( IARM_Bus_Init("Front_Panel") );
-                IARM_CHECK( IARM_Bus_Connect() );
-                m_iarmConnected = true;
-            }
+            Utils::IARM::init();
         }
 
-        //TODO(MROLLINS) - we need to install crash handler to ensure DeinitializeIARM gets called
         void FrontPanel::DeinitializeIARM()
         {
             LOGINFO();
-
-            if (m_iarmConnected)
-            {
-                m_iarmConnected = false;
-                IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_Disconnect() );
-                IARM_CHECK( IARM_Bus_Term() );
-            }
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
