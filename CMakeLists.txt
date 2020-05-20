@@ -71,7 +71,6 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
-if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue is fixed on Samsung Xg2v2
     if(PLUGIN_SYSTEMSERVICES)
         add_subdirectory(SystemServices)
     endif()
@@ -287,7 +286,6 @@ if (NOT OEM_VENDOR_SAMSUNG) # Disabling these service until image oversize issue
     if(ENABLE_WEBKIT_BROWSER)
         add_subdirectory(WebKitBrowser)
     endif()
-endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
