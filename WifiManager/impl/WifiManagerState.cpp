@@ -39,6 +39,7 @@ namespace {
             case WIFI_CONNECTED: return WifiState::CONNECTED;
             case WIFI_FAILED: return WifiState::FAILED;
         }
+        return WifiState::FAILED;
     }
 }
 
@@ -92,7 +93,6 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
     LOGINFOMETHOD();
     returnIfBooleanParamNotFound(parameters, "enable");
 
-    bool success = false;
     IARM_BUS_NetSrvMgr_Iface_EventData_t param;
     memset(&param, 0, sizeof(param));
 

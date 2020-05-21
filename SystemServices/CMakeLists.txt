@@ -32,8 +32,7 @@ add_library(${MODULE_NAME} SHARED
         ../helpers/powerstate.cpp
         ../helpers/thermonitor.cpp
         ../helpers/SystemServicesHelper.cpp
-        ../helpers/utils.cpp
-)
+        ../helpers/utils.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

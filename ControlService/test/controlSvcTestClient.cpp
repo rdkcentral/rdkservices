@@ -301,7 +301,7 @@ namespace Handlers {
 
 int main(int argc, char** argv)
 {
-    JSONRPC::Client* remoteObject = NULL;
+    JSONRPC::LinkType<Core::JSON::IElement> * remoteObject = NULL;
 
     int choice;
     uint32_t ret;
@@ -319,7 +319,7 @@ int main(int argc, char** argv)
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
 
     if (NULL == remoteObject) {
-        remoteObject = new JSONRPC::Client(_T(SYSSRV_CALLSIGN), _T(""));
+        remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSSRV_CALLSIGN), _T(""));
         if (NULL == remoteObject) {
             std::cout << "JSONRPC::Client initialization failed" << std::endl;
         } else {

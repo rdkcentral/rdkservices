@@ -72,9 +72,6 @@ namespace WPEFramework {
 
         public:
             static HdmiInput* _instance;
-
-        private:
-            bool m_iarmConnected;
         };
 	} // namespace Plugin
 } // namespace WPEFramework

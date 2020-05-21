@@ -43,7 +43,6 @@ namespace WPEFramework
 
         HdmiInput::HdmiInput()
         : AbstractPlugin()
-        , m_iarmConnected(false)
         {
             LOGINFO();
             HdmiInput::_instance = this;
@@ -67,32 +66,21 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            int isRegistered;
-            IARM_Result_t res = IARM_Bus_IsConnected("HdmiInput" , &isRegistered);
-            if(res != IARM_RESULT_SUCCESS)
+            if (Utils::IARM::init())
             {
-                IARM_CHECK( IARM_Bus_Init("HdmiInput") );
-                IARM_CHECK( IARM_Bus_Connect() );
-                m_iarmConnected = true;
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
             }
-
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
         }
 
-        //TODO(MROLLINS) - we need to install crash handler to ensure DeinitializeIARM gets called
         void HdmiInput::DeinitializeIARM()
         {
             LOGINFO();
 
-            if (m_iarmConnected)
+            if (Utils::IARM::isConnected())
             {
-                m_iarmConnected = false;
                 IARM_Result_t res;
-
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
-
-                IARM_CHECK( IARM_Bus_Disconnect() );
-                IARM_CHECK( IARM_Bus_Term() );
             }
         }
 
