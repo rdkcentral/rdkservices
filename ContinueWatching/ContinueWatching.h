@@ -104,7 +104,7 @@ namespace WPEFramework {
 		{
 		public:
    			ContinueWatchingImpl();
-			~ContinueWatchingImpl();
+			virtual ~ContinueWatchingImpl();
 			virtual std::string getApplicationToken() = 0;
 			virtual bool setApplicationToken(std::string token) = 0;
 			virtual bool deleteApplicationToken() = 0;
@@ -132,7 +132,7 @@ namespace WPEFramework {
 		{
 		public:
 			NetflixContinueWatchingImpl();
-			~NetflixContinueWatchingImpl();
+			virtual ~NetflixContinueWatchingImpl();
 			std::string getApplicationToken();
 			bool setApplicationToken(std::string token);
 			bool deleteApplicationToken();
@@ -142,7 +142,7 @@ namespace WPEFramework {
 		{
 		public:
 			ContinueWatchingImplFactory();
-			~ContinueWatchingImplFactory();
+			virtual ~ContinueWatchingImplFactory();
 			ContinueWatchingImpl* createContinueWatchingImpl(std::string strApplicationName);
 		};
 	} // namespace Plugin

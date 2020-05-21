@@ -135,7 +135,6 @@ namespace WPEFramework {
         public:
             static FrontPanel* _instance;
         private:
-            bool m_iarmConnected;
             static int m_savedClockBrightness;
             static int m_LedDisplayPatternUpdateTimerInterval;
 
