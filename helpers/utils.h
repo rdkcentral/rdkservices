@@ -123,6 +123,16 @@
         catch (...) { param = 0; }\
 }
 
+#define getDefaultNumberParameter(paramName, param, default) {\
+    if (parameters.HasLabel(paramName)) { \
+        if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+            param = parameters[paramName].Number(); \
+        else \
+            try { param = std::stoi( parameters[paramName].String()); } \
+            catch (...) { param = default; } \
+    } else param = default; \
+}
+
 #define getNumberParameterObject(parameters, paramName, param) {\
     if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
         param = parameters[paramName].Number();\
@@ -274,9 +284,13 @@ namespace Utils
      * @param1[in]	: pFileName name of file
      * @return		: true if file exists.
      */
-    inline bool fileExists(const char *pFileName)
-    {
-        struct stat fileStat;
-        return stat(pFileName, &fileStat) == 0;
-    }
+    bool fileExists(const char *pFileName);
+
+    /***
+     * @brief	: Checks that file exists and modified at least pointed seconds ago
+     * @param1[in]	: pFileName name of file
+     * @param1[in]	: age modification age in seconds
+     * @return		: true if file exists and modifies 'age' seconds ago.
+     */
+    bool isFileExistsAndOlderThen(const char *pFileName, long age = -1);
 }
