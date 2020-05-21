@@ -24,7 +24,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         StateObserver.cpp
-        Module.cpp)
+        Module.cpp
+        ../helpers/utils.cpp)
 
 #add_subdirectory(test)
 

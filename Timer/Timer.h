@@ -90,7 +90,7 @@ namespace WPEFramework {
             void sendTimerExpiryReminder(int timerId);
             //End events
 
-            bool checkTimers();
+            void checkTimers();
 
             void startTimer(int timerId);
             bool cancelTimer(int timerId);

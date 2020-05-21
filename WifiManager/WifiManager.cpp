@@ -65,41 +65,27 @@ namespace WPEFramework
           apiVersionNumber(1),
           wifiSignalThreshold(*this)
         {
-            LOGINFO();
-
-            for(const auto &mapping: constMethods) {
+            for(const auto &mapping: constMethods)
                 Register(mapping.first, mapping.second, this);
-            }
 
-            for(const auto &mapping: mutableMethods) {
+            for(const auto &mapping: mutableMethods)
                 Register(mapping.first, mapping.second, this);
-            }
-
-            IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_Init("WifiManager"));
-            IARM_CHECK(IARM_Bus_Connect());
         }
 
         WifiManager::~WifiManager()
         {
-            LOGINFO();
-
-            IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_Disconnect());
-            IARM_CHECK(IARM_Bus_Term());
-
-            for(const auto &mapping: constMethods) {
+            for(const auto &mapping: constMethods)
                 Unregister(mapping.first);
-            }
 
-            for(const auto &mapping: mutableMethods) {
+            for(const auto &mapping: mutableMethods)
                 Unregister(mapping.first);
-            }
         }
 
         const string WifiManager::Initialize(PluginHost::IShell* service)
         {
             LOGINFO();
+
+            Utils::IARM::init();
 
             if (instance != nullptr) {
                 LOGERR("Expecting 'instance' to be initially unset; two instances of the plugin?");
