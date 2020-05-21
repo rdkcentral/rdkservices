@@ -41,12 +41,8 @@ public:
        , _adminLock()
        , _activity(*this) {
 
-#ifdef __DEBUG__
         NEXUS_Error rc = NxClient_Join(NULL);
         ASSERT(!rc);
-#else
-        NxClient_Join(NULL);
-#endif
         NxClient_UnregisterAcknowledgeStandby(NxClient_RegisterAcknowledgeStandby());
         NEXUS_Platform_GetConfiguration(&_platformConfig);
 
