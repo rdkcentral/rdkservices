@@ -1552,6 +1552,7 @@ namespace WPEFramework {
 #if (CTRLM_MAIN_IARM_BUS_API_REVISION > 8)
             IARM_Result_t retval;
             ctrlm_main_iarm_call_control_service_can_find_my_remote_t call;
+            call.network_type = CTRLM_NETWORK_TYPE_RF4CE;
 
             memset((void*)&call, 0, sizeof(call));
             call.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
