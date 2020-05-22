@@ -18,23 +18,34 @@
 **/
 
 #include "Network.h"
+#include <linux/if.h>
 
-// Event types
-#define EVT_NETWORK_CONNECTION_STATUS_UPDATE     "onConnectionStatusChanged"
-#define EVT_NETWORK_CONNECTION_IP_ADDRESS_UPDATE "onIPAddressStatusChanged"
-
+#define DEFAULT_PING_PACKETS 15
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
-#define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
-#define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
-#define IARM_BUS_NETSRVMGR_API_isInterfaceEnabled "isInterfaceEnabled"
-#define IARM_BUS_NETSRVMGR_API_getInterfaceControlPersistence  "getInterfaceControlPersistence"
-#define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
-#define DEFAULT_PING_PACKETS 15
+#define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
+#define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
+#define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
+#define IARM_BUS_NETSRVMGR_API_getDefaultInterface "getDefaultInterface"
+#define IARM_BUS_NETSRVMGR_API_setDefaultInterface "setDefaultInterface"
+#define IARM_BUS_NETSRVMGR_API_isInterfaceEnabled "isInterfaceEnabled"
+#define IARM_BUS_NETSRVMGR_API_setInterfaceEnabled "setInterfaceEnabled"
+#define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
+
+typedef enum _NetworkManager_EventId_t {
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
+    IARM_BUS_NETWORK_MANAGER_MAX,
+} IARM_Bus_NetworkManager_EventId_t;
 
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
@@ -45,13 +56,45 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     };
     char interfaceCount;
     bool isInterfaceEnabled;
+    bool persist;
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
-typedef enum _NetworkManager_EventId_t {
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
-    IARM_BUS_NETWORK_MANAGER_MAX,
-} IARM_Bus_NetworkManager_EventId_t;
+typedef struct {
+    char name[16];
+    char mac[20];
+    unsigned int flags;
+} NetSrvMgr_Interface_t;
+
+typedef struct {
+    unsigned char         size;
+    NetSrvMgr_Interface_t interfaces[8];
+} IARM_BUS_NetSrvMgr_InterfaceList_t;
+
+typedef struct {
+    char interface[16];
+    char gateway[MAX_IP_ADDRESS_LEN];
+} IARM_BUS_NetSrvMgr_DefaultRoute_t;
+
+typedef struct {
+    char interface[16];
+    bool status;
+} IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t;
+
+typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
+typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
+
+typedef struct {
+    char interface[16];
+    char ip_address[MAX_IP_ADDRESS_LEN];
+    bool is_ipv6;
+    bool acquired;
+} IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t;
+
+typedef struct {
+    char oldInterface[16];
+    char newInterface[16];
+} IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
+
 
 namespace WPEFramework
 {
@@ -122,7 +165,14 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            Utils::IARM::init();
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+            }
 
             return string();
         }
@@ -130,6 +180,14 @@ namespace WPEFramework
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE) );
+            }
         }
 
         string Network::Information() const
@@ -170,58 +228,27 @@ namespace WPEFramework
         uint32_t Network::getInterfaces (const JsonObject& parameters, JsonObject& response)
         {
             LOGWARN ("Entering %s \n", __FUNCTION__);
+
             if (m_apiVersionNumber >= 1)
             {
-                IARM_Result_t ret = IARM_RESULT_SUCCESS;
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME,IARM_BUS_NETSRVMGR_API_getNetworkInterfaces, (void*)&param, sizeof(param));
-                if (ret == IARM_RESULT_SUCCESS)
+                IARM_BUS_NetSrvMgr_InterfaceList_t list;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
                 {
-                    if(param.interfaceCount)
+                    JsonArray networkInterfaces;
+
+                    for (int i = 0; i < list.size; i++)
                     {
-                        std::stringstream strm(param.allNetworkInterfaces);
-                        std::string interfaceName = "";
-                        JsonArray networkInterfaces;
+                        JsonObject interface;
 
-                        /* The list of interfaces from netsrvmgr just returns a comma separated list of WIFI, ETHERNET etc.
-                         * We need extra information for this api so we will get it from other calls to netsrvmgr and from
-                         * the network monitoring information we have acquired.
-                         */
-                        while (std::getline(strm, interfaceName, ','))
-                        {
-                            std::string macAddr = "";
-                            bool enabled = false;
-                            bool connected = false;
-                            JsonObject interface;
+                        interface["interface"] = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+                        interface["macAddress"] = string(list.interfaces[i].mac);
+                        interface["enabled"] = ((list.interfaces[i].flags & IFF_UP) != 0);
+                        interface["connected"] = ((list.interfaces[i].flags & IFF_RUNNING) != 0);
 
-                            if (!_getInterfaceEnabled(interfaceName, enabled))
-                            {
-                                LOGERR("Failed to get enabled state for %s", interfaceName.c_str());
-                            }
-                            if (!_getInterfaceMACAddress(interfaceName, macAddr))
-                            {
-                                LOGERR("Failed to get MAC address for %s", interfaceName.c_str());
-                            }
-                            if (!_getInterfaceConnected(interfaceName, connected))
-                            {
-                                LOGERR("Failed to get connected state for %s", interfaceName.c_str());
-                            }
-
-                            interface["interface"] = interfaceName;
-                            interface["macAddress"] = macAddr;
-                            interface["enabled"] = enabled;
-                            interface["connected"] = connected;
-
-                            networkInterfaces.Add(interface);
-                        }
-
-                        response["interfaces"] = networkInterfaces;
-                    }
-                    else
-                    {
-                        response["interfaces"] = std::string();
+                        networkInterfaces.Add(interface);
                     }
 
+                    response["interfaces"] = networkInterfaces;
                     returnResponse(true);
                 }
                 else
@@ -240,22 +267,18 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                std::string interface = "";
-
-#ifdef USE_NETLINK
-                //TBD - check netlink method gets the correct interface on IPv6
-                if (m_netUtils.GetDefaultInterfaceDescription(interface))
+                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface, (void*)&param, sizeof(param)))
                 {
+                    LOGINFO("%s :: Interface = %s \n",__FUNCTION__,param.activeIface);
+                    std::string interface = param.activeIface;
                     response["interface"] = interface;
                     returnResponse(true);
                 }
-#else
-                if (_getActiveInterface(interface))
+                else
                 {
-                    response["interface"] = interface;
-                    returnResponse(true);
+                    LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface);
                 }
-#endif
             }
             else
             {
@@ -270,38 +293,27 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                //TBD - for now, we will only support this for IPv4, how to do this if configured for ipv6?
-                if (!NetUtils::isConfiguredIPV6())
+                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
                 {
                     std::string interface = "";
                     bool persist = false;
 
-                    if (parameters.HasLabel("interface"))
+                    getStringParameter("interface", interface);
+                    getBoolParameter("persist", persist);
+
+                    IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                    strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                    iarmData.persist = persist;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
                     {
-                        getStringParameter("interface", interface);
-
-                        if (m_netUtils.SetDefaultInterface(interface))
-                        {
-                            if (parameters.HasLabel("persist"))
-                            {
-                                getBoolParameter("persist", persist);
-                                if (!NetUtils::setDefaultGatewayPersistent(persist ? interface.c_str(): NULL))
-                                {
-                                    LOGERR("Failed to persist default interface (%s)", interface.c_str());
-                                }
-                            }
-
-                            returnResponse(true);
-                        }
+                        response["success"] = true;
+                        returnResponse(true);
                     }
                     else
                     {
-                        LOGWARN ("No interface specified\n");
+                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
                     }
-                }
-                else
-                {
-                    LOGWARN ("Device is not configured for IPv4\n");
                 }
             }
             else
@@ -333,17 +345,23 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                std::string interface = "";
-                bool enabled = false;
-
                 if (parameters.HasLabel("interface"))
                 {
+                    std::string interface = "";
+
                     getStringParameter("interface", interface);
 
-                    if (_getInterfaceEnabled(interface, enabled))
+                    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
+                    strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                     {
-                        response["enabled"] = enabled;
+                        LOGINFO("%s :: Enabled = %d \n",__FUNCTION__,param.isInterfaceEnabled);
+                        response["enabled"] = param.isInterfaceEnabled;
                         returnResponse(true);
+                    }
+                    else
+                    {
+                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
                     }
                 }
             }
@@ -360,41 +378,29 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                std::string interface = "";
-                bool enabled = false;
-                bool persist = false;
                 if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
                 {
+                    std::string interface = "";
+                    bool enabled = false;
+                    bool persist = false;
+
                     getStringParameter("interface", interface);
                     getBoolParameter("enabled", enabled);
                     getBoolParameter("persist", persist);
 
                     IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
                     strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
-
-                    // First set enabled state
                     iarmData.isInterfaceEnabled = enabled;
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_BroadcastEvent (IARM_BUS_NM_SRV_MGR_NAME, (IARM_EventId_t) IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED, (void *)&iarmData, sizeof(iarmData)))
+                    iarmData.persist = persist;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
                     {
-                        LOGINFO ("Broadcasted IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED = %d for interface '%s'\n", iarmData.isInterfaceEnabled, iarmData.enableInterface);
-
-                        // Then set persist state
-                        iarmData.isInterfaceEnabled = persist;
-                        if (IARM_RESULT_SUCCESS == IARM_Bus_BroadcastEvent (IARM_BUS_NM_SRV_MGR_NAME, (IARM_EventId_t) IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE, (void *)&iarmData, sizeof(iarmData)))
-                        {
-                            LOGINFO("Broadcasted IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE = %d for interface '%s'\n", iarmData.isInterfaceEnabled, iarmData.enableInterface);
-
-                            response["success"] = true;
-                            returnResponse(true);
-                        }
-                        else
-                        {
-                            LOGWARN ("Failed to broadcast IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE = %d for interface '%s'\n", iarmData.isInterfaceEnabled, iarmData.enableInterface);
-                        }
+                        response["success"] = true;
+                        returnResponse(true);
                     }
                     else
                     {
-                        LOGWARN ("Failed to broadcast IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED = %d for interface '%s'\n", iarmData.isInterfaceEnabled, iarmData.enableInterface);
+                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
                     }
                 }
             }
@@ -572,79 +578,114 @@ namespace WPEFramework
         /*
          * Notifications
          */
-        void Network::_asyncNotifyConnection(JsonObject &params)
+
+        void Network::onInterfaceEnabledStatusChanged(string interface, bool enabled)
         {
-            sendNotify(EVT_NETWORK_CONNECTION_STATUS_UPDATE, params);
+            JsonObject params;
+            params["interface"] = interface;
+            params["enabled"] = enabled;
+            sendNotify("onInterfaceStatusChanged", params);
         }
 
-        void Network::_asyncNotifyIPAddr(JsonObject &params)
+        void Network::onInterfaceConnectionStatusChanged(string interface, bool connected)
         {
-            sendNotify(EVT_NETWORK_CONNECTION_IP_ADDRESS_UPDATE, params);
+            JsonObject params;
+            params["interface"] = interface;
+            params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
+            sendNotify("onConnectionStatusChanged", params);
         }
 
+        void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
+        {
+            JsonObject params;
+            params["interface"] = interface;
+            params["ip6Address"] = ipv6Addr;
+            params["ip4Address"] = ipv4Addr;
+            params["status"] = string (acquired ? "ACQUIRED" : "LOST");
+            sendNotify("onIPAddressStatusChanged", params);
+        }
+
+        void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
+        {
+            JsonObject params;
+            params["oldInterfaceName"] = oldInterface;
+            params["newInterfaceName"] = newInterface;
+            sendNotify("onDefaultInterfaceChanged", params);
+        }
+
+        void Network::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (Network::_instance)
+                Network::_instance->iarmEventHandler(owner, eventId, data, len);
+            else
+                LOGWARN("WARNING - cannot handle IARM events without a Network plugin instance!");
+        }
+
+        void Network::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
+            {
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+                return;
+            }
+            if (data == NULL || len == 0)
+            {
+                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                return;
+            }
+
+            switch (eventId)
+            {
+            case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
+            {
+                IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
+                onInterfaceEnabledStatusChanged(e->interface, e->status);
+                break;
+            }
+            case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
+            {
+                IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
+                onInterfaceConnectionStatusChanged(e->interface, e->status);
+                break;
+            }
+            case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
+            {
+                IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
+                if (e->is_ipv6)
+                    onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
+                else
+                    onInterfaceIPAddressChanged(e->interface, "", e->ip_address, e->acquired);
+                break;
+            }
+            case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
+            {
+                IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
+                onDefaultInterfaceChanged(e->oldInterface, e->newInterface);
+                break;
+            }
+            }
+        }
 
         /*
          * Internal functions
          */
 
-        bool Network::_getInterfaceEnabled(std::string &interface, bool &enabled)
+        bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
-            IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-            strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
+            IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
             {
-                LOGINFO("%s :: Enabled = %d \n",__FUNCTION__,param.isInterfaceEnabled);
-                enabled = param.isInterfaceEnabled;
-                return true;
+                LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                interface = defaultRoute.interface;
+                gateway = defaultRoute.gateway;
+                return !interface.empty();
             }
             else
             {
-                LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-            }
-
-            return false;
-        }
-
-        bool Network::_getActiveInterface(std::string &interface)
-        {
-            IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface, (void*)&param, sizeof(param)))
-            {
-                LOGINFO("%s :: Interface = %s \n",__FUNCTION__,param.activeIface);
-                interface = param.activeIface;
-                return true;
-            }
-            else
-            {
-                LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-            }
-
-            return false;
-        }
-
-        /* Internal methods */
-        bool Network::_getInterfaceMACAddress(std::string &interface, std::string &macAddr)
-        {
-            if (m_netUtils.GetInterfaceMACAddress(interface, macAddr))
-            {
-                return true;
-            }
-            else
-            {
+                LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
                 return false;
             }
         }
 
-        bool Network::_getInterfaceConnected(std::string &interface, bool &connected)
-        {
-            if (m_netUtils.GetInterfaceConnected(interface, connected))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
     } // namespace Plugin
 } // namespace WPEFramework
