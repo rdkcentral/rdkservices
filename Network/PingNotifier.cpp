@@ -45,6 +45,7 @@ namespace WPEFramework
             LOGINFO("PingService calling ping");
             JsonObject pingResult;
             std::string interface = "";
+            std::string gateway;
             bool result = false;
             std::string outputFile;
             FILE *fp = NULL;
@@ -59,7 +60,7 @@ namespace WPEFramework
                 return pingResult;
             }
 
-            if (!m_netUtils.getCMTSInterface(interface))
+            if (!_getDefaultInterface(interface, gateway))
             {
                 LOGERR("%s: Could not get default interface", __FUNCTION__);
                 pingResult["success"] = false;
@@ -196,8 +197,9 @@ namespace WPEFramework
 
             if (endpointName == "CMTS")
             {
-                std::string gateway;
-                if (m_netUtils.getCMTSGateway(gateway))
+                std::string gateway = "";
+                string interface;
+                if (_getDefaultInterface(interface, gateway))
                 {
                     returnResult = _doPing(gateway, packets);
                 }

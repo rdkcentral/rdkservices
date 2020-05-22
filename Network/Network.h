@@ -21,8 +21,6 @@
 
 #include <cjson/cJSON.h>
 #include <string>
-#include <vector>
-#include <thread>
 
 #include "Module.h"
 #include "NetUtils.h"
@@ -74,10 +72,16 @@ namespace WPEFramework {
             uint32_t ping(const JsonObject& parameters, JsonObject& response);
             uint32_t pingNamedEndpoint(const JsonObject& parameters, JsonObject& response);
 
+            void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
+            void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
+            void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
+            void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
+
+            static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
             // Internal methods
-            bool _getInterfaceEnabled(std::string &interface, bool &enabled);
-            bool _getInterfaceMACAddress(std::string &interface, std::string &macAddr);
-            bool _getInterfaceConnected(std::string &interface, bool &connected);
+            bool _getDefaultInterface(std::string& interface, std::string& gateway);
 
             bool _doTrace(std::string &endpoint, int packets, JsonObject& response);
             bool _doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject& response);
@@ -95,15 +99,10 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
-            void _asyncNotifyConnection(JsonObject &params);
-            void _asyncNotifyIPAddr(JsonObject &params);
-            void _asyncNotifyTrace(JsonObject &params);
-            bool _getActiveInterface(std::string &interface);
-
             //IPlugin methods
-            virtual const string Initialize(PluginHost::IShell* service) override;
+            virtual const std::string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
-            virtual string Information() const override;
+            virtual std::string Information() const override;
 
         public:
             static Network *_instance;
