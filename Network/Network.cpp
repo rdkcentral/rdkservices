@@ -24,17 +24,28 @@
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
+#define INTERFACE_SIZE 10
+#define INTERFACE_LIST 50
+#define MAX_IP_ADDRESS_LEN 46
+#define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
-#define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getDefaultInterface "getDefaultInterface"
 #define IARM_BUS_NETSRVMGR_API_setDefaultInterface "setDefaultInterface"
 #define IARM_BUS_NETSRVMGR_API_isInterfaceEnabled "isInterfaceEnabled"
 #define IARM_BUS_NETSRVMGR_API_setInterfaceEnabled "setInterfaceEnabled"
 #define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
-#define INTERFACE_SIZE 10
-#define INTERFACE_LIST 50
-#define MAX_IP_ADDRESS_LEN 46
+
+typedef enum _NetworkManager_EventId_t {
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
+    IARM_BUS_NETWORK_MANAGER_MAX,
+} IARM_Bus_NetworkManager_EventId_t;
 
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
@@ -48,18 +59,18 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     bool persist;
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
-typedef struct _NetSrvMgr_Interface_t {
+typedef struct {
     char name[16];
     char mac[20];
     unsigned int flags;
 } NetSrvMgr_Interface_t;
 
-typedef struct _IARM_BUS_NetSrvMgr_InterfaceList_t {
+typedef struct {
     unsigned char         size;
     NetSrvMgr_Interface_t interfaces[8];
 } IARM_BUS_NetSrvMgr_InterfaceList_t;
 
-typedef struct _IARM_BUS_NetSrvMgr_DefaultRoute_t {
+typedef struct {
     char interface[16];
     char gateway[MAX_IP_ADDRESS_LEN];
 } IARM_BUS_NetSrvMgr_DefaultRoute_t;
@@ -83,17 +94,6 @@ typedef struct {
     char oldInterface[16];
     char newInterface[16];
 } IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
-
-typedef enum _NetworkManager_EventId_t {
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
-    IARM_BUS_NETWORK_MANAGER_MAX,
-} IARM_Bus_NetworkManager_EventId_t;
 
 
 namespace WPEFramework
@@ -180,6 +180,14 @@ namespace WPEFramework
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE) );
+            }
         }
 
         string Network::Information() const
@@ -583,7 +591,7 @@ namespace WPEFramework
         {
             JsonObject params;
             params["interface"] = interface;
-            params["status"] = connected ? "CONNECTED" : "DISCONNECTED";
+            params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
             sendNotify("onConnectionStatusChanged", params);
         }
 
@@ -593,7 +601,7 @@ namespace WPEFramework
             params["interface"] = interface;
             params["ip6Address"] = ipv6Addr;
             params["ip4Address"] = ipv4Addr;
-            params["status"] = acquired ? "ACQUIRED" : "LOST";
+            params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
         }
 
@@ -610,7 +618,7 @@ namespace WPEFramework
             if (Network::_instance)
                 Network::_instance->iarmEventHandler(owner, eventId, data, len);
             else
-                LOGWARN("WARNING - cannot handle IARM events without a VrexManager plugin instance!");
+                LOGWARN("WARNING - cannot handle IARM events without a Network plugin instance!");
         }
 
         void Network::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
