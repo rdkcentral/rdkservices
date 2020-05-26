@@ -14,7 +14,6 @@
 # Broadcom specifics
 message("Building for raspberrypi...")
 
-add_definitions (-DPLATFORM_BROADCOM)
 add_definitions (-DUSE_SOUND_PLAYER)
 
 
