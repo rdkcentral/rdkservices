@@ -1,21 +1,21 @@
 /**
-* If not stated otherwise in this file or this component's LICENSE
-* file the following copyright and licenses apply:
-*
-* Copyright 2020 RDK Management
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-**/
+ * If not stated otherwise in this file or this component's LICENSE
+ * file the following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
 
 #include "RtXcastConnector.h"
 #include "utils.h"
@@ -41,7 +41,7 @@ static void remoteDisconnectCallback( void* data) {
 /**
  * Callback function for application launch request from an app
  */
- rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     LOGINFO ("RtXcastConnector::onXcastApplicationLaunchRequest ");
     if (numArgs == 1)
@@ -50,8 +50,8 @@ static void remoteDisconnectCallback( void* data) {
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
         if (!strcmp(appName.cString(),"Netflix"))
-                appName = "NetflixApp";
-    rtString rtparams = appObject.get<rtString>("parameters");
+            appName = "NetflixApp";
+        rtString rtparams = appObject.get<rtString>("parameters");
         observer->onXcastApplicationLaunchRequest(appName.cString() , rtparams.cString());
     }
     else
@@ -61,15 +61,20 @@ static void remoteDisconnectCallback( void* data) {
     return RT_OK;
 }
 /**
-* Callback function for application stop request from an app
-*/
- rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+ * Callback function for application stop request from an app
+ */
+rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     if (numArgs == 1)
     {
-        RtXcastConnector * castObj = static_cast<RtXcastConnector *> (context);
+        LOGINFO("RtXcastConnector::onXcastApplicationStopRequest ");
+        RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
-        castObj->onXcastApplicationStopRequest(appObject);
+        rtString appName = appObject.get<rtString>("applicationName");
+        if (!strcmp(appName.cString(),"Netflix"))
+            appName = "NetflixApp";
+        rtString appID = appObject.get<rtString>("applicationId");
+        observer->onXcastApplicationStopRequest(appName.cString(),appID.cString());
     }
     else
         LOGERR(" *** Error: received unknown event" );
@@ -78,15 +83,20 @@ static void remoteDisconnectCallback( void* data) {
     return RT_OK;
 }
 /**
-* Callback function for application hide request from an app
-*/
- rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+ * Callback function for application hide request from an app
+ */
+rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     if (numArgs == 1)
     {
-        RtXcastConnector * castObj = static_cast<RtXcastConnector *> (context);
+        LOGINFO("RtXcastConnector::onXcastApplicationHideRequest : ");
+        RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
-        castObj->onXcastApplicationHideRequest(appObject);
+        rtString appName = appObject.get<rtString>("applicationName");
+        if (!strcmp(appName.cString(),"Netflix"))
+            appName = "NetflixApp";
+        rtString appID = appObject.get<rtString>("applicationId");
+        observer->onXcastApplicationHideRequest(appName.cString(), appID.cString());
     }
     else
         LOGERR(" *** Error: received unknown event");
@@ -98,23 +108,22 @@ static void remoteDisconnectCallback( void* data) {
     
 }
 /**
-* Callback function for application state request from an app
-*/
- rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+ * Callback function for application state request from an app
+ */
+rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     LOGINFO(" Received a callback event" );
     if (numArgs == 1)
     {
-       RtNotifier * observer = static_cast<RtNotifier *> (context);
+        LOGINFO("RtXcastConnector::onXcastApplicationStateRequest: ");
+        RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
-    LOGINFO("RtXcastConnector::onXcastApplicationStateRequest: ");
-    rtString appName = appObject.get<rtString>("applicationName");
-    if (!strcmp(appName.cString(),"Netflix"))
-        appName = "NetflixApp";
-    
-    rtString appID = appObject.get<rtString>("applicationId");
-    LOGINFO("Received onXcastApplicationStateRequest  AppName: %s AppID: %s", appName.cString(), appID.cString());
-    observer->onXcastApplicationStateRequest(appName.cString(),appID.cString());
+        rtString appName = appObject.get<rtString>("applicationName");
+        if (!strcmp(appName.cString(),"Netflix"))
+            appName = "NetflixApp";
+        
+        rtString appID = appObject.get<rtString>("applicationId");
+        observer->onXcastApplicationStateRequest(appName.cString(),appID.cString());
     }
     else
         LOGERR(" *** Error: received unknown event");
@@ -125,18 +134,24 @@ static void remoteDisconnectCallback( void* data) {
     return RT_OK;
 }
 /**
-* Callback function for application resume request from an app
-*/
- rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+ * Callback function for application resume request from an app
+ */
+rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     if (numArgs == 1)
     {
-        RtXcastConnector * castObj = static_cast<RtXcastConnector *> (context);
+        RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
-        castObj->onXcastApplicationResumeRequest(appObject);
+        rtString appName = appObject.get<rtString>("applicationName");
+        if (!strcmp(appName.cString(),"Netflix"))
+            appName = "NetflixApp";
+        
+        rtString appID = appObject.get<rtString>("applicationId");
+        observer->onXcastApplicationResumeRequest(appName.cString(),appID.cString());
+        
     }
     else
-         LOGERR(" *** Error: received unknown event");
+        LOGERR(" *** Error: received unknown event");
     
     if (result)
         *result = rtValue(true);
@@ -144,8 +159,8 @@ static void remoteDisconnectCallback( void* data) {
     return RT_OK;
 }
 /**
-* Callback function when remote service exits
-*/
+ * Callback function when remote service exits
+ */
 rtError RtXcastConnector::onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
     if (numArgs == 1)
@@ -155,7 +170,7 @@ rtError RtXcastConnector::onRtServiceByeCallback(int numArgs, const rtValue* arg
         LOGINFO("Received RtService Bye Event! Service: %s", serviceName.cString());
     }
     else
-         LOGERR(" *** Error: received unknown event");
+        LOGERR(" *** Error: received unknown event");
     
     if (result)
         *result = rtValue(true);
@@ -177,21 +192,21 @@ int RtXcastConnector::connectToRemoteService()
     {
         rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(&RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
         LOGINFO("Registered onApplicationLaunchRequest ; response %d" ,e );
-        e = xdialCastObj.send("on", "onApplicationStopRequest" , new rtFunctionCallback(&RtXcastConnector::onApplicationStopRequestCallback, this));
+        e = xdialCastObj.send("on", "onApplicationStopRequest" , new rtFunctionCallback(&RtXcastConnector::onApplicationStopRequestCallback, m_observer));
         LOGINFO("Registered onApplicationStopRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationHideRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationHideRequestCallback, this));
+        e = xdialCastObj.send("on", "onApplicationHideRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationHideRequestCallback, m_observer));
         LOGINFO("Registered onApplicationHideRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationResumeRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationResumeRequestCallback, this));
+        e = xdialCastObj.send("on", "onApplicationResumeRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationResumeRequestCallback, m_observer));
         LOGINFO("Registered onApplicationResumeRequest %d", e );
         e = xdialCastObj.send("on", "onApplicationStateRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationStateRequestCallback, m_observer));
         LOGINFO("Registed onApplicationStateRequest %d", e );
-        e = xdialCastObj.send("on", "bye" , new rtFunctionCallback( &RtXcastConnector::onRtServiceByeCallback, this));
+        e = xdialCastObj.send("on", "bye" , new rtFunctionCallback( &RtXcastConnector::onRtServiceByeCallback, m_observer));
         LOGINFO("Registed rtService bye event %d", e );
-    enableCastService();
-
+        enableCastService();
+        
     }
-else
-    LOGINFO("response of rtRemoteLocateObject %d ",   err);
+    else
+        LOGINFO("response of rtRemoteLocateObject %d ",   err);
     return (err == RT_OK) ? 0 : 1;
 }
 
@@ -205,15 +220,15 @@ RtXcastConnector::~RtXcastConnector()
 
 bool RtXcastConnector::initialize()
 {
-        
-        rtError err;
-        rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
-        err = rtRemoteInit(env);
-        
-        if(err != RT_OK){
-            LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
-        }
-        return (err == RT_OK) ? true:false;
+    
+    rtError err;
+    rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
+    err = rtRemoteInit(env);
+    
+    if(err != RT_OK){
+        LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
+    }
+    return (err == RT_OK) ? true:false;
 }
 void RtXcastConnector::shutdown()
 {
@@ -255,39 +270,6 @@ void RtXcastConnector::onRtServiceDisconnected()
     LOGINFO("RT communication failure. Reconnecting.. ");
 }
 
-void RtXcastConnector::onXcastApplicationStopRequest(rtObjectRef appObject)
-{
-    LOGINFO("RtXcastConnector::onXcastApplicationStopRequest ");
-    rtString appName = appObject.get<rtString>("applicationName");
-    if (!strcmp(appName.cString(),"Netflix"))
-        appName = "NetflixApp";
-    
-    rtString appID = appObject.get<rtString>("applicationId");
-    LOGINFO("Received ApplicationStopRequest  AppName: %s App Id : %s", appName.cString() , appID.cString());
-    
-}
-void RtXcastConnector::onXcastApplicationHideRequest(rtObjectRef appObject)
-{
-    LOGINFO("RtXcastConnector::onXcastApplicationHideRequest : ");
-    rtString appName = appObject.get<rtString>("applicationName");
-    if (!strcmp(appName.cString(),"Netflix"))
-        appName = "NetflixApp";
-    rtString appID = appObject.get<rtString>("applicationId");
-    LOGINFO("Received ApplicationHideRequest  AppName: %s AppID: %s", appName.cString(), appID.cString());
-    
-    
-}
-
-void RtXcastConnector::onXcastApplicationResumeRequest(rtObjectRef appObject)
-{
-    LOGINFO("RtXcastConnector::onXcastApplicationResumeRequest ");
-    rtString appName = appObject.get<rtString>("applicationName");
-    if (!strcmp(appName.cString(),"Netflix"))
-        appName = "NetflixApp";
-    rtString appID = appObject.get<rtString>("applicationId");
-    LOGINFO("Received ApplicationResumeRequest  AppName: %s AppID: %s" , appName.cString(), appID.cString());
-    
-}
 
 RtXcastConnector * RtXcastConnector::getInstance()
 {
@@ -313,3 +295,4 @@ void RtXcastConnector::sendPingMessage(){
         
     }
 }
+

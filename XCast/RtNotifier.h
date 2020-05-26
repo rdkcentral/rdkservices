@@ -35,3 +35,4 @@ public:
             virtual void onXcastApplicationStateRequest(string appName, string appID)=0;
 };
 #endif
+
