@@ -53,22 +53,6 @@ public:
      */
     void onRtServiceDisconnected(void);
     /**
-     *Callback function when rtdial server request to launch an application.
-     *@param rtObjRef - The remote object reference
-     */
-    
-    void onXcastApplicationStopRequest(rtObjectRef);
-    /**
-     *Callback function when rtdial server request to hide  a runningapplication.
-     *@param rtObjRef - The remote object reference
-     */
-    void onXcastApplicationHideRequest(rtObjectRef);
-    /**
-     *Callback function when rtdial server request to resume an application.
-     *@param rtObjRef - The remote object reference
-     */
-    void onXcastApplicationResumeRequest(rtObjectRef);
-    /**
      *Request the single instance of this class
      */
     static  RtXcastConnector * getInstance();

@@ -43,9 +43,9 @@ static void remoteDisconnectCallback( void* data) {
  */
 rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
-    LOGINFO ("RtXcastConnector::onXcastApplicationLaunchRequest ");
     if (numArgs == 1)
     {
+        LOGINFO ();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -67,7 +67,7 @@ rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO("RtXcastConnector::onXcastApplicationStopRequest ");
+        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -89,7 +89,7 @@ rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO("RtXcastConnector::onXcastApplicationHideRequest : ");
+        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -112,10 +112,9 @@ rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rt
  */
 rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
-    LOGINFO(" Received a callback event" );
     if (numArgs == 1)
     {
-        LOGINFO("RtXcastConnector::onXcastApplicationStateRequest: ");
+        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -140,6 +139,7 @@ rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const 
 {
     if (numArgs == 1)
     {
+        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
