@@ -1,0 +1,103 @@
+/**
+* If not stated otherwise in this file or this component's LICENSE
+* file the following copyright and licenses apply:
+*
+* Copyright 2020 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
+#include <rtRemote.h>
+#include <rtObject.h>
+#include <rtError.h>
+#include <string>
+#include <iostream>
+#include "RtNotifier.h"
+#include "rtabstractservice.h"
+using namespace std;
+/**
+ * This is the connector class for interacting with xdial client using rtRemote.
+ */
+class RtXcastConnector {
+protected:
+    RtXcastConnector(){}
+public:
+    virtual ~RtXcastConnector();
+/**
+ * Initialize rtRemote communication with rtDial server
+ */
+   bool initialize();
+
+/** Shutdown rtRemote connectivity */
+    void shutdown();
+ /**
+  *The application state change function . This is invoked from application side.
+  *   @param app - The application name
+  *   @param state - The state of the application
+  *   @param id - The application identifier
+  *   @param error - The error string if the requested application is not available or due to other errors
+  *   @return indicates whether state is properly communicated to rtdial server.
+  */
+    int applicationStateChanged( string app, string state, string id, string error);
+    /**
+     *Called when the rtDial commuication is broken.
+     */
+    void onRtServiceDisconnected(void);
+    /**
+     *Callback function when rtdial server request to launch an application.
+     *@param rtObjRef - The remote object reference
+     */
+
+    void onXcastApplicationStopRequest(rtObjectRef);
+    /**
+     *Callback function when rtdial server request to hide  a runningapplication.
+     *@param rtObjRef - The remote object reference
+     */
+    void onXcastApplicationHideRequest(rtObjectRef);
+    /**
+     *Callback function when rtdial server request to resume an application.
+     *@param rtObjRef - The remote object reference
+     */
+    void onXcastApplicationResumeRequest(rtObjectRef);
+    /**
+     *Request the single instance of this class
+     */
+    static  RtXcastConnector * getInstance();
+    /**
+     *This function keeps the connectivity alive between rtDial server and client.
+     */
+    void sendPingMessage();
+    /**
+     *Call back function for rtConnection
+     */
+    int connectToRemoteService();
+
+            void setService(RtNotifier * service){
+                m_observer = service;
+             }
+private:
+    //Internal methods
+    static RtXcastConnector * _instance;
+    //RT Connector class
+    RtNotifier * m_observer;
+    /**
+     *This function will enable cast service by default.
+     *@param enableService - Enable/Disable the SSDP discovery of Dial server
+     */
+    void enableCastService(bool enableService = true);
+    static rtError onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+static rtError onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+static rtError onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+static rtError onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+static rtError onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+    static rtError onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+};
