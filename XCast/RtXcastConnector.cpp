@@ -26,17 +26,39 @@ using namespace WPEFramework;
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
-
+#define EVENT_LOOP_ITERATION_IN_SECONDS      10 
 
 static rtObjectRef xdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
 
-static void remoteDisconnectCallback( void* data) {
-    char* serviceName = (char* ) data;
-    LOGINFO ( "remoteDisconnectCallback: Remote %s disconnected... ",  serviceName);
-    RtXcastConnector::getInstance()->onRtServiceDisconnected();
+void RtXcastConnector::remoteDisconnectCallback( void* context) {
+    RtNotifier * observer = static_cast<RtNotifier *> (context);
+    LOGINFO ( "remoteDisconnectCallback: Remote  disconnected... ");
+    observer->onRtServiceDisconnected();
 }
 
+void RtXcastConnector::processRtMessages(){
+    LOGINFO("Entering Event Loop");
+    while(true)
+    {
+        rtError err = rtRemoteProcessSingleItem();
+        if (err != RT_OK && err != RT_ERROR_QUEUE_EMPTY) {
+            LOGERR("Failed to gete item from Rt queue");
+        }
+        {
+            //Queue needs to be deactivated ?
+            lock_guard<mutex> lock(m_threadlock);
+            if (!m_runEventThread ) break;
+        }
+        // We allow a 10 second interval.
+        sleep(EVENT_LOOP_ITERATION_IN_SECONDS);
+    }
+    LOGINFO("Exiting Event Loop");
+}
+void RtXcastConnector::threadRun(RtXcastConnector *rtCtx){
+        RtXcastConnector * observer = static_cast<RtXcastConnector *> (rtCtx);
+        observer->processRtMessages();
+}
 //XDIALCAST EVENT CALLBACK
 /**
  * Callback function for application launch request from an app
@@ -187,20 +209,20 @@ int RtXcastConnector::connectToRemoteService()
     
     const char * serviceName = "com.comcast.xdialcast";
     
-    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 3000, &remoteDisconnectCallback, (void *)serviceName);
+    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 3000, &RtXcastConnector::remoteDisconnectCallback, m_observer);
     if(err == RT_OK && xdialCastObj != NULL)
     {
-        rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(&RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
+        rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
         LOGINFO("Registered onApplicationLaunchRequest ; response %d" ,e );
-        e = xdialCastObj.send("on", "onApplicationStopRequest" , new rtFunctionCallback(&RtXcastConnector::onApplicationStopRequestCallback, m_observer));
+        e = xdialCastObj.send("on", "onApplicationStopRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationStopRequestCallback, m_observer));
         LOGINFO("Registered onApplicationStopRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationHideRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationHideRequestCallback, m_observer));
+        e = xdialCastObj.send("on", "onApplicationHideRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationHideRequestCallback, m_observer));
         LOGINFO("Registered onApplicationHideRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationResumeRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationResumeRequestCallback, m_observer));
+        e = xdialCastObj.send("on", "onApplicationResumeRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationResumeRequestCallback, m_observer));
         LOGINFO("Registered onApplicationResumeRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationStateRequest" , new rtFunctionCallback( &RtXcastConnector::onApplicationStateRequestCallback, m_observer));
+        e = xdialCastObj.send("on", "onApplicationStateRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationStateRequestCallback, m_observer));
         LOGINFO("Registed onApplicationStateRequest %d", e );
-        e = xdialCastObj.send("on", "bye" , new rtFunctionCallback( &RtXcastConnector::onRtServiceByeCallback, m_observer));
+        e = xdialCastObj.send("on", "bye" , new rtFunctionCallback(RtXcastConnector::onRtServiceByeCallback, m_observer));
         LOGINFO("Registed rtService bye event %d", e );
         enableCastService();
         
@@ -220,7 +242,6 @@ RtXcastConnector::~RtXcastConnector()
 
 bool RtXcastConnector::initialize()
 {
-    
     rtError err;
     rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
     err = rtRemoteInit(env);
@@ -228,11 +249,22 @@ bool RtXcastConnector::initialize()
     if(err != RT_OK){
         LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
     }
+    else {
+        m_runEventThread = true;
+        m_eventMtrThread = std::thread(threadRun, this);
+    }
     return (err == RT_OK) ? true:false;
 }
 void RtXcastConnector::shutdown()
 {
     LOGINFO("Shutting down rtRemote connectivity");
+    {
+        lock_guard<mutex> lock(m_threadlock);
+        m_runEventThread = false;
+    }
+    if (m_eventMtrThread.joinable())
+        m_eventMtrThread.join();    
+
     rtRemoteShutdown(rtEnvironmentGetGlobal());
 }
 
@@ -247,9 +279,11 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
         e.set("applicationId", id.c_str());
         e.set("state",state.c_str());
         e.set("error",error.c_str());
-        xdialCastObj.send("applicationStateChanged", e);
+        xdialCastObj.send("onApplicationStateChanged", e);
         status = 1;
     }
+    else
+        LOGINFO(" xdialCastObj is NULL ");
     return status;
 }//app && state not empty
 void RtXcastConnector::enableCastService(bool enableService)
@@ -265,11 +299,6 @@ void RtXcastConnector::enableCastService(bool enableService)
     
 }
 
-void RtXcastConnector::onRtServiceDisconnected()
-{
-    LOGINFO("RT communication failure. Reconnecting.. ");
-}
-
 
 RtXcastConnector * RtXcastConnector::getInstance()
 {
@@ -280,19 +309,4 @@ RtXcastConnector * RtXcastConnector::getInstance()
     return RtXcastConnector::_instance;
 }
 
-void RtXcastConnector::sendPingMessage(){
-    rtObjectRef pingObj = new rtMapObject;
-    rtError err = xdialCastObj.send("ping",pingObj);
-    if(err != RT_OK) {
-        if (err == RT_ERROR_STREAM_CLOSED)
-        {
-            LOGINFO("RT_ERROR_STREAM_CLOSED xdialCast Disconnected");
-            onRtServiceDisconnected();
-        }
-        else {
-            LOGINFO("Caught an unknown exception: %s",rtStrError(err));
-        }
-        
-    }
-}
 

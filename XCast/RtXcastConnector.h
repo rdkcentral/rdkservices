@@ -16,20 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+#include <string>
+#include <thread>
+#include <mutex>
+#include <iostream>
+
 #include <rtRemote.h>
 #include <rtObject.h>
 #include <rtError.h>
-#include <string>
-#include <iostream>
 #include "RtNotifier.h"
-#include "rtabstractservice.h"
 using namespace std;
 /**
  * This is the connector class for interacting with xdial client using rtRemote.
  */
 class RtXcastConnector {
 protected:
-    RtXcastConnector(){}
+    RtXcastConnector():m_runEventThread(true){
+        }
 public:
     virtual ~RtXcastConnector();
     /**
@@ -49,17 +52,9 @@ public:
      */
     int applicationStateChanged( string app, string state, string id, string error);
     /**
-     *Called when the rtDial commuication is broken.
-     */
-    void onRtServiceDisconnected(void);
-    /**
      *Request the single instance of this class
      */
     static  RtXcastConnector * getInstance();
-    /**
-     *This function keeps the connectivity alive between rtDial server and client.
-     */
-    void sendPingMessage();
     /**
      *Call back function for rtConnection
      */
@@ -70,18 +65,33 @@ public:
     }
 private:
     //Internal methods
-    static RtXcastConnector * _instance;
     //RT Connector class
     RtNotifier * m_observer;
+    //Event Monitoring thread
+    thread m_eventMtrThread;
+    // Atomic lock
+    mutex m_threadlock;
+    // Boolean event thread exit condition
+    bool m_runEventThread;
+    // Member function to handle RT messages.
+    void processRtMessages();
     /**
      *This function will enable cast service by default.
      *@param enableService - Enable/Disable the SSDP discovery of Dial server
      */
     void enableCastService(bool enableService = true);
+
+    // Class level contracts
+    // Singleton instance
+    static RtXcastConnector * _instance;
+    // Thread main function
+    static void threadRun(RtXcastConnector *rtCtx);
+
     static rtError onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
     static rtError onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
     static rtError onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
     static rtError onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
     static rtError onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
     static rtError onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
+    static void remoteDisconnectCallback(void * context);
 };
