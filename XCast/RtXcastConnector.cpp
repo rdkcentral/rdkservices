@@ -26,7 +26,7 @@ using namespace WPEFramework;
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
-#define EVENT_LOOP_ITERATION_IN_SECONDS      10 
+#define EVENT_LOOP_ITERATION_IN_SECONDS      4
 
 static rtObjectRef xdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
@@ -50,7 +50,10 @@ void RtXcastConnector::processRtMessages(){
             lock_guard<mutex> lock(m_threadlock);
             if (!m_runEventThread ) break;
         }
-        // We allow a 10 second interval.
+        /*
+         Ideally this should be part of wpe process main message loop,
+         will reconsider once we decide on connectivity with dial server
+        */
         sleep(EVENT_LOOP_ITERATION_IN_SECONDS);
     }
     LOGINFO("Exiting Event Loop");
