@@ -71,7 +71,7 @@ namespace WPEFramework {
         const std::string& NetUtils::getInterfaceDescription(const std::string interface)
         {
             static std::string empty("");
-            auto it = interface_descriptions.find(interface);
+            auto it = interface_descriptions.find(interface.substr(0, interface.find(':'))); // look up "eth0" (real interface) for "eth0:0" (virtual interface) input also
             return (it != interface_descriptions.end()) ? it->second : empty;
         }
 
