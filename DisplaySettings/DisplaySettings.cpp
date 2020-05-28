@@ -555,10 +555,10 @@ namespace WPEFramework {
                 device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                 for (size_t i = 0; i < vPorts.size(); i++) {
                     device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
-                    for (size_t i = 0; i < aPort.getSupportedStereoModes().size(); i++) {
-                        if (audioPort.empty() || stringContains(aPort.getName(), audioPort.c_str()))
+                    for (size_t j = 0; j < aPort.getSupportedStereoModes().size(); j++) {
+                        if (audioPort.empty() || Utils::String::stringContains(aPort.getName(), audioPort))
                         {
-                            string audioMode = aPort.getSupportedStereoModes().at(i).getName();
+                            string audioMode = aPort.getSupportedStereoModes().at(j).getName();
 
                             // Starging Version 5, "Surround" mode is replaced by "Auto Mode"
                             if (strcasecmp(audioMode.c_str(),"SURROUND") == 0)
@@ -572,7 +572,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || stringContains(audioPort, "HDMI"))
+                if (audioPort.empty() || Utils::String::stringContains(audioPort, "HDMI"))
                 {
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                     int surroundMode = vPort.getDisplay().getSurroundMode();
@@ -595,7 +595,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || stringContains(audioPort, "SPDIF"))
+                if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF"))
                 {
                     if (HAL_hasSurround) {
                         supportedAudioModes.emplace_back("Surround");
@@ -704,28 +704,10 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"soundMode":"AUTO (Dolby Digital 5.1)"}
             LOGINFOMETHOD();
-            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
-            bool validPortName = true;
+            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (videoDisplay.empty())
-            {
-                /* Empty is allowed */
-            }
-            if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
-
-            if (!validPortName)
-                videoDisplay = "HDMI0";
+            if (!checkPortName(audioPort))
+                audioPort = "HDMI0";
 
             string modeString("");
             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
@@ -734,11 +716,11 @@ namespace WPEFramework {
             {
                 /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (videoDisplay.empty())
+                if (audioPort.empty())
                 {
                     if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
                     {
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                     }
                     else
                     {
@@ -746,25 +728,24 @@ namespace WPEFramework {
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
                         */
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
                             if (vPort.isDisplayConnected())
                             {
-                                videoDisplay = "SPDIF0";
+                                audioPort = "SPDIF0";
                                 break;
                             }
                         }
                     }
                 }
 
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                 if (aPort.isConnected())
                 {
-
                     mode = aPort.getStereoMode();
 
                     if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
@@ -791,20 +772,14 @@ namespace WPEFramework {
                             }
                         }
                         else
-                        {
                             modeString.append(mode.toString());
-                        }
                     }
                     else
                     {
                         if (mode == device::AudioStereoMode::kSurround)
-                        {
                             modeString.append("Surround");
-                        }
                         else
-                        {
                             modeString.append(mode.toString());
-                        }
                     }
                 }
                 else
@@ -828,7 +803,7 @@ namespace WPEFramework {
                 modeString += "AUTO (Stereo)";
             }
 
-            LOGWARN("display = %s, mode = %s!", videoDisplay.c_str(), modeString.c_str());
+            LOGWARN("audioPort = %s, mode = %s!", audioPort.c_str(), modeString.c_str());
 #ifdef USE_IARM
             modeString = iarm2svc(modeString);
 #endif
@@ -839,10 +814,11 @@ namespace WPEFramework {
         uint32_t DisplaySettings::setSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-            string videoDisplay = parameters["audioPort"].String();//missing or empty string and we will set all ports
+            string audioPort = parameters["audioPort"].String();//missing or empty string and we will set all ports
 
             returnIfParamNotFound(parameters, "soundMode");
             string soundMode = parameters["soundMode"].String();
+            Utils::String::toLower(soundMode);
 
             bool hasPersist = parameters.HasLabel("persist");
             bool persist = hasPersist ? parameters["persist"].Boolean() : true;
@@ -853,75 +829,47 @@ namespace WPEFramework {
             bool stereoAuto = false;
 
             if (soundMode == "mono")
-            {
                 mode = device::AudioStereoMode::kMono;
-            }
             else if (soundMode == "stereo")
-            {
                 mode = device::AudioStereoMode::kStereo;
-            }
             else if (soundMode == "surround")
-            {
                 mode = device::AudioStereoMode::kSurround;
-            }
             else if (soundMode == "passthru")
-            {
                 mode = device::AudioStereoMode::kPassThru;
-            }
-            else if ((soundMode == "auto") || (strncasecmp(soundMode.c_str(), "auto ", 5) == 0))
+            else if (soundMode == "auto" || soundMode == "auto ")
             {
                 /*
-                 * anthing after "auto" is only descriptive, and can be ignored.
+                 * anything after "auto" is only descriptive, and can be ignored.
                  * use kSurround in this case.
                  */
-                if (videoDisplay.empty())
-                    videoDisplay = "HDMI0";
+                if (audioPort.empty())
+                    audioPort = "HDMI0";
+
                 stereoAuto = true;
                 mode = device::AudioStereoMode::kSurround;
             }
             else if (soundMode == "dolby digital 5.1")
-            {
                 mode = device::AudioStereoMode::kSurround;
-            }
             else
             {
                 LOGWARN("Sound mode '%s' is empty or incompatible with known values, hence sound mode will not changed!", soundMode.c_str());
                 returnResponse(success);
             }
 
-            bool validPortName = true;
-
-            if (videoDisplay.empty())
+            if (!checkPortName(audioPort))
             {
-                /* Empty is allowed */
-            }
-            else if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
-
-            if (!validPortName)
-            {
-                LOGERR("Invalid port Name: display = %s, mode = %s!", videoDisplay.c_str(), soundMode.c_str());
+                LOGERR("Invalid port Name: display = %s, mode = %s!", audioPort.c_str(), soundMode.c_str());
                 returnResponse(false);
             }
 
-            LOGWARN("display = %s, mode = %s!", videoDisplay.c_str(), soundMode.c_str());
+            LOGWARN("display = %s, mode = %s!", audioPort.c_str(), soundMode.c_str());
 
             try
             {
                 //now setting the sound mode for specified video display types
-                if (!videoDisplay.empty())
+                if (!audioPort.empty())
                 {
-                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     if (aPort.isConnected())
                     {
                         /* Auto mode is only for HDMI and DS5 and non-Passthru*/
@@ -931,17 +879,14 @@ namespace WPEFramework {
                             if (stereoAuto)
                             {
                                 if (device::Host::getInstance().getVideoOutputPort("HDMI0").getDisplay().getSurroundMode())
-                                {
                                     mode = device::AudioStereoMode::kSurround;
-                                }
                                 else
-                                {
                                     mode = device::AudioStereoMode::kStereo;
-                                }
                             }
                         }
-                        else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI) {
-                            LOGERR("Reset auto on %s for mode = %s!", videoDisplay.c_str(), soundMode.c_str());
+                        else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
+                        {
+                            LOGERR("Reset auto on %s for mode = %s!", audioPort.c_str(), soundMode.c_str());
                             aPort.setStereoAuto(false, persist);
                         }
                         //TODO: if mode has not changed, we can skip the extra call
@@ -1417,40 +1362,22 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getAudioDelay (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-			bool success = true;
-            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
-            bool validPortName = true;
+            bool success = true;
+            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (videoDisplay.empty())
-            {
-                /* Empty is allowed */
-            }
-            if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
-
-            if (!validPortName)
-                videoDisplay = "HDMI0";
+            if (!checkPortName(audioPort))
+                audioPort = "HDMI0";
 
             uint32_t audioDelayMs = 0;
             try
             {
-                /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
+                /* Return the sound mode of the audio ouput connected to the specified audioPort */
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (videoDisplay.empty())
+                if (audioPort.empty())
                 {
                     if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
                     {
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                     }
                     else
                     {
@@ -1458,27 +1385,27 @@ namespace WPEFramework {
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
                         */
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
                             if (vPort.isDisplayConnected())
                             {
-                                videoDisplay = "SPDIF0";
+                                audioPort = "SPDIF0";
                                 break;
                             }
                         }
                     }
                 }
 
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.getAudioDelay(audioDelayMs);
 				response["audioDelay"] = std::to_string(audioDelayMs);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(videoDisplay);
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
 
@@ -1495,71 +1422,51 @@ namespace WPEFramework {
 			int audioDelayMs = 0;
             try {
                 audioDelayMs = stoi(sAudioDelayMs);
-            }catch (const device::Exception& err) {
+            } catch (const device::Exception& err) {
                LOG_DEVICE_EXCEPTION1(sAudioDelayMs); 
-			   returnResponse(false);
+               returnResponse(false);
             }
 
-			bool success = true;
-            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
-            bool validPortName = true;
+            bool success = true;
+            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (videoDisplay.empty())
-            {
-                /* Empty is allowed */
-            }
-            if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
-
-            if (!validPortName)
-                videoDisplay = "HDMI0";
+            if (!checkPortName(audioPort))
+                audioPort = "HDMI0";
 
             try
             {
-                /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
+                /* Return the sound mode of the audio ouput connected to the specified audioPort */
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (videoDisplay.empty())
+                if (audioPort.empty())
                 {
                     if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
-                    {
-                        videoDisplay = "HDMI0";
-                    }
+                        audioPort = "HDMI0";
                     else
                     {
                         /*  * If HDMI is not connected
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
                         */
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
                             if (vPort.isDisplayConnected())
                             {
-                                videoDisplay = "SPDIF0";
+                                audioPort = "SPDIF0";
                                 break;
                             }
                         }
                     }
                 }
 
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setAudioDelay (audioDelayMs);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(videoDisplay, sAudioDelayMs);
+                LOG_DEVICE_EXCEPTION2(audioPort, sAudioDelayMs);
                 success = false;
             }
             returnResponse(success);
@@ -1568,40 +1475,23 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getAudioDelayOffset (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-			bool success = true;
-            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
-            bool validPortName = true;
 
-            if (videoDisplay.empty())
-            {
-                /* Empty is allowed */
-            }
-            if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
+            bool success = true;
+            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (!validPortName)
-                videoDisplay = "HDMI0";
+            if (!checkPortName(audioPort))
+                audioPort = "HDMI0";
 
             uint32_t audioDelayOffsetMs = 0;
             try
             {
-                /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
+                /* Return the sound mode of the audio ouput connected to the specified audioPort */
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (videoDisplay.empty())
+                if (audioPort.empty())
                 {
                     if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
                     {
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                     }
                     else
                     {
@@ -1609,27 +1499,27 @@ namespace WPEFramework {
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
                         */
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
                             if (vPort.isDisplayConnected())
                             {
-                                videoDisplay = "SPDIF0";
+                                audioPort = "SPDIF0";
                                 break;
                             }
                         }
                     }
                 }
 
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.getAudioDelayOffset (audioDelayOffsetMs);
 				response["audioDelayOffset"] = std::to_string(audioDelayOffsetMs);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(videoDisplay);
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
 
@@ -1640,50 +1530,35 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
-			returnIfParamNotFound(parameters, "audioDelayOffset");
+            returnIfParamNotFound(parameters, "audioDelayOffset");
 
             string sAudioDelayOffsetMs = parameters["audioDelayOffset"].String();
-			int audioDelayOffsetMs = 0;
-            try {
+            int audioDelayOffsetMs = 0;
+            try
+            {
                 audioDelayOffsetMs = stoi(sAudioDelayOffsetMs);
-            }catch (const device::Exception& err) {
+            }
+            catch (const device::Exception& err)
+            {
                LOG_DEVICE_EXCEPTION1(sAudioDelayOffsetMs); 
-			   returnResponse(false);
+               returnResponse(false);
             }
 
-			bool success = true;
-            string videoDisplay = parameters["audioPort"].String();//empty value will browse all ports
-            bool validPortName = true;
+            bool success = true;
+            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (videoDisplay.empty())
-            {
-                /* Empty is allowed */
-            }
-            if (stringContains(videoDisplay,"HDMI"))
-            {
-                videoDisplay = "HDMI0";
-            }
-            else if (stringContains(videoDisplay,"SPDIF"))
-            {
-                videoDisplay = "SPDIF0";
-            }
-            else
-            {
-                validPortName = false;
-            }
-
-            if (!validPortName)
-                videoDisplay = "HDMI0";
+            if (!checkPortName(audioPort))
+                audioPort = "HDMI0";
 
             try
             {
-                /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
+                /* Return the sound mode of the audio ouput connected to the specified audioPort */
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (videoDisplay.empty())
+                if (audioPort.empty())
                 {
                     if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
                     {
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                     }
                     else
                     {
@@ -1691,26 +1566,26 @@ namespace WPEFramework {
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
                         */
-                        videoDisplay = "HDMI0";
+                        audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
                             if (vPort.isDisplayConnected())
                             {
-                                videoDisplay = "SPDIF0";
+                                audioPort = "SPDIF0";
                                 break;
                             }
                         }
                     }
                 }
 
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(videoDisplay);
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setAudioDelay (audioDelayOffsetMs);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(videoDisplay, sAudioDelayOffsetMs);
+                LOG_DEVICE_EXCEPTION2(audioPort, sAudioDelayOffsetMs);
                 success = false;
             }
             returnResponse(success);
@@ -1872,7 +1747,7 @@ namespace WPEFramework {
                 }
                 if (!resolution.empty())
                 {
-                    if (stringContains(display,"HDMI"))
+                    if (Utils::String::stringContains(display,"HDMI"))
                     {
                         // only report first HDMI connected device is HDMI is connected
                         JsonObject params;
@@ -1977,6 +1852,20 @@ namespace WPEFramework {
             {
                 LOG_DEVICE_EXCEPTION0();
             }
+        }
+
+        bool DisplaySettings::checkPortName(std::string& name) const
+        {
+            if (Utils::String::stringContains(name,"HDMI"))
+                name = "HDMI0";
+            else if (Utils::String::stringContains(name,"SPDIF"))
+                name = "SPDIF0";
+            else if (Utils::String::stringContains(name,"IDLR"))
+                name = "IDLR0";
+            else if (!name.empty()) // Empty is allowed
+                return false;
+
+            return true;
         }
 
     } // namespace Plugin
