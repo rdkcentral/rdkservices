@@ -582,7 +582,7 @@ namespace WPEFramework
         void Network::onInterfaceEnabledStatusChanged(string interface, bool enabled)
         {
             JsonObject params;
-            params["interface"] = interface;
+            params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["enabled"] = enabled;
             sendNotify("onInterfaceStatusChanged", params);
         }
@@ -590,7 +590,7 @@ namespace WPEFramework
         void Network::onInterfaceConnectionStatusChanged(string interface, bool connected)
         {
             JsonObject params;
-            params["interface"] = interface;
+            params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
             sendNotify("onConnectionStatusChanged", params);
         }
@@ -598,7 +598,7 @@ namespace WPEFramework
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
         {
             JsonObject params;
-            params["interface"] = interface;
+            params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["ip6Address"] = ipv6Addr;
             params["ip4Address"] = ipv4Addr;
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
@@ -608,8 +608,8 @@ namespace WPEFramework
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
         {
             JsonObject params;
-            params["oldInterfaceName"] = oldInterface;
-            params["newInterfaceName"] = newInterface;
+            params["oldInterfaceName"] = m_netUtils.getInterfaceDescription(oldInterface);
+            params["newInterfaceName"] = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
         }
 
