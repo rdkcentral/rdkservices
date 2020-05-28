@@ -115,6 +115,7 @@ namespace WPEFramework {
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
+            bool checkPortName(std::string& name) const;
         public:
             static DisplaySettings* _instance;
 

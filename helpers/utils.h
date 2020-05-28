@@ -49,12 +49,6 @@
     if (find(begin(v), end(v), s) == end(v)) \
         v.emplace_back(s);
 
-#define stringContains(s1,s2) \
-    (search(s1.begin(), s1.end(), s2, s2+strlen(s2), \
-        [](char c1, char c2){ \
-            return toupper(c1) == toupper(c2); \
-    }) != s1.end())
-
 #define returnResponse(success) \
     response["success"] = success; \
     LOGTRACEMETHODFIN(); \
@@ -260,6 +254,24 @@ namespace Utils
         inline void trim(std::string &s) {
             ltrim(s);
             rtrim(s);
+        }
+
+        inline void toUpper(std::string &s) {
+            std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+        }
+
+        inline void toLower(std::string &s) {
+            std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        }
+
+        // case insensitive comparison of strings
+        inline bool stringContains(const std::string& s1, const std::string& s2) {
+            return search(s1.begin(), s1.end(), s2.begin(), s2.end(), [](char c1, char c2) { return toupper(c1) == toupper(c2); }) != s1.end();
+        }
+
+        // case insensitive comparison of strings
+        inline bool stringContains(const std::string& s1, const char * s2) {
+            return stringContains(s1, std::string(s2));
         }
     }
 
