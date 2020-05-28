@@ -255,7 +255,12 @@ if(BUILD_BROADCOM)
     include(broadcom.cmake)
 elseif(BUILD_RASPBERRYPI)
     include(raspberrypi.cmake)
+elseif(BUILD_REALTEK)
+    include(realtek.cmake)
+elseif(BUILD_AMLOGIC)
+    include(amlogic.cmake)
 endif()
+
 
 
 
