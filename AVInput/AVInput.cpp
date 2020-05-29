@@ -253,13 +253,19 @@ namespace WPEFramework {
             getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
             LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
             bool pluginActivated = joResult[0].JSONState == PluginHost::IShell::ACTIVATED;
+            auto p = m_activatedPlugins.find(string(callSign));
             if(!pluginActivated)
             {
-                auto p = m_activatedPlugins.find(string(callSign));
                 if (p != m_activatedPlugins.end())
                 {
                     LOGWARN("Previoulsly active plugin %s appers to be deactivated, removing from the list", callSign);
                     m_activatedPlugins.erase(p);
+                }
+            } else {
+                if (p == m_activatedPlugins.end()) // was activated elsewhere, account for it
+                {
+                    LOGWARN("Plugin %s was active already", callSign);
+                    m_activatedPlugins[string(callSign)] = time(NULL);
                 }
             }
             return pluginActivated;
