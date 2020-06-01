@@ -93,6 +93,10 @@
               }
             },
             "required": []
+          },
+          "localstorageenabled": {
+            "type": "boolean",
+            "summary": "Controls the local storage availability"
           }
         }
       }

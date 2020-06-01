@@ -32,6 +32,12 @@
 #include "NotifyWPEFramework.h"
 #include "Utils.h"
 #include "WhiteListedOriginDomainsList.h"
+#include "RequestHeaders.h"
+#include "BridgeObject.h"
+
+#if defined(ENABLE_AAMP_JSBINDINGS)
+#include "AAMPJSBindings.h"
+#endif
 
 using namespace WPEFramework;
 using JavaScript::ClassDefinition;
@@ -130,19 +136,16 @@ __attribute__((destructor)) static void unload()
 }
 
 // Adds class to JS world.
-void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld)
+static void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld)
 {
-    // @Zan: for how long should "ClassDefinition.staticFunctions" remain valid? Can it be
-    // released after "JSClassCreate"?
-
     JSGlobalContextRef context = WKBundleFrameGetJavaScriptContextForWorld(frame, scriptWorld);
 
     ClassDefinition::FunctionIterator function = classDef.GetFunctions();
     uint32_t functionCount = function.Count();
 
     // We need an extra entry that we set to all zeroes, to signal end of data.
-    // TODO: memleak.
-    JSStaticFunction* staticFunctions = new JSStaticFunction[functionCount + 1];
+    std::vector<JSStaticFunction> staticFunctions;
+    staticFunctions.reserve(functionCount + 1);
 
     int index = 0;
     while (function.Next()) {
@@ -151,14 +154,13 @@ void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundle
 
     staticFunctions[functionCount] = { nullptr, nullptr, 0 };
 
-    // TODO: memleak.
-    JSClassDefinition* JsClassDefinition = new JSClassDefinition{
+    JSClassDefinition jsClassDefinition = {
         0, // version
         kJSClassAttributeNone, //attributes
         classDef.GetClassName().c_str(), // className
         0, // parentClass
         nullptr, // staticValues
-        staticFunctions, // staticFunctions
+        staticFunctions.data(), // staticFunctions
         nullptr, //initialize
         nullptr, //finalize
         nullptr, //hasProperty
@@ -172,7 +174,7 @@ void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundle
         nullptr, //convertToType
     };
 
-    JSClassRef jsClass = JSClassCreate(JsClassDefinition);
+    JSClassRef jsClass = JSClassCreate(&jsClassDefinition);
     JSValueRef jsObject = JSObjectMake(context, jsClass, nullptr);
     JSClassRelease(jsClass);
 
@@ -183,9 +185,37 @@ void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundle
     JSStringRelease(extensionString);
 }
 
+static bool shouldGoToBackForwardListItem(WKBundlePageRef, WKBundleBackForwardListItemRef item, WKTypeRef*, const void*)
+{
+    bool result = true;
+    if (item) {
+        auto itemUrl = WKBundleBackForwardListItemCopyURL(item);
+        auto blankUrl = WKURLCreateWithUTF8CString("about:blank");
+        result = !WKURLIsEqual(itemUrl, blankUrl);
+        WKRelease(blankUrl);
+        WKRelease(itemUrl);
+    }
+    return result;
+}
+
 static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     { 6, nullptr },
-    nullptr, // didStartProvisionalLoadForFrame
+    // didStartProvisionalLoadForFrame
+    [](WKBundlePageRef page, WKBundleFrameRef frame, WKTypeRef*, const void *) {
+        #if defined(ENABLE_AAMP_JSBINDINGS)
+        JavaScript::AAMP::UnloadJSBindings(frame);
+        #endif
+
+        if (WKBundleFrameIsMainFrame(frame)) {
+            auto blankUrl = WKURLCreateWithUTF8CString("about:blank");
+            auto frameUrl = WKBundleFrameCopyURL(frame);
+            if (WKURLIsEqual(frameUrl, blankUrl)) {
+                WKBundleBackForwardListClear(WKBundlePageGetBackForwardList(page));
+            }
+            WKRelease(blankUrl);
+            WKRelease(frameUrl);
+        }
+    },
     nullptr, // didReceiveServerRedirectForProvisionalLoadForFrame
     nullptr, // didFailProvisionalLoadWithErrorForFrame
     nullptr, // didCommitLoadForFrame
@@ -209,7 +239,13 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // didDisplayInsecureContentForFrame
     nullptr, // didRunInsecureContentForFrame
     // didClearWindowObjectForFrame
-    [](WKBundlePageRef, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
+    [](WKBundlePageRef page, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
+        #if defined(ENABLE_AAMP_JSBINDINGS)
+        JavaScript::AAMP::LoadJSBindings(frame);
+        #endif
+
+        JavaScript::BridgeObject::InjectJS(frame);
+
         // Add JS classes to JS world.
         ClassDefinition::Iterator ite = ClassDefinition::GetClassDefinitions();
         while (ite.Next()) {
@@ -222,7 +258,7 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // didLayoutForFrame
     nullptr, // didNewFirstVisuallyNonEmptyLayout_unavailable
     nullptr, // didDetectXSSForFrame
-    nullptr, // shouldGoToBackForwardListItem
+    shouldGoToBackForwardListItem,
     nullptr, // globalObjectIsAvailableForFrame
     nullptr, // willDisconnectDOMWindowExtensionFromGlobalObject
     nullptr, // didReconnectDOMWindowExtensionToGlobalObject
@@ -278,6 +314,39 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
     }
 };
 
+static WKURLRequestRef willSendRequestForFrame(
+  WKBundlePageRef page, WKBundleFrameRef, uint64_t, WKURLRequestRef request, WKURLResponseRef, const void*) {
+    WebKit::ApplyRequestHeaders(page, request);
+    WKRetain(request);
+    return request;
+}
+
+static void didReceiveMessageToPage(
+  WKBundleRef, WKBundlePageRef page, WKStringRef messageName, WKTypeRef messageBody, const void*) {
+    if (WKStringIsEqualToUTF8CString(messageName, Tags::Headers)) {
+        WebKit::SetRequestHeaders(page, messageBody);
+        return;
+    }
+
+    if (JavaScript::BridgeObject::HandleMessageToPage(page, messageName, messageBody))
+        return;
+}
+
+static void willDestroyPage(WKBundleRef, WKBundlePageRef page, const void*)
+{
+    WebKit::RemoveRequestHeaders(page);
+}
+
+static WKBundlePageResourceLoadClientV0 s_resourceLoadClient = {
+    {0, nullptr},
+    nullptr, // didInitiateLoadForResource
+    willSendRequestForFrame,
+    nullptr, // didReceiveResponseForResource
+    nullptr, // didReceiveContentLengthForResource
+    nullptr, // didFinishLoadForResource
+    nullptr // didFailLoadForResource
+};
+
 static WKBundleClientV1 s_bundleClient = {
     { 1, nullptr },
     // didCreatePage
@@ -288,12 +357,14 @@ static WKBundleClientV1 s_bundleClient = {
         // Register UI client, this one will listen to log messages.
         WKBundlePageSetUIClient(page, &s_pageUIClient.base);
 
+        WKBundlePageSetResourceLoadClient(page, &s_resourceLoadClient.base);
+
         _wpeFrameworkClient.WhiteList(bundle);
     },
-    nullptr, // willDestroyPage
+    willDestroyPage, // willDestroyPage
     nullptr, // didInitializePageGroup
     nullptr, // didReceiveMessage
-    nullptr, // didReceiveMessageToPage
+    didReceiveMessageToPage, // didReceiveMessageToPage
 };
 
 // Declare module name for tracer.
