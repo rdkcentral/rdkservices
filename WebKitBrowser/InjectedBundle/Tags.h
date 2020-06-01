@@ -26,6 +26,10 @@ namespace Tags {
 extern const char* const Config;
 extern const char* const Notification;
 extern const char* const URL;
+extern const char* const BridgeObjectQuery;
+extern const char* const BridgeObjectReply;
+extern const char* const BridgeObjectEvent;
+extern const char* const Headers;
 
 } } ;
 
