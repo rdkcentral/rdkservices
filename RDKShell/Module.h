@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME DeviceProvisioning
+#define MODULE_NAME RDKShell
 #endif
 
 #include <plugins/plugins.h>
