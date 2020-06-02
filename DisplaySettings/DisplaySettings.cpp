@@ -1355,6 +1355,7 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION1(string("HDMI0"));
                 response["enable"] = false;
                 response["mode"] = 0;
+                success = false;
             }
             returnResponse(success);
         }
@@ -1600,7 +1601,7 @@ namespace WPEFramework {
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
                 if (aPort.isConnected()) {
-                    atmosCapability = aPort.getIntelligentEqualizerMode ();
+                    atmosCapability = aPort.getSinkDeviceAtmosCapability ();
                     response["atmos_capability"] = atmosCapability;
                 }
                 else {
