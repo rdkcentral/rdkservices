@@ -106,7 +106,7 @@ namespace WPEFramework {
         uint32_t AVInput::numberOfInputsWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool success;
+            bool success = false;
             if (getActivatedPluginReady(SUBSCRIPTION_CALLSIGN))
             {
                 response["numberOfInputs"] = numberOfInputs(&success);
@@ -121,10 +121,10 @@ namespace WPEFramework {
         uint32_t AVInput::currentVideoModeWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool success;
+            bool success = false;
             if (getActivatedPluginReady(SUBSCRIPTION_CALLSIGN))
             {
-                response["currentVideoMode"] = currentVideoMode();
+                response["currentVideoMode"] = currentVideoMode(&success);
                 response["message"] = "Success";
             } else {
                 success = false;
@@ -170,6 +170,7 @@ namespace WPEFramework {
                 if (pSuccess) {
                     *pSuccess = false;
                 }
+                return res;
             }
             if (pSuccess) {
                 *pSuccess = true;
@@ -191,11 +192,11 @@ namespace WPEFramework {
                 if (pSuccess) {
                     *pSuccess = false;
                 }
+                return res;
             }
             if (pSuccess) {
                 *pSuccess = true;
             }
-
             return res;
         }
 
