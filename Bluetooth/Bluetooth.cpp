@@ -614,7 +614,7 @@ namespace WPEFramework
                 rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_PLAY);
             }
             else if (audioCtrlCmd == CMD_AUDIO_CTRL_STOP) {
-                rc = BTRMGR_StopAudioStreamingIn(0, deviceHandle);
+                rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_STOP);
             }
             else if (audioCtrlCmd == CMD_AUDIO_CTRL_SKIP_NEXT) {
                 rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_NEXT);
