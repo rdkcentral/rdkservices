@@ -23,20 +23,6 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        // Not every character can be used for endpoint
-        bool is_character_illegal(const int& c)
-        {
-            //character must be "-./0-9a-zA-Z"
-            return (c < 45) || ((c > 58) && (c < 97)) || (c >= 122);
-        }
-
-        // Check if valid - consist of only allowed characters
-        bool is_endpoint_valid(const std::string& endpoint)
-        {
-            //return std::find_if(endpoint.begin(), endpoint.end(), is_character_illegal) == endpoint.end();
-            return (NetUtils::isIPV4(endpoint) || NetUtils::isIPV6(endpoint));
-        }
-
         /**
          * @ingroup SERVMGR_PING_API
          */
@@ -52,9 +38,21 @@ namespace WPEFramework
 
             pingResult["target"] = endPoint;
 
-            if(!is_endpoint_valid(endPoint))
+            if(NetUtils::isIPV6(endPoint))
             {
-                LOGERR("%s: Endpoint is not valid string", __FUNCTION__);
+                LOGINFO("%s: Endpoint '%s' is ipv6", __FUNCTION__,endPoint.c_str());
+            }
+            else if(NetUtils::isIPV4(endPoint))
+            {
+                LOGINFO("%s: Endpoint '%s' is ipv4", __FUNCTION__,endPoint.c_str());
+            }
+            else if(NetUtils::isValidEndpointURL(endPoint))
+            {
+                LOGINFO("%s: Endpoint '%s' is url", __FUNCTION__,endPoint.c_str());
+            }
+            else
+            {
+                LOGERR("%s: Endpoint '%s' is not valid", __FUNCTION__,endPoint.c_str());
                 pingResult["success"] = false;
                 pingResult["error"] = "invalid input for endpoint: " + endPoint;
                 return pingResult;

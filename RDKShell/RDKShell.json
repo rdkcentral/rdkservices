@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkRDKShell.so",
+ "classname":"RDKShell",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.RDKShell",
+ "autostart":true
+}

@@ -52,8 +52,11 @@ namespace WPEFramework {
             static bool envGetValue(const char *key, std::string &value);
 
             static void getTmpFilename(const char *in, std::string &out);
+            static bool isValidEndpointURL(const std::string& endpoint);
 
         private:
+            static bool _isCharacterIllegal(const int& c);
+
             static unsigned int     m_counter;
             static std::mutex       m_counterProtect;
             std::map<std::string, std::string> interface_descriptions;

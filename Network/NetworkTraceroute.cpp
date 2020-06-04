@@ -77,7 +77,9 @@ namespace WPEFramework {
             {
                 error = "Invalid endpoint";
             }
-            else if (!NetUtils::isIPV4(endpoint) && !NetUtils::isIPV6(endpoint))
+            else if (!NetUtils::isIPV4(endpoint) &&
+                     !NetUtils::isIPV6(endpoint) &&
+                     !NetUtils::isValidEndpointURL(endpoint))
             {
                 error = "Invalid endpoint";
             }
@@ -119,8 +121,24 @@ namespace WPEFramework {
 
             if (error.empty())
             {
+                // We return the entire output of the trace command but since this contains newlines it is not valid as
+                // a json value so we will parse the output into an array of strings, one element for each line.
+                JsonArray list;
+                if (!output.empty())
+                {
+                    std::string::size_type last = 0;
+                    std::string::size_type next = output.find('\n');
+                    while (next != std::string::npos)
+                    {
+                        list.Add(output.substr(last, next - last));
+                        last = next + 1;
+                        next = output.find('\n', last);
+                    }
+                    list.Add(output.substr(last));
+                }
+
                 response["target"] = endpoint;
-                response["results"] = output;
+                response["results"] = list;
                 response["error"] = "";
                 return true;
             }
