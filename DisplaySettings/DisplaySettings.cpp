@@ -1222,12 +1222,24 @@ namespace WPEFramework {
 
 			string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
-            try {
-                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
-			   returnResponse(false);
+            int iDolbyVolumeMode = 0;
+
+            LOGERR("Received DolbyVolumeMode is : %s", sDolbyVolumeMode);
+            try
+            {
+                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
             }
+            catch (const device::Exception& err)
+            {
+               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
+               returnResponse(false);
+            }
+            if (0 == iDolbyVolumeMode) {
+                dolbyVolumeMode = false;
+            } else {
+                dolbyVolumeMode = true;
+            }
+
 
             bool success = true;
             try
