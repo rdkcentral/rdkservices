@@ -1224,7 +1224,6 @@ namespace WPEFramework {
             bool dolbyVolumeMode = false;
             int iDolbyVolumeMode = 0;
 
-            LOGERR("Received DolbyVolumeMode is : %s", sDolbyVolumeMode);
             try
             {
                 iDolbyVolumeMode = stoi(sDolbyVolumeMode);
