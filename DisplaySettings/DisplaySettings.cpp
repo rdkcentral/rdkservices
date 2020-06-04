@@ -1809,16 +1809,23 @@ namespace WPEFramework {
 
             string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
+            int iDolbyVolumeMode = 0;
 
             try
             {
-                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
+                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
             }
-            catch (const std::exception &err)
+            catch (const device::Exception& err)
             {
-               LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
+               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
                returnResponse(false);
             }
+            if (0 == iDolbyVolumeMode) {
+                dolbyVolumeMode = false;
+            } else {
+                dolbyVolumeMode = true;
+            }
+
 
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
