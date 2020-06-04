@@ -144,8 +144,11 @@ uint32_t XCast::applicationStateChanged(const JsonObject& parameters, JsonObject
         
         LOGINFO("XcastService::ApplicationStateChanged  ARGS = %s : %s : %s : %s ", app.c_str(), id.c_str() , state.c_str() , error.c_str());
         _rtConnector->applicationStateChanged(app, state, id, error);
+     returnResponse(true);
     }//app && state not empty
-    returnResponse(false);
+    else{
+       returnResponse(false);
+    }
 }
 //Timer Functions
 void XCast::onLocateCastTimer()
