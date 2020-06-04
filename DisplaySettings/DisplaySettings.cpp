@@ -1222,12 +1222,23 @@ namespace WPEFramework {
 
 			string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
-            try {
-                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
-			   returnResponse(false);
+            int iDolbyVolumeMode = 0;
+
+            try
+            {
+                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
             }
+            catch (const device::Exception& err)
+            {
+               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
+               returnResponse(false);
+            }
+            if (0 == iDolbyVolumeMode) {
+                dolbyVolumeMode = false;
+            } else {
+                dolbyVolumeMode = true;
+            }
+
 
             bool success = true;
             try
@@ -1355,6 +1366,7 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION1(string("HDMI0"));
                 response["enable"] = false;
                 response["mode"] = 0;
+                success = false;
             }
             returnResponse(success);
         }
@@ -1595,13 +1607,13 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 			bool success = true;
-			int atmosCapability;
+			dsATMOSCapability_t atmosCapability;
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
                 if (aPort.isConnected()) {
-                    atmosCapability = aPort.getIntelligentEqualizerMode ();
-                    response["atmos_capability"] = atmosCapability;
+                    aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                    response["atmos_capability"] = (int)atmosCapability;
                 }
                 else {
 					LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
