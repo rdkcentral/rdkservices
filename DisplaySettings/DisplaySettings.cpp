@@ -1420,7 +1420,6 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(audioPort);
                         success = false;
                         response["enable"] = false;
-                        response["mode"] = 0;
                 }
                 returnResponse(success);
         }
