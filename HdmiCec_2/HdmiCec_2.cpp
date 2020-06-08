@@ -372,14 +372,6 @@ namespace WPEFramework
                try
                {
                    CECEnable();
-                   if(cecOTPSettingEnabled && smConnection)
-                   {
-                       LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                       smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
-                       LOGINFO("Command: sending request active Source\r\n");
-                       smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
-                       isDeviceActiveSource = true;
-                   }
                }
                catch(...)
                {
@@ -945,8 +937,16 @@ namespace WPEFramework
             msgFrameListener = new HdmiCec_2FrameListener(*msgProcessor);
             smConnection->addFrameListener(msgFrameListener);
 
-
             cecEnableStatus = true;
+
+            if(smConnection)
+            {
+                LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
+                smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                LOGINFO("Command: sending request active Source\r\n");
+                smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
+                isDeviceActiveSource = true;
+            }
             return;
         }
 
