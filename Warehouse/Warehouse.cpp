@@ -655,7 +655,7 @@ namespace WPEFramework
 
             resetDevice(suppressReboot);
 
-            response["PARAM_SUCCESS"] = true;
+            response[PARAM_SUCCESS] = true;
             returnResponse(true);
         }
 
@@ -663,11 +663,9 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            JsonObject deviceInfo;
-            getDeviceInfo(deviceInfo);
+            getDeviceInfo(response);
 
-            response["deviceInfo"] = deviceInfo;
-            response["PARAM_SUCCESS"] = true;
+            response[PARAM_SUCCESS] = true;
             returnResponse(true);
         }
 
