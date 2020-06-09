@@ -62,6 +62,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VISIBILITY;
             static const string RDKSHELL_METHOD_GET_OPACITY;
             static const string RDKSHELL_METHOD_SET_OPACITY;
+            static const string RDKSHELL_METHOD_GET_SCALE;
+            static const string RDKSHELL_METHOD_SET_SCALE;
+            static const string RDKSHELL_METHOD_ADD_ANIMATION;
+            static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
 
         private/*registered methods (wrappers)*/:
 
@@ -84,6 +88,10 @@ namespace WPEFramework {
             uint32_t setVisibilityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getOpacityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setOpacityWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -107,6 +115,10 @@ namespace WPEFramework {
             bool setVisibility(const string& client, const bool visible);
             bool getOpacity(const string& client, unsigned int& opacity);
             bool setOpacity(const string& client, const unsigned int opacity);
+            bool getScale(const string& client, double& scaleX, double& scaleY);
+            bool setScale(const string& client, const double scaleX, const double scaleY);
+            bool removeAnimation(const string& client);
+            bool addAnimationList(const JsonArray& animations);
 
         private/*classes */:
 
