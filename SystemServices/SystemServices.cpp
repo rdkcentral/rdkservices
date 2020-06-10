@@ -1284,7 +1284,7 @@ namespace WPEFramework {
 
 	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
 		    populateResponseWithError(SysSrv_FileNotPresent, response);
-		    returnResponse(retStatus);
+		    returnResponse(retStat);
 	    }
 
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
