@@ -40,7 +40,6 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
-#include "rdk_logger_milestone.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -545,16 +544,26 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemUptime(const JsonObject& parameters,
                 JsonObject& response)
         {
-            std::string value = std::to_string(getUptimeMS() / 1e3);
-            value = value.erase(value.find_last_not_of("0") + 1);
+            struct timespec time;
+            bool result = false;
 
-            if (value.back() == '.')
-                value += '0';
+            if (clock_gettime(CLOCK_MONOTONIC_RAW, &time) == 0)
+            {
+                float uptime = (float)time.tv_sec + (float)time.tv_nsec / 1e9;
+                std::string value = std::to_string(uptime);
+                value = value.erase(value.find_last_not_of("0") + 1);
 
-            response["systemUptime"] = value;
-            LOGINFO("uptime is %s seconds", value.c_str());
+                if (value.back() == '.')
+                    value += '0';
 
-            returnResponse(true);
+                response["systemUptime"] = value;
+                LOGINFO("uptime is %s seconds", value.c_str());
+                result = true;
+                }
+            else
+                LOGERR("unable to evaluate uptime by clock_gettime");
+
+            returnResponse(result);
         }
 
         /**
