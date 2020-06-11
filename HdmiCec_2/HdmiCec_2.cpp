@@ -740,7 +740,7 @@ namespace WPEFramework
                     LOGINFO("CEC_SETTING_OSD_NMAE not  present set dafult value :%s\n ",osdName.toString().c_str());
                     isConfigAdded = true;
                 }
-                unsigned int  vendorId = 0x0019FB;
+                unsigned int  vendorId = (defaultVendorId.at(0) <<16) | ( defaultVendorId.at(1) << 8 ) | defaultVendorId.at(2);
                 if( parameters.HasLabel(CEC_SETTING_VENDOR_ID))
                 {
                     getNumberParameter(CEC_SETTING_VENDOR_ID, vendorId);
@@ -748,7 +748,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGINFO("CEC_SETTING_OSD_NMAE not  present set dafult value :\n ");
+                    LOGINFO("CEC_SETTING_VENDOR_ID not  present set dafult value :%x \n ",vendorId);
                     parameters[CEC_SETTING_VENDOR_ID] = vendorId;
                     isConfigAdded = true;
                 }
@@ -775,9 +775,12 @@ namespace WPEFramework
                     file.Create();
 
                 JsonObject parameters;
+                unsigned int  vendorId = (defaultVendorId.at(0) <<16) | ( defaultVendorId.at(1) << 8 ) | defaultVendorId.at(2);
                 parameters[CEC_SETTING_ENABLED] = true;
                 parameters[CEC_SETTING_OTP_ENABLED] = true;
                 parameters[CEC_SETTING_OSD_NAME] = osdName.toString();
+                parameters[CEC_SETTING_VENDOR_ID] = vendorId;
+
                 cecSettingEnabled = true;
                 cecOTPSettingEnabled = true;
                 parameters.IElement::ToFile(file);
