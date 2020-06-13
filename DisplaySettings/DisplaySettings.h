@@ -92,6 +92,16 @@ namespace WPEFramework {
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
+            uint32_t IsOutputHDR(const JsonObject& parameters, JsonObject& response);
+            uint32_t setHdmiPreferences(const JsonObject& parameters, JsonObject& response);
+            uint32_t getHdmiPreferences(const JsonObject& parameters, JsonObject& response);
+            uint32_t isAudioEquivalenceEnabled(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSocIDFromSDK(const JsonObject& parameters, JsonObject& response);
+            uint32_t isDynamicResolutionSupported(const JsonObject& parameters, JsonObject& response);
+            uint32_t isDTCPSupported(const JsonObject& parameters, JsonObject& response);
+            uint32_t isEnabled(const JsonObject& parameters, JsonObject& response);
+            uint32_t getRestrictedResolution(const JsonObject& parameters, JsonObject& response);
+
             //End methods
 
             //Begin events
@@ -100,6 +110,7 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
+            void audiomodeChanged(int AudioPortMode, int AudioPortType);
             //End events
         public:
             DisplaySettings();
@@ -114,6 +125,7 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            static void AudioModeHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;
         public:

@@ -160,6 +160,15 @@ namespace WPEFramework {
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
+            registerMethod("IsOutputHDR", &DisplaySettings::IsOutputHDR, this);
+            registerMethod("setHdmiPreferences", &DisplaySettings::setHdmiPreferences, this);
+            registerMethod("getHdmiPreferences", &DisplaySettings::getHdmiPreferences, this);
+            registerMethod("isAudioEquivalenceEnabled", &DisplaySettings::isAudioEquivalenceEnabled, this);
+            registerMethod("getSocIDFromSDK", &DisplaySettings::getSocIDFromSDK, this);
+            registerMethod("isDynamicResolutionSupported", &DisplaySettings::isDynamicResolutionSupported, this);
+            registerMethod("isDTCPSupported", &DisplaySettings::isDTCPSupported, this);
+            registerMethod("isEnabled", &DisplaySettings::isEnabled, this);
+            registerMethod("getRestrictedResolution", &DisplaySettings::getRestrictedResolution, this);
         }
 
         DisplaySettings::~DisplaySettings()
@@ -196,6 +205,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionPreChange) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionPostChange) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
             }
 
             try
@@ -373,6 +383,28 @@ namespace WPEFramework {
             default:
                 //do nothing
                 break;
+            }
+        }
+
+        void DisplaySettings::AudioModeHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            LOGINFO();
+            switch (eventId)
+            {
+                case IARM_BUS_DSMGR_EVENT_AUDIO_MODE:
+                    {
+                        LOGINFO("Received Audio mode event IARM_BUS_DSMGR_EVENT_AUDIO_MODE");
+                        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                        int AudioPortMode = eventData->data.Audioport.mode;
+                        int AudioPortType = eventData->data.Audioport.type;
+                        if(DisplaySettings::_instance)
+                        {
+                            DisplaySettings::_instance->audiomodeChanged(AudioPortMode, AudioPortType);
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -1727,6 +1759,196 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
+
+        uint32_t DisplaySettings::IsOutputHDR(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                if (vPort.isDisplayConnected()) {
+                    response["IsOutputHDR"] = vPort.IsOutputHDR();
+                }
+                else
+                {
+					LOGERR("IsOutputHDR failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setHdmiPreferences(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "hdcpProtocol");
+            dsHdcpProtocolVersion_t hdcpCurrentProtocol = static_cast<dsHdcpProtocolVersion_t>(parameters["hdcpProtocol"].Number());
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                if (vPort.isDisplayConnected())
+                {
+                    success = vPort.SetHdmiPreference(hdcpCurrentProtocol);
+                }
+                else
+                {
+                    LOGERR("setHdmiPreferences failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getHdmiPreferences(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                if (vPort.isDisplayConnected()) {
+                    response["hdcpProtocol"] = vPort.GetHdmiPreference();
+                }
+                else
+                {
+					LOGERR("getHdmiPreferences failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::isAudioEquivalenceEnabled(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected()) {
+                    response["isAudioEquivalenceEnabled"] = aPort.GetLEConfig();
+                }
+                else
+                {
+					LOGERR("isAudioEquivalenceEnabled failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getSocIDFromSDK(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+               string strSOCID = ::device::Host::getInstance().getSocIDFromSDK();
+               response["socId"] = strSOCID;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::isDynamicResolutionSupported(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                bool isDynamicResSupported = vPort.isDynamicResolutionSupported();
+                response["isDynamicResolutionSupported"] = isDynamicResSupported;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::isDTCPSupported(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                bool isDTCPSupported = vPort.getType().isDTCPSupported();
+                response["isDTCPSupported"] = isDTCPSupported;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::isEnabled(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                bool isEnabled = vPort.isEnabled();
+                response["isEnabled"] = isEnabled;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getRestrictedResolution(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                int restrictedResolution = vPort.getType().getRestrictedResolution();
+                response["RestrictedResolution"] = restrictedResolution;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+        
         //End methods
 
         //Begin events
@@ -1833,6 +2055,16 @@ namespace WPEFramework {
             }
             previousStatus = hdmiHotPlugEvent;
         }
+
+        void DisplaySettings::audiomodeChanged(int AudioPortMode, int AudioPortType)
+        {
+            LOGINFO();
+            JsonObject params;
+            params["AudioPortMode"] = AudioPortMode;
+            params["AudioPortType"] = AudioPortType;
+            sendNotify("AudioPortModeChanged", params);
+        }
+
         //End events
 
         void DisplaySettings::getConnectedVideoDisplaysHelper(vector<string>& connectedDisplays)
