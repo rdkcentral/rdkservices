@@ -67,7 +67,7 @@ static LogicalAddress logicalAddress = 0xF;
 static OSDName osdName = "TV Box";
 static int32_t powerState = 1;
 static PowerStatus tvPowerState = 1;
-static bool isDeviceActiveSource = true;
+static bool isDeviceActiveSource = false;
 static bool isLGTvConnected = false;
 
 namespace WPEFramework
@@ -946,9 +946,9 @@ namespace WPEFramework
             {
                 LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
                 smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
-                LOGINFO("Command: sending request active Source\r\n");
+                LOGINFO("Command: sending request active Source isDeviceActiveSource set to false\r\n");
                 smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
-                isDeviceActiveSource = true;
+                isDeviceActiveSource = false;
             }
             return;
         }
@@ -1068,6 +1068,7 @@ namespace WPEFramework
                     {
                         LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                        isDeviceActiveSource = true;
                         usleep(10000);
                     }
                     LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
