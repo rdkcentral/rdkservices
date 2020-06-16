@@ -59,7 +59,7 @@
 
 #define DEVICE_INFO_SCRIPT "sh /lib/rdk/getDeviceDetails.sh read"
 #define VERSION_FILE_NAME "/version.txt"
-#define CUSTOM_DATA_FILE "/lib/rdk/cust-data.conf"
+#define CUSTOM_DATA_FILE "/lib/rdk/wh_api_5.conf"
 
 #define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth"
 #define INTERNAL_RESET_SCRIPT "rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &"
@@ -530,7 +530,7 @@ namespace WPEFramework
                 if (line.length() > 0)
                 {
                     char firstChar = line[0];
-                    if (firstChar != '#' && firstChar != '[')
+                    if (firstChar != '#' && firstChar != '[' && line.substr(0, 2) != ". ")
                         listPathsToRemove.emplace_back(line);
                 }
             }
@@ -576,20 +576,52 @@ namespace WPEFramework
 
                 if (std::find_if(path.begin(), path.end(), [](char c) { return c == '$' || c == '*' || c == '?' || c == '+'; } ) != path.end())
                 {
-                    // allow search recursively if path ends by '/*', otherwise, for cases like /*.ini, searching process will be done only for given path
+                    std::list<std::string> exclusions;
+
+                    if (path.find('|') != string::npos)
+                    {
+                        size_t last = 0, next = 0;
+                        while ((next = path.find('|', last)) != string::npos)
+                        {
+                            std::string s = path.substr(last, next - last);
+                            Utils::String::trim(s);
+                            if (s.length() > 0)
+                                exclusions.push_back(s);
+                            last = next + 1;
+                        }
+                        std::string s = path.substr(last, next - last);
+                        Utils::String::trim(s);
+                        if (s.length() > 0)
+                            exclusions.push_back(s);
+                        path = exclusions.front();
+                    }
+
+                    // allow search recursively if path ends by '/*[|...]', otherwise, for cases like /*.ini, searching process will be done only by given path
                     std::string maxDepth = "-maxdepth 1 ";
-                    int pathLength = path.length();
-                    if (pathLength > 1 && path.find("/*", path.length() - 2) != std::string::npos)
+                    if (path.find("/*", path.length() - 2) != std::string::npos)
                         maxDepth = "";
 
                     std::string script = ". /etc/device.properties; fp=\"";
                     script += path;
                     script += "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 ";
                     script += maxDepth;
-                    script += "! -path \"*/\\.*\" -name \"$f\" 2>&1 | head -n 10";
+                    script += "! -path \"*/\\.*\" -name \"$f\"";
+
+                    for (auto i = exclusions.begin(); ++i != exclusions.end(); )
+                    {
+                        auto exclusion = *i;
+                        script += " ! -path \"";
+                        Utils::String::trim(exclusion);
+                        script += "$p/";
+                        script += exclusion;
+                        script += "\"";
+                    }
+
+                    script += " 2>/dev/null | head -n 10";
                     std::string result = Utils::cRunScript(script.c_str());
                     Utils::String::trim(result);
 
+                    totalPathsCounter++;
                     if (result.length() > 1)
                     {
                         std::stringstream ss(result);
@@ -603,7 +635,7 @@ namespace WPEFramework
                                     existedObjects.Add(line);
 
                                 std::string strAge = std::to_string(age) + " seconds";
-                                LOGINFO("object %d by path '%s' : '%s' %s", ++totalPathsCounter, path.c_str(), line.c_str()
+                                LOGINFO("object by path %d: '%s' : '%s' %s", totalPathsCounter, path.c_str(), line.c_str()
                                         , objectExists
                                         ? (std::string("exists and was modified more than ") + strAge + " ago").c_str()
                                         : (std::string("doesn't exist or was modified in ") + strAge).c_str());
@@ -611,12 +643,12 @@ namespace WPEFramework
                             else
                             {
                                 existedObjects.Add(line);
-                                LOGINFO("object %d by path '%s' : '%s' exists", ++totalPathsCounter, path.c_str(), line.c_str());
+                                LOGINFO("object by path %d: '%s' : '%s' exists", totalPathsCounter, path.c_str(), line.c_str());
                             }
                         }
                     }
                     else
-                        LOGINFO("objects %d by path '%s' don't exist", ++totalPathsCounter, path.c_str());
+                        LOGINFO("objects by path %d: '%s' don't exist", totalPathsCounter, path.c_str());
                 }
                 else
                 {
@@ -624,20 +656,21 @@ namespace WPEFramework
                     if (objectExists)
                         existedObjects.Add(path);
 
+                    totalPathsCounter++;
                     if (age > -1)
                     {
                         std::string strAge = std::to_string(age) + " seconds";
-                        LOGINFO("object %d by path '%s' : '%s' %s", ++totalPathsCounter, path.c_str(), path.c_str()
+                        LOGINFO("object by path %d: '%s' %s", totalPathsCounter, path.c_str()
                                 , objectExists
                                 ? (std::string("exists and was modified more than ") + strAge + " ago").c_str()
                                 : (std::string("doesn't exist or was modified in ") + strAge).c_str());
                     }
                     else
-                        LOGINFO("object %d by path '%s' %s", ++totalPathsCounter, path.c_str(), objectExists ? "exists" : "doesn't exist");
+                        LOGINFO("object by path %d: '%s' %s", totalPathsCounter, path.c_str(), objectExists ? "exists" : "doesn't exist");
                 }
             }
 
-            LOGINFO("checked %d paths, found objects %d", totalPathsCounter, (int)existedObjects.Length());
+            LOGINFO("checked %d paths, found %d objects", totalPathsCounter, (int)existedObjects.Length());
             response[PARAM_SUCCESS] = true;
             response["files"] = existedObjects;
             response["clean"] = existedObjects.Length() == 0;
