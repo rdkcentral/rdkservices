@@ -37,14 +37,14 @@ namespace WPEFramework {
 
         bool Network::_doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject &response)
         {
+            std::string interface;
             std::string endpoint = "";
-            string interface;
 
             if (endpointName != "CMTS") // currently we only support CMTS
             {
                 response["error"] = "Unsupported named endpoint";
             }
-            else if (_getDefaultInterface(interface, endpoint))
+            else if (_getDefaultInterface(interface, endpoint) && !endpoint.empty())
             {
                 return _doTrace(endpoint, packets, response);
             }
@@ -83,7 +83,7 @@ namespace WPEFramework {
             {
                 error = "Invalid endpoint";
             }
-            else if (!_getDefaultInterface(interface, gateway))
+            else if (!_getDefaultInterface(interface, gateway) || interface.empty())
             {
                 error = "Could not get default interface";
             }

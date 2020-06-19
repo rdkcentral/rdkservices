@@ -22,6 +22,9 @@
 #include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include <rdkshell/rdkshellevents.h>
+#include <rdkshell/rdkshell.h>
+#include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
 
 namespace WPEFramework {
@@ -51,6 +54,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_INJECT_KEY;
+            static const string RDKSHELL_METHOD_INJECT_KEYS;
             static const string RDKSHELL_METHOD_GET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_SET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_CREATE_DISPLAY;
@@ -62,6 +69,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VISIBILITY;
             static const string RDKSHELL_METHOD_GET_OPACITY;
             static const string RDKSHELL_METHOD_SET_OPACITY;
+            static const string RDKSHELL_METHOD_GET_SCALE;
+            static const string RDKSHELL_METHOD_SET_SCALE;
+            static const string RDKSHELL_METHOD_ADD_ANIMATION;
+            static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
 
         private/*registered methods (wrappers)*/:
 
@@ -73,6 +84,10 @@ namespace WPEFramework {
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t injectKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t createDisplayWrapper(const JsonObject& parameters, JsonObject& response);
@@ -84,6 +99,10 @@ namespace WPEFramework {
             uint32_t setVisibilityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getOpacityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setOpacityWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -96,6 +115,11 @@ namespace WPEFramework {
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyListeners(const string& client, const JsonArray& listeners);
+            bool removeKeyListeners(const string& client, const JsonArray& listeners);
+            bool addAnyKeyListener(const string& client, const JsonArray& listeners);
+            bool injectKey(const uint32_t& keyCode, const JsonArray& modifiers);
+            bool injectKeys(const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool createDisplay(const string& client, const string& displayName);
@@ -107,8 +131,35 @@ namespace WPEFramework {
             bool setVisibility(const string& client, const bool visible);
             bool getOpacity(const string& client, unsigned int& opacity);
             bool setOpacity(const string& client, const unsigned int opacity);
+            bool getScale(const string& client, double& scaleX, double& scaleY);
+            bool setScale(const string& client, const double scaleX, const double scaleY);
+            bool removeAnimation(const string& client);
+            bool addAnimationList(const JsonArray& animations);
 
         private/*classes */:
+
+            class RdkShellListener :  public RdkShell::RdkShellEventListener {
+
+              public:
+                RdkShellListener(RDKShell* shell)
+                    : mShell(*shell)
+                {
+                }
+
+                ~RdkShellListener()
+                {
+                }
+
+                // rdkshell events listeners
+                virtual void onApplicationLaunched(const std::string& client);
+                virtual void onApplicationConnected(const std::string& client);
+                virtual void onApplicationDisconnected(const std::string& client);
+                virtual void onApplicationTerminated(const std::string& client);
+                virtual void onApplicationFirstFrame(const std::string& client);
+
+              private:
+                  RDKShell& mShell;
+            };
 
             class MonitorClients : public PluginHost::IPlugin::INotification {
               private:
@@ -141,6 +192,7 @@ namespace WPEFramework {
         private/*members*/:
             bool mRemoteShell;
             MonitorClients* mClientsMonitor;
+            std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             //std::mutex m_callMutex;
         };
     } // namespace Plugin

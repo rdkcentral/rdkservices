@@ -40,7 +40,6 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
-#include "rdk_logger_milestone.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -545,16 +544,26 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemUptime(const JsonObject& parameters,
                 JsonObject& response)
         {
-            std::string value = std::to_string(getUptimeMS() / 1e3);
-            value = value.erase(value.find_last_not_of("0") + 1);
+            struct timespec time;
+            bool result = false;
 
-            if (value.back() == '.')
-                value += '0';
+            if (clock_gettime(CLOCK_MONOTONIC_RAW, &time) == 0)
+            {
+                float uptime = (float)time.tv_sec + (float)time.tv_nsec / 1e9;
+                std::string value = std::to_string(uptime);
+                value = value.erase(value.find_last_not_of("0") + 1);
 
-            response["systemUptime"] = value;
-            LOGINFO("uptime is %s seconds", value.c_str());
+                if (value.back() == '.')
+                    value += '0';
 
-            returnResponse(true);
+                response["systemUptime"] = value;
+                LOGINFO("uptime is %s seconds", value.c_str());
+                result = true;
+                }
+            else
+                LOGERR("unable to evaluate uptime by clock_gettime");
+
+            returnResponse(result);
         }
 
         /**
@@ -1277,10 +1286,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            char downloadedFWVersion[] = "";
-            char downloadedFWLocation[] = "";
+            string downloadedFWVersion = "";
+            string downloadedFWLocation = "";
             bool isRebootDeferred = false;
             std::vector<string> lines;
+
+	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		    returnResponse(retStat);
+	    }
 
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
@@ -1298,9 +1312,9 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            if (!((strcicmp(line.c_str(), "1"))
-                                        && (strcicmp(line.c_str(), "yes"))
-                                        && (strcicmp(line.c_str(), "true")))) {
+                            if (!((strncasecmp(line.c_str(), "1", strlen("1")))
+                                        && (strncasecmp(line.c_str(), "yes", strlen("yes")))
+                                        && (strncasecmp(line.c_str(), "true", strlen("true"))))) {
                                 isRebootDeferred = true;
                             }
                         }
@@ -1313,7 +1327,7 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWVersion, line.c_str());
+                            downloadedFWVersion = line.c_str();
                         }
                     }
                     found = line.find("DnldURL|");
@@ -1324,13 +1338,13 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWLocation, line.c_str());
+                            downloadedFWLocation = line.c_str();
                         }
                     }
                 }
                 response["currentFWVersion"] = getStbVersionString();
-                response["downloadedFWVersion"] = string(downloadedFWVersion);
-                response["downloadedFWLocation"] = string(downloadedFWLocation);
+                response["downloadedFWVersion"] = downloadedFWVersion;
+                response["downloadedFWLocation"] = downloadedFWLocation;
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
             } else {
