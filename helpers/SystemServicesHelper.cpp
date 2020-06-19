@@ -40,7 +40,8 @@ std::map<int, std::string> ErrCodeMap = {
     {SysSrv_Unexpected, "Unexpected error"},
     {SysSrv_SupportNotAvailable, "Support not available/enabled"},
     {SysSrv_LibcurlError, "LIbCurl service error"},
-    {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"}
+    {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"},
+    {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"}
 };
 
 std::string getErrorDescription(int errCode)
