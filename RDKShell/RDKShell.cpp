@@ -21,10 +21,8 @@
 #include <string>
 #include <iostream>
 #include <mutex>
-#include <rdkshell/compositorcontroller.h>
-#include <rdkshell/rdkshell.h>
-#include <rdkshell/linuxkeys.h>
 #include <thread>
+#include <rdkshell/compositorcontroller.h>
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -37,6 +35,9 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFoc
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREEN_RESOLUTION = "getScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCREEN_RESOLUTION = "setScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CREATE_DISPLAY = "createDisplay";
@@ -48,10 +49,16 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VISIBILITY = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VISIBILITY = "setVisibility";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_OPACITY = "getOpacity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_OPACITY = "setOpacity";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCALE = "getScale";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCALE = "setScale";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = "removeAnimation";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
 
 using namespace std;
 using namespace RdkShell;
 extern int gCurrentFramerate;
+
+#define ANY_KEY 65536
 
 namespace WPEFramework {
     namespace Plugin {
@@ -99,6 +106,7 @@ namespace WPEFramework {
                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
                        gRdkShellMutex.lock();
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
+                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                    }
                 }
@@ -125,6 +133,7 @@ namespace WPEFramework {
                         std::string clientidentifier = serviceConfig["clientidentifier"].String();
                         gRdkShellMutex.lock();
                         RdkShell::CompositorController::kill(clientidentifier);
+                        RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
                 }
@@ -136,6 +145,8 @@ namespace WPEFramework {
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
+            mEventListener = std::make_shared<RdkShellListener>(this);
+
             mRemoteShell = false;
             registerMethod(RDKSHELL_METHOD_MOVE_TO_FRONT, &RDKShell::moveToFrontWrapper, this);
             registerMethod(RDKSHELL_METHOD_MOVE_TO_BACK, &RDKShell::moveToBackWrapper, this);
@@ -144,6 +155,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREEN_RESOLUTION, &RDKShell::getScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_SCREEN_RESOLUTION, &RDKShell::setScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_CREATE_DISPLAY, &RDKShell::createDisplayWrapper, this);
@@ -155,6 +169,10 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VISIBILITY, &RDKShell::setVisibilityWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_OPACITY, &RDKShell::getOpacityWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_OPACITY, &RDKShell::setOpacityWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SCALE, &RDKShell::getScaleWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_SCALE, &RDKShell::setScaleWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_ANIMATION, &RDKShell::removeAnimationWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -163,6 +181,7 @@ namespace WPEFramework {
             mClientsMonitor->Release();
             RDKShell::_instance = nullptr;
             mRemoteShell = false;
+            mEventListener = nullptr;
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -178,6 +197,7 @@ namespace WPEFramework {
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
                   RdkShell::draw();
+                  RdkShell::update();
                   gRdkShellMutex.unlock();
                   double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
                   int32_t sleepTimeInMs = gCurrentFramerate - frameTime;
@@ -202,6 +222,31 @@ namespace WPEFramework {
         string RDKShell::Information() const
         {
             return(string("{\"service\": \"") + SERVICE_NAME + string("\"}"));
+        }
+
+        void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationLaunched event received ..." << client << std::endl;
+        }
+
+        void RDKShell::RdkShellListener::onApplicationConnected(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationConnected event received ..." << client << std::endl;
+        }
+
+        void RDKShell::RdkShellListener::onApplicationDisconnected(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationDisconnected event received ..." << client << std::endl;
+        }
+
+        void RDKShell::RdkShellListener::onApplicationTerminated(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationTerminated event received ..." << client << std::endl;
+        }
+
+        void RDKShell::RdkShellListener::onApplicationFirstFrame(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationFirstFrame event received ..." << client << std::endl;
         }
 
         // Registered methods (wrappers) begin
@@ -371,6 +416,87 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keys"))
+            {
+                result = false;
+                response["message"] = "please specify keys";
+            }
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const JsonArray keys = parameters["keys"].Array();
+                const string client  = parameters["client"].String();
+                result = addKeyListeners(client, keys);
+                if (false == result) {
+                  response["message"] = "failed to add key listeners";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keys"))
+            {
+                result = false;
+                response["message"] = "please specify keys";
+            }
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const JsonArray keys = parameters["keys"].Array();
+                const string client  = parameters["client"].String();
+                result = removeKeyListeners(client, keys);
+                if (false == result) {
+                  response["message"] = "failed to remove key listeners";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::injectKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keyCode"))
+            {
+                result = false;
+                response["message"] = "please specify keyCode";
+            }
+
+            if (result)
+            {
+                //optional param?
+                const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
+
+                const uint32_t keyCode = parameters["keyCode"].Number();
+                result = injectKey(keyCode, modifiers);
+                if (false == result) {
+                  response["message"] = "failed to inject key";
+                }
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -507,33 +633,30 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify client";
             }
-            if (!parameters.HasLabel("x"))
-            {
-                result = false;
-                response["message"] = "please specify x";
-            }
-            if (!parameters.HasLabel("y"))
-            {
-                result = false;
-                response["message"] = "please specify y";
-            }
-            if (!parameters.HasLabel("w"))
-            {
-                result = false;
-                response["message"] = "please specify w";
-            }
-            if (!parameters.HasLabel("h"))
-            {
-                result = false;
-                response["message"] = "please specify h";
-            }
             if (result)
             {
                 const string client  = parameters["client"].String();
-                const unsigned int x  = parameters["x"].Number();
-                const unsigned int y  = parameters["y"].Number();
-                const unsigned int w  = parameters["w"].Number();
-                const unsigned int h  = parameters["h"].Number();
+
+                unsigned int x=0,y=0,w=0,h=0;
+                gRdkShellMutex.lock();
+                CompositorController::getBounds(client, x, y, w, h);
+                gRdkShellMutex.unlock();
+                if (parameters.HasLabel("x"))
+                {
+                    x  = parameters["x"].Number();
+                }
+                if (parameters.HasLabel("y"))
+                {
+                    y  = parameters["y"].Number();
+                }
+                if (parameters.HasLabel("w"))
+                {
+                    w  = parameters["w"].Number();
+                }
+                if (parameters.HasLabel("h"))
+                {
+                    h  = parameters["h"].Number();
+                }
 
                 result = setBounds(client, x, y, w, h);
                 if (false == result) {
@@ -653,6 +776,113 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::getScaleWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            UNUSED(parameters);
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const string client  = parameters["client"].String();
+                double scaleX = 1.0;
+                double scaleY = 1.0;
+                if (!getScale(client, scaleX, scaleY))
+                {
+                    response["message"] = "failed to get scale";
+                    result = false;
+                } else {
+                    response["sx"] = std::to_string(scaleX);
+                    response["sy"] = std::to_string(scaleY);
+                    result = true;
+                }
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setScaleWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (!parameters.HasLabel("sx") && !parameters.HasLabel("sy"))
+            {
+                result = false;
+                response["message"] = "please specify sx and/or sy";
+            }
+            if (result)
+            {
+                const string client  = parameters["client"].String();
+                double scaleX = 1.0;
+                double scaleY = 1.0;
+                getScale(client, scaleX, scaleY);
+                if (parameters.HasLabel("sx"))
+                {
+                    scaleX = std::stod(parameters["sx"].String());
+                }
+                if (parameters.HasLabel("sy"))
+                {
+                    scaleY = std::stod(parameters["sy"].String());
+                }
+
+                result = setScale(client, scaleX, scaleY);
+                if (false == result) {
+                  response["message"] = "failed to set scale";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeAnimationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            UNUSED(parameters);
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const string client  = parameters["client"].String();
+                if (!removeAnimation(client))
+                {
+                    response["message"] = "failed to remove animation";
+                    result = false;
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::addAnimationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            bool arraybased = false;
+            if (parameters.HasLabel("animations"))
+            {
+                const JsonArray animations = parameters["animations"].Array();
+                result = addAnimationList(animations);
+                if (false == result) {
+                    response["message"] = "failed to add animation list";
+                }
+            }
+            returnResponse(result);
+        }
+
         // Registered methods begin
 
         // Events begin
@@ -704,6 +934,7 @@ namespace WPEFramework {
         {
             bool ret = false;
             gRdkShellMutex.lock();
+            RdkShell::CompositorController::removeListener(client, mEventListener);
             ret = CompositorController::kill(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -731,6 +962,88 @@ namespace WPEFramework {
             bool ret = false;
             gRdkShellMutex.lock();
             ret = CompositorController::removeKeyIntercept(client, keyCode, flags);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::addKeyListeners(const string& client, const JsonArray& keys)
+        {
+            gRdkShellMutex.lock();
+            for (int i=0; i<keys.Length(); i++) {
+                const JsonObject& keyInfo = keys[i].Object();
+                if (keyInfo.HasLabel("keyCode"))
+                {
+                    std::string keystring = keyInfo["keyCode"].String();
+                    uint32_t keyCode = 0;
+                    if (keystring.compare("*") == 0)
+                    {
+                      keyCode = ANY_KEY;
+                    }
+                    else
+                    {
+                      keyCode = keyInfo["keyCode"].Number();
+                    }
+                    const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
+                    uint32_t flags = 0;
+                    for (int i=0; i<modifiers.Length(); i++) {
+                      flags |= getKeyFlag(modifiers[i].String());
+                    }
+                    std::map<std::string, RdkShellData> properties;
+                    if (keyInfo.HasLabel("activate"))
+                    {
+                        bool activate = keyInfo["activate"].Boolean();
+                        properties["activate"] = activate;
+                    }
+                    if (keyInfo.HasLabel("propagate"))
+                    {
+                        bool propagate = keyInfo["propagate"].Boolean();
+                        properties["propagate"] = propagate;
+                    }
+                    CompositorController::addKeyListener(client, keyCode, flags, properties);
+                }
+            }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
+        bool RDKShell::removeKeyListeners(const string& client, const JsonArray& keys)
+        {
+            gRdkShellMutex.lock();
+            for (int i=0; i<keys.Length(); i++) {
+                const JsonObject& keyInfo = keys[i].Object();
+                if (keyInfo.HasLabel("keyCode"))
+                {
+                    std::string keystring = keyInfo["keyCode"].String();
+                    uint32_t keyCode = 0;
+                    if (keystring.compare("*") == 0)
+                    {
+                      keyCode = ANY_KEY;
+                    }
+                    else
+                    {
+                      keyCode = keyInfo["keyCode"].Number();
+                    }
+                    const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
+                    uint32_t flags = 0;
+                    for (int i=0; i<modifiers.Length(); i++) {
+                      flags |= getKeyFlag(modifiers[i].String());
+                    }
+                    CompositorController::removeKeyListener(client, keyCode, flags);
+                }
+            }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
+        bool RDKShell::injectKey(const uint32_t& keyCode, const JsonArray& modifiers)
+        {
+            bool ret = false;
+            uint32_t flags = 0;
+            for (int i=0; i<modifiers.Length(); i++) {
+              flags |= getKeyFlag(modifiers[i].String());
+            }
+            gRdkShellMutex.lock();
+            ret = CompositorController::injectKey(keyCode, flags);
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -764,6 +1077,7 @@ namespace WPEFramework {
             bool ret = false;
             gRdkShellMutex.lock();
             ret = CompositorController::createDisplay(client, displayName);
+            RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -853,6 +1167,86 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             return ret;
         }
+
+        bool RDKShell::getScale(const string& client, double& scaleX, double& scaleY)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getScale(client, scaleX, scaleY);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setScale(const string& client, const double scaleX, const double scaleY)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setScale(client, scaleX, scaleY);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::removeAnimation(const string& client)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::removeAnimation(client);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::addAnimationList(const JsonArray& animations)
+        {
+            gRdkShellMutex.lock();
+            for (int i=0; i<animations.Length(); i++) {
+                const JsonObject& animationInfo = animations[i].Object();
+                if (animationInfo.HasLabel("client") && animationInfo.HasLabel("duration"))
+                {
+                    const string client  = animationInfo["client"].String();
+                    const double duration = std::stod(animationInfo["duration"].String());
+                    std::map<std::string, RdkShellData> animationProperties;
+                    if (animationInfo.HasLabel("x"))
+                    {
+                        int32_t x = animationInfo["x"].Number();
+                        animationProperties["x"] = x;
+                    }
+                    if (animationInfo.HasLabel("y"))
+                    {
+                        int32_t y = animationInfo["y"].Number();
+                        animationProperties["y"] = y;
+                    }
+                    if (animationInfo.HasLabel("w"))
+                    {
+                        uint32_t width = animationInfo["w"].Number();
+                        animationProperties["w"] = width;
+                    }
+                    if (animationInfo.HasLabel("h"))
+                    {
+                        uint32_t height = animationInfo["h"].Number();
+                        animationProperties["h"] = height;
+                    }
+                    if (animationInfo.HasLabel("sx"))
+                    {
+                        double scaleX = std::stod(animationInfo["sx"].String());
+                        animationProperties["sx"] = scaleX;
+                    }
+                    if (animationInfo.HasLabel("sy"))
+                    {
+                        double scaleY = std::stod(animationInfo["sy"].String());
+                        animationProperties["sy"] = scaleY;
+                    }
+                    if (animationInfo.HasLabel("tween"))
+                    {
+                        std::string tween = animationInfo["tween"].String();
+                        animationProperties["tween"] = tween;
+                    }
+                    CompositorController::addAnimation(client, duration, animationProperties);
+                }
+            }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
