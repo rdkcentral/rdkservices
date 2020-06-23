@@ -1,0 +1,6 @@
+src/gz snapshots http://yoctobuild.metrological.com/snapshots/vodafone
+src/gz local file:///hdd/cache/packages
+dest root /
+dest ram /tmp
+lists_dir ext /var/opkg-lists
+option overlay_root /overlay
