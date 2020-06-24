@@ -1,8 +1,0 @@
-{
- "locator":"libWPEFrameworkFrontPanel.so",
- "classname":"FrontPanel",
- "precondition":[
-  "Platform"
- ],
- "autostart":true
-}

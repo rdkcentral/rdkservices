@@ -46,6 +46,7 @@ option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
 option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" OFF)
 option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" OFF)
 option(PLUGIN_RDKSHELL "Include RDKShell plugin" OFF)
+option(PLUGIN_TEXTTOSPEECH "Include TextToSpeech plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -149,6 +150,10 @@ endif()
 
     if(HAS_API_HDMI_CEC)
        add_subdirectory(HdmiCec)
+    endif()
+
+    if(HAS_API_HDMI_CEC_2)
+       add_subdirectory(HdmiCec_2)
     endif()
 
     if(ENABLE_LOCATION_SYNC)
@@ -281,6 +286,10 @@ endif()
 
     if(ENABLE_WEBKIT_BROWSER)
         add_subdirectory(WebKitBrowser)
+    endif()
+
+    if(PLUGIN_TEXTTOSPEECH)
+        add_subdirectory(TextToSpeech)
     endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

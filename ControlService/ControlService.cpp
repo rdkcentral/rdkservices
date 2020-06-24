@@ -116,63 +116,54 @@ namespace WPEFramework {
         void ControlService::InitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res = IARM_Bus_Init(IARM_CONTROLSERVICE_PLUGIN_NAME);
-            if (res == IARM_RESULT_SUCCESS)
+            if (Utils::IARM::init())
             {
-                // We have our own Linux process, so we need to connect and disconnect from the IARM Bus
-                IARM_CHECK( IARM_Bus_Connect() );
-                m_hasOwnProcess = true;
+                IARM_Result_t res;
+                // Register for the irMgr irkey events
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_IRMGR_NAME, IARM_BUS_IRMGR_EVENT_IRKEY, controlEventHandler) );
+
+                // Register for ControlMgr ghost code events
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
+                // Register for ControlMgr pairing-related events
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
+                // Register for ControlMgr API 6 event additions (battery and reboot)
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
+                // Register for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
+                // Register for ControlMgr API 6+ onControl event pass-through
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
             }
-            else
-                m_hasOwnProcess = false;
-
-            // Register for the irMgr irkey events
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_IRMGR_NAME, IARM_BUS_IRMGR_EVENT_IRKEY, controlEventHandler) );
-
-            // Register for ControlMgr ghost code events
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
-            // Register for ControlMgr pairing-related events
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
-            // Register for ControlMgr API 6 event additions (battery and reboot)
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
-            // Register for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
-            // Register for ControlMgr API 6+ onControl event pass-through
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
         }
 
         void ControlService::DeinitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
 
-            // Remove handlers for irMgr control irkey events
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_IRMGR_NAME, IARM_BUS_IRMGR_EVENT_IRKEY, controlEventHandler) );
-
-            // Remove handler for ControlMgr ghost code events
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
-            // Remove handlers for ControlMgr pairing-related events
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
-            // Remove handlers for ControlMgr API 6 event additions (battery and reboot)
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
-            // Remove handlers for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
-            // Remove handler for ControlMgr API 6+ onControl event pass-through
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
-
-            if (m_hasOwnProcess)
+            if (Utils::IARM::isConnected())
             {
-                IARM_CHECK( IARM_Bus_Disconnect() );
-                IARM_CHECK( IARM_Bus_Term() );
-                m_hasOwnProcess = false;
+                IARM_Result_t res;
+
+                // Remove handlers for irMgr control irkey events
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_IRMGR_NAME, IARM_BUS_IRMGR_EVENT_IRKEY, controlEventHandler) );
+
+                // Remove handler for ControlMgr ghost code events
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
+                // Remove handlers for ControlMgr pairing-related events
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
+                // Remove handlers for ControlMgr API 6 event additions (battery and reboot)
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT, controlEventHandler) );
+                // Remove handlers for ControlMgr API 6 polling REVERSE_CMD BEGIN and END events (for FindMyRemote)
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END, controlEventHandler) );
+                // Remove handler for ControlMgr API 6+ onControl event pass-through
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONTROL, controlEventHandler) );
             }
         }
 

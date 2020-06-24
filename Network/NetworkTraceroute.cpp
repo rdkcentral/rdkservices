@@ -37,13 +37,14 @@ namespace WPEFramework {
 
         bool Network::_doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject &response)
         {
+            std::string interface;
             std::string endpoint = "";
 
             if (endpointName != "CMTS") // currently we only support CMTS
             {
                 response["error"] = "Unsupported named endpoint";
             }
-            else if (m_netUtils.getCMTSGateway(endpoint))
+            else if (_getDefaultInterface(interface, endpoint) && !endpoint.empty())
             {
                 return _doTrace(endpoint, packets, response);
             }
@@ -60,6 +61,7 @@ namespace WPEFramework {
             std::string output = "";
             std::string error = "";
             std::string interface = "";
+            std::string gateway;
             int wait = DEFAULT_WAIT;
             int maxHops = DEFAULT_MAX_HOPS;
             int packetLen = DEFAULT_PACKET_LENGTH;
@@ -75,11 +77,13 @@ namespace WPEFramework {
             {
                 error = "Invalid endpoint";
             }
-            else if (!NetUtils::isIPV4(endpoint) && !NetUtils::isIPV6(endpoint))
+            else if (!NetUtils::isIPV4(endpoint) &&
+                     !NetUtils::isIPV6(endpoint) &&
+                     !NetUtils::isValidEndpointURL(endpoint))
             {
                 error = "Invalid endpoint";
             }
-            else if (!m_netUtils.getCMTSInterface(interface))
+            else if (!_getDefaultInterface(interface, gateway) || interface.empty())
             {
                 error = "Could not get default interface";
             }
@@ -117,8 +121,24 @@ namespace WPEFramework {
 
             if (error.empty())
             {
+                // We return the entire output of the trace command but since this contains newlines it is not valid as
+                // a json value so we will parse the output into an array of strings, one element for each line.
+                JsonArray list;
+                if (!output.empty())
+                {
+                    std::string::size_type last = 0;
+                    std::string::size_type next = output.find('\n');
+                    while (next != std::string::npos)
+                    {
+                        list.Add(output.substr(last, next - last));
+                        last = next + 1;
+                        next = output.find('\n', last);
+                    }
+                    list.Add(output.substr(last));
+                }
+
                 response["target"] = endpoint;
-                response["results"] = output;
+                response["results"] = list;
                 response["error"] = "";
                 return true;
             }

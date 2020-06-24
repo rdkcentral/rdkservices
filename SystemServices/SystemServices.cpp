@@ -370,34 +370,32 @@ namespace WPEFramework {
         void SystemServices::InitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_Init("SystemServices"));
-            IARM_CHECK(IARM_Bus_Connect());
-            IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange);
-            IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME,
-                    IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _firmwareUpdateStateChanged);
-            IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler);
+
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _firmwareUpdateStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
 #ifdef ENABLE_THERMAL_PROTECTION
-            IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler);
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
+            }
         }
 
         void SystemServices::DeinitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME,
-                    IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE);
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_MODECHANGED);
-#ifdef ENABLE_THERMAL_PROTECTION
-            IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,
-                    IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED);
-#endif //ENABLE_THERMAL_PROTECTION
-            IARM_CHECK(IARM_Bus_Disconnect());
-            IARM_CHECK(IARM_Bus_Term());
+
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE));
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+    #ifdef ENABLE_THERMAL_PROTECTION
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED));
+    #endif //ENABLE_THERMAL_PROTECTION
+            }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
@@ -959,7 +957,6 @@ namespace WPEFramework {
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool result = false;
             string callGUID;
 
                 callGUID = parameters["GUID"].String();
@@ -1289,10 +1286,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            char downloadedFWVersion[] = "";
-            char downloadedFWLocation[] = "";
+            string downloadedFWVersion = "";
+            string downloadedFWLocation = "";
             bool isRebootDeferred = false;
             std::vector<string> lines;
+
+	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		    returnResponse(retStat);
+	    }
 
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
@@ -1310,9 +1312,9 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            if (!((strcicmp(line.c_str(), "1"))
-                                        && (strcicmp(line.c_str(), "yes"))
-                                        && (strcicmp(line.c_str(), "true")))) {
+                            if (!((strncasecmp(line.c_str(), "1", strlen("1")))
+                                        && (strncasecmp(line.c_str(), "yes", strlen("yes")))
+                                        && (strncasecmp(line.c_str(), "true", strlen("true"))))) {
                                 isRebootDeferred = true;
                             }
                         }
@@ -1325,7 +1327,7 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWVersion, line.c_str());
+                            downloadedFWVersion = line.c_str();
                         }
                     }
                     found = line.find("DnldURL|");
@@ -1336,13 +1338,13 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWLocation, line.c_str());
+                            downloadedFWLocation = line.c_str();
                         }
                     }
                 }
                 response["currentFWVersion"] = getStbVersionString();
-                response["downloadedFWVersion"] = string(downloadedFWVersion);
-                response["downloadedFWLocation"] = string(downloadedFWLocation);
+                response["downloadedFWVersion"] = downloadedFWVersion;
+                response["downloadedFWLocation"] = downloadedFWLocation;
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
             } else {

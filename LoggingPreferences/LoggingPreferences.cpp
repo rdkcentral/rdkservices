@@ -61,17 +61,13 @@ namespace WPEFramework {
         void LoggingPreferences::InitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_Init("LoggingPreferences") );
-            IARM_CHECK( IARM_Bus_Connect() );
+
+            Utils::IARM::init();
         }
 
         void LoggingPreferences::DeinitializeIARM()
         {
             LOGINFO();
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_Disconnect() );
-            IARM_CHECK( IARM_Bus_Term() );
         }
 
         //Begin methods

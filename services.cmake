@@ -63,7 +63,6 @@ add_definitions (-DHAS_API_WEBSOCKET_PROXY)
 option(HAS_API_WEBSOCKET_PROXY "HAS_API_WEBSOCKET_PROXY" OFF)
 
 add_definitions (-DHAS_API_SCREEN_CAPTURE)
-option(HAS_API_SCREEN_CAPTURE "HAS_API_SCREEN_CAPTURE" OFF)
 
 add_definitions (-DHAS_API_STORAGE_MANAGER)
 option(HAS_API_STORAGE_MANAGER "HAS_API_STORAGE_MANAGER" OFF)
@@ -255,7 +254,12 @@ if(BUILD_BROADCOM)
     include(broadcom.cmake)
 elseif(BUILD_RASPBERRYPI)
     include(raspberrypi.cmake)
+elseif(BUILD_REALTEK)
+    include(realtek.cmake)
+elseif(BUILD_AMLOGIC)
+    include(amlogic.cmake)
 endif()
+
 
 
 

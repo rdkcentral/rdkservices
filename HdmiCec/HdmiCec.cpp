@@ -115,38 +115,27 @@ namespace WPEFramework
         {
             LOGINFO();
 
-            int isRegistered;
-            IARM_Result_t res = IARM_Bus_IsConnected("HdmiCec" , &isRegistered);
-            if(res != IARM_RESULT_SUCCESS)
+            if (Utils::IARM::init())
             {
-                IARM_CHECK( IARM_Bus_Init("HdmiCec") );
-                IARM_CHECK( IARM_Bus_Connect() );
-                m_iarmConnected = true;
+                IARM_Result_t res;
+                //IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE,cecDeviceStatusEventHandler) ); // It didn't do anything in original service
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
-
-            //IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE,cecDeviceStatusEventHandler) ); // It didn't do anything in original service
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
         }
 
-        //TODO(MROLLINS) - we need to install crash handler to ensure DeinitializeIARM gets called
         void HdmiCec::DeinitializeIARM()
         {
             LOGINFO();
 
-            if (m_iarmConnected)
+            if (Utils::IARM::isConnected())
             {
-                m_iarmConnected = false;
                 IARM_Result_t res;
-
                 //IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
-
-                IARM_CHECK( IARM_Bus_Disconnect() );
-                IARM_CHECK( IARM_Bus_Term() );
             }
         }
 
@@ -514,22 +503,16 @@ namespace WPEFramework
             JsonObject CECAddress;
             LOGINFO("Entered getCECAddresses ");
 
-            JsonArray pa;
-            pa.Add((physicalAddress >> 24) & 0xff);
-            pa.Add((physicalAddress >> 16) & 0xff);
-            pa.Add((physicalAddress >> 8)  & 0xff);
-            pa.Add( physicalAddress        & 0xff);
+            char pa[32] = {0};
+            snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
 
-            CECAddress["physicalAddress"] = pa;
+            CECAddress["physicalAddress"] = (const char *)pa;
 
             JsonObject logical;
             logical["deviceType"] = logicalAddressDeviceType;
             logical["logicalAddress"] = logicalAddress;
 
-            JsonArray logicalArray;
-            logicalArray.Add(logical);
-
-            CECAddress["logicalAddresses"] = logicalArray;
+            CECAddress["logicalAddresses"] = logical;
             LOGWARN("getCECAddresses: physicalAddress from QByteArray : %x %x %x %x ", (physicalAddress >> 24) & 0xFF, (physicalAddress >> 16) & 0xFF, (physicalAddress >> 8)  & 0xFF, (physicalAddress) & 0xFF);
             LOGWARN("getCECAddresses: logical address: %x  ", logicalAddress);
 

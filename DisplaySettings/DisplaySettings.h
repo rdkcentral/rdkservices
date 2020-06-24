@@ -92,6 +92,22 @@ namespace WPEFramework {
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
+            uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBassEnhancer(const JsonObject& parameters, JsonObject& response);
+            uint32_t isSurroundDecoderEnabled(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDRCMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMISteering(const JsonObject& parameters, JsonObject& response);
+            uint32_t setVolumeLeveller(const JsonObject& parameters, JsonObject& response);
+            uint32_t setBassEnhancer(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableSurroundDecoder(const JsonObject& parameters, JsonObject& response);
+            uint32_t setSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMISteering(const JsonObject& parameters, JsonObject& response);
+            uint32_t setGain(const JsonObject& parameters, JsonObject& response);
+            uint32_t getGain(const JsonObject& parameters, JsonObject& response);
+            uint32_t setLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
@@ -115,6 +131,7 @@ namespace WPEFramework {
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
+            bool checkPortName(std::string& name) const;
         public:
             static DisplaySettings* _instance;
 

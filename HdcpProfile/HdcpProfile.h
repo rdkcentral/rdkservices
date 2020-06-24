@@ -70,8 +70,6 @@ namespace WPEFramework {
             void terminate();
 
             static HdcpProfile* _instance;
-        private:
-            bool m_iarmConnected;
         };
 	} // namespace Plugin
 } // namespace WPEFramework
