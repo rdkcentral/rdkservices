@@ -164,7 +164,6 @@ namespace WPEFramework {
         private:
             uint32_t    m_apiVersionNumber;
             string      m_quirks;
-            bool        m_hasOwnProcess;
 
             JsonObject  m_remoteInfo[CTRLM_MAIN_MAX_BOUND_CONTROLLERS];
             int         m_numOfBindRemotes;
