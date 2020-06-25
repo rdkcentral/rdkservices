@@ -90,6 +90,7 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
+            uint32_t getQuirks(const JsonObject& parameters, JsonObject& response);
 
             uint32_t getAllRemoteDataWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSingleRemoteDataWrapper(const JsonObject& parameters, JsonObject& response);
@@ -141,6 +142,7 @@ namespace WPEFramework {
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);
+            void setQuirks(string quirks);
             int numericCtrlm2Int(ctrlm_key_code_t ctrlm_key);
 
             char* getRemoteModel(char *remoteType);
@@ -161,6 +163,7 @@ namespace WPEFramework {
             static ControlService* _instance;
         private:
             uint32_t    m_apiVersionNumber;
+            string      m_quirks;
 
             JsonObject  m_remoteInfo[CTRLM_MAIN_MAX_BOUND_CONTROLLERS];
             int         m_numOfBindRemotes;
