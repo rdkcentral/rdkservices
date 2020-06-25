@@ -90,6 +90,7 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
+            uint32_t getQuirks(const JsonObject& parameters, JsonObject& response);
 
             uint32_t getAllRemoteDataWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSingleRemoteDataWrapper(const JsonObject& parameters, JsonObject& response);
