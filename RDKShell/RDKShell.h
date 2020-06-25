@@ -56,6 +56,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_INJECT_KEY;
             static const string RDKSHELL_METHOD_INJECT_KEYS;
             static const string RDKSHELL_METHOD_GET_SCREEN_RESOLUTION;
@@ -73,6 +75,12 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_SCALE;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
+            static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
+            static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
+            static const string RDKSHELL_METHOD_SCALE_TO_FIT;
+
+            // events
+            static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
 
         private/*registered methods (wrappers)*/:
 
@@ -86,6 +94,8 @@ namespace WPEFramework {
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t injectKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
@@ -103,6 +113,10 @@ namespace WPEFramework {
             uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
+            void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -135,6 +149,8 @@ namespace WPEFramework {
             bool setScale(const string& client, const double scaleX, const double scaleY);
             bool removeAnimation(const string& client);
             bool addAnimationList(const JsonArray& animations);
+            bool enableInactivityReporting(const bool enable);
+            bool setInactivityInterval(const string interval);
 
         private/*classes */:
 
@@ -156,6 +172,7 @@ namespace WPEFramework {
                 virtual void onApplicationDisconnected(const std::string& client);
                 virtual void onApplicationTerminated(const std::string& client);
                 virtual void onApplicationFirstFrame(const std::string& client);
+                virtual void onUserInactive(const double minutes);
 
               private:
                   RDKShell& mShell;
