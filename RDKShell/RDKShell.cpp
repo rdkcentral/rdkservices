@@ -23,6 +23,7 @@
 #include <mutex>
 #include <thread>
 #include <rdkshell/compositorcontroller.h>
+#include "rfcapi.h"
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -37,6 +38,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER = "addKeyMetadataListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER = "removeKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREEN_RESOLUTION = "getScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCREEN_RESOLUTION = "setScreenResolution";
@@ -53,6 +56,11 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCALE = "getSca
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCALE = "setScale";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = "removeAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING = "enableInactivityReporting";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL = "setInactivityInterval";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SCALE_TO_FIT = "scaleToFit";
+
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 
 using namespace std;
 using namespace RdkShell;
@@ -79,6 +87,16 @@ namespace WPEFramework {
             flag = RDKSHELL_FLAGS_ALT;
           }
           return flag;
+        }
+
+        bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
+        {
+          WDMP_STATUS wdmpStatus = getRFCParameter("RDKShell", paramName, &paramOutput);
+          if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
+          {
+            return true;
+          }
+          return false;
         }
 
         SERVICE_REGISTRATION(RDKShell, 1, 0);
@@ -157,6 +175,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER, &RDKShell::addKeyMetadataListenerWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER, &RDKShell::removeKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREEN_RESOLUTION, &RDKShell::getScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_SCREEN_RESOLUTION, &RDKShell::setScreenResolutionWrapper, this);
@@ -173,6 +193,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_SCALE, &RDKShell::setScaleWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_ANIMATION, &RDKShell::removeAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING, &RDKShell::enableInactivityReportingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL, &RDKShell::setInactivityIntervalWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SCALE_TO_FIT, &RDKShell::scaleToFitWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -181,6 +204,7 @@ namespace WPEFramework {
             mClientsMonitor->Release();
             RDKShell::_instance = nullptr;
             mRemoteShell = false;
+            CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
         }
 
@@ -188,6 +212,19 @@ namespace WPEFramework {
         {
             LOGINFO();
             
+            CompositorController::setEventListener(mEventListener);
+            RFC_ParamData_t param;
+            bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
+            if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+            {
+              CompositorController::enableInactivityReporting(true);
+              ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
+              if (true == ret && param.type == WDMP_UINT)
+              {
+                CompositorController::setInactivityInterval(std::stod(param.value));
+              }
+            }
+
             shellThread = std::thread([]() {
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
@@ -200,7 +237,6 @@ namespace WPEFramework {
                   RdkShell::update();
                   gRdkShellMutex.unlock();
                   double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
-                  int32_t sleepTimeInMs = gCurrentFramerate - frameTime;
                   if (frameTime < maxSleepTime)
                   {
                       int sleepTime = (int)maxSleepTime-(int)frameTime;
@@ -247,6 +283,17 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onApplicationFirstFrame(const std::string& client)
         {
           std::cout << "RDKShell onApplicationFirstFrame event received ..." << client << std::endl;
+        }
+
+        void RDKShell::RdkShellListener::onUserInactive(const double minutes)
+        {
+          std::cout << "RDKShell onUserInactive event received ..." << minutes << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_USER_INACTIVITY;
+          JsonObject params;
+          params["minutes"] = std::to_string(minutes);
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, response);
         }
 
         // Registered methods (wrappers) begin
@@ -467,6 +514,54 @@ namespace WPEFramework {
                 result = removeKeyListeners(client, keys);
                 if (false == result) {
                   response["message"] = "failed to remove key listeners";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                gRdkShellMutex.lock();
+                result = CompositorController::addKeyMetadataListener(client);
+                gRdkShellMutex.unlock();
+                if (false == result) {
+                  response["message"] = "failed to add key metadata listeners";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                gRdkShellMutex.lock();
+                result = CompositorController::removeKeyMetadataListener(client);
+                gRdkShellMutex.unlock();
+                if (false == result) {
+                  response["message"] = "failed to remove key metadata listeners";
                 }
             }
             returnResponse(result);
@@ -871,7 +966,6 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            bool arraybased = false;
             if (parameters.HasLabel("animations"))
             {
                 const JsonArray animations = parameters["animations"].Array();
@@ -883,15 +977,103 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+                const bool enable  = parameters["enable"].Boolean();
+
+                result = enableInactivityReporting(enable);
+
+                if (false == result) {
+                  response["message"] = "failed to set inactivity notification";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("interval"))
+            {
+                result = false;
+                response["message"] = "please specify interval parameter";
+            }
+            if (result)
+            {
+                const string interval = parameters["interval"].String();
+
+                result = setInactivityInterval(interval);
+                // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
+                // Also, we might not need a "non-wrapper" method at all, nothing prevents us from implementing it right here
+
+                if (false == result) {
+                  response["message"] = "failed to set inactivity interval";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::scaleToFitWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+
+                unsigned int x = 0, y = 0;
+                unsigned int clientWidth = 0, clientHeight = 0;
+                gRdkShellMutex.lock();
+                CompositorController::getBounds(client, x, y, clientWidth, clientHeight);
+                if (parameters.HasLabel("x"))
+                {
+                    x = parameters["x"].Number();
+                }
+                if (parameters.HasLabel("y"))
+                {
+                    y = parameters["y"].Number();
+                }
+                if (parameters.HasLabel("w"))
+                {
+                    clientWidth = parameters["w"].Number();
+                }
+                if (parameters.HasLabel("h"))
+                {
+                    clientHeight = parameters["h"].Number();
+                }
+                result = CompositorController::scaleToFit(client, x, y, clientWidth, clientHeight);
+                gRdkShellMutex.unlock();
+
+                if (!result) {
+                  response["message"] = "failed to scale to fit";
+                }
+            }
+            returnResponse(result);
+        }
+
         // Registered methods begin
 
         // Events begin
-//        void RDKShell::onSomeEvent(JsonObject& url)
-//        {
-//            LOGINFO();
-//            sendNotify(C_STR(RDKSHELL_EVENT_SOME_EVENT), url);
-//        }
-        // Events end
+        void RDKShell::notify(const std::string& event, const JsonObject& parameters)
+        {
+            sendNotify(event.c_str(), parameters);
+        }
+      // Events end
 
         // Internal methods begin
         bool RDKShell::moveToFront(const string& client)
@@ -1235,6 +1417,11 @@ namespace WPEFramework {
                         double scaleY = std::stod(animationInfo["sy"].String());
                         animationProperties["sy"] = scaleY;
                     }
+                    if (animationInfo.HasLabel("a"))
+                    {
+                        uint32_t opacity = animationInfo["a"].Number();
+                        animationProperties["a"] = opacity;
+                    }
                     if (animationInfo.HasLabel("tween"))
                     {
                         std::string tween = animationInfo["tween"].String();
@@ -1243,6 +1430,22 @@ namespace WPEFramework {
                     CompositorController::addAnimation(client, duration, animationProperties);
                 }
             }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
+        bool RDKShell::enableInactivityReporting(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            CompositorController::enableInactivityReporting(enable);
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
+        bool RDKShell::setInactivityInterval(const string interval)
+        {
+            gRdkShellMutex.lock();
+            CompositorController::setInactivityInterval(std::stod(interval));
             gRdkShellMutex.unlock();
             return true;
         }
