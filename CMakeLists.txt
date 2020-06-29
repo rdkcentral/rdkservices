@@ -47,6 +47,7 @@ option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" O
 option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" OFF)
 option(PLUGIN_RDKSHELL "Include RDKShell plugin" OFF)
 option(PLUGIN_TEXTTOSPEECH "Include TextToSpeech plugin" OFF)
+option(PLUGIN_PACKAGER "Include Packager plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -55,6 +56,10 @@ string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
+
+if(PLUGIN_PACKAGER)
+    add_subdirectory(Packager)
+endif()
 
 if(PLUGIN_BLUETOOTH)
     add_subdirectory(Bluetooth)

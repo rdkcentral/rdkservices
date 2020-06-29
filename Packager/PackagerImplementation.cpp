@@ -20,11 +20,11 @@
 #include "PackagerImplementation.h"
 
 #if defined (DO_NOT_USE_DEPRECATED_API)
-#include <opkg_cmd.h>
+#include <libopkg/opkg_cmd.h>
 #else
-#include <opkg.h>
+#include <libopkg/opkg.h>
 #endif
-#include <opkg_download.h>
+#include <libopkg/opkg_download.h>
 
 
 namespace WPEFramework {
