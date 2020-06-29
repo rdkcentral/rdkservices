@@ -113,9 +113,6 @@ if (BUILD_LLAMA)
     add_definitions (-DENABLE_VREX_SERVICE)
     add_definitions (-DRF4CE_API)
     add_definitions (-DHAS_STATE_OBSERVER)
-
-    message("Building with device manufacturer info")
-    add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
 endif()
 
 if(SCREEN_CAPTURE)
