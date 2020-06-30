@@ -621,7 +621,7 @@ namespace WPEFramework {
             if (!parameter.compare(MODEL_NAME)) {
                 param.type = mfrSERIALIZED_TYPE_MODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
-                param.type = mfrSERIALIZED_TYPE_SERIALNUMBER;
+                param.type = mfrSERIALIZED_TYPE_HWID;
             }
             IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
             param.buffer[param.bufLen] = '\0';
