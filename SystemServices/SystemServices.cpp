@@ -1664,8 +1664,7 @@ namespace WPEFramework {
 
         /***
          * @brief : To set cache value.
-         * @param1[in]  : {"params":{"key":"<string>",
-         *                 "cacheValue":<double>}}
+         * @param1[in]  : {"params":{"key":"<string>","value":<double>}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */

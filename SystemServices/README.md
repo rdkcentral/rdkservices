@@ -15,7 +15,7 @@
   - **cacheContains**
 
     To check if key value present in cache.  
-  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"key":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **clearLastDeepSleepReason**
 
@@ -40,7 +40,7 @@
   - **getCachedValue**
 
     To get cached value.  
-  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"key":"<string>"}}`  
   _**Response payload:**_ `{"result":{"<cachekey>":"<string>","success":<bool>}}`
   - **getCoreTemperature**
 
@@ -170,12 +170,12 @@
   - **reboot**
 
     This method shall be used to request the system to perform `reboot`.  
-  _**Request payload:**_ `{"params":{"param":{"cacheKey":"sampleCache"}}}`  
+  _**Request payload:**_ `{"params":{"key":"sampleCache"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **removeCacheKey**
 
     To delete the key value present in cache.  
-  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"key":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **requestSystemUptime**
 
@@ -185,7 +185,7 @@
   - **setCachedValue**
 
     To set cache value.  
-  _**Request payload:**_ `{"params":{"param":{"cacheKey":"<string>","cacheValue":<double>}}}`  
+  _**Request payload:**_ `{"params":{"key":"<string>","value":<double>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setDeepSleepTimer**
 
@@ -266,12 +266,12 @@ _Note:_ Here callsign used is `org.rdk.SystemServices` instead of actual `org.rd
 
 Method | Request Payload | Response Payload
 :--- | :--- | :---
-| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.SystemServices.1.cacheContains","params":{"param":{"cacheKey":"sampleCache"}}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
+| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.SystemServices.1.cacheContains","params":{"key":"sampleCache"}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
 | clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.SystemServices.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
 | enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.SystemServices.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
 | enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.SystemServices.1.enableXREConnectionRetention","params":{"param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
 | getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.SystemServices.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
-| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.getCachedValue","params":{"param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
+| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.getCachedValue","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
 | getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.SystemServices.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
 | getDeviceInfo | {"jsonrpc":"2.0","id":"5","method":"org.rdk.SystemServices.1.getDeviceInfo","params":{"params":["estb_mac"]}} | {"jsonrpc":"2.0","id":5,"result":{"estb_mac":"20:F1:9E:EE:62:08","success":true}} |  
 | getDownloadedFirmwareInfo | {"jsonrpc":"2.0","id":"6","method":"org.rdk.SystemServices.1.getDownloadedFirmwareInfo","params":{}} | {"jsonrpc":"2.0","id":6,"result":{"currentFWVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","downloadedFWVersion":"","downloadedFWLocation":"","isRebootDeferred":false,"success":true}} |  
@@ -298,9 +298,9 @@ Method | Request Payload | Response Payload
 | isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.SystemServices.1.isGzEnabled","params":{}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
 | queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.SystemServices.1.queryMocaStatus","params":{}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
 | reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.SystemServices.1.reboot","params":{"params":{"reason":"API Validation"}}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
-| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.SystemServices.1.removeCacheKey","params":{"param":{"cacheKey":"sampleCache"}}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
+| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.SystemServices.1.removeCacheKey","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
 | requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.SystemServices.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
-| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.SystemServices.1.setCachedValue","params":{"param":{"cacheKey":"sampleCache","cacheValue":4343.3434}}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
+| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.SystemServices.1.setCachedValue","params":{"key":"sampleCache","value":4343.3434}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
 | setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.SystemServices.1.setDeepSleepTimer","params":{"param":{"seconds":3}}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
 | setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.SystemServices.1.setGzEnabled","params":{"param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
 | setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.SystemServices.1.setMode","params":{"modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
