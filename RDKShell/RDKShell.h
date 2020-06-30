@@ -78,6 +78,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
+            static const string RDKSHELL_METHOD_LAUNCH_APPLICATION;
+            static const string RDKSHELL_METHOD_SUSPEND_APPLICATION;
+            static const string RDKSHELL_METHOD_RESUME_APPLICATION;
+            static const string RDKSHELL_METHOD_CLOSE_APPLICATION;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -116,6 +120,9 @@ namespace WPEFramework {
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:

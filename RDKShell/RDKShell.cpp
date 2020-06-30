@@ -23,6 +23,7 @@
 #include <mutex>
 #include <thread>
 #include <rdkshell/compositorcontroller.h>
+#include <rdkshell/application.h>
 #include "rfcapi.h"
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -59,12 +60,18 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "ad
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING = "enableInactivityReporting";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL = "setInactivityInterval";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SCALE_TO_FIT = "scaleToFit";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_APPLICATION = "launchApplication";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND_APPLICATION = "suspendApplication";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESUME_APPLICATION = "resumeApplication";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 
 using namespace std;
 using namespace RdkShell;
 extern int gCurrentFramerate;
+bool receivedResolutionRequest = false;
+unsigned int resolutionWidth = 1280;
+unsigned int resolutionHeight = 720;
 
 #define ANY_KEY 65536
 
@@ -196,6 +203,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING, &RDKShell::enableInactivityReportingWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL, &RDKShell::setInactivityIntervalWrapper, this);
             registerMethod(RDKSHELL_METHOD_SCALE_TO_FIT, &RDKShell::scaleToFitWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_APPLICATION, &RDKShell::launchApplicationWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SUSPEND_APPLICATION, &RDKShell::suspendApplicationWrapper, this);
+            registerMethod(RDKSHELL_METHOD_RESUME_APPLICATION, &RDKShell::resumeApplicationWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -233,6 +243,11 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
+                  if (receivedResolutionRequest)
+                  {
+                    CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
+                    receivedResolutionRequest = false;
+                  }
                   RdkShell::draw();
                   RdkShell::update();
                   gRdkShellMutex.unlock();
@@ -1066,6 +1081,108 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::launchApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (!parameters.HasLabel("uri"))
+            {
+                result = false;
+                response["message"] = "please specify uri";
+            }
+            if (!parameters.HasLabel("mimeType"))
+            {
+                result = false;
+                response["message"] = "please specify mimeType";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                const string uri = parameters["uri"].String();
+                const string mimeType = parameters["mimeType"].String();
+
+                gRdkShellMutex.lock();
+                result = CompositorController::launchApplication(client, uri, mimeType);
+                gRdkShellMutex.unlock();
+
+                if (!result) {
+                  response["message"] = "failed to launch application";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                std::string mimeType;
+
+                gRdkShellMutex.lock();
+                result = CompositorController::getMimeType(client, mimeType);
+                if (result && mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                    result = CompositorController::suspendApplication(client);
+                }
+                gRdkShellMutex.unlock();
+                if (mimeType != RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                }
+                setVisibility(client, false);
+
+                if (!result) {
+                  response["message"] = "failed to suspend application";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                std::string mimeType;
+
+                gRdkShellMutex.lock();
+                result = CompositorController::getMimeType(client, mimeType);
+                if (result && mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                    result = CompositorController::resumeApplication(client);
+                }
+                gRdkShellMutex.unlock();
+                if (mimeType != RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                }
+                setVisibility(client, true);
+
+                if (!result) {
+                  response["message"] = "failed to resume application";
+                }
+            }
+            returnResponse(result);
+        }
+
         // Registered methods begin
 
         // Events begin
@@ -1249,7 +1366,9 @@ namespace WPEFramework {
         {
             bool ret = false;
             gRdkShellMutex.lock();
-            ret = CompositorController::setScreenResolution(w, h);
+            receivedResolutionRequest = true;
+            resolutionWidth = w;
+            resolutionHeight = h;
             gRdkShellMutex.unlock();
             return ret;
         }
