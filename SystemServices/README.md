@@ -1,7 +1,7 @@
 # **System Service Thunder Plugin** (_RDK-25849_)
     This document enlists the supported Methods and Events of System Service Thunder Plugin. The following section details each.
 * [**Methods**](#System-Service-Thunder-Plugin-Methods)
-    - The generic thunder JSONRPC API format is `{"jsonrpc":"2.0","id":"","method":"callsign.pluginVersion.methodName",<payload>}` where default value of `callsign` is `SystemServices`, `pluginVersion` is `1` and `methodName` is the methods listed in `Methods` section. `Payload` information is implementation specific to each `method` and is described under respective `method` section.
+    - The generic thunder JSONRPC API format is `{"jsonrpc":"2.0","id":"","method":"callsign.pluginVersion.methodName",<payload>}` where default value of `callsign` is `org.rdk.System`, `pluginVersion` is `1` and `methodName` is the methods listed in `Methods` section. `Payload` information is implementation specific to each `method` and is described under respective `method` section.
 * [**Events**](#System-Service-Thunder-Plugin-Events)
     - These JSONRPC events shall be broadcasted to all subscribed endpoints over websocket. Each `event` payload details are enlisted under respective section below.
 * [**Tests**](#System-Service-Thunder-Plugin-Test-Client)
@@ -221,7 +221,7 @@
   - **setTimeZoneDST**
 
     To set the Time to System TZ_FILE.  
-  _**Request payload:**_ `{"params":{"param":{"timezone":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"timezone":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **updateFirmware**
 
@@ -261,6 +261,8 @@
   
   **API request format**  
   `curl --header "Content-Type:application/json" --request POST http://localhost:9998/jsonrpc --data-raw '<request_payload>'` 
+
+_Note:_ Here callsign used is `org.rdk.SystemServices` instead of actual `org.rdk.System` since testing purpose it was set so.
 
 Method | Request Payload | Response Payload
 :--- | :--- | :---
@@ -305,5 +307,5 @@ Method | Request Payload | Response Payload
 | setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.SystemServices.1.setPowerState","params":{"param":{"powerState":"ON", "standbyReason":"APIUnitTest"}}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
 | setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.SystemServices.1.setPreferredStandbyMode","params":{"param":{"mode":"DEEP_SLEEP"}}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.SystemServices.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
-| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.SystemServices.1.setTimeZoneDST","params":{"param":{"timezone":"UTC-5"}}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
+| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.SystemServices.1.setTimeZoneDST","params":{"timezone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
 | updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.SystemServices.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
