@@ -1183,38 +1183,29 @@ namespace WPEFramework {
         bool SystemServices::getSerialNumberSnmp(JsonObject& response)
         {
             bool retAPIStatus = false;
-            pid_t pid;
-
-            if (-1 == (pid = fork())) {
-                LOGERR("could not fork\n");
-                return retAPIStatus;
-            }
-            if (0 == pid) {
-                if (Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
-                    execl("/bin/sh", "sh", "-c",
-                            "/lib/rdk/getStateDetails.sh STB_SER_NO", (char *)0);
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
-                //this script is expected to write to a file
-            } else {
-                retAPIStatus = false;
-                wait(NULL); //wait for child process to finish, only then start reading the file
-                std::vector<string> lines;
-                if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
-                    if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
-                        string serialNumber = lines.front();
-                        response["serialNumber"] = serialNumber;
-                        retAPIStatus = true;
-                    } else {
-                        populateResponseWithError(SysSrv_FileContentUnsupported, response);
-                    }
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
-            }
-            return retAPIStatus;
-        }
+	    if (!Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
+		LOGERR("/lib/rdk/getStateDetails.sh not found.");
+		populateResponseWithError(SysSrv_FileNotPresent, response);
+	    } else {
+		/* TODO: remove system() once alternate available. */
+		system("/lib/rdk/getStateDetails.sh STB_SER_NO");
+		std::vector<string> lines;
+		if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
+		    if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
+			string serialNumber = lines.front();
+			response["serialNumber"] = serialNumber;
+			retAPIStatus = true;
+		    } else {
+			LOGERR("Unexpected contents in %s file.", TMP_SERIAL_NUMBER_FILE);
+			populateResponseWithError(SysSrv_FileContentUnsupported, response);
+		    }
+		} else {
+		    LOGERR("%s file not found.", TMP_SERIAL_NUMBER_FILE);
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		}
+	    }
+	    return retAPIStatus;
+	}
 
         /***
          * @brief : To retrieve Device Serial Number
@@ -1286,10 +1277,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            char downloadedFWVersion[] = "";
-            char downloadedFWLocation[] = "";
+            string downloadedFWVersion = "";
+            string downloadedFWLocation = "";
             bool isRebootDeferred = false;
             std::vector<string> lines;
+
+	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		    returnResponse(retStat);
+	    }
 
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
@@ -1307,9 +1303,9 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            if (!((strcicmp(line.c_str(), "1"))
-                                        && (strcicmp(line.c_str(), "yes"))
-                                        && (strcicmp(line.c_str(), "true")))) {
+                            if (!((strncasecmp(line.c_str(), "1", strlen("1")))
+                                        && (strncasecmp(line.c_str(), "yes", strlen("yes")))
+                                        && (strncasecmp(line.c_str(), "true", strlen("true"))))) {
                                 isRebootDeferred = true;
                             }
                         }
@@ -1322,7 +1318,7 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWVersion, line.c_str());
+                            downloadedFWVersion = line.c_str();
                         }
                     }
                     found = line.find("DnldURL|");
@@ -1333,13 +1329,13 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWLocation, line.c_str());
+                            downloadedFWLocation = line.c_str();
                         }
                     }
                 }
                 response["currentFWVersion"] = getStbVersionString();
-                response["downloadedFWVersion"] = string(downloadedFWVersion);
-                response["downloadedFWLocation"] = string(downloadedFWLocation);
+                response["downloadedFWVersion"] = downloadedFWVersion;
+                response["downloadedFWLocation"] = downloadedFWLocation;
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
             } else {
@@ -1510,40 +1506,46 @@ namespace WPEFramework {
 
         /***
          * @brief : To set the Time to TZ_FILE.
-         * @param1[in]	: {"params":{"param":{"timeZone":"<string>"}}}
+         * @param1[in]	: {"params":{"timeZone":"<string>"}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            std::string dir = dirnameOf(TZ_FILE);
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string timeZone = param["timeZone"].String();
-            ofstream outfile;
-            bool resp = false;
+	{
+		std::string dir = dirnameOf(TZ_FILE);
+		ofstream outfile;
+		std::string timeZone = "";
+		bool resp = false;
+		try {
+			timeZone = parameters["timeZone"].String();
+			if (timeZone.empty() || (timeZone == "null")) {
+				LOGERR("Empty timeZone received.");
+			} else {
+				if (!dirExists(dir)) {
+					std::string command = "mkdir -p " + dir + " \0";
+					Utils::cRunScript(command.c_str());
+				} else {
+					//Do nothing//
+				}
 
-            if (!dirExists(dir)) {
-                std::string command = "mkdir -p " + dir + " \0";
-                Utils::cRunScript(command.c_str());
-            } else {
-                //Do nothing//
-            }
-
-            outfile.open(TZ_FILE,ios::out);
-            if (outfile) {
-                outfile << timeZone;
-                outfile.close();
-                LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
-                resp = true;
-            } else {
-                LOGERR("Unable to open %s file.\n", TZ_FILE);
-                populateResponseWithError(SysSrv_FileAccessFailed, response);
-                resp = false;
-            }
-            returnResponse(resp);
-        }
+				outfile.open(TZ_FILE,ios::out);
+				if (outfile) {
+					outfile << timeZone;
+					outfile.close();
+					LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
+					resp = true;
+				} else {
+					LOGERR("Unable to open %s file.\n", TZ_FILE);
+					populateResponseWithError(SysSrv_FileAccessFailed, response);
+					resp = false;
+				}
+			}
+		} catch (...) {
+			LOGERR("catch block : parameters[\"timeZone\"]...");
+		}
+		returnResponse(resp);
+	}
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
