@@ -1675,16 +1675,17 @@ namespace WPEFramework {
             std::string key = parameters["key"].String();
             std::string value = parameters["value"].String();
 
-            if (key.length() && value.length()) {
-                if (m_cacheService.setValue(key, value)) {
-                    retStat = true;
-                } else {
-                    LOGERR("Accessing m_cacheService.setValue failed\n.");
-                }
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            }
-            returnResponse(retStat);
+	    if (key.length() && value.length()) {
+		    if (m_cacheService.setValue(key, value)) {
+			    retStat = true;
+		    } else {
+			    LOGERR("Accessing m_cacheService.setValue failed\n.");
+			    populateResponseWithError(SysSrv_Unexpected, response);
+		    }
+	    } else {
+		    populateResponseWithError(SysSrv_UnSupportedFormat, response);
+	    }
+	    returnResponse(retStat);
         }
 
         /***
@@ -1696,18 +1697,19 @@ namespace WPEFramework {
         uint32_t SystemServices::cacheContains(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retStat = false;
-            std::string key = parameters["key"].String();
-            if (key.length()) {
-                if (m_cacheService.contains(key)) {
-                    retStat = true;
-                } else {
-                    LOGERR("Accessing m_cacheService.contains failed\n.");
-                }
-            } else {
-                populateResponseWithError(SysSrv_UnSupportedFormat, response);
-            }
-            returnResponse(retStat);
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		if (key.length()) {
+			if (m_cacheService.contains(key)) {
+				retStat = true;
+			} else {
+				LOGERR("Accessing m_cacheService.contains failed\n.");
+				populateResponseWithError(SysSrv_Unexpected, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
         }
 
         /***
