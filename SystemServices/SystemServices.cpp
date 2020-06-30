@@ -2217,59 +2217,45 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::setDevicePowerState(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool retVal = false;
-            string sleepMode;
-            ofstream outfile;
-            outfile.open(STANDBY_REASON_FILE, ios::out);
-                JsonObject paramIn, paramOut;
-                string state = parameters["powerState"].String();
-                string reason = parameters["standbyReason"].String();
+	{
+		bool retVal = false;
+		string sleepMode;
+		ofstream outfile;
+		JsonObject paramIn, paramOut;
+		string state = parameters["powerState"].String();
+		string reason = parameters["standbyReason"].String();
+		/* Power state defaults standbyReason is "application". */
+		reason = ((reason.length()) ? reason : "application");
 
-
-                if(state=="STANDBY")
-                {
-
-
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
-                        /* TODO: parse abd get the sleepMode from paramOut */
-                        sleepMode= paramOut["preferredStandbyMode"].String();
-
-
-                    LOGWARN("Output of preferredStandbyMode: '%s'", sleepMode.c_str());
-
-                    }
-                    else {
-                        LOGWARN("SystemServices::_instance is NULL.\n");
-                    }
-                    if(convert("DEEP_SLEEP",sleepMode))
-                    {
-
-                        retVal = CPowerState::instance()->setPowerState(sleepMode);
-                    }
-                    else{
-
-                        retVal = CPowerState::instance()->setPowerState(state);
-                    }
-
-
-                    if (outfile) {
-                        outfile << reason;
-                        outfile.close();
-
-                    }
-                    else {
-                        printf(" GZ_FILE_ERROR: Can't open file for write mode\n");
-                    }
-
-                }
-                else {
-                    retVal = CPowerState::instance()->setPowerState(state);
-                    LOGERR("this platform has no API System and/or Powerstate\n");
-            }
-            returnResponse(retVal);
-        }//end of setPower State
+		if (state == "STANDBY") {
+			if (SystemServices::_instance) {
+				SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
+				/* TODO: parse abd get the sleepMode from paramOut */
+				sleepMode= paramOut["preferredStandbyMode"].String();
+				LOGWARN("Output of preferredStandbyMode: '%s'", sleepMode.c_str());
+			} else {
+				LOGWARN("SystemServices::_instance is NULL.\n");
+			}
+			if (convert("DEEP_SLEEP", sleepMode)) {
+				retVal = CPowerState::instance()->setPowerState(sleepMode);
+			} else {
+				retVal = CPowerState::instance()->setPowerState(state);
+			}
+			if (outfile) {
+				outfile.open(STANDBY_REASON_FILE, ios::out);
+				if (outfile.is_open()) {
+					outfile << reason;
+					outfile.close();
+				}
+			} else {
+				printf(" GZ_FILE_ERROR: Can't open file for write mode\n");
+			}
+		} else {
+			retVal = CPowerState::instance()->setPowerState(state);
+			LOGERR("this platform has no API System and/or Powerstate\n");
+		}
+		returnResponse(retVal);
+	}//end of setPower State
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
         /***
