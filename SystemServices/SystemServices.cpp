@@ -1603,25 +1603,29 @@ namespace WPEFramework {
 
         /***
          * @brief : To get cashed value .
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"result":{"<cachekey>":"<string>","success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::getCachedValue(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            LOGWARN("key: %s\n", key.c_str());
-            response[(key.c_str())] = m_cacheService.getValue(key).String();
-            returnResponse(true);
-        }
+			JsonObject& response)
+	{
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		LOGWARN("key: %s\n", key.c_str());
+		if (key.length()) {
+			response[(key.c_str())] = m_cacheService.getValue(key).String();
+			retStat = true;
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
+	}
 
         /***
          * @brief : To set cache value.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>",
-         *                 "cacheValue":<double>}}}
+         * @param1[in]  : {"params":{"key":"<string>",
+         *                 "cacheValue":<double>}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1629,59 +1633,66 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            std::string value = param["cacheValue"].String();
+            std::string key = parameters["key"].String();
+            std::string value = parameters["value"].String();
 
-            if (m_cacheService.setValue(key, value)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.setValue failed\n.");
-            }
-            returnResponse(retStat);
+	    if (key.length() && value.length()) {
+		    if (m_cacheService.setValue(key, value)) {
+			    retStat = true;
+		    } else {
+			    LOGERR("Accessing m_cacheService.setValue failed\n.");
+		    }
+	    } else {
+		    populateResponseWithError(SysSrv_UnSupportedFormat, response);
+	    }
+	    returnResponse(retStat);
         }
 
         /***
          * @brief : To check if key value present in cache.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::cacheContains(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            if (m_cacheService.contains(key)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.contains failed\n.");
-            }
-            returnResponse(retStat);
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		if (key.length()) {
+			if (m_cacheService.contains(key)) {
+				retStat = true;
+			} else {
+				LOGERR("Accessing m_cacheService.contains failed\n.");
+			}
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
         }
 
         /***
          * @brief : To delete the key value present in cache.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::removeCacheKey(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            if (m_cacheService.remove(key)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.remove failed\n.");
-            }
-            returnResponse(retStat);
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		if (key.length()) {
+			if (m_cacheService.remove(key)) {
+				retStat = true;
+			} else {
+				LOGERR("Accessing m_cacheService.remove failed\n.");
+				populateResponseWithError(SysSrv_Unexpected, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
         }
 
         /***
@@ -1750,28 +1761,30 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::getLastDeepSleepReason(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool retAPIStatus = false;
-            string reason;
+	{
+		bool retAPIStatus = false;
+		string reason;
 
-            if (Utils::fileExists(STANDBY_REASON_FILE)) {
-                    std::ifstream inFile(STANDBY_REASON_FILE);
-                    if (inFile) {
-                        std::getline(inFile, reason);
-                        inFile.close();
-                        retAPIStatus = true;
-                    } else {
-                        populateResponseWithError(SysSrv_FileAccessFailed, response);
-                    }
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
+		if (Utils::fileExists(STANDBY_REASON_FILE)) {
+			std::ifstream inFile(STANDBY_REASON_FILE);
+			if (inFile) {
+				std::getline(inFile, reason);
+				inFile.close();
+				retAPIStatus = true;
+			} else {
+				populateResponseWithError(SysSrv_FileAccessFailed, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_FileNotPresent, response);
+		}
 
-                if (retAPIStatus && reason.length()) {
-                    response["lastDeepSleepReason"] = reason;
-            }
-            returnResponse(retAPIStatus);
-        }
+		if (retAPIStatus && reason.length()) {
+			response["reason"] = reason;
+		} else {
+			response["reason"] = "";
+		}
+		returnResponse(retAPIStatus);
+	}
 
         /***
          * @brief : Used to clear last deep sleep reason.
@@ -2039,24 +2052,24 @@ namespace WPEFramework {
 
         /***
          * @brief : Enables XRE Connection Retension option.
-         * @param1[in]  : {"params":{"param":<bool>}}
+         * @param1[in]  : {"params":{"enable":<bool>}}
          * @param2[out] : "result":{"success":<bool>}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::enableXREConnectionRetention(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool enable = false, retstatus = false;
-            int status = SysSrv_Unexpected;
+	{
+		bool enable = false, retstatus = false;
+		int status = SysSrv_Unexpected;
 
-                enable = parameters["param"].Boolean();
-                if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
-                    retstatus = true;
-                } else {
-                    populateResponseWithError(status, response);
-            }
-            returnResponse(retstatus);
-        }
+		enable = parameters["enable"].Boolean();
+		if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
+			retstatus = true;
+		} else {
+			populateResponseWithError(status, response);
+		}
+		returnResponse(retstatus);
+	}
 
         /***
          * @brief : collect device state info.
