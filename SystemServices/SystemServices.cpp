@@ -1640,6 +1640,7 @@ namespace WPEFramework {
 			    retStat = true;
 		    } else {
 			    LOGERR("Accessing m_cacheService.setValue failed\n.");
+			    populateResponseWithError(SysSrv_Unexpected, response);
 		    }
 	    } else {
 		    populateResponseWithError(SysSrv_UnSupportedFormat, response);
@@ -1663,6 +1664,7 @@ namespace WPEFramework {
 				retStat = true;
 			} else {
 				LOGERR("Accessing m_cacheService.contains failed\n.");
+				populateResponseWithError(SysSrv_Unexpected, response);
 			}
 		} else {
 			populateResponseWithError(SysSrv_UnSupportedFormat, response);
