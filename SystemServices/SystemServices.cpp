@@ -1299,7 +1299,7 @@ namespace WPEFramework {
                 response["downloadPercent"] = m_downloadPercent;
                 retStatus = true;
             } else {
-                response["downloadPercent"] = 0;
+                response["downloadPercent"] = -1;
                 retStatus = true;
             }
             returnResponse(retStatus);
