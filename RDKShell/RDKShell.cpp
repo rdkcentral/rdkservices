@@ -65,6 +65,13 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND_APPLICATION
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESUME_APPLICATION = "resumeApplication";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_CONNECTED = "onApplicationConnected";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_DISCONNECTED = "onApplicationDisconnected";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_TERMINATED = "onApplicationTerminated";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FIRST_FRAME = "onApplicationFirstFrame";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_SUSPENDED = "onApplicationSuspended";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "onApplicationResumed";
 
 using namespace std;
 using namespace RdkShell;
@@ -229,7 +236,7 @@ namespace WPEFramework {
             {
               CompositorController::enableInactivityReporting(true);
               ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
-              if (true == ret && param.type == WDMP_UINT)
+              if (true == ret && param.type == WDMP_STRING)
               {
                 CompositorController::setInactivityInterval(std::stod(param.value));
               }
@@ -278,26 +285,78 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
           std::cout << "RDKShell onApplicationLaunched event received ..." << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_LAUNCHED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, response);
         }
 
         void RDKShell::RdkShellListener::onApplicationConnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationConnected event received ..." << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_CONNECTED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_CONNECTED, response);
         }
 
         void RDKShell::RdkShellListener::onApplicationDisconnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationDisconnected event received ..." << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_DISCONNECTED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_DISCONNECTED, response);
         }
 
         void RDKShell::RdkShellListener::onApplicationTerminated(const std::string& client)
         {
           std::cout << "RDKShell onApplicationTerminated event received ..." << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_TERMINATED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_TERMINATED, response);
         }
 
         void RDKShell::RdkShellListener::onApplicationFirstFrame(const std::string& client)
         {
           std::cout << "RDKShell onApplicationFirstFrame event received ..." << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_FIRST_FRAME, response);
+        }
+
+        void RDKShell::RdkShellListener::onApplicationSuspended(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationSuspended event received for " << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_SUSPENDED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, response);
+        }
+
+        void RDKShell::RdkShellListener::onApplicationResumed(const std::string& client)
+        {
+          std::cout << "RDKShell onApplicationResumed event received for " << client << std::endl;
+          JsonObject response;
+          response["method"] = RDKSHELL_EVENT_ON_APP_RESUMED;
+          JsonObject params;
+          params["client"] = client;
+          response["params"] = params;
+          mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, response);
         }
 
         void RDKShell::RdkShellListener::onUserInactive(const double minutes)
@@ -1138,13 +1197,50 @@ namespace WPEFramework {
                     result = CompositorController::suspendApplication(client);
                 }
                 gRdkShellMutex.unlock();
+                setVisibility(client, false);
                 if (mimeType != RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
+                    //suspend and send the event here for non-native applications
+                    static bool checkRfcOnce = true;
+                    static bool suspendBrowserApps = true;
+                    if (checkRfcOnce)
+                    {
+                        RFC_ParamData_t param;
+                        bool ret = getRFCConfig("DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HTML5Suspend.Enable", param);
+                        if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",4) == 0))
+                        {
+                            suspendBrowserApps = false;
+                        }
+                        std::cout << "RDKShell will suspend browser apps: " << suspendBrowserApps << std::endl;
+                    }
+                    if (suspendBrowserApps)
+                    {
+                        std::string pluginName = client + ".1";
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> webkitBrowserPlugin = std::make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(_T(pluginName.c_str()), _T(""));
+                        if (webkitBrowserPlugin != nullptr)
+                        {
+                            JsonObject visibleResult;
+                            JsonObject visibleParam;
+                            visibleParam["params"] = "hidden";
+                            webkitBrowserPlugin->Invoke<JsonObject, JsonObject>(1000, _T("visibility"), visibleParam, visibleResult);
+                            std::cout << "RDKShell sent suspend event to browser\n";
+                        }
+                    }
+                    JsonObject eventResponse;
+                    eventResponse["method"] = RDKSHELL_EVENT_ON_APP_SUSPENDED;
+                    JsonObject eventParams;
+                    eventParams["client"] = client;
+                    eventResponse["params"] = eventParams;
+                    notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, eventResponse);
+                    std::cout << "RDKShell onApplicationSuspended event sent for " << client << std::endl;
                 }
-                setVisibility(client, false);
 
                 if (!result) {
                   response["message"] = "failed to suspend application";
+                }
+                else
+                {
+                    std::cout << client << " was suspended" << std::endl << std::flush;
                 }
             }
             returnResponse(result);
@@ -1171,13 +1267,50 @@ namespace WPEFramework {
                     result = CompositorController::resumeApplication(client);
                 }
                 gRdkShellMutex.unlock();
+                setVisibility(client, true);
                 if (mimeType != RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
+                    static bool checkRfcOnce = true;
+                    static bool resumeBrowserApps = true;
+                    if (checkRfcOnce)
+                    {
+                        RFC_ParamData_t param;
+                        bool ret = getRFCConfig("DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HTML5Suspend.Enable", param);
+                        if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",4) == 0))
+                        {
+                            resumeBrowserApps = false;
+                        }
+                        std::cout << "RDKShell will resume browser apps: " << resumeBrowserApps << std::endl;
+                    }
+                    if (resumeBrowserApps)
+                    {
+                        std::string pluginName = client + ".1";
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> webkitBrowserPlugin = std::make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(_T(pluginName.c_str()), _T(""));
+                        if (webkitBrowserPlugin != nullptr)
+                        {
+                            JsonObject visibleResult;
+                            JsonObject visibleParam;
+                            visibleParam["params"] = "visible";
+                            webkitBrowserPlugin->Invoke<JsonObject, JsonObject>(1000, _T("visibility"), visibleParam, visibleResult);
+                            std::cout << "RDKShell sent resume event to browser\n";
+                        }
+                    }
+                    //resume and send the event here for non-native applications
+                    JsonObject eventResponse;
+                    eventResponse["method"] = RDKSHELL_EVENT_ON_APP_RESUMED;
+                    JsonObject eventParams;
+                    eventParams["client"] = client;
+                    eventResponse["params"] = eventParams;
+                    notify(RDKSHELL_EVENT_ON_APP_RESUMED, eventResponse);
+                    std::cout << "RDKShell onApplicationResumed event sent for " << client << std::endl;
                 }
-                setVisibility(client, true);
 
                 if (!result) {
                   response["message"] = "failed to resume application";
+                }
+                else
+                {
+                    std::cout << client << " was resumed" << std::endl << std::flush;
                 }
             }
             returnResponse(result);

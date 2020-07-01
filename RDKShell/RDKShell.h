@@ -85,6 +85,13 @@ namespace WPEFramework {
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
+            static const string RDKSHELL_EVENT_ON_APP_LAUNCHED;
+            static const string RDKSHELL_EVENT_ON_APP_CONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_DISCONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_TERMINATED;
+            static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
+            static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
+            static const string RDKSHELL_EVENT_ON_APP_RESUMED;
 
         private/*registered methods (wrappers)*/:
 
@@ -179,6 +186,8 @@ namespace WPEFramework {
                 virtual void onApplicationDisconnected(const std::string& client);
                 virtual void onApplicationTerminated(const std::string& client);
                 virtual void onApplicationFirstFrame(const std::string& client);
+                virtual void onApplicationSuspended(const std::string& client);
+                virtual void onApplicationResumed(const std::string& client);
                 virtual void onUserInactive(const double minutes);
 
               private:
