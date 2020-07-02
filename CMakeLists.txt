@@ -290,6 +290,10 @@ endif()
         add_subdirectory(TextToSpeech)
     endif()
 
+if(PLUGIN_PERSISTENT_STORE)
+    add_subdirectory(PersistentStore)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
