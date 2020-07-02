@@ -17,8 +17,9 @@
  * limitations under the License.
 */
 
-#include "../impl/logger.h"
-#include "../impl/TTSCommon.h"
+#include "logger.h"
+#include "TTSCommon.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,6 +43,8 @@ using namespace TTS;
 
 volatile unsigned short g_connectedToTTSEventCount = 0;
 volatile bool g_connectedToTTS = false;
+
+bool manualExecution = false;
 
 #define OPT_ENABLE_TTS          1
 #define OPT_VOICE_LIST          2
@@ -69,6 +72,7 @@ volatile bool g_connectedToTTS = false;
 
 void showMenu()
 {
+    cout << endl;
     cout << "------------------------" << endl;
     cout << OPT_ENABLE_TTS          << ".enableTTS" << endl;
     cout << OPT_VOICE_LIST          << ".listVoices" << endl;
@@ -103,6 +107,10 @@ struct AppInfo {
     uint32_t m_sessionId;
 };
 
+void Delay(uint32_t delay_us) {
+    usleep(1000 * delay_us);
+}
+
 struct MyStream {
     MyStream() : myfile(NULL), in(&cin) {
     }
@@ -111,9 +119,12 @@ struct MyStream {
         if(myfile->is_open()) {
             cout << "Reading from file" << endl;
             in = myfile;
+            cout << endl;
+            manualExecution = false;
         } else {
             cout << "Reading from std::cin" << endl;
             in = &cin;
+            manualExecution = true;
         }
     }
 
@@ -163,79 +174,84 @@ namespace Handlers {
     /* Event Handlers */
     static void onTTSStateChangedHandler(const JsonObject& params) {
         bool state = params["state"].Boolean();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ": " << state << std::endl;
+        cout << endl << "Event: onTTSStateChanged - state (" << state << ")" << endl;
     }
     static void onTTSSessionCreatedHandler(const JsonObject& params) {
         int appId     = params["appId"].Number();
         int sessionId = params["sessionId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "sessionId: "<< sessionId << std::endl;
+        cout << endl << "Event: onTTSSessionCreated - appId (" << appId << ") sessionId (" << sessionId << ")"  << endl << endl;
+    }
+    static void onVoiceChangedHandler(const JsonObject& params) {
+        std::string voice     = params["voice"].String();
+        cout << endl << "Event: onVoiceChanged - TTS voice got changed to (" << voice << ")" << endl << endl;
     }
     static void onResourceAcquiredHandler(const JsonObject& params) {
         int appId     = params["appId"].Number();
         int sessionId = params["sessionId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "sessionId: "<< sessionId << std::endl;
+        cout << endl << "Event: onResourceAcquired - appId (" << appId << ") sessionId (" << sessionId << ")"  << endl << endl;
     }
     static void onResourceReleasedHandler(const JsonObject& params) {
         int appId     = params["appId"].Number();
         int sessionId = params["sessionId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "sessionId: "<< sessionId << std::endl;
+        cout << endl << "Event: onResourceReleased - appId (" << appId << ") sessionId (" << sessionId << ")"  << endl << endl;
     }
     static void onWillSpeakHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
         std::string text = params["text"].String();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << " text: " << text << std::endl;
+        cout << endl << "Event: onWillSpeak - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ") text (" << text << ")" << endl;        
     }
     static void onSpeechStartHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
         std::string text = params["text"].String();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << " text: " << text << std::endl;
+        cout << endl << "Event: onSpeechStart - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ") text (" << text << ")" << endl;
     }
     static void onSpeechPauseHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onSpeechPause - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onSpeechResumeHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onSpeechResume - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onSpeechCancelledHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onSpeechCancel - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onSpeechInterruptedHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onSpeechInterrupt - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onNetworkErrorHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onNetworkError - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onPlaybackErrorHandler(const JsonObject& params) {
         int appId        = params["appId"].Number();
         int sessionId    = params["sessionId"].Number();
         int speechId     = params["speechId"].Number();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "  sessionId: "<< sessionId << "  speechid: " << speechId << std::endl;
+        cout << endl << "Event: onPlaybackError - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ")" << endl;
     }
     static void onSpeechCompleteHandler(const JsonObject& params) {
         int appId = params["appId"].Number();
         int sessionId = params["sessionId"].Number();
         int speechId = params["speechId"].Number();
         std::string text = params["text"].String();
-        std::cout << "[TTSSrvEvt] " << __FUNCTION__ << ":  appId: " << appId << "sessionId: "<< sessionId << "speechid: " << speechId << "text: " << text << std::endl;
+        std::cout << std::endl;
+        cout << endl << "Event: onSpeechComplete - appId (" << appId << ") sessionId (" << sessionId << ") speechid: (" << speechId << ") text (" << text << ")" << endl;
     }
 }
 int main(int argc, char *argv[]) {
@@ -251,7 +267,7 @@ int main(int argc, char *argv[]) {
     int appid = 0;
     int secure = false;
     int sessionid = 0;
-    char clearall = 'n';
+    bool clearall = false;
     string stext;
     string appname;
 
@@ -260,93 +276,73 @@ int main(int argc, char *argv[]) {
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
 
     if (NULL == remoteObject) {
+        cout << endl << "TTS Thunder Plugin call sign is " << TTSSRV_CALLSIGN << endl;
         remoteObject = new JSONRPC::Client(_T(TTSSRV_CALLSIGN), _T(""));
         if (NULL == remoteObject) {
             std::cout << "JSONRPC::Client initialization failed" << std::endl;
         } else {
             /* Register handlers for Event reception. */
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onTTSStateChanged"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onTTSStateChanged"),
                         &Handlers::onTTSStateChangedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onTTSStateChangedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onTTSStateChangedHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onTTSStateChangedHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onTTSSessionCreated"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onTTSSessionCreated"),
                         &Handlers::onTTSSessionCreatedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onTTSSessionCreatedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onTTSSessionCreatedHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onTTSSessionCreatedHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onResourceAcquired"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onResourceAcquired"),
                         &Handlers::onResourceAcquiredHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onResourceAcquiredHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onResourceAcquiredHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onResourceAcquiredHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onResourceReleased"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onVoiceChanged"),
+                        &Handlers::onVoiceChangedHandler) == Core::ERROR_NONE) {
+                LOGERR("Failed to Subscribe notification handler : onVoiceChangedHandler");
+            }
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onResourceReleased"),
                         &Handlers::onResourceReleasedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onResourceReleasedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onResourceReleasedHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onResourceReleasedHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onWillSpeak"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onWillSpeak"),
                         &Handlers::onWillSpeakHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onWillSpeakHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onWillSpeakHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onWillSpeakHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechStart"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechStart"),
                         &Handlers::onSpeechStartHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechStartHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechStartHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechStartHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechPause"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechPause"),
                         &Handlers::onSpeechPauseHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechPauseHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechPauseHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechPauseHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechResume"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechResume"),
                         &Handlers::onSpeechResumeHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechResumeHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechResumeHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechResumeHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechCancelled"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechCancelled"),
                         &Handlers::onSpeechCancelledHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechCancelledHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechCancelledHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechCancelledHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechInterrupted"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechInterrupted"),
                         &Handlers::onSpeechInterruptedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechInterruptedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechInterruptedHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechInterruptedHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onNetworkError"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onNetworkError"),
                         &Handlers::onNetworkErrorHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onNetworkErrorHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onNetworkErrorHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onNetworkErrorHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onPlaybackError"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onPlaybackError"),
                         &Handlers::onPlaybackErrorHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onPlaybackErrorHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onPlaybackErrorHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onPlaybackErrorHandler");
             }
-            if (remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechComplete"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onSpeechComplete"),
                         &Handlers::onSpeechCompleteHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSpeechCompleteHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSpeechCompleteHandler" << std::endl;
+                LOGERR("Failed to Subscribe notification handler : onSpeechCompleteHandler");
             }
 
             while (true) {
-                std::cout << std::endl;
-                showMenu();
+                if(manualExecution)
+                    showMenu();
+                cout << "------------------------" << endl;
                 stream.getInput(choice, "Enter your choice : ");
 
                 switch (choice) {
@@ -363,7 +359,7 @@ int main(int argc, char *argv[]) {
                        } else {
                            cout << "TextToSpeech: enableTTS call failed. TTS_Status: " << result["TTS_Status"].String() << endl;
                        }
-                       
+                       Delay(100);
                     }
                     break;
 
@@ -379,7 +375,6 @@ int main(int argc, char *argv[]) {
                         ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("listVoices"), params, result);
                         if (result["success"].Boolean()) {
-                            cout << "TextToSpeech: listVoices call Success" << endl;
                             voices = result["voices"].String();
                             cout << "Supported voices for langauge: " << voices << endl;
                         } else {
@@ -587,7 +582,7 @@ int main(int argc, char *argv[]) {
                             ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                     _T("requestExtendedEvents"), params, result);
                             if (result["success"].Boolean()) {
-                                cout << "requestExtendedEvents call success" << endl;
+                                cout << "Installed handler for event: (" << result["ExtendedEvent"].String() << ")" << endl;
                             } else {
                                 cout << "requestExtendedEvents call failed. TTS_Status: " << result["TTS_Status"].String() << endl;
                             }
@@ -617,6 +612,7 @@ int main(int argc, char *argv[]) {
                             } else {
                                 cout << "speak call failed. TTS_Status: " << result["TTS_Status"].String() << endl;
                             }
+                            Delay(100);
                         } else {
                             cout << "Session hasn't been created for app(" << appid << ")" << endl;
                         }
@@ -722,7 +718,7 @@ int main(int argc, char *argv[]) {
                                     _T("getSpeechState"), params, result);
                             if (result["success"].Boolean()) {
                                 string state;
-                                SpeechState sstate;
+                                int sstate;
                                 sstate = result["speechState"].Number();
                                 switch(sstate) {
                                     case SPEECH_PENDING: state = "Pending"; break;
@@ -730,7 +726,7 @@ int main(int argc, char *argv[]) {
                                     case SPEECH_PAUSED: state = "Paused"; break;
                                     default: state = "Not found";
                                 }
-                                cout << "Speech Status : " << state << endl;
+                                cout << "Speech Status of id " << sid << " is :  " << state << endl;
                             } else {
                                 cout << "getSpeechState call failed. TTS_Status: " << result["TTS_Status"].String() << endl;
                             }
@@ -757,14 +753,17 @@ int main(int argc, char *argv[]) {
                             } else {
                                 cout << "destroySession call failed. TTS_Status: " << result["TTS_Status"].String() << endl;
                             }
+                            Delay(100);
                         } else {
                             cout << "Session hasn't been created for app(" << appid << ")" << endl;
                         }
                     }
                     break;
 
-                    case OPT_EXIT:
+                    case OPT_EXIT: {
+                        cout << "Test app is exiting" <<endl;
                         exit(0);
+                    }
 
                     case OPT_BLOCK_TILL_INPUT: {
                         std::string in;

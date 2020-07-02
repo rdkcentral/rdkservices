@@ -25,15 +25,15 @@
 #define CHECK_CONNECTION_RETURN_ON_FAIL(ret) do {\
     if(!m_ttsManager) { \
         LOGERR("TTS manager is not establised"); \
-        response["status"] = TTS::TTS_NOT_ENABLED; \
+        logResponse(TTS::TTS_NOT_ENABLED,response); \
         returnResponse(ret); \
     } } while(0)
 
 #define CHECK_SESSION_RETURN_ON_FAIL(id, sessionitr, sessioninfo, ret) do { \
     sessionitr = m_sessionMap.find(id); \
     if(sessionitr == m_sessionMap.end()) { \
-        LOGINFO("TTS Session is not created"); \
-        response["status"] = TTS::TTS_NO_SESSION_FOUND; \
+        LOGERR("TTS Session is not created"); \
+        logResponse(TTS::TTS_NO_SESSION_FOUND,response); \
         returnResponse(ret); \
     } \
     sessioninfo = sessionitr->second; \
@@ -42,8 +42,11 @@
 #define SET_UNSET_EXTENDED_EVENT(sessionInfo, input_event_list, event_flag, event_name) do { \
     uint32_t event = (uint32_t)(event_flag); \
     if((input_event_list & event) && !(sessionInfo->m_extendedEvents & event)) { \
+        LOGINFO("Installing the event \"%s\"", event_name); \
+        response["ExtendedEvent"] = event_name; \
         sessionInfo->m_extendedEvents |= event; \
     } else if(!(input_event_list & event) && (sessionInfo->m_extendedEvents & event)) { \
+        LOGINFO("UnInstalling the event \"%s\"", event_name); \
         sessionInfo->m_extendedEvents &= ~event; \
     } } while(0)
 
