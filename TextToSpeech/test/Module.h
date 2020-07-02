@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME TTSServiceAPITest 
+#define MODULE_NAME TTSThunderAPITest
 #endif
 
 #include <core/core.h>
