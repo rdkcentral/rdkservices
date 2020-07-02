@@ -240,11 +240,13 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // didRunInsecureContentForFrame
     // didClearWindowObjectForFrame
     [](WKBundlePageRef page, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
-        #if defined(ENABLE_AAMP_JSBINDINGS)
-        JavaScript::AAMP::LoadJSBindings(frame);
-        #endif
-
-        JavaScript::BridgeObject::InjectJS(frame);
+        bool isMainCtx = (WKBundleFrameGetJavaScriptContext(frame) == WKBundleFrameGetJavaScriptContextForWorld(frame, scriptWorld));
+        if (isMainCtx) {
+            #if defined(ENABLE_AAMP_JSBINDINGS)
+            JavaScript::AAMP::LoadJSBindings(frame);
+            #endif
+            JavaScript::BridgeObject::InjectJS(frame);
+        }
 
         // Add JS classes to JS world.
         ClassDefinition::Iterator ite = ClassDefinition::GetClassDefinitions();

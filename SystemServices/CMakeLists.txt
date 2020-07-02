@@ -70,9 +70,6 @@ else (CURL_FOUND)
 	message ("Curl/libcurl required.")
 endif (CURL_FOUND)
 
-find_package(RdkLoggers)
-target_link_libraries(${MODULE_NAME} PRIVATE ${RDKL_LIBRARY})
-
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 

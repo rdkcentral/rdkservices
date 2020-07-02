@@ -503,22 +503,16 @@ namespace WPEFramework
             JsonObject CECAddress;
             LOGINFO("Entered getCECAddresses ");
 
-            JsonArray pa;
-            pa.Add((physicalAddress >> 24) & 0xff);
-            pa.Add((physicalAddress >> 16) & 0xff);
-            pa.Add((physicalAddress >> 8)  & 0xff);
-            pa.Add( physicalAddress        & 0xff);
+            char pa[32] = {0};
+            snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
 
-            CECAddress["physicalAddress"] = pa;
+            CECAddress["physicalAddress"] = (const char *)pa;
 
             JsonObject logical;
             logical["deviceType"] = logicalAddressDeviceType;
             logical["logicalAddress"] = logicalAddress;
 
-            JsonArray logicalArray;
-            logicalArray.Add(logical);
-
-            CECAddress["logicalAddresses"] = logicalArray;
+            CECAddress["logicalAddresses"] = logical;
             LOGWARN("getCECAddresses: physicalAddress from QByteArray : %x %x %x %x ", (physicalAddress >> 24) & 0xFF, (physicalAddress >> 16) & 0xFF, (physicalAddress >> 8)  & 0xFF, (physicalAddress) & 0xFF);
             LOGWARN("getCECAddresses: logical address: %x  ", logicalAddress);
 

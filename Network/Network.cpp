@@ -267,17 +267,12 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface, (void*)&param, sizeof(param)))
+                std::string interface;
+                std::string gateway;
+                if (_getDefaultInterface(interface, gateway))
                 {
-                    LOGINFO("%s :: Interface = %s \n",__FUNCTION__,param.activeIface);
-                    std::string interface = param.activeIface;
-                    response["interface"] = interface;
+                    response["interface"] = m_netUtils.getInterfaceDescription(interface);
                     returnResponse(true);
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface);
                 }
             }
             else
@@ -675,10 +670,10 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
             {
-                LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                LOGINFO ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
                 interface = defaultRoute.interface;
                 gateway = defaultRoute.gateway;
-                return !interface.empty();
+                return true;
             }
             else
             {
