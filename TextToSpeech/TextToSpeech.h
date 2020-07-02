@@ -131,7 +131,6 @@ namespace WPEFramework {
 
             TTS::ResourceAllocationPolicy getResourceAllocationPolicy();
             void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items);
-            void notify(std::string eventname, JsonObject& param);
             //End methods
         private:
             static uint32_t m_serviceObjCount;
@@ -148,6 +147,8 @@ namespace WPEFramework {
             TextToSpeech();
             virtual ~TextToSpeech();
             void restoreTextToSpeech();
+            void notifyClient(std::string eventname, JsonObject& param);
+            void ResourceAcquired(uint32_t sessionId);
         };
 
         /**
@@ -177,12 +178,15 @@ namespace WPEFramework {
                     JsonObject params;
                     params["state"] = JsonValue((bool)state);
                     LOGINFO("TTS state changed to '%d'\n", state);
-                    m_eventHandler->Notify("onTTSStateChanged", params);
+                    m_eventHandler->notifyClient("onTTSStateChanged", params);
                 }
 
                 void onVoiceChanged(std::string voice)
                 {
+                    JsonObject params;
                     LOGINFO("TTS voice changed (%s)", voice.c_str());
+                    params["voice"] = voice;
+                    m_eventHandler->notifyClient("onVoiceChanged", params);
                 }
             private:
                 TextToSpeech *m_eventHandler;
@@ -201,10 +205,11 @@ namespace WPEFramework {
                 void onResourceAcquired(uint32_t appId, uint32_t sessionId)
                 {
                     LOGINFO("onResourceAcquired appId(%d) sessionId(%d)", appId, sessionId);
+                    m_eventHandler->ResourceAcquired(sessionId);
                     JsonObject params;
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->Notify("onResourceAcquired", params);
+                    m_eventHandler->notifyClient("onResourceAcquired", params);
                 }
 
                 void onResourceReleased(uint32_t appId, uint32_t sessionId)
@@ -213,7 +218,7 @@ namespace WPEFramework {
                     JsonObject params;
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->Notify("onResourceReleased", params);
+                    m_eventHandler->notifyClient("onResourceReleased", params);
 
                 }
 
@@ -223,7 +228,7 @@ namespace WPEFramework {
                     JsonObject params;
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->Notify("onTTSSessionCreated", params);
+                    m_eventHandler->notifyClient("onTTSSessionCreated", params);
                 }
 
 
@@ -235,7 +240,7 @@ namespace WPEFramework {
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->Notify("onWillSpeak", params);
+                    m_eventHandler->notifyClient("onWillSpeak", params);
                 }
 
                 void onSpeechStart(uint32_t appId, uint32_t sessionId, TTS::SpeechData &data)
@@ -246,7 +251,7 @@ namespace WPEFramework {
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->Notify("onSpeechStart", params);
+                    m_eventHandler->notifyClient("onSpeechStart", params);
                 }
 
                 void onSpeechPause(uint32_t appId, uint32_t sessionId, uint32_t speechId)
@@ -256,7 +261,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onSpeechPause", params);
+                    m_eventHandler->notifyClient("onSpeechPause", params);
                 }
 
                 void onSpeechResume(uint32_t appId, uint32_t sessionId, uint32_t speechId) 
@@ -266,7 +271,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onSpeechResume", params);                }
+                    m_eventHandler->notifyClient("onSpeechResume", params);                }
 
                 void onSpeechCancelled(uint32_t appId, uint32_t sessionId, std::string id)
                 {
@@ -281,7 +286,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onSpeechCancelled", params);
+                    m_eventHandler->notifyClient("onSpeechCancelled", params);
                 }
 
                 void onSpeechInterrupted(uint32_t appId, uint32_t sessionId, uint32_t speechId)
@@ -291,7 +296,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onSpeechInterrupted", params);
+                    m_eventHandler->notifyClient("onSpeechInterrupted", params);
                 }
 
                 void onNetworkError(uint32_t appId, uint32_t sessionId, uint32_t speechId)
@@ -301,7 +306,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onNetworkError", params);
+                    m_eventHandler->notifyClient("onNetworkError", params);
                 }
 
                 void onPlaybackError(uint32_t appId, uint32_t sessionId, uint32_t speechId)
@@ -311,7 +316,7 @@ namespace WPEFramework {
                     params["appId"]     = JsonValue((int)appId);
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->Notify("onPlaybackError", params);
+                    m_eventHandler->notifyClient("onPlaybackError", params);
                 }
 
                 void onSpeechComplete(uint32_t appId, uint32_t sessionId, TTS::SpeechData &data)
@@ -322,7 +327,7 @@ namespace WPEFramework {
                     params["sessionId"] = JsonValue((int)sessionId);
                     params["speechId"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->Notify("onSpeechComplete", params);
+                    m_eventHandler->notifyClient("onSpeechComplete", params);
                 }
 
             private:

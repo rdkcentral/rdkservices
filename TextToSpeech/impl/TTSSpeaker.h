@@ -156,15 +156,19 @@ private:
     bool        m_pipelineError;
     bool        m_networkError;
     bool        m_runThread;
+    bool        m_busThread;
     bool        m_flushed;
     bool        m_isEOS;
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
+    std::thread *m_gstbusThread;
     guint       m_busWatch;
+    gint64      m_duration;
     uint8_t     m_pipelineConstructionFailures;
     const uint8_t     m_maxPipelineConstructionFailures;
 
     static void GStreamerThreadFunc(void *ctx);
+    static void GStreamerBusWatchThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();
     void destroyPipeline();

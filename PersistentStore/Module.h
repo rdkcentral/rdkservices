@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2020 RDK Management
+* Copyright 2019 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@
 **/
 
 #pragma once
-
 #ifndef MODULE_NAME
-#define MODULE_NAME TTSThunderAPITest
+#define MODULE_NAME PersistentStore
 #endif
 
-#include <core/core.h>
-#include <websocket/websocket.h>
+#include <plugins/plugins.h>
+#include <tracing/tracing.h>
+
+#undef EXTERNAL
+#define EXTERNAL
