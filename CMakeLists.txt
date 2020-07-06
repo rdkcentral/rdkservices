@@ -25,6 +25,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
 include(services.cmake)
 
+option(PLUGIN_PACKAGER "Include Packager plugin" OFF)
 option(PLUGIN_DISPLAYSETTINGS "Include DisplaySettings plugin" ON)
 option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
 option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
@@ -51,6 +52,10 @@ string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
+
+if(PLUGIN_PACKAGER)
+    add_subdirectory(Packager)
+endif()
 
 if(PLUGIN_BLUETOOTH)
     add_subdirectory(Bluetooth)
