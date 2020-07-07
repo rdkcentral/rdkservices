@@ -1593,7 +1593,7 @@ namespace WPEFramework {
                 }
 
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.setAudioDelay (audioDelayOffsetMs);
+                aPort.setAudioDelayOffset (audioDelayOffsetMs);
             }
             catch (const device::Exception& err)
             {
