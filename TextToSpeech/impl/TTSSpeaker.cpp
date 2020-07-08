@@ -518,12 +518,6 @@ void TTSSpeaker::createPipeline() {
         return;
     }
 
-    TTSLOG_WARNING ("gst_element_get_bus\n");
-#if 0
-    GstBus *bus = gst_element_get_bus(m_pipeline);
-    m_busWatch = gst_bus_add_watch(bus, GstBusCallback, (gpointer)(this));
-    gst_object_unref(bus);
-#endif
     m_pipelineConstructionFailures = 0;
 
     // wait until pipeline is set to NULL state
@@ -777,6 +771,7 @@ void TTSSpeaker::GStreamerBusWatchThreadFunc(void *ctx) {
                 speaker->handleMessage(msg);
                 gst_message_unref(msg);
             }
+            gst_object_unref(bus);
         }
     }
 }

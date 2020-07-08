@@ -190,6 +190,7 @@ cancel the speech.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.clearPending | boolean | Clear All Pending speeches |
 
 ### Result
 
@@ -208,7 +209,9 @@ cancel the speech.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "TextToSpeech.1.cancel",
-    "params": {}
+    "params": {
+        "clearPending": true
+    }
 }
 ```
 #### Response

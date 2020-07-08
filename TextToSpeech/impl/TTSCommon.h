@@ -19,14 +19,9 @@
 #ifndef _TTS_ERRORS_H_
 #define _TTS_ERRORS_H_
 
-namespace TTS {
+#include "utils.h"
 
-enum ResourceAllocationPolicy {
-    INVALID_POLICY = -1,
-    RESERVATION, // Resource must be reserved before usage
-    PRIORITY,    // NOT IMPLEMENTED
-    OPEN         // Any client can use the resource without any prior reservation
-};
+namespace TTS {
 
 enum SpeechState {
     SPEECH_PENDING = 0,
@@ -62,6 +57,13 @@ enum TTS_Error {
     TTS_OBJECT_DESTROYED = 1010,
     TTS_SPEECH_NOT_FOUND,
 };
+
+#define CHECK_CONNECTION_RETURN_ON_FAIL(ret) do {\
+    if(!m_ttsManager) { \
+        LOGERR("TTS manager is not establised"); \
+        logResponse(TTS::TTS_NOT_ENABLED,response); \
+        returnResponse(ret); \
+    } } while(0)
 
 }
 
