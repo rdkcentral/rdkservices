@@ -53,6 +53,11 @@ namespace {
     {
         return (remove (f) == 0);
     }
+
+    bool fileExists(const char* f)
+    {
+        return g_file_test(f, G_FILE_TEST_EXISTS);
+    }
 }
 
 namespace WPEFramework {
@@ -89,7 +94,9 @@ namespace WPEFramework {
         {
             LOGINFO();
 
-            gchar* path = g_build_filename(g_get_user_data_dir(), STORE_NAME, nullptr); // XDG_DATA_HOME
+            auto path = g_build_filename("opt", "persistent", STORE_NAME, nullptr);
+            if (!fileExists(path))
+                g_mkdir_with_parents(path, 0745);
             bool success = init(path, STORE_KEY);
             g_free(path);
 
@@ -293,7 +300,7 @@ namespace WPEFramework {
                 {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
-                        LOGWARN("max size exceeded: %d", size);
+                        LOGWARN("max size exceeded: %lld", size);
                     else
                         success = true;
                 }
@@ -357,10 +364,10 @@ namespace WPEFramework {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
                     {
-                        LOGWARN("max size exceeded: %d", size);
+                        LOGWARN("max size exceeded: %lld", size);
 
                         JsonObject params;
-                        sendNotify(EVT_ON_STORAGE_EXCEEDED, params);
+                        sendNotify(C_STR(EVT_ON_STORAGE_EXCEEDED), params);
                     }
                     else
                         success = true;
@@ -595,7 +602,7 @@ namespace WPEFramework {
 
             bool shouldEncrypt = key && *key;
 #if defined(SQLITE_HAS_CODEC)
-            bool shouldReKey = shouldEncrypt && Utils::fileExists(filename) && !fileEncrypted(filename);
+            bool shouldReKey = shouldEncrypt && fileExists(filename) && !fileEncrypted(filename);
 #endif
             int rc = sqlite3_open(filename, &db);
             if (rc)
@@ -612,6 +619,14 @@ namespace WPEFramework {
 #if defined(SQLITE_HAS_CODEC)
                 std::vector<uint8_t> pKey;
 #if defined(USE_PLABELS)
+
+                // NOTE: pbnj_utils stores the nonce under XDG_DATA_HOME/data.
+                // If the dir doesn't exist it will fail
+                auto path = g_build_filename(g_get_user_data_dir(), "data", nullptr);
+                if (!fileExists(path))
+                    g_mkdir_with_parents(path, 0755);
+                g_free(path);
+
                 bool result = pbnj_utils::prepareBufferForOrigin(key, [&pKey](const std::vector<uint8_t>& buffer) {
                     pKey = buffer;
                 });
@@ -671,14 +686,14 @@ namespace WPEFramework {
             {
                 LOGWARN("SQLite database is encrypted, but the key doesn't work");
                 term();
-                if (!fileRemove(filename) || Utils::fileExists(filename))
+                if (!fileRemove(filename) || fileExists(filename))
                 {
                     LOGERR("Can't remove file");
                     return false;
                 }
                 rc = sqlite3_open(filename, &db);
                 term();
-                if (rc || !Utils::fileExists(filename))
+                if (rc || !fileExists(filename))
                 {
                     LOGERR("Can't create file");
                     return false;
