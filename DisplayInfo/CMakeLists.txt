@@ -49,12 +49,6 @@ if (NXCLIENT_FOUND AND NEXUS_FOUND)
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
 
-if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
-    target_compile_definitions(${MODULE_NAME}
-        PRIVATE
-            DISPLAYINFO_BCM_VERSION_MAJOR=${PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR})
-endif ()
-
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
