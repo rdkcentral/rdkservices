@@ -1653,7 +1653,7 @@ namespace WPEFramework {
 		bool retStat = false;
 		std::string key = parameters["key"].String();
 		LOGWARN("key: %s\n", key.c_str());
-		if (key.length()) {
+		if (key.length() && !key.is_empty()) {
 			response[(key.c_str())] = m_cacheService.getValue(key).String();
 			retStat = true;
 		} else {
@@ -1675,7 +1675,7 @@ namespace WPEFramework {
             std::string key = parameters["key"].String();
             std::string value = parameters["value"].String();
 
-	    if (key.length() && value.length()) {
+	    if (key.length() && value.length() && !key.is_empty() && !value.is_empty()) {
 		    if (m_cacheService.setValue(key, value)) {
 			    retStat = true;
 		    } else {
@@ -1699,7 +1699,7 @@ namespace WPEFramework {
         {
 		bool retStat = false;
 		std::string key = parameters["key"].String();
-		if (key.length()) {
+		if (key.length() && !key.is_empty()) {
 			if (m_cacheService.contains(key)) {
 				retStat = true;
 			} else {
@@ -1723,7 +1723,7 @@ namespace WPEFramework {
         {
 		bool retStat = false;
 		std::string key = parameters["key"].String();
-		if (key.length()) {
+		if (key.length() && !key.is_empty()) {
 			if (m_cacheService.remove(key)) {
 				retStat = true;
 			} else {
