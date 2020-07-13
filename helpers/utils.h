@@ -25,7 +25,9 @@
 #include <syscall.h>
 
 // IARM
+#if defined(USE_IARM)
 #include "rdk/iarmbus/libIARM.h"
+#endif
 
 // std
 #include <string>
@@ -52,7 +54,7 @@
 #define returnResponse(success) \
     response["success"] = success; \
     LOGTRACEMETHODFIN(); \
-    return (Core::ERROR_NONE); 
+    return (Core::ERROR_NONE);
 
 #define returnIfWrongApiVersion(version)\
     if(m_apiVersionNumber < version)\
@@ -147,6 +149,7 @@
         param = parameters[paramName].String();\
 }
 
+#if defined(USE_IARM)
 #define IARM_CHECK(FUNC) \
   if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
     LOGINFO("IARM %s: %s", #FUNC, \
@@ -157,9 +160,11 @@
   } else { \
     LOGINFO("IARM %s: success", #FUNC); \
   }
+#endif
 
 namespace Utils
 {
+#if defined(USE_IARM)
     struct IARM
     {
         static bool init();
@@ -168,6 +173,7 @@ namespace Utils
     private:
         static bool m_connected;
     };
+#endif
 
     namespace String
     {
@@ -274,7 +280,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#if defined(USE_IARM)
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -283,6 +289,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
+#endif
 
     /***
      * @brief	: Execute shell script and get response

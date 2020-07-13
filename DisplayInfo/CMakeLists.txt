@@ -24,11 +24,15 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(BCM_HOST QUIET)
 find_package(NEXUS QUIET)
 find_package(NXCLIENT QUIET)
+find_package(DS)
 
 add_library(${MODULE_NAME} SHARED
     DisplayInfo.cpp
     DisplayInfoJsonRpc.cpp
-    Module.cpp)
+    Module.cpp
+     ../helpers/utils.cpp)
+
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -66,7 +70,17 @@ else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
 
-install(TARGETS ${MODULE_NAME} 
+if (DS_FOUND)
+    find_package(IARMBus)
+    add_definitions(-DDS_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES})
+else (DS_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+endif(DS_FOUND)
+
+install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})

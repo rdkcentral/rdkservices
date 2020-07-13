@@ -16,12 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
 #include <interfaces/IDisplayInfo.h>
 #include <interfaces/json/JsonData_DisplayInfo.h>
+#include <vector>
+
+#if defined(USE_IARM)
+#include "libIBus.h"
+#endif
 
 namespace WPEFramework {
 namespace Plugin {
@@ -85,11 +90,13 @@ namespace Plugin {
             , _notification(this)
         {
             RegisterAll();
+            DisplayInfo::_instance = this;
         }
 
         virtual ~DisplayInfo()
         {
             UnregisterAll();
+            DisplayInfo::_instance = nullptr;
         }
 
         BEGIN_INTERFACE_MAP(DisplayInfo)
@@ -123,6 +130,19 @@ namespace Plugin {
         void event_updated();
 
         void Info(JsonData::DisplayInfo::DisplayinfoData&) const;
+        uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
+        uint32_t getConnectedVideoDisplays(const JsonObject& parameters, JsonObject& response);
+        uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
+        uint32_t getSettopHDRSupport(const JsonObject& parameters, JsonObject& response);
+        uint32_t IsOutputHDR(const JsonObject& parameters, JsonObject& response);
+        uint32_t setHdmiPreferences(const JsonObject& parameters, JsonObject& response);
+        uint32_t getHdmiPreferences(const JsonObject& parameters, JsonObject& response);
+        uint32_t isAudioEquivalenceEnabled(const JsonObject& parameters, JsonObject& response);
+        uint32_t readEDID(const JsonObject& parameters, JsonObject& response);
+
+        /*Events*/
+        void resolutionChanged(int width, int height);
+        void resolutionPreChange();
 
     private:
         uint8_t _skipURL;
@@ -130,6 +150,15 @@ namespace Plugin {
         Exchange::IGraphicsProperties* _graphicsProperties;
         Exchange::IConnectionProperties* _connectionProperties;
         Core::Sink<Notification> _notification;
+
+    private:
+        void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
+#if defined(USE_IARM)
+        static void ResolutionPreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+#endif
+    public:
+        static DisplayInfo* _instance;
     };
 
 } // namespace Plugin

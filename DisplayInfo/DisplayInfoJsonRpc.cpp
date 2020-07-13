@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "DisplayInfo.h"
 
 namespace WPEFramework {
@@ -31,11 +31,29 @@ namespace Plugin {
     void DisplayInfo::RegisterAll()
     {
         Property<DisplayinfoData>(_T("displayinfo"), &DisplayInfo::get_displayinfo, nullptr, this);
+        Register(_T("getCurrentResolution"), &DisplayInfo::getCurrentResolution, this);
+        Register(_T("getConnectedVideoDisplays"), &DisplayInfo::getConnectedVideoDisplays, this);
+        Register(_T("getTVHDRCapabilities"), &DisplayInfo::getTVHDRCapabilities, this);
+        Register(_T("getSettopHDRSupport"), &DisplayInfo::getSettopHDRSupport, this);
+        Register(_T("IsOutputHDR"), &DisplayInfo::IsOutputHDR, this);
+        Register(_T("setHdmiPreferences"), &DisplayInfo::setHdmiPreferences, this);
+        Register(_T("getHdmiPreferences"), &DisplayInfo::getHdmiPreferences, this);
+        Register(_T("isAudioEquivalenceEnabled"), &DisplayInfo::isAudioEquivalenceEnabled, this);
+        Register(_T("readEDID"), &DisplayInfo::readEDID, this);
     }
 
     void DisplayInfo::UnregisterAll()
     {
         Unregister(_T("displayinfo"));
+        Unregister(_T("getCurrentResolution"));
+        Unregister(_T("getConnectedVideoDisplays"));
+        Unregister(_T("getTVHDRCapabilities"));
+        Unregister(_T("getSettopHDRSupport"));
+        Unregister(_T("IsOutputHDR"));
+        Unregister(_T("setHdmiPreferences"));
+        Unregister(_T("getHdmiPreferences"));
+        Unregister(_T("isAudioEquivalenceEnabled"));
+        Unregister(_T("readEDID"));
     }
 
     // API implementation
