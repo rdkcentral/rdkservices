@@ -94,11 +94,13 @@ namespace WPEFramework {
         {
             LOGINFO();
 
-            auto path = g_build_filename("opt", "persistent", STORE_NAME, nullptr);
+            auto path = g_build_filename("opt", "persistent", nullptr);
             if (!fileExists(path))
                 g_mkdir_with_parents(path, 0745);
-            bool success = init(path, STORE_KEY);
+            auto file = g_build_filename(path, STORE_NAME, nullptr);
+            bool success = init(file, STORE_KEY);
             g_free(path);
+            g_free(file);
 
             return success ? "" : "init failed";
         }
@@ -294,7 +296,11 @@ namespace WPEFramework {
             if (db)
             {
                 sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", -1, &stmt, nullptr);
+                sqlite3_prepare_v2(db, "SELECT sum(s) FROM ("
+                                       " SELECT sum(length(key)+length(value)) s FROM item"
+                                       " UNION ALL"
+                                       " SELECT sum(length(name)) s FROM namespace"
+                                       ");", -1, &stmt, nullptr);
 
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
@@ -357,7 +363,11 @@ namespace WPEFramework {
                 success = false;
 
                 sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", -1, &stmt, nullptr);
+                sqlite3_prepare_v2(db, "SELECT sum(s) FROM ("
+                                       " SELECT sum(length(key)+length(value)) s FROM item"
+                                       " UNION ALL"
+                                       " SELECT sum(length(name)) s FROM namespace"
+                                       ");", -1, &stmt, nullptr);
 
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
@@ -709,6 +719,18 @@ namespace WPEFramework {
                                   "FOREIGN KEY(ns) REFERENCES namespace(id) ON DELETE CASCADE ON UPDATE NO ACTION,"
                                   "UNIQUE(ns,key) ON CONFLICT REPLACE"
                                   ");", 0, 0, &errmsg);
+            if (rc != SQLITE_OK || errmsg)
+            {
+                if (errmsg)
+                {
+                    LOGERR("%d : %s", rc, errmsg);
+                    sqlite3_free(errmsg);
+                }
+                else
+                    LOGERR("%d", rc);
+            }
+
+            rc = sqlite3_exec(db, "PRAGMA foreign_keys = ON;", 0, 0, &errmsg);
             if (rc != SQLITE_OK || errmsg)
             {
                 if (errmsg)
