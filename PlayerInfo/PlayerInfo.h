@@ -16,12 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
 #include <interfaces/IPlayerInfo.h>
 #include <interfaces/json/JsonData_PlayerInfo.h>
+
+#if defined(USE_IARM)
+#include "libIBus.h"
+#endif
 
 namespace WPEFramework {
 namespace Plugin {
@@ -39,11 +43,13 @@ namespace Plugin {
             , _videoCodecs(nullptr)
         {
             RegisterAll();
+            PlayerInfo::_instance = this;
         }
 
         virtual ~PlayerInfo()
         {
             UnregisterAll();
+            PlayerInfo::_instance = nullptr;
         }
 
         BEGIN_INTERFACE_MAP(PlayerInfo)
@@ -71,6 +77,11 @@ namespace Plugin {
         uint32_t get_playerinfo(JsonData::PlayerInfo::CodecsData&) const;
 
         void Info(JsonData::PlayerInfo::CodecsData&) const;
+        uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
+        uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
+        uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
+        /* Events */
+        void audiomodeChanged(int AudioPortMode, int AudioPortType);
 
     private:
         uint8_t _skipURL;
@@ -79,6 +90,15 @@ namespace Plugin {
 
         Exchange::IPlayerProperties::IAudioIterator* _audioCodecs;
         Exchange::IPlayerProperties::IVideoIterator* _videoCodecs;
+
+    private:
+        bool checkPortName(std::string& name) const;
+#if defined(USE_IARM)
+        static void AudioModeHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+#endif
+
+    public:
+        static PlayerInfo* _instance;
     };
 
 } // namespace Plugin
