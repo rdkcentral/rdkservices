@@ -730,6 +730,18 @@ namespace WPEFramework {
                     LOGERR("%d", rc);
             }
 
+            rc = sqlite3_exec(db, "PRAGMA foreign_keys = ON;", 0, 0, &errmsg);
+            if (rc != SQLITE_OK || errmsg)
+            {
+                if (errmsg)
+                {
+                    LOGERR("%d : %s", rc, errmsg);
+                    sqlite3_free(errmsg);
+                }
+                else
+                    LOGERR("%d", rc);
+            }
+
             return true;
         }
     } // namespace Plugin
