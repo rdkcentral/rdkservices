@@ -25,11 +25,14 @@
 #include <string.h>
 #include <sstream>
 #include "utils.h"
+#if defined(USE_IARM)
 #include "libIBus.h"
+#endif
 
 using namespace WPEFramework;
 using namespace std;
 
+#if defined(USE_IARM)
 bool Utils::IARM::init()
 {
     string memberName = "Thunder_Plugins";
@@ -85,6 +88,7 @@ std::string Utils::formatIARMResult(IARM_Result_t result)
             return tmp.str();
     }
 }
+#endif
 
 /***
  * @brief	: Execute shell script and get response

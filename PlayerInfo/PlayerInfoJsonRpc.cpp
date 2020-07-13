@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "PlayerInfo.h"
 
 namespace WPEFramework {
@@ -31,11 +31,17 @@ namespace Plugin {
     void PlayerInfo::RegisterAll()
     {
         Property<CodecsData>(_T("playerinfo"), &PlayerInfo::get_playerinfo, nullptr, this);
+        Register(_T("getSinkAtmosCapability"), &PlayerInfo::getSinkAtmosCapability, this);
+        Register(_T("getSoundMode"), &PlayerInfo::getSoundMode, this);
+        Register(_T("setAudioAtmosOutputMode"), &PlayerInfo::setAudioAtmosOutputMode, this);
     }
 
     void PlayerInfo::UnregisterAll()
     {
         Unregister(_T("playerinfo"));
+        Unregister(_T("getSinkAtmosCapability"));
+        Unregister(_T("getSoundMode"));
+        Unregister(_T("setAudioAtmosOutputMode"));
     }
 
     // API implementation
