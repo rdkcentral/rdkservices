@@ -94,11 +94,13 @@ namespace WPEFramework {
         {
             LOGINFO();
 
-            auto path = g_build_filename("opt", "persistent", STORE_NAME, nullptr);
+            auto path = g_build_filename("opt", "persistent", nullptr);
             if (!fileExists(path))
                 g_mkdir_with_parents(path, 0745);
-            bool success = init(path, STORE_KEY);
+            auto file = g_build_filename(path, STORE_NAME, nullptr);
+            bool success = init(file, STORE_KEY);
             g_free(path);
+            g_free(file);
 
             return success ? "" : "init failed";
         }
