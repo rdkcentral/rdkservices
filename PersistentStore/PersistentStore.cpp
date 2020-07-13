@@ -296,7 +296,11 @@ namespace WPEFramework {
             if (db)
             {
                 sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", -1, &stmt, nullptr);
+                sqlite3_prepare_v2(db, "SELECT sum(s) FROM ("
+                                       " SELECT sum(length(key)+length(value)) s FROM item"
+                                       " UNION ALL"
+                                       " SELECT sum(length(name)) s FROM namespace"
+                                       ");", -1, &stmt, nullptr);
 
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
@@ -359,7 +363,11 @@ namespace WPEFramework {
                 success = false;
 
                 sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", -1, &stmt, nullptr);
+                sqlite3_prepare_v2(db, "SELECT sum(s) FROM ("
+                                       " SELECT sum(length(key)+length(value)) s FROM item"
+                                       " UNION ALL"
+                                       " SELECT sum(length(name)) s FROM namespace"
+                                       ");", -1, &stmt, nullptr);
 
                 if (sqlite3_step(stmt) == SQLITE_ROW)
                 {
