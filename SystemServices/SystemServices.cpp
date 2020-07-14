@@ -1698,7 +1698,6 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-	    
 	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
 		    std::string key = parameters["key"].String();
 		    std::string value = parameters["value"].String();
