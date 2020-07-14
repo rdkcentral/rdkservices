@@ -4,6 +4,8 @@
     - The generic thunder JSONRPC API format is `{"jsonrpc":"2.0","id":"","method":"callsign.pluginVersion.methodName",<payload>}` where default value of `callsign` is `org.rdk.System`, `pluginVersion` is `1` and `methodName` is the methods listed in `Methods` section. `Payload` information is implementation specific to each `method` and is described under respective `method` section.
 * [**Events**](#System-Service-Thunder-Plugin-Events)
     - These JSONRPC events shall be broadcasted to all subscribed endpoints over websocket. Each `event` payload details are enlisted under respective section below.
+* [**Error codes & messages**](#System-Service-Thunder-Plugin-ErrorCodes)
+    - This section details system plugin specific error codes & messages which will be generated when `methods/events` fail to perform the requested service.    
 * [**Tests**](#System-Service-Thunder-Plugin-Test-Client)
 * [**Examples**](#System-service-Thunder-Plugin-Method/Event-Examples)
 
@@ -251,6 +253,22 @@
   - **onRebootRequest**
 
     When any application invokes `reboot` method, this JSONRPC event is generated with payload `{"param":{"requestedApp": <string_requesting_application_name>, "rebootReason":<string_reboot_reason>}}`  
+## System Service Thunder Plugin ErrorCodes    
+    System plugin specific error codes and messages are listed below.    
+   |Enum Name|Error Code|Error Message|Occation/Reason|
+   |:---|:---|:---|:---|
+   |SysSrv_OK|0|Processed Successfully|Usually this message shall not be added to response payload|
+   |SysSrv_MethodNotFound|1|Method not found|When requested method is not supported|
+   |SysSrv_MissingKeyValues|2|Missing required key/value(s)|When required key/value(s) are not available to perform execution|
+   |SysSrv_UnSupportedFormat|3|Unsupported or malformed format|When expected key/value type is not found|
+   |SysSrv_FileNotPresent|4|Expected file not found|When some required file(s) are missing for processing|
+   |SysSrv_FileAccessFailed|5|File access failed|When the underlying process is not able to access the required file(s)|
+   |SysSrv_FileContentUnsupported|6|Unsupported file content|When the underlying process is not able extract the required content from file(s)|
+   |SysSrv_Unexpected|7|Unexpected error|When something unexpected happens while processing the request|
+   |SysSrv_SupportNotAvailable|8|Support not available/enabled|When requested support is not enabled from platform(unmet dependencies)|
+   |SysSrv_LibcurlError|9|LIbCurl service error|Not able to use the underlying curl library to process|
+   |SysSrv_DynamicMemoryAllocationFailed|10|Dynamic Memory Allocation Failed|When memory alloc fails|
+   |SysSrv_ManufacturerDataReadFailed|11|Manufacturer Data Read Failed|Unmet/unsupported manufacturer implementation(s)/change(s)|
 ## System Service Thunder Plugin Test Client
     The given C++ test client application can be utilized to validate the above mentioned `methods` and `events`. Use `-DBUILD_TESTS` in the configuration option to enable building of C++ test client. Use `-DDEBUG=1` to build sample Method which will generate a sample Event for Test Client verification.  
   **Sample Method/Event Usage :**  
