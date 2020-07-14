@@ -32,7 +32,7 @@
   - **enableXREConnectionRetention**
 
     Enables XRE Connection Retension option.  
-  _**Request payload:**_ `{"params":{"param":<bool>}}`  
+  _**Request payload:**_ `{"params":{"enable":<bool>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **getAvailableStandbyModes**
 
@@ -197,7 +197,7 @@
   - **setGzEnabled**
 
     To set GZ Status.  
-  _**Request payload:**_ `{"params":{"param":true}}`  
+  _**Request payload:**_ `{"params":{"enabled":true}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setMode**
 
@@ -213,7 +213,7 @@
 
     Sets and persists the preferred standby mode.  
     Invoking this function does not change the power state of the device, but sets only the user preference for preferred action when setPowerState is invoked with a value of "STANDBY".  
-  _**Request payload:**_ `{"params":{"mode":"<string>"}}`  
+  _**Request payload:**_ `{"params":{"standbyMode":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setTemperatureThresholds**
 
@@ -223,7 +223,7 @@
   - **setTimeZoneDST**
 
     To set the Time to System TZ_FILE.  
-  _**Request payload:**_ `{"params":{"timezone":"<string>"}}`  
+  _**Request payload:**_ `{"params":{"timeZone":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **updateFirmware**
 
@@ -287,7 +287,7 @@ Method | Request Payload | Response Payload
 | cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.System.1.cacheContains","params":{"key":"sampleCache"}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
 | clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.System.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
 | enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.System.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
-| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.System.1.enableXREConnectionRetention","params":{"param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
+| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.System.1.enableXREConnectionRetention","params":{"enable":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
 | getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.System.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
 | getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.1.getCachedValue","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
 | getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.System.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
@@ -320,10 +320,10 @@ Method | Request Payload | Response Payload
 | requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.System.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
 | setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.System.1.setCachedValue","params":{"key":"sampleCache","value":4343.3434}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
 | setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.System.1.setDeepSleepTimer","params":{"seconds":3}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
-| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.System.1.setGzEnabled","params":{"param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
+| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.System.1.setGzEnabled","params":{"enabled":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
 | setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.System.1.setMode","params":{"modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
 | setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.System.1.setPowerState","params":{"powerState":"ON", "standbyReason":"APIUnitTest"}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
-| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.System.1.setPreferredStandbyMode","params":{"mode":"DEEP_SLEEP"}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
+| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.System.1.setPreferredStandbyMode","params":{"standbyMode":"DEEP_SLEEP"}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
-| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timezone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
+| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
 | updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
