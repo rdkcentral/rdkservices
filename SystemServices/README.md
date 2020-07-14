@@ -22,7 +22,7 @@
   - **clearLastDeepSleepReason**
 
     Used to clear last deep sleep reason.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`
+  _**Request payload:**_ `{"params":{}}`
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **enableMoca/disableMoca**
 
@@ -37,7 +37,7 @@
   - **getAvailableStandbyModes**
 
     Returns an array of strings containing the supported standby modes. Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"supportedStandbyModes":["<string1>", "<string2>"],"success":<bool>}}`
   - **getCachedValue**
 
@@ -47,7 +47,7 @@
   - **getCoreTemperature**
 
     To fetch core temperature.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"temperature":<float>,"success":<bool>}}`
   - **getDeviceInfo**
 
@@ -57,77 +57,77 @@
   - **getDownloadedFirmwareInfo**
 
     Retrieves firmware downloaded info.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"currentFWVersion":"<string>","downloadedFWVersion":"<string>""downloadedFWLocation":"<string>","isRebootDeferred":<bool>, "success":<bool>}}`
   - **getFirmwareDownloadPercent**
 
     To fetch Firmware Download Percentage Information.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"downloadPercent":<long int>, "success":false}}`
   - **getFirmwareUpdateInfo**
 
     To check Firmware Update Information. The requested details shall be sent as an event `onFirmwareUpdateInfoReceived`.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"asyncResponse":true,"success":true}}`
   - **getFirmwareUpdateState**
 
     Gets firmware update state.  
-  _**Request payload:**_ `{params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{params":{}}`  
   _**Response payload:**_ `{"result":{"firmwareUpdateState":<string fw update state>,"success":<bool>}}`
   - **getLastDeepSleepReason**
 
     Used to retrieve last deep sleep reason.  
-  _**Request payload:**_ `{params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{params":{}}`  
   _**Response payload:**_ `{"result":{"lastDeepSleepReason":"<string>","success":<bool>}}`
   - **getMacAddresses**
 
     To get device mac addresses. The requested details shall be sent as event `onMacAddressesRetreived`.  
-  _**Request payload:**_ `{params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{params":{}}`  
   _**Response payload:**_ `{"result":{"asyncResponse":<bool>,"success":<bool>}}`
   - **getMilestones**
 
     To fetch the list of milestones.  
-  _**Request payload:**_ `{params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{params":{}}`  
   _**Response payload:**_ `{"result":{"milestones":["<string>","<string>","<string>"],"success":<bool>}}`
   - **getMode**
 
     Returns mode Information, defines two parameters mode and duration.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"modeInfo":{"mode":"<string>","duration":<int>},"success":<bool>}}`
   - **getPowerState**
 
     To retrieve Device Power State.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"powerState":"<mode>","success":<bool>}}`
   - **getPreferredStandbyMode**
 
     Returns the preferred standby mode. Possible values are either "LIGHT_SLEEP" or "DEEP_SLEEP". This Will return an empty string if the preferred mode has not been set.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"preferredStandbyMode":"<string>","success":<bool>}}`
   - **getPreviousRebootInfo**
 
     To get previous reboot information.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"timeStamp":"<string>","reason":"<string>","success":<bool>}}`
   - **getPreviousRebootInfo2**
 
     Used to retrieve previous reboot details.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"rebootInfo":{"timestamp":"string","source":"string","reason":"string","customReason":"string","lastHardPowerReset":"<string>"},"success":<bool>}}`
   - **getPreviousRebootReason**
 
     Used to retrieve last reboot reason.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"rebootReason":<string>","success":<bool>}}`
   - **getRFCConfig**
 
     To retrieve information related to RFC Configurations.  
-  _**Request payload:**_ `{"params":{"rfclist":["<rfc1>","<rfc2>"]}}`  
+  _**Request payload:**_ `{"params":{"rfcList":["<rfc1>","<rfc2>"]}}`  
   _**Response payload:**_ `{"result":{"RFCConfig":{"<rfc1>":"<value>","<rfc2>":"<value>"},"success":<bool>}}`
   - **getSerialNumber**
 
     To retrieve Device Serial Number.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"serialNumber":"<string>","success":true}}`
   - **getStateInfo**
 
@@ -137,37 +137,37 @@
   - **getSystemVersions**
 
     To retrieve system version details.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"stbVersion":"<string>", "receiverVersion":"<string>", "stbTimestamp":"<string>","success":<bool>}}`
   - **getTemperatureThresholds**
 
     To retrieve Temperature Threshold values.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"temperatureThresholds":{"WARN":"100.000000","MAX":"200.000000","temperature":"62.000000"},"success":<bool>}}`
   - **getTimeZoneDST**
 
     To fetch timezone from TZ_FILE.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{","id":3,"result":{"timeZone":"<String>","success":<bool>}}`
   - **getXconfParams**
 
     This will return configuration parameters such as firmware version, Mac, Model etc.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"xconfParams":{"eStbMac":"<string>","firmwareVersion":"<string>", "env":"<string>","model":"<string>"},"success":<bool>}}`
   - **hasRebootBeenRequested**
 
     To check if Reboot has been requested or not.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"rebootRequested":false,"success":<bool>}}`
   - **isGzEnabled**
 
     To check GZ Status.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"enabled":false,"success":true}}`
   - **queryMocaStatus**
 
     Checks if Moca is Enabled or Not.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"mocaEnabled":<bool>,"success":<bool>}}`
   - **reboot**
 
@@ -182,7 +182,7 @@
   - **requestSystemUptime**
 
     To fetch device uptime.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"systemUptime":"378641.03","success":true}}`
   - **setCachedValue**
 
@@ -192,7 +192,7 @@
   - **setDeepSleepTimer**
 
     Sets the deep sleep time out period, specified in seconds by invoking the corresponding system service method.  
-  _**Request payload:**_ `{"params":{"param":{"seconds":<unsigned int>}}}`  
+  _**Request payload:**_ `{"params":{"seconds":<unsigned int>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setGzEnabled**
 
@@ -207,13 +207,13 @@
   - **setPowerState**
 
     To set the Device Power State. The possible values are `STANDBY,DEEP_SLEEP,LIGHT_SLEEP,ON`.  
-  _**Request payload:**_ `{"params":{"param":{"powerState":<string>, "standbyReason":<string>}}}`  
+  _**Request payload:**_ `{"params":{"powerState":<string>, "standbyReason":<string>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setPreferredStandbyMode**
 
     Sets and persists the preferred standby mode.  
     Invoking this function does not change the power state of the device, but sets only the user preference for preferred action when setPowerState is invoked with a value of "STANDBY".  
-  _**Request payload:**_ `{"params":{"param":{"mode":"<string>"}}}`  
+  _**Request payload:**_ `{"params":{"mode":"<string>"}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setTemperatureThresholds**
 
@@ -228,7 +228,7 @@
   - **updateFirmware**
 
     Initiates a firmware update. This method has no affect if update is not available. The State Observer Method/Event may be used to listen to firmware update events.  
-  _**Request payload:**_ `{"params":{"appName":"RequestingAppName"}}`  
+  _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
 ## System Service Thunder Plugin Events
   - **onFirmwareUpdateInfoReceived**
