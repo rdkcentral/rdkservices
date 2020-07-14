@@ -1434,9 +1434,9 @@ namespace WPEFramework {
 			int audioDelayMs = 0;
             try {
                 audioDelayMs = stoi(sAudioDelayMs);
-            } catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sAudioDelayMs); 
-               returnResponse(false);
+            } catch (const std::exception &err) {
+                LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
+                returnResponse(false);
             }
 
             bool success = true;
@@ -1550,10 +1550,10 @@ namespace WPEFramework {
             {
                 audioDelayOffsetMs = stoi(sAudioDelayOffsetMs);
             }
-            catch (const device::Exception& err)
+            catch (const std::exception &err)
             {
-               LOG_DEVICE_EXCEPTION1(sAudioDelayOffsetMs); 
-               returnResponse(false);
+                LOGERR("Failed to parse audioDelayOffset '%s'", sAudioDelayOffsetMs.c_str());
+                returnResponse(false);
             }
 
             bool success = true;
