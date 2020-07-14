@@ -239,7 +239,9 @@ namespace WPEFramework
                     for (int i = 0; i < list.size; i++)
                     {
                         JsonObject interface;
-
+                        std::string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+                        if (iface == "")
+                            continue;					// Skip unrecognised interfaces...
                         interface["interface"] = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
                         interface["macAddress"] = string(list.interfaces[i].mac);
                         interface["enabled"] = ((list.interfaces[i].flags & IFF_UP) != 0);
@@ -594,8 +596,20 @@ namespace WPEFramework
         {
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
-            params["ip6Address"] = ipv6Addr;
-            params["ip4Address"] = ipv4Addr;
+            if (ipv6Addr != "")
+            {
+                if  (!m_netUtils.isIPV6LinkLocal((const std::string) ipv6Addr))
+                    params["ip6Address"] = ipv6Addr;
+                else
+                    return;
+            }
+            if (ipv4Addr != "")
+            {
+                if (!m_netUtils.isIPV4LinkLocal((const std::string) ipv4Addr))
+                    params["ip4Address"] = ipv4Addr;
+                else
+                    return;
+            }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
         }
@@ -634,18 +648,24 @@ namespace WPEFramework
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
                 onInterfaceEnabledStatusChanged(e->interface, e->status);
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
                 onInterfaceConnectionStatusChanged(e->interface, e->status);
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
                 if (e->is_ipv6)
                     onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
                 else
