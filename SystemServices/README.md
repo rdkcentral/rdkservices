@@ -7,7 +7,7 @@
 * [**Error codes & messages**](#System-Thunder-Plugin-ErrorCodes)
     - This section details system plugin specific error codes & messages which will be generated when `methods/events` fail to perform the requested service.    
 * [**Tests**](#System-Thunder-Plugin-Test-Client)
-* [**Examples**](#System-Thunder-Plugin-Method/Event-Examples)
+* [**Examples**](#System-Thunder-Plugin-Method-and-Event-Examples)
 
 # **Build Steps**
     bitbake thunder-plugins
@@ -274,7 +274,7 @@
   **Sample Method/Event Usage :**  
   _**Request payload:**_ `{{"params":<request payload>}}`  
   _**Response payload:**_ onSampleEvent : `{<payload received in the request>}`
-## System Thunder Plugin Method/Event Examples
+## System Thunder Plugin Method and Event Examples
 <details>
     <summary>Click to get details</summary>
   The Thunder configuration used for below `curl` commandline utility based Request/Response samples use `PORT 9998`.  
