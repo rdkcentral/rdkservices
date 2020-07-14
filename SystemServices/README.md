@@ -275,6 +275,8 @@
   _**Request payload:**_ `{{"params":<request payload>}}`  
   _**Response payload:**_ onSampleEvent : `{<payload received in the request>}`
 ## System Thunder Plugin Method/Event Examples
+<details>
+    <summary>Click to get details</summary>
   The Thunder configuration used for below `curl` commandline utility based Request/Response samples use `PORT 9998`.  
   
   **API request format**  
@@ -327,3 +329,4 @@ Method | Request Payload | Response Payload
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
 | setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
 | updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+</details>
