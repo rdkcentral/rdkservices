@@ -730,8 +730,9 @@ namespace WPEFramework {
             std::string oldMode = m_currentMode;
             bool result = true;
 	    
-	    if (parameters.HasLabel("modeInfo") && parameters.HasLabel("duration") && parameters.HasLabel("mode")) {
+	    if (parameters.HasLabel("modeInfo")) {
 		    param.FromString(parameters["modeInfo"].String());
+		    if (param.HasLabel("duration") && param.HasLabel("mode")) {
 		    int duration = param["duration"].Number();
 		    std::string newMode = param["mode"].String();
 
@@ -795,6 +796,9 @@ namespace WPEFramework {
 		    } else {
 			    LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
 		    }
+	    } else {
+		    populateResponseWithError(SysSrv_MissingKeyValues, response);
+	    }
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
@@ -1048,8 +1052,8 @@ namespace WPEFramework {
 			}
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-            returnResponse(status);
+		}
+		returnResponse(status);
         }
 
         /***
@@ -1658,6 +1662,7 @@ namespace WPEFramework {
             temperature = -1;
             resp = false;
             LOGERR("Thermal Protection disabled for this platform\n");
+	    populateResponseWithError(SysSrv_SupportNotAvailable, response);
 #endif
             response["temperature"] = to_string(temperature);
             returnResponse(resp);
@@ -1677,7 +1682,8 @@ namespace WPEFramework {
 			std::string key = parameters["key"].String();
 			LOGWARN("key: '%s'\n", key.c_str());
 			if (key.length()) {
-				response[(key.c_str())] = m_cacheService.getValue(key).String();
+				response[(key.c_str())] = (m_cacheService.getValue(key).String().empty()?
+						"" : m_cacheService.getValue(key).String());
 				retStat = true;
 			} else {
 				populateResponseWithError(SysSrv_UnSupportedFormat, response);
@@ -2334,14 +2340,13 @@ namespace WPEFramework {
 				} else {
 					retVal = CPowerState::instance()->setPowerState(state);
 				}
-				if (outfile) {
-					outfile.open(STANDBY_REASON_FILE, ios::out);
-					if (outfile.is_open()) {
-						outfile << reason;
-						outfile.close();
-					}
+				outfile.open(STANDBY_REASON_FILE, ios::out);
+				if (outfile.is_open()) {
+					outfile << reason;
+					outfile.close();
 				} else {
-					printf(" GZ_FILE_ERROR: Can't open file for write mode\n");
+					LOGERR("Can't open file '%s' for write mode\n", STANDBY_REASON_FILE);
+					populateResponseWithError(SysSrv_FileAccessFailed, response);
 				}
 			} else {
 				retVal = CPowerState::instance()->setPowerState(state);
