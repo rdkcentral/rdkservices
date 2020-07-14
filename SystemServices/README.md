@@ -1,19 +1,19 @@
-# **System Service Thunder Plugin** (_RDK-25849_)
-    This document enlists the supported Methods and Events of System Service Thunder Plugin. The following section details each.
-* [**Methods**](#System-Service-Thunder-Plugin-Methods)
+# **System Thunder Plugin** (_RDK-25849_)
+    This document enlists the supported Methods and Events of System Thunder Plugin. The following section details each.
+* [**Methods**](#System-Thunder-Plugin-Methods)
     - The generic thunder JSONRPC API format is `{"jsonrpc":"2.0","id":"","method":"callsign.pluginVersion.methodName",<payload>}` where default value of `callsign` is `org.rdk.System`, `pluginVersion` is `1` and `methodName` is the methods listed in `Methods` section. `Payload` information is implementation specific to each `method` and is described under respective `method` section.
-* [**Events**](#System-Service-Thunder-Plugin-Events)
+* [**Events**](#System-Thunder-Plugin-Events)
     - These JSONRPC events shall be broadcasted to all subscribed endpoints over websocket. Each `event` payload details are enlisted under respective section below.
-* [**Error codes & messages**](#System-Service-Thunder-Plugin-ErrorCodes)
+* [**Error codes & messages**](#System-Thunder-Plugin-ErrorCodes)
     - This section details system plugin specific error codes & messages which will be generated when `methods/events` fail to perform the requested service.    
-* [**Tests**](#System-Service-Thunder-Plugin-Test-Client)
-* [**Examples**](#System-service-Thunder-Plugin-Method/Event-Examples)
+* [**Tests**](#System-Thunder-Plugin-Test-Client)
+* [**Examples**](#System-Thunder-Plugin-Method/Event-Examples)
 
 # **Build Steps**
     bitbake thunder-plugins
 
 
-## System Service Thunder Plugin Methods
+## System Thunder Plugin Methods
   - **cacheContains**
 
     To check if key value present in cache.  
@@ -230,7 +230,7 @@
     Initiates a firmware update. This method has no affect if update is not available. The State Observer Method/Event may be used to listen to firmware update events.  
   _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
-## System Service Thunder Plugin Events
+## System Thunder Plugin Events
   - **onFirmwareUpdateInfoReceived**
 
     This JSONRPC event is triggered with respect to the asynchronous method `getFirmwareUpdateInfo` and will have payload details `{"param":{"firmwareUpdateState":<enum:0-6>}}`.    
@@ -253,7 +253,7 @@
   - **onRebootRequest**
 
     When any application invokes `reboot` method, this JSONRPC event is generated with payload `{"param":{"requestedApp": <string_requesting_application_name>, "rebootReason":<string_reboot_reason>}}`  
-## System Service Thunder Plugin ErrorCodes    
+## System Thunder Plugin ErrorCodes    
     System plugin specific error codes and messages are listed below.    
    |Enum Name|Error Code|Error Message|Occation/Reason|
    |:---|:---|:---|:---|
@@ -269,61 +269,61 @@
    |SysSrv_LibcurlError|9|LIbCurl service error|Not able to use the underlying curl library to process|
    |SysSrv_DynamicMemoryAllocationFailed|10|Dynamic Memory Allocation Failed|When memory alloc fails|
    |SysSrv_ManufacturerDataReadFailed|11|Manufacturer Data Read Failed|Unmet/unsupported manufacturer implementation(s)/change(s)|
-## System Service Thunder Plugin Test Client
+## System Thunder Plugin Test Client
     The given C++ test client application can be utilized to validate the above mentioned `methods` and `events`. Use `-DBUILD_TESTS` in the configuration option to enable building of C++ test client. Use `-DDEBUG=1` to build sample Method which will generate a sample Event for Test Client verification.  
   **Sample Method/Event Usage :**  
   _**Request payload:**_ `{{"params":<request payload>}}`  
   _**Response payload:**_ onSampleEvent : `{<payload received in the request>}`
-## System Service Thunder Plugin Method/Event Examples
+## System Thunder Plugin Method/Event Examples
   The Thunder configuration used for below `curl` commandline utility based Request/Response samples use `PORT 9998`.  
   
   **API request format**  
   `curl --header "Content-Type:application/json" --request POST http://localhost:9998/jsonrpc --data-raw '<request_payload>'` 
 
-_Note:_ Here callsign used is `org.rdk.SystemServices` instead of actual `org.rdk.System` since testing purpose it was set so.
+_Note:_ Here callsign used is `org.rdk.System` instead of actual `org.rdk.System` since testing purpose it was set so.
 
 Method | Request Payload | Response Payload
 :--- | :--- | :---
-| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.SystemServices.1.cacheContains","params":{"key":"sampleCache"}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
-| clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.SystemServices.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
-| enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.SystemServices.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
-| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.SystemServices.1.enableXREConnectionRetention","params":{"param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
-| getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.SystemServices.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
-| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.getCachedValue","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
-| getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.SystemServices.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
-| getDeviceInfo | {"jsonrpc":"2.0","id":"5","method":"org.rdk.SystemServices.1.getDeviceInfo","params":{"params":["estb_mac"]}} | {"jsonrpc":"2.0","id":5,"result":{"estb_mac":"20:F1:9E:EE:62:08","success":true}} |  
-| getDownloadedFirmwareInfo | {"jsonrpc":"2.0","id":"6","method":"org.rdk.SystemServices.1.getDownloadedFirmwareInfo","params":{}} | {"jsonrpc":"2.0","id":6,"result":{"currentFWVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","downloadedFWVersion":"","downloadedFWLocation":"","isRebootDeferred":false,"success":true}} |  
-| getFirmwareDownloadPercent | {"jsonrpc":"2.0","id":"7","method":"org.rdk.SystemServices.1.getFirmwareDownloadPercent","params":{}} | {"jsonrpc":"2.0","id":7,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
-| getFirmwareUpdateInfo | {"jsonrpc":"2.0","id":"8","method":"org.rdk.SystemServices.1.getFirmwareUpdateInfo","params":{"param":{"GUID":"string"}}} | {"jsonrpc":"2.0","id":8,"result":{"asyncResponse":true,"success":true}} |  
-| getFirmwareUpdateState | {"jsonrpc":"2.0","id":"9","method":"org.rdk.SystemServices.1.getFirmwareUpdateState","params":{}} | {"jsonrpc":"2.0","id":9,"result":{"firmwareUpdateState":0,"success":true}} |  
-| getLastDeepSleepReason | {"jsonrpc":"2.0","id":"10","method":"org.rdk.SystemServices.1.getLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":10,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
-| getMacAddresses | {"jsonrpc":"2.0","id":"11","method":"org.rdk.SystemServices.1.getMacAddresses","params":{"param":{"GUID":"61734787891723481"}}} | {"jsonrpc":"2.0","id":11,"result":{"asyncResponse":true,"success":true}} |  
-| getMilestones | {"jsonrpc":"2.0","id":"12","method":"org.rdk.SystemServices.1.getMilestones","params":{}} | {"jsonrpc":"2.0","id":12,"result":{"milestones":["RDK_STARTED:20410","2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service...","-- Subject: Unit log-rdk-start.service has begun with start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has begun starting up.","2020 Jan 28 08:24:06.791823 arrisxi6 systemd[1]: Started Log RDK Started Service.","-- Subject: Unit log-rdk-start.service has finished start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has finished starting up.","-- ","-- The start-up result is done.","UPNP_START_DISCOVERY:52660","IP_ACQUISTION_COMPLETED:53230","PWIFI_CONNECTED:56270","SEND_DHCP_REQUEST:56370","RECV_DHCP_RESPONSE:56940","IP_ACQUISTION_COMPLETED:57070","CONNECT_TO_APPLICATION:78340","CONNECT_TO_NTP_SERVER:79460","SPLASH_SCREEN_DISPLAYED:81300","SET_XSCT_TOKEN:106480","CONNECT_TO_APPLICATION:113490","CONNECT_TO_APPLICATION:116590","CONNECT_TO_APPLICATION:119460"],"success":true}} |  
-| getMode | {"jsonrpc":"2.0","id":"13","method":"org.rdk.SystemServices.1.getMode","params":{}} | {"jsonrpc":"2.0","id":13,"result":{"modeInfo":{"mode":"NORMAL","duration":0},"success":true}} |  
-| getPowerState | {"jsonrpc":"2.0","id":"14","method":"org.rdk.SystemServices.1.getPowerState","params":{}} | {"jsonrpc":"2.0","id":14,"result":{"powerState":"ON","success":true}} |  
-| getPreferredStandbyMode | {"jsonrpc":"2.0","id":"15","method":"org.rdk.SystemServices.1.getPreferredStandbyMode","params":{}} | {"jsonrpc":"2.0","id":15,"result":{"preferredStandbyMode":"DEEP_SLEEP","success":true}} |  
-| getPreviousRebootInfo2 | {"jsonrpc":"2.0","id":"17","method":"org.rdk.SystemServices.1.getPreviousRebootInfo2","params":{}} | {"jsonrpc":"2.0","id":17,"result":{"rebootInfo":{"timestamp":"Tue Jan 28 08:35:40 UTC 2020","source":"SystemPlugin","reason":"FIRMWARE_FAILURE","customReason":"API Validation","lastHardPowerReset":"Tue Jan 28 08:22:22 UTC 2020"},"success":true}} |  
-| getPreviousRebootInfo | {"jsonrpc":"2.0","id":"16","method":"org.rdk.SystemServices.1.getPreviousRebootInfo","params":{}} | {"jsonrpc":"2.0","id":16,"result":{"timeStamp":"20200128083540","reason":" Triggered from System Plugin API Validation","success":true}} |  
-| getPreviousRebootReason | {"jsonrpc":"2.0","id":"18","method":"org.rdk.SystemServices.1.getPreviousRebootReason","params":{}} | {"jsonrpc":"2.0","id":18,"result":{"reason":"FIRMWARE_FAILURE","success":true}} |  
-| getRFCConfig | {"jsonrpc":"2.0","id":"19","method":"org.rdk.SystemServices.1.getRFCConfig","params":{"rfclist":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled","Device.DeviceInfo.MemoryStatus.Total","Device.DeviceInfo.MemoryStatus.Free"]}} | {"jsonrpc":"2.0","id":19,"result":{"RFCConfig":{"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID":"1181405614235499371","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled":"Empty response received","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled":"Empty response received","Device.DeviceInfo.MemoryStatus.Total":"1144560","Device.DeviceInfo.MemoryStatus.Free":"732144"},"success":true}} |  
-| getSerialNumber | {"jsonrpc":"2.0","id":"20","method":"org.rdk.SystemServices.1.getSerialNumber","params":{}} | {"jsonrpc":"2.0","id":20,"result":{"serialNumber":"M11806TK0024","success":true}} |  
-| getStateInfo | {"jsonrpc":"2.0","id":"43","method":"org.rdk.SystemServices.1.getStateInfo","params":{"param":"com.comcast.channel_map"}} | {"jsonrpc":"2.0","id":43,"result":{"com.comcast.channel_map":2,"success":true}} |  
-| getSystemVersions | {"jsonrpc":"2.0","id":"21","method":"org.rdk.SystemServices.1.getSystemVersions","params":{}} | {"jsonrpc":"2.0","id":21,"result":{"stbVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","receiverVersion":"3.14.0.0","stbTimestamp":"Thu 09 Jan 2020 04:04:24 AP UTC","success":true}} |  
-| getTemperatureThresholds | {"jsonrpc":"2.0","id":"22","method":"org.rdk.SystemServices.1.getTemperatureThresholds","params":{}} | {"jsonrpc":"2.0","id":22,"result":{"temperatureThresholds":{"WARN":"100.000000","MAX":"110.000000","temperature":"48.000000"},"success":true}} |  
-| getTimeZoneDST | {"jsonrpc":"2.0","id":"23","method":"org.rdk.SystemServices.1.getTimeZoneDST","params":{}} | {"jsonrpc":"2.0","id":23,"result":{"timeZone":"America/New_York","success":true}} |  
-| getXconfParams | {"jsonrpc":"2.0","id":"24","method":"org.rdk.SystemServices.1.getXconfParams","params":{}} | {"jsonrpc":"2.0","id":24,"result":{"xconfParams":{"env":"vbn","eStbMac":"20:F1:9E:EE:62:08","model":"AX061AEI","firmwareVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy"},"success":true}} |  
-| hasRebootBeenRequested | {"jsonrpc":"2.0","id":"25","method":"org.rdk.SystemServices.1.hasRebootBeenRequested","params":{}} | {"jsonrpc":"2.0","id":25,"result":{"rebootRequested":false,"success":true}} |  
-| isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.SystemServices.1.isGzEnabled","params":{}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
-| queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.SystemServices.1.queryMocaStatus","params":{}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
-| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.SystemServices.1.reboot","params":{"params":{"reason":"API Validation"}}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
-| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.SystemServices.1.removeCacheKey","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
-| requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.SystemServices.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
-| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.SystemServices.1.setCachedValue","params":{"key":"sampleCache","value":4343.3434}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
-| setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.SystemServices.1.setDeepSleepTimer","params":{"param":{"seconds":3}}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
-| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.SystemServices.1.setGzEnabled","params":{"param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
-| setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.SystemServices.1.setMode","params":{"modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
-| setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.SystemServices.1.setPowerState","params":{"param":{"powerState":"ON", "standbyReason":"APIUnitTest"}}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
-| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.SystemServices.1.setPreferredStandbyMode","params":{"param":{"mode":"DEEP_SLEEP"}}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
-| setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.SystemServices.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
-| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.SystemServices.1.setTimeZoneDST","params":{"timezone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
-| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.SystemServices.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+| cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.System.1.cacheContains","params":{"key":"sampleCache"}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
+| clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.System.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
+| enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.System.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
+| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.System.1.enableXREConnectionRetention","params":{"param":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
+| getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.System.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
+| getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.1.getCachedValue","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
+| getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.System.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
+| getDeviceInfo | {"jsonrpc":"2.0","id":"5","method":"org.rdk.System.1.getDeviceInfo","params":{"params":["estb_mac"]}} | {"jsonrpc":"2.0","id":5,"result":{"estb_mac":"20:F1:9E:EE:62:08","success":true}} |  
+| getDownloadedFirmwareInfo | {"jsonrpc":"2.0","id":"6","method":"org.rdk.System.1.getDownloadedFirmwareInfo","params":{}} | {"jsonrpc":"2.0","id":6,"result":{"currentFWVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","downloadedFWVersion":"","downloadedFWLocation":"","isRebootDeferred":false,"success":true}} |  
+| getFirmwareDownloadPercent | {"jsonrpc":"2.0","id":"7","method":"org.rdk.System.1.getFirmwareDownloadPercent","params":{}} | {"jsonrpc":"2.0","id":7,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
+| getFirmwareUpdateInfo | {"jsonrpc":"2.0","id":"8","method":"org.rdk.System.1.getFirmwareUpdateInfo","params":{"GUID":"string"}} | {"jsonrpc":"2.0","id":8,"result":{"asyncResponse":true,"success":true}} |  
+| getFirmwareUpdateState | {"jsonrpc":"2.0","id":"9","method":"org.rdk.System.1.getFirmwareUpdateState","params":{}} | {"jsonrpc":"2.0","id":9,"result":{"firmwareUpdateState":0,"success":true}} |  
+| getLastDeepSleepReason | {"jsonrpc":"2.0","id":"10","method":"org.rdk.System.1.getLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":10,"result":{"SysSrv_Status":3,"errorMessage":"Expected file not found","success":false}} |  
+| getMacAddresses | {"jsonrpc":"2.0","id":"11","method":"org.rdk.System.1.getMacAddresses","params":{"GUID":"61734787891723481"}} | {"jsonrpc":"2.0","id":11,"result":{"asyncResponse":true,"success":true}} |  
+| getMilestones | {"jsonrpc":"2.0","id":"12","method":"org.rdk.System.1.getMilestones","params":{}} | {"jsonrpc":"2.0","id":12,"result":{"milestones":["RDK_STARTED:20410","2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service...","-- Subject: Unit log-rdk-start.service has begun with start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has begun starting up.","2020 Jan 28 08:24:06.791823 arrisxi6 systemd[1]: Started Log RDK Started Service.","-- Subject: Unit log-rdk-start.service has finished start-up","-- Defined-By: systemd","-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel","-- ","-- Unit log-rdk-start.service has finished starting up.","-- ","-- The start-up result is done.","UPNP_START_DISCOVERY:52660","IP_ACQUISTION_COMPLETED:53230","PWIFI_CONNECTED:56270","SEND_DHCP_REQUEST:56370","RECV_DHCP_RESPONSE:56940","IP_ACQUISTION_COMPLETED:57070","CONNECT_TO_APPLICATION:78340","CONNECT_TO_NTP_SERVER:79460","SPLASH_SCREEN_DISPLAYED:81300","SET_XSCT_TOKEN:106480","CONNECT_TO_APPLICATION:113490","CONNECT_TO_APPLICATION:116590","CONNECT_TO_APPLICATION:119460"],"success":true}} |  
+| getMode | {"jsonrpc":"2.0","id":"13","method":"org.rdk.System.1.getMode","params":{}} | {"jsonrpc":"2.0","id":13,"result":{"modeInfo":{"mode":"NORMAL","duration":0},"success":true}} |  
+| getPowerState | {"jsonrpc":"2.0","id":"14","method":"org.rdk.System.1.getPowerState","params":{}} | {"jsonrpc":"2.0","id":14,"result":{"powerState":"ON","success":true}} |  
+| getPreferredStandbyMode | {"jsonrpc":"2.0","id":"15","method":"org.rdk.System.1.getPreferredStandbyMode","params":{}} | {"jsonrpc":"2.0","id":15,"result":{"preferredStandbyMode":"DEEP_SLEEP","success":true}} |  
+| getPreviousRebootInfo2 | {"jsonrpc":"2.0","id":"17","method":"org.rdk.System.1.getPreviousRebootInfo2","params":{}} | {"jsonrpc":"2.0","id":17,"result":{"rebootInfo":{"timestamp":"Tue Jan 28 08:35:40 UTC 2020","source":"SystemPlugin","reason":"FIRMWARE_FAILURE","customReason":"API Validation","lastHardPowerReset":"Tue Jan 28 08:22:22 UTC 2020"},"success":true}} |  
+| getPreviousRebootInfo | {"jsonrpc":"2.0","id":"16","method":"org.rdk.System.1.getPreviousRebootInfo","params":{}} | {"jsonrpc":"2.0","id":16,"result":{"timeStamp":"20200128083540","reason":" Triggered from System Plugin API Validation","success":true}} |  
+| getPreviousRebootReason | {"jsonrpc":"2.0","id":"18","method":"org.rdk.System.1.getPreviousRebootReason","params":{}} | {"jsonrpc":"2.0","id":18,"result":{"reason":"FIRMWARE_FAILURE","success":true}} |  
+| getRFCConfig | {"jsonrpc":"2.0","id":"19","method":"org.rdk.System.1.getRFCConfig","params":{"rfcList":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled","Device.DeviceInfo.MemoryStatus.Total","Device.DeviceInfo.MemoryStatus.Free"]}} | {"jsonrpc":"2.0","id":19,"result":{"RFCConfig":{"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID":"1181405614235499371","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Enabled":"Empty response received","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AllowOpenPorts.Enabled":"Empty response received","Device.DeviceInfo.MemoryStatus.Total":"1144560","Device.DeviceInfo.MemoryStatus.Free":"732144"},"success":true}} |  
+| getSerialNumber | {"jsonrpc":"2.0","id":"20","method":"org.rdk.System.1.getSerialNumber","params":{}} | {"jsonrpc":"2.0","id":20,"result":{"serialNumber":"M11806TK0024","success":true}} |  
+| getStateInfo | {"jsonrpc":"2.0","id":"43","method":"org.rdk.System.1.getStateInfo","params":{"param":"com.comcast.channel_map"}} | {"jsonrpc":"2.0","id":43,"result":{"com.comcast.channel_map":2,"success":true}} |  
+| getSystemVersions | {"jsonrpc":"2.0","id":"21","method":"org.rdk.System.1.getSystemVersions","params":{}} | {"jsonrpc":"2.0","id":21,"result":{"stbVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy","receiverVersion":"3.14.0.0","stbTimestamp":"Thu 09 Jan 2020 04:04:24 AP UTC","success":true}} |  
+| getTemperatureThresholds | {"jsonrpc":"2.0","id":"22","method":"org.rdk.System.1.getTemperatureThresholds","params":{}} | {"jsonrpc":"2.0","id":22,"result":{"temperatureThresholds":{"WARN":"100.000000","MAX":"110.000000","temperature":"48.000000"},"success":true}} |  
+| getTimeZoneDST | {"jsonrpc":"2.0","id":"23","method":"org.rdk.System.1.getTimeZoneDST","params":{}} | {"jsonrpc":"2.0","id":23,"result":{"timeZone":"America/New_York","success":true}} |  
+| getXconfParams | {"jsonrpc":"2.0","id":"24","method":"org.rdk.System.1.getXconfParams","params":{}} | {"jsonrpc":"2.0","id":24,"result":{"xconfParams":{"env":"vbn","eStbMac":"20:F1:9E:EE:62:08","model":"AX061AEI","firmwareVersion":"AX061AEI_VBN_1911_sprint_20200109040424sdy"},"success":true}} |  
+| hasRebootBeenRequested | {"jsonrpc":"2.0","id":"25","method":"org.rdk.System.1.hasRebootBeenRequested","params":{}} | {"jsonrpc":"2.0","id":25,"result":{"rebootRequested":false,"success":true}} |  
+| isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.System.1.isGzEnabled","params":{}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
+| queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.System.1.queryMocaStatus","params":{}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
+| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.System.1.reboot","params":{"reason":"API Validation"}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
+| removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.System.1.removeCacheKey","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
+| requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.System.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
+| setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.System.1.setCachedValue","params":{"key":"sampleCache","value":4343.3434}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
+| setDeepSleepTimer | {"jsonrpc":"2.0","id":"35","method":"org.rdk.System.1.setDeepSleepTimer","params":{"seconds":3}} | {"jsonrpc":"2.0","id":35,"result":{"success":true}} |  
+| setGzEnabled | {"jsonrpc":"2.0","id":"36","method":"org.rdk.System.1.setGzEnabled","params":{"param":true}} | {"jsonrpc":"2.0","id":36,"result":{"success":true}} |  
+| setMode | {"jsonrpc":"2.0","id":"37","method":"org.rdk.System.1.setMode","params":{"modeInfo":{"mode":"NORMAL","duration":20}}} | {"jsonrpc":"2.0","id":37,"result":{"success":true}} |  
+| setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.System.1.setPowerState","params":{"powerState":"ON", "standbyReason":"APIUnitTest"}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
+| setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.System.1.setPreferredStandbyMode","params":{"mode":"DEEP_SLEEP"}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
+| setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
+| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timezone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
+| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
