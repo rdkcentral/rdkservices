@@ -609,8 +609,10 @@ namespace WPEFramework
                 if  (!m_netUtils.isIPV6LinkLocal((const std::string) ipv6Addr))
 #endif
                     params["ip6Address"] = ipv6Addr;
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
                 else
                     return;
+#endif
             }
             if (ipv4Addr != "")
             {
@@ -618,8 +620,10 @@ namespace WPEFramework
                 if (!m_netUtils.isIPV4LinkLocal((const std::string) ipv4Addr))
 #endif
                     params["ip4Address"] = ipv4Addr;
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
                 else
                     return;
+#endif
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
