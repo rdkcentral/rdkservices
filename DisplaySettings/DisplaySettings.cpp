@@ -1174,8 +1174,8 @@ namespace WPEFramework {
 			int compresionLevel = 0;
             try {
                 compresionLevel = stoi(sCompresionLevel);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sCompresionLevel); 
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse compresionLevel '%s'", sCompresionLevel.c_str());
 			   returnResponse(false);
             }
 
@@ -1228,9 +1228,9 @@ namespace WPEFramework {
             {
                 iDolbyVolumeMode = stoi(sDolbyVolumeMode);
             }
-            catch (const device::Exception& err)
+            catch (const std::exception &err)
             {
-               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
+               LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
                returnResponse(false);
             }
             if (0 == iDolbyVolumeMode) {
@@ -1280,8 +1280,8 @@ namespace WPEFramework {
 			int enhancerlevel = 0;
             try {
                 enhancerlevel = stoi(sEnhancerlevel);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sEnhancerlevel); 
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse enhancerlevel '%s'", sEnhancerlevel.c_str());
 			   returnResponse(false);
             }
 
@@ -1330,8 +1330,8 @@ namespace WPEFramework {
 			int intelligentEqualizerMode = 0;
             try {
                 intelligentEqualizerMode = stoi(sIntelligentEqualizerMode);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sIntelligentEqualizerMode); 
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse intelligentEqualizerMode '%s'", sIntelligentEqualizerMode.c_str());
 			   returnResponse(false);
             }
 
