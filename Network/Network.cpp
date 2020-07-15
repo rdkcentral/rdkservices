@@ -600,25 +600,11 @@ namespace WPEFramework
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             if (ipv6Addr != "")
             {
-#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
-                if  (!m_netUtils.isIPV6LinkLocal((const std::string) ipv6Addr))
-#endif
-                    params["ip6Address"] = ipv6Addr;
-#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
-                else
-                    return;
-#endif
+                params["ip6Address"] = ipv6Addr;
             }
             if (ipv4Addr != "")
             {
-#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
-                if (!m_netUtils.isIPV4LinkLocal((const std::string) ipv4Addr))
-#endif
-                    params["ip4Address"] = ipv4Addr;
-#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
-                else
-                    return;
-#endif
+                params["ip4Address"] = ipv4Addr;
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
@@ -683,9 +669,19 @@ namespace WPEFramework
                     break;
 #endif
                 if (e->is_ipv6)
-                    onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
+                {
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
+                    if  (!m_netUtils.isIPV6LinkLocal((const std::string) e->ip_address))
+#endif
+                        onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
+                }
                 else
-                    onInterfaceIPAddressChanged(e->interface, "", e->ip_address, e->acquired);
+                {
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
+                    if  (!m_netUtils.isIPV4LinkLocal((const std::string) e->ip_address))
+#endif
+                        onInterfaceIPAddressChanged(e->interface, "", e->ip_address, e->acquired);
+                }
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
