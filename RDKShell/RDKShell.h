@@ -22,6 +22,9 @@
 #include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include <rdkshell/rdkshellevents.h>
+#include <rdkshell/rdkshell.h>
+#include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
 
 namespace WPEFramework {
@@ -51,6 +54,12 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER;
+            static const string RDKSHELL_METHOD_INJECT_KEY;
+            static const string RDKSHELL_METHOD_INJECT_KEYS;
             static const string RDKSHELL_METHOD_GET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_SET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_CREATE_DISPLAY;
@@ -62,6 +71,27 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VISIBILITY;
             static const string RDKSHELL_METHOD_GET_OPACITY;
             static const string RDKSHELL_METHOD_SET_OPACITY;
+            static const string RDKSHELL_METHOD_GET_SCALE;
+            static const string RDKSHELL_METHOD_SET_SCALE;
+            static const string RDKSHELL_METHOD_ADD_ANIMATION;
+            static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
+            static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
+            static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
+            static const string RDKSHELL_METHOD_SCALE_TO_FIT;
+            static const string RDKSHELL_METHOD_LAUNCH_APPLICATION;
+            static const string RDKSHELL_METHOD_SUSPEND_APPLICATION;
+            static const string RDKSHELL_METHOD_RESUME_APPLICATION;
+            static const string RDKSHELL_METHOD_CLOSE_APPLICATION;
+
+            // events
+            static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
+            static const string RDKSHELL_EVENT_ON_APP_LAUNCHED;
+            static const string RDKSHELL_EVENT_ON_APP_CONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_DISCONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_TERMINATED;
+            static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
+            static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
+            static const string RDKSHELL_EVENT_ON_APP_RESUMED;
 
         private/*registered methods (wrappers)*/:
 
@@ -73,6 +103,12 @@ namespace WPEFramework {
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t injectKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t createDisplayWrapper(const JsonObject& parameters, JsonObject& response);
@@ -84,6 +120,17 @@ namespace WPEFramework {
             uint32_t setVisibilityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getOpacityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setOpacityWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -96,6 +143,11 @@ namespace WPEFramework {
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyListeners(const string& client, const JsonArray& listeners);
+            bool removeKeyListeners(const string& client, const JsonArray& listeners);
+            bool addAnyKeyListener(const string& client, const JsonArray& listeners);
+            bool injectKey(const uint32_t& keyCode, const JsonArray& modifiers);
+            bool injectKeys(const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool createDisplay(const string& client, const string& displayName);
@@ -107,8 +159,40 @@ namespace WPEFramework {
             bool setVisibility(const string& client, const bool visible);
             bool getOpacity(const string& client, unsigned int& opacity);
             bool setOpacity(const string& client, const unsigned int opacity);
+            bool getScale(const string& client, double& scaleX, double& scaleY);
+            bool setScale(const string& client, const double scaleX, const double scaleY);
+            bool removeAnimation(const string& client);
+            bool addAnimationList(const JsonArray& animations);
+            bool enableInactivityReporting(const bool enable);
+            bool setInactivityInterval(const string interval);
 
         private/*classes */:
+
+            class RdkShellListener :  public RdkShell::RdkShellEventListener {
+
+              public:
+                RdkShellListener(RDKShell* shell)
+                    : mShell(*shell)
+                {
+                }
+
+                ~RdkShellListener()
+                {
+                }
+
+                // rdkshell events listeners
+                virtual void onApplicationLaunched(const std::string& client);
+                virtual void onApplicationConnected(const std::string& client);
+                virtual void onApplicationDisconnected(const std::string& client);
+                virtual void onApplicationTerminated(const std::string& client);
+                virtual void onApplicationFirstFrame(const std::string& client);
+                virtual void onApplicationSuspended(const std::string& client);
+                virtual void onApplicationResumed(const std::string& client);
+                virtual void onUserInactive(const double minutes);
+
+              private:
+                  RDKShell& mShell;
+            };
 
             class MonitorClients : public PluginHost::IPlugin::INotification {
               private:
@@ -141,6 +225,7 @@ namespace WPEFramework {
         private/*members*/:
             bool mRemoteShell;
             MonitorClients* mClientsMonitor;
+            std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             //std::mutex m_callMutex;
         };
     } // namespace Plugin

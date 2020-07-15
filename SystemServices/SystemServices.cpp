@@ -40,7 +40,6 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
-#include "rdk_logger_milestone.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -53,6 +52,10 @@
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
 #include "powerstate.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+#include "mfrMgr.h"
+#endif
 
 using namespace std;
 
@@ -208,6 +211,8 @@ namespace WPEFramework {
         cTimer    SystemServices::m_operatingModeTimer;
         int       SystemServices::m_remainingDuration = 0;
         JsonObject SystemServices::_systemParams;
+        const string SystemServices::MODEL_NAME = "modelName";
+        const string SystemServices::HARDWARE_ID = "hardwareID";
         IARM_Bus_SYSMgr_GetSystemStates_Param_t SystemServices::paramGetSysState = {};
 
         static void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
@@ -545,16 +550,26 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemUptime(const JsonObject& parameters,
                 JsonObject& response)
         {
-            std::string value = std::to_string(getUptimeMS() / 1e3);
-            value = value.erase(value.find_last_not_of("0") + 1);
+            struct timespec time;
+            bool result = false;
 
-            if (value.back() == '.')
-                value += '0';
+            if (clock_gettime(CLOCK_MONOTONIC_RAW, &time) == 0)
+            {
+                float uptime = (float)time.tv_sec + (float)time.tv_nsec / 1e9;
+                std::string value = std::to_string(uptime);
+                value = value.erase(value.find_last_not_of("0") + 1);
 
-            response["systemUptime"] = value;
-            LOGINFO("uptime is %s seconds", value.c_str());
+                if (value.back() == '.')
+                    value += '0';
 
-            returnResponse(true);
+                response["systemUptime"] = value;
+                LOGINFO("uptime is %s seconds", value.c_str());
+                result = true;
+                }
+            else
+                LOGERR("unable to evaluate uptime by clock_gettime");
+
+            returnResponse(result);
         }
 
         /**
@@ -568,28 +583,62 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-                string queryParams = parameters["params"].String();
-                removeCharsFromString(queryParams, "[\"]");
-                string methodType = queryParams;
-                string respBuffer;
-                string fileName = "/tmp/." + methodType;
-                LOGERR("accessing fileName : %s\n", fileName.c_str());
+            string queryParams = parameters["params"].String();
+            removeCharsFromString(queryParams, "[\"]");
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
+                returnResponse(getManufacturerData(queryParams, response));
+            }
+#endif
+            string methodType = queryParams;
+            string respBuffer;
+            string fileName = "/tmp/." + methodType;
+            LOGERR("accessing fileName : %s\n", fileName.c_str());
             if (Utils::fileExists(fileName.c_str())) {
-                    respBuffer = collectDeviceInfo(methodType);
-                    removeCharsFromString(respBuffer, "\n\r");
-                    LOGERR("respBuffer : %s\n", respBuffer.c_str());
-                    if (respBuffer.length() <= 0) {
-                        populateResponseWithError(SysSrv_FileAccessFailed,
-                                response);
-                    } else {
-                        response[methodType.c_str()] = respBuffer;
-                        retAPIStatus = true;
-                    }
+                respBuffer = collectDeviceInfo(methodType);
+                removeCharsFromString(respBuffer, "\n\r");
+                LOGERR("respBuffer : %s\n", respBuffer.c_str());
+                if (respBuffer.length() <= 0) {
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
                 } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
+                    response[methodType.c_str()] = respBuffer;
+                    retAPIStatus = true;
+                }
+            } else {
+                populateResponseWithError(SysSrv_FileNotPresent, response);
             }
             returnResponse(retAPIStatus);
         }
+
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        bool SystemServices::getManufacturerData(const string& parameter, JsonObject& response)
+        {
+            LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
+
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
+            if (!parameter.compare(MODEL_NAME)) {
+                param.type = mfrSERIALIZED_TYPE_MODELNAME;
+            } else if (!parameter.compare(HARDWARE_ID)) {
+                param.type = mfrSERIALIZED_TYPE_HWID;
+            }
+            IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+            param.buffer[param.bufLen] = '\0';
+
+            LOGWARN("SystemService getDeviceInfo result %s", param.buffer);
+
+            bool status = false;
+            if (result == IARM_RESULT_SUCCESS) {
+                response[parameter.c_str()] = string(param.buffer);
+                status = true;
+            } else {
+                populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
+            }
+
+            return status;
+        }
+#endif
 
         /***
          * @brief : Checks if Moca is Enabled or Not.
@@ -1174,38 +1223,29 @@ namespace WPEFramework {
         bool SystemServices::getSerialNumberSnmp(JsonObject& response)
         {
             bool retAPIStatus = false;
-            pid_t pid;
-
-            if (-1 == (pid = fork())) {
-                LOGERR("could not fork\n");
-                return retAPIStatus;
-            }
-            if (0 == pid) {
-                if (Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
-                    execl("/bin/sh", "sh", "-c",
-                            "/lib/rdk/getStateDetails.sh STB_SER_NO", (char *)0);
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
-                //this script is expected to write to a file
-            } else {
-                retAPIStatus = false;
-                wait(NULL); //wait for child process to finish, only then start reading the file
-                std::vector<string> lines;
-                if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
-                    if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
-                        string serialNumber = lines.front();
-                        response["serialNumber"] = serialNumber;
-                        retAPIStatus = true;
-                    } else {
-                        populateResponseWithError(SysSrv_FileContentUnsupported, response);
-                    }
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
-            }
-            return retAPIStatus;
-        }
+	    if (!Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
+		LOGERR("/lib/rdk/getStateDetails.sh not found.");
+		populateResponseWithError(SysSrv_FileNotPresent, response);
+	    } else {
+		/* TODO: remove system() once alternate available. */
+		system("/lib/rdk/getStateDetails.sh STB_SER_NO");
+		std::vector<string> lines;
+		if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
+		    if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
+			string serialNumber = lines.front();
+			response["serialNumber"] = serialNumber;
+			retAPIStatus = true;
+		    } else {
+			LOGERR("Unexpected contents in %s file.", TMP_SERIAL_NUMBER_FILE);
+			populateResponseWithError(SysSrv_FileContentUnsupported, response);
+		    }
+		} else {
+		    LOGERR("%s file not found.", TMP_SERIAL_NUMBER_FILE);
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		}
+	    }
+	    return retAPIStatus;
+	}
 
         /***
          * @brief : To retrieve Device Serial Number
@@ -1259,7 +1299,7 @@ namespace WPEFramework {
                 response["downloadPercent"] = m_downloadPercent;
                 retStatus = true;
             } else {
-                response["downloadPercent"] = 0;
+                response["downloadPercent"] = -1;
                 retStatus = true;
             }
             returnResponse(retStatus);
@@ -1277,10 +1317,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            char downloadedFWVersion[] = "";
-            char downloadedFWLocation[] = "";
+            string downloadedFWVersion = "";
+            string downloadedFWLocation = "";
             bool isRebootDeferred = false;
             std::vector<string> lines;
+
+	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
+		    populateResponseWithError(SysSrv_FileNotPresent, response);
+		    returnResponse(retStat);
+	    }
 
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
@@ -1298,9 +1343,9 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            if (!((strcicmp(line.c_str(), "1"))
-                                        && (strcicmp(line.c_str(), "yes"))
-                                        && (strcicmp(line.c_str(), "true")))) {
+                            if (!((strncasecmp(line.c_str(), "1", strlen("1")))
+                                        && (strncasecmp(line.c_str(), "yes", strlen("yes")))
+                                        && (strncasecmp(line.c_str(), "true", strlen("true"))))) {
                                 isRebootDeferred = true;
                             }
                         }
@@ -1313,7 +1358,7 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWVersion, line.c_str());
+                            downloadedFWVersion = line.c_str();
                         }
                     }
                     found = line.find("DnldURL|");
@@ -1324,13 +1369,13 @@ namespace WPEFramework {
                         }
                         line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
                         if (line.length() > 1) {
-                            strcpy(downloadedFWLocation, line.c_str());
+                            downloadedFWLocation = line.c_str();
                         }
                     }
                 }
                 response["currentFWVersion"] = getStbVersionString();
-                response["downloadedFWVersion"] = string(downloadedFWVersion);
-                response["downloadedFWLocation"] = string(downloadedFWLocation);
+                response["downloadedFWVersion"] = downloadedFWVersion;
+                response["downloadedFWLocation"] = downloadedFWLocation;
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
             } else {
@@ -1501,40 +1546,46 @@ namespace WPEFramework {
 
         /***
          * @brief : To set the Time to TZ_FILE.
-         * @param1[in]	: {"params":{"param":{"timeZone":"<string>"}}}
+         * @param1[in]	: {"params":{"timeZone":"<string>"}}
          * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return		: Core::<StatusCode>
          */
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            std::string dir = dirnameOf(TZ_FILE);
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string timeZone = param["timeZone"].String();
-            ofstream outfile;
-            bool resp = false;
+	{
+		std::string dir = dirnameOf(TZ_FILE);
+		ofstream outfile;
+		std::string timeZone = "";
+		bool resp = false;
+		try {
+			timeZone = parameters["timeZone"].String();
+			if (timeZone.empty() || (timeZone == "null")) {
+				LOGERR("Empty timeZone received.");
+			} else {
+				if (!dirExists(dir)) {
+					std::string command = "mkdir -p " + dir + " \0";
+					Utils::cRunScript(command.c_str());
+				} else {
+					//Do nothing//
+				}
 
-            if (!dirExists(dir)) {
-                std::string command = "mkdir -p " + dir + " \0";
-                Utils::cRunScript(command.c_str());
-            } else {
-                //Do nothing//
-            }
-
-            outfile.open(TZ_FILE,ios::out);
-            if (outfile) {
-                outfile << timeZone;
-                outfile.close();
-                LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
-                resp = true;
-            } else {
-                LOGERR("Unable to open %s file.\n", TZ_FILE);
-                populateResponseWithError(SysSrv_FileAccessFailed, response);
-                resp = false;
-            }
-            returnResponse(resp);
-        }
+				outfile.open(TZ_FILE,ios::out);
+				if (outfile) {
+					outfile << timeZone;
+					outfile.close();
+					LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
+					resp = true;
+				} else {
+					LOGERR("Unable to open %s file.\n", TZ_FILE);
+					populateResponseWithError(SysSrv_FileAccessFailed, response);
+					resp = false;
+				}
+			}
+		} catch (...) {
+			LOGERR("catch block : parameters[\"timeZone\"]...");
+		}
+		returnResponse(resp);
+	}
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
@@ -1592,25 +1643,28 @@ namespace WPEFramework {
 
         /***
          * @brief : To get cashed value .
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"result":{"<cachekey>":"<string>","success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::getCachedValue(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            LOGWARN("key: %s\n", key.c_str());
-            response[(key.c_str())] = m_cacheService.getValue(key).String();
-            returnResponse(true);
-        }
+			JsonObject& response)
+	{
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		LOGWARN("key: %s\n", key.c_str());
+		if (key.length()) {
+			response[(key.c_str())] = m_cacheService.getValue(key).String();
+			retStat = true;
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
+	}
 
         /***
          * @brief : To set cache value.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>",
-         *                 "cacheValue":<double>}}}
+         * @param1[in]  : {"params":{"key":"<string>","value":<double>}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
@@ -1618,59 +1672,68 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            std::string value = param["cacheValue"].String();
+            std::string key = parameters["key"].String();
+            std::string value = parameters["value"].String();
 
-            if (m_cacheService.setValue(key, value)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.setValue failed\n.");
-            }
-            returnResponse(retStat);
+	    if (key.length() && value.length()) {
+		    if (m_cacheService.setValue(key, value)) {
+			    retStat = true;
+		    } else {
+			    LOGERR("Accessing m_cacheService.setValue failed\n.");
+			    populateResponseWithError(SysSrv_Unexpected, response);
+		    }
+	    } else {
+		    populateResponseWithError(SysSrv_UnSupportedFormat, response);
+	    }
+	    returnResponse(retStat);
         }
 
         /***
          * @brief : To check if key value present in cache.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::cacheContains(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            if (m_cacheService.contains(key)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.contains failed\n.");
-            }
-            returnResponse(retStat);
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		if (key.length()) {
+			if (m_cacheService.contains(key)) {
+				retStat = true;
+			} else {
+				LOGERR("Accessing m_cacheService.contains failed\n.");
+				populateResponseWithError(SysSrv_Unexpected, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
         }
 
         /***
          * @brief : To delete the key value present in cache.
-         * @param1[in]  : {"params":{"param":{"cacheKey":"<string>"}}}
+         * @param1[in]  : {"params":{"key":"<string>"}}
          * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::removeCacheKey(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            if (m_cacheService.remove(key)) {
-                retStat = true;
-            } else {
-                LOGERR("Accessing m_cacheService.remove failed\n.");
-            }
-            returnResponse(retStat);
+		bool retStat = false;
+		std::string key = parameters["key"].String();
+		if (key.length()) {
+			if (m_cacheService.remove(key)) {
+				retStat = true;
+			} else {
+				LOGERR("Accessing m_cacheService.remove failed\n.");
+				populateResponseWithError(SysSrv_Unexpected, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_UnSupportedFormat, response);
+		}
+		returnResponse(retStat);
         }
 
         /***
@@ -1739,28 +1802,30 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::getLastDeepSleepReason(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool retAPIStatus = false;
-            string reason;
+	{
+		bool retAPIStatus = false;
+		string reason;
 
-            if (Utils::fileExists(STANDBY_REASON_FILE)) {
-                    std::ifstream inFile(STANDBY_REASON_FILE);
-                    if (inFile) {
-                        std::getline(inFile, reason);
-                        inFile.close();
-                        retAPIStatus = true;
-                    } else {
-                        populateResponseWithError(SysSrv_FileAccessFailed, response);
-                    }
-                } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
-                }
+		if (Utils::fileExists(STANDBY_REASON_FILE)) {
+			std::ifstream inFile(STANDBY_REASON_FILE);
+			if (inFile) {
+				std::getline(inFile, reason);
+				inFile.close();
+				retAPIStatus = true;
+			} else {
+				populateResponseWithError(SysSrv_FileAccessFailed, response);
+			}
+		} else {
+			populateResponseWithError(SysSrv_FileNotPresent, response);
+		}
 
-                if (retAPIStatus && reason.length()) {
-                    response["lastDeepSleepReason"] = reason;
-            }
-            returnResponse(retAPIStatus);
-        }
+		if (retAPIStatus && reason.length()) {
+			response["reason"] = reason;
+		} else {
+			response["reason"] = "";
+		}
+		returnResponse(retAPIStatus);
+	}
 
         /***
          * @brief : Used to clear last deep sleep reason.
@@ -2028,24 +2093,24 @@ namespace WPEFramework {
 
         /***
          * @brief : Enables XRE Connection Retension option.
-         * @param1[in]  : {"params":{"param":<bool>}}
+         * @param1[in]  : {"params":{"enable":<bool>}}
          * @param2[out] : "result":{"success":<bool>}
          * @return      : Core::<StatusCode>
          */
         uint32_t SystemServices::enableXREConnectionRetention(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool enable = false, retstatus = false;
-            int status = SysSrv_Unexpected;
+	{
+		bool enable = false, retstatus = false;
+		int status = SysSrv_Unexpected;
 
-                enable = parameters["param"].Boolean();
-                if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
-                    retstatus = true;
-                } else {
-                    populateResponseWithError(status, response);
-            }
-            returnResponse(retstatus);
-        }
+		enable = parameters["enable"].Boolean();
+		if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
+			retstatus = true;
+		} else {
+			populateResponseWithError(status, response);
+		}
+		returnResponse(retstatus);
+	}
 
         /***
          * @brief : collect device state info.
@@ -2192,59 +2257,45 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::setDevicePowerState(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool retVal = false;
-            string sleepMode;
-            ofstream outfile;
-            outfile.open(STANDBY_REASON_FILE, ios::out);
-                JsonObject paramIn, paramOut;
-                string state = parameters["powerState"].String();
-                string reason = parameters["standbyReason"].String();
+	{
+		bool retVal = false;
+		string sleepMode;
+		ofstream outfile;
+		JsonObject paramIn, paramOut;
+		string state = parameters["powerState"].String();
+		string reason = parameters["standbyReason"].String();
+		/* Power state defaults standbyReason is "application". */
+		reason = ((reason.length()) ? reason : "application");
 
-
-                if(state=="STANDBY")
-                {
-
-
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
-                        /* TODO: parse abd get the sleepMode from paramOut */
-                        sleepMode= paramOut["preferredStandbyMode"].String();
-
-
-                    LOGWARN("Output of preferredStandbyMode: '%s'", sleepMode.c_str());
-
-                    }
-                    else {
-                        LOGWARN("SystemServices::_instance is NULL.\n");
-                    }
-                    if(convert("DEEP_SLEEP",sleepMode))
-                    {
-
-                        retVal = CPowerState::instance()->setPowerState(sleepMode);
-                    }
-                    else{
-
-                        retVal = CPowerState::instance()->setPowerState(state);
-                    }
-
-
-                    if (outfile) {
-                        outfile << reason;
-                        outfile.close();
-
-                    }
-                    else {
-                        printf(" GZ_FILE_ERROR: Can't open file for write mode\n");
-                    }
-
-                }
-                else {
-                    retVal = CPowerState::instance()->setPowerState(state);
-                    LOGERR("this platform has no API System and/or Powerstate\n");
-            }
-            returnResponse(retVal);
-        }//end of setPower State
+		if (state == "STANDBY") {
+			if (SystemServices::_instance) {
+				SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
+				/* TODO: parse abd get the sleepMode from paramOut */
+				sleepMode= paramOut["preferredStandbyMode"].String();
+				LOGWARN("Output of preferredStandbyMode: '%s'", sleepMode.c_str());
+			} else {
+				LOGWARN("SystemServices::_instance is NULL.\n");
+			}
+			if (convert("DEEP_SLEEP", sleepMode)) {
+				retVal = CPowerState::instance()->setPowerState(sleepMode);
+			} else {
+				retVal = CPowerState::instance()->setPowerState(state);
+			}
+			if (outfile) {
+				outfile.open(STANDBY_REASON_FILE, ios::out);
+				if (outfile.is_open()) {
+					outfile << reason;
+					outfile.close();
+				}
+			} else {
+				printf(" GZ_FILE_ERROR: Can't open file for write mode\n");
+			}
+		} else {
+			retVal = CPowerState::instance()->setPowerState(state);
+			LOGERR("this platform has no API System and/or Powerstate\n");
+		}
+		returnResponse(retVal);
+	}//end of setPower State
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
         /***
