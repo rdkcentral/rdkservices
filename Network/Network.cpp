@@ -35,6 +35,8 @@
 #define IARM_BUS_NETSRVMGR_API_isInterfaceEnabled "isInterfaceEnabled"
 #define IARM_BUS_NETSRVMGR_API_setInterfaceEnabled "setInterfaceEnabled"
 #define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
+#define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -58,6 +60,18 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     bool isInterfaceEnabled;
     bool persist;
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
+
+typedef struct {
+    char interface[16];
+    char ipversion[16];
+    bool autoconfig;
+    char ipaddress[16];
+    char netmask[16];
+    char gateway[16];
+    char primarydns[16];
+    char secondarydns[16];
+    bool isSupported;
+} IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
 typedef struct {
     char name[16];
@@ -134,6 +148,8 @@ namespace WPEFramework
             Register("ping",              &Network::ping, this);
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
+            Register("setIPSettings", &Network::setIPSettings, this);
+            Register("getIPSettings", &Network::getIPSettings, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -156,6 +172,8 @@ namespace WPEFramework
             Unregister("getNamedEndpoints");
             Unregister("ping");
             Unregister("pingNamedEndpoint");
+            Unregister("setIPSettings");
+            Unregister("getIPSettings");
 
             m_apiVersionNumber = 0;
             Network::_instance = NULL;
@@ -573,6 +591,103 @@ namespace WPEFramework
             returnResponse(false);
         }
 
+        uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGWARN ("Entering %s \n", __FUNCTION__);
+            if (m_apiVersionNumber >= 1)
+            {
+                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
+                    (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
+                    (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+                {
+                    std::string interface = "";
+                    std::string ipversion = "";
+                    bool autoconfig = false;
+                    std::string ipaddr  = "";
+                    std::string netmask = "";
+                    std::string gateway = "";
+                    std::string primarydns   = "";
+                    std::string secondarydns = "";
+
+                    getStringParameter("interface", interface);
+                    getStringParameter("ipversion", ipversion);
+                    getBoolParameter("autoconfig", autoconfig);
+                    getStringParameter("ipaddr", ipaddr);
+                    getStringParameter("netmask", netmask);
+                    getStringParameter("gateway", gateway);
+                    getStringParameter("primarydns", primarydns);
+                    getStringParameter("secondarydns", secondarydns);
+
+                    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+                    strncpy(iarmData.interface, interface.c_str(), 16);
+                    strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+                    iarmData.autoconfig = autoconfig;
+                    strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
+                    strncpy(iarmData.netmask, netmask.c_str(), 16);
+                    strncpy(iarmData.gateway, gateway.c_str(), 16);
+                    strncpy(iarmData.primarydns, primarydns.c_str(), 16);
+                    strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
+                    iarmData.isSupported = true;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *)&iarmData, sizeof(iarmData)))
+                    {
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(true);
+                    }
+                    else
+                    {
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(false);
+                    }
+                }
+            }
+            else
+            {
+                LOGWARN ("This version of Network Software is not supporting this API..\n");
+            }
+
+            returnResponse(false);
+        }
+
+        uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGWARN ("Entering %s \n", __FUNCTION__);
+            if (m_apiVersionNumber >= 1)
+            {
+                if (parameters.HasLabel("interface"))
+                {
+                    std::string interface = "";
+                    getStringParameter("interface", interface);
+
+                    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+                    strncpy(iarmData.interface, interface.c_str(), 16);
+                    iarmData.isSupported = true;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+                    {
+                        response["interface"] = string(iarmData.interface);
+                        response["ipversion"] = string(iarmData.ipversion);
+                        response["autoconfig"] = iarmData.autoconfig;
+                        response["ipaddress"] = string(iarmData.ipaddress);
+                        response["netmask"] = string(iarmData.netmask);
+                        response["gateway"] = string(iarmData.gateway);
+                        response["primarydns"] = string(iarmData.primarydns);
+                        response["secondarydns"] = string(iarmData.secondarydns);
+                        returnResponse(true);
+                    }
+                    else
+                    {
+                        returnResponse(false);
+                    }
+                }
+            }
+            else
+            {
+                LOGWARN ("This version of Network Software is not supporting this API..\n");
+            }
+
+            returnResponse(false);
+        }
 
         /*
          * Notifications
