@@ -241,6 +241,26 @@ namespace WPEFramework {
             out += std::to_string(m_counter++);
         }
 
+        bool NetUtils::isIPV6LinkLocal(const std::string& address)
+        {
+            struct sockaddr_in6 sa6;
+
+            if (inet_pton(AF_INET6, address.c_str(), &(sa6.sin6_addr)) == 0)
+                return false;
+            else
+                return IN6_IS_ADDR_LINKLOCAL(&sa6.sin6_addr);
+        }
+
+        bool NetUtils::isIPV4LinkLocal(const std::string& address)
+        {
+            struct sockaddr_in sa;
+
+            if (inet_pton(AF_INET, address.c_str(), &(sa.sin_addr)) == 0)
+                return false;
+            else
+                return IN_IS_ADDR_LINKLOCAL(sa.sin_addr.s_addr);
+        }
+
         // Not every character can be used for endpoint
         bool NetUtils::_isCharacterIllegal(const int& c)
         {
