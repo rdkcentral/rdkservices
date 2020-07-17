@@ -421,6 +421,8 @@ static GSourceFuncs _handlerIntervention =
                 , PTSOffset(0)
                 , ScaleFactor(1.0)
                 , MaxFPS(60)
+                , ClientCert()
+                , ClientCertKey()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -458,6 +460,8 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("scalefactor"), &ScaleFactor);
                 Add(_T("maxfps"), &MaxFPS);
                 Add(_T("bundle"), &Bundle);
+                Add(_T("clientcert"), &ClientCert);
+                Add(_T("clientcertkey"), &ClientCertKey);
             }
             ~Config()
             {
@@ -500,6 +504,8 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 ScaleFactor;
             Core::JSON::DecUInt8 MaxFPS; // A value between 1 and 100...
             BundleConfig Bundle;
+            Core::JSON::String ClientCert;
+            Core::JSON::String ClientCertKey;
         };
 
     private:
@@ -1217,6 +1223,11 @@ static GSourceFuncs _handlerIntervention =
 
             if (_config.LocalStorageEnabled.IsSet() == true) {
                 _localStorageEnabled = _config.LocalStorageEnabled.Value();
+            }
+
+            if (_config.ClientCert.IsSet() == true && _config.ClientCertKey.IsSet() == true) {
+                Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_PATH"), _config.ClientCert.Value(), !environmentOverride);
+                Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_KEY_PATH"), _config.ClientCertKey.Value(), !environmentOverride);
             }
 
             string width(Core::NumberType<uint16_t>(_config.Width.Value()).Text());
