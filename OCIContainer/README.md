@@ -254,23 +254,23 @@ Sample curl commands to use to test the API
 
 **ListContainers**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.listContainers"}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.listContainers"}'
 
 ```
 
 **Get State**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.getContainerState", "params": {"containerId": "SleepTest"}}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.getContainerState", "params": {"containerId": "SleepTest"}}'
 ```
 
 **Get Info**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.getContainerInfo", "params": {"containerId": "SleepTest"}}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.getContainerInfo", "params": {"containerId": "SleepTest"}}'
 ```
 
 **Start (Bundle path)**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{
    "jsonrpc":"2.0",
    "id":3,
    "method":"org.rdk.OCIContainer.1.startContainer",
@@ -283,7 +283,7 @@ curl -X POST http://127.0.0.1:9998/Service/ -d '{
 
 **Start (Dobby Spec)**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{
    "jsonrpc":"2.0",
    "id":3,
    "method":"org.rdk.OCIContainer.1.startContainerFromDobbySpec",
@@ -327,22 +327,22 @@ curl -X POST http://127.0.0.1:9998/Service/ -d '{
 
 **Stop Container**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.stopContainer", "params": {"containerId": "SleepTest"}}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.stopContainer", "params": {"containerId": "SleepTest"}}'
 ```
 
 **Pause Container**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.pauseContainer", "params": {"containerId": "SleepTest"}}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.pauseContainer", "params": {"containerId": "SleepTest"}}'
 ```
 
 **Resume Container**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.resumeContainer", "params": {"containerId": "SleepTest"}}'
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.OCIContainer.1.resumeContainer", "params": {"containerId": "SleepTest"}}'
 ```
 
 **Execute Command**
 ```
-curl -X POST http://127.0.0.1:9998/Service/ -d '{
+curl -X POST http://127.0.0.1:9998/jsonrpc/ -d '{
    "jsonrpc": "2.0",
    "id": 3,
    "method": "org.rdk.OCIContainer.1.executeCommand",
