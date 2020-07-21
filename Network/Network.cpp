@@ -532,18 +532,19 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                std::string endpoint = "";
+                string guid, endpoint;
                 uint32_t packets = DEFAULT_PING_PACKETS;
 
+                if (parameters.HasLabel("guid"))
+                    getStringParameter("guid", guid);
+
                 if (parameters.HasLabel("packets"))
-                {
                     getNumberParameter("packets", packets);
-                }
 
                 if (parameters.HasLabel("endpoint"))
                 {
                     getStringParameter("endpoint", endpoint);
-                    response = _doPing(endpoint, packets);
+                    response = _doPing(guid, endpoint, packets);
 
                     returnResponse(response["success"]);
                 }
@@ -564,18 +565,19 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                std::string endpoint = "";
+                string guid, endpoint;
                 uint32_t packets = DEFAULT_PING_PACKETS;
 
+                if (parameters.HasLabel("guid"))
+                    getStringParameter("guid", guid);
+
                 if (parameters.HasLabel("packets"))
-                {
                     getNumberParameter("packets", packets);
-                }
 
                 if (parameters.HasLabel("endpointName"))
                 {
                     getStringParameter("endpointName", endpoint);
-                    response = _doPingNamedEndpoint(endpoint, packets);
+                    response = _doPingNamedEndpoint(guid, endpoint, packets);
 
                     returnResponse(response["success"]);
                 }
