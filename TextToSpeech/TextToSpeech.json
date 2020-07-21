@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkTextToSpeech.so",
+ "classname":"TextToSpeech",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.TextToSpeech",
+ "autostart":true
+}

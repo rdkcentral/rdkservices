@@ -1,27 +1,8 @@
-/**
-* If not stated otherwise in this file or this component's LICENSE
-* file the following copyright and licenses apply:
-*
-* Copyright 2019 RDK Management
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-**/
-
 /*
- * If not stated otherwise in this file or this component's license file the
+ * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2018 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +18,15 @@
  */
 
 /**
- * @file TTSResource.cpp
- * @brief Thunder Plugin based Implementation for TTS service API's (RDK-RDK-25832).
+ * @file TextToSpeech.h
+ * @brief Thunder Plugin based Implementation for TTS service API's (RDK-27957).
  */
 
 /**
   @mainpage Text To Speech (TTS)
 
-  <b>TTSResource</b> TTS Resource Service provides APIs for the arbitrators 
-  * (ex: Receiver / Optimus App Manager) to reserve the TTS resource for a particular
-  * Application. Only when a TTS resource is reserved for an app, the service can be 
-  * used by the apps. (i.e., if the app has a session, its session will
-  * be made "active". If the app does not have a session, whenever the 
-  * session is created, it will be made active.
+  <b>TextToSpeech</b> TTS Thunder Service provides APIs for the arbitrators
+  * (ex: Native application such as Cobalt) to use TTS resource.
   */
 
 #pragma once
@@ -58,21 +35,19 @@
 #include <syscall.h>
 #include "Module.h"
 #include "impl/TTSManager.h"
-#include "impl/TTSSession.h"
 #include "tracing/Logging.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 #include "TTSServicesCommon.h"
-#include "impl/TextToSpeechCommon.h"
 #include <vector>
+#include <mutex>
 
 namespace WPEFramework {
     namespace Plugin {
 
-        class TTSConnectionCallback;
-        class TTSSessionServiceCallback;
+        class TTSEventCallback;
         /**
-        * @brief WPEFramework class declarioin for TextToSpeech 
+        * @brief WPEFramework class declaration for TextToSpeech
         **/
         // This is a server for a JSONRPC communication channel. 
         // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
@@ -96,238 +71,136 @@ namespace WPEFramework {
             TextToSpeech(const TextToSpeech&) = delete;
             TextToSpeech& operator=(const TextToSpeech&) = delete;
 
-            // TTS Global APIs
-            uint32_t enableTTS(const JsonObject& parameters, JsonObject& response);
-            uint32_t listVoices(const JsonObject& parameters, JsonObject& response);
-            uint32_t setTTSConfiguration(const JsonObject& parameters, JsonObject& response);
-            uint32_t getTTSConfiguration(const JsonObject& parameters, JsonObject& response);
-            bool isTTSEnabled(const JsonObject& parameters ,JsonObject& response);
-            uint32_t isSessionActiveForApp(const JsonObject& parameters, JsonObject& response);
+            //TTS Global APIS for Resident application
+            uint32_t enabletts(const JsonObject& parameters, JsonObject& response);
+            uint32_t listvoices(const JsonObject& parameters, JsonObject& response);
+            uint32_t setttsconfiguration(const JsonObject& parameters, JsonObject& response);
+            uint32_t getttsconfiguration(const JsonObject& parameters, JsonObject& response);
 
-
-            // Resource management APIs
-            uint32_t acquireResource(const JsonObject& parameters, JsonObject& response);
-            uint32_t claimResource(const JsonObject& parameters, JsonObject& response);
-            uint32_t releaseResource(const JsonObject& parameters, JsonObject& response);
-
-            //Session management APIs
-            uint32_t createSession(const JsonObject& parameters, JsonObject& response);
-            uint32_t destroySession(const JsonObject& parameters, JsonObject& response);
-            uint32_t isActiveSession(const JsonObject& parameters, JsonObject& response);
-            uint32_t setPreemptiveSpeak(const JsonObject& parameters, JsonObject& response);
-            uint32_t requestExtendedEvents(const JsonObject& parameters, JsonObject& response);
-
-            // Speak APIs
+            // Mandotory TTS APIs for client application
+            uint32_t isttsenabled(const JsonObject& parameters, JsonObject& response);
             uint32_t speak(const JsonObject& parameters, JsonObject& response);
+            uint32_t cancel(const JsonObject& parameters, JsonObject& response);
+
+            // These extended APIS can be used by Client application if needed
             uint32_t pause(const JsonObject& parameters, JsonObject& response);
             uint32_t resume(const JsonObject& parameters, JsonObject& response);
-            uint32_t abort(const JsonObject& parameters, JsonObject& response);
-            uint32_t isSpeaking(const JsonObject& parameters, JsonObject& response);
-            uint32_t getSpeechState(const JsonObject& parameters, JsonObject& response);
+            uint32_t isspeaking(const JsonObject& parameters, JsonObject& response);
+            uint32_t getspeechstate(const JsonObject& parameters, JsonObject& response);
 
             //version number API's
-            uint32_t getApiVersionNumber();
-            void setApiVersionNumber(uint32_t apiVersionNumber);
+            uint32_t getapiversion(const JsonObject& parameters, JsonObject& response);
 
-            TTS::ResourceAllocationPolicy getResourceAllocationPolicy();
-            void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items);
-            //End methods
         private:
-            static uint32_t m_serviceObjCount;
             static TTS::TTSManager* m_ttsManager;
-            static TTSConnectionCallback* m_connectionCallback;
-            static TTSSessionServiceCallback* m_sessionCallback;
+            static TTSEventCallback* m_eventCallback;
             TTS::Configuration m_config;
-            static TTS::ResourceAllocationPolicy m_policy;
-            static bool m_ttsEnabled;
             uint32_t m_apiVersionNumber;
-            std::map<uint32_t, SessionInfo*> m_sessionMap;
+            std::mutex  m_mutex;
 
         public:
             TextToSpeech();
             virtual ~TextToSpeech();
-            void restoreTextToSpeech();
             void notifyClient(std::string eventname, JsonObject& param);
-            void ResourceAcquired(uint32_t sessionId);
+            void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items);
         };
 
         /**
-        * @brief WPEFramework class declaration for TTSResourceCallback
+        *  TTSEventCallback for TTS events
         **/
-        class TTSConnectionCallback : public TTS::TTSConnectionCallback
+        class TTSEventCallback : public TTS::TTSEventCallback
         {
             public:
-                TTSConnectionCallback(TextToSpeech* callback)
+                TTSEventCallback(TextToSpeech* callback)
                 {
                     m_eventHandler = callback;
-                }
-
-                void onTTSServerConnected()
-                {
-                    LOGINFO("TTS Server Connected");
-                    m_eventHandler->restoreTextToSpeech();
-                }
-
-                void onTTSServerClosed()
-                {
-                    LOGINFO("TTS Server Closed");
                 }
 
                 void onTTSStateChanged(bool state)
                 {
                     JsonObject params;
                     params["state"] = JsonValue((bool)state);
-                    LOGINFO("TTS state changed to '%d'\n", state);
-                    m_eventHandler->notifyClient("onTTSStateChanged", params);
+                    m_eventHandler->notifyClient("onttsstatechanged", params);
                 }
 
                 void onVoiceChanged(std::string voice)
                 {
                     JsonObject params;
-                    LOGINFO("TTS voice changed (%s)", voice.c_str());
                     params["voice"] = voice;
-                    m_eventHandler->notifyClient("onVoiceChanged", params);
-                }
-            private:
-                TextToSpeech *m_eventHandler;
-        };
-
-       class TTSSessionServiceCallback : public TTS::TTSSessionCallback
-        {
-            public:
-                TTSSessionServiceCallback(TextToSpeech* callback )
-                {
-                    m_eventHandler = callback;
+                    m_eventHandler->notifyClient("onvoicechanged", params);
                 }
 
-                ~TTSSessionServiceCallback() {}
-
-                void onResourceAcquired(uint32_t appId, uint32_t sessionId)
+                void onWillSpeak(TTS::SpeechData &data)
                 {
-                    LOGINFO("onResourceAcquired appId(%d) sessionId(%d)", appId, sessionId);
-                    m_eventHandler->ResourceAcquired(sessionId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->notifyClient("onResourceAcquired", params);
-                }
-
-                void onResourceReleased(uint32_t appId, uint32_t sessionId)
-                {
-                    LOGINFO("onResourceReleased appId(%d) sessionId(%d)", appId, sessionId);
-                    JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->notifyClient("onResourceReleased", params);
-
-                }
-
-                void onTTSSessionCreated(uint32_t appId, uint32_t sessionId)
-                {
-                    LOGINFO("onTTSSessionCreated appId(%d) sessionId(%d)", appId, sessionId);
-                    JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    m_eventHandler->notifyClient("onTTSSessionCreated", params);
-                }
-
-
-                void onWillSpeak(uint32_t appId, uint32_t sessionId, TTS::SpeechData &data)
-                {
-                    LOGINFO("onWillSpeak appId(%d) sessionId(%d)", appId, sessionId);
-                    JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)data.id);
+                    params["speechid"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onWillSpeak", params);
+                    m_eventHandler->notifyClient("onwillspeak", params);
                 }
 
-                void onSpeechStart(uint32_t appId, uint32_t sessionId, TTS::SpeechData &data)
+                void onSpeechStart(TTS::SpeechData &data)
                 {
-                    LOGINFO("onSpeechStart(%d) sessionId(%d)", appId, sessionId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)data.id);
+                    params["speechid"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onSpeechStart", params);
+                    m_eventHandler->notifyClient("onspeechstart", params);
                 }
 
-                void onSpeechPause(uint32_t appId, uint32_t sessionId, uint32_t speechId)
+                void onSpeechPause(uint32_t speechId)
                 {
-                    LOGINFO("onSpeechPause appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onSpeechPause", params);
+                    params["speechid"]  = JsonValue((int)speechId);
+                    m_eventHandler->notifyClient("onspeechpause", params);
                 }
 
-                void onSpeechResume(uint32_t appId, uint32_t sessionId, uint32_t speechId) 
+                void onSpeechResume(uint32_t speechId)
                 {
-                    LOGINFO("onSpeechResume appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onSpeechResume", params);                }
+                    params["speechid"]  = JsonValue((int)speechId);
+                    m_eventHandler->notifyClient("onspeechresume", params);
+                }
 
-                void onSpeechCancelled(uint32_t appId, uint32_t sessionId, std::string id)
+                void onSpeechCancelled(std::vector<uint32_t> speechIds)
                 {
-                    char *token = strtok((char*)id.c_str(), ",");
-                    uint32_t speechId = 0;
-                    while(token) {
-                        speechId = atol(token);
-                        token = strtok(NULL, ",");
+                    std::stringstream ss;
+                    for(auto it = speechIds.begin(); it != speechIds.end(); ++it)
+                    {
+                        if(it != speechIds.begin())
+                            ss << ",";
+                        ss << *it;
                     }
-                    LOGINFO("onSpeechCancelled appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onSpeechCancelled", params);
+                    params["speechid"]  = ss.str().c_str();
+                    m_eventHandler->notifyClient("onspeechcancelled", params);
                 }
 
-                void onSpeechInterrupted(uint32_t appId, uint32_t sessionId, uint32_t speechId)
+                void onSpeechInterrupted(uint32_t speechId)
                 {
-                    LOGINFO("onSpeechInterrupted appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onSpeechInterrupted", params);
+                    params["speechid"]  = JsonValue((int)speechId);
+                    m_eventHandler->notifyClient("onspeechinterrupted", params);
                 }
 
-                void onNetworkError(uint32_t appId, uint32_t sessionId, uint32_t speechId)
+                void onNetworkError(uint32_t speechId)
                 {
-                    LOGINFO("onNetworkError appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onNetworkError", params);
+                    params["speechid"]  = JsonValue((int)speechId);
+                    m_eventHandler->notifyClient("onnetworkerror", params);
                 }
 
-                void onPlaybackError(uint32_t appId, uint32_t sessionId, uint32_t speechId)
+                void onPlaybackError(uint32_t speechId)
                 {
-                    LOGINFO("onPlaybackError appId(%d) sessionId(%d) speechId(%d)", appId, sessionId, speechId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onPlaybackError", params);
+                    params["speechid"]  = JsonValue((int)speechId);
+                    m_eventHandler->notifyClient("onplaybackerror", params);
                 }
 
-                void onSpeechComplete(uint32_t appId, uint32_t sessionId, TTS::SpeechData &data)
+                void onSpeechComplete(TTS::SpeechData &data)
                 {
-                    LOGINFO("onSpeechComplete appId(%d) sessionId(%d)", appId, sessionId);
                     JsonObject params;
-                    params["appId"]     = JsonValue((int)appId);
-                    params["sessionId"] = JsonValue((int)sessionId);
-                    params["speechId"]  = JsonValue((int)data.id);
+                    params["speechid"]  = JsonValue((int)data.id);
                     params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onSpeechComplete", params);
+                    m_eventHandler->notifyClient("onspeechcomplete", params);
                 }
 
             private:
