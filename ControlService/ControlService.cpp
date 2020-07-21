@@ -89,7 +89,6 @@ namespace WPEFramework {
             registerMethod("findMyRemote", &ControlService::findMyRemoteWrapper, this);
 
             setApiVersionNumber(7);
-            setQuirks("DELIA-43686");
         }
 
         ControlService::~ControlService()
@@ -727,7 +726,9 @@ namespace WPEFramework {
         uint32_t ControlService::getQuirks(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["quirks"] = m_quirks;
+            JsonArray array;
+            array.Add("DELIA-43686");
+            response["quirks"] = array;
             returnResponse(true);
         }
 
@@ -1594,12 +1595,6 @@ namespace WPEFramework {
         {
             LOGINFO("setting version: %d", (int)apiVersionNumber);
             m_apiVersionNumber = apiVersionNumber;
-        }
-
-        void ControlService::setQuirks(string quirks)
-        {
-            LOGINFO("setting quirks: %s", quirks);
-            m_quirks = quirks;
         }
 
         int ControlService::numericCtrlm2Int(ctrlm_key_code_t ctrlm_key)
