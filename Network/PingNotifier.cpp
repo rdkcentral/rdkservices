@@ -26,7 +26,7 @@ namespace WPEFramework
         /**
          * @ingroup SERVMGR_PING_API
          */
-        JsonObject Network::_doPing(std::string endPoint, int packets)
+        JsonObject Network::_doPing(const string& guid, const string& endPoint, int packets)
         {
             LOGINFO("PingService calling ping");
             JsonObject pingResult;
@@ -103,6 +103,7 @@ namespace WPEFramework
             {
                 pingResult["success"] = true;
                 pingResult["error"] = "";
+                pingResult["guid"] = guid;
 
                 char linearray[1000]={0x0};
                 while(fgets(linearray, sizeof(linearray), fp) != NULL)
@@ -187,7 +188,7 @@ namespace WPEFramework
         /**
          * @ingroup SERVMGR_PING_API
          */
-        JsonObject Network::_doPingNamedEndpoint(std::string endpointName, int packets)
+        JsonObject Network::_doPingNamedEndpoint(const string& guid, const string& endpointName, int packets)
         {
             LOGINFO("PingService calling pingNamedEndpoint for %s", endpointName.c_str());
             std::string error = "";
@@ -199,7 +200,7 @@ namespace WPEFramework
                 std::string gateway = "";
                 if (_getDefaultInterface(interface, gateway) && !gateway.empty())
                 {
-                    returnResult = _doPing(gateway, packets);
+                    returnResult = _doPing(guid, gateway, packets);
                 }
                 else
                 {
