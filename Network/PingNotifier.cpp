@@ -173,7 +173,7 @@ namespace WPEFramework
                         if (index >= 0)
                         {
                             fullpath = fullpath.substr(index + 1, fullpath.length());
-                            pingResult["tripStdDev"] = prefix.c_str();
+                            pingResult["tripStdDev"] = fullpath.c_str();
                         }
                     }
                     else if( line.find( "bad" ) != string::npos )
