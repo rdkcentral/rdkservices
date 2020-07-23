@@ -848,10 +848,12 @@ namespace Plugin {
                         info.Restart.Window = object.RestartWindow();
                     }
 
-                    translate(metaData.Allocated(), &info.Measurements.Allocated);
-                    translate(metaData.Resident(), &info.Measurements.Resident);
-                    translate(metaData.Shared(), &info.Measurements.Shared);
-                    translate(metaData.Process(), &info.Measurements.Process);
+                    if (object.HasMeasurement()) {
+                        translate(metaData.Allocated(), &info.Measurements.Allocated);
+                        translate(metaData.Resident(), &info.Measurements.Resident);
+                        translate(metaData.Shared(), &info.Measurements.Shared);
+                        translate(metaData.Process(), &info.Measurements.Process);
+                    }
                     info.Measurements.Operational = metaData.Operational();
                     info.Measurements.Count = metaData.Allocated().Measurements();
 
@@ -861,15 +863,11 @@ namespace Plugin {
                 if (callsign.empty() == false) {
                     auto element = _monitor.find(callsign);
                     if (element != _monitor.end()) {
-                        if (element->second.HasMeasurement() == true) {
-                            AddElement(element->first, element->second);
-                        }
+                        AddElement(element->first, element->second);
                     }
                 } else {
                     for (auto& element : _monitor) {
-                        if (element.second.HasMeasurement() == true) {
-                            AddElement(element.first, element.second);
-                        }
+                        AddElement(element.first, element.second);
                     }
                 }
 
