@@ -18,7 +18,11 @@
 set(PLUGIN_NAME Packager)
 set(MODULE_NAME WPEFramework${PLUGIN_NAME})
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if (BUILD_RDK)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+else (BUILD_RDK)
+    find_package(libprovision REQUIRED)
+endif (BUILD_RDK)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(LibOPKG REQUIRED)
@@ -29,17 +33,27 @@ add_library(${MODULE_NAME} SHARED
     Packager.cpp
     PackagerImplementation.cpp)
 
-target_include_directories(${MODULE_NAME}
-    PRIVATE
-        ${LIBOPKG_INCLUDE_DIRS}
-        )
+if (BUILD_RDK)
+    target_include_directories(${MODULE_NAME}
+        PRIVATE
+            ${LIBOPKG_INCLUDE_DIRS}
+            )
 
-target_link_libraries(${MODULE_NAME} 
-    PRIVATE
-        CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${LIBOPKG_LIBRARIES}
-        )
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            CompileSettingsDebug::CompileSettingsDebug
+            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+            ${LIBOPKG_LIBRARIES}
+            )
+else (BUILD_RDK)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            CompileSettingsDebug::CompileSettingsDebug
+            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+            libprovision::libprovision
+            LibOPKG::LibOPKG
+            )
+endif (BUILD_RDK)
 
 string(TOLOWER ${NAMESPACE} STORAGENAME)
 install(TARGETS ${MODULE_NAME} 
