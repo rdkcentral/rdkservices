@@ -71,6 +71,8 @@ namespace WPEFramework {
             uint32_t getNamedEndpoints(const JsonObject& parameters, JsonObject& response);
             uint32_t ping(const JsonObject& parameters, JsonObject& response);
             uint32_t pingNamedEndpoint(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
@@ -86,8 +88,8 @@ namespace WPEFramework {
             bool _doTrace(std::string &endpoint, int packets, JsonObject& response);
             bool _doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject& response);
 
-            JsonObject _doPing(std::string endPoint, int packets);
-            JsonObject _doPingNamedEndpoint(std::string endpointName, int packets);
+            JsonObject _doPing(const std::string& guid, const std::string& endPoint, int packets);
+            JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
 
         public:
             Network();

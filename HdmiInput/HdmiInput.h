@@ -55,6 +55,8 @@ namespace WPEFramework {
             uint32_t getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             JsonArray getHDMIInputDevices();

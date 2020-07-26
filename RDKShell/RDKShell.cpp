@@ -173,7 +173,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this))
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -223,6 +223,7 @@ namespace WPEFramework {
             mRemoteShell = false;
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
+            mEnableUserInactivityNotification = false;
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -234,11 +235,18 @@ namespace WPEFramework {
             bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
             {
-              CompositorController::enableInactivityReporting(true);
+              mEnableUserInactivityNotification = true;
               ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
               if (true == ret && param.type == WDMP_STRING)
               {
-                CompositorController::setInactivityInterval(std::stod(param.value));
+                try
+                {
+                  CompositorController::setInactivityInterval(std::stod(param.value));
+                }
+                catch (...)
+                { 
+                  std::cout << "RDKShell unable to set inactivity interval  " << std::endl;
+                }
               }
             }
 
@@ -1055,6 +1063,12 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
+            if (false == mEnableUserInactivityNotification)
+            {
+                result = false;
+                response["message"] = "feature is not enabled";
+            }
+
             if (!parameters.HasLabel("enable"))
             {
                 result = false;
@@ -1077,6 +1091,12 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
+            if (false == mEnableUserInactivityNotification)
+            {
+                result = false;
+                response["message"] = "feature is not enabled";
+            }
+
             if (!parameters.HasLabel("interval"))
             {
                 result = false;
@@ -1497,13 +1517,12 @@ namespace WPEFramework {
 
         bool RDKShell::setScreenResolution(const unsigned int w, const unsigned int h)
         {
-            bool ret = false;
             gRdkShellMutex.lock();
             receivedResolutionRequest = true;
             resolutionWidth = w;
             resolutionHeight = h;
             gRdkShellMutex.unlock();
-            return ret;
+            return true;
         }
 
         bool RDKShell::createDisplay(const string& client, const string& displayName)
@@ -1697,7 +1716,14 @@ namespace WPEFramework {
         bool RDKShell::setInactivityInterval(const string interval)
         {
             gRdkShellMutex.lock();
-            CompositorController::setInactivityInterval(std::stod(interval));
+            try
+            {
+              CompositorController::setInactivityInterval(std::stod(interval));
+            }
+            catch (...) 
+            {
+              std::cout << "RDKShell unable to set inactivity interval  " << std::endl;
+            }
             gRdkShellMutex.unlock();
             return true;
         }
