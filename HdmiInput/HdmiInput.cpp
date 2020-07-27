@@ -21,7 +21,9 @@
 #include "utils.h"
 
 #include "hdmiIn.hpp"
-
+#include "exception.hpp"
+#include "dsUtl.h"
+#include "dsError.h"
 #include "dsMgr.h"
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
@@ -30,6 +32,8 @@
 #define HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES "getHDMIInputDevices"
 #define HDMIINPUT_METHOD_WRITE_EDID "writeEDID"
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
+#define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
+#define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 
@@ -52,6 +56,9 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
             registerMethod(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
+            registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
+
         }
 
         HdmiInput::~HdmiInput()
@@ -82,6 +89,52 @@ namespace WPEFramework
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
             }
+        }
+
+        uint32_t HdmiInput::startHdmiInput(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO();
+            returnIfParamNotFound(parameters, "portId");
+
+            string sPortId = parameters["portId"].String();
+            int portId = 0;
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            bool success = true;
+            try
+            {
+                device::HdmiInput::getInstance().selectPort(portId);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                success = false;
+            }
+            returnResponse(success);
+
+        }
+
+        uint32_t HdmiInput::stopHdmiInput(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO();
+
+            bool success = true;
+            try
+            {
+                device::HdmiInput::getInstance().selectPort(-1);
+            }
+            catch (const device::Exception& err)
+            {
+                LOGWARN("HdmiInputService::stopHdmiInput Failed");
+                success = false;
+            }
+            returnResponse(success);
+
         }
 
         uint32_t HdmiInput::getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
