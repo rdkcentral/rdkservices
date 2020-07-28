@@ -77,6 +77,9 @@ add_definitions (-DBUILD_ENABLE_THERMAL_PROTECTION)
    add_definitions (-DENABLE_THERMAL_PROTECTION)
 endif()
 
+if (AMLOGIC_E2)
+    add_definitions (-DAMLOGIC_E2)
+endif()
 
 if (BUILD_LLAMA)
     message("Building for LLAMA")
