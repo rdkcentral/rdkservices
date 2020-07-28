@@ -224,6 +224,7 @@ namespace WPEFramework {
 
         private/*members*/:
             bool mRemoteShell;
+            bool mEnableUserInactivityNotification;
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             //std::mutex m_callMutex;
