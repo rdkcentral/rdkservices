@@ -394,7 +394,7 @@ bool XCast::checkXcastSettingsStatus()
     file.Open(false);
     if (!file.IsOpen())
     {
-        LOGINFO("XcastService::persistance file not present create with default setting true);
+        LOGINFO("XcastService::persistance file not present create with default setting true");
         file.Create();
         JsonObject parameters;
         parameters[XCAST_SETTING_ENABLED] = true;
