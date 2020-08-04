@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "PlayerInfo.h"
 
 namespace WPEFramework {
@@ -53,6 +53,11 @@ namespace Plugin {
                     _player->Release();
                     _player = nullptr;
                 }
+                else
+                {
+                    _atmosproperties = _player->QueryInterface<Exchange::IPlayerAtmosProperties>();
+                    if (_atmosproperties) _notification.Initialize(_atmosproperties);
+                }
             } else {
                 _player->Release();
                 _player = nullptr;
@@ -67,10 +72,18 @@ namespace Plugin {
 
     /* virtual */ void PlayerInfo::Deinitialize(PluginHost::IShell* service)
     {
+        _notification.Deinitialize();
+
         ASSERT(_player != nullptr);
         if (_player != nullptr) {
             _player->Release();
         }
+        if (_atmosproperties != nullptr)
+        {
+            _atmosproperties->Release();
+            _atmosproperties = nullptr;
+        }
+
         _connectionId = 0;
     }
 
@@ -128,6 +141,21 @@ namespace Plugin {
         while(_videoCodecs->Next()) {
             playerInfo.Video.Add(videoCodec = static_cast<JsonData::PlayerInfo::CodecsData::VideocodecsType>(_videoCodecs->Codec()));
         }
+    }
+
+    void PlayerInfo::getSinkAtmosCapability(JsonData::PlayerInfo::SinkAtmosCapabilityData& response) const
+    {
+        response.SinkAtmosCapability = _atmosproperties->getSinkAtmosCapability();
+    }
+
+    void PlayerInfo::getSoundMode(JsonData::PlayerInfo::SoundModeData& response) const
+    {
+        response.SoundMode = _atmosproperties->getSoundMode();
+    }
+
+    void PlayerInfo::setAudioAtmosOutputMode(const JsonData::PlayerInfo::AudioAtmosOutputModeData& param)
+    {
+        _atmosproperties->setAudioAtmosOutputMode(param.AudioAtmosOutputMode.Value());
     }
 
 } // namespace Plugin

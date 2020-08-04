@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "DisplayInfo.h"
+#include <string>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -48,6 +49,8 @@ namespace Plugin {
                 _connectionProperties = nullptr;
             } else {
                 _notification.Initialize(_connectionProperties);
+                _displayProperties = _connectionProperties->QueryInterface<Exchange::IDisplayProperties>();
+                if (_displayProperties) _notification.Initialize(_displayProperties);
             }
         }
 
@@ -74,6 +77,12 @@ namespace Plugin {
         if (_connectionProperties != nullptr) {
             _connectionProperties->Release();
             _connectionProperties = nullptr;
+        }
+
+        if (_displayProperties != nullptr)
+        {
+            _displayProperties->Release();
+            _displayProperties = nullptr;
         }
 
         _connectionId = 0;
@@ -133,6 +142,81 @@ namespace Plugin {
         displayInfo.Hdcpminor = _connectionProperties->HDCPMinor();
         displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(_connectionProperties->Type());
     }
+
+    void DisplayInfo::getCurrentResolution(JsonData::DisplayInfo::VideoPlaybackResolutionData& playbackResolution) const
+    {
+        playbackResolution.VideoPlaybackResolution = _displayProperties->getCurrentResolution();
+    }
+
+    void DisplayInfo::getConnectedVideoDisplay(JsonData::DisplayInfo::VideoOutputPortNameData& connectedDisplay) const
+    {
+        connectedDisplay.VideoOutputPortName = _displayProperties->getConnectedVideoDisplay();
+    }
+
+    void DisplayInfo::getTVHDRCapabilities(JsonData::DisplayInfo::TvHdrCapabilitesData& TvHdrCaps) const
+    {
+        string hdrCaps("");
+        int capabilities = 0;
+        _displayProperties->getTvHdrCapabilities(hdrCaps, capabilities);
+        string delim = ",";
+        size_t pos = 0;
+        string token;
+        while ((pos = hdrCaps.find(delim)) != string::npos)
+        {
+            Core::JSON::String hdrCap;
+            token = hdrCaps.substr(0, pos);
+            hdrCap.FromString(_T(token));
+            TvHdrCaps.TvHdrCapabilites.Add(hdrCap);
+            hdrCaps.erase(0, pos + delim.length());
+        }
+        TvHdrCaps.Capabilities = capabilities;
+    }
+
+    void DisplayInfo::getSettopHDRSupport(JsonData::DisplayInfo::StbHdrCapabilitiesData& StbHdrCaps) const
+    {
+        string hdrCaps("");
+        int capabilities = 0;
+        _displayProperties->getStbHdrCapabilities(hdrCaps, capabilities);
+        string delim = ",";
+        size_t pos = 0;
+        string token;
+        while ((pos = hdrCaps.find(delim)) != string::npos)
+        {
+            Core::JSON::String hdrCap;
+            token = hdrCaps.substr(0, pos);
+            hdrCap.FromString(_T(token));
+            StbHdrCaps.StbHdrCapabilities.Add(hdrCap);
+            hdrCaps.erase(0, pos + delim.length());
+        }
+        StbHdrCaps.Capabilities = capabilities;
+    }
+
+    void DisplayInfo::IsOutputHDR(JsonData::DisplayInfo::OutputHdrStatusData& OutputHdr) const
+    {
+        OutputHdr.IsOutputHDR = _displayProperties->isOutputHDR();
+    }
+
+    void DisplayInfo::getHdmiPreferences(JsonData::DisplayInfo::HdmiPreferencesData& HdmiPref) const
+    {
+        int hdcpversion = _displayProperties->getHdmiPreferences();
+        if(hdcpversion) HdmiPref.CurrentHdcpProtocol = hdcpversion;
+    }
+
+    void DisplayInfo::setHdmiPreferences(const JsonData::DisplayInfo::HdmiPreferencesData& HdmiPref)
+    {
+        _displayProperties->setHdmiPreferences(HdmiPref.CurrentHdcpProtocol.Value());
+    }
+
+    void DisplayInfo::isAudioEquivalenceEnabled(JsonData::DisplayInfo::AudioEquivalenceStatusData& AudioEq) const
+    {
+        AudioEq.IsAudioEquivalenceEnabled = _displayProperties->isAudioEquivalenceEnabled();
+    }
+
+    void DisplayInfo::readEDID(JsonData::DisplayInfo::EDIDData& EDIDData) const
+    {
+        EDIDData.EdidData = _displayProperties->readEDID();
+    }
+
 
 } // namespace Plugin
 } // namespace WPEFramework
