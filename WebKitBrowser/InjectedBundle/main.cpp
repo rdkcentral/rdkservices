@@ -33,7 +33,10 @@
 #include "Utils.h"
 #include "WhiteListedOriginDomainsList.h"
 #include "RequestHeaders.h"
+
+#if defined(ENABLE_BADGER_BRIDGE)
 #include "BridgeObject.h"
+#endif
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
 #include "AAMPJSBindings.h"
@@ -112,7 +115,6 @@ public:
 
     void WhiteList(WKBundleRef bundle)
     {
-
         // Whitelist origin/domain pairs for CORS, if set.
         if (_whiteListedOriginDomainPairs) {
             _whiteListedOriginDomainPairs->AddWhiteListToWebKit(bundle);
@@ -245,7 +247,9 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
             #if defined(ENABLE_AAMP_JSBINDINGS)
             JavaScript::AAMP::LoadJSBindings(frame);
             #endif
+            #if defined(ENABLE_BADGER_BRIDGE)
             JavaScript::BridgeObject::InjectJS(frame);
+            #endif
         }
 
         // Add JS classes to JS world.
@@ -330,8 +334,10 @@ static void didReceiveMessageToPage(
         return;
     }
 
+    #if defined(ENABLE_BADGER_BRIDGE)
     if (JavaScript::BridgeObject::HandleMessageToPage(page, messageName, messageBody))
         return;
+    #endif
 }
 
 static void willDestroyPage(WKBundleRef, WKBundlePageRef page, const void*)
