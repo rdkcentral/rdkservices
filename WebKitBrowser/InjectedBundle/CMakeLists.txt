@@ -24,6 +24,7 @@ find_package(securityagent QUIET)
 option(PLUGIN_AMAZON_HAWAII "Enable the Amazon Player interface (Hawaii) in javascript." OFF)
 option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
+option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
 
 add_library(${MODULE_NAME} SHARED 
     main.cpp
@@ -35,7 +36,6 @@ add_library(${MODULE_NAME} SHARED
     ClassDefinition.cpp
     Tags.cpp
     RequestHeaders.cpp
-    BridgeObject.cpp
 )
 
 if(PLUGIN_AMAZON_HAWAII)
@@ -57,6 +57,11 @@ if(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${AAMP_JSBINDINGS_LIBRARIES})
+endif()
+
+if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
+    target_sources(${MODULE_NAME} PRIVATE BridgeObject.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_BADGER_BRIDGE)
 endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
