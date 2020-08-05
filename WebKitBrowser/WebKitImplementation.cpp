@@ -423,6 +423,7 @@ static GSourceFuncs _handlerIntervention =
                 , MaxFPS(60)
                 , ClientCert()
                 , ClientCertKey()
+                , LogToSystemConsoleEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -462,6 +463,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("bundle"), &Bundle);
                 Add(_T("clientcert"), &ClientCert);
                 Add(_T("clientcertkey"), &ClientCertKey);
+                Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
             }
             ~Config()
             {
@@ -506,6 +508,7 @@ static GSourceFuncs _handlerIntervention =
             BundleConfig Bundle;
             Core::JSON::String ClientCert;
             Core::JSON::String ClientCertKey;
+            Core::JSON::Boolean LogToSystemConsoleEnabled;
         };
 
     private:
@@ -1457,7 +1460,7 @@ static GSourceFuncs _handlerIntervention =
             WKPreferencesSetWebSecurityEnabled(preferences, allowMixedContent);
 
             // Turn off log message to stdout.
-            WKPreferencesSetLogsPageMessagesToSystemConsoleEnabled(preferences, false);
+            WKPreferencesSetLogsPageMessagesToSystemConsoleEnabled(preferences, _config.LogToSystemConsoleEnabled.Value());
 
             // Turn on gamepads.
             WKPreferencesSetGamepadsEnabled(preferences, true);
