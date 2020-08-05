@@ -97,6 +97,10 @@
           "localstorageenabled": {
             "type": "boolean",
             "summary": "Controls the local storage availability"
+          },
+          "logtosystemconsoleenabled": {
+            "type": "boolean",
+            "summary": "Enable page loging to system console (stderr)"
           }
         }
       }
