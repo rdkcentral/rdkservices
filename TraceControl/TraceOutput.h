@@ -29,13 +29,13 @@ namespace WPEFramework {
 namespace Plugin {
 
     class TraceOutput : public Trace::ITraceMedia {
-    private:
+    public:
         TraceOutput(const TraceOutput&) = delete;
         TraceOutput& operator=(const TraceOutput&) = delete;
 
-    public:
-        TraceOutput(const bool syslogging)
+        TraceOutput(const bool syslogging, const bool abbreviated)
             : _syslogging(syslogging)
+            , _abbreviated(abbreviated)
         {
         }
         virtual ~TraceOutput()
@@ -45,21 +45,31 @@ namespace Plugin {
     public:
         virtual void Output(const char fileName[], const uint32_t lineNumber, const char className[], const Trace::ITrace* information)
         {
-            // Time to printf...
-            string time(Core::Time::Now().ToRFC1123(true));
-
 #ifndef __WINDOWS__
             if (_syslogging == true) {
-                syslog(LOG_NOTICE, "[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                if( _abbreviated == true ) {
+                    string time(Core::Time::Now().ToTimeOnly(true));
+                    syslog(LOG_NOTICE, "[%s]: %s\n", time.c_str(), information->Data());
+                } else {
+                    string time(Core::Time::Now().ToRFC1123(true));
+                    syslog(LOG_NOTICE, "[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                }
             } else
 #endif
             {
-                printf("[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                if( _abbreviated == true ) {
+                    string time(Core::Time::Now().ToTimeOnly(true));
+                    printf("[%s]: %s\n", time.c_str(), information->Data());
+                } else {
+                    string time(Core::Time::Now().ToRFC1123(true));
+                    printf("[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                }
             }
         }
 
     private:
         bool _syslogging;
+        bool _abbreviated;
     };
 }
 }
