@@ -32,19 +32,25 @@ namespace Plugin {
 
     void SecurityAgent::RegisterAll()
     {
+        #ifdef SECURITY_TESTING_MODE
         Register<CreatetokenParamsData,CreatetokenResultInfo>(_T("createtoken"), &SecurityAgent::endpoint_createtoken, this);
+        #endif  
+
         Register<CreatetokenResultInfo,ValidateResultData>(_T("validate"), &SecurityAgent::endpoint_validate, this);
     }
 
     void SecurityAgent::UnregisterAll()
     {
         Unregister(_T("validate"));
+        #ifdef SECURITY_TESTING_MODE
         Unregister(_T("createtoken"));
+        #endif
     }
 
     // API implementation
     //
 
+    #ifdef SECURITY_TESTING_MODE
     // Method: createtoken - Creates Token
     // Return codes:
     //  - ERROR_NONE: Success
@@ -64,6 +70,7 @@ namespace Plugin {
 
         return result;
     }
+    #endif
 
     // Method: validate - Creates Token
     // Return codes:
