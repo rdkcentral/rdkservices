@@ -15,15 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME TTSServiceAPITest)
+set(PLUGIN_NAME TTSThunderAPITest)
 find_package(${NAMESPACE}Protocols REQUIRED)
 
-add_executable(${PLUGIN_NAME} TTSServiceAPITest.cpp)
+add_executable(${PLUGIN_NAME} TTSThunderAPITest.cpp)
 
 set_target_properties(${PLUGIN_NAME} PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     )
+
+target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
 
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
