@@ -18,7 +18,7 @@
 **/
 
 #include "Network.h"
-#include <linux/if.h>
+#include <net/if.h>
 
 #define DEFAULT_PING_PACKETS 15
 
@@ -693,7 +693,7 @@ namespace WPEFramework
 
             returnResponse(false);
         }
-       
+
         /*
          * Notifications
          */
