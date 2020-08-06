@@ -90,6 +90,7 @@ namespace WPEFramework {
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t isConnectedDeviceRepeater(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
@@ -105,8 +106,10 @@ namespace WPEFramework {
             uint32_t setMISteering(const JsonObject& parameters, JsonObject& response);
             uint32_t setGain(const JsonObject& parameters, JsonObject& response);
             uint32_t getGain(const JsonObject& parameters, JsonObject& response);
-            uint32_t setLevel(const JsonObject& parameters, JsonObject& response);
-            uint32_t getLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMuted(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMuted(const JsonObject& parameters, JsonObject& response);
+            uint32_t setVolumeLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t getVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
             //End methods
 

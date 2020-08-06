@@ -58,8 +58,9 @@ std::string TTS_CONFIGURATION_FILE = "/opt/tts/tts.ini";
 // -------------------------
 
 
+static uint32_t counter = 0;
+
 uint32_t nextSessionId() {
-    static uint32_t counter = 0;
     return ++counter;
 }
 
@@ -478,6 +479,8 @@ TTSSession* TTSManager::createSession(uint32_t appId, std::string appName, uint3
         if(it != m_sessionMap.end() && session) {
             TTSLOG_ERROR("Application \"%s\" already has a session \"%u\"", appName.c_str(), session->sessionId());
             status = TTS_CREATE_SESSION_DUPLICATE;
+            sessionID = session->sessionId();
+            ttsEnabled = m_ttsEnabled;
             return session;
         }
 
@@ -552,6 +555,7 @@ TTS_Error TTSManager::destroySession(uint32_t sessionId) {
     if(m_sessionMap.size() == 0) {
         TTSLOG_WARNING("All sessions were destroyed, destroy pipeline");
         m_speaker->ensurePipeline(false);
+        counter = 0;
     }
 
     return TTS_OK;

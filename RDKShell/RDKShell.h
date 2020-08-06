@@ -78,9 +78,20 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
+            static const string RDKSHELL_METHOD_LAUNCH_APPLICATION;
+            static const string RDKSHELL_METHOD_SUSPEND_APPLICATION;
+            static const string RDKSHELL_METHOD_RESUME_APPLICATION;
+            static const string RDKSHELL_METHOD_CLOSE_APPLICATION;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
+            static const string RDKSHELL_EVENT_ON_APP_LAUNCHED;
+            static const string RDKSHELL_EVENT_ON_APP_CONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_DISCONNECTED;
+            static const string RDKSHELL_EVENT_ON_APP_TERMINATED;
+            static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
+            static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
+            static const string RDKSHELL_EVENT_ON_APP_RESUMED;
 
         private/*registered methods (wrappers)*/:
 
@@ -116,6 +127,9 @@ namespace WPEFramework {
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -172,6 +186,8 @@ namespace WPEFramework {
                 virtual void onApplicationDisconnected(const std::string& client);
                 virtual void onApplicationTerminated(const std::string& client);
                 virtual void onApplicationFirstFrame(const std::string& client);
+                virtual void onApplicationSuspended(const std::string& client);
+                virtual void onApplicationResumed(const std::string& client);
                 virtual void onUserInactive(const double minutes);
 
               private:
@@ -208,6 +224,7 @@ namespace WPEFramework {
 
         private/*members*/:
             bool mRemoteShell;
+            bool mEnableUserInactivityNotification;
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             //std::mutex m_callMutex;

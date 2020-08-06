@@ -47,6 +47,7 @@ option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" O
 option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" OFF)
 option(PLUGIN_RDKSHELL "Include RDKShell plugin" OFF)
 option(PLUGIN_TEXTTOSPEECH "Include TextToSpeech plugin" OFF)
+option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -291,6 +292,14 @@ endif()
     if(PLUGIN_TEXTTOSPEECH)
         add_subdirectory(TextToSpeech)
     endif()
+
+if(PLUGIN_PERSISTENT_STORE)
+    add_subdirectory(PersistentStore)
+endif()
+
+if(PLUGIN_OCICONTAINER)
+    add_subdirectory(OCIContainer)
+endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")

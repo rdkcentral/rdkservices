@@ -9,3 +9,6 @@ within this component.
 
 Copyright (C) 2012 Raphael Kubo da Costa <rakuco@webkit.org>
 Licensed under the BSD-2 license
+
+Based on pxCore, Copyright 2015-2018 John Robinson
+Licensed under the Apache License, Version 2.0
