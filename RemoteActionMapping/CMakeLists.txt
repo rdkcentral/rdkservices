@@ -32,13 +32,14 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-find_package(IARMBus)
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 find_package(CTRLM)
 if (CTRLM_FOUND)
     add_definitions(-DCTRLM_FOUND)
     target_include_directories(${MODULE_NAME} PRIVATE ${CTRLM_INCLUDE_DIRS})
+    find_package(IARMBus)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
     find_package(IRMGR)
     target_include_directories(${MODULE_NAME} PRIVATE ${IRMGR_INCLUDE_DIRS})
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
