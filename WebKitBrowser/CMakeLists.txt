@@ -36,11 +36,17 @@ find_package(ProxyStubGenerator REQUIRED)
 find_package(JsonGenerator REQUIRED)
 
 ProxyStubGenerator(INPUT ${CMAKE_CURRENT_SOURCE_DIR}/interfaces)
-JsonGenerator(DOCS CODE STUBS
+JsonGenerator(CODE STUBS
   INPUT ${CMAKE_CURRENT_SOURCE_DIR}/WebKitBrowserPlugin.json
   IFDIR  ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
 )
+
+# JsonGenerator(DOCS
+#   INPUT ${CMAKE_CURRENT_SOURCE_DIR}/WebKitBrowserPlugin.json
+#   IFDIR  ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
+#   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/doc/
+# )
 
 option(PLUGIN_WEBKITBROWSER_YOUTUBE "Include YouTube in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_APPS "Include Apps instance in seperate plugin." OFF)
