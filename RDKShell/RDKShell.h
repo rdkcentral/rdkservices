@@ -175,7 +175,6 @@ namespace WPEFramework {
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
 
-            //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>& getThunderControllerClient();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static void getSecurityToken(std::string& token);
             static bool isThunderSecurityConfigured();
