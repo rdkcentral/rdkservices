@@ -78,10 +78,11 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
-            static const string RDKSHELL_METHOD_LAUNCH_APPLICATION;
-            static const string RDKSHELL_METHOD_SUSPEND_APPLICATION;
-            static const string RDKSHELL_METHOD_RESUME_APPLICATION;
-            static const string RDKSHELL_METHOD_CLOSE_APPLICATION;
+            static const string RDKSHELL_METHOD_LAUNCH;
+            static const string RDKSHELL_METHOD_SUSPEND;
+            static const string RDKSHELL_METHOD_DESTROY;
+            static const string RDKSHELL_METHOD_GET_AVAILABLE_TYPES;
+            static const string RDKSHELL_METHOD_GET_STATE;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -92,6 +93,9 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
+            static const string RDKSHELL_EVENT_ON_LAUNCHED;
+            static const string RDKSHELL_EVENT_ON_SUSPENDED;
+            static const string RDKSHELL_EVENT_ON_DESTROYED;
 
         private/*registered methods (wrappers)*/:
 
@@ -127,9 +131,11 @@ namespace WPEFramework {
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t destroyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getState(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -165,6 +171,18 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const string interval);
+            void onLaunched(const std::string& client);
+            void onSuspended(const std::string& client);
+            void onDestroyed(const std::string& client);
+
+            //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>& getThunderControllerClient();
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
+            static void getSecurityToken(std::string& token);
+            static bool isThunderSecurityConfigured();
+
+            static std::string m_sToken;
+            static bool m_sThunderSecurityChecked;
+
 
         private/*classes */:
 
