@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "PlayerInfo.h"
 
 namespace WPEFramework {
@@ -31,11 +31,17 @@ namespace Plugin {
     void PlayerInfo::RegisterAll()
     {
         Property<CodecsData>(_T("playerinfo"), &PlayerInfo::get_playerinfo, nullptr, this);
+        Property<SinkatmoscapabilityData>(_T("getsinkatmoscapability"), &PlayerInfo::getSinkAtmosCapabilityJrpc, nullptr, this);
+        Property<SoundmodeData>(_T("getsoundmode"), &PlayerInfo::getSoundModeJrpc, nullptr, this);
+        Property<AudioatmosoutputmodeData>(_T("setaudioatmosoutputmode"), nullptr, &PlayerInfo::setAudioAtmosOutputModeJrpc, this);
     }
 
     void PlayerInfo::UnregisterAll()
     {
         Unregister(_T("playerinfo"));
+        Unregister(_T("getsinkatmoscapability"));
+        Unregister(_T("getsoundmode"));
+        Unregister(_T("setaudioatmosoutputmode"));
     }
 
     // API implementation
@@ -50,6 +56,32 @@ namespace Plugin {
 
         return Core::ERROR_NONE;
     }
+
+    uint32_t PlayerInfo::getSinkAtmosCapabilityJrpc(SinkatmoscapabilityData& response) const
+    {
+       GetSinkAtmosCapability(response);
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t PlayerInfo::getSoundModeJrpc(SoundmodeData& response) const
+    {
+        GetSoundMode(response);
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t PlayerInfo::setAudioAtmosOutputModeJrpc(const AudioatmosoutputmodeData& param)
+    {
+        SetAudioAtmosOutputMode(param);
+        return Core::ERROR_NONE;
+    }
+
+    void PlayerInfo::AudioModeChangedJrpc(const string& audioPortMode, const string&  audioPortType)
+   {
+       AudiomodechangedParamsData params;
+       params.Audioportmode = audioPortMode;
+       params.Audioporttype = audioPortType;
+       Notify(_T("AudioPortModeChanged"), params);
+   }
 
 } // namespace Plugin
 

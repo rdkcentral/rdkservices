@@ -50,8 +50,24 @@ if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
         PRIVATE
             DISPLAYINFO_BCM_VERSION_MAJOR=${PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR})
 endif()
+if (USE_DEVICESETTINGS)
+    find_package(DS REQUIRED)
+    find_package(IARMBus REQUIRED)
+        target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+        target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES})
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            DeviceSettings/PlatformImplementation.cpp
+            ../helpers/utils.cpp)
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            NEXUS::NEXUS
+            NXCLIENT::NXCLIENT)
+    add_definitions( -Wall -O2 -fexceptions )
 
-if (NXCLIENT_FOUND AND NEXUS_FOUND)
+elseif (NXCLIENT_FOUND AND NEXUS_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
             Nexus/PlatformImplementation.cpp)
@@ -77,7 +93,7 @@ else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
 
-install(TARGETS ${MODULE_NAME} 
+install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
