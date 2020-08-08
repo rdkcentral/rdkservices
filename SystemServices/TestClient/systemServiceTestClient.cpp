@@ -372,7 +372,8 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 			break;
 
 		paramsArray.Add(input);
-	} while (true)
+	} while (true);
+
 	/* TODO: "params" or "param" ? */
 	parameters["params"] = paramsArray;
 
@@ -674,13 +675,13 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	std::string result, rfcListStr;
 	JsonArray rfcListArray;
 
-	std::cout << "Input required RFC List: "
+	std::cout << "Input required RFC List: ";
 	do {
 		std::cin >> rfcListStr;
 		if (!rfcListStr.length())
 			break;
 		rfcListArray.Add(rfcListStr);
-	} while
+	} while (true);
 
 	/* TODO: Documentation updation required. */
 	parameters["rfcList"] = rfcListArray;
@@ -1013,7 +1014,7 @@ void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IEl
 	std::string result;
 	unsigned int seconds = 0;
 
-	std::cout "Input Seconds :";
+	std::cout << "Input Seconds :";
 	std::cin >> seconds;
 
 	parameters["seconds"] = seconds;
@@ -1393,11 +1394,11 @@ int main(int argc, char** argv)
 	}
 
 	/* Thunder-Security: Get Security Token */
-	retStatus = GetSecurityToken(MAX_LENGTH,buffer);
+	retStatus = GetSecurityToken(MAX_LENGTH, g_ucSecToken);
 	if (retStatus <= 0) {
 		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : GetSecurityToken failed..." << std::endl;
 	} else {
-		std::string sToken = (char*)buffer;
+		std::string sToken = (char*)g_ucSecToken;
 		g_strSecToken = "token=" + sToken;
 	}
 
