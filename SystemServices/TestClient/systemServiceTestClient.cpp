@@ -139,6 +139,81 @@ std::map<SME_t, std::string> SMName = {
     {SME_MAX, "MAX"},
 };
 
+/******************************* Begin: Handle Selection *******************************/
+
+void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	if (!remoteObject)
+		return;
+
+	JsonObject parameters, response;
+	std::string result;
+	std::string key;
+
+	std::cout << "Key name to check :";
+	std::cin >> key;
+	parameters["key"] = key;
+	
+	parameters.ToString(result);
+	/* Hack ? - remove the escape characters from the result for aesthetics. */
+    result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+	std::cout << "Request : '" << result << "'" << std::endl;
+	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
+	if (Core::ERROR_NONE != status) {
+		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
+	} else {
+		response.ToString(result);
+		/* Hack ? - remove the escape characters from the result for aesthetics. */
+   		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+		std::cout << "Response: '" << result << "'" << std::endl;
+	}
+}
+
+void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	if (!remoteObject)
+		return;
+
+	JsonObject parameters, response;
+	std::string result;
+	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
+	if (Core::ERROR_NONE != status) {
+		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
+	} else {
+		response.ToString(result);
+		/* Hack ? - remove the escape characters from the result for aesthetics. */
+		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+		std::cout << "Response: '" << result << "'" << std::endl;
+	}
+}
+
+void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	if (!remoteObject)
+		return;
+
+	JsonObject parameters, response;
+	std::string result;
+	bool enable;
+
+	std::cout << "Enable ? (0/1) :";
+	std::cin >> enable;
+	parameters["enable"] = enable;
+	
+	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
+	if (Core::ERROR_NONE != status) {
+		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
+	} else {
+		response.ToString(result);
+		/* Hack ? - remove the escape characters from the result for aesthetics. */
+		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+		std::cout << "Response: '" << result << "'" << std::endl;
+	}
+}
+
+/******************************** End : Handle Selection *******************************/
+
+
 void showUsage(char *pName)
 {
     std::cout << pName << " <Thunder Access Environment> <ip:port> <callSign>" << std::endl;
@@ -214,10 +289,15 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 
     do {
         switch((retStatus = getChoice())) {
-            case SME_MAX: break;
-            /* TODO: implement Method options. */
+			case SME_cacheContains:
+				cacheContains(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_clearLastDeepSleepReason: clearLastDeepSleepReason(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_enableMoca: enableMoca(getMethodName((SME_t)retStatus), remoteObject); break;
+			/* TODO: implement Method options. */
+            case SME_MAX:
             default:
                 std::cout << "Selected method is ' " << getMethodName((SME_t)retStatus) << "'" << std::endl;
+				std::cout << "Select SME_MAX to exit" << std::endl;
                 break;
         }
     } while (retStatus != SME_MAX);
