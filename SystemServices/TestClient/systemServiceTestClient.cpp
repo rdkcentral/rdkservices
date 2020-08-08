@@ -35,12 +35,18 @@
 #include <type_traits>
 #include <core/core.h>
 #include <websocket/websocket.h>
+#include <securityagent/SecurityTokenUtil.h>
 
 #define SYSPLUGIN_CALLSIGN		"org.rdk.System"
 #define SYSPLUGIN_SERVER_PORT	"127.0.0.1:9998"
+#define MAX_LENGTH 1024
 
 using namespace std;
 using namespace WPEFramework;
+
+/* Thunder-Security: Security Token */
+unsigned char g_ucSecToken[MAX_LENGTH] = {0};
+std::string g_strSecToken = "";
 
 inline uint64_t TimeStamp()
 {
@@ -150,7 +156,6 @@ std::map<SME_t, std::string> SMName = {
 
 /******************************* Begin: Handle Selection *******************************/
 
-<<<<<<< HEAD
 #ifdef DEBUG
 void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
@@ -173,14 +178,9 @@ void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON
 }
 #endif /* DEBUG */
 
-
 void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
-=======
-void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 	if (!remoteObject)
 		return;
 
@@ -191,41 +191,26 @@ void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	std::cout << "Key name to check :";
 	std::cin >> key;
 	parameters["key"] = key;
-<<<<<<< HEAD
 
 	parameters.ToString(result);
 	/* Hack ? - remove the escape characters from the result for aesthetics. */
 	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-=======
-	
-	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-    result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-	std::cout << "Request : '" << result << "'" << std::endl;
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
 	if (Core::ERROR_NONE != status) {
 		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
 	} else {
 		response.ToString(result);
 		/* Hack ? - remove the escape characters from the result for aesthetics. */
-<<<<<<< HEAD
 		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-=======
-   		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 		std::cout << "Response: '" << result << "'" << std::endl;
 	}
 }
 
 void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-<<<<<<< HEAD
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
-=======
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 	if (!remoteObject)
 		return;
 
@@ -244,7 +229,6 @@ void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JS
 
 void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-<<<<<<< HEAD
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
 	if (!remoteObject)
 		return;
@@ -271,14 +255,11 @@ void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> 
 void enableXREConnectionRetention(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
-=======
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 	if (!remoteObject)
 		return;
 
 	JsonObject parameters, response;
 	std::string result;
-<<<<<<< HEAD
 	bool enable = false;
 
 	std::cout << "Enable ? (0/1):";
@@ -532,14 +513,6 @@ void getMacAddresses(std::string methodName, JSONRPC::LinkType<Core::JSON::IElem
 	JsonObject parameters, response;
 	std::string result;
 
-=======
-	bool enable;
-
-	std::cout << "Enable ? (0/1) :";
-	std::cin >> enable;
-	parameters["enable"] = enable;
-	
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
 	if (Core::ERROR_NONE != status) {
 		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
@@ -551,7 +524,6 @@ void getMacAddresses(std::string methodName, JSONRPC::LinkType<Core::JSON::IElem
 	}
 }
 
-<<<<<<< HEAD
 void getMilestones(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
@@ -1276,10 +1248,6 @@ void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 }
 
 /******************************** End : Handle Selection *******************************/
-=======
-/******************************** End : Handle Selection *******************************/
-
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 
 void showUsage(char *pName)
 {
@@ -1349,7 +1317,6 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 {
 	int retStatus = 0;
 
-<<<<<<< HEAD
 	do {
 		switch((retStatus = getChoice())) {
 			case SME_cacheContains: cacheContains(getMethodName((SME_t)retStatus), remoteObject); break;
@@ -1402,22 +1369,6 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 				break;
 		}
 	} while (retStatus != SME_MAX);
-=======
-    do {
-        switch((retStatus = getChoice())) {
-			case SME_cacheContains:
-				cacheContains(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_clearLastDeepSleepReason: clearLastDeepSleepReason(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_enableMoca: enableMoca(getMethodName((SME_t)retStatus), remoteObject); break;
-			/* TODO: implement Method options. */
-            case SME_MAX:
-            default:
-                std::cout << "Selected method is ' " << getMethodName((SME_t)retStatus) << "'" << std::endl;
-				std::cout << "Select SME_MAX to exit" << std::endl;
-                break;
-        }
-    } while (retStatus != SME_MAX);
->>>>>>> 619200d1dd888c657b4b29b0c950c6ed4e0034df
 
 	return retStatus;
 }
@@ -1441,8 +1392,17 @@ int main(int argc, char** argv)
 		}
 	}
 
+	/* Thunder-Security: Get Security Token */
+	retStatus = GetSecurityToken(MAX_LENGTH,buffer);
+	if (retStatus <= 0) {
+		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : GetSecurityToken failed..." << std::endl;
+	} else {
+		std::string sToken = (char*)buffer;
+		g_strSecToken = "token=" + sToken;
+	}
+
 	Core::SystemInfo::SetEnvironment(_T(env), (_T(server)));
-	JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(callsign), _T(""));
+	JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(callsign), _T(""), false, g_strSecToken);
 
 	if (remoteObject) {
 		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : Registering Event Handlers..." << std::endl;
