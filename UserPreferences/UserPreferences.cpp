@@ -74,7 +74,7 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
-            response["language"] = string(val);
+            response[SETTINGS_FILE_KEY] = string(val);
 
             returnResponse(true);
         }
@@ -82,8 +82,8 @@ namespace WPEFramework {
         uint32_t UserPreferences::setUILanguage(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            returnIfStringParamNotFound(parameters, "language");
-            string language = parameters["language"].String();
+            returnIfStringParamNotFound(parameters, SETTINGS_FILE_KEY);
+            string language = parameters[SETTINGS_FILE_KEY].String();
 
             g_autoptr(GKeyFile) file = g_key_file_new();
             g_key_file_set_string(file, SETTINGS_FILE_GROUP, SETTINGS_FILE_KEY, (gchar *)language.c_str());
