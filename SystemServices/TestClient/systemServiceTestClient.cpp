@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <core/core.h>
 #include <websocket/websocket.h>
-#include <securityagent/SecurityTokenUtil.h>
+#include <securityagent/securityagent.h>
 
 #define SYSPLUGIN_CALLSIGN		"org.rdk.System"
 #define SYSPLUGIN_SERVER_PORT	"127.0.0.1:9998"
@@ -1394,9 +1394,9 @@ int main(int argc, char** argv)
 	}
 
 	/* Thunder-Security: Get Security Token */
-	retStatus = GetSecurityToken(MAX_LENGTH, g_ucSecToken);
+	retStatus = GetToken(sizeof(g_ucSecToken), sizeof(server), g_ucSecToken);
 	if (retStatus <= 0) {
-		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : GetSecurityToken failed..." << std::endl;
+		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : GetToken failed..." << std::endl;
 	} else {
 		std::string sToken = (char*)g_ucSecToken;
 		g_strSecToken = "token=" + sToken;

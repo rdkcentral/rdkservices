@@ -17,6 +17,8 @@
 
 set(PLUGIN_NAME systemServiceTestClient)
 find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(securityagent REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_executable(${PLUGIN_NAME} systemServiceTestClient.cpp)
 
@@ -28,6 +30,8 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
     ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    securityagent::securityagent
+    CompileSettingsDebug::CompileSettingsDebug
     )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
