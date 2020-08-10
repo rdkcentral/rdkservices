@@ -33,25 +33,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <type_traits>
-#include <core/core.h>
-#include <websocket/websocket.h>
-#include <securityagent/securityagent.h>
 
 #define SYSPLUGIN_CALLSIGN		"org.rdk.System"
 #define SYSPLUGIN_SERVER_PORT	"127.0.0.1:9998"
 #define MAX_LENGTH 1024
 
 using namespace std;
-using namespace WPEFramework;
+//using namespace WPEFramework;
 
 /* Thunder-Security: Security Token */
 unsigned char g_ucSecToken[MAX_LENGTH] = {0};
 std::string g_strSecToken = "";
 
-inline uint64_t TimeStamp()
+uint64_t TimeStamp(void)
 {
 	return std::chrono::duration_cast<std::chrono::microseconds>
 		(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+}
+
+std::string makePretty(std::string result)
+{
+    /* Hack ? - remove the escape characters from the result for aesthetics. */
+    result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+    return result;
 }
 
 typedef enum SME_t {
@@ -154,26 +158,35 @@ std::map<SME_t, std::string> SMName = {
 	{SME_MAX, "MAX"},
 };
 
+bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::string method, JsonObject &param, JsonObject &result)
+{
+    bool ret = false;
+    uint32_t retStatus = Core::ERROR_GENERAL;
+    std::string response;
+    assert(remoteObject != NULL);
+
+    retStatus = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(method), param, result);
+	if (Core::ERROR_NONE != retStatus) {
+		std::cout << "remoteObject->Invoke '" << method << "' failed[retStatus:" << retStatus << "]." << std::endl;
+	} else {
+		ret = true;
+	}
+    return ret;
+}
+
 /******************************* Begin: Handle Selection *******************************/
 
 #ifdef DEBUG
 void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	std::cout << "[" << TimeStamp() << "][" << __FUNCTION__ << "]" << std::endl;
-	if (!remoteObject)
-		return;
 
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 #endif /* DEBUG */
@@ -193,18 +206,11 @@ void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["key"] = key;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-	std::cout << "Request : '" << result << "'" << std::endl;
+	std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -216,14 +222,9 @@ void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JS
 
 	JsonObject parameters, response;
 	std::string result;
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -241,14 +242,9 @@ void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> 
 	std::cin >> enable;
 	parameters["value"] = enable;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -267,18 +263,11 @@ void enableXREConnectionRetention(std::string methodName, JSONRPC::LinkType<Core
 	parameters["enable"] = enable;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -291,14 +280,9 @@ void getAvailableStandbyModes(std::string methodName, JSONRPC::LinkType<Core::JS
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -317,18 +301,11 @@ void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	parameters["key"] = key;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -341,14 +318,9 @@ void getCoreTemperature(std::string methodName, JSONRPC::LinkType<Core::JSON::IE
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -378,18 +350,11 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["params"] = paramsArray;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -402,14 +367,9 @@ void getDownloadedFirmwareInfo(std::string methodName, JSONRPC::LinkType<Core::J
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -422,14 +382,9 @@ void getFirmwareDownloadPercent(std::string methodName, JSONRPC::LinkType<Core::
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -449,19 +404,12 @@ void getFirmwareUpdateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON:
 	if (guid.length()) {
 		parameters["GUID"] = guid;
 		parameters.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 		std::cout << "Request : '" << result << "'" << std::endl;
 	}
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -474,14 +422,9 @@ void getFirmwareUpdateState(std::string methodName, JSONRPC::LinkType<Core::JSON
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -494,14 +437,9 @@ void getLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -514,14 +452,9 @@ void getMacAddresses(std::string methodName, JSONRPC::LinkType<Core::JSON::IElem
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -534,14 +467,9 @@ void getMilestones(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -554,14 +482,9 @@ void getMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *re
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -574,14 +497,9 @@ void getPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -594,14 +512,9 @@ void getPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSO
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -614,14 +527,9 @@ void getPreviousRebootInfo(std::string methodName, JSONRPC::LinkType<Core::JSON:
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -634,14 +542,9 @@ void getPreviousRebootInfo2(std::string methodName, JSONRPC::LinkType<Core::JSON
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -654,14 +557,9 @@ void getPreviousRebootReason(std::string methodName, JSONRPC::LinkType<Core::JSO
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -686,18 +584,11 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	/* TODO: Documentation updation required. */
 	parameters["rfcList"] = rfcListArray;
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -710,14 +601,9 @@ void getSerialNumber(std::string methodName, JSONRPC::LinkType<Core::JSON::IElem
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -735,18 +621,11 @@ void getStateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 
 	parameters["param"] = queryState;
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -759,14 +638,9 @@ void getSystemVersions(std::string methodName, JSONRPC::LinkType<Core::JSON::IEl
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -779,14 +653,9 @@ void getTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JS
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -799,14 +668,9 @@ void getTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -819,14 +683,9 @@ void getXconfParams(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -839,14 +698,9 @@ void hasRebootBeenRequested(std::string methodName, JSONRPC::LinkType<Core::JSON
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -859,14 +713,9 @@ void isGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement>
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -879,14 +728,9 @@ void queryMocaStatus(std::string methodName, JSONRPC::LinkType<Core::JSON::IElem
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -906,19 +750,12 @@ void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *rem
 		/* TODO: Update code & Doc to match SM Doc - "reason" with "rebootReason". */
 		parameters["reason"] = reason;
 		parameters.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 		std::cout << "Request : '" << result << "'" << std::endl;
 	}
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -936,18 +773,11 @@ void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 	parameters["key"] = key;
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -960,14 +790,9 @@ void requestSystemUptime(std::string methodName, JSONRPC::LinkType<Core::JSON::I
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -989,18 +814,11 @@ void setCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	parameters["value"] = value;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1020,18 +838,11 @@ void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IEl
 	parameters["seconds"] = seconds;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1051,18 +862,11 @@ void setGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	parameters["enabled"] = enabled;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1086,18 +890,11 @@ void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *re
 	parameters["modeInfo"] = modeInfo;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1119,18 +916,11 @@ void setPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["standbyReason"] = standbyReason;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1149,18 +939,11 @@ void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSO
 	parameters["standbyMode"] = standbyMode;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1183,18 +966,11 @@ void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JS
 	parameters["thresholds"] = thresholds;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1213,18 +989,11 @@ void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	parameters["timeZone"] = timeZone;
 
 	parameters.ToString(result);
-	/* Hack ? - remove the escape characters from the result for aesthetics. */
-	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
 	std::cout << "Request : '" << result << "'" << std::endl;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1237,14 +1006,9 @@ void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result;
 
-	int status = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(methodName), parameters, response);
-	if (Core::ERROR_NONE != status) {
-		std::cout << "Invoke failed with return status :" << std::hex << status << std::endl;
-	} else {
+	if (invokeJSONRPC(remoteObject, parameters, response)) {
 		response.ToString(result);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
-		result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
-		std::cout << "Response: '" << result << "'" << std::endl;
+		std::cout << "Response: '" << makePretty(result) << "'" << std::endl;
 	}
 }
 
@@ -1253,7 +1017,7 @@ void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 void showUsage(char *pName)
 {
 	std::cout << pName << " <Thunder Access Environment> <ip:port> <callSign>" << std::endl;
-	std::cout << pName << " THUNDER_ACCESS " << SYSPLUGIN_SERVER_PORT << SYSPLUGIN_CALLSIGN << std::endl;
+	std::cout << pName << " THUNDER_ACCESS " << SYSPLUGIN_SERVER_PORT << " " << SYSPLUGIN_CALLSIGN << std::endl;
 	exit(0);
 }
 
@@ -1277,7 +1041,6 @@ namespace Handlers {
 	static void onEventHandler(const Core::JSON::String& parameters) {
 		std::string message;
 		parameters.ToString(message);
-		/* Hack ? - remove the escape characters from the result for aesthetics. */
 		message.erase(std::remove(message.begin(), message.end(), '\\'), message.end());
 		std::cout << "[" << TimeStamp() << "][System-JSONRPCEvt] : " << message << std::endl;
 	}
@@ -1294,19 +1057,18 @@ std::string getMethodName(SME_t SME)
 	return methodName;
 }
 
-
 SME_t getChoice(void)
 {
 	int SMEOption;
 
 	std::cout << "============================= Menu =========================" << std::endl;
 	for (int i; i < SME_MAX; i++) {
-		std::cout << " [" << i << "] " << setw(30) << getMethodName((SME_t)i) << "	" << std::endl;
-		if (i%2 == 0) {
+		std::cout << std::left << " [" << std::setw(2) << i << "] " << std::setw(30) << getMethodName((SME_t)i) << "\t";
+		if (i%2) {
 			std::cout << std::endl;
 		}
 	}
-	std::cout << "==========> Enter Option(Number) :";
+	std::cout << std::endl << "==========> Enter Option(Number) :";
 	std::cin >> SMEOption;
 	if (SMEOption < 0)
 		SMEOption = 0;
@@ -1393,7 +1155,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	/* Thunder-Security: Get Security Token */
+    /* Thunder-Security: Get Security Token */
 	retStatus = GetToken(sizeof(g_ucSecToken), sizeof(server), g_ucSecToken);
 	if (retStatus <= 0) {
 		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : GetToken failed..." << std::endl;
@@ -1424,7 +1186,8 @@ int main(int argc, char** argv)
 
 		/* Clean-Up */
 		std::cout << "[" << TimeStamp() << "][System-MainFunctn] : Clean-Up triggered..." << std::endl;
-		for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
+
+        for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
 			remoteObject->Unsubscribe(1000, _T(SystemEventNames[i]));
 			std::cout << "[" << TimeStamp() << "][System-MainFunctn] : Unsubscribed from '"
 				<< SystemEventNames[i] << "'"<< std::endl;
