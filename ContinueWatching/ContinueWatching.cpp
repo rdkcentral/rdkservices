@@ -32,7 +32,6 @@
   * OTT provider that can be used to populate a continue watching panel in the UI.
   * This service will be enabled/disabled using an TR181 parameter.
   */
-
 #include <iomanip>
 
 #include "ContinueWatching.h"
@@ -45,7 +44,6 @@
 #include "cJSON.h"
 #include "openssl/sha.h"
 #include "base64.h"
-
 #define SEC_OBJECTID_CW_NETFLIX_STORAGE_KEY     0x0361000003610001ULL
 #define SEC_OBJECTID_CW_YOUTUBE_STORAGE_KEY     0x0361000003610002ULL
 #define SEC_OBJECTID_CW_HLU_STORAGE_KEY         0x0361000003610003ULL
@@ -56,8 +54,6 @@
 #define CONTINUEWATCHING_MAJOR_VERSION 1
 #define CONTINUEWATCHING_MINOR_VERSION 0
 
-#define CW_OK 0
-#define CW_ERROR 1
 
 namespace WPEFramework {
 
@@ -94,32 +90,39 @@ namespace WPEFramework {
 		 *   @brief API to retrieve Application Token
 		 *
 		 *   @param[in]  applicationName - Name of the Application
-		 *   @param[out] token - Token value of the Application
-		 *   @param[out] CW_STATUS - CW_OK /CW _ERROR
+		 *   @param[out] application_token - Token value of the Application
 		 *   @return Core::ERROR_NONE
 		 *
 		 *Request: {"jsonrpc":"2.0","id":"3","method":"org.rdk.ContinueWatching.1.getApplicationToken","params":{ "applicationName":"netflix"}}
-		 *Response success: {"jsonrpc":"2.0","id":3,"result":{"token":[<token value>],"CW_STATUS":0,"success":true}}
-		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"CW_Status":1,"success":false}}
+		 *Response success: {"jsonrpc":"2.0","id":3,"result":{"application_token":[{<token value>}],"success":true}}
+		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"application_token":[{}],"success":false}}
 		 */
 		uint32_t ContinueWatching::getApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
 			LOGINFO();
+
+			JsonObject token;
+			JsonArray appToken;
+			Core::OptionalType<Core::JSON::Error> error;
 			std::lock_guard<std::mutex> lock(m_mutex);
 			string appName = parameters["applicationName"].String();
 			LOGINFO("appName:: %s  \n",appName.c_str());
 			bool ret=false;
 			string tokenData = getAppToken(appName.c_str());
 			if(!(tokenData.empty())){
-				response["token"]=tokenData;
-				response["CW_STATUS"]=CW_OK;
-				ret=true;
-				LOGINFO("getApplicationToken response OK  \n");
+				if (!token.FromString(tokenData, error)) {
+        	        		LOGERR("getApplicationToken :Failed to parse tokendata");      
+				}
+				else{
+					ret=true;
+					LOGINFO("getApplicationToken response OK  \n");
+				}
 			}
 			else{
-				response["CW_STATUS"]=CW_ERROR;
 				LOGERR("getApplicationToken Error \n");
 			}
+			appToken.Add(JsonValue(token));
+			response["application_token"]=appToken;
 			returnResponse(ret);
 		}
 
@@ -127,13 +130,12 @@ namespace WPEFramework {
 		 *   @brief API to set an Application Token
 		 *
 		 *   @param[in]  applicationName - Name of the Application
-		 *   @param[in]  token - Token value of the Application
-		 *   @param[out] CW_STATUS - CW_OK /CW _ERROR
+		 *   @param[in]  application_token - Token value of the Application
 		 *   @return Core::ERROR_NONE
 		 *
-		 *Request: {"jsonrpc":"2.0","id":"3","method":"org.rdk.ContinueWatching.1.setApplicationToken","params": {"applicationName":<App name>,"token":<token value>}}
-		 *Response success: {"jsonrpc":"2.0", "id":3, "result":{"CW_Status":0,"success":true}}
-		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"CW_Status":1,"success":false}}
+		 *Request: {"jsonrpc":"2.0","id":"3","method":"org.rdk.ContinueWatching.1.setApplicationToken","params": {"applicationName":<App name>,"application_token":{<token value>}}}
+		 *Response success: {"jsonrpc":"2.0", "id":3, "result":{"success":true}}
+		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"success":false}}
 		 */
 		uint32_t ContinueWatching::setApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
@@ -141,15 +143,13 @@ namespace WPEFramework {
 			std::lock_guard<std::mutex> lock(m_mutex);
 			string appName = parameters["applicationName"].String();
 			LOGINFO("appName %s  \n",appName.c_str());
-			string tokenData = parameters["token"].String();
+			string tokenData = parameters["application_token"].String();
 			LOGINFO("Token %s  \n",tokenData.c_str());
 			bool result=setAppToken(appName.c_str(),tokenData.c_str());
 			if(result){
-				response["CW_STATUS"]=CW_OK;
 				LOGINFO("setApplicationToken response OK  \n");
 			}
 			else{
-				response["CW_STATUS"]=CW_ERROR;
 				LOGERR("setApplicationToken response ERR\n");
 			}
  			returnResponse(result);
@@ -160,12 +160,11 @@ namespace WPEFramework {
 		 *   @brief API to delete an Application Token
 		 *
 		 *   @param[in]  applicationName - Name of the Application
-		 *   @param[out] CW_STATUS - CW_OK /CW _ERROR
 		 *   @return Core::ERROR_NONE
 		 *
 		 *Request: {"jsonrpc":"2.0","id":"3","method":"org.rdk.ContinueWatching.1.deleteApplicationToken","params":{"applicationName":<app name>}}
-		 *Response success: {"jsonrpc":"2.0", "id":3, "result":{"CW_Status":0,"success":true}}
-		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"CW_Status":1,"success":false}}
+		 *Response success: {"jsonrpc":"2.0", "id":3, "result":{"success":true}}
+		 *Response Failure: {"jsonrpc":"2.0","id":3,"result":{"success":false}}
 		 */
 		uint32_t ContinueWatching::deleteApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
@@ -174,11 +173,9 @@ namespace WPEFramework {
 			string ApplicationName = parameters["applicationName"].String();
 			bool result=deleteAppToken(ApplicationName);
 			if(result){
-				response["CW_STATUS"]=CW_OK;
 				LOGINFO("deleteApplicationToken response OK  \n");
 			}
 			else{
-				response["CW_STATUS"]=CW_ERROR;
 				LOGERR("deleteApplicationToken response ERR\n");
 			}
 			returnResponse(result);
