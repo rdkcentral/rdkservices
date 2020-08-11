@@ -1083,16 +1083,18 @@ int main(int argc, char** argv)
 	JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(callsign), _T(""), false, g_strSecToken);
 
 	if (remoteObject) {
-		printf("[%lu][System-MainFunctn] : Registering Event Handlers...\n", TimeStamp());
+		std::string eventName;
+		printf("[%lu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
 		/* Experimental: Register a common Event Handler for all Events */
 		for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
-			if (remoteObject->Subscribe<Core::JSON::String>(1000, _T(SystemEventNames[i]),
+			eventName = SystemEventNames[i];
+			if (remoteObject->Subscribe<Core::JSON::String>(1000, _T(eventName),
 						&Handlers::onEventHandler) == Core::ERROR_NONE) {
 				printf("[%lu][System-MainFunctn] : Subscribed to '%s'...\n",
-					TimeStamp(), SystemEventNames[i].c_str());
+					TimeStamp(), eventName.c_str());
 			} else {
 				printf("[%lu][System-MainFunctn] : Failed to subscribed to '%s'...\n",
-					TimeStamp(), SystemEventNames[i].c_str());
+					TimeStamp(), eventName.c_str());
 			}
 		}
 
@@ -1103,9 +1105,10 @@ int main(int argc, char** argv)
 		printf("[%lu][System-MainFunctn] : Clean-Up triggered...", TimeStamp());
 
         for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
-			remoteObject->Unsubscribe(1000, _T(SystemEventNames[i]));
+			eventName = SystemEventNames[i];
+			remoteObject->Unsubscribe(1000, _T(eventName));
 			printf("[%lu][System-MainFunctn] : Unsubscribed from '%s'...\n",
-					TimeStamp(), SystemEventNames[i].c_str());
+					TimeStamp(), eventName.c_str());
 		}
 		delete remoteObject;
 	} else {
