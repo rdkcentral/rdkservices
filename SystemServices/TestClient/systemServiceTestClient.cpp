@@ -59,8 +59,10 @@ uint64_t TimeStamp(void)
 
 std::string makePretty(std::string result)
 {
+#if 0
 	/* Hack ? - remove the escape characters from the result for aesthetics. */
 	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+#endif
 	return result;
 }
 
@@ -68,7 +70,7 @@ typedef enum SME_t {
 #ifdef DEBUG
 	SME_sampleSystemServiceAPI,
 #endif /* DEBUG */
-	SME_cacheContains,
+	SME_cacheContains = 1,
 	SME_clearLastDeepSleepReason,
 	SME_enableMoca,
 	SME_enableXREConnectionRetention,
@@ -216,7 +218,7 @@ void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["key"] = key;
 
 	parameters.ToString(result);
-	printf("\nResponse: '%s'\n", makePretty(result).c_str());
+	printf("\nRequest : '%s'\n", makePretty(result).c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -247,6 +249,9 @@ void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> 
 	printf("Enable ? {value: 0/1} :");
 	std::cin >> enable;
 	parameters["value"] = enable;
+
+	parameters.ToString(result);
+	printf("\nRequest : '%s'\n", makePretty(result).c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -967,7 +972,7 @@ std::string getMethodName(SME_t SME)
 	return methodName;
 }
 
-SME_t getChoice(void)
+int getChoice(void)
 {
 	int SMEOption;
 
@@ -982,8 +987,8 @@ SME_t getChoice(void)
 	scanf("%d", &SMEOption);
 	printf("Received SMEOption = %d\n", SMEOption);
 	if (SMEOption < 0)
-		SMEOption = 0;
-	return (SME_t)(((SME_t)SMEOption < SME_MAX)? SMEOption : 0);
+		SMEOption = SME_MAX;
+	return ((SMEOption < SME_MAX)? SMEOption : SME_MAX);
 }
 
 /* System plugin - Invoke System plugin with supplied Method test payloads. */
