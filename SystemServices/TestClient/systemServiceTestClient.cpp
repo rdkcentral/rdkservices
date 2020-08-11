@@ -949,8 +949,8 @@ void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 void showUsage(char *pName)
 {
-	printf("%s <Thunder Access Environment> <ip:port> <callSign>\n", pName);
-	printf("%s THUNDER_ACCESS %s %s\n", pName, SYSPLUGIN_SERVER_PORT, SYSPLUGIN_CALLSIGN);
+	printf("%s <Thunder Access Environment> <ip:port> <callSign> <token>\n", pName);
+	printf("%s THUNDER_ACCESS %s %s <token>\n", pName, SYSPLUGIN_SERVER_PORT, SYSPLUGIN_CALLSIGN);
 	exit(0);
 }
 
@@ -1057,9 +1057,9 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 int main(int argc, char** argv)
 {
 	int retStatus = -1;
-	std::string env, server, callsign, event;
+	std::string env, server, callsign, sToken;
 
-	if (argc != 4) {
+	if (argc != 5) {
 		showUsage(argv[0]);
 	}
 
@@ -1069,6 +1069,7 @@ int main(int argc, char** argv)
 			case 1: env = argv[i]; break;
 			case 2: server = argv[i]; break;
 			case 3: callsign = argv[i]; break;
+			case 4: sToken = argv[i]; break;
 			default: showUsage(argv[0]); break;
 		}
 	}
@@ -1076,12 +1077,7 @@ int main(int argc, char** argv)
 	Core::SystemInfo::SetEnvironment(_T(env), (_T(server)));
 
 	/* Thunder-Security: Get Security Token */
-	retStatus = GetSecurityToken(sizeof(g_ucSecToken), g_ucSecToken);
-	if (retStatus <= 0) {
-		printf("[%llu][System-MainFunctn] : GetToken failed...\n", TimeStamp());
-		exit(0);
-	} else {
-		std::string sToken = (char*)g_ucSecToken;
+	if (sToken.length()) {
 		g_strSecToken = "token=" + sToken;
 		printf("\nObtained token: '%s'\n", g_strSecToken.c_str());
 	}
