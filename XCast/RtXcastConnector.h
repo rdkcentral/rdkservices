@@ -52,6 +52,11 @@ public:
      */
     int applicationStateChanged( string app, string state, string id, string error);
     /**
+     *This function will enable cast service by default.
+     *@param enableService - Enable/Disable the SSDP discovery of Dial server
+     */
+    void enableCastService(bool enableService = true);
+    /**
      *Request the single instance of this class
      */
     static  RtXcastConnector * getInstance();
@@ -75,11 +80,7 @@ private:
     bool m_runEventThread;
     // Member function to handle RT messages.
     void processRtMessages();
-    /**
-     *This function will enable cast service by default.
-     *@param enableService - Enable/Disable the SSDP discovery of Dial server
-     */
-    void enableCastService(bool enableService = true);
+
 
     // Class level contracts
     // Singleton instance

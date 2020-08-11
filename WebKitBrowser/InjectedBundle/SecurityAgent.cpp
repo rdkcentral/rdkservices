@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "JavaScriptFunctionType.h"
 #include "Utils.h"
 #include "Tags.h"
-#include <securityagent/SecurityToken.h>
+#include <securityagent/securityagent.h>
 
 namespace WPEFramework {
 namespace JavaScript {
@@ -72,4 +72,3 @@ namespace JavaScript {
     }
 }
 }
-
