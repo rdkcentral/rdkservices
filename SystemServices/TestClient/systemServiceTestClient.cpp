@@ -963,7 +963,7 @@ SME_t getChoice(void)
 	int SMEOption;
 
 	printf("\n============================= Menu =========================\n");
-	for (int i; i < SME_MAX; i++) {
+	for (int i = 0 ; i < SME_MAX; i++) {
 		printf("[%3d] %25s   ", getMethodName((SME_t)i).c_str());
 		if (i%2) {
 			printf("\n");
@@ -1086,8 +1086,6 @@ int main(int argc, char** argv)
 		printf("[%llu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
 		/* Experimental: Register a common Event Handler for all Events */
 		for (std::string eventName : SystemEventNames) {
-			printf("[%llu][System-MainFunctn] : Subscribing to '%s'...\n",
-					TimeStamp(), eventName.c_str());
 			if (remoteObject->Subscribe<Core::JSON::String>(1000, _T(eventName),
 						&Handlers::onEventHandler) == Core::ERROR_NONE) {
 				printf("[%llu][System-MainFunctn] : Subscribed to '%s'...\n",
