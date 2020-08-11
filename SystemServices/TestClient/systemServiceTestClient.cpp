@@ -173,6 +173,9 @@ bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::s
     std::string response;
     assert(remoteObject != NULL);
 
+	param.ToString(response);
+	printf("invokeJSONRPC '%s' param: '%s'\n", method.c_str(), response.c_str());
+
     retStatus = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(method), param, result);
 	if (Core::ERROR_NONE != retStatus) {
 		printf("remoteObject->Invoke '%s' failed [retStatus: 0x%x\n", method.c_str(), retStatus);
