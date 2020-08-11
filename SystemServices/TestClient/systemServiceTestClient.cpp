@@ -204,7 +204,7 @@ void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	std::string result;
 	std::string key;
 
-	printf("Key name to check :";
+	printf("Key name to check :");
 	std::cin >> key;
 	parameters["key"] = key;
 
@@ -235,7 +235,7 @@ void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> 
 	std::string result;
 	bool enable = false;
 
-	printf("Enable ? {value: 0/1} :";
+	printf("Enable ? {value: 0/1} :");
 	std::cin >> enable;
 	parameters["value"] = enable;
 
@@ -253,12 +253,12 @@ void enableXREConnectionRetention(std::string methodName, JSONRPC::LinkType<Core
 	std::string result;
 	bool enable = false;
 
-	printf("Enable ? (0/1):";
+	printf("Enable ? (0/1):");
 	std::cin >> enable;
 	parameters["enable"] = enable;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -287,12 +287,12 @@ void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	std::string result;
 	std::string key;
 
-	printf("Key name to check :";
+	printf("Key name to check :");
 	std::cin >> key;
 	parameters["key"] = key;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -322,7 +322,7 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	JsonArray paramsArray;
 	std::string input;
 
-	printf("Input 'key(s)' :";
+	printf("Input 'key(s)' :");
 	do {
 		input.empty();
 		std::cin >> input;
@@ -337,7 +337,7 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["params"] = paramsArray;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -379,13 +379,13 @@ void getFirmwareUpdateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON:
 	std::string result, guid;
 
 	/* GUID is optional. */
-	printf("GUID ?:";
+	printf("GUID ?:");
 	std::cin >> guid;
 
 	if (guid.length()) {
 		parameters["GUID"] = guid;
 		parameters.ToString(result);
-		printf("Request : '" << result << "'" << std::endl;
+		printf("Request : '%s'\n", result.c_str());
 	}
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
@@ -532,7 +532,7 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	std::string result, rfcListStr;
 	JsonArray rfcListArray;
 
-	printf("Input required RFC List: ";
+	printf("Input required RFC List: ");
 	do {
 		std::cin >> rfcListStr;
 		if (!rfcListStr.length())
@@ -543,7 +543,7 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	/* TODO: Documentation updation required. */
 	parameters["rfcList"] = rfcListArray;
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -571,12 +571,12 @@ void getStateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	JsonObject parameters, response;
 	std::string result, queryState;
 
-	printf("Input property state to be queried :";
+	printf("Input property state to be queried :");
 	std::cin >> queryState;
 
 	parameters["param"] = queryState;
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -683,13 +683,13 @@ void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *rem
 	std::string result, reason;
 
 	/* Optional: reboot reason. */
-	printf("Input reboot reason (Optional) :";
+	printf("Input reboot reason (Optional) :");
 	std::cin >> reason;
 	if (reason.length()) {
 		/* TODO: Update code & Doc to match SM Doc - "reason" with "rebootReason". */
 		parameters["reason"] = reason;
 		parameters.ToString(result);
-		printf("Request : '" << result << "'" << std::endl;
+		printf("Request : '%s'\n", result.c_str());
 	}
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
@@ -705,12 +705,12 @@ void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result, key;
 
-	printf("Input 'key' to be removed :";
+	printf("Input 'key' to be removed :");
 	std::cin >> key;
 
 	parameters["key"] = key;
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -736,16 +736,16 @@ void setCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result, key, value;
 
-	printf("Input cache 'key' :";
+	printf("Input cache 'key' :");
 	std::cin >> key;
-	printf("Input cache 'value' :";
+	printf("Input cache 'value' :");
 	std::cin >> value;
 
 	parameters["key"] = key;
 	parameters["value"] = value;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -761,13 +761,13 @@ void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IEl
 	std::string result;
 	unsigned int seconds = 0;
 
-	printf("Input Seconds :";
+	printf("Input Seconds :");
 	std::cin >> seconds;
 
 	parameters["seconds"] = seconds;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -784,12 +784,12 @@ void setGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	bool enabled = false;
 
 	/* TODO: correct doc with "enabled" */
-	printf("Enable ? (0/1) :";
+	printf("Enable ? (0/1) :");
 	std::cin >> enabled;
 	parameters["enabled"] = enabled;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -805,9 +805,9 @@ void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *re
 	std::string result, mode;
 	int duration = 0;
 
-	printf("Input 'mode' :";
+	printf("Input 'mode' :");
 	std::cin >> mode;
-	printf("Input 'duration(in seconds)' :";
+	printf("Input 'duration(in seconds)' :");
 	std::cin >> duration;
 
 	modeInfo["mode"] = mode;
@@ -815,7 +815,7 @@ void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *re
 	parameters["modeInfo"] = modeInfo;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -830,16 +830,16 @@ void setPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	JsonObject parameters, response;
 	std::string result, powerState, standbyReason;
 
-	printf("Input 'powerState' :";
+	printf("Input 'powerState' :");
 	std::cin >> powerState;
-	printf("Input 'standbyReason' :";
+	printf("Input 'standbyReason' :");
 	std::cin >> standbyReason;
 
 	parameters["powerState"] = powerState;
 	parameters["standbyReason"] = standbyReason;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -854,13 +854,13 @@ void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSO
 	JsonObject parameters, response;
 	std::string result, standbyMode;
 
-	printf("Input 'standbyMode' :";
+	printf("Input 'standbyMode' :");
 	std::cin >> standbyMode;
 
 	parameters["standbyMode"] = standbyMode;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -875,9 +875,9 @@ void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JS
 	JsonObject parameters, response, thresholds;
 	std::string result, WARN, MAX;
 
-	printf("Input 'WARN' level :";
+	printf("Input 'WARN' level :");
 	std::cin >> WARN;
-	printf("Input 'MAX' level :";
+	printf("Input 'MAX' level :");
 	std::cin >> MAX;
 
 	thresholds["WARN"] = WARN;
@@ -885,7 +885,7 @@ void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JS
 	parameters["thresholds"] = thresholds;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -900,13 +900,13 @@ void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	JsonObject parameters, response;
 	std::string result, timeZone;
 
-	printf("Input 'timeZone' :";
+	printf("Input 'timeZone' :");
 	std::cin >> timeZone;
 
 	parameters["timeZone"] = timeZone;
 
 	parameters.ToString(result);
-	printf("Request : '" << result << "'" << std::endl;
+	printf("Request : '%s'\n", result.c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
