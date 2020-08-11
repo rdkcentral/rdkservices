@@ -1534,7 +1534,6 @@ namespace WPEFramework {
                 {
                     onLaunched(callsign);
                 }
-
                 
             }
             if (!result) 
