@@ -978,7 +978,7 @@ int getChoice(void)
 
 	printf("\n============================= Menu =========================\n");
 	for (int i = 0 ; i < SME_MAX; i++) {
-		printf("(%3d) %25s   ", i, getMethodName((SME_t)i).c_str());
+		printf("(%2d) %30s  ", i, getMethodName((SME_t)i).c_str());
 		if (i%2) {
 			printf("\n");
 		}
@@ -1043,8 +1043,7 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 			case SME_updateFirmware: updateFirmware(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_MAX:
 			default:
-				printf("Selected method is '%s'\nSelect 0/SME_MAX+ to exit\n",
-						getMethodName((SME_t)retStatus).c_str());
+				printf("\nSelect 0/%d+ to exit\n", SME_MAX);
 				break;
 		}
 	} while (retStatus != SME_MAX);
@@ -1115,7 +1114,7 @@ int main(int argc, char** argv)
 		retStatus = EvaluateMethods(remoteObject);
 
 		/* Clean-Up */
-		printf("[%llu][System-MainFunctn] : Clean-Up triggered...", TimeStamp());
+		printf("[%llu][System-MainFunctn] : Clean-Up triggered...\n", TimeStamp());
 
         for (std::string eventName : SystemEventNames) {
 			remoteObject->Unsubscribe(1000, _T(eventName));
