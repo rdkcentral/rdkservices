@@ -174,9 +174,9 @@ bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::s
 	param.ToString(response);
 	printf("\ninvokeJSONRPC '%s' with param: '%s'\n", method.c_str(), response.c_str());
 
-    retStatus = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T(method), param, result);
+    retStatus = remoteObject->Invoke<JsonObject, JsonObject>(5000, _T(method), param, result);
 	if (Core::ERROR_NONE != retStatus) {
-		printf("\nremoteObject->Invoke '%s' failed [retStatus: 0x%x\n", method.c_str(), retStatus);
+		printf("\nremoteObject->Invoke '%s' failed [retStatus: 0x%x]\n", method.c_str(), retStatus);
 	} else {
 		ret = true;
 	}
@@ -315,12 +315,12 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	JsonArray paramsArray;
 	std::string input;
 
-	printf("\nInput 'key(s)' :");
+	printf("\nInput 'key(s)' [Type 'end' to finish] :");
 	do {
 		input.empty();
 		std::cin >> input;
 
-		if (!input.length())
+		if (!input.length() || (input == "end"))
 			break;
 
 		paramsArray.Add(input);
@@ -520,10 +520,10 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 	std::string result, rfcListStr;
 	JsonArray rfcListArray;
 
-	printf("\nInput required RFC List: ");
+	printf("\nInput required RFC List [type 'end' to finish]: ");
 	do {
 		std::cin >> rfcListStr;
-		if (!rfcListStr.length())
+		if (!rfcListStr.length() || (rfcListStr == "end"))
 			break;
 		rfcListArray.Add(rfcListStr);
 	} while (true);
