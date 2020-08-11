@@ -16,28 +16,22 @@
 # limitations under the License.
 
 set(PLUGIN_NAME systemServiceTestClient)
-find_package(WPEFramework REQUIRED)
 
-if (WPEFRAMEWORK_FOUND)
-    message("WPEFRAMEWORK_FOUND = ${WPEFRAMEWORK_FOUND}")
-    message("< ${WPEFRAMEWORK_DEFINITIONS} | ${WPEFRAMEWORK_INCLUDE_DIRS} |
-        ${WPEFRAMEWORK_LIBRARIES} | ${WPEFRAMEWORK_LIBRARY_WPEFrameworkPlugins} |
-        ${WPEFRAMEWORK_LIBRARY_WPEFrameworkCore} | 
-        ${WPEFRAMEWORK_LIBRARY_WPEFrameworkTracing} | 
-        ${WPEFRAMEWORK_LIBRARY_WPEFrameworkProtocols} >")
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR} PRIVATE
-        ${WPEFRAMEWORK_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${WPEFRAMEWORK_LIBRARIES})
-else()
-    message(FATAL_ERROR "WPEFrameworkProtocols not found")
-endif()
+find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_executable(${PLUGIN_NAME} systemServiceTestClient.cpp)
 
 set_target_properties(${PLUGIN_NAME} PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
+    )
+
+target_link_libraries(${PLUGIN_NAME}
+    PRIVATE
+    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    CompileSettingsDebug::CompileSettingsDebug
+    ${SECURITY_TOKEN_LIBRARY}
     )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
