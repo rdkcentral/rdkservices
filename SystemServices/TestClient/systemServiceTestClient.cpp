@@ -175,8 +175,14 @@ bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::s
 	if (Core::ERROR_NONE != retStatus) {
 		printf("remoteObject->Invoke '%s' failed [retStatus: 0x%x\n", method.c_str(), retStatus);
 	} else {
-        result.ToString(response);
-        printf("remoteObject->Invoke '%s' response: '%s'\n", method.c_str(), response.c_str());
+		result.ToString(response);
+        if (result["success"].Boolean()) {
+			std::cout << method.c_str() << " success! Response : '" << response << "'" << std::endl;
+			printf("remoteObject->Invoke1 '%s' response: '%s'\n", method.c_str(), response.c_str());
+		} else {
+			std::cout << method.c_str() << " success! Response : '" << response << "'" << std::endl;
+			printf("remoteObject->Invoke0 '%s' response: '%s'\n", method.c_str(), response.c_str());
+		}
         ret = true;
 	}
     return ret;
@@ -187,20 +193,20 @@ bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::s
 #ifdef DEBUG
 void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 #endif /* DEBUG */
 
 void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 	JsonObject parameters, response;
 	std::string result;
 	std::string key;
@@ -210,28 +216,30 @@ void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 	parameters["key"] = key;
 
 	parameters.ToString(result);
-	printf("Response: '%s'\n", makePretty(result).c_str());
+	printf("\nResponse: '%s'\n", makePretty(result).c_str());
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		std::cout << std::endl << "Response: '" << result.c_str() << "'" << std::endl;
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 	JsonObject parameters, response;
 	std::string result;
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		std::cout << std::endl << "Response: '" << result.c_str() << "'" << std::endl;
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 	JsonObject parameters, response;
 	std::string result;
 	bool enable = false;
@@ -242,13 +250,14 @@ void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> 
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		std::cout << std::endl << "Response: '" << result.c_str() << "'" << std::endl;
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void enableXREConnectionRetention(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
@@ -263,26 +272,26 @@ void enableXREConnectionRetention(std::string methodName, JSONRPC::LinkType<Core
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getAvailableStandbyModes(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
@@ -297,26 +306,26 @@ void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getCoreTemperature(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
@@ -342,39 +351,39 @@ void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getDownloadedFirmwareInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getFirmwareDownloadPercent(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getFirmwareUpdateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, guid;
@@ -391,143 +400,143 @@ void getFirmwareUpdateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON:
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getFirmwareUpdateState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getMacAddresses(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getMilestones(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getPreviousRebootInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getPreviousRebootInfo2(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getPreviousRebootReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, rfcListStr;
@@ -548,26 +557,26 @@ void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getSerialNumber(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getStateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, queryState;
@@ -581,104 +590,104 @@ void getStateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getSystemVersions(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void getXconfParams(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void hasRebootBeenRequested(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 	
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void isGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void queryMocaStatus(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, reason;
@@ -695,13 +704,13 @@ void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *rem
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, key;
@@ -715,20 +724,20 @@ void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void requestSystemUptime(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
@@ -750,13 +759,13 @@ void setCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
@@ -772,13 +781,13 @@ void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IEl
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
@@ -794,13 +803,13 @@ void setGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response, modeInfo;
 	std::string result, mode;
@@ -820,13 +829,13 @@ void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *re
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, powerState, standbyReason;
@@ -844,13 +853,13 @@ void setPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElemen
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, standbyMode;
@@ -865,13 +874,13 @@ void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSO
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response, thresholds;
 	std::string result, WARN, MAX;
@@ -890,13 +899,13 @@ void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JS
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result, timeZone;
@@ -911,20 +920,20 @@ void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
 void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
-	printf("[%llu][%s]\n", TimeStamp(), __FUNCTION__);
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
-		printf("Response: '%s'\n", makePretty(result).c_str());
+		printf("\nResponse: '%s'\n", makePretty(result).c_str());
 	}
 }
 
@@ -964,7 +973,7 @@ SME_t getChoice(void)
 
 	printf("\n============================= Menu =========================\n");
 	for (int i = 0 ; i < SME_MAX; i++) {
-		printf("[%3d] %25s   ", getMethodName((SME_t)i).c_str());
+		printf("(%3d) %25s   ", i, getMethodName((SME_t)i).c_str());
 		if (i%2) {
 			printf("\n");
 		}
