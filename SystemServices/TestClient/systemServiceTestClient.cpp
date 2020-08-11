@@ -29,6 +29,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 #include <map>
 #include <string>
 #include <stdio.h>
@@ -937,7 +938,7 @@ void showUsage(char *pName)
 }
 
 /* System plugin Events */
-const std::string SystemEventNames[] = {
+const std::vector<std::string> SystemEventNames {
 #ifdef DEBUG
 	"onSampleEvent",
 #endif /* DEBUG */
@@ -1086,9 +1087,11 @@ int main(int argc, char** argv)
 		std::string eventName;
 		printf("[%lu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
 		/* Experimental: Register a common Event Handler for all Events */
-		for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
-			eventName = SystemEventNames[i];
-			if (remoteObject->Subscribe<Core::JSON::String>(1000, _T(eventName),
+		for (vector<string>::iterator t = SystemEventNames.begin(); t != SystemEventNames.end(); ++t) {
+			eventName = t->c_str();
+			printf("[%lu][System-MainFunctn] : Subscribing to '%s'...\n",
+					TimeStamp(), eventName.c_str());
+			if (remoteObject->Subscribe<Core::JSON::String>(1000, _T(eventName,
 						&Handlers::onEventHandler) == Core::ERROR_NONE) {
 				printf("[%lu][System-MainFunctn] : Subscribed to '%s'...\n",
 					TimeStamp(), eventName.c_str());
@@ -1104,8 +1107,8 @@ int main(int argc, char** argv)
 		/* Clean-Up */
 		printf("[%lu][System-MainFunctn] : Clean-Up triggered...", TimeStamp());
 
-        for (int i = 0; i < std::extent<decltype(SystemEventNames), 0>::value; i++) {
-			eventName = SystemEventNames[i];
+        for (vector<string>::iterator t = SystemEventNames.begin(); t != SystemEventNames.end(); ++t) {
+			eventName = t->c_str();
 			remoteObject->Unsubscribe(1000, _T(eventName));
 			printf("[%lu][System-MainFunctn] : Unsubscribed from '%s'...\n",
 					TimeStamp(), eventName.c_str());
