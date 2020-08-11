@@ -38,7 +38,7 @@
 #include <type_traits>
 #include <core/core.h>
 #include <websocket/websocket.h>
-#include <securityagent/securityagent.h>
+#include <securityagent/SecurityTokenUtil.h>
 
 #define SYSPLUGIN_CALLSIGN		"org.rdk.System"
 #define SYSPLUGIN_SERVER_PORT	"127.0.0.1:9998"
@@ -1073,16 +1073,19 @@ int main(int argc, char** argv)
 		}
 	}
 
-    /* Thunder-Security: Get Security Token */
-	retStatus = GetToken(sizeof(g_ucSecToken), sizeof(server), g_ucSecToken);
+	Core::SystemInfo::SetEnvironment(_T(env), (_T(server)));
+
+	/* Thunder-Security: Get Security Token */
+	retStatus = GetSecurityToken(sizeof(g_ucSecToken), g_ucSecToken);
 	if (retStatus <= 0) {
 		printf("[%llu][System-MainFunctn] : GetToken failed...\n", TimeStamp());
+		exit(0);
 	} else {
 		std::string sToken = (char*)g_ucSecToken;
 		g_strSecToken = "token=" + sToken;
+		printf("\nObtained token: '%s'\n", g_strSecToken.c_str());
 	}
 
-	Core::SystemInfo::SetEnvironment(_T(env), (_T(server)));
 	JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(callsign), _T(""), false, g_strSecToken);
 
 	if (remoteObject) {

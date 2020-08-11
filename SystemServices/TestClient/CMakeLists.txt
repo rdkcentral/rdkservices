@@ -30,7 +30,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
     ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-    securityagent::securityagent
+    ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
     CompileSettingsDebug::CompileSettingsDebug
     )
 
