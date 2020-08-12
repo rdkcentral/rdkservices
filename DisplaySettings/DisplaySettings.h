@@ -77,6 +77,8 @@ namespace WPEFramework {
             //End methods
             uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
             uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t setDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
             uint32_t setDialogEnhancement(const JsonObject& parameters, JsonObject& response);
