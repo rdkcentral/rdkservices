@@ -144,6 +144,8 @@ namespace WPEFramework {
 
             registerMethod("setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
             registerMethod("getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
+            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
             registerMethod("setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
             registerMethod("getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
             registerMethod("setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
@@ -1088,6 +1090,77 @@ namespace WPEFramework {
             for (uint32_t i = 0; i < hdrCapabilities.Length(); i++)
             {
                LOGINFO("capabilities: %s", hdrCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+
+        uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+            LOGINFOMETHOD();
+
+            JsonArray audioCapabilities;
+            int capabilities = dsAUDIOSUPPORT_NONE;
+
+            try
+            {
+                device::AudioDevice &device = device::Host::getInstance().getAudioDevice();
+                device.getAudioCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)audioCapabilities.Add("none");
+            if(capabilities & dsAUDIOSUPPORT_ATMOS)audioCapabilities.Add("ATMOS");
+            if(capabilities & dsAUDIOSUPPORT_DD)audioCapabilities.Add("DOLBY DIGITAL");
+            if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
+            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audo Decode");
+            if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
+            if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
+
+            response["standards"] = audioCapabilities;
+            for (uint32_t i = 0; i < audioCapabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+
+        uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+            LOGINFOMETHOD();
+
+            JsonArray ms12Capabilities;
+            int capabilities = dsMS12SUPPORT_NONE;
+
+            try
+            {
+                device::AudioDevice &device = device::Host::getInstance().getAudioDevice();
+                device.getMS12Capabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)ms12Capabilities.Add("none");
+            if(capabilities & dsMS12SUPPORT_DolbyVolume)ms12Capabilities.Add("Dolby Volume");
+            if(capabilities & dsMS12SUPPORT_InteligentEqualizer)ms12Capabilities.Add("Inteligent Equalizer");
+            if(capabilities & dsMS12SUPPORT_DialogueEnhancer)ms12Capabilities.Add("Dialogue Enhancer");
+
+            if(capabilities)
+            {
+                response["supportsMS12"] = true;
+            }
+            else
+            {
+                response["supportsMS12"] = false;
+            }
+            response["standards"] = ms12Capabilities;
+            for (uint32_t i = 0; i < ms12Capabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
             }
             returnResponse(true);
         }
