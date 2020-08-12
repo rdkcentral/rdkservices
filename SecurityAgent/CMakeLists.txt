@@ -22,6 +22,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED 
+    AccessControlList.cpp
     SecurityAgent.cpp
     SecurityContext.cpp
     SecurityAgentJsonRpc.cpp

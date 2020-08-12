@@ -33,6 +33,7 @@ using namespace std;
 std::map<int, std::string> ErrCodeMap = {
     {SysSrv_OK, "Processed Successfully"},
     {SysSrv_MethodNotFound, "Method not found"},
+    {SysSrv_MissingKeyValues, "Missing required key/value(s)"},
     {SysSrv_UnSupportedFormat, "Unsupported or malformed format"},
     {SysSrv_FileNotPresent, "Expected file not found"},
     {SysSrv_FileAccessFailed, "File access failed"},

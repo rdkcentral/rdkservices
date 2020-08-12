@@ -95,6 +95,8 @@ namespace Plugin {
         BEGIN_INTERFACE_MAP(DisplayInfo)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
+        INTERFACE_AGGREGATE(Exchange::IGraphicsProperties, _graphicsProperties)
+        INTERFACE_AGGREGATE(Exchange::IConnectionProperties, _connectionProperties)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP
 
