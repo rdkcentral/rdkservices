@@ -153,18 +153,18 @@ public:
        : _width(0)
        , _height(0)
        , _connected(false)
-       , _major(0)
-       , _minor(0)
+       , _hdcpprotection(false)
        , _type(HDR_OFF)
        , _totalGpuRam(0)
        , _audioPassthrough(false)
        , _adminLock()
        , _activity(*this) {
 
-
+        int handle = 0;
         UpdateTotalMem(_totalGpuRam);
-        UpdateDisplayInfo(_connected, _width, _height, _major, _minor, _type);
+        UpdateDisplayInfo(_connected, _width, _height, _type);
         UpdateAudioPassthrough(_audioPassthrough);
+        UpdateDisplayInfoHDCP(_hdcpprotection);
 
         RegisterCallback();
     }
@@ -237,18 +237,15 @@ public:
     {
         return _height;
     }
-    uint8_t HDCPMajor() const override
-    {
-        return _major;
-    }
-    uint8_t HDCPMinor() const override
-    {
-        return _minor;
-    }
     HDRType Type() const override
     {
         return _type;
     }
+    bool HDCPProtection() const override
+    {
+	    return _hdcpprotection;
+    }
+
     void Dispatch() const
     {
         _adminLock.Lock();
@@ -336,7 +333,7 @@ private:
        audioPassthrough = false;
     }
 
-    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, uint8_t& major, uint8_t& minor, HDRType& type)
+    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, HDRType& type)
     {
 #ifdef AMLOGIC_E2
 	    char strStatus[13] = {'\0'};
@@ -418,18 +415,12 @@ private:
 		    // Read HDR status
 		    type = HDR_DOLBYVISION;
 
-		    // Check HDCP version
-		    if (AML_HDCP_VERSION_1X) {
-			    major = 1;
-			    minor = 4;
-		    } else {
-			    major = 2;
-			    minor = 0;
-		    }
-
 		    // Read display width and height
 	    }
-
+void UpdateDisplayInfoHDCP(bool hdcpprotection) const
+{
+   hdcpprotection = true;
+}
     void RegisterCallback()
     {
     }
@@ -462,10 +453,8 @@ private:
     uint32_t _height;
     bool _connected;
 
-    uint8_t _major;
-    uint8_t _minor;
     HDRType _type;
-
+    bool  _hdcpprotection;
     uint64_t _totalGpuRam;
     bool _audioPassthrough;
 
