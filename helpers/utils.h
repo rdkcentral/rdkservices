@@ -25,8 +25,9 @@
 #include <syscall.h>
 
 // IARM
+#ifdef USE_IARM
 #include "rdk/iarmbus/libIARM.h"
-
+#endif
 // std
 #include <string>
 
@@ -167,6 +168,11 @@ namespace Utils
 
     private:
         static bool m_connected;
+        class IARMHelper {
+            public:
+                IARMHelper();
+                ~IARMHelper();
+        };
     };
 
     namespace String
@@ -274,7 +280,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#ifdef USE_IARM
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -283,7 +289,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
-
+#endif
     /***
      * @brief	: Execute shell script and get response
      * @param1[in]	: script to be executed with args

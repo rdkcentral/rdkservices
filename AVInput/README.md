@@ -31,5 +31,5 @@ onAVInputInactive: Notify onAVInputInactive {"url":"avin://input0"}
 ```
 
 ## Full Reference
-https://etwiki.sys.comcast.net/display/RDK/AVInput
+https://wiki.rdkcentral.com/display/RDK/AV+Input
 

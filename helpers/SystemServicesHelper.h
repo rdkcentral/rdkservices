@@ -82,6 +82,7 @@ enum eRetval { E_NOK = -1,
 enum SysSrv_ErrorCode {
     SysSrv_OK = 0,
     SysSrv_MethodNotFound,
+    SysSrv_MissingKeyValues,
     SysSrv_UnSupportedFormat,
     SysSrv_FileNotPresent,
     SysSrv_FileAccessFailed,
