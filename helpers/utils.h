@@ -168,6 +168,11 @@ namespace Utils
 
     private:
         static bool m_connected;
+        class IARMHelper {
+            public:
+                IARMHelper();
+                ~IARMHelper();
+        };
     };
 
     namespace String
