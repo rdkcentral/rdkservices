@@ -1136,7 +1136,11 @@ namespace WPEFramework {
 
             try
             {
+<<<<<<< HEAD
                 device::AudioDevice &device = device::Host::getInstance().getAudioDevice();
+=======
+                device::AudioDevice &device = device::Host::getInstance().getAudioDevices().at(0);
+>>>>>>> 68d5b24d2f91c1552200a8a2452593e1b5816f7d
                 device.getMS12Capabilities(&capabilities);
             }
             catch(const device::Exception& err)
