@@ -587,7 +587,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
         };
 
-        class HangDetector : public Core::Thread
+        class HangDetector
         {
         private:
             WebKitImplementation* _browser { nullptr };
@@ -597,13 +597,16 @@ static GSourceFuncs _handlerIntervention =
             int _watchDogTimeoutInSeconds { 0 };
             int _watchDogTresholdInSeconds { 0 };
 
+            friend Core::ThreadPool::JobType<HangDetector&>;
+            Core::WorkerPool::JobType<HangDetector&> _worker;
+
             void CheckResponsiveness()
             {
                 _expiryCount = 0;
                 _browser->CheckWebProcess();
             }
 
-            virtual uint32_t Worker()
+            void Dispatch()
             {
                 ++_expiryCount;
 
@@ -617,9 +620,7 @@ static GSourceFuncs _handlerIntervention =
                     killHelper (getpid(), SIGKILL);
                 }
 
-                Block();
-
-                return _watchDogTimeoutInSeconds * 1000;
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
             }
 
         public:
@@ -631,13 +632,11 @@ static GSourceFuncs _handlerIntervention =
                     g_source_destroy (_timerSource);
                     g_source_unref (_timerSource);
                 }
-
-                Stop();
-                Wait(Thread::STOPPED | Thread::BLOCKED, Core::infinite);
             }
 
             HangDetector(WebKitImplementation* browser)
                 : _browser(browser)
+                , _worker(*this)
             {
                 _watchDogTimeoutInSeconds = _browser->_config.WatchDogCheckTimeoutInSeconds.Value();
                 _watchDogTresholdInSeconds  = _browser->_config.WatchDogHangThresholdInSeconds.Value();
@@ -675,7 +674,7 @@ static GSourceFuncs _handlerIntervention =
                 g_source_attach ( hangSource, ctx );
                 #endif
 
-                Core::Thread::Run();
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
             }
         };
 
