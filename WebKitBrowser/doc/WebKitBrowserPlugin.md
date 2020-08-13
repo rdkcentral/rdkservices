@@ -97,6 +97,8 @@ The table below lists configuration options of the plugin.
 | configuration?.whitelist?.domain[#] | string | <sup>*(optional)*</sup> Domain allowed to access from origin |
 | configuration?.whitelist?.subdomain | string | <sup>*(optional)*</sup> whether it is also OK to access subdomains of domains listed in domain |
 | configuration?.localstorageenabled | boolean | <sup>*(optional)*</sup> Controls the local storage availability |
+| configuration?.logtosystemconsoleenabled | boolean | <sup>*(optional)*</sup> Enable page loging to system console (stderr) |
+| configuration?.webprocesswatchdogenabled | boolean | <sup>*(optional)*</sup> Monitor responsiveness of web process |
 
 <a name="head.Methods"></a>
 # Methods
