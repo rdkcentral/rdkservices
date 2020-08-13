@@ -1265,7 +1265,7 @@ static GSourceFuncs _handlerIntervention =
                 std::cout << "  " << line << std::endl;
             }
         }
-        void OnBrdidgeQuery(const string& text)
+        void OnBridgeQuery(const string& text)
         {
             _adminLock.Lock();
 
@@ -1907,7 +1907,7 @@ static GSourceFuncs _handlerIntervention =
         } else if (name == Tags::BridgeObjectQuery) {
             WKStringRef messageBodyStr = static_cast<WKStringRef>(messageBodyObj);
             string messageText = WKStringToString(messageBodyStr);
-            const_cast<WebKitImplementation*>(browser)->OnBrdidgeQuery(messageText);
+            const_cast<WebKitImplementation*>(browser)->OnBridgeQuery(messageText);
         } else if (name == Tags::URL) {
             *returnData = WKStringCreateWithUTF8CString(browser->GetURL().c_str());
         } else if (name.compare(0, configLen, Tags::Config) == 0) {
