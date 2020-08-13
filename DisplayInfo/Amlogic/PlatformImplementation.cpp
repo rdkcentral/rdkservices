@@ -153,16 +153,16 @@ public:
        : _width(0)
        , _height(0)
        , _connected(false)
-       , _hdcpprotection(false)
+       , _verticalFreq(0)
+       , _hdcpprotection(HDCPProtectionType::HDCP_Unencrypted)
        , _type(HDR_OFF)
        , _totalGpuRam(0)
        , _audioPassthrough(false)
        , _adminLock()
        , _activity(*this) {
 
-        int handle = 0;
         UpdateTotalMem(_totalGpuRam);
-        UpdateDisplayInfo(_connected, _width, _height, _type);
+        UpdateDisplayInfo(_connected, _width, _height, _type, _verticalFreq);
         UpdateAudioPassthrough(_audioPassthrough);
         UpdateDisplayInfoHDCP(_hdcpprotection);
 
@@ -237,11 +237,15 @@ public:
     {
         return _height;
     }
+    uint32_t VerticalFreq() const override
+    {
+        return _verticalFreq;
+    }
     HDRType Type() const override
     {
         return _type;
     }
-    bool HDCPProtection() const override
+    HDCPProtectionType HDCPProtection() const override
     {
 	    return _hdcpprotection;
     }
@@ -333,7 +337,7 @@ private:
        audioPassthrough = false;
     }
 
-    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, HDRType& type)
+    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, HDRType& type, uint32_t& verticalFreq)
     {
 #ifdef AMLOGIC_E2
 	    char strStatus[13] = {'\0'};
@@ -347,6 +351,7 @@ private:
 	    }
 #else
 	    connected = true; //Display always connected for Panel
+            verticalFreq = 60;
 #endif
 #ifdef AMLOGIC_E2
 	    amlError_t ret = amlERR_NONE;
@@ -417,10 +422,13 @@ private:
 
 		    // Read display width and height
 	    }
-void UpdateDisplayInfoHDCP(bool hdcpprotection) const
-{
-   hdcpprotection = true;
-}
+
+
+     void UpdateDisplayInfoHDCP(HDCPProtectionType hdcpprotection) const
+     {
+         hdcpprotection = HDCPProtectionType::HDCP_2X;
+     }
+
     void RegisterCallback()
     {
     }
@@ -442,7 +450,7 @@ void UpdateDisplayInfoHDCP(bool hdcpprotection) const
     void UpdateDisplayInfo()
     {
         _adminLock.Lock();
-        UpdateDisplayInfo(_connected, _width, _height, _major, _minor, _type);
+        UpdateDisplayInfo(_connected, _width, _height, _type, _verticalFreq);
         _adminLock.Unlock();
 
         _activity.Submit();
@@ -452,9 +460,10 @@ private:
     uint32_t _width;
     uint32_t _height;
     bool _connected;
+    uint32_t _verticalFreq;
 
+    HDCPProtectionType  _hdcpprotection;
     HDRType _type;
-    bool  _hdcpprotection;
     uint64_t _totalGpuRam;
     bool _audioPassthrough;
 
