@@ -493,6 +493,7 @@ static GSourceFuncs _handlerIntervention =
                 , LogToSystemConsoleEnabled(false)
                 , WatchDogCheckTimeoutInSeconds(0)
                 , WatchDogHangThresholdInSeconds(0)
+                , LoadBlankPageOnSuspendEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -535,6 +536,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
+                Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
             }
             ~Config()
             {
@@ -582,9 +584,10 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean LogToSystemConsoleEnabled;
             Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
+            Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
         };
 
-        class HangDetector : public Core::Thread
+        class HangDetector
         {
         private:
             WebKitImplementation* _browser { nullptr };
@@ -594,13 +597,16 @@ static GSourceFuncs _handlerIntervention =
             int _watchDogTimeoutInSeconds { 0 };
             int _watchDogTresholdInSeconds { 0 };
 
+            friend Core::ThreadPool::JobType<HangDetector&>;
+            Core::WorkerPool::JobType<HangDetector&> _worker;
+
             void CheckResponsiveness()
             {
                 _expiryCount = 0;
                 _browser->CheckWebProcess();
             }
 
-            virtual uint32_t Worker()
+            void Dispatch()
             {
                 ++_expiryCount;
 
@@ -614,9 +620,7 @@ static GSourceFuncs _handlerIntervention =
                     killHelper (getpid(), SIGKILL);
                 }
 
-                Block();
-
-                return _watchDogTimeoutInSeconds * 1000;
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
             }
 
         public:
@@ -628,13 +632,11 @@ static GSourceFuncs _handlerIntervention =
                     g_source_destroy (_timerSource);
                     g_source_unref (_timerSource);
                 }
-
-                Stop();
-                Wait(Thread::STOPPED | Thread::BLOCKED, Core::infinite);
             }
 
             HangDetector(WebKitImplementation* browser)
                 : _browser(browser)
+                , _worker(*this)
             {
                 _watchDogTimeoutInSeconds = _browser->_config.WatchDogCheckTimeoutInSeconds.Value();
                 _watchDogTresholdInSeconds  = _browser->_config.WatchDogHangThresholdInSeconds.Value();
@@ -672,7 +674,7 @@ static GSourceFuncs _handlerIntervention =
                 g_source_attach ( hangSource, ctx );
                 #endif
 
-                Core::Thread::Run();
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
             }
         };
 
@@ -1022,31 +1024,35 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetURL(const string& URL) final
         {
-            _adminLock.Lock();
-            _URL = URL;
-            _adminLock.Unlock();
-
-            TRACE(Trace::Information, (_T("New URL: %s"), _URL.c_str()));
+            TRACE(Trace::Information, (_T("New URL: %s"), URL.c_str()));
 
             if (_context != nullptr) {
-                g_main_context_invoke(
+                using SetURLData = std::tuple<WebKitImplementation*, string>;
+                auto *data = new SetURLData(this, URL);
+                g_main_context_invoke_full(
                     _context,
+                    G_PRIORITY_DEFAULT,
                     [](gpointer customdata) -> gboolean {
-                        WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                        auto& data = *static_cast<SetURLData*>(customdata);
+                        WebKitImplementation* object = std::get<0>(data);
 
-                        string url;
+                        string url = std::get<1>(data);
                         object->_adminLock.Lock();
-                        url = object->_URL;
+                        object->_URL = url;
                         object->_adminLock.Unlock();
 
                         object->SetResponseHTTPStatusCode(-1);
+                        object->SetNavigationRef(nullptr);
 
                         auto shellURL = WKURLCreateWithUTF8CString(url.c_str());
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
                         return G_SOURCE_REMOVE;
                     },
-                    this);
+                    data,
+                    [](gpointer customdata) {
+                        delete static_cast<SetURLData*>(customdata);
+                    });
             }
         }
         virtual string GetURL() const final
@@ -1186,8 +1192,12 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFinished(const string& URL)
+        void OnLoadFinished(const string& URL, WKNavigationRef navigation)
         {
+            if (_navigationRef != navigation) {
+                TRACE(Trace::Information, (_T("Ignore 'loadfinished' for previous navigation request")));
+                return;
+            }
             _adminLock.Lock();
 
             _URL = URL;
@@ -1254,7 +1264,7 @@ static GSourceFuncs _handlerIntervention =
                 std::cout << "  " << line << std::endl;
             }
         }
-        void OnBrdidgeQuery(const string& text)
+        void OnBridgeQuery(const string& text)
         {
             _adminLock.Lock();
 
@@ -1270,6 +1280,11 @@ static GSourceFuncs _handlerIntervention =
         void SetResponseHTTPStatusCode(int32_t code)
         {
             _httpStatusCode = code;
+        }
+
+        void SetNavigationRef(WKNavigationRef ref)
+        {
+            _navigationRef = ref;
         }
 
         void OnNotificationShown(uint64_t notificationID) const
@@ -1515,6 +1530,13 @@ static GSourceFuncs _handlerIntervention =
                     _context,
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+
+                        if (object->_config.LoadBlankPageOnSuspendEnabled.Value()) {
+                            const char kBlankURL[] = "about:blank";
+                            if (GetPageActiveURL(object->_page) != kBlankURL)
+                                object->SetURL(kBlankURL);
+                            ASSERT(object->_URL == kBlankURL);
+                        }
 
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
@@ -1860,6 +1882,7 @@ static GSourceFuncs _handlerIntervention =
 
         bool _webProcessCheckInProgress { false };
         uint32_t _unresponsiveReplyNum { 0 };
+        WKNavigationRef _navigationRef { nullptr };
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
@@ -1883,7 +1906,7 @@ static GSourceFuncs _handlerIntervention =
         } else if (name == Tags::BridgeObjectQuery) {
             WKStringRef messageBodyStr = static_cast<WKStringRef>(messageBodyObj);
             string messageText = WKStringToString(messageBodyStr);
-            const_cast<WebKitImplementation*>(browser)->OnBrdidgeQuery(messageText);
+            const_cast<WebKitImplementation*>(browser)->OnBridgeQuery(messageText);
         } else if (name == Tags::URL) {
             *returnData = WKStringCreateWithUTF8CString(browser->GetURL().c_str());
         } else if (name.compare(0, configLen, Tags::Config) == 0) {
@@ -1905,6 +1928,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
+        browser->SetNavigationRef(navigation);
         browser->OnURLChanged(url);
 
         WKRelease(urlRef);
@@ -1938,7 +1962,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
-        browser->OnLoadFinished(url);
+        browser->OnLoadFinished(url, navigation);
 
         WKRelease(urlRef);
         WKRelease(urlStringRef);
