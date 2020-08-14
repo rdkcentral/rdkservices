@@ -2126,6 +2126,7 @@ namespace WPEFramework {
             JsonObject params;
             params["client"] = client;
             response["params"] = params;
+
             notify(RDKSHELL_EVENT_ON_SUSPENDED, response);
         }
 
