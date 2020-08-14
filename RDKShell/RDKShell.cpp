@@ -1291,6 +1291,7 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+                const string callsignWithVersion = callsign + ".1";
                 string type;
                 string version = "0.0";
                 string uri;
@@ -1489,7 +1490,7 @@ namespace WPEFramework {
 
                         WPEFramework::Core::JSON::String stateString;
                         stateString = "suspended";
-                        status = getThunderControllerClient(callsign)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
                         
                         std::cout << "setting the state to suspended\n";
                         visible = false;
@@ -1498,7 +1499,7 @@ namespace WPEFramework {
                     {
                         WPEFramework::Core::JSON::String stateString;
                         stateString = "resumed";
-                        status = getThunderControllerClient(callsign)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
                         
                         std::cout << "setting the state to resumed\n";
                     }
@@ -1518,7 +1519,7 @@ namespace WPEFramework {
                     {
                         WPEFramework::Core::JSON::String urlString;
                         urlString = uri;
-                        status = getThunderControllerClient(callsign)->Set<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "url",urlString);
                         if (status > 0)
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
@@ -1559,7 +1560,8 @@ namespace WPEFramework {
 
                 WPEFramework::Core::JSON::String stateString;
                 stateString = "suspended";
-                uint32_t status = getThunderControllerClient(callsign)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                const string callsignWithVersion = callsign + ".1";
+                uint32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
 
                 if (status > 0)
                 {
@@ -1672,12 +1674,13 @@ namespace WPEFramework {
                         callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
 
                         WPEFramework::Core::JSON::String stateString;
-                        uint32_t stateStatus = getThunderControllerClient(callsign)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                        const string callsignWithVersion = callsign + ".1";
+                        uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
 
                         if (stateStatus == 0)
                         {
                             WPEFramework::Core::JSON::String urlString;
-                            uint32_t urlStatus = getThunderControllerClient(callsign)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+                            uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
                             
                             JsonObject typeObject;
                             typeObject["callsign"] = callsign;
