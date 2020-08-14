@@ -670,7 +670,7 @@ namespace WPEFramework
                         response["interface"] = string(iarmData.interface);
                         response["ipversion"] = string(iarmData.ipversion);
                         response["autoconfig"] = iarmData.autoconfig;
-                        response["ipaddress"] = string(iarmData.ipaddress);
+                        response["ipaddr"] = string(iarmData.ipaddress);
                         response["netmask"] = string(iarmData.netmask);
                         response["gateway"] = string(iarmData.gateway);
                         response["primarydns"] = string(iarmData.primarydns);
