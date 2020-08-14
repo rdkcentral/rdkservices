@@ -1107,7 +1107,7 @@ namespace WPEFramework {
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                device.getAudioCapabilities(&capabilities);
+                aPort.getAudioCapabilities(&capabilities);
             }
             catch(const device::Exception& err)
             {
@@ -1146,7 +1146,7 @@ namespace WPEFramework {
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aport.getMS12Capabilities(&capabilities);
+                aPort.getMS12Capabilities(&capabilities);
             }
             catch(const device::Exception& err)
             {
