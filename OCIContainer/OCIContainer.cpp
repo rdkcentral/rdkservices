@@ -238,19 +238,30 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     std::string id = parameters["containerId"].String();
     std::string bundlePath = parameters["bundlePath"].String();
     std::string command = parameters["command"].String();
+    std::string westerosSocket = parameters["westerosSocket"].String();
 
     // Can be used to pass file descriptors to container construction.
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
     std::list<int> emptyList;
 
     int descriptor;
-    if (command == "null" || command.empty())
+    // If no additional arguments, start the container
+    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
     {
         descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList);
     }
     else
     {
-        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList, command);
+        // Dobby expects empty strings if values not set
+        if (command == "null" || command.empty())
+        {
+            command = "";
+        }
+        if (westerosSocket == "null" || westerosSocket.empty())
+        {
+            westerosSocket = "";
+        }
+        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList, command, westerosSocket);
     }
 
     // startContainer returns -1 on failure
@@ -284,6 +295,7 @@ uint32_t OCIContainer::startContainerFromDobbySpec(const JsonObject &parameters,
     std::string id = parameters["containerId"].String();
     JsonObject dobbySpec = parameters["dobbySpec"].Object();
     std::string command = parameters["command"].String();
+    std::string westerosSocket = parameters["westerosSocket"].String();
 
     std::string specString;
     if (!WPEFramework::Core::JSON::IElement::ToString(dobbySpec, specString))
@@ -297,13 +309,23 @@ uint32_t OCIContainer::startContainerFromDobbySpec(const JsonObject &parameters,
     std::list<int> emptyList;
 
     int descriptor;
-    if (command == "null" || command.empty())
+    // If no additional arguments, start the container
+    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
     {
         descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList);
     }
     else
     {
-        descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList, command);
+        // Dobby expects empty strings if values not set
+        if (command == "null" || command.empty())
+        {
+            command = "";
+        }
+        if (westerosSocket == "null" || westerosSocket.empty())
+        {
+            westerosSocket = "";
+        }
+        descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList, command, westerosSocket);
     }
 
     // startContainer returns -1 on failure
