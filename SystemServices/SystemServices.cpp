@@ -1943,16 +1943,21 @@ namespace WPEFramework {
             float high = 0.0;
             float critical = 0.0;
 	    bool resp = false;
-	    if (parameters.HasLabel("thresholds") && parameters.HasLabel("WARN") && parameters.HasLabel("MAX")) {
+
+	    if (parameters.HasLabel("thresholds")) {
 		    args.FromString(parameters["thresholds"].String());
-		    string warn = args["WARN"].String();
-		    string max = args["MAX"].String();
+		    if (args.HasLabel("WARN") && args.HasLabel("MAX")) {
+		        string warn = args["WARN"].String();
+		        string max = args["MAX"].String();
 
-		    high = atof(warn.c_str());
-		    critical = atof(max.c_str());
+                high = atof(warn.c_str());
+                critical = atof(max.c_str());
 
-		    resp =  CThermalMonitor::instance()->setCoreTempThresholds(high, critical);
-		    LOGWARN("Set temperature thresholds: WARN: %f, MAX: %f\n", high, critical);
+                resp =  CThermalMonitor::instance()->setCoreTempThresholds(high, critical);
+                LOGWARN("Set temperature thresholds: WARN: %f, MAX: %f\n", high, critical);
+            } else {
+		        populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
