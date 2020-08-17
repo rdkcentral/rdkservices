@@ -669,7 +669,7 @@ void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *rem
 	std::cin >> reason;
 	if (reason.length()) {
 		/* TODO: Update code & Doc to match SM Doc - "reason" with "rebootReason". */
-		parameters["reason"] = reason;
+		parameters["rebootReason"] = reason;
 	}
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
