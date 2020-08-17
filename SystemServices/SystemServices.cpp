@@ -2722,10 +2722,6 @@ namespace WPEFramework {
             bool validparams = true;
             std::string thermLevel;
 
-            bool crossOver;
-            bool validparams = true;
-            std::string thermLevel;
-
             switch (param->data.therm.newLevel) {
                 case IARM_BUS_PWRMGR_TEMPERATURE_NORMAL:
                     {
