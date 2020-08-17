@@ -473,6 +473,7 @@ static GSourceFuncs _handlerIntervention =
                 , MemoryPressure()
                 , MediaDiskCache(true)
                 , DiskCache()
+                , DiskCacheDir()
                 , XHRCache(false)
                 , Languages()
                 , CertificateCheck(true)
@@ -514,6 +515,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("mediadiskcache"), &MediaDiskCache);
                 Add(_T("diskcache"), &DiskCache);
+                Add(_T("diskcachedir"), &DiskCacheDir);
                 Add(_T("xhrcache"), &XHRCache);
                 Add(_T("languages"), &Languages);
                 Add(_T("certificatecheck"), &CertificateCheck);
@@ -562,6 +564,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String MemoryPressure;
             Core::JSON::Boolean MediaDiskCache;
             Core::JSON::String DiskCache;
+            Core::JSON::String DiskCacheDir;
             Core::JSON::Boolean XHRCache;
             Core::JSON::ArrayType<Core::JSON::String> Languages;
             Core::JSON::Boolean CertificateCheck;
@@ -1337,6 +1340,10 @@ static GSourceFuncs _handlerIntervention =
             if (_config.DiskCache.Value().empty() == false)
                 Core::SystemInfo::SetEnvironment(_T("WPE_DISK_CACHE_SIZE"), _config.DiskCache.Value(), !environmentOverride);
 
+            // Disk Cache Dir
+            if (_config.DiskCacheDir.Value().empty() == false)
+               Core::SystemInfo::SetEnvironment(_T("XDG_CACHE_HOME"), _config.DiskCacheDir.Value(), !environmentOverride);
+
             if (_config.XHRCache.Value() == false)
                 Core::SystemInfo::SetEnvironment(_T("WPE_DISABLE_XHR_RESPONSE_CACHING"), _T("1"), !environmentOverride);
 
@@ -1603,7 +1610,11 @@ static GSourceFuncs _handlerIntervention =
             g_free(wpeStoragePath);
             WKContextConfigurationSetLocalStorageDirectory(contextConfiguration, storageDirectory);
 
-            gchar* wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
+            gchar* wpeDiskCachePath;
+            if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false)
+                wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
+            else
+                wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
             g_mkdir_with_parents(wpeDiskCachePath, 0700);
             auto diskCacheDirectory = WKStringCreateWithUTF8CString(wpeDiskCachePath);
             g_free(wpeDiskCachePath);
