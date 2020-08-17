@@ -172,7 +172,7 @@
   - **reboot**
 
     This method shall be used to request the system to perform `reboot`.  
-  _**Request payload:**_ `{"params":{"reason":"API Validation"}}`  
+  _**Request payload:**_ `{"params":{"rebootReason":"API Validation"}}`  
   _**Response payload:**_ `{"result":{"IARM_Bus_Call_STATUS":<int>,"success":<bool>}}`
   - **removeCacheKey**
 

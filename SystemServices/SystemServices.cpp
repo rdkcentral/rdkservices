@@ -455,10 +455,11 @@ namespace WPEFramework {
                 rebootReason = "System Plugin";
                 customReason = "No custom reason provided";
                 otherReason = "No other reason supplied";
-                JsonObject params;
-                params.FromString(parameters["params"].String());
-                customReason = params["reason"].String();
-                otherReason = customReason;
+
+		if (parameters.HasLabel("rebootReason")) {
+			customReason = parameters["rebootReason"].String();
+			otherReason = customReason;
+		}
 
                 rebootCommand += " -s \"" + rebootReason + "\"";
                 rebootCommand += " -r \"" + customReason + "\"";
@@ -724,87 +725,89 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::setMode(const JsonObject& parameters,
                 JsonObject& response)
-        {
-            bool changeMode  = true;
-            JsonObject param;
-            std::string oldMode = m_currentMode;
-            bool result = true;
-	    
-	    if (parameters.HasLabel("modeInfo")) {
-		    param.FromString(parameters["modeInfo"].String());
-		    if (param.HasLabel("duration") && param.HasLabel("mode")) {
-		    int duration = param["duration"].Number();
-		    std::string newMode = param["mode"].String();
+	{
+		bool changeMode  = true;
+		JsonObject param;
+		std::string oldMode = m_currentMode;
+		bool result = true;
 
-		    LOGWARN("request to switch to mode '%s' from mode '%s' \
-				    with duration %d\n", newMode.c_str(),
-				    oldMode.c_str(), duration);
+		if (parameters.HasLabel("modeInfo")) {
+			param.FromString(parameters["modeInfo"].String());
+			if (param.HasLabel("duration") && param.HasLabel("mode")) {
+				int duration = param["duration"].Number();
+				std::string newMode = param["mode"].String();
 
-		    if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
-				    MODE_EAS != newMode) {
-			    LOGERR("value of new mode is incorrect, therefore \
-					    current mode '%s' not changed.\n", oldMode.c_str());
-			    returnResponse(false);
-		    }
-		    if (MODE_NORMAL == m_currentMode && (0 == duration ||
-					    (0 != duration && MODE_NORMAL == newMode))) {
-			    changeMode = false;
-		    } else if (MODE_NORMAL != newMode && 0 != duration) {
-			    m_currentMode = newMode;
-			    duration < 0 ? stopModeTimer() : startModeTimer(duration);
-		    } else {
-			    m_currentMode = MODE_NORMAL;
-			    stopModeTimer();
-		    }
+				LOGWARN("request to switch to mode '%s' from mode '%s' \
+						with duration %d\n", newMode.c_str(),
+						oldMode.c_str(), duration);
 
-		    if (changeMode) {
-			    IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
-			    stringToIarmMode(oldMode, modeParam.oldMode);
-			    stringToIarmMode(m_currentMode, modeParam.newMode);
+				if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
+						MODE_EAS != newMode) {
+					LOGERR("value of new mode is incorrect, therefore \
+							current mode '%s' not changed.\n", oldMode.c_str());
+					returnResponse(false);
+				}
+				if (MODE_NORMAL == m_currentMode && (0 == duration ||
+							(0 != duration && MODE_NORMAL == newMode))) {
+					changeMode = false;
+				} else if (MODE_NORMAL != newMode && 0 != duration) {
+					m_currentMode = newMode;
+					duration < 0 ? stopModeTimer() : startModeTimer(duration);
+				} else {
+					m_currentMode = MODE_NORMAL;
+					stopModeTimer();
+				}
 
-			    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
-						    "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
-				    LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
+				if (changeMode) {
+					IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
+					stringToIarmMode(oldMode, modeParam.oldMode);
+					stringToIarmMode(m_currentMode, modeParam.newMode);
 
-				    if (MODE_NORMAL != m_currentMode && duration < 0) {
-					    LOGWARN("duration is negative, therefore \
-							    mode timer stopped and Receiver will keep \
-							    mode '%s', untill changing it in next call",
-							    m_currentMode.c_str());
-				    }
-			    } else {
-				    stopModeTimer();
-				    m_currentMode = MODE_NORMAL;
-				    LOGERR("failed to switch to mode '%s'. Receiver \
-						    forced to switch to '%s'", newMode.c_str(), m_currentMode.c_str());
-				    result = false;
-			    }
+					if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
+								"DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
+						LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
 
-			    string command = "";
-			    if (MODE_WAREHOUSE == m_currentMode) {
-				    command = "touch ";
-			    } else {
-				    command = "rm -f ";
-			    }
-			    command += WAREHOUSE_MODE_FILE;
-			    /* TODO: replace with system alternate. */
-			    int sysStat = system(command.c_str());
-			    LOGINFO("system returned %d\n", sysStat);
-			    //set values in temp file so they can be restored in receiver restarts / crashes
-			    m_temp_settings.setValue("mode", m_currentMode);
-			    m_temp_settings.setValue("mode_duration", m_remainingDuration);
-		    } else {
-			    LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
-		    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-            
-            returnResponse(result);
-        }
+						if (MODE_NORMAL != m_currentMode && duration < 0) {
+							LOGWARN("duration is negative, therefore \
+									mode timer stopped and Receiver will keep \
+									mode '%s', untill changing it in next call",
+									m_currentMode.c_str());
+						}
+					} else {
+						stopModeTimer();
+						m_currentMode = MODE_NORMAL;
+						LOGERR("failed to switch to mode '%s'. Receiver \
+								forced to switch to '%s'", newMode.c_str(), m_currentMode.c_str());
+						result = false;
+					}
+
+					string command = "";
+					if (MODE_WAREHOUSE == m_currentMode) {
+						command = "touch ";
+					} else {
+						command = "rm -f ";
+					}
+					command += WAREHOUSE_MODE_FILE;
+					/* TODO: replace with system alternate. */
+					int sysStat = system(command.c_str());
+					LOGINFO("system returned %d\n", sysStat);
+					//set values in temp file so they can be restored in receiver restarts / crashes
+					m_temp_settings.setValue("mode", m_currentMode);
+					m_temp_settings.setValue("mode_duration", m_remainingDuration);
+				} else {
+					LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
+				}
+			} else {
+				populateResponseWithError(SysSrv_MissingKeyValues, response);
+				result = false;
+			}
+		} else {
+			populateResponseWithError(SysSrv_MissingKeyValues, response);
+			result = false;
+		}
+
+		returnResponse(result);
+	}
 
         void SystemServices::startModeTimer(int duration)
         {
@@ -929,7 +932,7 @@ namespace WPEFramework {
             string match = "http://";
 
             string xconfOverride = getXconfOverrideUrl();
-            LOGWARN("xconfOverride %s\n", xconfOverride.c_str());
+            LOGWARN("xconfOverride: '%s'\n", (xconfOverride.size()? xconfOverride.c_str() : "empty xconfOverride"));
 
             string fullCommand = ((xconfOverride.empty() != 0)? xconfOverride
                     : URL_XCONF);
@@ -959,7 +962,7 @@ namespace WPEFramework {
                 + "&accountID=" + accountId;
 
             fullCommand = url_encode(fullCommand);
-            LOGINFO("curl url : %s\n", fullCommand.c_str());
+            LOGINFO("curl url : '%s'\n", fullCommand.c_str());
 
             curl_handle = curl_easy_init();
             _fwUpdate.success = false;
@@ -1011,16 +1014,16 @@ namespace WPEFramework {
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            string callGUID;
+		string callGUID;
 
-                callGUID = parameters["GUID"].String();
-            LOGINFO("GUID = %s\n", callGUID.c_str());
-                if (m_getFirmwareInfoThread.joinable()) {
-                    m_getFirmwareInfoThread.join();
-                }
-                m_getFirmwareInfoThread = std::thread(firmwareUpdateInfoReceived);
-                response["asyncResponse"] = true;
-            returnResponse(true);
+		callGUID = parameters["GUID"].String();
+		LOGINFO("GUID = %s\n", callGUID.c_str());
+		if (m_getFirmwareInfoThread.joinable()) {
+			m_getFirmwareInfoThread.join();
+		}
+		m_getFirmwareInfoThread = std::thread(firmwareUpdateInfoReceived);
+		response["asyncResponse"] = true;
+		returnResponse(true);
         } // get FirmwareUpdateInfo
 
         /***
@@ -2715,6 +2718,10 @@ namespace WPEFramework {
          */
         static void handleThermalLevelChange(IARM_Bus_PWRMgr_EventData_t *param)
         {
+            bool crossOver;
+            bool validparams = true;
+            std::string thermLevel;
+
             bool crossOver;
             bool validparams = true;
             std::string thermLevel;
