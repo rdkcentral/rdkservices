@@ -950,25 +950,24 @@ namespace WPEFramework {
             accountId = Utils::cRunScript("sh -c \". /lib/rdk/getAccountId.sh; getAccountId\"");
             accountId = trim(accountId);
 
-            fullCommand += "?eStbMac=" + eStbMac
-                + "&env=" + env
-                + "&model=" + model
-                + "&timezone=" + getTimeZoneDSTHelper()
-                + "&localtime=" + currentDateTimeUtc("ddd MMMM d hh:mm:ss UTC yyyy")
-                + "&firmwareVersion=" + firmwareVersion
-                + "&capabilities=rebootDecoupled&capabilities=RCDL&capabilities=supportsFullHttpUrl"
-                + "&additionalFwVerInfo=" + pdriVersion
-                + "&partnerId=" + partnerId
-                + "&accountID=" + accountId;
+	    string timeZone = getTimeZoneDSTHelper();
+	    string utcDateTime = currentDateTimeUtc("ddd MMMM d hh:mm:ss UTC yyyy");
+	    LOGINFO("timeZone = '%s', utcDateTime = '%s'\n", timeZone.c_str(), utcDateTime.c_str());
 
-            fullCommand = url_encode(fullCommand);
-            LOGINFO("curl url : '%s'\n", fullCommand.c_str());
+            fullCommand = fullCommand + "?eStbMac=" + eStbMac + "&env=" + env + "&model=" + model
+                + "&timezone=" + timeZone + "&localtime=" + utcDateTime + "&firmwareVersion=" + firmwareVersion
+                + "&capabilities=rebootDecoupled&capabilities=RCDL&capabilities=supportsFullHttpUrl"
+                + "&additionalFwVerInfo=" + pdriVersion + "&partnerId=" + partnerId + "&accountID=" + accountId;
+
+            LOGINFO("curl url(raw) : '%s'\n", fullCommand.c_str());
+            string curlEncodedURL = url_encode(fullCommand);
+            LOGINFO("curl url(encoded) : '%s'\n", curlEncodedURL.c_str());
 
             curl_handle = curl_easy_init();
             _fwUpdate.success = false;
 
             if (curl_handle) {
-                curl_easy_setopt(curl_handle, CURLOPT_URL, fullCommand.c_str());
+                curl_easy_setopt(curl_handle, CURLOPT_URL, curlEncodedURL.c_str());
                 /* when redirected, follow the redirections */
                 curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
                 curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
@@ -1489,39 +1488,36 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
-            JsonObject params;
-            string macTypeList[] = {"ecm_mac", "estb_mac",
-                "moca_mac", "eth_mac", "wifi_mac"};
-            string tempBuffer, cmdBuffer;
+		int i, listLength = 0;
+		JsonObject params;
+		string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
+			"eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
+		string tempBuffer, cmdBuffer;
 
-            for (i = 0; i < 5; i++) {
-                cmdBuffer.clear();
-                cmdBuffer = "/lib/rdk/getDeviceDetails.sh read ";
-                cmdBuffer += macTypeList[i];
-                LOGWARN("cmd = %s\n", cmdBuffer.c_str());
-                tempBuffer.clear();
-                tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
-                if (!tempBuffer.empty()) {
-                    removeCharsFromString(tempBuffer, "\n\r");
-                    LOGWARN("resp = %s\n", tempBuffer.c_str());
-                    params[macTypeList[i].c_str()] = tempBuffer;
-                    listLength++;
-                }
-            }
-            if (listLength != i) {
-                params["info"] = "Details fetch: all are not success";
-            }
-            if (listLength) {
-                params["success"] = true;
-            } else {
-                params["success"] = false;
-            }
-            if (pSs) {
-                pSs->Notify(EVT_ONMACADDRESSRETRIEVED, params);
-            } else {
-                LOGERR("SystemServices *pSs is NULL\n");
-            }
+		for (i = 0; i < sizeof(macTypeList)/sizeof(macTypeList[0]); i++) {
+			cmdBuffer.clear();
+			cmdBuffer = "/lib/rdk/getDeviceDetails.sh read " + macTypeList[i];
+			LOGWARN("cmd = %s\n", cmdBuffer.c_str());
+			tempBuffer.clear();
+			tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
+			removeCharsFromString(tempBuffer, "\n\r");
+			LOGWARN("resp = %s\n", tempBuffer.c_str());
+			params[macTypeList[i].c_str()] = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+			listLength++;
+		}
+		if (listLength != i) {
+			params["info"] = "Details fetch: all are not success";
+		}
+		if (listLength) {
+			params["success"] = true;
+		} else {
+			params["success"] = false;
+		}
+		if (pSs) {
+			pSs->Notify(EVT_ONMACADDRESSRETRIEVED, params);
+		} else {
+			LOGERR("SystemServices *pSs is NULL\n");
+		}
         }
 
         /***
