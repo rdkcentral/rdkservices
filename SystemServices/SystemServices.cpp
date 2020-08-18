@@ -619,14 +619,14 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_MODELNAME;
+                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
             IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
             param.buffer[param.bufLen] = '\0';
 
-            LOGWARN("SystemService getDeviceInfo result %s", param.buffer);
+            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 
             bool status = false;
             if (result == IARM_RESULT_SUCCESS) {
