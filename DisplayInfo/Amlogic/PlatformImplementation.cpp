@@ -153,18 +153,18 @@ public:
        : _width(0)
        , _height(0)
        , _connected(false)
-       , _major(0)
-       , _minor(0)
+       , _verticalFreq(0)
+       , _hdcpprotection(HDCPProtectionType::HDCP_Unencrypted)
        , _type(HDR_OFF)
        , _totalGpuRam(0)
        , _audioPassthrough(false)
        , _adminLock()
        , _activity(*this) {
 
-
         UpdateTotalMem(_totalGpuRam);
-        UpdateDisplayInfo(_connected, _width, _height, _major, _minor, _type);
+        UpdateDisplayInfo(_connected, _width, _height, _type, _verticalFreq);
         UpdateAudioPassthrough(_audioPassthrough);
+        UpdateDisplayInfoHDCP(_hdcpprotection);
 
         RegisterCallback();
     }
@@ -237,18 +237,19 @@ public:
     {
         return _height;
     }
-    uint8_t HDCPMajor() const override
+    uint32_t VerticalFreq() const override
     {
-        return _major;
-    }
-    uint8_t HDCPMinor() const override
-    {
-        return _minor;
+        return _verticalFreq;
     }
     HDRType Type() const override
     {
         return _type;
     }
+    HDCPProtectionType HDCPProtection() const override
+    {
+	    return _hdcpprotection;
+    }
+
     void Dispatch() const
     {
         _adminLock.Lock();
@@ -336,7 +337,7 @@ private:
        audioPassthrough = false;
     }
 
-    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, uint8_t& major, uint8_t& minor, HDRType& type)
+    void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, HDRType& type, uint32_t& verticalFreq)
     {
 #ifdef AMLOGIC_E2
 	    char strStatus[13] = {'\0'};
@@ -350,6 +351,7 @@ private:
 	    }
 #else
 	    connected = true; //Display always connected for Panel
+            verticalFreq = 60;
 #endif
 #ifdef AMLOGIC_E2
 	    amlError_t ret = amlERR_NONE;
@@ -418,17 +420,14 @@ private:
 		    // Read HDR status
 		    type = HDR_DOLBYVISION;
 
-		    // Check HDCP version
-		    if (AML_HDCP_VERSION_1X) {
-			    major = 1;
-			    minor = 4;
-		    } else {
-			    major = 2;
-			    minor = 0;
-		    }
-
 		    // Read display width and height
 	    }
+
+
+     void UpdateDisplayInfoHDCP(HDCPProtectionType hdcpprotection) const
+     {
+         hdcpprotection = HDCPProtectionType::HDCP_2X;
+     }
 
     void RegisterCallback()
     {
@@ -451,7 +450,7 @@ private:
     void UpdateDisplayInfo()
     {
         _adminLock.Lock();
-        UpdateDisplayInfo(_connected, _width, _height, _major, _minor, _type);
+        UpdateDisplayInfo(_connected, _width, _height, _type, _verticalFreq);
         _adminLock.Unlock();
 
         _activity.Submit();
@@ -461,11 +460,10 @@ private:
     uint32_t _width;
     uint32_t _height;
     bool _connected;
+    uint32_t _verticalFreq;
 
-    uint8_t _major;
-    uint8_t _minor;
+    HDCPProtectionType  _hdcpprotection;
     HDRType _type;
-
     uint64_t _totalGpuRam;
     bool _audioPassthrough;
 

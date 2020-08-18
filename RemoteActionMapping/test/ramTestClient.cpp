@@ -35,7 +35,7 @@
 
 #include <vector>
 
-#define SYSSRV_CALLSIGN "org.rdk.RemoteActionMapping"
+#define SYSSRV_CALLSIGN "org.rdk.RemoteActionMapping.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
@@ -537,6 +537,8 @@ int main(int argc, char** argv)
         std::cout << "Failed to open security utility" << std::endl;
     }
     // End Security Token
+
+    std::cout << "Using callsign: " << SYSSRV_CALLSIGN << std::endl;
 
     if (NULL == remoteObject) {
         remoteObject = new JSONRPC::Client(_T(SYSSRV_CALLSIGN), _T(""), false, sToken);

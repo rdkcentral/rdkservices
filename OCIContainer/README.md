@@ -106,11 +106,12 @@ Gets information about a running container such as CPU, memory and GPU uage (GPU
 Starts a new container from an existing OCI bundle.
 
 ### Params
-| Name        | Type   | Description                                                                            |
-| ----------- | ------ | -------------------------------------------------------------------------------------- |
-| containerId | string | ID for the new container                                                               |
-| bundlePath  | string | Path to the OCI bundle containing the rootfs and config to use to create the container |
-| command     | string | Custom command to run inside the container, overriding the command in the container config |
+| Name           | Type   | Description                                                                                |
+| -------------- | ------ | ------------------------------------------------------------------------------------------ |
+| containerId    | string | ID for the new container                                                                   |
+| bundlePath     | string | Path to the OCI bundle containing the rootfs and config to use to create the container     |
+| command        | string | Custom command to run inside the container, overriding the command in the container config |
+| westerosSocket | string | Path to a westeros socket to mount inside the container                                    |
 ---
 
 ### Response
@@ -130,10 +131,10 @@ Starts a new container from an existing OCI bundle.
 Starts a new container from a legacy Dobby json specification
 
 ### Params
-| Name        | Type   | Description                                                                            |
-| ----------- | ------ | -------------------------------------------------------------------------------------- |
-| containerId | string | ID for the new container                                                               |
-| dobbySpec  | object | Dobby specification to use for the container |
+| Name        | Type   | Description                                                                          |
+| ----------- | ------ | ------------------------------------------------------------------------------------ |
+| containerId | string | ID for the new container                                                             |
+| dobbySpec   | object | Dobby specification to use for the container                                         |
 | command     | string | Custom command to run inside the container, overriding the command in the Dobby spec |
 
 ### Response
