@@ -94,6 +94,8 @@ namespace WPEFramework {
                 /* TODO: Need to decide whether needed or not since setProperty
                    and getProperty functionalities are XRE/RTRemote dependent. */
                 static JsonObject _systemParams;
+                static const string MODEL_NAME;
+                static const string HARDWARE_ID;
 
                 // We do not allow this plugin to be copied !!
                 SystemServices(const SystemServices&) = delete;
@@ -107,6 +109,9 @@ namespace WPEFramework {
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+                bool getManufacturerData(const string& parameter, JsonObject& response);
+#endif
             public:
                 SystemServices();
                 virtual ~SystemServices();
@@ -196,7 +201,6 @@ namespace WPEFramework {
                 uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getRFCConfig(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
-                uint32_t enableXREConnectionRetention(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

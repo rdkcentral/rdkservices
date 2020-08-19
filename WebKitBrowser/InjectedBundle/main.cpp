@@ -33,7 +33,10 @@
 #include "Utils.h"
 #include "WhiteListedOriginDomainsList.h"
 #include "RequestHeaders.h"
+
+#if defined(ENABLE_BADGER_BRIDGE)
 #include "BridgeObject.h"
+#endif
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
 #include "AAMPJSBindings.h"
@@ -112,7 +115,6 @@ public:
 
     void WhiteList(WKBundleRef bundle)
     {
-
         // Whitelist origin/domain pairs for CORS, if set.
         if (_whiteListedOriginDomainPairs) {
             _whiteListedOriginDomainPairs->AddWhiteListToWebKit(bundle);
@@ -240,11 +242,15 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // didRunInsecureContentForFrame
     // didClearWindowObjectForFrame
     [](WKBundlePageRef page, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
-        #if defined(ENABLE_AAMP_JSBINDINGS)
-        JavaScript::AAMP::LoadJSBindings(frame);
-        #endif
-
-        JavaScript::BridgeObject::InjectJS(frame);
+        bool isMainCtx = (WKBundleFrameGetJavaScriptContext(frame) == WKBundleFrameGetJavaScriptContextForWorld(frame, scriptWorld));
+        if (isMainCtx) {
+            #if defined(ENABLE_AAMP_JSBINDINGS)
+            JavaScript::AAMP::LoadJSBindings(frame);
+            #endif
+            #if defined(ENABLE_BADGER_BRIDGE)
+            JavaScript::BridgeObject::InjectJS(frame);
+            #endif
+        }
 
         // Add JS classes to JS world.
         ClassDefinition::Iterator ite = ClassDefinition::GetClassDefinitions();
@@ -302,15 +308,17 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
     //willAddDetailedMessageToConsole
     [](WKBundlePageRef page, WKConsoleMessageSource source, WKConsoleMessageLevel level, WKStringRef message, uint32_t lineNumber,
         uint32_t columnNumber, WKStringRef url, const void* clientInfo) {
-        string messageString = WebKit::Utils::WKStringToString(message);
-
-        const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
-        if (messageString.length() > maxStringLength) {
-            messageString = messageString.substr(0, maxStringLength);
-        }
+        auto prepareMessage = [&]() {
+            string messageString = WebKit::Utils::WKStringToString(message);
+            const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
+            if (messageString.length() > maxStringLength) {
+                messageString = messageString.substr(0, maxStringLength);
+            }
+            return messageString;
+        };
 
         // TODO: use "Trace" classes for different levels.
-        TRACE_GLOBAL(Trace::Information, (messageString));
+        TRACE_GLOBAL(Trace::Information, (prepareMessage()));
     }
 };
 
@@ -328,8 +336,10 @@ static void didReceiveMessageToPage(
         return;
     }
 
+    #if defined(ENABLE_BADGER_BRIDGE)
     if (JavaScript::BridgeObject::HandleMessageToPage(page, messageName, messageBody))
         return;
+    #endif
 }
 
 static void willDestroyPage(WKBundleRef, WKBundlePageRef page, const void*)

@@ -18,8 +18,11 @@
 set(PLUGIN_NAME DeviceIdentification)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
+
 find_package(NEXUS QUIET)
 find_package(BCM_HOST QUIET)
+find_package(MFRFWLibs QUIET)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
@@ -29,7 +32,14 @@ add_library(${MODULE_NAME} SHARED
     DeviceIdentificationJsonRpc.cpp
     Module.cpp)
 
-if(NEXUS_FOUND)
+if (PLUGIN_DEVICEIDENTIFICATION_USE_MFR AND MFRFWLIBS_FOUND)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/MFR/MFR.cpp)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            mfrfwlibs::mfrfwlibs)
+elseif (NEXUS_FOUND)
     find_package(NXCLIENT REQUIRED)
     target_link_libraries(${MODULE_NAME} 
         PRIVATE
@@ -45,6 +55,10 @@ elseif (BCM_HOST_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             BCM_HOST::BCM_HOST)
+elseif (BUILD_AMLOGIC)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Amlogic/Amlogic.cpp)
 else ()
     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
 endif()

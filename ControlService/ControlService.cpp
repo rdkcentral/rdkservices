@@ -72,6 +72,7 @@ namespace WPEFramework {
             ControlService::_instance = this;
 
             registerMethod("getApiVersionNumber", &ControlService::getApiVersionNumber, this);
+            registerMethod("getQuirks", &ControlService::getQuirks, this);
 
             registerMethod("getAllRemoteData", &ControlService::getAllRemoteDataWrapper, this);
             registerMethod("getSingleRemoteData", &ControlService::getSingleRemoteDataWrapper, this);
@@ -719,6 +720,15 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             response["version"] = m_apiVersionNumber;
+            returnResponse(true);
+        }
+
+        uint32_t ControlService::getQuirks(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            JsonArray array;
+            array.Add("DELIA-43686");
+            response["quirks"] = array;
             returnResponse(true);
         }
 
@@ -1953,6 +1963,7 @@ namespace WPEFramework {
             remoteInfo["linkQuality"]               = JsonValue((int)ctrlStatus.status.link_quality);
             remoteInfo["bHasCheckedIn"]             = JsonValue((bool)ctrlStatus.status.checkin_for_device_update);
             remoteInfo["bIrdbDownloadSupported"]    = JsonValue((bool)ctrlStatus.status.ir_db_code_download_supported);
+            remoteInfo["securityType"]              = JsonValue((int)ctrlStatus.status.security_type);
 
             remoteInfo["bHasBattery"]                       = JsonValue((bool)ctrlStatus.status.has_battery);
             remoteInfo["batteryChangedTimestamp"]           = JsonValue((long long)(ctrlStatus.status.time_battery_changed * 1000LL));

@@ -176,6 +176,7 @@ namespace WPEFramework {
             registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
+            registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
         }
@@ -1192,9 +1193,9 @@ namespace WPEFramework {
             int compresionLevel = 0;
             try {
                 compresionLevel = stoi(sCompresionLevel);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sCompresionLevel);
-                           returnResponse(false);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse compresionLevel '%s'", sCompresionLevel.c_str());
+               returnResponse(false);
             }
 
             bool success = true;
@@ -1249,11 +1250,12 @@ namespace WPEFramework {
             {
                 iDolbyVolumeMode = stoi(sDolbyVolumeMode);
             }
-            catch (const device::Exception& err)
+            catch (const std::exception &err)
             {
-               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode);
+               LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
                returnResponse(false);
             }
+
             if (0 == iDolbyVolumeMode) {
                 dolbyVolumeMode = false;
             } else {
@@ -1303,9 +1305,9 @@ namespace WPEFramework {
                         int enhancerlevel = 0;
             try {
                 enhancerlevel = stoi(sEnhancerlevel);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sEnhancerlevel);
-                           returnResponse(false);
+            }catch (const std::exception &err) {
+                LOGERR("Failed to parse enhancerlevel '%s'", sEnhancerlevel.c_str());
+                returnResponse(false);
             }
 
             bool success = true;
@@ -1356,9 +1358,9 @@ namespace WPEFramework {
                         int intelligentEqualizerMode = 0;
             try {
                 intelligentEqualizerMode = stoi(sIntelligentEqualizerMode);
-            }catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sIntelligentEqualizerMode);
-                           returnResponse(false);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse intelligentEqualizerMode '%s'", sIntelligentEqualizerMode.c_str());
+               returnResponse(false);
             }
 
             bool success = true;
@@ -1643,10 +1645,11 @@ namespace WPEFramework {
                 int VolumeLeveller = 0;
                 try {
                         VolumeLeveller = stoi(sVolumeLeveller);
-                }catch (const device::Exception& err) {
-                        LOG_DEVICE_EXCEPTION1(sVolumeLeveller);
+                }catch (const std::exception &err) {
+                        LOGERR("Failed to parse level '%s'", sVolumeLeveller.c_str());
                         returnResponse(false);
                 }
+
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 try
@@ -1725,8 +1728,8 @@ namespace WPEFramework {
 
                try {
                   surroundVirtualizer = stoi(sSurroundVirtualizer);
-               }catch (const device::Exception& err) {
-                  LOG_DEVICE_EXCEPTION1(sSurroundVirtualizer);
+               }catch (const std::exception &err) {
+                  LOGERR("Failed to parse boost '%s'", sSurroundVirtualizer.c_str());
                               returnResponse(false);
                }
                bool success = true;
@@ -1862,8 +1865,8 @@ namespace WPEFramework {
                 int DRCMode = 0;
                 try {
                         DRCMode = stoi(sDRCMode);
-                }catch (const device::Exception& err) {
-                        LOG_DEVICE_EXCEPTION1(sDRCMode);
+                }catch (const std::exception &err) {
+                        LOGERR("Failed to parse DRCMode '%s'", sDRCMode.c_str());
                         returnResponse(false);
                 }
                 bool success = true;
@@ -1944,9 +1947,9 @@ namespace WPEFramework {
 			int audioDelayMs = 0;
             try {
                 audioDelayMs = stoi(sAudioDelayMs);
-            } catch (const device::Exception& err) {
-               LOG_DEVICE_EXCEPTION1(sAudioDelayMs); 
-               returnResponse(false);
+            } catch (const std::exception &err) {
+                LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
+                returnResponse(false);
             }
 
             bool success = true;
@@ -2060,10 +2063,10 @@ namespace WPEFramework {
             {
                 audioDelayOffsetMs = stoi(sAudioDelayOffsetMs);
             }
-            catch (const device::Exception& err)
+            catch (const std::exception &err)
             {
-               LOG_DEVICE_EXCEPTION1(sAudioDelayOffsetMs); 
-               returnResponse(false);
+                LOGERR("Failed to parse audioDelayOffset '%s'", sAudioDelayOffsetMs.c_str());
+                returnResponse(false);
             }
 
             bool success = true;
@@ -2103,7 +2106,7 @@ namespace WPEFramework {
                 }
 
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.setAudioDelay (audioDelayOffsetMs);
+                aPort.setAudioDelayOffset (audioDelayOffsetMs);
             }
             catch (const device::Exception& err)
             {
@@ -2183,6 +2186,31 @@ namespace WPEFramework {
 					LOGERR("getTVHDRCapabilities failure: HDMI0 not connected!\n");
                     success = false;
                 }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::isConnectedDeviceRepeater (const JsonObject& parameters, JsonObject& response) 
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            bool success = true;
+            bool isConnectedDeviceRepeater = false;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                if (vPort.isDisplayConnected()) {
+                    isConnectedDeviceRepeater = vPort.getDisplay().isConnectedDeviceRepeater();
+                }
+                else {
+                    LOGERR("isConnectedDeviceRepeater failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+                response["HdcpRepeater"] = isConnectedDeviceRepeater;
             }
             catch(const device::Exception& err)
             {

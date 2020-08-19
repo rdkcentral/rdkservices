@@ -15,26 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# - Try to find Display Settings library
-# Once done this will define
-#  TTS_INCLUDE_DIRS - The TTS include directories
-#  TTS_LIBRARIES - The libraries needed to use TTS
-#
+set(PLUGIN_NAME TTSThunderAPITest)
+find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(securityagent REQUIRED)
 
-find_package(PkgConfig)
-find_library(TTS_LIBRARIES NAMES TTSClient)
-find_path(TTS_INCLUDE_DIRS NAMES TTSCommon.h)
-find_path(TTSC_INCLUDE_DIRS NAMES TTSClient.h)
+option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
 
-set(TTS_LIBRARIES ${TTS_LIBRARIES} CACHE PATH "Path to TTSClient")
-set(TTS_INCLUDE_DIRS ${TTS_INCLUDE_DIRS} CACHE PATH "Path to TTS include")
-set(TTSC_INCLUDE_DIRS ${TTSC_INCLUDE_DIRS} CACHE PATH "Path to TTSClient include")
+add_executable(${PLUGIN_NAME} TTSThunderAPITest.cpp)
 
+set_target_properties(${PLUGIN_NAME} PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+    )
 
+set(LIBRARIES WPEFrameworkSecurityUtil)
+target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
 
-include(FindPackageHandleStandardArgs)
+target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES}
+    PRIVATE
+    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    )
 
-mark_as_advanced(
-    TTS_INCLUDE_DIRS
-    TTSC_INCLUDE_DIRS
-    TTS_LIBRARIES)
+install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
+
