@@ -43,33 +43,9 @@ namespace WPEFramework {
                     case (TTS::TTS_NOT_ENABLED):
                                 LOGINFO("%s api failed with TTS_NOT_ENABLED error code = %d", __func__, X);
                                 break;
-                    case (TTS::TTS_CREATE_SESSION_DUPLICATE):
-                                LOGINFO("%s api failed with TTS_CREATE_SESSION_DUPLICATE error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_EMPTY_APPID_INPUT):
-                                LOGINFO("%s api failed with TTS_EMPTY_APPID_INPUT error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_RESOURCE_BUSY):
-                                LOGINFO("%s api failed with TTS_RESOURCE_BUSY error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_NO_SESSION_FOUND):
-                                LOGINFO("%s api failed with TTS_NO_SESSION_FOUND error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_NESTED_CLAIM_REQUEST):
-                                LOGINFO("%s api failed with TTS_NESTED_CLAIM_REQUEST error code = %d", __func__, X);
-                                break;
                     case (TTS::TTS_INVALID_CONFIGURATION):
                                 LOGINFO("%s api failed with TTS_INVALID_CONFIGURATION error code = %d", __func__, X);
                                 break;
-                    case (TTS::TTS_SESSION_NOT_ACTIVE):
-                                LOGINFO("%s api failed with TTS_SESSION_NOT_ACTIVE error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_APP_NOT_FOUND):
-                                LOGINFO("%s api failed with TTS_APP_NOT_FOUND error code = %d", __func__, X);
-                                break;
-                    case (TTS::TTS_POLICY_VIOLATION):
-                                LOGINFO("%s api failed with TTS_POLICY_VIOLATION error code = %d", __func__, X);
-                                break;            
                     default:
                                 LOGINFO("%s api failed with unknow error code = %d", __func__, X);
                                 response["TTS_Status"] = static_cast<uint32_t>(TTS::TTS_FAIL);
