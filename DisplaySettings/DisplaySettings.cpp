@@ -1095,13 +1095,11 @@ namespace WPEFramework {
         }
 
         uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+        {   //sample servicemanager response:{"AudioCapabilities":["ATMOS","DOLBY DIGITAL","DOLBYDIGITAL PLUS","MS12"]}
             LOGINFOMETHOD();
 
             JsonArray audioCapabilities;
-            bool success = true;
             int capabilities = dsAUDIOSUPPORT_NONE;
-            bool ms12Support = false;
 
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -1112,7 +1110,6 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
-                success = false;
             }
 
             if(!capabilities)audioCapabilities.Add("none");
@@ -1121,26 +1118,21 @@ namespace WPEFramework {
             if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
             if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audo Decode");
             if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
-            if(capabilities & dsAUDIOSUPPORT_MS12){
-                audioCapabilities.Add("MS12");
-                ms12Support = true;
-            }
-            response["supportsMS12"] = ms12Support;
+            if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
 
-            response["standards"] = audioCapabilities;
+            response["AudioCapabilities"] = audioCapabilities;
             for (uint32_t i = 0; i < audioCapabilities.Length(); i++)
             {
                LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
             }
-            returnResponse(success);
+            returnResponse(true);
         }
 
         uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+        {   //sample servicemanager response:{"MS12Capabilities":["Dolby Volume","Inteligent Equalizer","Dialogue Enhancer"]}
             LOGINFOMETHOD();
 
             JsonArray ms12Capabilities;
-            bool success = true;
             int capabilities = dsMS12SUPPORT_NONE;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -1151,7 +1143,6 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
-                success = false;
             }
 
             if(!capabilities)ms12Capabilities.Add("none");
@@ -1159,12 +1150,12 @@ namespace WPEFramework {
             if(capabilities & dsMS12SUPPORT_InteligentEqualizer)ms12Capabilities.Add("Inteligent Equalizer");
             if(capabilities & dsMS12SUPPORT_DialogueEnhancer)ms12Capabilities.Add("Dialogue Enhancer");
 
-            response["standards"] = ms12Capabilities;
+            response["MS12Capabilities"] = ms12Capabilities;
             for (uint32_t i = 0; i < ms12Capabilities.Length(); i++)
             {
                LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
             }
-            returnResponse(success);
+            returnResponse(true);
         }
 
         uint32_t DisplaySettings::setVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response)
