@@ -1866,7 +1866,7 @@ namespace WPEFramework {
               }
               else
               {
-                RdkShell::setMemoryMonitor(enable, 5); //default to 5 minute interval
+                RdkShell::setMemoryMonitor(enable, 5); //default to 5 second interval
               }
             }
             returnResponse(result);
