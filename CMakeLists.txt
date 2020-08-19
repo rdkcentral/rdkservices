@@ -25,10 +25,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
 include(services.cmake)
 
+option(PLUGIN_PACKAGER "Include Packager plugin" OFF)
 option(PLUGIN_DISPLAYSETTINGS "Include DisplaySettings plugin" ON)
-option(PLUGIN_TTSSETTINGS "Include TTSSettings plugin" OFF)
-option(PLUGIN_TTSRESOURCE "Include TTSResource Plugin plugin" OFF)
-option(PLUGIN_TTSSESSIONSERVICE "Include TTSSession Plugin plugin" OFF)
 option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
 option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
 option(PLUGIN_PROXIES "Include Proxies plugin" OFF)
@@ -56,6 +54,10 @@ string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
+
+if(PLUGIN_PACKAGER)
+    add_subdirectory(Packager)
+endif()
 
 if(PLUGIN_BLUETOOTH)
     add_subdirectory(Bluetooth)
@@ -219,18 +221,6 @@ endif()
 
     if(HAS_AUTHSERVICE)
         add_subdirectory(AuthService)
-    endif()
-
-    if(PLUGIN_TTSSETTINGS)
-        add_subdirectory(TTSSettings)
-    endif()
-
-    if(PLUGIN_TTSRESOURCE)
-        add_subdirectory(TTSResource)
-    endif()
-
-    if(PLUGIN_TTSSESSIONSERVICE)
-        add_subdirectory(TTSSessionService)
     endif()
 
     if(HAS_API_CONTINUE_WATCHING)

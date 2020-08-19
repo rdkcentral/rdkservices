@@ -13,6 +13,9 @@
     <ClCompile Include="SecurityAgentJsonRpc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AccessControlList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccessControlList.h">

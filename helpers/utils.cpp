@@ -32,6 +32,12 @@ using namespace std;
 
 bool Utils::IARM::init()
 {
+    static IARMHelper sIARMHelper;
+    return m_connected;
+}
+
+Utils::IARM::IARMHelper::IARMHelper()
+{
     string memberName = "Thunder_Plugins";
     LOGINFO("%s", memberName.c_str());
 
@@ -44,7 +50,7 @@ bool Utils::IARM::init()
     {
         LOGINFO("%s has already connected with IARM", memberName.c_str());
         m_connected = true;
-        return true;
+        return;
     }
 
     IARM_CHECK( IARM_Bus_Init(memberName.c_str()));
@@ -55,18 +61,26 @@ bool Utils::IARM::init()
         {
             LOGERR("IARM_Bus_Connect failure");
             IARM_CHECK(IARM_Bus_Term());
-            return false;
+            return;
         }
     }
     else
     {
         LOGERR("IARM_Bus_Init failure");
-        return false;
+        return;
     }
 
     LOGINFO("%s inited and connected with IARM", memberName.c_str());
     m_connected = true;
-    return true;
+}
+
+Utils::IARM::IARMHelper::~IARMHelper()
+{
+    IARM_Result_t res;
+    LOGINFO("%s disconnect and terminate Thunder_Plugins connection with IARM");
+    IARM_CHECK(IARM_Bus_Disconnect());
+    IARM_CHECK(IARM_Bus_Term());
+	m_connected = false;
 }
 
 bool Utils::IARM::m_connected = false;
