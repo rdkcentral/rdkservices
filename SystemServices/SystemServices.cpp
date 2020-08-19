@@ -343,11 +343,8 @@ namespace WPEFramework {
                     &SystemServices::getPreviousRebootReason, this);
             registerMethod("getRFCConfig", &SystemServices::getRFCConfig, this);
             registerMethod("getMilestones", &SystemServices::getMilestones, this);
-            registerMethod("enableXREConnectionRetention",
-                    &SystemServices::enableXREConnectionRetention, this);
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
         }
-
 
         SystemServices::~SystemServices()
         {
@@ -2142,30 +2139,6 @@ namespace WPEFramework {
             }
             returnResponse(retAPIStatus);
         }
-
-        /***
-         * @brief : Enables XRE Connection Retension option.
-         * @param1[in]  : {"params":{"enable":<bool>}}
-         * @param2[out] : "result":{"success":<bool>}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::enableXREConnectionRetention(const JsonObject& parameters,
-                JsonObject& response)
-	{
-		bool enable = false, retstatus = false;
-		int status = SysSrv_Unexpected;
-		if (parameters.HasLabel("enable")) {
-			enable = parameters["enable"].Boolean();
-			if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
-				retstatus = true;
-			} else {
-				populateResponseWithError(status, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		returnResponse(retstatus);
-	}
 
         /***
          * @brief : collect device state info.
