@@ -26,6 +26,7 @@
 #include <curl/curl.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <interfaces/IMemory.h>
 #include "rfcapi.h"
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -44,6 +45,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER = "addKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER = "removeKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GENERATE_KEYS = "generateKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREEN_RESOLUTION = "getScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCREEN_RESOLUTION = "setScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CREATE_DISPLAY = "createDisplay";
@@ -67,6 +69,9 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND = "suspend"
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DESTROY = "destroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AVAILABLE_TYPES = "getAvailableTypes";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getState";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -79,6 +84,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "on
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING = "onDeviceLowRamWarning";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 
 using namespace std;
 using namespace RdkShell;
@@ -90,6 +99,15 @@ unsigned int resolutionHeight = 720;
 
 #define ANY_KEY 65536
 #define MAX_STRING_LENGTH 2048
+
+enum RDKShellLaunchType
+{
+    UNKNOWN = 0,
+    CREATE,
+    ACTIVATE,
+    SUSPEND,
+    RESUME
+};
 
 namespace WPEFramework {
     namespace Plugin {
@@ -193,7 +211,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -212,6 +230,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER, &RDKShell::addKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER, &RDKShell::removeKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GENERATE_KEYS, &RDKShell::generateKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREEN_RESOLUTION, &RDKShell::getScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_SCREEN_RESOLUTION, &RDKShell::setScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_CREATE_DISPLAY, &RDKShell::createDisplayWrapper, this);
@@ -235,6 +254,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_DESTROY, &RDKShell::destroyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_AVAILABLE_TYPES, &RDKShell::getAvailableTypesWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_STATE, &RDKShell::getState, this);
+            registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -251,7 +273,8 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             LOGINFO();
-            
+
+            mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
             RFC_ParamData_t param;
             bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
@@ -304,6 +327,8 @@ namespace WPEFramework {
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO();
+
+            mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
         }
 
@@ -411,89 +436,97 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
           std::cout << "RDKShell onApplicationLaunched event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_LAUNCHED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationConnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationConnected event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_CONNECTED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_CONNECTED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_CONNECTED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationDisconnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationDisconnected event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_DISCONNECTED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_DISCONNECTED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_DISCONNECTED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationTerminated(const std::string& client)
         {
           std::cout << "RDKShell onApplicationTerminated event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_TERMINATED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_TERMINATED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_TERMINATED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationFirstFrame(const std::string& client)
         {
           std::cout << "RDKShell onApplicationFirstFrame event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_FIRST_FRAME, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_FIRST_FRAME, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationSuspended(const std::string& client)
         {
           std::cout << "RDKShell onApplicationSuspended event received for " << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_SUSPENDED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationResumed(const std::string& client)
         {
           std::cout << "RDKShell onApplicationResumed event received for " << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_RESUMED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, params);
         }
 
         void RDKShell::RdkShellListener::onUserInactive(const double minutes)
         {
           std::cout << "RDKShell onUserInactive event received ..." << minutes << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_USER_INACTIVITY;
           JsonObject params;
           params["minutes"] = std::to_string(minutes);
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, response);
+          mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceLowRamWarning(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceLowRamWarning event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarning(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarning event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceLowRamWarningCleared(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceLowRamWarningCleared event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarningCleared event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED, params);
         }
 
         // Registered methods (wrappers) begin
@@ -787,6 +820,29 @@ namespace WPEFramework {
                 result = injectKey(keyCode, modifiers);
                 if (false == result) {
                   response["message"] = "failed to inject key";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::generateKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keys"))
+            {
+                result = false;
+                response["message"] = "please specify keyInputs";
+            }
+
+            if (result)
+            {
+                const JsonArray keyInputs = parameters["keys"].Array();
+
+                result = generateKey(keyInputs);
+                if (false == result) {
+                  response["message"] = "failed to generate keys";
                 }
             }
             returnResponse(result);
@@ -1290,6 +1346,7 @@ namespace WPEFramework {
 
             if (result)
             {
+                RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
@@ -1391,13 +1448,15 @@ namespace WPEFramework {
                     string strResult;
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
+                    launchType = RDKShellLaunchType::CREATE;
                 }
 
                 WPEFramework::Core::JSON::String configString;
 
+                uint32_t status = 0;
                 string method = "configuration@" + callsign;
                 Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                uint32_t status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(2000, method.c_str(), configString);
+                status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(2000, method.c_str(), configString);
 
                 JsonObject configSet;
                 configSet.FromString(configString.Value());
@@ -1406,12 +1465,10 @@ namespace WPEFramework {
                 {
                     JsonObject configurationOverrides;
                     configurationOverrides.FromString(configuration);
-                    auto configurationIterator = configurationOverrides.Variants();
-                    configurationIterator.Reset();
-                    while (configurationIterator.IsValid())
+                    JsonObject::Iterator configurationIterator = configurationOverrides.Variants();
+                    while (configurationIterator.Next())
                     {
                         configSet[configurationIterator.Label()] = configurationIterator.Current();
-                        configurationIterator.Next();
                     }
                 }
                 configSet["clientidentifier"] = displayName;
@@ -1493,6 +1550,10 @@ namespace WPEFramework {
                         status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
                         
                         std::cout << "setting the state to suspended\n";
+                        if (launchType == RDKShellLaunchType::UNKNOWN)
+                        {
+                            launchType = RDKShellLaunchType::SUSPEND;
+                        }
                         visible = false;
                     }
                     else
@@ -1500,6 +1561,10 @@ namespace WPEFramework {
                         WPEFramework::Core::JSON::String stateString;
                         stateString = "resumed";
                         status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                        if (launchType == RDKShellLaunchType::UNKNOWN)
+                        {
+                            launchType = RDKShellLaunchType::RESUME;
+                        }
                         
                         std::cout << "setting the state to resumed\n";
                     }
@@ -1662,44 +1727,148 @@ namespace WPEFramework {
             for (uint16_t i = 0; i < joResult.Length(); i++)
             {
                 PluginHost::MetaData::Service service = joResult[i];
-                std::string configLine;
-                service.Configuration.ToString(configLine);
-                if (!configLine.empty())
+                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
                 {
-                    JsonObject serviceConfig = JsonObject(configLine.c_str());
-                    if (serviceConfig.HasLabel("clientidentifier"))
+                    std::string configLine;
+                    service.Configuration.ToString(configLine);
+                    if (!configLine.empty())
                     {
-                        std::string callsign;
-                        service.Callsign.ToString(callsign);
-                        callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                        WPEFramework::Core::JSON::String stateString;
-                        const string callsignWithVersion = callsign + ".1";
-                        uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-
-                        if (stateStatus == 0)
+                        JsonObject serviceConfig = JsonObject(configLine.c_str());
+                        if (serviceConfig.HasLabel("clientidentifier"))
                         {
-                            WPEFramework::Core::JSON::String urlString;
-                            uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
-                            
-                            JsonObject typeObject;
-                            typeObject["callsign"] = callsign;
-                            typeObject["state"] = stateString.Value();
-                            if (urlStatus == 0)
+                            std::string callsign;
+                            service.Callsign.ToString(callsign);
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
+
+                            WPEFramework::Core::JSON::String stateString;
+                            const string callsignWithVersion = callsign + ".1";
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+
+                            if (stateStatus == 0)
                             {
-                                typeObject["uri"] = urlString.Value();
+                                WPEFramework::Core::JSON::String urlString;
+                                uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+
+                                JsonObject typeObject;
+                                typeObject["callsign"] = callsign;
+                                typeObject["state"] = stateString.Value();
+                                if (urlStatus == 0)
+                                {
+                                    typeObject["uri"] = urlString.Value();
+                                }
+                                else
+                                {
+                                    typeObject["uri"] = "";
+                                }
+                                stateArray.Add(typeObject);
                             }
-                            else
-                            {
-                                typeObject["uri"] = "";
-                            }
-                            stateArray.Add(typeObject);
                         }
                     }
                 }
             }
             response["state"] = stateArray;
 
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            uint32_t freeKb=0, usedSwapKb=0, totalKb=0;
+            result = systemMemory(freeKb, totalKb, usedSwapKb);
+            if (!result) {
+              response["message"] = "failed to get system Ram";
+            }
+            else
+            {
+              response["freeRam"] = freeKb;
+              response["swapRam"] = usedSwapKb;
+              response["totalRam"] = totalKb;
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            JsonArray memoryInfo;
+
+            string method = "status";
+            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
+
+            /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
+                    std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
+                    std::cout << "ACTIVATED: " << PluginHost::MetaData::Service::state::ACTIVATED << std::endl;
+                    std::cout << "ACTIVATION: " << PluginHost::MetaData::Service::state::ACTIVATION << std::endl;
+                    std::cout << "DESTROYED: " << PluginHost::MetaData::Service::state::DESTROYED << std::endl;
+                    std::cout << "PRECONDITION: " << PluginHost::MetaData::Service::state::PRECONDITION << std::endl;
+                    std::cout << "SUSPENDED: " << PluginHost::MetaData::Service::state::SUSPENDED << std::endl;
+                    std::cout << "RESUMED: " << PluginHost::MetaData::Service::state::RESUMED << std::endl;*/
+
+            JsonArray stateArray;
+            for (uint16_t i = 0; i < joResult.Length(); i++)
+            {
+                PluginHost::MetaData::Service service = joResult[i];
+                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
+                {
+                    std::string configLine;
+                    service.Configuration.ToString(configLine);
+                    if (!configLine.empty())
+                    {
+                        JsonObject serviceConfig = JsonObject(configLine.c_str());
+                        if (serviceConfig.HasLabel("clientidentifier"))
+                        {
+                            std::string callsign;
+                            service.Callsign.ToString(callsign);
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
+
+                            WPEFramework::Core::JSON::String stateString;
+                            const string callsignWithVersion = callsign + ".1";
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+
+                            if (stateStatus == 0)
+                            {
+                                result = pluginMemoryUsage(callsign, memoryInfo);
+                            }
+                        }
+                    }
+                }
+            }
+
+            response["types"] = memoryInfo;
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              bool enable = parameters["enable"].Boolean();
+              if (parameters.HasLabel("interval"))
+              {
+                RdkShell::setMemoryMonitor(enable, std::stod(parameters["interval"].String()));
+              }
+              else
+              {
+                RdkShell::setMemoryMonitor(enable, 5); //default to 5 minute interval
+              }
+            }
             returnResponse(result);
         }
 
@@ -1878,6 +2047,29 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::injectKey(keyCode, flags);
             gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::generateKey(const JsonArray& keyInputs)
+        {
+            bool ret = false;
+            for (int i=0; i<keyInputs.Length(); i++) {
+                const JsonObject& keyInputInfo = keyInputs[i].Object();
+                if (keyInputInfo.HasLabel("keyCode"))
+                {
+                  const uint32_t keyCode = keyInputInfo["keyCode"].Number();
+                  const uint32_t delay = keyInputInfo["delay"].Number();
+                  sleep(delay);
+                  const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
+                  uint32_t flags = 0;
+                  for (int k=0; k<modifiers.Length(); k++) {
+                    flags |= getKeyFlag(modifiers[k].String());
+                  }
+                  gRdkShellMutex.lock();
+                  ret = CompositorController::injectKey(keyCode, flags);
+                  gRdkShellMutex.unlock();
+                }
+            }
             return ret;
         }
 
@@ -2138,6 +2330,37 @@ namespace WPEFramework {
             params["client"] = client;
             response["params"] = params;
             notify(RDKSHELL_EVENT_ON_DESTROYED, response);
+        }
+
+        bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
+        {
+            gRdkShellMutex.lock();
+            bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::pluginMemoryUsage(const string callsign, JsonArray& memoryInfo)
+        {
+            JsonObject memoryDetails;
+            PluginHost::IShell* plugin(mCurrentService->QueryInterfaceByCallsign<PluginHost::IShell>(callsign.c_str()));
+            memoryDetails["callsign"] = callsign;
+            memoryDetails["ram"] = -1;
+            if (nullptr != plugin)
+            {
+                Exchange::IMemory* memory = plugin->QueryInterface<Exchange::IMemory>();
+
+                if (memory != nullptr)
+                {
+                    memoryDetails["ram"] = memory->Resident()/1024;
+                }
+                else
+                {
+                    std::cout << "Memory information not available for " << callsign << std::endl;
+                }
+                memoryInfo.Add(memoryDetails);
+            }
+            return true;
         }
 
         // Internal methods end
