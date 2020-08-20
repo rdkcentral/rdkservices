@@ -181,7 +181,7 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const string interval);
-            void onLaunched(const std::string& client);
+            void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
