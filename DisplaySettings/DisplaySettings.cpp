@@ -1116,7 +1116,7 @@ namespace WPEFramework {
             if(capabilities & dsAUDIOSUPPORT_ATMOS)audioCapabilities.Add("ATMOS");
             if(capabilities & dsAUDIOSUPPORT_DD)audioCapabilities.Add("DOLBY DIGITAL");
             if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
-            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audo Decode");
+            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audio Decode");
             if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
             if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
 
