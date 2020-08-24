@@ -343,11 +343,8 @@ namespace WPEFramework {
                     &SystemServices::getPreviousRebootReason, this);
             registerMethod("getRFCConfig", &SystemServices::getRFCConfig, this);
             registerMethod("getMilestones", &SystemServices::getMilestones, this);
-            registerMethod("enableXREConnectionRetention",
-                    &SystemServices::enableXREConnectionRetention, this);
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
         }
-
 
         SystemServices::~SystemServices()
         {
@@ -623,14 +620,14 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_MODELNAME;
+                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
             IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
             param.buffer[param.bufLen] = '\0';
 
-            LOGWARN("SystemService getDeviceInfo result %s", param.buffer);
+            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 
             bool status = false;
             if (result == IARM_RESULT_SUCCESS) {
@@ -2142,30 +2139,6 @@ namespace WPEFramework {
             }
             returnResponse(retAPIStatus);
         }
-
-        /***
-         * @brief : Enables XRE Connection Retension option.
-         * @param1[in]  : {"params":{"enable":<bool>}}
-         * @param2[out] : "result":{"success":<bool>}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::enableXREConnectionRetention(const JsonObject& parameters,
-                JsonObject& response)
-	{
-		bool enable = false, retstatus = false;
-		int status = SysSrv_Unexpected;
-		if (parameters.HasLabel("enable")) {
-			enable = parameters["enable"].Boolean();
-			if ((status = enableXREConnectionRetentionHelper(enable)) == SysSrv_OK) {
-				retstatus = true;
-			} else {
-				populateResponseWithError(status, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		returnResponse(retstatus);
-	}
 
         /***
          * @brief : collect device state info.
