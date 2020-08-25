@@ -897,12 +897,12 @@ namespace WPEFramework {
             string env = "";
             string model;
             string firmwareVersion;
+            string eStbMac = "";
             if (_instance) {
                 firmwareVersion = _instance->getStbVersionString();
             } else {
                 LOGERR("_instance is NULL.\n");
             }
-            string eStbMac = _systemParams["estb_mac"].String();
 
             LOGWARN("SystemService firmwareVersion %s\n", firmwareVersion.c_str());
 
@@ -916,10 +916,13 @@ namespace WPEFramework {
                 env = "CQA";
 
             string ipAddress = collectDeviceInfo("estb_ip");
+	    removeCharsFromString(ipAddress, "\n\r");
             model = getModel();
 
-            if (eStbMac.empty())
-                eStbMac = collectDeviceInfo("estb_mac");
+	    eStbMac = collectDeviceInfo("estb_mac");
+	    removeCharsFromString(eStbMac, "\n\r");
+	    LOGWARN("ipAddress = '%s', eStbMac = '%s'\n", (ipAddress.empty()? "empty" : ipAddress.c_str()),
+			    (eStbMac.empty()? "empty" : eStbMac.c_str()));
 
             std::string response;
             long http_code = 0;
@@ -932,15 +935,12 @@ namespace WPEFramework {
             string match = "http://";
 
             string xconfOverride = getXconfOverrideUrl();
-            LOGWARN("xconfOverride: '%s'\n", (xconfOverride.size()? xconfOverride.c_str() : "empty xconfOverride"));
-
-            string fullCommand = ((xconfOverride.empty() != 0)? xconfOverride
-                    : URL_XCONF);
-            size_t start_pos = fullCommand.find(match);
+            string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
+	    size_t start_pos = fullCommand.find(match);
             if (std::string::npos != start_pos) {
                 fullCommand.replace(start_pos, match.length(), "https://");
             }
-
+	    LOGWARN("fullCommand : '%s'\n", fullCommand.c_str());
             pdriVersion = Utils::cRunScript("/usr/bin/mfr_util --PDRIVersion");
             pdriVersion = trim(pdriVersion);
 
@@ -951,7 +951,7 @@ namespace WPEFramework {
             accountId = trim(accountId);
 
 	    string timeZone = getTimeZoneDSTHelper();
-	    string utcDateTime = currentDateTimeUtc("ddd MMMM d hh:mm:ss UTC yyyy");
+	    string utcDateTime = currentDateTimeUtc("%a %B %e %I:%M:%S %Z %Y");
 	    LOGINFO("timeZone = '%s', utcDateTime = '%s'\n", timeZone.c_str(), utcDateTime.c_str());
 
             fullCommand = fullCommand + "?eStbMac=" + eStbMac + "&env=" + env + "&model=" + model
@@ -960,30 +960,35 @@ namespace WPEFramework {
                 + "&additionalFwVerInfo=" + pdriVersion + "&partnerId=" + partnerId + "&accountID=" + accountId;
 
             LOGINFO("curl url(raw) : '%s'\n", fullCommand.c_str());
-            string curlEncodedURL = url_encode(fullCommand);
-            LOGINFO("curl url(encoded) : '%s'\n", curlEncodedURL.c_str());
 
             curl_handle = curl_easy_init();
             _fwUpdate.success = false;
 
             if (curl_handle) {
-                curl_easy_setopt(curl_handle, CURLOPT_URL, curlEncodedURL.c_str());
-                /* when redirected, follow the redirections */
-                curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
-                        writeCurlResponse);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
-                curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-                curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
+		char *escUrl = curl_easy_escape(curl_handle,fullCommand.c_str(), fullCommand.length());
+		if (escUrl) {
+			LOGINFO("curl url (enc): '%s'\n", escUrl);
+			curl_easy_setopt(curl_handle, CURLOPT_URL, escUrl);
+			/* when redirected, follow the redirections */
+			curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+			curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
+					writeCurlResponse);
+			curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
+			curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
+			curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
 
-                res = curl_easy_perform(curl_handle);
+			res = curl_easy_perform(curl_handle);
 
-                curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE,
-                        &http_code);
-                LOGWARN("curl result code: %d, http response code: %ld\n",
-                        res, http_code);
-
-                _fwUpdate.httpStatus = http_code;
+			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE,
+					&http_code);
+			LOGWARN("curl result code: %d, http response code: %ld\n",
+					res, http_code);
+			if (CURLE_OK != res) {
+				LOGERR("curl_easy_perform failed; reason: '%s'\n", curl_easy_strerror(res));
+			}
+			_fwUpdate.httpStatus = http_code;
+			curl_free(escUrl);
+		}
                 curl_easy_cleanup(curl_handle);
             } else {
                 LOGWARN("Could not perform curl\n");
