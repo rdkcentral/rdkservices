@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkHdmiCecSink.so",
+ "classname":"HdmiCecSink",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.HdmiCecSink",
+ "autostart":false
+}
