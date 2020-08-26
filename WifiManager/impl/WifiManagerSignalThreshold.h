@@ -47,7 +47,7 @@ namespace WPEFramework {
             WifiManagerSignalThreshold& operator=(const WifiManagerSignalThreshold&) = delete;
 
             uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response);
-            void setWifiStateConnected(bool enable);
+            void setWifiStateConnected(bool connected);
             uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
 
         private:
