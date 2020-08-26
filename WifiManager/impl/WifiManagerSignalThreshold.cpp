@@ -144,7 +144,7 @@ void WifiManagerSignalThreshold::loop(int interval)
             }
             cv.wait_for(lk, std::chrono::milliseconds(interval), [this](){ return changeEnabled == false; });
         } else {
-            cv.wait(lk, [this](){ return running; });
+            cv.wait(lk, [this](){ return running || changeEnabled == false; });
         }
 
     }
