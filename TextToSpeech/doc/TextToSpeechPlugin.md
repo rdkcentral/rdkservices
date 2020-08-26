@@ -240,7 +240,7 @@ TextToSpeech interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onspeechstart](#event.onspeechstart) | Notifies when speech starts |
-| [onspeechcancel](#event.onspeechcancel) | Notifies when speech is cancelled |
+| [onspeechinterrupted](#event.onspeechinterrupted) | Notifies when the current speech is cancelled |
 | [onnetworkerror](#event.onnetworkerror) | Notifies when network error is occurred |
 | [onplaybackerror](#event.onplaybackerror) | Notifies when playback error |
 | [onspeechcomplete](#event.onspeechcomplete) | Notifies when speech is completed |
@@ -270,10 +270,10 @@ Notifies when speech starts.
     }
 }
 ```
-<a name="event.onspeechcancel"></a>
-## *onspeechcancel <sup>event</sup>*
+<a name="event.onspeechinterrupted"></a>
+## *onspeechinterrupted <sup>event</sup>*
 
-Notifies when speech is cancelled.
+Notifies when the current speech is cancelled.
 
 ### Parameters
 
@@ -287,7 +287,7 @@ Notifies when speech is cancelled.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechcancel",
+    "method": "client.events.1.onspeechinterrupted",
     "params": {
         "speechid": 1
     }
