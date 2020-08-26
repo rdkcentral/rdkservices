@@ -122,7 +122,7 @@ public:
     int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure); // Formalize data to speak API
     bool isSpeaking(uint32_t id);
     SpeechState getSpeechState(uint32_t id);
-    bool cancelCurrentSpeech(uint32_t id=0);
+    bool cancelSpeech(uint32_t id=0);
     bool reset();
 
     bool pause(uint32_t id = 0);
