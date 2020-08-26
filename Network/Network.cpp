@@ -55,6 +55,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         char allNetworkInterfaces[INTERFACE_LIST];
         char enableInterface[INTERFACE_SIZE];
         char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
+        bool ipv4request;
     };
     char interfaceCount;
     bool isInterfaceEnabled;
@@ -346,6 +347,24 @@ namespace WPEFramework
             IARM_Result_t ret = IARM_RESULT_SUCCESS;
             IARM_BUS_NetSrvMgr_Iface_EventData_t param;
             memset(&param, 0, sizeof(param));
+
+            if (parameters.HasLabel("family"))
+            {
+                std::string family;
+                getStringParameter("family", family);
+                if (family == "ipv4")
+                    param.ipv4request = true;
+                else if (family == "ipv6")
+                    param.ipv4request = false;
+                else
+                {
+                    response["ip"] = "";
+                    returnResponse(false);
+                }
+            }
+            else
+                param.ipv4request = false;
+
             ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param));
 
             if (ret != IARM_RESULT_SUCCESS )
