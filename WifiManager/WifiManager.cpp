@@ -268,11 +268,11 @@ namespace WPEFramework
             return result;
         }
 
-        uint32_t WifiManager::setSignalThresholdChangeEnabled(const JsonObject &parameters, JsonObject &response)
+        uint32_t WifiManager::setWifiStateConnected(const JsonObject &parameters, JsonObject &response)
         {
             LOGINFOMETHOD();
 
-            uint32_t result = wifiSignalThreshold.setSignalThresholdChangeEnabled(parameters, response);
+            uint32_t result = wifiSignalThreshold.setWifiStateConnected(parameters, response);
 
             LOGTRACEMETHODFIN();
             return result;
@@ -302,11 +302,11 @@ namespace WPEFramework
             sendNotify("onWIFIStateChanged", params);
             if (state == WifiState::CONNECTED)
             {
-                wifiSignalThreshold.setSignalThresholdChangeEnabled(true);
+                wifiSignalThreshold.setWifiStateConnected(true);
             }
             else
             {
-                wifiSignalThreshold.setSignalThresholdChangeEnabled(false);
+                wifiSignalThreshold.setWifiStateConnected(false);
             }
         }
 

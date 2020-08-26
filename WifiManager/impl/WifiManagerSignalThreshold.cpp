@@ -70,7 +70,7 @@ WifiManagerSignalThreshold::~WifiManagerSignalThreshold()
     stopThread();
 }
 
-uint32_t WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(const JsonObject &parameters, JsonObject &response)
+uint32_t WifiManagerSignalThreshold::setWifiStateConnected(const JsonObject &parameters, JsonObject &response)
 {
     LOGINFOMETHOD();
     returnIfBooleanParamNotFound(parameters, "enabled");
@@ -160,11 +160,11 @@ void WifiManagerSignalThreshold::stopThread()
     }
 }
 
-void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enable)
+void WifiManagerSignalThreshold::setWifiStateConnected(bool connected)
 {
-    LOGINFO("setSignalThresholdChangeEnabled: enable %s", enable ? "true":"false");
-    running = enable;
-    if (enable)
+    LOGINFO("setSignalThresholdChangeEnabled: enable %s", connected ? "true":"false");
+    running = connected;
+    if (connected)
     {
         cv.notify_one();
     }
