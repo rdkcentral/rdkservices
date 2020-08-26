@@ -300,6 +300,14 @@ namespace WPEFramework
             params["state"] = static_cast<int>(state);
             params["isLNF"] = isLNF;
             sendNotify("onWIFIStateChanged", params);
+            if (state == WifiState::CONNECTED)
+            {
+                wifiSignalThreshold.setWifiStateConnected(true);
+            }
+            else
+            {
+                wifiSignalThreshold.setWifiStateConnected(false);
+            }
         }
 
         /**
