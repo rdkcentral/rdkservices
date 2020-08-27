@@ -29,11 +29,6 @@
     Supports to enable/disable Moca Settings.  
   _**Request payload:**_ `{"params":{"value":<bool>}}`  
   _**Response payload:**_ `{"success":<bool>}`
-  - **enableXREConnectionRetention**
-
-    Enables XRE Connection Retension option.  
-  _**Request payload:**_ `{"params":{"enable":<bool>}}`  
-  _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **getAvailableStandbyModes**
 
     Returns an array of strings containing the supported standby modes. Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".  
@@ -172,8 +167,8 @@
   - **reboot**
 
     This method shall be used to request the system to perform `reboot`.  
-  _**Request payload:**_ `{"params":{"key":"sampleCache"}}`  
-  _**Response payload:**_ `{"result":{"success":<bool>}}`
+  _**Request payload:**_ `{"params":{"rebootReason":"API Validation"}}`  
+  _**Response payload:**_ `{"result":{"IARM_Bus_Call_STATUS":<int>,"success":<bool>}}`
   - **removeCacheKey**
 
     To delete the key value present in cache.  
@@ -289,7 +284,6 @@ Method | Request Payload | Response Payload
 | cacheContains | {"jsonrpc":"2.0","id":"1","method":"org.rdk.System.1.cacheContains","params":{"key":"sampleCache"}} |  {"jsonrpc":"2.0","id":1,"result":{"success":true}} |  
 | clearLastDeepSleepReason | {"jsonrpc":"2.0","id":"29","method":"org.rdk.System.1.clearLastDeepSleepReason","params":{}} | {"jsonrpc":"2.0","id":29,"result":{"success":true}} |  
 | enableMoca | {"jsonrpc":"2.0","id":"30","method": "org.rdk.System.1.enableMoca","params":{"value":false}} | {"jsonrpc":"2.0","id":30,"result":{"success":false}} |  
-| enableXREConnectionRetention | {"jsonrpc":"2.0","id":"32","method":"org.rdk.System.1.enableXREConnectionRetention","params":{"enable":true}} | {"jsonrpc":"2.0","id":32,"result":{"success":true}} |  
 | getAvailableStandbyModes | {"jsonrpc":"2.0","id":"2","method":"org.rdk.System.1.getAvailableStandbyModes","params":{}} | {"jsonrpc":"2.0","id":2,"result":{"supportedStandbyModes":["LIGHT_SLEEP","DEEP_SLEEP"],"success":true}} |  
 | getCachedValue | {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.1.getCachedValue","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":3,"result":{"sampleCache":"4343.3434","success":true}} |  
 | getCoreTemperature | {"jsonrpc":"2.0","id":"4","method":"org.rdk.System.1.getCoreTemperature","params":{}} | {"jsonrpc":"2.0","id":4,"result":{"temperature":"48.000000","success":true}} |  
@@ -317,7 +311,7 @@ Method | Request Payload | Response Payload
 | hasRebootBeenRequested | {"jsonrpc":"2.0","id":"25","method":"org.rdk.System.1.hasRebootBeenRequested","params":{}} | {"jsonrpc":"2.0","id":25,"result":{"rebootRequested":false,"success":true}} |  
 | isGzEnabled | {"jsonrpc":"2.0","id":"26","method":"org.rdk.System.1.isGzEnabled","params":{}} | {"jsonrpc":"2.0","id":26,"result":{"enabled":false,"success":true}} |  
 | queryMocaStatus | {"jsonrpc":"2.0","id":"27","method": "org.rdk.System.1.queryMocaStatus","params":{}} | {"jsonrpc":"2.0","id":27,"result":{"mocaEnabled":false,"success":true}} |  
-| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.System.1.reboot","params":{"reason":"API Validation"}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
+| reboot | {"jsonrpc":"2.0","id":"100","method":"org.rdk.System.1.reboot","params":{"reboorReason":"API Validation"}} | {"jsonrpc":"2.0","id":3,"result":{"IARM_Bus_Call_STATUS":1,"success":true}} |  
 | removeCacheKey | {"jsonrpc":"2.0","id":"34","method":"org.rdk.System.1.removeCacheKey","params":{"key":"sampleCache"}} | {"jsonrpc":"2.0","id":34,"result":{"success":true}} |  
 | requestSystemUptime | {"jsonrpc":"2.0","id":"28","method":"org.rdk.System.1.requestSystemUptime","params":{}} | {"jsonrpc":"2.0","id":28,"result":{"systemUptime":"1666.92","success":true}} |  
 | setCachedValue | {"jsonrpc":"2.0","id":"33","method":"org.rdk.System.1.setCachedValue","params":{"key":"sampleCache","value":4343.3434}} | {"jsonrpc":"2.0","id":33,"result":{"success":true}} |  
