@@ -45,6 +45,10 @@ elseif (BCM_HOST_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             BCM_HOST::BCM_HOST)
+elseif (BUILD_AMLOGIC)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Amlogic/Amlogic.cpp)
 else ()
     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
 endif()
