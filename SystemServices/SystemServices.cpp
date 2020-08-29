@@ -452,10 +452,11 @@ namespace WPEFramework {
                 rebootReason = "System Plugin";
                 customReason = "No custom reason provided";
                 otherReason = "No other reason supplied";
-                JsonObject params;
-                params.FromString(parameters["params"].String());
-                customReason = params["reason"].String();
-                otherReason = customReason;
+
+                if (parameters.HasLabel("rebootReason")) {
+                    customReason = parameters["rebootReason"].String();
+                    otherReason = customReason;
+                }
 
                 rebootCommand += " -s \"" + rebootReason + "\"";
                 rebootCommand += " -r \"" + customReason + "\"";
@@ -514,32 +515,32 @@ namespace WPEFramework {
         {
             int32_t eRetval = E_NOK;
             bool enableMoca = false;
-	    ofstream mocaFile;
-	    if (parameters.HasLabel("value")) {
-		    enableMoca = parameters["value"].Boolean();
-		    if (enableMoca) {
-			    mocaFile.open(MOCA_FILE, ios::out);
-			    if (mocaFile) {
-				    mocaFile.close();
-				    /* TODO: replace system() */
-				    eRetval = system("/etc/init.d/moca_init start");
-			    } else {
-				    LOGERR("moca file open failed\n");
-				    populateResponseWithError(SysSrv_FileAccessFailed, response);
-			    }
-		    } else {
-			    std::remove(MOCA_FILE);
-			    if (!Utils::fileExists(MOCA_FILE)) {
-				    /* TODO: replace system() */
-				    eRetval = system("/etc/init.d/moca_init start");
-			    } else {
-				    LOGERR("moca file remove failed\n");
-				    populateResponseWithError(SysSrv_FileAccessFailed, response);
-			    }
-		    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
+            ofstream mocaFile;
+             if (parameters.HasLabel("value")) {
+                 enableMoca = parameters["value"].Boolean();
+                 if (enableMoca) {
+                 mocaFile.open(MOCA_FILE, ios::out);
+                     if (mocaFile) {
+                         mocaFile.close();
+                         /* TODO: replace system() */
+                         eRetval = system("/etc/init.d/moca_init start");
+                     } else {
+                         LOGERR("moca file open failed\n");
+                         populateResponseWithError(SysSrv_FileAccessFailed, response);
+                     }
+                 } else {
+                     std::remove(MOCA_FILE);
+                     if (!Utils::fileExists(MOCA_FILE)) {
+                         /* TODO: replace system() */
+                         eRetval = system("/etc/init.d/moca_init start");
+                     } else {
+                         LOGERR("moca file remove failed\n");
+                         populateResponseWithError(SysSrv_FileAccessFailed, response);
+                     }
+                 }
+            } else {
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
             LOGERR("eRetval = %d\n", eRetval);
             returnResponse((E_OK == eRetval)? true: false);
         } //End of requestEnableMoca
@@ -726,80 +727,82 @@ namespace WPEFramework {
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-	    
-	    if (parameters.HasLabel("modeInfo")) {
-		    param.FromString(parameters["modeInfo"].String());
-		    if (param.HasLabel("duration") && param.HasLabel("mode")) {
-		    int duration = param["duration"].Number();
-		    std::string newMode = param["mode"].String();
 
-		    LOGWARN("request to switch to mode '%s' from mode '%s' \
-				    with duration %d\n", newMode.c_str(),
-				    oldMode.c_str(), duration);
+            if (parameters.HasLabel("modeInfo")) {
+                param.FromString(parameters["modeInfo"].String());
+                if (param.HasLabel("duration") && param.HasLabel("mode")) {
+                    int duration = param["duration"].Number();
+                    std::string newMode = param["mode"].String();
 
-		    if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
-				    MODE_EAS != newMode) {
-			    LOGERR("value of new mode is incorrect, therefore \
-					    current mode '%s' not changed.\n", oldMode.c_str());
-			    returnResponse(false);
-		    }
-		    if (MODE_NORMAL == m_currentMode && (0 == duration ||
-					    (0 != duration && MODE_NORMAL == newMode))) {
-			    changeMode = false;
-		    } else if (MODE_NORMAL != newMode && 0 != duration) {
-			    m_currentMode = newMode;
-			    duration < 0 ? stopModeTimer() : startModeTimer(duration);
-		    } else {
-			    m_currentMode = MODE_NORMAL;
-			    stopModeTimer();
-		    }
+                    LOGWARN("request to switch to mode '%s' from mode '%s' \
+                            with duration %d\n", newMode.c_str(),
+                            oldMode.c_str(), duration);
 
-		    if (changeMode) {
-			    IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
-			    stringToIarmMode(oldMode, modeParam.oldMode);
-			    stringToIarmMode(m_currentMode, modeParam.newMode);
+                    if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
+                            MODE_EAS != newMode) {
+                        LOGERR("value of new mode is incorrect, therefore \
+                                current mode '%s' not changed.\n", oldMode.c_str());
+                        returnResponse(false);
+                    }
+                    if (MODE_NORMAL == m_currentMode && (0 == duration ||
+                                (0 != duration && MODE_NORMAL == newMode))) {
+                        changeMode = false;
+                    } else if (MODE_NORMAL != newMode && 0 != duration) {
+                        m_currentMode = newMode;
+                        duration < 0 ? stopModeTimer() : startModeTimer(duration);
+                    } else {
+                        m_currentMode = MODE_NORMAL;
+                        stopModeTimer();
+                    }
 
-			    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
-						    "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
-				    LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
+                    if (changeMode) {
+                        IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
+                        stringToIarmMode(oldMode, modeParam.oldMode);
+                        stringToIarmMode(m_currentMode, modeParam.newMode);
 
-				    if (MODE_NORMAL != m_currentMode && duration < 0) {
-					    LOGWARN("duration is negative, therefore \
-							    mode timer stopped and Receiver will keep \
-							    mode '%s', untill changing it in next call",
-							    m_currentMode.c_str());
-				    }
-			    } else {
-				    stopModeTimer();
-				    m_currentMode = MODE_NORMAL;
-				    LOGERR("failed to switch to mode '%s'. Receiver \
-						    forced to switch to '%s'", newMode.c_str(), m_currentMode.c_str());
-				    result = false;
-			    }
+                        if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
+                                    "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
+                            LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
 
-			    string command = "";
-			    if (MODE_WAREHOUSE == m_currentMode) {
-				    command = "touch ";
-			    } else {
-				    command = "rm -f ";
-			    }
-			    command += WAREHOUSE_MODE_FILE;
-			    /* TODO: replace with system alternate. */
-			    int sysStat = system(command.c_str());
-			    LOGINFO("system returned %d\n", sysStat);
-			    //set values in temp file so they can be restored in receiver restarts / crashes
-			    m_temp_settings.setValue("mode", m_currentMode);
-			    m_temp_settings.setValue("mode_duration", m_remainingDuration);
-		    } else {
-			    LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
-		    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-            
+                            if (MODE_NORMAL != m_currentMode && duration < 0) {
+                                LOGWARN("duration is negative, therefore \
+                                        mode timer stopped and Receiver will keep \
+                                        mode '%s', untill changing it in next call",
+                                        m_currentMode.c_str());
+                            }
+                        } else {
+                            stopModeTimer();
+                            m_currentMode = MODE_NORMAL;
+                            LOGERR("failed to switch to mode '%s'. Receiver \
+                                    forced to switch to '%s'", newMode.c_str(), m_currentMode.c_str());
+                            result = false;
+                        }
+
+                        string command = "";
+                        if (MODE_WAREHOUSE == m_currentMode) {
+                            command = "touch ";
+                        } else {
+                            command = "rm -f ";
+                        }
+                        command += WAREHOUSE_MODE_FILE;
+                        /* TODO: replace with system alternate. */
+                        int sysStat = system(command.c_str());
+                        LOGINFO("system returned %d\n", sysStat);
+                        //set values in temp file so they can be restored in receiver restarts / crashes
+                        m_temp_settings.setValue("mode", m_currentMode);
+                        m_temp_settings.setValue("mode_duration", m_remainingDuration);
+                    } else {
+                        LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
+                    }
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                    result = false;
+                }
+            } else {
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+                result = false;
+            }
+
             returnResponse(result);
         }
 
@@ -891,12 +894,12 @@ namespace WPEFramework {
             string env = "";
             string model;
             string firmwareVersion;
+            string eStbMac = "";
             if (_instance) {
                 firmwareVersion = _instance->getStbVersionString();
             } else {
                 LOGERR("_instance is NULL.\n");
             }
-            string eStbMac = _systemParams["estb_mac"].String();
 
             LOGWARN("SystemService firmwareVersion %s\n", firmwareVersion.c_str());
 
@@ -910,10 +913,13 @@ namespace WPEFramework {
                 env = "CQA";
 
             string ipAddress = collectDeviceInfo("estb_ip");
+            removeCharsFromString(ipAddress, "\n\r");
             model = getModel();
 
-            if (eStbMac.empty())
-                eStbMac = collectDeviceInfo("estb_mac");
+            eStbMac = collectDeviceInfo("estb_mac");
+            removeCharsFromString(eStbMac, "\n\r");
+            LOGWARN("ipAddress = '%s', eStbMac = '%s'\n", (ipAddress.empty()? "empty" : ipAddress.c_str()),
+                (eStbMac.empty()? "empty" : eStbMac.c_str()));
 
             std::string response;
             long http_code = 0;
@@ -926,15 +932,12 @@ namespace WPEFramework {
             string match = "http://";
 
             string xconfOverride = getXconfOverrideUrl();
-            LOGWARN("xconfOverride %s\n", xconfOverride.c_str());
-
-            string fullCommand = ((xconfOverride.empty() != 0)? xconfOverride
-                    : URL_XCONF);
+            string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
             size_t start_pos = fullCommand.find(match);
             if (std::string::npos != start_pos) {
                 fullCommand.replace(start_pos, match.length(), "https://");
             }
-
+            LOGWARN("fullCommand : '%s'\n", fullCommand.c_str());
             pdriVersion = Utils::cRunScript("/usr/bin/mfr_util --PDRIVersion");
             pdriVersion = trim(pdriVersion);
 
@@ -944,41 +947,45 @@ namespace WPEFramework {
             accountId = Utils::cRunScript("sh -c \". /lib/rdk/getAccountId.sh; getAccountId\"");
             accountId = trim(accountId);
 
-            fullCommand += "?eStbMac=" + eStbMac
-                + "&env=" + env
-                + "&model=" + model
-                + "&timezone=" + getTimeZoneDSTHelper()
-                + "&localtime=" + currentDateTimeUtc("ddd MMMM d hh:mm:ss UTC yyyy")
-                + "&firmwareVersion=" + firmwareVersion
-                + "&capabilities=rebootDecoupled&capabilities=RCDL&capabilities=supportsFullHttpUrl"
-                + "&additionalFwVerInfo=" + pdriVersion
-                + "&partnerId=" + partnerId
-                + "&accountID=" + accountId;
+            string timeZone = getTimeZoneDSTHelper();
+            string utcDateTime = currentDateTimeUtc("%a %B %e %I:%M:%S %Z %Y");
+            LOGINFO("timeZone = '%s', utcDateTime = '%s'\n", timeZone.c_str(), utcDateTime.c_str());
 
-            fullCommand = url_encode(fullCommand);
-            LOGINFO("curl url : %s\n", fullCommand.c_str());
+            fullCommand = fullCommand + "?eStbMac=" + eStbMac + "&env=" + env + "&model=" + model
+                + "&timezone=" + timeZone + "&localtime=" + utcDateTime + "&firmwareVersion=" + firmwareVersion
+                + "&capabilities=rebootDecoupled&capabilities=RCDL&capabilities=supportsFullHttpUrl"
+                + "&additionalFwVerInfo=" + pdriVersion + "&partnerId=" + partnerId + "&accountID=" + accountId;
+
+            LOGINFO("curl url(raw) : '%s'\n", fullCommand.c_str());
 
             curl_handle = curl_easy_init();
             _fwUpdate.success = false;
 
             if (curl_handle) {
-                curl_easy_setopt(curl_handle, CURLOPT_URL, fullCommand.c_str());
-                /* when redirected, follow the redirections */
-                curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
-                        writeCurlResponse);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
-                curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-                curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
+                char *escUrl = curl_easy_escape(curl_handle,fullCommand.c_str(), fullCommand.length());
+                if (escUrl) {
+                        LOGINFO("curl url (enc): '%s'\n", escUrl);
+                        curl_easy_setopt(curl_handle, CURLOPT_URL, escUrl);
+                        /* when redirected, follow the redirections */
+                        curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+                        curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
+                                        writeCurlResponse);
+                        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
+                        curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
+                        curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
 
-                res = curl_easy_perform(curl_handle);
+                        res = curl_easy_perform(curl_handle);
 
-                curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE,
-                        &http_code);
-                LOGWARN("curl result code: %d, http response code: %ld\n",
-                        res, http_code);
-
-                _fwUpdate.httpStatus = http_code;
+                        curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE,
+                                        &http_code);
+                        LOGWARN("curl result code: %d, http response code: %ld\n",
+                                        res, http_code);
+                        if (CURLE_OK != res) {
+                                LOGERR("curl_easy_perform failed; reason: '%s'\n", curl_easy_strerror(res));
+                        }
+                        _fwUpdate.httpStatus = http_code;
+                        curl_free(escUrl);
+                }
                 curl_easy_cleanup(curl_handle);
             } else {
                 LOGWARN("Could not perform curl\n");
@@ -1485,23 +1492,20 @@ namespace WPEFramework {
         {
             int i, listLength = 0;
             JsonObject params;
-            string macTypeList[] = {"ecm_mac", "estb_mac",
-                "moca_mac", "eth_mac", "wifi_mac"};
+            string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
+                "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
             string tempBuffer, cmdBuffer;
 
-            for (i = 0; i < 5; i++) {
+            for (i = 0; i < sizeof(macTypeList)/sizeof(macTypeList[0]); i++) {
                 cmdBuffer.clear();
-                cmdBuffer = "/lib/rdk/getDeviceDetails.sh read ";
-                cmdBuffer += macTypeList[i];
+                cmdBuffer = "/lib/rdk/getDeviceDetails.sh read " + macTypeList[i];
                 LOGWARN("cmd = %s\n", cmdBuffer.c_str());
                 tempBuffer.clear();
                 tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
-                if (!tempBuffer.empty()) {
-                    removeCharsFromString(tempBuffer, "\n\r");
-                    LOGWARN("resp = %s\n", tempBuffer.c_str());
-                    params[macTypeList[i].c_str()] = tempBuffer;
-                    listLength++;
-                }
+                removeCharsFromString(tempBuffer, "\n\r");
+                LOGWARN("resp = %s\n", tempBuffer.c_str());
+                params[macTypeList[i].c_str()] = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+                listLength++;
             }
             if (listLength != i) {
                 params["info"] = "Details fetch: all are not success";

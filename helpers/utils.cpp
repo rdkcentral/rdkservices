@@ -77,7 +77,7 @@ Utils::IARM::IARMHelper::IARMHelper()
 Utils::IARM::IARMHelper::~IARMHelper()
 {
     IARM_Result_t res;
-    LOGINFO("%s disconnect and terminate Thunder_Plugins connection with IARM");
+    LOGINFO("disconnect and terminate Thunder_Plugins connection with IARM");
     IARM_CHECK(IARM_Bus_Disconnect());
     IARM_CHECK(IARM_Bus_Term());
 	m_connected = false;
