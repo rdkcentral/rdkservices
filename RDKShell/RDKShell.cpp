@@ -22,12 +22,9 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
-#include <securityagent/SecurityTokenUtil.h>
-#include <curl/curl.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
-#include "rfcapi.h"
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -103,7 +100,6 @@ unsigned int resolutionHeight = 720;
 
 
 #define ANY_KEY 65536
-#define MAX_STRING_LENGTH 2048
 
 enum RDKShellLaunchType
 {
@@ -116,17 +112,6 @@ enum RDKShellLaunchType
 
 namespace WPEFramework {
     namespace Plugin {
-
-        size_t writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream)
-        {
-            size_t realsize = size * nmemb;
-            string temp(static_cast<const char*>(ptr), realsize);
-            stream.append(temp);
-            return realsize;
-        }
-
-        string RDKShell::m_sToken;
-        bool RDKShell::m_sThunderSecurityChecked = false;
 
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -144,16 +129,6 @@ namespace WPEFramework {
             flag = RDKSHELL_FLAGS_ALT;
           }
           return flag;
-        }
-
-        bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
-        {
-          WDMP_STATUS wdmpStatus = getRFCParameter("RDKShell", paramName, &paramOutput);
-          if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-          {
-            return true;
-          }
-          return false;
         }
 
         SERVICE_REGISTRATION(RDKShell, 1, 0);
@@ -352,107 +327,6 @@ namespace WPEFramework {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
             return thunderClient;
-        }
-
-        void RDKShell::getSecurityToken(std::string& token)
-        {
-            if(m_sThunderSecurityChecked)
-            {
-                return;
-            }
-            
-            // Thunder Security is enabled by Default.
-            bool thunderSecurityRFCEnabled = true;
-            RFC_ParamData_t param;
-            if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable", param))
-            {
-                if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",5) == 0))
-                {
-                    thunderSecurityRFCEnabled = false;
-                }
-            }
-            std::cout << "Thunder Security RFC enabled: " << thunderSecurityRFCEnabled << std::endl;
-            if(!isThunderSecurityConfigured() || !thunderSecurityRFCEnabled)
-            {
-                m_sThunderSecurityChecked = true;
-                std::cout << "Thunder Security is not enabled. Not getting token\n";
-                return;
-            }
-            m_sThunderSecurityChecked = true;
-            unsigned char buffer[MAX_STRING_LENGTH] = {0};
-            
-            int ret = GetSecurityToken(MAX_STRING_LENGTH,buffer);
-            if(ret < 0)
-            {
-                std::cout << "Error in getting token\n";
-            }
-            else
-            {
-                std::cout << "retrieved token successfully\n";
-                token = (char*)buffer;
-            }
-        }
-
-        bool RDKShell::isThunderSecurityConfigured()
-        {
-            bool configured = false;
-            long http_code = 0;
-            std::string jsonResp;
-            CURL *curl_handle = NULL;
-            CURLcode res = CURLE_OK;
-            curl_handle = curl_easy_init();
-            string serialNumber = "";
-            string url = "http://127.0.0.1:9998/Service/Controller/Configuration/Controller";
-            if (curl_handle && 
-                !curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str()) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_HTTPGET,1) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1) && //when redirected, follow the redirections
-                !curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &jsonResp)) {
-                
-                res = curl_easy_perform(curl_handle);
-                if(curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK)
-                {
-                    std::cout << "curl_easy_getinfo failed\n";
-                }
-                std::cout << "Thunder Controller Configuration ret: " << res << " http response code: " << http_code << std::endl;
-                curl_easy_cleanup(curl_handle);
-            }
-            else
-            {
-                std::cout << "Could not perform curl to read Thunder Controller Configuration\n";
-            }
-            if ((res == CURLE_OK) && (http_code == 200))
-            {
-                //check for "Security" in response
-                JsonObject responseJson = JsonObject(jsonResp);
-                if (responseJson.HasLabel("subsystems"))
-                {
-                    const JsonArray subsystemList = responseJson["subsystems"].Array();
-                    for (int i=0; i<subsystemList.Length(); i++)
-                    {
-                        string subsystem = subsystemList[i].String();
-                        if (subsystem == "Security")
-                        {
-                            configured = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            return configured;
-        }
-
-        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
-        {
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "");
-        }
-
-        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
-        {
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "");
         }
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
