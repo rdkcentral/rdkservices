@@ -68,6 +68,13 @@ namespace WPEFramework {
 
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
             }
+            
+            AbstractPlugin(const std::vector<uint8_t> versions) : PluginHost::JSONRPC(versions)
+            {
+                LOGINFO();
+
+                registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
+            }
 
             virtual ~AbstractPlugin()
             {

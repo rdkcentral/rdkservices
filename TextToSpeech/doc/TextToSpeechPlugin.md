@@ -106,7 +106,7 @@ Check whether TTS Engine is enabled or not.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result?.isenabled | boolean | <sup>*(optional)*</sup> Indicates whether TTSEngine is enabled or not |
-| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_CREATE_SESSION_DUPLICATE*, *TTS_EMPTY_APPID_INPUT*, *TTS_RESOURCE_BUSY*, *TTS_NO_SESSION_FOUND*, *TTS_NESTED_CLAIM_REQUEST*, *TTS_INVALID_CONFIGURATION*, *TTS_SESSION_NOT_ACTIVE*, *TTS_APP_NOT_FOUND*, *TTS_POLICY_VIOLATION*, *TTS_OBJECT_DESTROYED*, *TTS_SPEECH_NOT_FOUND*) |
+| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
 | result?.success | boolean | <sup>*(optional)*</sup> Call status |
 
 ### Example
@@ -151,7 +151,8 @@ Start Speech.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_CREATE_SESSION_DUPLICATE*, *TTS_EMPTY_APPID_INPUT*, *TTS_RESOURCE_BUSY*, *TTS_NO_SESSION_FOUND*, *TTS_NESTED_CLAIM_REQUEST*, *TTS_INVALID_CONFIGURATION*, *TTS_SESSION_NOT_ACTIVE*, *TTS_APP_NOT_FOUND*, *TTS_POLICY_VIOLATION*, *TTS_OBJECT_DESTROYED*, *TTS_SPEECH_NOT_FOUND*) |
+| result?.speechid | number | <sup>*(optional)*</sup> Indicates the speechid created by TTSEngine |
+| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
 | result?.success | boolean | <sup>*(optional)*</sup> Call status |
 
 ### Example
@@ -175,6 +176,7 @@ Start Speech.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
+        "speechid": 1,
         "TTS_Status": 0,
         "success": true
     }
@@ -190,13 +192,14 @@ cancel the speech.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Specify speechid to cancel the speech |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_CREATE_SESSION_DUPLICATE*, *TTS_EMPTY_APPID_INPUT*, *TTS_RESOURCE_BUSY*, *TTS_NO_SESSION_FOUND*, *TTS_NESTED_CLAIM_REQUEST*, *TTS_INVALID_CONFIGURATION*, *TTS_SESSION_NOT_ACTIVE*, *TTS_APP_NOT_FOUND*, *TTS_POLICY_VIOLATION*, *TTS_OBJECT_DESTROYED*, *TTS_SPEECH_NOT_FOUND*) |
+| result?.TTS_Status | number | <sup>*(optional)*</sup> TTS Return status (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
 | result?.success | boolean | <sup>*(optional)*</sup> Call status |
 
 ### Example
@@ -208,7 +211,9 @@ cancel the speech.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "TextToSpeech.1.cancel",
-    "params": {}
+    "params": {
+        "speechid": 1
+    }
 }
 ```
 #### Response
@@ -235,7 +240,7 @@ TextToSpeech interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onspeechstart](#event.onspeechstart) | Notifies when speech starts |
-| [onspeechcancel](#event.onspeechcancel) | Notifies when speech is cancelled |
+| [onspeechinterrupted](#event.onspeechinterrupted) | Notifies when the current speech is cancelled |
 | [onnetworkerror](#event.onnetworkerror) | Notifies when network error is occurred |
 | [onplaybackerror](#event.onplaybackerror) | Notifies when playback error |
 | [onspeechcomplete](#event.onspeechcomplete) | Notifies when speech is completed |
@@ -250,6 +255,7 @@ Notifies when speech starts.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Speech Id |
 | params.text | string | Text |
 
 ### Example
@@ -259,28 +265,32 @@ Notifies when speech starts.
     "jsonrpc": "2.0",
     "method": "client.events.1.onspeechstart",
     "params": {
+        "speechid": 1,
         "text": "speech_1"
     }
 }
 ```
-<a name="event.onspeechcancel"></a>
-## *onspeechcancel <sup>event</sup>*
+<a name="event.onspeechinterrupted"></a>
+## *onspeechinterrupted <sup>event</sup>*
 
-Notifies when speech is cancelled.
+Notifies when the current speech is cancelled.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Speech Id |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechcancel",
-    "params": {}
+    "method": "client.events.1.onspeechinterrupted",
+    "params": {
+        "speechid": 1
+    }
 }
 ```
 <a name="event.onnetworkerror"></a>
@@ -293,6 +303,7 @@ Notifies when network error is occurred.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Speech Id |
 
 ### Example
 
@@ -300,7 +311,9 @@ Notifies when network error is occurred.
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.onnetworkerror",
-    "params": {}
+    "params": {
+        "speechid": 1
+    }
 }
 ```
 <a name="event.onplaybackerror"></a>
@@ -313,6 +326,7 @@ Notifies when playback error.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Speech Id |
 
 ### Example
 
@@ -320,7 +334,9 @@ Notifies when playback error.
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.onplaybackerror",
-    "params": {}
+    "params": {
+        "speechid": 1
+    }
 }
 ```
 <a name="event.onspeechcomplete"></a>
@@ -333,6 +349,7 @@ Notifies when speech is completed.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params.speechid | number | Speech Id |
 | params.text | string | Text |
 
 ### Example
@@ -342,6 +359,7 @@ Notifies when speech is completed.
     "jsonrpc": "2.0",
     "method": "client.events.1.onspeechcomplete",
     "params": {
+        "speechid": 1,
         "text": "speech_1"
     }
 }

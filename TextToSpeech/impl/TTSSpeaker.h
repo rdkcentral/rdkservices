@@ -1,8 +1,8 @@
 /*
- * If not stated otherwise in this file or this component's Licenses.txt file the
+ * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2019 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
+
 #ifndef _TTS_SPEAKER_H_
 #define _TTS_SPEAKER_H_
 
@@ -119,14 +120,13 @@ public:
 
     // Speak Functions
     int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure); // Formalize data to speak API
-    bool isSpeaking(const TTSSpeakerClient *client = NULL);
-    SpeechState getSpeechState(const TTSSpeakerClient *client, uint32_t id);
-    void clearAllSpeechesFrom(const TTSSpeakerClient *client, std::vector<uint32_t> &speechesCancelled);
-    void cancelCurrentSpeech();
+    bool isSpeaking(uint32_t id);
+    SpeechState getSpeechState(uint32_t id);
+    bool cancelSpeech(uint32_t id=0);
     bool reset();
 
-    void pause(uint32_t id = 0);
-    void resume(uint32_t id = 0);
+    bool pause(uint32_t id = 0);
+    bool resume(uint32_t id = 0);
 
 private:
 
@@ -153,6 +153,9 @@ private:
     GstElement *m_pipeline;
     GstElement *m_source;
     GstElement *m_audioSink;
+    GMainLoop  *main_loop;
+    GMainContext *main_context;
+    GThread *main_loop_thread;
     bool        m_pipelineError;
     bool        m_networkError;
     bool        m_runThread;
@@ -161,14 +164,12 @@ private:
     bool        m_isEOS;
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
-    std::thread *m_gstbusThread;
     guint       m_busWatch;
     gint64      m_duration;
     uint8_t     m_pipelineConstructionFailures;
     const uint8_t     m_maxPipelineConstructionFailures;
 
     static void GStreamerThreadFunc(void *ctx);
-    static void GStreamerBusWatchThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();
     void destroyPipeline();
@@ -186,6 +187,7 @@ private:
     void waitForAudioToFinishTimeout(float timeout_s);
     bool handleMessage(GstMessage*);
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data);
+    static void event_loop(void *data);
 };
 
 } // namespace TTS
