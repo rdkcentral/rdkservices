@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "JavaScriptFunctionType.h"
 #include "Utils.h"
 #include "Tags.h"
-#include <securityagent/SecurityToken.h>
+#include <securityagent/securityagent.h>
 
 namespace WPEFramework {
 namespace JavaScript {
@@ -49,6 +49,7 @@ namespace JavaScript {
 
                     std::string tokenAsString;
                     if (url.length() < sizeof(buffer)) {
+                        ::memset (buffer, 0, sizeof(buffer));
                         ::memcpy (buffer, url.c_str(), url.length());
 
                         int length = GetToken(static_cast<uint16_t>(sizeof(buffer)), url.length(), buffer);
@@ -71,4 +72,3 @@ namespace JavaScript {
     }
 }
 }
-

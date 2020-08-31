@@ -16,20 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+#pragma once
+
+#include "JavaScriptFunctionType.h"
 #include "Tags.h"
+#include "Utils.h"
 
 namespace WPEFramework {
+namespace JavaScript {
+namespace BridgeObject {
 
-namespace Tags {
+bool HandleMessageToPage(WKBundlePageRef page, WKStringRef messageName, WKTypeRef messageBody);
+void InjectJS(WKBundleFrameRef frame);
 
-const char* const Config = "Config.";
-const char* const Notification = "Notification";
-const char* const URL = "URL";
-const char* const BridgeObjectQuery = "BridgeObjectQuery";
-const char* const BridgeObjectReply = "BridgeObjectReply";
-const char* const BridgeObjectEvent = "BridgeObjectEvent";
-const char* const Headers = "Headers";
-
-} } ;
-
+}  // BridgeObject
+}  // JavaScript
+}  // WPEFramework

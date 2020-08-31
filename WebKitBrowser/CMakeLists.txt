@@ -32,14 +32,34 @@ endif()
 set(PLUGIN_NAME WebKitBrowser)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+find_package(ProxyStubGenerator REQUIRED)
+find_package(JsonGenerator REQUIRED)
+
+ProxyStubGenerator(INPUT ${CMAKE_CURRENT_SOURCE_DIR}/interfaces)
+JsonGenerator(CODE STUBS
+  INPUT ${CMAKE_CURRENT_SOURCE_DIR}/WebKitBrowserPlugin.json
+  IFDIR  ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
+)
+
+# JsonGenerator(DOCS
+#   INPUT ${CMAKE_CURRENT_SOURCE_DIR}/WebKitBrowserPlugin.json
+#   IFDIR  ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/json/
+#   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/doc/
+# )
+
 option(PLUGIN_WEBKITBROWSER_YOUTUBE "Include YouTube in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_APPS "Include Apps instance in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_UX "Include UX in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_RESIDENT_APP "Include Resident App in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP "Include Search&Discovery App in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_HTML_APP "Include HTML App in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_LIGHTNING_APP "Include Lightning App in seperate plugin." OFF)
 
 set(PLUGIN_WEBKITBROWSER_AUTOSTART false CACHE STRING "Automatically start WebKitBrowser plugin")
 set(PLUGIN_WEBKITBROWSER_TRANSPARENT false CACHE STRING "Set transparency")
 set(PLUGIN_WEBKITBROWSER_STARTURL "about:blank" CACHE STRING "Initial URL for WebKitBrowser plugin")
-set(PLUGIN_WEBKITBROWSER_USERAGENT "Mozilla/5.0 (Macintosh, Intel Mac OS X 10_11_4) AppleWebKit/602.1.28+ (KHTML, like Gecko) Version/9.1 Safari/601.5.17" CACHE STRING "User agent string")
+set(PLUGIN_WEBKITBROWSER_USERAGENT "" CACHE STRING "User agent string")
 set(PLUGIN_WEBKITBROWSER_MEMORYPROFILE "512m" CACHE STRING "Memory Profile")
 set(PLUGIN_WEBKITBROWSER_MEMORYPRESSURE "databaseprocess:50m,networkprocess:100m,webprocess:300m,rpcprocess:50m" CACHE STRING "Memory Pressure")
 set(PLUGIN_WEBKITBROWSER_MEDIADISKCACHE false CACHE STRING "Media Disk Cache")
@@ -58,6 +78,13 @@ set(PLUGIN_UX_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User age
 set(PLUGIN_APPS_AUTOSTART false CACHE STRING "Automatically start Apps plugin")
 set(PLUGIN_APPS_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Apps")
 
+set(PLUGIN_RESIDENT_APP_AUTOSTART false CACHE STRING "Automatically start Resident App plugin")
+set(PLUGIN_RESIDENT_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Resident App")
+set(PLUGIN_RESIDENT_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Resident App plugin")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Search&Discovery App")
+set(PLUGIN_HTML_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Html App")
+set(PLUGIN_LIGHTNING_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Lightning App")
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -73,6 +100,8 @@ add_library(${MODULE_NAME} SHARED
     WebKitBrowserJsonRpc.cpp
     WebKitImplementation.cpp
     InjectedBundle/Tags.cpp
+    interfaces/ProxyStubs_WebKitBrowser.cpp
+    interfaces/json/JsonEnum_WebKitBrowser.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -94,7 +123,9 @@ target_include_directories(${MODULE_NAME}
         ${WPE_BACKEND_INCLUDE_DIRS}
         ${WPE_WEBKIT_INCLUDE_DIRS}
         ${WPE_WEBKIT_INCLUDE_DIRS}/WPE
-        ${GLIB_INCLUDE_DIRS})
+        ${GLIB_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/interfaces)
 
 if(WPE_WEBKIT_DEPRECATED_API)
     target_compile_definitions(${MODULE_NAME} PRIVATE WPE_WEBKIT_DEPRECATED_API=${WPE_WEBKIT_DEPRECATED_API})
@@ -137,7 +168,27 @@ if(PLUGIN_WEBKITBROWSER_APPS)
     write_config( Apps )
 endif()
 
-# youtube configuration
+# UX configuration
 if(PLUGIN_WEBKITBROWSER_UX)
     write_config( UX )
+endif()
+
+# Resident App configuration
+if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
+    write_config( ResidentApp )
+endif()
+
+# Search&Discovery configuration
+if(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP)
+    write_config( SearchAndDiscoveryApp )
+endif()
+
+# Html App configuration
+if(PLUGIN_WEBKITBROWSER_HTML_APP)
+    write_config( HtmlApp )
+endif()
+
+# Lightning App configuration
+if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
+    write_config( LightningApp )
 endif()

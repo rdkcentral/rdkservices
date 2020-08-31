@@ -16,20 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include "Tags.h"
+
+#pragma once
+
+#include <WPE/WebKit.h>
+#include <WPE/WebKit/WKBundleFrame.h>
 
 namespace WPEFramework {
+namespace JavaScript {
+namespace AAMP {
 
-namespace Tags {
+void LoadJSBindings(WKBundleFrameRef frame);
 
-const char* const Config = "Config.";
-const char* const Notification = "Notification";
-const char* const URL = "URL";
-const char* const BridgeObjectQuery = "BridgeObjectQuery";
-const char* const BridgeObjectReply = "BridgeObjectReply";
-const char* const BridgeObjectEvent = "BridgeObjectEvent";
-const char* const Headers = "Headers";
+void UnloadJSBindings(WKBundleFrameRef frame);
 
-} } ;
-
+}  // namespace AAMP
+}  // namespace JavaScript
+}  // namespace WPEFramework
