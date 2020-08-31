@@ -115,13 +115,18 @@ namespace Plugin {
     void DeviceInfo::SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const
     {
         Core::SystemInfo& singleton(Core::SystemInfo::Instance());
-
+        uint64_t * pCpuLoadAvg = singleton.GetCpuLoadAvg();
         systemInfo.Time = Core::Time::Now().ToRFC1123(true);
         systemInfo.Version = _service->Version() + _T("#") + _subSystem->BuildTreeHash();
         systemInfo.Uptime = singleton.GetUpTime();
         systemInfo.Freeram = singleton.GetFreeRam();
         systemInfo.Totalram = singleton.GetTotalRam();
+        systemInfo.Freeswap = singleton.GetFreeSwap();
+        systemInfo.Totalswap = singleton.GetTotalSwap();
         systemInfo.Devicename = singleton.GetHostName();
+        systemInfo.Cpuloadavg.Avg1min = *(pCpuLoadAvg);
+        systemInfo.Cpuloadavg.Avg5min = *(pCpuLoadAvg + 1);
+        systemInfo.Cpuloadavg.Avg15min = *(pCpuLoadAvg + 2);
         systemInfo.Cpuload = Core::NumberType<uint32_t>(static_cast<uint32_t>(singleton.GetCpuLoad())).Text();
         systemInfo.Serialnumber = _systemId;
     }

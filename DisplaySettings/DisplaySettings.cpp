@@ -965,6 +965,14 @@ namespace WPEFramework {
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGERR("Size too large to use ToString base64 wpe api");
             string edidbase64;
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
             response["EDID"] = edidbase64;
             returnResponse(true);
@@ -991,6 +999,16 @@ namespace WPEFramework {
             uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGINFO("size too large to use ToString base64 wpe api");
+
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, base64String);
             response["EDID"] = base64String;
             returnResponse(true);
@@ -1434,14 +1452,15 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
-                bool enable = false;
+                int boost = 0;
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                                 if (aPort.isConnected())
                                 {
-                                        enable = aPort.getBassEnhancer();
-                                        response["bassEnhancerEnable"] = enable;
+                                        boost = aPort.getBassEnhancer();
+                                        response["enable"] = boost ? true : false ;
+                                        response["bassBoost"] = boost;
                                 }
                                 else
                                 {
@@ -1453,6 +1472,7 @@ namespace WPEFramework {
                 {
                         LOG_DEVICE_EXCEPTION1(audioPort);
                         success = false;
+                        response["enable"] = false;
                 }
                 returnResponse(success);
         }
@@ -1693,13 +1713,13 @@ namespace WPEFramework {
         uint32_t DisplaySettings::setBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
-                returnIfParamNotFound(parameters, "bassEnhancerEnable");
-                string sBassEnhancer = parameters["bassEnhancerEnable"].String();
-                bool bassEnhancer = false;
+                returnIfParamNotFound(parameters, "bassBoost");
+                string sBassBoost = parameters["bassBoost"].String();
+                int bassBoost = 0;
                 try {
-                        bassEnhancer = parameters["bassEnhancerEnable"].Boolean();
+                        bassBoost = stoi(sBassBoost);
                 }catch (const device::Exception& err) {
-                        LOG_DEVICE_EXCEPTION1(sBassEnhancer);
+                        LOG_DEVICE_EXCEPTION1(sBassBoost);
                         returnResponse(false);
                 }
                 bool success = true;
@@ -1707,11 +1727,11 @@ namespace WPEFramework {
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                        aPort.setBassEnhancer(bassEnhancer);
+                        aPort.setBassEnhancer(bassBoost);
                 }
                 catch (const device::Exception& err)
                 {
-                        LOG_DEVICE_EXCEPTION2(audioPort, sBassEnhancer);
+                        LOG_DEVICE_EXCEPTION2(audioPort, sBassBoost);
                         success = false;
                 }
                 returnResponse(success);

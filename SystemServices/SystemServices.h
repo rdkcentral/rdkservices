@@ -201,7 +201,6 @@ namespace WPEFramework {
                 uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getRFCConfig(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
-                uint32_t enableXREConnectionRetention(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define SYSSRV_CALLSIGN "org.rdk.ControlService"
+#define SYSSRV_CALLSIGN "org.rdk.ControlService.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
@@ -55,6 +55,7 @@ void showMenu()
     std::cout<<"9.endPairingMode\n";
     std::cout<<"10.canFindMyRemote\n";
     std::cout<<"11.findMyRemote\n";
+    std::cout<<"12.checkRf4ceChipConnectivity\n";
     std::cout<<"\nEnter your choice: ";
 }
 
@@ -318,11 +319,64 @@ int main(int argc, char** argv)
 
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
 
+    // Security Token
+    std::cout << "Retrieving security token" << std::endl;
+    std::string sToken;
+
+    FILE *pSecurity = popen("/usr/bin/WPEFrameworkSecurityUtility", "r");
+    if(pSecurity) {
+        JsonObject pSecurityJson;
+        std::string pSecurityOutput;
+        int         pSecurityOutputTrimIndex;
+        std::array<char, 256> pSecurityBuffer;
+
+        while(fgets(pSecurityBuffer.data(), 256, pSecurity) != NULL) {
+            pSecurityOutput += pSecurityBuffer.data();
+        }
+        pclose(pSecurity);
+
+        pSecurityOutputTrimIndex = pSecurityOutput.find('{');
+        if(pSecurityOutputTrimIndex == std::string::npos) {
+            std::cout << "Security Utility returned unexpected output" << std::endl;
+        } else {
+            if(pSecurityOutputTrimIndex > 0) {
+                 std::cout << "Trimming output from Security Utility" << std::endl;
+                 pSecurityOutput = pSecurityOutput.substr(pSecurityOutputTrimIndex);
+            }
+            pSecurityJson.FromString(pSecurityOutput);
+            if(pSecurityJson["success"].Boolean() == true) {
+                std::cout << "Security Token retrieved successfully!" << std::endl;
+                sToken = "token=" + pSecurityJson["token"].String();
+            } else {
+                std::cout << "Security Token retrieval failed!" << std::endl;
+            }
+        }
+    } else {
+        std::cout << "Failed to open security utility" << std::endl;
+    }
+    // End Security Token
+
+    std::cout << "Using callsign: " << SYSSRV_CALLSIGN << std::endl;
+
     if (NULL == remoteObject) {
-        remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSSRV_CALLSIGN), _T(""));
+        remoteObject = new JSONRPC::Client(_T(SYSSRV_CALLSIGN), _T(""), false, sToken);
         if (NULL == remoteObject) {
             std::cout << "JSONRPC::Client initialization failed" << std::endl;
+
         } else {
+
+            {
+                // Create a controller client
+                static auto& controllerClient = *new WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>("", "", false, sToken);
+                // In case the plugin isn't activated already, try to start it, BEFORE registering for the events!
+                string strres;
+                JsonObject params;
+                params["callsign"] = SYSSRV_CALLSIGN;
+                JsonObject result;
+                ret = controllerClient.Invoke(2000, "activate", params, result);
+                result.ToString(strres);
+                std::cout<<"\nstartup result : "<< strres <<"\n";
+            }
 
             /* Register handlers for Event reception. */
             std::cout << "\nSubscribing to event handlers\n" << std::endl;
@@ -736,6 +790,23 @@ int main(int argc, char** argv)
                                     std::cout<<"ControlService findMyRemote call - Success!\n";
                                 } else {
                                     std::cout<<"ControlService findMyRemote call - failed!\n";
+                                }
+                                std::cout<<"result : "<<res<<"\n";
+                            }
+                            break;
+
+                        case 12:
+                            {
+                                JsonObject params;
+                                string res;
+                                ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                                                    _T("checkRf4ceChipConnectivity"), params, result);
+                                std::cout<<"ControlService Invoke ret : "<< ret <<"\n";
+                                result.ToString(res);
+                                if (result["success"].Boolean()) {
+                                    std::cout<<"ControlService checkRf4ceChipConnectivity call - Success!\n";
+                                } else {
+                                    std::cout<<"ControlService checkRf4ceChipConnectivity call - failed!\n";
                                 }
                                 std::cout<<"result : "<<res<<"\n";
                             }

@@ -17,6 +17,9 @@
 
 set(PLUGIN_NAME TTSThunderAPITest)
 find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(securityagent REQUIRED)
+
+option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
 
 add_executable(${PLUGIN_NAME} TTSThunderAPITest.cpp)
 
@@ -25,9 +28,10 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
     CXX_STANDARD_REQUIRED YES
     )
 
+set(LIBRARIES WPEFrameworkSecurityUtil)
 target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
 
-target_link_libraries(${PLUGIN_NAME}
+target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES}
     PRIVATE
     ${NAMESPACE}Protocols::${NAMESPACE}Protocols
     )
