@@ -16,29 +16,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef __BROWSER_H
 #define __BROWSER_H
 
 #include "Module.h"
 #include <interfaces/IBrowser.h>
-#include <interfaces/IComposition.h>
+
+#include "./interfaces/IWebKitBrowser.h"
 #include <interfaces/IMemory.h>
 #include <interfaces/json/JsonData_Browser.h>
 #include <interfaces/json/JsonData_StateControl.h>
+#include "./interfaces/json/JsonData_WebKitBrowser.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
     class WebKitBrowser : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
     private:
-        WebKitBrowser(const WebKitBrowser&);
-        WebKitBrowser& operator=(const WebKitBrowser&);
+        WebKitBrowser(const WebKitBrowser&) = delete;
+        WebKitBrowser& operator=(const WebKitBrowser&) = delete;
 
         class Notification : public RPC::IRemoteConnection::INotification,
                              public PluginHost::IStateControl::INotification,
-                             public Exchange::IBrowser::INotification {
-
+                             public Exchange::IWebKitBrowser::INotification {
         private:
             Notification() = delete;
             Notification(const Notification&) = delete;
@@ -55,65 +56,50 @@ namespace Plugin {
             }
 
         public:
-            virtual void LoadFinished(const string& URL) override
+            virtual void LoadFinished(const string& URL, int32_t code) final
             {
-                _parent.LoadFinished(URL);
+                _parent.LoadFinished(URL, code);
             }
-            virtual void URLChanged(const string& URL) override
+            virtual void LoadFailed(const string& URL) final
             {
-                _parent.URLChanged(URL);
+                _parent.LoadFailed(URL);
             }
-            virtual void Hidden(const bool hidden) override
+            virtual void URLChange(const string& URL, bool loaded) final
             {
-                _parent.Hidden(hidden);
+                _parent.URLChange(URL, loaded);
             }
-            virtual void Closure() override
+            virtual void VisibilityChange(const bool hidden) final
             {
-                _parent.Closure();
+                _parent.VisibilityChange(hidden);
             }
-            virtual void StateChange(const PluginHost::IStateControl::state state) override
+            virtual void PageClosure() final
+            {
+                _parent.PageClosure();
+            }
+            virtual void BridgeQuery(const string& message) final
+            {
+                _parent.BridgeQuery(message);
+            }
+            virtual void StateChange(const PluginHost::IStateControl::state state) final
             {
                 _parent.StateChange(state);
             }
-            virtual void Activated(RPC::IRemoteConnection* /* connection */) override
+            virtual void Activated(RPC::IRemoteConnection* /* connection */) final
             {
             }
-            virtual void Deactivated(RPC::IRemoteConnection* connection) override
+            virtual void Deactivated(RPC::IRemoteConnection* connection) final
             {
                 _parent.Deactivated(connection);
             }
 
             BEGIN_INTERFACE_MAP(Notification)
-            INTERFACE_ENTRY(Exchange::IBrowser::INotification)
+            INTERFACE_ENTRY(Exchange::IWebKitBrowser::INotification)
             INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
             END_INTERFACE_MAP
 
         private:
             WebKitBrowser& _parent;
-        };
-
-        class Config : public Core::JSON::Container {
-        private:
-            Config(const Config&) = delete;
-            Config& operator=(const Config&) = delete;
-
-        public:
-            Config()
-                : Core::JSON::Container()
-                , OutOfProcess(true)
-                , EnvironmentOverride(false)
-            {
-                Add(_T("outofprocess"), &OutOfProcess);
-                Add(_T("environmentoverride"), &EnvironmentOverride);
-            }
-            ~Config()
-            {
-            }
-
-        public:
-            Core::JSON::Boolean OutOfProcess;
-            Core::JSON::Boolean EnvironmentOverride;
         };
 
     public:
@@ -149,14 +135,12 @@ namespace Plugin {
     public:
         WebKitBrowser()
             : _skipURL(0)
-            , _hidden(false)
             , _service(nullptr)
             , _browser(nullptr)
             , _memory(nullptr)
             , _notification(this)
             , _jsonBodyDataFactory(2)
         {
-            RegisterAll();
         }
 
         virtual ~WebKitBrowser()
@@ -184,6 +168,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(PluginHost::IStateControl, _browser)
         INTERFACE_AGGREGATE(Exchange::IBrowser, _browser)
+        INTERFACE_AGGREGATE(Exchange::IWebKitBrowser, _browser)
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
         END_INTERFACE_MAP
 
@@ -216,10 +201,12 @@ namespace Plugin {
 
     private:
         void Deactivated(RPC::IRemoteConnection* connection);
-        void LoadFinished(const string& URL);
-        void URLChanged(const string& URL);
-        void Hidden(const bool hidden);
-        void Closure();
+        void LoadFinished(const string& URL, int32_t code);
+        void LoadFailed(const string& URL);
+        void URLChange(const string& URL, bool loaded);
+        void VisibilityChange(const bool hidden);
+        void PageClosure();
+        void BridgeQuery(const string& message);
         void StateChange(const PluginHost::IStateControl::state state);
 
         // JsonRpc
@@ -237,12 +224,28 @@ namespace Plugin {
         void event_pageclosure(); // Browser
         void event_statechange(const bool& suspended); // StateControl
 
+        uint32_t get_useragent(Core::JSON::String& response) const;
+        uint32_t set_useragent(const Core::JSON::String& param);
+        uint32_t get_languages(Core::JSON::ArrayType<Core::JSON::String>& response) const;
+        uint32_t set_languages(const Core::JSON::ArrayType<Core::JSON::String>& param);
+        uint32_t get_headers(Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& response) const;
+        uint32_t set_headers(const Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& param);
+        uint32_t endpoint_bridgereply(const Core::JSON::String& params);
+        uint32_t endpoint_bridgeevent(const Core::JSON::String& params);
+        uint32_t get_localstorageenabled(Core::JSON::Boolean& response) const;
+        uint32_t set_localstorageenabled(const Core::JSON::Boolean& param);
+        uint32_t get_httpcookieacceptpolicy(Core::JSON::EnumType<JsonData::WebKitBrowser::HttpcookieacceptpolicyType>& response) const;
+        uint32_t set_httpcookieacceptpolicy(const Core::JSON::EnumType<JsonData::WebKitBrowser::HttpcookieacceptpolicyType>& param);
+
+        void event_loadfinished(const string& url, const int32_t& httpstatus);
+        void event_loadfailed(const string& url);
+        void event_bridgequery(const string& message);
+
     private:
         uint8_t _skipURL;
         uint32_t _connectionId;
-        bool _hidden;
         PluginHost::IShell* _service;
-        Exchange::IBrowser* _browser;
+        Exchange::IWebKitBrowser* _browser;
         Exchange::IMemory* _memory;
         Core::Sink<Notification> _notification;
         Core::ProxyPoolType<Web::JSONBodyType<WebKitBrowser::Data>> _jsonBodyDataFactory;

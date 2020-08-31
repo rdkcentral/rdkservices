@@ -93,6 +93,26 @@
               }
             },
             "required": []
+          },
+          "localstorageenabled": {
+            "type": "boolean",
+            "summary": "Controls the local storage availability"
+          },
+          "logtosystemconsoleenabled": {
+            "type": "boolean",
+            "summary": "Enable page loging to system console (stderr)"
+          },
+          "watchdogchecktimeoutinseconds": {
+            "type": "number",
+            "summary": "How often to check main event loop for responsiveness (0 - disable)"
+          },
+          "watchdoghangthresholdtinseconds": {
+            "type": "number",
+            "summary": "The amount of time to give a process to recover before declaring a hang state"
+          },
+          "loadblankpageonsuspendenabled": {
+            "type": "boolean",
+            "summary": "Load 'about:blank' before suspending the page"
           }
         }
       }
