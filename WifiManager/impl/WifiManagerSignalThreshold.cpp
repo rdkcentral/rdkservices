@@ -34,7 +34,10 @@ namespace {
         JsonObject response;
         wifiManager.getConnectedSSID(JsonObject(), response);
 
-        signalStrengthOut = std::stof(response["signalStrength"].String());
+        signalStrengthOut = 0.0f;
+        if (response.HasLabel("signalStrength")) {
+            signalStrengthOut = std::stof(response["signalStrength"].String());
+        }
 
         if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
         {
