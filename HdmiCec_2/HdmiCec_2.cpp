@@ -314,7 +314,7 @@ namespace WPEFramework
        {
            LOGWARN("Initlaizing CEC_2");
            HdmiCec_2::_instance = this;
-
+           smConnection = NULL;
            InitializeIARM();
 
            registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);

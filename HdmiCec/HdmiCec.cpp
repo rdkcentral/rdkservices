@@ -77,6 +77,7 @@ namespace WPEFramework
         {
             LOGINFO();
             HdmiCec::_instance = this;
+            smConnection = NULL;
 
             InitializeIARM();
 
