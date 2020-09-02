@@ -22,7 +22,9 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#ifdef ENABLE_SECURITY_TOKEN
 #include <securityagent/SecurityTokenUtil.h>
+#endif //ENABLE_SECURITY_TOKEN
 #include <curl/curl.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
@@ -360,91 +362,97 @@ namespace WPEFramework {
 
         void RDKShell::getSecurityToken(std::string& token)
         {
-            if(m_sThunderSecurityChecked)
-            {
-                return;
-            }
-            
-            // Thunder Security is enabled by Default.
-            bool thunderSecurityRFCEnabled = true;
-            RFC_ParamData_t param;
-            if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable", param))
-            {
-                if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",5) == 0))
+            #ifdef ENABLE_SECURITY_TOKEN
+                if(m_sThunderSecurityChecked)
                 {
-                    thunderSecurityRFCEnabled = false;
+                    return;
                 }
-            }
-            std::cout << "Thunder Security RFC enabled: " << thunderSecurityRFCEnabled << std::endl;
-            if(!isThunderSecurityConfigured() || !thunderSecurityRFCEnabled)
-            {
+                
+                // Thunder Security is enabled by Default.
+                bool thunderSecurityRFCEnabled = true;
+                RFC_ParamData_t param;
+                if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable", param))
+                {
+                    if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",5) == 0))
+                    {
+                        thunderSecurityRFCEnabled = false;
+                    }
+                }
+                std::cout << "Thunder Security RFC enabled: " << thunderSecurityRFCEnabled << std::endl;
+                if(!isThunderSecurityConfigured() || !thunderSecurityRFCEnabled)
+                {
+                    m_sThunderSecurityChecked = true;
+                    std::cout << "Thunder Security is not enabled. Not getting token\n";
+                    return;
+                }
                 m_sThunderSecurityChecked = true;
-                std::cout << "Thunder Security is not enabled. Not getting token\n";
-                return;
-            }
-            m_sThunderSecurityChecked = true;
-            unsigned char buffer[MAX_STRING_LENGTH] = {0};
-            
-            int ret = GetSecurityToken(MAX_STRING_LENGTH,buffer);
-            if(ret < 0)
-            {
-                std::cout << "Error in getting token\n";
-            }
-            else
-            {
-                std::cout << "retrieved token successfully\n";
-                token = (char*)buffer;
-            }
+                unsigned char buffer[MAX_STRING_LENGTH] = {0};
+                
+                int ret = GetSecurityToken(MAX_STRING_LENGTH,buffer);
+                if(ret < 0)
+                {
+                    std::cout << "Error in getting token\n";
+                }
+                else
+                {
+                    std::cout << "retrieved token successfully\n";
+                    token = (char*)buffer;
+                }
+            #endif //ENABLE_SECURITY_TOKEN
         }
 
         bool RDKShell::isThunderSecurityConfigured()
         {
-            bool configured = false;
-            long http_code = 0;
-            std::string jsonResp;
-            CURL *curl_handle = NULL;
-            CURLcode res = CURLE_OK;
-            curl_handle = curl_easy_init();
-            string serialNumber = "";
-            string url = "http://127.0.0.1:9998/Service/Controller/Configuration/Controller";
-            if (curl_handle && 
-                !curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str()) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_HTTPGET,1) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1) && //when redirected, follow the redirections
-                !curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse) &&
-                !curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &jsonResp)) {
-                
-                res = curl_easy_perform(curl_handle);
-                if(curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK)
-                {
-                    std::cout << "curl_easy_getinfo failed\n";
-                }
-                std::cout << "Thunder Controller Configuration ret: " << res << " http response code: " << http_code << std::endl;
-                curl_easy_cleanup(curl_handle);
-            }
-            else
-            {
-                std::cout << "Could not perform curl to read Thunder Controller Configuration\n";
-            }
-            if ((res == CURLE_OK) && (http_code == 200))
-            {
-                //check for "Security" in response
-                JsonObject responseJson = JsonObject(jsonResp);
-                if (responseJson.HasLabel("subsystems"))
-                {
-                    const JsonArray subsystemList = responseJson["subsystems"].Array();
-                    for (int i=0; i<subsystemList.Length(); i++)
+            #ifdef ENABLE_SECURITY_TOKEN
+                return false;
+            #else
+                bool configured = false;
+                long http_code = 0;
+                std::string jsonResp;
+                CURL *curl_handle = NULL;
+                CURLcode res = CURLE_OK;
+                curl_handle = curl_easy_init();
+                string serialNumber = "";
+                string url = "http://127.0.0.1:9998/Service/Controller/Configuration/Controller";
+                if (curl_handle && 
+                    !curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str()) &&
+                    !curl_easy_setopt(curl_handle, CURLOPT_HTTPGET,1) &&
+                    !curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1) && //when redirected, follow the redirections
+                    !curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse) &&
+                    !curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &jsonResp)) {
+                    
+                    res = curl_easy_perform(curl_handle);
+                    if(curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK)
                     {
-                        string subsystem = subsystemList[i].String();
-                        if (subsystem == "Security")
+                        std::cout << "curl_easy_getinfo failed\n";
+                    }
+                    std::cout << "Thunder Controller Configuration ret: " << res << " http response code: " << http_code << std::endl;
+                    curl_easy_cleanup(curl_handle);
+                }
+                else
+                {
+                    std::cout << "Could not perform curl to read Thunder Controller Configuration\n";
+                }
+                if ((res == CURLE_OK) && (http_code == 200))
+                {
+                    //check for "Security" in response
+                    JsonObject responseJson = JsonObject(jsonResp);
+                    if (responseJson.HasLabel("subsystems"))
+                    {
+                        const JsonArray subsystemList = responseJson["subsystems"].Array();
+                        for (int i=0; i<subsystemList.Length(); i++)
                         {
-                            configured = true;
-                            break;
+                            string subsystem = subsystemList[i].String();
+                            if (subsystem == "Security")
+                            {
+                                configured = true;
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            return configured;
+                return configured;
+            #endif //ENABLE_SECURITY_TOKEN
         }
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
