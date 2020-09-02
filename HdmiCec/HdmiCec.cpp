@@ -77,6 +77,7 @@ namespace WPEFramework
         {
             LOGINFO();
             HdmiCec::_instance = this;
+            smConnection = NULL;
 
             InitializeIARM();
 
@@ -606,7 +607,10 @@ namespace WPEFramework
             LOGWARN(" cecAddressesChanged Change Status : %d ", changeStatus);
             if(PHYSICAL_ADDR_CHANGED == changeStatus)
             {
-                CECAddresses["physicalAddress"] = physicalAddress;
+                char pa[32] = {0};
+                snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
+
+                CECAddresses["physicalAddress"] = (const char *)pa;
             }
             else if(LOGICAL_ADDR_CHANGED == changeStatus)
             {
