@@ -25,6 +25,7 @@ set(PLUGIN_AMAZON_MEMORYLIMIT "614400" CACHE STRING "monitor amazon  memory limi
 set(PLUGIN_APPS_MEMORYLIMIT "614400" CACHE STRING "monitor apps memory limit")
 set(PLUGIN_UX_MEMORYLIMIT "614400" CACHE STRING "monitor ux memory limit")
 set(PLUGIN_NETFLIX_MEMORYLIMIT "614400" CACHE STRING "monitor netflix memory limit")
+set(PLUGIN_RESIDENT_APP_MEMORYLIMIT "614400" CACHE STRING "monitor resident app memory limit")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
