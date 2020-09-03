@@ -95,6 +95,7 @@ Retrieves general information.
 ### Description
 
 Retrieves the actual trace status information for targeted module and category, if either category nor module is given, all information is returned.
+It will retrieves the details about console status and remote address(port and binding address), if these are configured.
 
 ### Parameters
 
