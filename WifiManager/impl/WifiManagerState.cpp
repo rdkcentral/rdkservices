@@ -104,3 +104,31 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
 
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
+
+uint32_t WifiManagerState::getSupportedSecurityModes(const JsonObject &parameters, JsonObject &response)
+{
+    LOGINFOMETHOD();
+
+    JsonObject security_modes;
+    
+    //from the SsidSecurity enum in wifiSrvMgrIarmIf.h
+    security_modes["NET_WIFI_SECURITY_NONE"]                 = (int)NET_WIFI_SECURITY_NONE;
+    security_modes["NET_WIFI_SECURITY_WEP_64"]               = (int)NET_WIFI_SECURITY_WEP_64;
+    security_modes["NET_WIFI_SECURITY_WEP_128"]              = (int)NET_WIFI_SECURITY_WEP_128;
+    security_modes["NET_WIFI_SECURITY_WPA_PSK_TKIP"]         = (int)NET_WIFI_SECURITY_WPA_PSK_TKIP;
+    security_modes["NET_WIFI_SECURITY_WPA_PSK_AES"]          = (int)NET_WIFI_SECURITY_WPA_PSK_AES;
+    security_modes["NET_WIFI_SECURITY_WPA2_PSK_TKIP"]        = (int)NET_WIFI_SECURITY_WPA2_PSK_TKIP;
+    security_modes["NET_WIFI_SECURITY_WPA2_PSK_AES"]         = (int)NET_WIFI_SECURITY_WPA2_PSK_AES;
+    security_modes["NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP"]  = (int)NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP;
+    security_modes["NET_WIFI_SECURITY_WPA_ENTERPRISE_AES"]   = (int)NET_WIFI_SECURITY_WPA_ENTERPRISE_AES;
+    security_modes["NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP"] = (int)NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP;
+    security_modes["NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES"]  = (int)NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES;
+    security_modes["NET_WIFI_SECURITY_WPA_WPA2_PSK"]         = (int)NET_WIFI_SECURITY_WPA_WPA2_PSK;
+    security_modes["NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE"]  = (int)NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE;
+    security_modes["NET_WIFI_SECURITY_WPA3_SAE"]             = (int)NET_WIFI_SECURITY_WPA3_SAE;
+    
+    response["security_modes"] = security_modes;
+
+    returnResponse(true);
+}
+

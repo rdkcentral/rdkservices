@@ -40,6 +40,7 @@ namespace {
         {"saveSSID", &WifiManager::saveSSID},
         {"clearSSID", &WifiManager::clearSSID},
         {"setSignalThresholdChangeEnabled", &WifiManager::setSignalThresholdChangeEnabled},
+        {"getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes}
     };
 
     std::vector<std::pair<const char*, WifiManagerConstMethod>> constMethods = {
@@ -283,6 +284,16 @@ namespace WPEFramework
             LOGINFOMETHOD();
 
             uint32_t result = wifiSignalThreshold.isSignalThresholdChangeEnabled(parameters, response);
+
+            LOGTRACEMETHODFIN();
+            return result;
+        }
+        
+        uint32_t WifiManager::getSupportedSecurityModes(const JsonObject &parameters, JsonObject &response)
+        {
+            LOGINFOMETHOD();
+
+            uint32_t result = wifiState.getSupportedSecurityModes(parameters, response);
 
             LOGTRACEMETHODFIN();
             return result;
