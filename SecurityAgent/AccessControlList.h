@@ -237,6 +237,7 @@ namespace Plugin {
             JSONACL& operator=(const JSONACL&) = delete;
             JSONACL()
             {
+                Add(_T("assign"), &Groups);
                 Add(_T("groups"), &Groups);
                 Add(_T("roles"), &ACL);
             }
