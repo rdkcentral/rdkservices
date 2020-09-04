@@ -965,12 +965,12 @@ namespace WPEFramework {
                 fields.push_back(make_pair("timezone", urlEncodeField(curl_handle, timeZone)));
                 fields.push_back(make_pair("localtime", urlEncodeField(curl_handle, utcDateTime)));
                 fields.push_back(make_pair("firmwareVersion", urlEncodeField(curl_handle, firmwareVersion)));
-                fields.push_back(make_pair("capabilities", urlEncodeField(curl_handle, "rebootDecoupled")));
-                fields.push_back(make_pair("capabilities", urlEncodeField(curl_handle, "RCDL")));
-                fields.push_back(make_pair("capabilities", urlEncodeField(curl_handle, "supportsFullHttpUrl")));
+                fields.push_back(make_pair("capabilities", "rebootDecoupled"));
+                fields.push_back(make_pair("capabilities", "RCDL"));
+                fields.push_back(make_pair("capabilities", "supportsFullHttpUrl"));
                 fields.push_back(make_pair("additionalFwVerInfo", urlEncodeField(curl_handle, pdriVersion)));
                 fields.push_back(make_pair("partnerId", urlEncodeField(curl_handle, partnerId)));
-                fields.push_back(make_pair("accountID", urlEncodeField(curl_handle, accountID)));
+                fields.push_back(make_pair("accountID", urlEncodeField(curl_handle, accountId)));
 
                 for (std::vector<std::pair<std::string, std::string>>::const_iterator iter = fields.begin();
                         iter != fields.end(); ++iter) {
