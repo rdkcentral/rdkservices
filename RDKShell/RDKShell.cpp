@@ -182,13 +182,14 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
                 {
-                    PluginHost::ISubSystem* subSystems(service->SubSystems());
+
+                    /*PluginHost::ISubSystem* subSystems(service->SubSystems());
                     if (subSystems != nullptr)
                     {
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
-                    }
+                    }*/
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -274,6 +275,8 @@ namespace WPEFramework {
         {
             LOGINFO();
 
+            std::cout << "initializing\n";
+
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
             RFC_ParamData_t param;
@@ -295,9 +298,22 @@ namespace WPEFramework {
               }
             }
 
+            service->Register(mClientsMonitor);
+
+            static PluginHost::IShell* pluginService = nullptr;
+            pluginService = service;
+
             shellThread = std::thread([]() {
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
+                PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                if (subSystems != nullptr)
+                {
+                    std::cout << "setting platform and graphics\n";
+                    subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                    subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                    subSystems->Release();
+                }
                 gRdkShellMutex.unlock();
                 while(true) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
@@ -320,7 +336,6 @@ namespace WPEFramework {
                 }
             });
 
-            service->Register(mClientsMonitor);
             return "";
         }
 
@@ -1580,6 +1595,14 @@ namespace WPEFramework {
                 {
                     scaleToFit = parameters["scaleToFit"].Boolean();
                 }
+                if (parameters.HasLabel("w"))
+                {
+                    width = parameters["w"].Number();
+                }
+                if (parameters.HasLabel("h"))
+                {
+                    height = parameters["h"].Number();
+                }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -1625,6 +1648,7 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
+                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                 }
 
                 WPEFramework::Core::JSON::String configString;
