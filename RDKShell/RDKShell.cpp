@@ -1594,6 +1594,14 @@ namespace WPEFramework {
                 {
                     scaleToFit = parameters["scaleToFit"].Boolean();
                 }
+                if (parameters.HasLabel("w"))
+                {
+                    width = parameters["w"].Number();
+                }
+                if (parameters.HasLabel("h"))
+                {
+                    height = parameters["h"].Number();
+                }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -1639,6 +1647,7 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
+                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                 }
 
                 WPEFramework::Core::JSON::String configString;
