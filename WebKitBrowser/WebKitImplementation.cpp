@@ -44,6 +44,26 @@
 #include "InjectedBundle/Tags.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <signal.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef pid_t WKProcessID;
+typedef void (*WKPageIsWebProcessResponsiveFunction)(bool isWebProcessResponsive, void* context);
+WK_EXPORT void WKPageIsWebProcessResponsive(WKPageRef page, void* context, WKPageIsWebProcessResponsiveFunction function);
+WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace WPEFramework {
 namespace Plugin {
@@ -240,6 +260,40 @@ namespace Plugin {
         onAutomationSessionRequestNewPage
     };
 
+    static void killHelper(pid_t pid, int sig)
+    {
+        if (pid < 1)
+            return;
+
+        static auto logProcPath = [](const std::string& path)
+        {
+            std::ifstream fileStream(path);
+            if (!fileStream.is_open())
+                return;
+            g_print("-== %s ==-\n", path.c_str());
+            std::string line;
+            while (std::getline(fileStream, line))
+            {
+                g_print("%s\n", line.c_str());
+            }
+        };
+
+        static auto logProcStatus = [](pid_t pid)
+        {
+            logProcPath("/proc/meminfo");
+            logProcPath("/proc/loadavg");
+            std::string procPath = std::string("/proc/") + std::to_string(pid) + "/status";
+            logProcPath(procPath);
+        };
+
+        logProcStatus(pid);
+
+        if (syscall(__NR_tgkill, pid, pid, sig) == -1)
+        {
+            SYSLOG(Trace::Error, ("tgkill failed, signal=%d process=%u errno=%d (%s)", sig, pid, errno, strerror(errno)));
+        }
+    }
+
     static string WKStringToString(WKStringRef wkStringRef) {
         size_t bufferSize = WKStringGetMaximumUTF8CStringSize(wkStringRef);
         std::unique_ptr<char[]> buffer(new char[bufferSize]);
@@ -257,6 +311,19 @@ namespace Plugin {
             }
 
             return stringVector;
+    }
+
+    static std::string GetPageActiveURL(WKPageRef page)
+    {
+        std::string activeURL;
+        WKURLRef urlRef = WKPageCopyActiveURL(page);
+        if (urlRef) {
+            WKStringRef urlStringRef = WKURLCopyString(urlRef);
+            activeURL = WKStringToString(urlStringRef);
+            WKRelease(urlStringRef);
+            WKRelease(urlRef);
+        }
+        return activeURL;
     }
 
     /* ---------------------------------------------------------------------------------------------------
@@ -406,6 +473,7 @@ static GSourceFuncs _handlerIntervention =
                 , MemoryPressure()
                 , MediaDiskCache(true)
                 , DiskCache()
+                , DiskCacheDir()
                 , XHRCache(false)
                 , Languages()
                 , CertificateCheck(true)
@@ -423,6 +491,10 @@ static GSourceFuncs _handlerIntervention =
                 , MaxFPS(60)
                 , ClientCert()
                 , ClientCertKey()
+                , LogToSystemConsoleEnabled(false)
+                , WatchDogCheckTimeoutInSeconds(0)
+                , WatchDogHangThresholdInSeconds(0)
+                , LoadBlankPageOnSuspendEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -443,6 +515,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("mediadiskcache"), &MediaDiskCache);
                 Add(_T("diskcache"), &DiskCache);
+                Add(_T("diskcachedir"), &DiskCacheDir);
                 Add(_T("xhrcache"), &XHRCache);
                 Add(_T("languages"), &Languages);
                 Add(_T("certificatecheck"), &CertificateCheck);
@@ -462,6 +535,10 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("bundle"), &Bundle);
                 Add(_T("clientcert"), &ClientCert);
                 Add(_T("clientcertkey"), &ClientCertKey);
+                Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
+                Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
+                Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
+                Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
             }
             ~Config()
             {
@@ -487,6 +564,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String MemoryPressure;
             Core::JSON::Boolean MediaDiskCache;
             Core::JSON::String DiskCache;
+            Core::JSON::String DiskCacheDir;
             Core::JSON::Boolean XHRCache;
             Core::JSON::ArrayType<Core::JSON::String> Languages;
             Core::JSON::Boolean CertificateCheck;
@@ -506,7 +584,103 @@ static GSourceFuncs _handlerIntervention =
             BundleConfig Bundle;
             Core::JSON::String ClientCert;
             Core::JSON::String ClientCertKey;
+            Core::JSON::Boolean LogToSystemConsoleEnabled;
+            Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
+            Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
+            Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
         };
+
+        class HangDetector
+        {
+        private:
+            WebKitImplementation* _browser { nullptr };
+            GSource* _timerSource { nullptr };
+            std::atomic_int _expiryCount { 0 };
+
+            int _watchDogTimeoutInSeconds { 0 };
+            int _watchDogTresholdInSeconds { 0 };
+
+            friend Core::ThreadPool::JobType<HangDetector&>;
+            Core::WorkerPool::JobType<HangDetector&> _worker;
+
+            void CheckResponsiveness()
+            {
+                _expiryCount = 0;
+                _browser->CheckWebProcess();
+            }
+
+            void Dispatch()
+            {
+                ++_expiryCount;
+
+                if ( _expiryCount > (_watchDogTresholdInSeconds /  _watchDogTimeoutInSeconds) ) {
+                    g_print("Hang detected! sending SIGFPE\n");
+                    killHelper(getpid(), SIGFPE);
+
+                    g_usleep(_watchDogTresholdInSeconds * G_USEC_PER_SEC );
+
+                    g_print("Hang detected! process still running! sending SIGKILL\n");
+                    killHelper (getpid(), SIGKILL);
+                }
+
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
+            }
+
+        public:
+            virtual ~HangDetector()
+            {
+                _expiryCount = 0;
+
+                if (_timerSource) {
+                    g_source_destroy (_timerSource);
+                    g_source_unref (_timerSource);
+                }
+            }
+
+            HangDetector(WebKitImplementation* browser)
+                : _browser(browser)
+                , _worker(*this)
+            {
+                _watchDogTimeoutInSeconds = _browser->_config.WatchDogCheckTimeoutInSeconds.Value();
+                _watchDogTresholdInSeconds  = _browser->_config.WatchDogHangThresholdInSeconds.Value();
+
+                if (_watchDogTimeoutInSeconds == 0 || _watchDogTresholdInSeconds == 0)
+                    return;
+
+                GMainContext* ctx = _browser->_context;
+                _timerSource = g_timeout_source_new_seconds ( _watchDogTimeoutInSeconds );
+
+                g_source_set_callback (
+                    _timerSource,
+                    [](gpointer data) -> gboolean
+                    {
+                        static_cast<HangDetector*>(data)->CheckResponsiveness();
+                        return G_SOURCE_CONTINUE;
+                    },
+                    this,
+                    nullptr
+                    );
+                g_source_attach ( _timerSource, ctx );
+
+                #if 0
+                auto hangSource = g_timeout_source_new_seconds ( 5 );
+                g_source_set_callback (
+                    hangSource,
+                    [](gpointer data) -> gboolean
+                    {
+                        g_usleep( G_MAXULONG );
+                        return G_SOURCE_REMOVE;
+                    },
+                    this,
+                    nullptr
+                    );
+                g_source_attach ( hangSource, ctx );
+                #endif
+
+                _worker.Schedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
+            }
+        };
+
 
     private:
         WebKitImplementation(const WebKitImplementation&) = delete;
@@ -853,31 +1027,35 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetURL(const string& URL) final
         {
-            _adminLock.Lock();
-            _URL = URL;
-            _adminLock.Unlock();
-
-            TRACE(Trace::Information, (_T("New URL: %s"), _URL.c_str()));
+            TRACE(Trace::Information, (_T("New URL: %s"), URL.c_str()));
 
             if (_context != nullptr) {
-                g_main_context_invoke(
+                using SetURLData = std::tuple<WebKitImplementation*, string>;
+                auto *data = new SetURLData(this, URL);
+                g_main_context_invoke_full(
                     _context,
+                    G_PRIORITY_DEFAULT,
                     [](gpointer customdata) -> gboolean {
-                        WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                        auto& data = *static_cast<SetURLData*>(customdata);
+                        WebKitImplementation* object = std::get<0>(data);
 
-                        string url;
+                        string url = std::get<1>(data);
                         object->_adminLock.Lock();
-                        url = object->_URL;
+                        object->_URL = url;
                         object->_adminLock.Unlock();
 
                         object->SetResponseHTTPStatusCode(-1);
+                        object->SetNavigationRef(nullptr);
 
                         auto shellURL = WKURLCreateWithUTF8CString(url.c_str());
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
                         return G_SOURCE_REMOVE;
                     },
-                    this);
+                    data,
+                    [](gpointer customdata) {
+                        delete static_cast<SetURLData*>(customdata);
+                    });
             }
         }
         virtual string GetURL() const final
@@ -1017,8 +1195,12 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFinished(const string& URL)
+        void OnLoadFinished(const string& URL, WKNavigationRef navigation)
         {
+            if (_navigationRef != navigation) {
+                TRACE(Trace::Information, (_T("Ignore 'loadfinished' for previous navigation request")));
+                return;
+            }
             _adminLock.Lock();
 
             _URL = URL;
@@ -1085,7 +1267,7 @@ static GSourceFuncs _handlerIntervention =
                 std::cout << "  " << line << std::endl;
             }
         }
-        void OnBrdidgeQuery(const string& text)
+        void OnBridgeQuery(const string& text)
         {
             _adminLock.Lock();
 
@@ -1101,6 +1283,11 @@ static GSourceFuncs _handlerIntervention =
         void SetResponseHTTPStatusCode(int32_t code)
         {
             _httpStatusCode = code;
+        }
+
+        void SetNavigationRef(WKNavigationRef ref)
+        {
+            _navigationRef = ref;
         }
 
         void OnNotificationShown(uint64_t notificationID) const
@@ -1152,6 +1339,10 @@ static GSourceFuncs _handlerIntervention =
             // Disk Cache
             if (_config.DiskCache.Value().empty() == false)
                 Core::SystemInfo::SetEnvironment(_T("WPE_DISK_CACHE_SIZE"), _config.DiskCache.Value(), !environmentOverride);
+
+            // Disk Cache Dir
+            if (_config.DiskCacheDir.Value().empty() == false)
+               Core::SystemInfo::SetEnvironment(_T("XDG_CACHE_HOME"), _config.DiskCacheDir.Value(), !environmentOverride);
 
             if (_config.XHRCache.Value() == false)
                 Core::SystemInfo::SetEnvironment(_T("WPE_DISABLE_XHR_RESPONSE_CACHING"), _T("1"), !environmentOverride);
@@ -1347,6 +1538,13 @@ static GSourceFuncs _handlerIntervention =
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
 
+                        if (object->_config.LoadBlankPageOnSuspendEnabled.Value()) {
+                            const char kBlankURL[] = "about:blank";
+                            if (GetPageActiveURL(object->_page) != kBlankURL)
+                                object->SetURL(kBlankURL);
+                            ASSERT(object->_URL == kBlankURL);
+                        }
+
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
 
@@ -1385,6 +1583,8 @@ static GSourceFuncs _handlerIntervention =
             _loop = g_main_loop_new(_context, FALSE);
             g_main_context_push_thread_default(_context);
 
+            std::unique_ptr<HangDetector> hangDetector(new HangDetector (this));
+
             auto contextConfiguration = WKContextConfigurationCreate();
 
             if (_config.InjectedBundle.Value().empty() == false) {
@@ -1410,7 +1610,11 @@ static GSourceFuncs _handlerIntervention =
             g_free(wpeStoragePath);
             WKContextConfigurationSetLocalStorageDirectory(contextConfiguration, storageDirectory);
 
-            gchar* wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
+            gchar* wpeDiskCachePath;
+            if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false)
+                wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
+            else
+                wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
             g_mkdir_with_parents(wpeDiskCachePath, 0700);
             auto diskCacheDirectory = WKStringCreateWithUTF8CString(wpeDiskCachePath);
             g_free(wpeDiskCachePath);
@@ -1457,7 +1661,7 @@ static GSourceFuncs _handlerIntervention =
             WKPreferencesSetWebSecurityEnabled(preferences, allowMixedContent);
 
             // Turn off log message to stdout.
-            WKPreferencesSetLogsPageMessagesToSystemConsoleEnabled(preferences, false);
+            WKPreferencesSetLogsPageMessagesToSystemConsoleEnabled(preferences, _config.LogToSystemConsoleEnabled.Value());
 
             // Turn on gamepads.
             WKPreferencesSetGamepadsEnabled(preferences, true);
@@ -1530,6 +1734,12 @@ static GSourceFuncs _handlerIntervention =
 
             WKPageSetPageUIClient(_page, &_handlerPageUI.base);
 
+            WKPageLoaderClientV0 pageLoadClient;
+            memset(&pageLoadClient, 0, sizeof(pageLoadClient));
+            pageLoadClient.base.clientInfo = this;
+            pageLoadClient.processDidBecomeResponsive = WebKitImplementation::WebProcessDidBecomeResponsive;
+            WKPageSetPageLoaderClient(_page, &pageLoadClient.base);
+
             if (_config.UserAgent.IsSet() == true && _config.UserAgent.Value().empty() == false) {
                 auto ua = WKStringCreateWithUTF8CString(_config.UserAgent.Value().c_str());
                 WKPageSetCustomUserAgent(_page, ua);
@@ -1581,6 +1791,81 @@ static GSourceFuncs _handlerIntervention =
             return Core::infinite;
         }
 
+        void CheckWebProcess()
+        {
+            if ( _webProcessCheckInProgress )
+                return;
+            _webProcessCheckInProgress = true;
+
+            WKPageIsWebProcessResponsive(
+                _page,
+                this,
+                [](bool isWebProcessResponsive, void* customdata) {
+                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                    object->DidReceiveWebProcessResponsivenessReply(isWebProcessResponsive);
+                });
+        }
+
+        void DidReceiveWebProcessResponsivenessReply(bool isWebProcessResponsive)
+        {
+            if (_config.WatchDogHangThresholdInSeconds.Value() == 0 || _config.WatchDogCheckTimeoutInSeconds.Value() == 0)
+                return;
+
+            // How many unresponsive replies to ignore before declaring WebProcess hang state
+            static const uint32_t kWebProcessUnresponsiveReplyDefaultLimit =
+                _config.WatchDogHangThresholdInSeconds.Value() / _config.WatchDogCheckTimeoutInSeconds.Value();
+
+            if (!_webProcessCheckInProgress)
+                return;
+            _webProcessCheckInProgress = false;
+
+            if (isWebProcessResponsive && _unresponsiveReplyNum == 0)
+                return;
+
+            std::string activeURL = GetPageActiveURL(GetPage());
+            pid_t webprocessPID = WKPageGetProcessIdentifier(GetPage());
+
+            if (isWebProcessResponsive)
+            {
+                SYSLOG(Trace::Information, ("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n",
+                                            _unresponsiveReplyNum, webprocessPID, activeURL.c_str()));
+                _unresponsiveReplyNum = 0;
+            }
+            else
+            {
+                ++_unresponsiveReplyNum;
+                SYSLOG(Trace::Information, ("WebProcess is unresponsive, pid=%u, reply num=%d(max=%d), url=%s\n",
+                                            webprocessPID, _unresponsiveReplyNum, kWebProcessUnresponsiveReplyDefaultLimit,
+                                            activeURL.c_str()));
+            }
+
+            if (_unresponsiveReplyNum == kWebProcessUnresponsiveReplyDefaultLimit)
+            {
+                SYSLOG(Trace::Error, ("WebProcess hang detected! Sending SIGPIPE! pid=%u, url=%s\n",
+                                      webprocessPID, activeURL.c_str()));
+                killHelper(webprocessPID, SIGFPE);
+            }
+            else if (_unresponsiveReplyNum == (2 * kWebProcessUnresponsiveReplyDefaultLimit))
+            {
+                SYSLOG(Trace::Error, ("WebProcess hang detected! Sending SIGKILL! pid=%u, url=%s\n",
+                                      webprocessPID, activeURL.c_str()));
+                killHelper(webprocessPID, SIGKILL);
+            }
+        }
+
+        static void WebProcessDidBecomeResponsive(WKPageRef page, const void* clientInfo)
+        {
+            auto &self = *const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
+            if (self._unresponsiveReplyNum > 0)
+            {
+                std::string activeURL = GetPageActiveURL(page);
+                pid_t webprocessPID = WKPageGetProcessIdentifier(page);
+                SYSLOG(Trace::Information, ("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n",
+                                            self._unresponsiveReplyNum, webprocessPID, activeURL.c_str()));
+                self._unresponsiveReplyNum = 0;
+            }
+        }
+
     private:
         Config _config;
         string _URL;
@@ -1605,6 +1890,10 @@ static GSourceFuncs _handlerIntervention =
         bool _compliant;
         WKWebAutomationSessionRef _automationSession;
         Core::StateTrigger<bool> _configurationCompleted { false };
+
+        bool _webProcessCheckInProgress { false };
+        uint32_t _unresponsiveReplyNum { 0 };
+        WKNavigationRef _navigationRef { nullptr };
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
@@ -1628,7 +1917,7 @@ static GSourceFuncs _handlerIntervention =
         } else if (name == Tags::BridgeObjectQuery) {
             WKStringRef messageBodyStr = static_cast<WKStringRef>(messageBodyObj);
             string messageText = WKStringToString(messageBodyStr);
-            const_cast<WebKitImplementation*>(browser)->OnBrdidgeQuery(messageText);
+            const_cast<WebKitImplementation*>(browser)->OnBridgeQuery(messageText);
         } else if (name == Tags::URL) {
             *returnData = WKStringCreateWithUTF8CString(browser->GetURL().c_str());
         } else if (name.compare(0, configLen, Tags::Config) == 0) {
@@ -1650,6 +1939,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
+        browser->SetNavigationRef(navigation);
         browser->OnURLChanged(url);
 
         WKRelease(urlRef);
@@ -1683,7 +1973,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
-        browser->OnLoadFinished(url);
+        browser->OnLoadFinished(url, navigation);
 
         WKRelease(urlRef);
         WKRelease(urlStringRef);
@@ -1786,7 +2076,6 @@ static GSourceFuncs _handlerIntervention =
         SYSLOG(Trace::Fatal, ("CRASH: WebProcess crashed, exiting..."));
         exit(1);
     }
-
 } // namespace Plugin
 
 namespace WebKitBrowser {

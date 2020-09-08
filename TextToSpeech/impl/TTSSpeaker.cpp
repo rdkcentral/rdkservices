@@ -1,8 +1,8 @@
 /*
- * If not stated otherwise in this file or this component's Licenses.txt file the
+ * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2019 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 #include "TTSSpeaker.h"
 #include "logger.h"
@@ -130,6 +130,9 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
+    main_loop(NULL),
+    main_context(NULL),
+    main_loop_thread(NULL),
     m_pipelineError(false),
     m_networkError(false),
     m_runThread(true),
@@ -138,12 +141,14 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_isEOS(false),
     m_ensurePipeline(false),
     m_gstThread(new std::thread(GStreamerThreadFunc, this)),
-    m_gstbusThread(new std::thread(GStreamerBusWatchThreadFunc, this)),
     m_busWatch(0),
     m_duration(0),
     m_pipelineConstructionFailures(0),
     m_maxPipelineConstructionFailures(INT_FROM_ENV("MAX_PIPELINE_FAILURE_THRESHOLD", 1)) {
         setenv("GST_DEBUG", "2", 0);
+        if (!gst_is_initialized())
+            gst_init(NULL,NULL);
+        this->main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
 }
 
 TTSSpeaker::~TTSSpeaker() {
@@ -157,10 +162,10 @@ TTSSpeaker::~TTSSpeaker() {
         m_gstThread->join();
         m_gstThread = NULL;
     }
-    if(m_gstbusThread) {
-        m_gstbusThread->join();
-        m_gstbusThread = NULL;
-    }
+
+    if(g_main_loop_is_running(this->main_loop))
+        g_main_loop_quit(this->main_loop);
+    g_thread_join(this->main_loop_thread);
 }
 
 void TTSSpeaker::ensurePipeline(bool flag) {
@@ -183,11 +188,11 @@ int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, b
     return 0;
 }
 
-SpeechState TTSSpeaker::getSpeechState(const TTSSpeakerClient *client, uint32_t id) {
+SpeechState TTSSpeaker::getSpeechState(uint32_t id) {
     // See if the speech is in progress i.e Speaking / Paused
     {
         std::lock_guard<std::mutex> lock(m_stateMutex);
-        if(client == m_clientSpeaking && m_currentSpeech && id == m_currentSpeech->id) {
+        if(m_currentSpeech && id == m_currentSpeech->id) {
             if(m_isPaused)
                 return SPEECH_PAUSED;
             else
@@ -199,7 +204,7 @@ SpeechState TTSSpeaker::getSpeechState(const TTSSpeakerClient *client, uint32_t 
     {
         std::lock_guard<std::mutex> lock(m_queueMutex);
         for(auto it = m_queue.begin(); it != m_queue.end(); ++it) {
-            if(it->id == id && it->client == client)
+            if(it->id == id)
                 return SPEECH_PENDING;
         }
     }
@@ -207,71 +212,64 @@ SpeechState TTSSpeaker::getSpeechState(const TTSSpeakerClient *client, uint32_t 
     return SPEECH_NOT_FOUND;
 }
 
-void TTSSpeaker::clearAllSpeechesFrom(const TTSSpeakerClient *client, std::vector<uint32_t> &ids) {
-    TTSLOG_VERBOSE("Cancelling all speeches");
-    std::lock_guard<std::mutex> lock(m_queueMutex);
-    for(auto it = m_queue.begin(); it != m_queue.end();) {
-        if(it->client == client) {
-            ids.push_back(it->id);
-            it = m_queue.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    if(isSpeaking(client))
-        cancelCurrentSpeech();
-}
-
-bool TTSSpeaker::isSpeaking(const TTSSpeakerClient *client) {
+bool TTSSpeaker::isSpeaking(uint32_t id) {
     std::lock_guard<std::mutex> lock(m_stateMutex);
 
-    if(client)
-        return (client == m_clientSpeaking);
+    if(m_currentSpeech) {
+        if(id == m_currentSpeech->id)
+            return m_isSpeaking;
+    }
 
-    return m_isSpeaking;
+    return false;
 }
 
-void TTSSpeaker::cancelCurrentSpeech() {
+bool TTSSpeaker::cancelSpeech(uint32_t id) {
     TTSLOG_VERBOSE("Cancelling current speech");
-    if(m_isSpeaking) {
+    bool status = false;
+    if(m_isSpeaking && m_currentSpeech && ((m_currentSpeech->id == id) || (id == 0))) {
         m_isPaused = false;
         m_flushed = true;
+        status = true;
         m_condition.notify_one();
     }
+    return status;
 }
 
 bool TTSSpeaker::reset() {
     TTSLOG_VERBOSE("Resetting Speaker");
-    cancelCurrentSpeech();
+    cancelSpeech();
     flushQueue();
 
     return true;
 }
 
-void TTSSpeaker::pause(uint32_t id) {
-    if(!m_isSpeaking || !m_currentSpeech || (id && id != m_currentSpeech->id))
-        return;
+bool TTSSpeaker::pause(uint32_t id) {
+    if(!m_isSpeaking || !m_currentSpeech || (id != m_currentSpeech->id))
+        return false;
 
     if(m_pipeline) {
         if(!m_isPaused) {
             m_isPaused = true;
             gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
             TTSLOG_INFO("Set state to PAUSED");
+            return true;
         }
     }
+    return false;
 }
 
-void TTSSpeaker::resume(uint32_t id) {
-    if(!m_isSpeaking || !m_currentSpeech || (id && id != m_currentSpeech->id))
-        return;
+bool TTSSpeaker::resume(uint32_t id) {
+    if(!m_isSpeaking || !m_currentSpeech || (id != m_currentSpeech->id))
+        return false;
 
     if(m_pipeline) {
         if(m_isPaused) {
             gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
             TTSLOG_INFO("Set state to PLAYING");
+            return true;
         }
     }
+    return false;
 }
 
 void TTSSpeaker::setSpeakingState(bool state, TTSSpeakerClient *client) {
@@ -346,97 +344,6 @@ bool TTSSpeaker::waitForStatus(GstState expected_state, uint32_t timeout_ms) {
     return true;
 }
 
-#ifdef INTELCE
-static GstElement* findElement(GstElement *element, const char* targetName)
-{
-    GstElement *resultElement = NULL;
-    if(GST_IS_BIN(element)) {
-        bool done = false;
-        GValue nextItem = G_VALUE_INIT;
-        GstIterator* iterator = gst_bin_iterate_elements(GST_BIN(element));
-
-        while(!done) {
-            switch(gst_iterator_next(iterator, &nextItem)) {
-                case GST_ITERATOR_OK:
-                    {
-                        GstElement *nextElement = GST_ELEMENT(g_value_get_object(&nextItem));
-                        done = (resultElement = findElement(nextElement, targetName)) != NULL;
-                        g_value_reset(&nextItem);
-                    }
-                    break;
-
-                case GST_ITERATOR_RESYNC:
-                    gst_iterator_resync(iterator);
-                    break;
-
-                case GST_ITERATOR_ERROR:
-                case GST_ITERATOR_DONE:
-                    done = true;
-                    break;
-            }
-        }
-
-        gst_iterator_free(iterator);
-        g_value_unset(&nextItem);
-    } else {
-        if(strstr(gst_element_get_name(element), targetName))
-            resultElement = element;
-    }
-
-    return resultElement;
-}
-
-static void onHaveType(GstElement *typefind, guint /*probability*/, GstCaps *srcPadCaps, gpointer user_data)
-{
-    GstElement* pipeline = static_cast<GstElement*>(user_data);
-
-    if ((srcPadCaps == NULL) || (pipeline == NULL)) {
-        TTSLOG_ERROR( "Typefind SRC Pad Caps NULL");
-        return;
-    }
-
-    GstStructure *s = gst_caps_get_structure(srcPadCaps, 0);
-    TTSLOG_WARNING("onHaveType %s", gst_structure_get_name(s));
-
-    if (strncmp (gst_structure_get_name(s), "audio/", 6) == 0) {
-        // link typefind directly to mpegaudioparse to complete pipeline
-        GstElement *sink = findElement(pipeline, "mpegaudioparse");
-        GstPad *sinkpad = gst_element_get_static_pad (sink, "sink");
-        GstPad *srcpad  = gst_element_get_static_pad (typefind, "src");
-
-        if(!gst_pad_is_linked(sinkpad) && !gst_pad_is_linked(srcpad)) {
-            bool linked = GST_PAD_LINK_SUCCESSFUL(gst_pad_link (srcpad, sinkpad));
-            if(!linked)
-                TTSLOG_WARNING("Failed to link typefind and audio");
-        }
-
-        gst_object_unref (sinkpad);
-        gst_object_unref (srcpad);
-    } else if (strncmp (gst_structure_get_name(s), "application/x-id3", 17) == 0) {
-        // link typefind to id3demux then id3demux to mpegaudioparse to complete pipeline
-        GstElement *sink = findElement(pipeline, "mpegaudioparse");
-        GstElement *id3demux = findElement(pipeline, "id3demux");
-        GstPad *sinkpad = gst_element_get_static_pad (sink, "sink");
-        GstPad *srcpad  = gst_element_get_static_pad (typefind, "src");
-        GstPad *id3Sinkpad = gst_element_get_static_pad (id3demux, "sink");
-        GstPad *id3Srcpad  = gst_element_get_static_pad (id3demux, "src");
-
-        if(!gst_pad_is_linked(sinkpad) && !gst_pad_is_linked(srcpad)
-                && !gst_pad_is_linked(id3Srcpad) && !gst_pad_is_linked(id3Sinkpad)) {
-            bool linkedid3Sink = GST_PAD_LINK_SUCCESSFUL(gst_pad_link (srcpad, id3Sinkpad));
-            bool linkedid3Src  = GST_PAD_LINK_SUCCESSFUL(gst_pad_link (id3Srcpad, sinkpad));
-            if (!linkedid3Sink || !linkedid3Src)
-                TTSLOG_WARNING("Failed to link typefind and audio");
-        }
-
-        gst_object_unref (id3Sinkpad);
-        gst_object_unref (id3Srcpad);
-        gst_object_unref (sinkpad);
-        gst_object_unref (srcpad);
-    }
-}
-#endif
-
 // GStreamer Releated members
 void TTSSpeaker::createPipeline() {
     m_isEOS = false;
@@ -461,17 +368,6 @@ void TTSSpeaker::createPipeline() {
     GstElement *decodebin = NULL;
     decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
-#elif defined(INTELCE)
-    GstElement *typefind = NULL;
-    GstElement *id3demux = NULL;
-    GstElement *parse = NULL;
-    typefind = gst_element_factory_make("typefind", NULL);
-    id3demux = gst_element_factory_make("id3demux", NULL);
-    parse = gst_element_factory_make("mpegaudioparse", NULL);
-    m_audioSink = gst_element_factory_make("ismd_audio_sink", NULL);
-    // Need these properties so two gstreamer pipelines can play back audio at same time on ismd...
-    g_object_set(G_OBJECT(m_audioSink), "sync", FALSE, NULL);
-    g_object_set(G_OBJECT(m_audioSink), "audio-input-set-as-primary", FALSE, NULL);
 #endif
 
     std::string tts_url =
@@ -502,12 +398,6 @@ void TTSSpeaker::createPipeline() {
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
-#elif defined(INTELCE)
-    gst_bin_add_many(GST_BIN(m_pipeline), m_source, typefind, id3demux, parse, m_audioSink, NULL);
-    result &= gst_element_link (m_source, typefind);
-    result &= gst_element_link (parse, m_audioSink);
-    // used to link rest of elements based on typefind results
-    g_signal_connect (typefind, "have-type", G_CALLBACK (onHaveType), m_pipeline);
 #endif
 
     if(!result) {
@@ -519,11 +409,10 @@ void TTSSpeaker::createPipeline() {
     }
 
     TTSLOG_WARNING ("gst_element_get_bus\n");
-#if 0
     GstBus *bus = gst_element_get_bus(m_pipeline);
     m_busWatch = gst_bus_add_watch(bus, GstBusCallback, (gpointer)(this));
     gst_object_unref(bus);
-#endif
+
     m_pipelineConstructionFailures = 0;
 
     // wait until pipeline is set to NULL state
@@ -755,7 +644,7 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         // PCM Sink seems to be accepting volume change before PLAYING state
         g_object_set(G_OBJECT(m_audioSink), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-        TTSLOG_VERBOSE("Speaking.... (%d, \"%s\")", data.id, data.text.c_str());
+        TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
         //Wait for EOS with a timeout incase EOS never comes
         waitForAudioToFinishTimeout(10);
@@ -765,20 +654,12 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
     m_currentSpeech = NULL;
 }
 
-void TTSSpeaker::GStreamerBusWatchThreadFunc(void *ctx) {
-    TTSSpeaker *speaker = (TTSSpeaker*) ctx;
-    while(speaker && speaker->m_busThread) {
-        if (speaker->m_pipeline)
-        {
-            GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(speaker->m_pipeline));
-            GstMessage *msg = NULL;
-            if ((msg = gst_bus_pop(bus)) != NULL)
-            {
-                speaker->handleMessage(msg);
-                gst_message_unref(msg);
-            }
-        }
-    }
+void TTSSpeaker::event_loop(void *data)
+{
+    TTSSpeaker *speaker= (TTSSpeaker*) data;
+    speaker->main_context = g_main_context_new();
+    speaker->main_loop = g_main_loop_new(NULL, false);
+    g_main_loop_run(speaker->main_loop);
 }
 
 void TTSSpeaker::GStreamerThreadFunc(void *ctx) {

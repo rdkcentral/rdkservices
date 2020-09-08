@@ -84,6 +84,16 @@ if (BUILD_DBUS)
 #    LIBS += -ldbus-1
 endif()
 
+if (USE_IARM)
+    add_definitions (-DUSE_IARM_BUS)
+    option(USE_IARM_BUS "USE_IARM_BUS" ON)
+endif()
+
+if (USE_IARM_BUS)
+    add_definitions (-DUSE_DS)
+endif()
+
+
 if (BUILD_ENABLE_THERMAL_PROTECTION)
 add_definitions (-DBUILD_ENABLE_THERMAL_PROTECTION)
    add_definitions (-DENABLE_THERMAL_PROTECTION)
@@ -128,10 +138,6 @@ if (BUILD_XG1)
     add_definitions (-DENABLE_VREX_SERVICE)
 
     # added for Arris Xone
-    if (USE_IARM)
-        add_definitions (-DUSE_IARM_BUS)
-        option(USE_IARM_BUS "USE_IARM_BUS" ON)
-    endif()
 
     if (BUILD_QAM)
         message("Building for QAM on XG1")
@@ -150,7 +156,6 @@ if (BUILD_XG1)
         add_definitions (-DENABLE_CONTROL_SERVICE)
         add_definitions (-DHAS_FRONT_PANEL)
         option(HAS_FRONT_PANEL "HAS_FRONT_PANEL" ON)
-        add_definitions (-DUSE_DS)
         add_definitions (-DUSE_DISPLAY_SETTINGS)
     endif()
 
@@ -179,9 +184,7 @@ if (BUILD_XG1V3)
     add_definitions (-DENABLE_FRONT_PANEL_API_V4)
 
 	# added for Iarmbus support
-	if (USE_IARM) 
-        add_definitions (-DUSE_IARM_BUS)
-        option(USE_IARM_BUS "USE_IARM_BUS" ON)
+    if (USE_IARM)
         add_definitions (-DUSE_DISPLAY_SETTINGS)
     endif()
 
@@ -196,7 +199,6 @@ if (BUILD_XG1V3)
         add_definitions (-DENABLE_CONTROL_SERVICE)
         add_definitions (-DHAS_FRONT_PANEL)
         option(HAS_FRONT_PANEL "HAS_FRONT_PANEL" ON)
-        add_definitions (-DUSE_DS)
     endif()
 endif()
 
@@ -221,8 +223,6 @@ if (BUILD_XG2)
 
     # added for Iarmbus support
     if (USE_IARM)
-        add_definitions (-DUSE_IARM_BUS)
-        option(USE_IARM_BUS "USE_IARM_BUS" ON)
         add_definitions (-DUSE_DISPLAY_SETTINGS)
         add_definitions (-DUSE_TSB_SETTINGS)
     endif()
@@ -234,7 +234,6 @@ if (BUILD_XG2)
         add_definitions (-DENABLE_MSOPAIRING_6)
         add_definitions (-DHAS_FRONT_PANEL)
         option(HAS_FRONT_PANEL "HAS_FRONT_PANEL" ON)
-        add_definitions (-DUSE_DS)
         add_definitions (-DENABLE_VREX_SERVICE)
         #add_definitions (-DENABLE_UPDATE_MANAGER_SERVICE)
 
@@ -260,8 +259,6 @@ if (BUILD_XI3)
     add_definitions (-DUSE_UIMAF)
 
     if (USE_IARM)
-        add_definitions (-DUSE_IARM_BUS)
-        option(USE_IARM_BUS "USE_IARM_BUS" ON)
         add_definitions (-DUSE_DISPLAY_SETTINGS)
         add_definitions (-DUSE_TSB_SETTINGS)
     endif()
@@ -279,7 +276,6 @@ if (BUILD_XI3)
     option(HAS_FRONT_PANEL "HAS_FRONT_PANEL" ON)
     add_definitions (-DENABLE_FRONT_PANEL_API_V4)
     #add_definitions (-DHAS_STATE_OBSERVER)
-    add_definitions (-DUSE_DS)
     add_definitions (-DENABLE_GET_SET_APIVERSION)
     add_definitions (-DUSE_UPNP_DISCOVERY)
     add_definitions (-DUSE_TR_69)

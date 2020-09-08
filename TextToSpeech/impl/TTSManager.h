@@ -1,8 +1,8 @@
 /*
- * If not stated otherwise in this file or this component's Licenses.txt file the
+ * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2019 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
+
 #ifndef _TTS_ENGINE_H_
 #define _TTS_ENGINE_H_
 
 #include "TTSCommon.h"
+#include "TTSSpeaker.h"
 #include <iostream>
-#include "TTSSession.h" 
 
 #include <map>
 #include <mutex>
-#include <thread>
-#include <atomic>
 #include <vector>
 
 namespace TTS {
@@ -43,21 +42,28 @@ struct Configuration {
     uint8_t rate;
 };
 
-class TTSConnectionCallback {
+class TTSEventCallback {
 public:
-    TTSConnectionCallback() {}
-    virtual ~TTSConnectionCallback() {}
+    TTSEventCallback() {}
+    virtual ~TTSEventCallback() {}
 
-    virtual void onTTSServerConnected() = 0;
-    virtual void onTTSServerClosed() = 0;
-    virtual void onTTSStateChanged(bool enabled) = 0;
+    virtual void onTTSStateChanged(bool enabled) { (void)enabled; }
     virtual void onVoiceChanged(std::string voice) { (void)voice; }
+    virtual void onWillSpeak(SpeechData &data) { (void)data; }
+    virtual void onSpeechStart(SpeechData &data) { (void)data; }
+    virtual void onSpeechPause(uint32_t speechId) { (void)speechId; }
+    virtual void onSpeechResume(uint32_t speechId) { (void)speechId; }
+    virtual void onSpeechCancelled(std::vector<uint32_t> speechIds) { (void)speechIds; }
+    virtual void onSpeechInterrupted(uint32_t speechId) { (void)speechId; }
+    virtual void onNetworkError(uint32_t speechId) { (void)speechId; }
+    virtual void onPlaybackError(uint32_t speechId) { (void)speechId; }
+    virtual void onSpeechComplete(SpeechData &data) { (void)data; }
 };
 
-class TTSManager {
+class TTSManager : public TTSSpeakerClient{
 public:
-    static TTSManager *create(TTSConnectionCallback *connCallback);
-    TTSManager(TTSConnectionCallback *connCallback);
+    static TTSManager *create(TTSEventCallback *eventCallback);
+    TTSManager(TTSEventCallback *eventCallback);
     virtual ~TTSManager();
 
     // TTS Global APIs
@@ -66,49 +72,37 @@ public:
     TTS_Error listVoices(std::string language, std::vector<std::string> &voices);
     TTS_Error setConfiguration(Configuration &configuration);
     TTS_Error getConfiguration(Configuration &configuration);
-    bool isSessionActiveForApp(uint32_t appid);
 
-    // Resource management APIs
-    TTS_Error getResourceAllocationPolicy(ResourceAllocationPolicy &policy);
-    TTS_Error reservePlayerResource(uint32_t appId, bool internalReq=false);
-    TTS_Error releasePlayerResource(uint32_t appId, bool internalReq=false);
+    //Speak APIs
+    TTS_Error speak(int speechId, std::string text);
+    TTS_Error pause(uint32_t id);
+    TTS_Error resume(uint32_t id);
+    TTS_Error shut(uint32_t id);
+    TTS_Error isSpeaking(uint32_t id, bool &speaking);
+    TTS_Error getSpeechState(uint32_t id, SpeechState &state);
+    TTS_Error clearAudioPipeline();
 
-    /***************** For Override Control *****************/
-    TTS_Error claimPlayerResource(uint32_t appId);
-    /***************** For Override Control *****************/
+    virtual TTSConfiguration *configuration() {return &m_defaultConfiguration;}
 
-    // Session control functions
-    TTSSession* createSession(uint32_t appId, std::string appName, uint32_t &sessionID, bool &ttsEnabled, TTS_Error &status, TTSSessionCallback *eventCallbacks);
-    TTS_Error destroySession(uint32_t sessionId);
+    //Speak Events
+    virtual void willSpeak(uint32_t speech_id, std::string text);
+    virtual void started(uint32_t speech_id, std::string text);
+    virtual void spoke(uint32_t speech_id, std::string text);
+    virtual void paused(uint32_t speech_id);
+    virtual void resumed(uint32_t speech_id);
+    virtual void cancelled(std::vector<uint32_t> &speeches);
+    virtual void interrupted(uint32_t speech_id);
+    virtual void networkerror(uint32_t speech_id);
+    virtual void playbackerror(uint32_t speech_id);
 
 private:
-    using ID_Session_Map=std::map<uint32_t, TTSSession*>;
-    ID_Session_Map m_appMap;
-    ID_Session_Map m_sessionMap;
-
     TTSConfiguration m_defaultConfiguration;
-    ResourceAllocationPolicy m_policy;
-    uint32_t m_reservationForApp;
-    uint32_t m_reservedApp;
-    uint32_t m_claimedApp;
-    TTSSession *m_activeSession;
+    TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
-    std::thread *m_thread;
-    bool m_monitorClients;
-    bool m_claimedSession;
     bool m_ttsEnabled;
     std::mutex m_mutex;
-    TTSConnectionCallback *m_callback;
 
     void loadConfigurationsFromFile(std::string configFile);
-    void setResourceAllocationPolicy(ResourceAllocationPolicy policy);
-    void makeSessionActive(TTSSession *session);
-    void makeSessionInActive(TTSSession *session);
-    void makeReservedOrClaimedSessionActive();
-
-    static void MonitorClients(void *ctx);
-    static void MonitorClientsSourceIOCB(void *source, void *ctx);
-    static void MonitorClientsSourceDestroyedCB(void *source, void *ctx);
 };
 
 } // namespace TTS
