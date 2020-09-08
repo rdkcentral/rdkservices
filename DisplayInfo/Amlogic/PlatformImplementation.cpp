@@ -401,21 +401,21 @@ private:
 				    case drmMode_4096x2160p25:
 				    case drmMode_4096x2160p30:
 				    case drmMode_4096x2160p50:
-					    height = 4096;
-					    width  = 2160;
+					    height = 2160;
+					    width  = 4096;
 					    break;
 				    case drmMode_3840x2160p60:
 				    case drmMode_4096x2160p60:
-					    height = 4096;
-					    width  = 2160;
+					    height = 2160;
+					    width  = 4096;
 					    break;
 				    default:
 					    break;
 			    }
 		    }
 #else
-		    height = 4096;
-		    width  = 2160;
+		    height = 2160;
+		    width  = 4096;
 #endif
 		    // Read HDR status
 		    type = HDR_DOLBYVISION;
