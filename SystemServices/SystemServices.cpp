@@ -2111,7 +2111,7 @@ namespace WPEFramework {
             string methodType;
 
                 methodType = parameters["param"].String();
-#ifdef HAS_STATE_OBSERVER
+#ifdef PLUGIN_STATEOBSERVER
                 if (SYSTEM_CHANNEL_MAP == methodType) {
                     LOGERR("methodType : %s\n", methodType.c_str());
                     IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates,
@@ -2201,9 +2201,9 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_Unexpected, response);
                 }
-#else /* !HAS_STATE_OBSERVER */
+#else /* !PLUGIN_STATEOBSERVER */
                 populateResponseWithError(SysSrv_SupportNotAvailable, response);
-#endif /* !HAS_STATE_OBSERVER */
+#endif /* !PLUGIN_STATEOBSERVER */
             returnResponse(( E_OK == retVal)? true: false);
         }//end of getStateInfo
 
