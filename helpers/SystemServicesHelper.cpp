@@ -23,6 +23,7 @@
 #include <map>
 #include <sys/stat.h>
 #include <algorithm>
+#include <curl/curl.h>
 
 #include "utils.h"
 #include "SystemServicesHelper.h"
@@ -460,6 +461,18 @@ std::string url_encode(std::string urlIn)
         curl_easy_cleanup(c_url);
     }
     return retval;
+}
+
+std::string urlEncodeField(CURL *curl_handle, std::string &data)
+{
+    std::string encString = "";
+
+    if (curl_handle) {
+        char* encoded = curl_easy_escape(curl_handle, data.c_str(), data.length());
+        encString = encoded;
+        curl_free(encoded);
+    }
+    return encString;
 }
 
 /**

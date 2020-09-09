@@ -933,6 +933,7 @@ namespace WPEFramework {
             string partnerId = "";
             string accountId = "";
             string match = "http://";
+            std::vector<std::pair<std::string, std::string>> fields;
 
             string xconfOverride = getXconfOverrideUrl();
             string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
@@ -954,41 +955,57 @@ namespace WPEFramework {
             string utcDateTime = currentDateTimeUtc("%a %B %e %I:%M:%S %Z %Y");
             LOGINFO("timeZone = '%s', utcDateTime = '%s'\n", timeZone.c_str(), utcDateTime.c_str());
 
-            fullCommand = fullCommand + "?eStbMac=" + eStbMac + "&env=" + env + "&model=" + model
-                + "&timezone=" + timeZone + "&localtime=" + utcDateTime + "&firmwareVersion=" + firmwareVersion
-                + "&capabilities=rebootDecoupled&capabilities=RCDL&capabilities=supportsFullHttpUrl"
-                + "&additionalFwVerInfo=" + pdriVersion + "&partnerId=" + partnerId + "&accountID=" + accountId;
-
-            LOGINFO("curl url(raw) : '%s'\n", fullCommand.c_str());
-
             curl_handle = curl_easy_init();
             _fwUpdate.success = false;
 
             if (curl_handle) {
-                char *escUrl = curl_easy_escape(curl_handle,fullCommand.c_str(), fullCommand.length());
-                if (escUrl) {
-                        LOGINFO("curl url (enc): '%s'\n", escUrl);
-                        curl_easy_setopt(curl_handle, CURLOPT_URL, escUrl);
-                        /* when redirected, follow the redirections */
-                        curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
-                        curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
-                                        writeCurlResponse);
-                        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
-                        curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-                        curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
+                struct curl_slist *headers = NULL;
 
-                        res = curl_easy_perform(curl_handle);
+                /* url encode the payload portion alone. */
+                fields.push_back(make_pair("eStbMac", urlEncodeField(curl_handle, eStbMac)));
+                fields.push_back(make_pair("env", urlEncodeField(curl_handle, env)));
+                fields.push_back(make_pair("model", urlEncodeField(curl_handle, model)));
+                fields.push_back(make_pair("timezone", urlEncodeField(curl_handle, timeZone)));
+                fields.push_back(make_pair("localtime", urlEncodeField(curl_handle, utcDateTime)));
+                fields.push_back(make_pair("firmwareVersion", urlEncodeField(curl_handle, firmwareVersion)));
+                fields.push_back(make_pair("capabilities", "rebootDecoupled"));
+                fields.push_back(make_pair("capabilities", "RCDL"));
+                fields.push_back(make_pair("capabilities", "supportsFullHttpUrl"));
+                fields.push_back(make_pair("additionalFwVerInfo", urlEncodeField(curl_handle, pdriVersion)));
+                fields.push_back(make_pair("partnerId", urlEncodeField(curl_handle, partnerId)));
+                fields.push_back(make_pair("accountID", urlEncodeField(curl_handle, accountId)));
 
-                        curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE,
-                                        &http_code);
-                        LOGWARN("curl result code: %d, http response code: %ld\n",
-                                        res, http_code);
-                        if (CURLE_OK != res) {
-                                LOGERR("curl_easy_perform failed; reason: '%s'\n", curl_easy_strerror(res));
-                        }
-                        _fwUpdate.httpStatus = http_code;
-                        curl_free(escUrl);
+                for (std::vector<std::pair<std::string, std::string>>::const_iterator iter = fields.begin();
+                        iter != fields.end(); ++iter) {
+                    if (iter == fields.begin()) {
+                        fullCommand += "?" + iter->first + "=" + iter->second;
+                    } else {
+                        fullCommand += "&" + iter->first + "=" + iter->second;
+                    }
                 }
+                LOGINFO("curl url (enc): '%s'\n", fullCommand.c_str());
+
+                curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_easy_setopt(curl_handle, CURLOPT_URL, fullCommand.c_str());
+                /* when redirected, follow the redirections */
+                curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
+                curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse);
+                curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
+                curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 10L);
+                curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 10L);
+                curl_easy_setopt(curl_handle, CURLOPT_EXPECT_100_TIMEOUT_MS, 3000L);
+                curl_easy_setopt(curl_handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+                curl_easy_setopt(curl_handle, CURLOPT_TRANSFER_ENCODING, 1L);
+                //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+                //curl_easy_setopt(curl_handle, CURLOPT_DEFAULT_PROTOCOL, "https");
+                curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
+                res = curl_easy_perform(curl_handle);
+                curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
+                LOGWARN("curl result code: %d, http response code: %ld\n", res, http_code);
+                if (CURLE_OK != res) {
+                    LOGERR("curl_easy_perform failed; reason: '%s'\n", curl_easy_strerror(res));
+                }
+                _fwUpdate.httpStatus = http_code;
                 curl_easy_cleanup(curl_handle);
             } else {
                 LOGWARN("Could not perform curl\n");
