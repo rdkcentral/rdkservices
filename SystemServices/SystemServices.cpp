@@ -53,6 +53,10 @@
 #include "powerstate.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+#include "mfrMgr.h"
+#endif
+
 using namespace std;
 
 #define SYSSRV_MAJOR_VERSION 1
@@ -207,6 +211,8 @@ namespace WPEFramework {
         cTimer    SystemServices::m_operatingModeTimer;
         int       SystemServices::m_remainingDuration = 0;
         JsonObject SystemServices::_systemParams;
+        const string SystemServices::MODEL_NAME = "modelName";
+        const string SystemServices::HARDWARE_ID = "hardwareID";
         IARM_Bus_SYSMgr_GetSystemStates_Param_t SystemServices::paramGetSysState = {};
 
         static void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
@@ -577,28 +583,62 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-                string queryParams = parameters["params"].String();
-                removeCharsFromString(queryParams, "[\"]");
-                string methodType = queryParams;
-                string respBuffer;
-                string fileName = "/tmp/." + methodType;
-                LOGERR("accessing fileName : %s\n", fileName.c_str());
+            string queryParams = parameters["params"].String();
+            removeCharsFromString(queryParams, "[\"]");
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
+                returnResponse(getManufacturerData(queryParams, response));
+            }
+#endif
+            string methodType = queryParams;
+            string respBuffer;
+            string fileName = "/tmp/." + methodType;
+            LOGERR("accessing fileName : %s\n", fileName.c_str());
             if (Utils::fileExists(fileName.c_str())) {
-                    respBuffer = collectDeviceInfo(methodType);
-                    removeCharsFromString(respBuffer, "\n\r");
-                    LOGERR("respBuffer : %s\n", respBuffer.c_str());
-                    if (respBuffer.length() <= 0) {
-                        populateResponseWithError(SysSrv_FileAccessFailed,
-                                response);
-                    } else {
-                        response[methodType.c_str()] = respBuffer;
-                        retAPIStatus = true;
-                    }
+                respBuffer = collectDeviceInfo(methodType);
+                removeCharsFromString(respBuffer, "\n\r");
+                LOGERR("respBuffer : %s\n", respBuffer.c_str());
+                if (respBuffer.length() <= 0) {
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
                 } else {
-                    populateResponseWithError(SysSrv_FileNotPresent, response);
+                    response[methodType.c_str()] = respBuffer;
+                    retAPIStatus = true;
+                }
+            } else {
+                populateResponseWithError(SysSrv_FileNotPresent, response);
             }
             returnResponse(retAPIStatus);
         }
+
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        bool SystemServices::getManufacturerData(const string& parameter, JsonObject& response)
+        {
+            LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
+
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
+            if (!parameter.compare(MODEL_NAME)) {
+                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+            } else if (!parameter.compare(HARDWARE_ID)) {
+                param.type = mfrSERIALIZED_TYPE_HWID;
+            }
+            IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+            param.buffer[param.bufLen] = '\0';
+
+            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+            bool status = false;
+            if (result == IARM_RESULT_SUCCESS) {
+                response[parameter.c_str()] = string(param.buffer);
+                status = true;
+            } else {
+                populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
+            }
+
+            return status;
+        }
+#endif
 
         /***
          * @brief : Checks if Moca is Enabled or Not.
@@ -2071,7 +2111,7 @@ namespace WPEFramework {
             string methodType;
 
                 methodType = parameters["param"].String();
-#ifdef HAS_STATE_OBSERVER
+#ifdef PLUGIN_STATEOBSERVER
                 if (SYSTEM_CHANNEL_MAP == methodType) {
                     LOGERR("methodType : %s\n", methodType.c_str());
                     IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates,
@@ -2161,9 +2201,9 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_Unexpected, response);
                 }
-#else /* !HAS_STATE_OBSERVER */
+#else /* !PLUGIN_STATEOBSERVER */
                 populateResponseWithError(SysSrv_SupportNotAvailable, response);
-#endif /* !HAS_STATE_OBSERVER */
+#endif /* !PLUGIN_STATEOBSERVER */
             returnResponse(( E_OK == retVal)? true: false);
         }//end of getStateInfo
 
