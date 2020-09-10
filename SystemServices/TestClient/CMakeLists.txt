@@ -16,7 +16,9 @@
 # limitations under the License.
 
 set(PLUGIN_NAME systemServiceTestClient)
+
 find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_executable(${PLUGIN_NAME} systemServiceTestClient.cpp)
 
@@ -28,6 +30,8 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
     ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    CompileSettingsDebug::CompileSettingsDebug
+    ${SECURITY_TOKEN_LIBRARY}
     )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
