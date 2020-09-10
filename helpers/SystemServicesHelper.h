@@ -82,6 +82,7 @@ enum eRetval { E_NOK = -1,
 enum SysSrv_ErrorCode {
     SysSrv_OK = 0,
     SysSrv_MethodNotFound,
+    SysSrv_MissingKeyValues,
     SysSrv_UnSupportedFormat,
     SysSrv_FileNotPresent,
     SysSrv_FileAccessFailed,
@@ -244,6 +245,14 @@ string currentDateTimeUtc(const char *fmt);
  * @return		: string; encoded url
  */
 std::string url_encode(std::string urlIn);
+
+/***
+ * @brief   : To construct url encoded from string passed
+ * @param1[in]  : CURL *; poinetr to curl init handle
+ * @param2[in]  : string; url to be encoded
+ * @return      : string; encoded url
+ */
+std::string urlEncodeField(CURL *curl_handle, std::string &data);
 
 /***
  * @brief	: To retrieve model details
