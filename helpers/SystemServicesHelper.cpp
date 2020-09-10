@@ -23,6 +23,7 @@
 #include <map>
 #include <sys/stat.h>
 #include <algorithm>
+#include <curl/curl.h>
 
 #include "utils.h"
 #include "SystemServicesHelper.h"
@@ -33,6 +34,7 @@ using namespace std;
 std::map<int, std::string> ErrCodeMap = {
     {SysSrv_OK, "Processed Successfully"},
     {SysSrv_MethodNotFound, "Method not found"},
+    {SysSrv_MissingKeyValues, "Missing required key/value(s)"},
     {SysSrv_UnSupportedFormat, "Unsupported or malformed format"},
     {SysSrv_FileNotPresent, "Expected file not found"},
     {SysSrv_FileAccessFailed, "File access failed"},
@@ -458,6 +460,18 @@ std::string url_encode(std::string urlIn)
         curl_easy_cleanup(c_url);
     }
     return retval;
+}
+
+std::string urlEncodeField(CURL *curl_handle, std::string &data)
+{
+    std::string encString = "";
+
+    if (curl_handle) {
+        char* encoded = curl_easy_escape(curl_handle, data.c_str(), data.length());
+        encString = encoded;
+        curl_free(encoded);
+    }
+    return encString;
 }
 
 /**
