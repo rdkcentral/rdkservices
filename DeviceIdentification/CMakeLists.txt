@@ -45,9 +45,21 @@ elseif (NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-    target_sources(${MODULE_NAME} 
-        PRIVATE 
-            Implementation/Nexus/Nexus.cpp)
+    if (CODE_FROM_EXTERNAL_REPOSITORY)
+        include(GetExternalCode)
+        GetExternalCode(
+            GIT_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification"
+            GIT_TAG "master"
+            SOURCE_DIR "Implementation/NexusExt"
+        )
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                Implementation/NexusExt/Nexus.cpp)
+    else()
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                Implementation/Nexus/Nexus.cpp)
+    endif()
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
