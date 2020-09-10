@@ -368,6 +368,16 @@ void TTSSpeaker::createPipeline() {
     GstElement *decodebin = NULL;
     decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+#elif defined(PLATCO)
+    GstElement *parser = NULL;
+    GstElement *decodebin = NULL;
+    GstElement *convert = NULL;
+    GstElement *resample = NULL;
+    parser = gst_element_factory_make("mpegaudioparse", NULL);
+    decodebin = gst_element_factory_make("avdec_mp3", NULL);
+    convert = gst_element_factory_make("audioconvert", NULL);
+    resample = gst_element_factory_make("audioresample", NULL);
+    m_audioSink = gst_element_factory_make("amlhalasink", NULL);
 #endif
 
     std::string tts_url =
@@ -398,6 +408,13 @@ void TTSSpeaker::createPipeline() {
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
+#elif defined(PLATCO)
+    gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
+    result &= gst_element_link (m_source, parser);
+    result &= gst_element_link (parser, decodebin);
+    result &= gst_element_link (decodebin, convert);
+    result &= gst_element_link (convert, resample);
+    result &= gst_element_link (resample, m_audioSink);
 #endif
 
     if(!result) {
