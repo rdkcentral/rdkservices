@@ -238,6 +238,7 @@ namespace Plugin {
             JSONACL()
             {
                 Add(_T("assign"), &Groups);
+                Add(_T("groups"), &Groups);
                 Add(_T("roles"), &ACL);
             }
             virtual ~JSONACL()

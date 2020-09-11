@@ -14,6 +14,7 @@ SecurityAgent plugin for Thunder framework.
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
 - [Methods](#head.Methods)
+- [Access Control List](#head.AccessControlList)
 
 <a name="head.Introduction"></a>
 # Introduction
@@ -54,7 +55,7 @@ The table below provides and overview of terms and abbreviations used in this do
 | <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
 | <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
 | <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="ref.Thunder">[Thunder](https://github.com/rdkcentral/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
 <a name="head.Description"></a>
 # Description
@@ -74,6 +75,7 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *SecurityAgent* |
 | locator | string | Library name: *libWPEFrameworkSecurityAgent.so* |
 | autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| acl | string | Defines the filename of Access Control List |
 
 <a name="head.Methods"></a>
 # Methods
@@ -197,4 +199,65 @@ Checks whether the token is valid and properly signed.
         "valid": false
     }
 }
+
 ```
+<a name="head.AccessControlList"></a>
+# Access Control List
+
+The access control list of the security agent is divided into two sections:
+
+- Origin to group mapping
+- Group to access mapping
+
+The access control list should be located either in \<DataPath\>/\<acl\> or \<PersistentPath\>/\<acl\>, where \<acl\> is defined in plugin config.
+
+## Origin to group mapping (groups)
+
+The origin to group mapping maps a specific origin(URL) of an application to a group of applications. The structure of mapping looks as follows:
+
+```json
+{
+    "groups": [
+        {
+        "url": "*://localhost",
+        "role": "local"
+        },
+        {
+        "url": "*://*.example.com",
+        "role": "thunder"
+        },
+        [...]
+  ]
+}
+```
+
+## Group to access mapping (roles)
+
+Group of applications has a list of plugins APIs that are either allowed or denied to be accessed by this group. For example, "thunder" group might look as follows:
+
+```json
+"thunder": {
+  "default": "blocked",
+  "DeviceInfo": {
+    "default": "allowed",
+    "methods": [ "register", "unregister" ]
+  },
+  "JSONRPCPlugin": {
+    "default": "blocked",
+    "methods": [ "time", "status" ]
+  }
+}
+```
+
+For a complete example of acl file please see [the following example](https://github.com/rdkcentral/rdkservices/blob/master/SecurityAgent/example_acl.json)
+
+## Install path of the ACL file
+ACL file (acl.json) should be installed either in persistent path or data path of the plugin.
+
+i.e,
+If the persistent path of thunder is /root, then it should be in the /root/SecurityAgent.
+
+  OR
+
+If the data path of the thunder is /usr/share/WPEFramework, then it should be in the /usr/share/WPEFramework/SecurityAgent
+
