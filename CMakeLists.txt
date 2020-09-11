@@ -139,7 +139,7 @@ if(PLUGIN_HDMICEC)
     add_subdirectory(HdmiCec)
 endif()
 
-if(PLUGIN_HDMICEC2)
+if(HAS_API_HDMI_CEC_2)
     add_subdirectory(HdmiCec_2)
 endif()
 
