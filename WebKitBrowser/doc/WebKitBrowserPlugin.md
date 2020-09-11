@@ -114,6 +114,12 @@ WebKitBrowser interface methods:
 | [bridgereply](#method.bridgereply) | A response for legacy $badger |
 | [bridgeevent](#method.bridgeevent) | Send legacy $badger event |
 
+Browser interface methods:
+
+| Method | Description |
+| :-------- | :-------- |
+| [delete](#method.delete) | Removes contents of a directory from the persistent storage |
+
 <a name="method.bridgereply"></a>
 ## *bridgereply <sup>method</sup>*
 
@@ -179,6 +185,57 @@ Send legacy $badger event.
     "id": 1234567890,
     "method": "WebKitBrowser.1.bridgeevent",
     "params": ""
+}
+```
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": null
+}
+```
+<a name="method.delete"></a>
+## *delete <sup>method</sup>*
+
+Removes contents of a directory from the persistent storage.
+
+### Description
+
+Use this method to recursively delete contents of a directory
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.path | string | Path to directory (within the persistent storage) to delete contents of |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | Always null |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 22 | ```ERROR_UNKNOWN_KEY``` | The given path was incorrect |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "WebKitBrowser.1.delete",
+    "params": {
+        "path": ".cache/wpe/disk-cache"
+    }
 }
 ```
 #### Response
@@ -563,6 +620,12 @@ Also see: [visibilitychange](#event.visibilitychange)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | string | Current browser visibility (must be one of the following: *visible*, *hidden*) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 2 | ```ERROR_UNAVAILABLE``` | Returned when the operation is unavailable |
 
 ### Example
 

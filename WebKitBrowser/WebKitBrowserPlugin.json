@@ -113,7 +113,7 @@
           "loadblankpageonsuspendenabled": {
             "type": "boolean",
             "summary": "Load 'about:blank' before suspending the page"
-          }
+          } 
         }
       }
     },
