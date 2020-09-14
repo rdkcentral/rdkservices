@@ -18,6 +18,8 @@
 set(PLUGIN_NAME Monitor)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_RESIDENT_APP_MEMORYLIMIT "614400" CACHE STRING "monitor resident app memory limit")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 

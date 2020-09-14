@@ -18,6 +18,8 @@
 #
 # features
 #
+option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
+
 #add_definitions (-DENABLE_MEMORYINFO_SERVICE)
 
 add_definitions (-DPLUGIN_WAREHOUSE)
