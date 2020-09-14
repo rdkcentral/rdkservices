@@ -3,8 +3,8 @@
 #include "Module.h"
 #include "utils.h"
 
-#include <Dobby/IDobbyProxy.h>
-#include "DobbyProtocol.h"
+#include <Dobby/DobbyProtocol.h>
+#include <Dobby/Public/Dobby/IDobbyProxy.h>
 
 #include <vector>
 #include <map>
