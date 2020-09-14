@@ -290,17 +290,17 @@ namespace Plugin {
     }
 
     static string GetPageActiveURL(WKPageRef page)
-        {
-            string activeURL;
-            WKURLRef urlRef = WKPageCopyActiveURL(page);
-            if (urlRef) {
-                WKStringRef urlStringRef = WKURLCopyString(urlRef);
-                activeURL = WKStringToString(urlStringRef);
-                WKRelease(urlStringRef);
-                WKRelease(urlRef);
-            }
-            return activeURL;
+    {
+        string activeURL;
+        WKURLRef urlRef = WKPageCopyActiveURL(page);
+        if (urlRef) {
+            WKStringRef urlStringRef = WKURLCopyString(urlRef);
+            activeURL = WKStringToString(urlStringRef);
+            WKRelease(urlStringRef);
+            WKRelease(urlRef);
         }
+        return activeURL;
+    }
 
     /* ---------------------------------------------------------------------------------------------------
 struct CustomLoopHandler
@@ -478,8 +478,8 @@ static GSourceFuncs _handlerIntervention =
                 , LogToSystemConsoleEnabled(false)
                 , WatchDogCheckTimeoutInSeconds(0)
                 , WatchDogHangThresholdInSeconds(0)
-                , LoadBlankPageOnSuspendEnabled(false) 
-           {
+                , LoadBlankPageOnSuspendEnabled(false)
+            { 
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
                 Add(_T("whitelist"), &Whitelist);
@@ -528,7 +528,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
-                Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);    
+                Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
             }
             ~Config()
             {
@@ -1066,33 +1066,33 @@ static GSourceFuncs _handlerIntervention =
                 using SetURLData = std::tuple<WebKitImplementation*, string>;
                 auto *data = new SetURLData(this, URL);      
                 g_main_context_invoke_full(
-                        _context,
-                        G_PRIORITY_DEFAULT,
-                        [](gpointer customdata) -> gboolean {
-                            auto& data = *static_cast<SetURLData*>(customdata);
-                            WebKitImplementation* object = std::get<0>(data);
+                    _context,
+                    G_PRIORITY_DEFAULT,
+                    [](gpointer customdata) -> gboolean {
+                        auto& data = *static_cast<SetURLData*>(customdata);
+                        WebKitImplementation* object = std::get<0>(data);
 
-                            string url = std::get<1>(data);
-                            object->_adminLock.Lock();
-                            object->_URL = url;
-                            object->_adminLock.Unlock();
+                        string url = std::get<1>(data);
+                        object->_adminLock.Lock();
+                        object->_URL = url;
+                        object->_adminLock.Unlock();
 
-                            object->SetResponseHTTPStatusCode(-1);
-                            object->SetNavigationRef(nullptr);
-    #ifdef WEBKIT_GLIB_API
-                            webkit_web_view_load_uri(object->_view, object->_URL.c_str());
-    #else
-                            auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
-                            WKPageLoadURL(object->_page, shellURL);
-                            WKRelease(shellURL);
-    #endif
+                        object->SetResponseHTTPStatusCode(-1);
+                        object->SetNavigationRef(nullptr);
+#ifdef WEBKIT_GLIB_API
+                        webkit_web_view_load_uri(object->_view, object->_URL.c_str());
+#else
+                        auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
+                        WKPageLoadURL(object->_page, shellURL);
+                        WKRelease(shellURL);
+#endif
 
-                            return FALSE;
-                        },
-                        data,
-                        [](gpointer customdata) {
-                            delete static_cast<SetURLData*>(customdata);
-                        });
+                        return FALSE;
+                    },
+                    data,
+                    [](gpointer customdata) {
+                        delete static_cast<SetURLData*>(customdata);
+                    });
                 }
                 
             return Core::ERROR_NONE;
@@ -1454,8 +1454,8 @@ static GSourceFuncs _handlerIntervention =
 
             // Disk Cache
             if (_config.DiskCache.Value().empty() == false)
-                Core::SystemInfo::SetEnvironment(_T("WPE_DISK_CACHE_SIZE"), _config.DiskCache.Value(), !environmentOverride);
-            
+               Core::SystemInfo::SetEnvironment(_T("XDG_CACHE_HOME"), service->PersistentPath() + _config.DiskCacheDir.Value(), !environmentOverride);
+
             // Disk Cache Dir
             if (_config.DiskCacheDir.Value().empty() == false)
                Core::SystemInfo::SetEnvironment(_T("XDG_CACHE_HOME"), _config.DiskCacheDir.Value(), !environmentOverride);
@@ -1695,6 +1695,14 @@ static GSourceFuncs _handlerIntervention =
                     _context,
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+
+                         if (object->_config.LoadBlankPageOnSuspendEnabled.Value()) {
+                            const char kBlankURL[] = "about:blank";
+                            if (GetPageActiveURL(object->_page) != kBlankURL)
+                                object->SetURL(kBlankURL);
+                            ASSERT(object->_URL == kBlankURL);
+                        }
+
 #ifdef WEBKIT_GLIB_API
                         webkit_web_view_suspend(object->_view);
 #else
@@ -2190,7 +2198,7 @@ static GSourceFuncs _handlerIntervention =
         }
 #endif // WEBKIT_GLIB_API
 
-       void CheckWebProcess()
+        void CheckWebProcess()
         {
             if ( _webProcessCheckInProgress )
                 return;
@@ -2349,6 +2357,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
+        browser->SetNavigationRef(navigation);
         browser->OnURLChanged(url);
 
         WKRelease(urlRef);

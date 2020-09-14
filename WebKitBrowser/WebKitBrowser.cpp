@@ -209,7 +209,7 @@ namespace Plugin {
 
     void WebKitBrowser::LoadFinished(const string& URL, int32_t code)
     {
-        string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true }"));
+        string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true, \"httpstatus\":") + Core::NumberType<int32_t>(code).Text() + string(" }"));
         TRACE(Trace::Information, (_T("LoadFinished: %s"), message.c_str()));
         _service->Notify(message);
         event_loadfinished(URL, code);
@@ -226,7 +226,7 @@ namespace Plugin {
 
     void WebKitBrowser::URLChange(const string& URL, bool loaded)
     {
-        string message(string("{ \"url\": \"") + URL + string("\" }"));
+        string message(string("{ \"url\": \"") + URL + string("\", \"loaded\": ") + (loaded ? string("true") : string("false")) + string(" }"));
         TRACE(Trace::Information, (_T("URLChanged: %s"), message.c_str()));
         _service->Notify(message);
         event_urlchange(URL, loaded);
@@ -234,7 +234,7 @@ namespace Plugin {
 
     void WebKitBrowser::VisibilityChange(const bool hidden)
     {
-        TRACE(Trace::Information, (_T("Hidden: %s }"), (hidden ? "true" : "false")));
+        TRACE(Trace::Information, (_T("VisibilityChange: { \"hidden\": \"%s\"}"), (hidden ? "true" : "false")));
         string message(string("{ \"hidden\": ") + (hidden ? _T("true") : _T("false")) + string("}"));
         _service->Notify(message);
         event_visibilitychange(hidden);
