@@ -40,13 +40,6 @@ target_include_directories(${MODULE_NAME}
         PRIVATE
         ../helpers
 
-        # Dobby includes
-        $<TARGET_PROPERTY:DobbyClientLib,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:IpcService,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:AppInfraCommon,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:AppInfraLogging,INTERFACE_INCLUDE_DIRECTORIES>
-        ${DOBBY_INCLUDE_DIRS}
-
         )
 
 target_link_libraries(${MODULE_NAME}

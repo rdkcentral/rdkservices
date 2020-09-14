@@ -26,6 +26,8 @@
 #include "utils.h"
 #include "NetUtilsNetlink.h"
 
+#define IN_IS_ADDR_LINKLOCAL(a)     (((a) & htonl(0xffff0000)) == htonl (0xa9fe0000))
+
 namespace WPEFramework {
     #define MAX_COMMAND_LENGTH      256
     #define MAX_OUTPUT_LENGTH       128
@@ -46,6 +48,8 @@ namespace WPEFramework {
 
             static bool isIPV4(const std::string &address);
             static bool isIPV6(const std::string &address);
+            static bool isIPV6LinkLocal(const std::string &address);
+            static bool isIPV4LinkLocal(const std::string &address);
             static int execCmd(const char *command, std::string &output, bool *result = NULL, const char *outputfile = NULL);
             static bool getFile(const char *filepath, std::string &contents, bool deleteFile = false);
 
