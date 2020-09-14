@@ -81,7 +81,7 @@ namespace WPEFramework {
             Warehouse& operator=(const Warehouse&) = delete;
 
             void resetDevice();
-            void resetDevice(bool suppressReboot);
+            void resetDevice(bool suppressReboot, const string& resetType = string());
             std::vector<std::string>  getAllowedCNameTails();
             void setFrontPanelState(int state, JsonObject& response);
             void internalReset(JsonObject& response);
@@ -100,12 +100,18 @@ namespace WPEFramework {
         public:
             Warehouse();
             virtual ~Warehouse();
+            //IPlugin methods
+            virtual const string Initialize(PluginHost::IShell* service) override;
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void onSetFrontPanelStateTimer();
 
         public:
             static Warehouse* _instance;
         private:
+            void InitializeIARM();
+            void DeinitializeIARM();
+
             void getDeviceInfo(JsonObject &params);
 
             std::thread m_resetThread;
