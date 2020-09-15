@@ -168,6 +168,8 @@ namespace WPEFramework {
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
+            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
         }
 
         DisplaySettings::~DisplaySettings()
@@ -954,6 +956,14 @@ namespace WPEFramework {
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGERR("Size too large to use ToString base64 wpe api");
             string edidbase64;
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
             response["EDID"] = edidbase64;
             returnResponse(true);
@@ -980,6 +990,16 @@ namespace WPEFramework {
             uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGINFO("size too large to use ToString base64 wpe api");
+
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, base64String);
             response["EDID"] = base64String;
             returnResponse(true);
@@ -1077,6 +1097,69 @@ namespace WPEFramework {
             for (uint32_t i = 0; i < hdrCapabilities.Length(); i++)
             {
                LOGINFO("capabilities: %s", hdrCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+        uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"AudioCapabilities":["ATMOS","DOLBY DIGITAL","DOLBYDIGITAL PLUS","MS12"]}
+            LOGINFOMETHOD();
+
+            JsonArray audioCapabilities;
+            int capabilities = dsAUDIOSUPPORT_NONE;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getAudioCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)audioCapabilities.Add("none");
+            if(capabilities & dsAUDIOSUPPORT_ATMOS)audioCapabilities.Add("ATMOS");
+            if(capabilities & dsAUDIOSUPPORT_DD)audioCapabilities.Add("DOLBY DIGITAL");
+            if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
+            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audio Decode");
+            if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
+            if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
+
+            response["AudioCapabilities"] = audioCapabilities;
+            for (uint32_t i = 0; i < audioCapabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+
+        uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"MS12Capabilities":["Dolby Volume","Inteligent Equalizer","Dialogue Enhancer"]}
+            LOGINFOMETHOD();
+
+            JsonArray ms12Capabilities;
+            int capabilities = dsMS12SUPPORT_NONE;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getMS12Capabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)ms12Capabilities.Add("none");
+            if(capabilities & dsMS12SUPPORT_DolbyVolume)ms12Capabilities.Add("Dolby Volume");
+            if(capabilities & dsMS12SUPPORT_InteligentEqualizer)ms12Capabilities.Add("Inteligent Equalizer");
+            if(capabilities & dsMS12SUPPORT_DialogueEnhancer)ms12Capabilities.Add("Dialogue Enhancer");
+
+            response["MS12Capabilities"] = ms12Capabilities;
+            for (uint32_t i = 0; i < ms12Capabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
             }
             returnResponse(true);
         }

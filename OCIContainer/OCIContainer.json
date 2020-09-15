@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkOCIContainer.so",
+ "classname":"OCIContainer",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.OCIContainer",
+ "autostart":true
+}
