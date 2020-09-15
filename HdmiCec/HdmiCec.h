@@ -96,6 +96,8 @@ namespace WPEFramework {
             void setName(std::string name);
             std::string getName();
             JsonObject getCECAddresses();
+
+            uint16_t FromBase64String(const string& newValue, uint8_t object[], uint16_t& length, const TCHAR* ignoreList);
             void sendMessage(std::string message);
             void cecAddressesChanged(int changeStatus);
 
