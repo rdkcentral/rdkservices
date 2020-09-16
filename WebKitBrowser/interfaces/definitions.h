@@ -16,20 +16,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include "Tags.h"
 
-namespace WPEFramework {
-
-namespace Tags {
-
-const char* const Config = "Config.";
-const char* const Notification = "Notification";
-const char* const URL = "URL";
-const char* const BridgeObjectQuery = "BridgeObjectQuery";
-const char* const BridgeObjectReply = "BridgeObjectReply";
-const char* const BridgeObjectEvent = "BridgeObjectEvent";
-const char* const Headers = "Headers";
-
-} } ;
-
+#pragma once

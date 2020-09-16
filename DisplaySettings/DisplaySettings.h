@@ -75,14 +75,6 @@ namespace WPEFramework {
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
             //End methods
-            uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
-            uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
-            uint32_t setDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
-            uint32_t getDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
-            uint32_t setDialogEnhancement(const JsonObject& parameters, JsonObject& response);
-            uint32_t getDialogEnhancement(const JsonObject& parameters, JsonObject& response);
-            uint32_t setIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
-            uint32_t getIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
@@ -92,6 +84,22 @@ namespace WPEFramework {
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
+            uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBassEnhancer(const JsonObject& parameters, JsonObject& response);
+            uint32_t isSurroundDecoderEnabled(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDRCMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMISteering(const JsonObject& parameters, JsonObject& response);
+            uint32_t setVolumeLeveller(const JsonObject& parameters, JsonObject& response);
+            uint32_t setBassEnhancer(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableSurroundDecoder(const JsonObject& parameters, JsonObject& response);
+            uint32_t setSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMISteering(const JsonObject& parameters, JsonObject& response);
+            uint32_t setGain(const JsonObject& parameters, JsonObject& response);
+            uint32_t getGain(const JsonObject& parameters, JsonObject& response);
+            uint32_t setLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLevel(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
