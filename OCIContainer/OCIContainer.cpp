@@ -1,6 +1,8 @@
 #include "OCIContainer.h"
-#include "IpcFactory.h"
-#include "DobbyProxy.h"
+
+#include <Dobby/DobbyProxy.h>
+#include <Dobby/IpcService/IpcFactory.h>
+
 
 namespace WPEFramework
 {

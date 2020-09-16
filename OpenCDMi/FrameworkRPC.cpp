@@ -1258,7 +1258,7 @@ namespace Plugin {
                 if (index == _systemToFactory.end()) {
                     result = false;
                 } else {
-                    if (contentType.empty() == false) {
+                    if (contentType.empty() == false && _systemBlacklistedMediaTypeRegexps.empty() == false && _systemBlacklistedCodecRegexps.empty() == false) {
                         std::string mimeType;
                         std::vector<std::string> codecs;
                         ParseContentType(contentType, mimeType, codecs);

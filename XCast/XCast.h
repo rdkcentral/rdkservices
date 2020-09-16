@@ -24,6 +24,9 @@
 #include "utils.h"
 #include "AbstractPlugin.h"
 #include "RtNotifier.h"
+#include "libIBus.h"
+#include "libIBusDaemon.h"
+#include "pwrMgr.h"
 
 namespace WPEFramework {
 
@@ -50,6 +53,8 @@ private:
     //Begin methods
     uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
     uint32_t applicationStateChanged(const JsonObject& parameters, JsonObject& response);
+    uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
+    uint32_t getEnabled(const JsonObject& parameters, JsonObject& response);
     //End methods
     
     //Begin events
@@ -79,10 +84,14 @@ private:
      * Whether Cast service is enabled by RFC
      */
     static bool isCastEnabled;
+    static bool m_xcastEnableSettings;
+    static IARM_Bus_PWRMgr_PowerState_t m_powerState;
     uint32_t m_apiVersionNumber;
     //Timer related variables and functions
     TpTimer m_locateCastTimer;
-    
+    const void InitializeIARM();
+    void DeinitializeIARM();
+    void persistEnabledSettings(bool enableStatus);
     //Internal methods
     void onLocateCastTimer();
     
@@ -90,6 +99,8 @@ private:
      * Check whether the xdial service is allowed in this device.
      */
     static bool checkRFCServiceStatus();
+    static bool checkXcastSettingsStatus();
+    static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 } // namespace Plugin
 } // namespace WPEFramework
