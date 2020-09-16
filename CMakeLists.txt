@@ -152,6 +152,10 @@ endif()
        add_subdirectory(HdmiCec)
     endif()
 
+    if(HAS_API_HDMI_CEC_2)
+       add_subdirectory(HdmiCec_2)
+    endif()
+
     if(ENABLE_LOCATION_SYNC)
         add_subdirectory(LocationSync)
     endif()
