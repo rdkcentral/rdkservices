@@ -22,12 +22,21 @@
 #include <vector>
 
 #include "Module.h"
-#include "CENCParser.h"
 
 // Get in the definitions required for access to the sepcific
 // DRM engines.
 #include <interfaces/IDRM.h>
+
+// Get in the definitions required for access to the OCDM
+// counter part living in the applications
+#include <ocdm/DataExchange.h>
+#include <ocdm/IOCDM.h>
+
 #include <interfaces/IContentDecryption.h>
+
+#include "CENCParser.h"
+
+#include <ocdm/open_cdm.h>
 
 extern "C" {
 
@@ -436,6 +445,8 @@ namespace Plugin {
                     const std::string keySystem,
                     CDMi::IMediaKeySession* mediaKeySession,
                     ::OCDM::ISession::ICallback* callback,
+                    const string bufferName,
+                    const uint32_t defaultSize,
                     const CommonEncryptionData* sessionData)
                     : _parent(*parent)
                     , _refCount(1)
@@ -444,7 +455,7 @@ namespace Plugin {
                     , _mediaKeySession(mediaKeySession)
                     , _mediaKeySessionExt(dynamic_cast<CDMi::IMediaKeySessionExt*>(mediaKeySession))
                     , _sink(this, callback)
-                    , _buffer(nullptr)
+                    , _buffer(new DataExchange(mediaKeySession, bufferName, defaultSize))
                     , _cencData(*sessionData)
                 {
                     ASSERT(parent != nullptr);
@@ -452,7 +463,7 @@ namespace Plugin {
                     ASSERT(_mediaKeySession != nullptr);
 
                     _mediaKeySession->Run(&_sink);
-                    TRACE(Trace::Information, ("Server::Session::Session(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
+                    TRACE(Trace::Information, ("Server::Session::Session(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), bufferName.c_str(), this));
                     TRACE_L1("Constructed the Session Server side: %p", this);
                 }
 
@@ -461,6 +472,8 @@ namespace Plugin {
                     const std::string keySystem,
                     CDMi::IMediaKeySessionExt* mediaKeySession,
                     ::OCDM::ISession::ICallback* callback,
+                    const string bufferName,
+                    const uint32_t defaultSize,
                     const CommonEncryptionData* sessionData)
                     : _parent(*parent)
                     , _refCount(1)
@@ -469,7 +482,7 @@ namespace Plugin {
                     , _mediaKeySession(dynamic_cast<CDMi::IMediaKeySession*>(mediaKeySession))
                     , _mediaKeySessionExt(mediaKeySession)
                     , _sink(this, callback)
-                    , _buffer(nullptr)
+                    , _buffer(new DataExchange(dynamic_cast<CDMi::IMediaKeySession*>(mediaKeySession), bufferName, defaultSize))
                     , _cencData(*sessionData)
                 {
                     ASSERT(parent != nullptr);
@@ -530,47 +543,14 @@ namespace Plugin {
                     return (_cencData.Status(CommonEncryptionData::KeyId(static_cast<CommonEncryptionData::systemType>(0), keyId, length)));
                 }
 
-                ::OCDM::OCDM_RESULT CreateSessionBuffer(std::string& bufferID) override {
-
-                    ::OCDM::OCDM_RESULT result = ::OCDM::OCDM_SUCCESS;
-                    _adminLock.Lock();
-                    if( _buffer == nullptr ) {
-
-                        if (_parent._administrator.AquireBuffer(bufferID) == true)
-                        {
-                            _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize());
-                            _adminLock.Unlock();
-                            TRACE(Trace::Information, ("Server::Session::CreateSessionBuffer(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), BufferId().c_str(), this));
-                        } else {
-                            _adminLock.Unlock();
-                            result = ::OCDM::OCDM_INVALID_DECRYPT_BUFFER;
-                            bufferID.clear();
-                            TRACE(Trace::Error, ("Failed to create buffer for Server::Session::CreateSessionBuffer(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
-                        }
-                   } else {
-                        _adminLock.Unlock();
-                        TRACE(Trace::Information, ("Buffer already created Server::Session::CreateSessionBuffer(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), BufferId().c_str(), this));
-                        bufferID = _buffer->Name();
-                        result = ::OCDM::OCDM_S_FALSE;
-                    }
-
-                    return result;
-                }
-
                 virtual std::string BufferId() const override
                 {
-                    std::string bufferid;
-                    _adminLock.Lock();
-                    if( _buffer != nullptr ) {
-                        _adminLock.Unlock();
-                        bufferid = _buffer->Name();
-                    }
-                    return bufferid;
+                    return (_buffer->Name());
                 }
 
                 virtual std::string BufferIdExt() const override
                 {
-                    return BufferId();
+                    return (_buffer->Name());
                 }
 
                 // Loads the data stored for the specified session into the cdm object
@@ -706,10 +686,6 @@ namespace Plugin {
                 return result;
             }
 
-            uint32_t DefaultSize() const {
-                return _defaultSize;
-            }
-
             // Create a MediaKeySession using the supplied init data and CDM data.
             virtual OCDM::OCDM_RESULT CreateSession(
                 const std::string& keySystem,
@@ -739,10 +715,16 @@ namespace Plugin {
                      {
                          if (sessionInterface != nullptr)
                          {
+                             std::string bufferId;
+
+                             // See if there is a buffer available we can use..
+                             if (_administrator.AquireBuffer(bufferId) == true)
+                             {
+
                                  SessionImplementation *newEntry = 
                                     Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
                                                  keySystem, sessionInterface,
-                                                callback, &keyIds);
+                                                 callback, bufferId, _defaultSize, &keyIds);
 
                                  session = newEntry;
                                  sessionId = newEntry->SessionId();
@@ -760,6 +742,11 @@ namespace Plugin {
                                     }
                                 }
                                 _adminLock.Unlock();
+                             } else {
+                                 TRACE_L1("Could not allocate a buffer for session: %s", sessionId.c_str());
+
+                                 // TODO: We need to drop the session somehow...
+                             }
                          }
                      }
                  }
@@ -970,11 +957,7 @@ namespace Plugin {
 
                 if (session != nullptr) {
 
-                    string bufferid = session->BufferId();
-
-                    if( bufferid.empty() == false ) {
-                        _administrator.ReleaseBuffer(bufferid);
-                    }
+                    _administrator.ReleaseBuffer(session->BufferId());
 
                     std::list<SessionImplementation*>::iterator index(_sessionList.begin());
 
