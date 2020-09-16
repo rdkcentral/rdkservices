@@ -119,7 +119,7 @@ namespace Plugin {
 
             public:
                 Source(const string& tracePath, RPC::IRemoteConnection* connection)
-                    : Core::CyclicBuffer(SourceName(tracePath, connection), Core::File::USER_WRITE|Core::File::USER_READ|Core::File::SHAREABLE, 0, true)
+                    : Core::CyclicBuffer(SourceName(tracePath, connection), 0, true)
                     , _iterator(connection == nullptr ? &_localIterator : nullptr)
                     , _control(connection == nullptr ? &_localIterator : nullptr)
                     , _connection(connection)
@@ -205,15 +205,10 @@ namespace Plugin {
                 state Load()
                 {
                     uint32_t length;
-                    bool available = Core::CyclicBuffer::IsValid();
-
-                    if (available == false) {
-                        available = Core::CyclicBuffer::Validate();
-                    }
 
                     // Traces will be commited in one go, First reserve, then write. So if there is a length (2 bytes)
                     // The full trace has to be available as well.
-                    if ((available == true) && (_state == EMPTY) && ((length = Read(_traceBuffer, sizeof(_traceBuffer))) != 0)) {
+                    if ((_state == EMPTY) && ((length = Read(_traceBuffer, sizeof(_traceBuffer))) != 0)) {
 
                         if (length < 2) {
                             // Didn't even get enough data to read entry size. This is impossible, fallback to failure.
@@ -565,6 +560,7 @@ namespace Plugin {
             {
                 ASSERT(_refcount == 0);
                 ASSERT(_buffers.size() == 0);
+                _traceControl.Relinquish();
                 Wait(Thread::BLOCKED | Thread::STOPPED | Thread::STOPPING, Core::infinite);
             }
 
@@ -576,7 +572,6 @@ namespace Plugin {
             void Start() 
             {
                 _buffers.insert(std::pair<const uint32_t, Source*>(0, new Source(_parent.TracePath(), nullptr)));
-                _traceControl.Announce();
                 Thread::Run();
             }
             void Stop()
@@ -605,7 +600,6 @@ namespace Plugin {
 
                 // By definition, get the buffer file from WPEFramework (local source)
                 _buffers.insert(std::pair<const uint32_t, Source*>(connection->Id(), new Source(_parent.TracePath(), connection)));
-                _traceControl.Announce();
 
                 _adminLock.Unlock();
             }
@@ -822,12 +816,10 @@ namespace Plugin {
                 : Core::JSON::Container()
                 , Console(false)
                 , SysLog(true)
-                , Abbreviated(true)
                 , Remote()
             {
                 Add(_T("console"), &Console);
                 Add(_T("syslog"), &SysLog);
-                Add(_T("abbreviated"), &Abbreviated);
                 Add(_T("remote"), &Remote);
             }
             ~Config()
@@ -837,7 +829,6 @@ namespace Plugin {
         public:
             Core::JSON::Boolean Console;
             Core::JSON::Boolean SysLog;
-            Core::JSON::Boolean Abbreviated;
             NetworkNode Remote;
         };
         class Data : public Core::JSON::Container {
