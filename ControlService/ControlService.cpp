@@ -2015,8 +2015,9 @@ namespace WPEFramework {
 
             if (netStatus.status.rf4ce.controller_qty == 0)
             {
-                LOGERR("ERROR - No RF4CE controllers found!");
-                return false;
+                LOGWARN("No RF4CE controllers found!");
+                m_numOfBindRemotes = 0;
+                return true;
             }
             // Make sure we don't overrrun the m_remoteInfo array.
             if (netStatus.status.rf4ce.controller_qty > CTRLM_MAIN_MAX_BOUND_CONTROLLERS)
