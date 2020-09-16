@@ -17,6 +17,19 @@
 
 cmake_minimum_required(VERSION 3.3)
 
+find_package(WPEFramework)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/")
+
+include(CmakeHelperFunctions)
+
+# Library installation section
+string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
+
+if(BUILD_REFERENCE)
+    add_definitions(-DBUILD_REFERENCE=${BUILD_REFERENCE})
+endif()
+
 project(WebKitBrowser)
 
 set(PLUGIN_NAME WebKitBrowser)
