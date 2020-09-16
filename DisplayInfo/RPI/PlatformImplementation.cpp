@@ -42,9 +42,8 @@ public:
 
         UpdateTotalGpuRam(_totalGpuRam);
 
-        Dispatch();
-
-        vc_tv_register_callback(&DisplayCallback, reinterpret_cast<void*>(this));
+        UpdateDisplayInfo(_connected, _width, _height, _audioPassthrough);
+        RegisterDisplayCallback();
     }
 
     DisplayInfoImplementation(const DisplayInfoImplementation&) = delete;
@@ -100,6 +99,7 @@ public:
 
         return (Core::ERROR_NONE);
     }
+
     bool IsAudioPassthrough () const override
     {
         return _audioPassthrough;
@@ -116,40 +116,21 @@ public:
     {
         return _height;
     }
-    uint32_t VerticalFreq() const override
-    {
-        return ~0;
-    }
     // HDCP support is not used for RPI now, it is always settings as DISPMANX_PROTECTION_NONE
-    HDCPProtectionType HDCPProtection() const override {
-        return HDCPProtectionType::HDCP_Unencrypted;
+    uint8_t HDCPMajor() const override
+    {
+        return 0;
+    }
+    uint8_t HDCPMinor() const override
+    {
+        return 0;
     }
     HDRType Type() const override
     {
         return HDR_OFF;
     }
-    void Dispatch()
+    void Dispatch() const
     {
-        TV_DISPLAY_STATE_T tvState;
-        if (vc_tv_get_display_state(&tvState) == 0) {
-
-            if (tvState.display.hdmi.width && tvState.display.hdmi.height) {
-                _width = tvState.display.hdmi.width;
-                _height = tvState.display.hdmi.height;
-            }
-            if ((tvState.state & VC_HDMI_ATTACHED) || ((tvState.state & VC_SDTV_ATTACHED) && ((tvState.state & VC_SDTV_NTSC) || (tvState.state & VC_SDTV_PAL))))  {
-                _connected = true;
-            } else {
-                _connected = false;
-            }
-            if (tvState.state & VC_HDMI_HDMI) {
-                _audioPassthrough = true;
-            } else {
-                _audioPassthrough = false;
-            }
-        }
- 
-
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
@@ -228,6 +209,32 @@ private:
             result *= 1024;
         }
     }
+
+    inline void UpdateDisplayInfo(bool& connected, uint32_t& width, uint32_t& height, bool& audioPassthrough) const
+    {
+        TV_DISPLAY_STATE_T tvState;
+        if (vc_tv_get_display_state(&tvState) == 0) {
+
+            if (tvState.display.hdmi.width && tvState.display.hdmi.height) {
+                width = tvState.display.hdmi.width;
+                height = tvState.display.hdmi.height;
+            }
+            if ((tvState.state & VC_HDMI_ATTACHED) || ((tvState.state & VC_SDTV_ATTACHED) && ((tvState.state & VC_SDTV_NTSC) || (tvState.state & VC_SDTV_PAL))))  {
+                connected = true;
+            } else {
+                connected = false;
+            }
+            if (tvState.state & VC_HDMI_HDMI) {
+                audioPassthrough = true;
+            } else {
+                audioPassthrough = false;
+            }
+        }
+    }
+    inline void RegisterDisplayCallback()
+    {
+        vc_tv_register_callback(&DisplayCallback, reinterpret_cast<void*>(this));
+    }
     static void DisplayCallback(void *cbData, uint32_t reason, uint32_t, uint32_t)
     {
         DisplayInfoImplementation* platform = static_cast<DisplayInfoImplementation*>(cbData);
@@ -238,21 +245,24 @@ private:
             case VC_HDMI_UNPLUGGED:
             case VC_SDTV_UNPLUGGED:
             case VC_HDMI_ATTACHED:
-            case VC_SDTV_ATTACHED:
-            case VC_HDMI_DVI:
-            case VC_HDMI_HDMI:
-            case VC_HDMI_HDCP_UNAUTH:
-            case VC_HDMI_HDCP_AUTH:
-            case VC_HDMI_HDCP_KEY_DOWNLOAD:
-            case VC_HDMI_HDCP_SRM_DOWNLOAD:
-                platform->_activity.Submit();
+            case VC_SDTV_ATTACHED: {
+                platform->UpdateDisplayInfo();
                 break;
+            }
             default: {
                 // Ignore all other reasons
                 break;
             }
             }
         }
+    }
+    void UpdateDisplayInfo()
+    {
+        _adminLock.Lock();
+        UpdateDisplayInfo(_connected, _width, _height, _audioPassthrough);
+        _adminLock.Unlock();
+
+        _activity.Submit();
     }
 
 private:
