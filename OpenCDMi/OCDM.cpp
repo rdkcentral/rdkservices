@@ -18,6 +18,7 @@
  */
 
 #include "OCDM.h"
+#include <ocdm/open_cdm.h>
 #include <interfaces/IDRM.h>
 
 namespace WPEFramework {
