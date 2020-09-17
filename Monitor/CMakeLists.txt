@@ -18,6 +18,14 @@
 set(PLUGIN_NAME Monitor)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_WEBKITBROWSER_MEMORYLIMIT "614400" CACHE STRING "monitor webkit memory limit")
+set(PLUGIN_YOUTUBE_MEMORYLIMIT "614400" CACHE STRING "monitor youtube memory limit")
+set(PLUGIN_COBALT_MEMORYLIMIT "614400" CACHE STRING "monitor cobalt memory limit")
+set(PLUGIN_AMAZON_MEMORYLIMIT "614400" CACHE STRING "monitor amazon  memory limit")
+set(PLUGIN_APPS_MEMORYLIMIT "614400" CACHE STRING "monitor apps memory limit")
+set(PLUGIN_UX_MEMORYLIMIT "614400" CACHE STRING "monitor ux memory limit")
+set(PLUGIN_NETFLIX_MEMORYLIMIT "614400" CACHE STRING "monitor netflix memory limit")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
