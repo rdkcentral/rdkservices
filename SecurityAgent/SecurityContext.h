@@ -69,8 +69,6 @@ namespace Plugin {
         //! Allow a JSONRPC message to be checked before it is offered for processing.
         bool Allowed(const Core::JSONRPC::Message& message) const override;
 
-        string Token() const override;
-
     private:
         // Build QueryInterface implementation, specifying all possible interfaces to be returned.
         BEGIN_INTERFACE_MAP(SecurityOfficer)
@@ -78,7 +76,6 @@ namespace Plugin {
         END_INTERFACE_MAP
 
     private:
-        string _token;
         Payload _context;
         const AccessControlList::Filter* _accessControlList;
     };
