@@ -1034,7 +1034,7 @@ namespace Plugin {
                 : Core::JSON::Container()
                 , Location()
                 , Connector(_T("/tmp/ocdm"))
-                , SharePath(_T("/tmp/OCDM"))
+                , SharePath(_T("/tmp"))
                 , ShareSize(8 * 1024)
                 , KeySystems()
             {
