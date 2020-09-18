@@ -68,10 +68,10 @@ namespace Plugin {
         _skipURL = static_cast<uint8_t>(_service->WebPrefix().length());
 
         if (((service->Background() == false) && (_config.Console.IsSet() == false) && (_config.SysLog.IsSet() == false)) || ((_config.Console.IsSet() == true) && (_config.Console.Value() == true))) {
-            _outputs.push_back(new Plugin::TraceOutput(false));
+            _outputs.push_back(new Plugin::TraceOutput(false, false));
         }
         if (((service->Background() == true) && (_config.Console.IsSet() == false) && (_config.SysLog.IsSet() == false)) || ((_config.SysLog.IsSet() == true) && (_config.SysLog.Value() == true))) {
-            _outputs.push_back(new Plugin::TraceOutput(true));
+            _outputs.push_back(new Plugin::TraceOutput(true, _config.Abbreviated.Value()));
         }
         if (_config.Remote.IsSet() == true) {
             Core::NodeId logNode(_config.Remote.Binding.Value().c_str(), _config.Remote.Port.Value());
