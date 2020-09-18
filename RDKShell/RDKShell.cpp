@@ -26,6 +26,7 @@
 #include <curl/curl.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <interfaces/IMemory.h>
 #include "rfcapi.h"
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -44,6 +45,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER = "addKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER = "removeKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GENERATE_KEYS = "generateKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREEN_RESOLUTION = "getScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCREEN_RESOLUTION = "setScreenResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CREATE_DISPLAY = "createDisplay";
@@ -67,6 +69,9 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND = "suspend"
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DESTROY = "destroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AVAILABLE_TYPES = "getAvailableTypes";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getState";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -79,6 +84,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "on
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING = "onDeviceLowRamWarning";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 
 using namespace std;
 using namespace RdkShell;
@@ -90,6 +99,15 @@ unsigned int resolutionHeight = 720;
 
 #define ANY_KEY 65536
 #define MAX_STRING_LENGTH 2048
+
+enum RDKShellLaunchType
+{
+    UNKNOWN = 0,
+    CREATE,
+    ACTIVATE,
+    SUSPEND,
+    RESUME
+};
 
 namespace WPEFramework {
     namespace Plugin {
@@ -164,13 +182,13 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
                 {
-                    PluginHost::ISubSystem* subSystems(service->SubSystems());
+                    /*PluginHost::ISubSystem* subSystems(service->SubSystems());
                     if (subSystems != nullptr)
                     {
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
-                    }
+                    }*/
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -193,7 +211,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -212,6 +230,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER, &RDKShell::addKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER, &RDKShell::removeKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GENERATE_KEYS, &RDKShell::generateKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREEN_RESOLUTION, &RDKShell::getScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_SCREEN_RESOLUTION, &RDKShell::setScreenResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_CREATE_DISPLAY, &RDKShell::createDisplayWrapper, this);
@@ -235,6 +254,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_DESTROY, &RDKShell::destroyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_AVAILABLE_TYPES, &RDKShell::getAvailableTypesWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_STATE, &RDKShell::getState, this);
+            registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -251,7 +273,10 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             LOGINFO();
-            
+
+            std::cout << "initializing\n";
+
+            mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
             RFC_ParamData_t param;
             bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
@@ -272,9 +297,22 @@ namespace WPEFramework {
               }
             }
 
+            service->Register(mClientsMonitor);
+
+            static PluginHost::IShell* pluginService = nullptr;
+            pluginService = service;
+
             shellThread = std::thread([]() {
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
+                PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                if (subSystems != nullptr)
+                {
+                    std::cout << "setting platform and graphics\n";
+                    subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                    subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                    subSystems->Release();
+                }
                 gRdkShellMutex.unlock();
                 while(true) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
@@ -297,13 +335,14 @@ namespace WPEFramework {
                 }
             });
 
-            service->Register(mClientsMonitor);
             return "";
         }
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO();
+
+            mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
         }
 
@@ -411,89 +450,97 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
           std::cout << "RDKShell onApplicationLaunched event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_LAUNCHED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationConnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationConnected event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_CONNECTED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_CONNECTED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_CONNECTED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationDisconnected(const std::string& client)
         {
           std::cout << "RDKShell onApplicationDisconnected event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_DISCONNECTED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_DISCONNECTED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_DISCONNECTED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationTerminated(const std::string& client)
         {
           std::cout << "RDKShell onApplicationTerminated event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_TERMINATED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_TERMINATED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_TERMINATED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationFirstFrame(const std::string& client)
         {
           std::cout << "RDKShell onApplicationFirstFrame event received ..." << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_FIRST_FRAME, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_FIRST_FRAME, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationSuspended(const std::string& client)
         {
           std::cout << "RDKShell onApplicationSuspended event received for " << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_SUSPENDED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_SUSPENDED, params);
         }
 
         void RDKShell::RdkShellListener::onApplicationResumed(const std::string& client)
         {
           std::cout << "RDKShell onApplicationResumed event received for " << client << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_APP_RESUMED;
           JsonObject params;
           params["client"] = client;
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, response);
+          mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, params);
         }
 
         void RDKShell::RdkShellListener::onUserInactive(const double minutes)
         {
           std::cout << "RDKShell onUserInactive event received ..." << minutes << std::endl;
-          JsonObject response;
-          response["method"] = RDKSHELL_EVENT_ON_USER_INACTIVITY;
           JsonObject params;
           params["minutes"] = std::to_string(minutes);
-          response["params"] = params;
-          mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, response);
+          mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceLowRamWarning(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceLowRamWarning event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarning(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarning event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceLowRamWarningCleared(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceLowRamWarningCleared event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED, params);
+        }
+
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb)
+        {
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarningCleared event received ..." << freeKb << std::endl;
+          JsonObject params;
+          params["ram"] = freeKb;
+          mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED, params);
         }
 
         // Registered methods (wrappers) begin
@@ -501,14 +548,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = moveToFront(client);
                 if (false == result) {
                   response["message"] = "failed to move front";
@@ -521,14 +576,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = moveToBack(client);
                 if (false == result) {
                   response["message"] = "failed to move back";
@@ -541,7 +604,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -553,7 +616,15 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 const string target  = parameters["target"].String();
                 result = moveBehind(client, target);
                 if (false == result) {
@@ -567,14 +638,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = setFocus(client);
                 if (false == result) {
                   response["message"] = "failed to set focus";
@@ -587,14 +666,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = kill(client);
                 if (false == result) {
                   response["message"] = "failed to kill client";
@@ -613,7 +700,7 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify keyCode";
             }
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -624,7 +711,15 @@ namespace WPEFramework {
                 const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
 
                 const uint32_t keyCode = parameters["keyCode"].Number();
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = addKeyIntercept(keyCode, modifiers, client);
                 if (false == result) {
                   response["message"] = "failed to add key intercept";
@@ -643,7 +738,7 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify keyCode";
             }
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -654,7 +749,15 @@ namespace WPEFramework {
                 const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
 
                 const uint32_t keyCode = parameters["keyCode"].Number();
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = removeKeyIntercept(keyCode, modifiers, client);
                 if (false == result) {
                   response["message"] = "failed to remove key intercept";
@@ -673,7 +776,7 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify keys";
             }
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -682,7 +785,15 @@ namespace WPEFramework {
             if (result)
             {
                 const JsonArray keys = parameters["keys"].Array();
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = addKeyListeners(client, keys);
                 if (false == result) {
                   response["message"] = "failed to add key listeners";
@@ -701,7 +812,7 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify keys";
             }
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -710,7 +821,15 @@ namespace WPEFramework {
             if (result)
             {
                 const JsonArray keys = parameters["keys"].Array();
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 result = removeKeyListeners(client, keys);
                 if (false == result) {
                   response["message"] = "failed to remove key listeners";
@@ -724,7 +843,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -732,7 +851,15 @@ namespace WPEFramework {
 
             if (result)
             {
-                const string client = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 gRdkShellMutex.lock();
                 result = CompositorController::addKeyMetadataListener(client);
                 gRdkShellMutex.unlock();
@@ -748,7 +875,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -756,7 +883,15 @@ namespace WPEFramework {
 
             if (result)
             {
-                const string client = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 gRdkShellMutex.lock();
                 result = CompositorController::removeKeyMetadataListener(client);
                 gRdkShellMutex.unlock();
@@ -787,6 +922,29 @@ namespace WPEFramework {
                 result = injectKey(keyCode, modifiers);
                 if (false == result) {
                   response["message"] = "failed to inject key";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::generateKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keys"))
+            {
+                result = false;
+                response["message"] = "please specify keyInputs";
+            }
+
+            if (result)
+            {
+                const JsonArray keyInputs = parameters["keys"].Array();
+
+                result = generateKey(keyInputs);
+                if (false == result) {
+                  response["message"] = "failed to generate keys";
                 }
             }
             returnResponse(result);
@@ -839,14 +997,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 string displayName("");
                 if (parameters.HasLabel("displayName"))
                 {
@@ -899,14 +1065,22 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             UNUSED(parameters);
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result) {
               JsonObject bounds;
-              const string client  = parameters["client"].String();
+              string client;
+              if (parameters.HasLabel("client"))
+              {
+                client = parameters["client"].String();
+              }
+              else
+              {
+                client = parameters["callsign"].String();
+              }
               if (!getBounds(client, bounds))
               {
                   response["message"] = "failed to get bounds";
@@ -923,14 +1097,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
 
                 unsigned int x=0,y=0,w=0,h=0;
                 gRdkShellMutex.lock();
@@ -965,14 +1147,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 bool visible;
                 result = getVisibility(client, visible);
                 if (false == result) {
@@ -989,7 +1179,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1001,7 +1191,15 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 const bool visible  = parameters["visible"].Boolean();
 
                 result = setVisibility(client, visible);
@@ -1020,7 +1218,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             UNUSED(parameters);
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1028,7 +1226,15 @@ namespace WPEFramework {
 
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 unsigned int opacity;
                 if (!getOpacity(client, opacity))
                 {
@@ -1047,7 +1253,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1059,7 +1265,15 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 const unsigned int  opacity  = parameters["opacity"].Number();
 
                 result = setOpacity(client, opacity);
@@ -1076,7 +1290,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             UNUSED(parameters);
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1084,7 +1298,15 @@ namespace WPEFramework {
 
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 double scaleX = 1.0;
                 double scaleY = 1.0;
                 if (!getScale(client, scaleX, scaleY))
@@ -1105,7 +1327,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1117,7 +1339,15 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 double scaleX = 1.0;
                 double scaleY = 1.0;
                 getScale(client, scaleX, scaleY);
@@ -1143,7 +1373,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             UNUSED(parameters);
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
@@ -1151,7 +1381,15 @@ namespace WPEFramework {
 
             if (result)
             {
-                const string client  = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
                 if (!removeAnimation(client))
                 {
                     response["message"] = "failed to remove animation";
@@ -1239,14 +1477,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (!parameters.HasLabel("client"))
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
                 result = false;
                 response["message"] = "please specify client";
             }
             if (result)
             {
-                const string client = parameters["client"].String();
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
 
                 unsigned int x = 0, y = 0;
                 unsigned int clientWidth = 0, clientHeight = 0;
@@ -1290,6 +1536,7 @@ namespace WPEFramework {
 
             if (result)
             {
+                RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
@@ -1306,6 +1553,7 @@ namespace WPEFramework {
                 string behind;
                 string displayName = "wst-" + callsign;
                 bool scaleToFit = false;
+                bool setSuspendResumeStateOnLaunch = true;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -1346,6 +1594,14 @@ namespace WPEFramework {
                 if (parameters.HasLabel("scaleToFit"))
                 {
                     scaleToFit = parameters["scaleToFit"].Boolean();
+                }
+                if (parameters.HasLabel("w"))
+                {
+                    width = parameters["w"].Number();
+                }
+                if (parameters.HasLabel("h"))
+                {
+                    height = parameters["h"].Number();
                 }
 
                 //check to see if plugin already exists
@@ -1391,13 +1647,16 @@ namespace WPEFramework {
                     string strResult;
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
+                    launchType = RDKShellLaunchType::CREATE;
+                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                 }
 
                 WPEFramework::Core::JSON::String configString;
 
+                uint32_t status = 0;
                 string method = "configuration@" + callsign;
                 Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                uint32_t status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(2000, method.c_str(), configString);
+                status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(2000, method.c_str(), configString);
 
                 JsonObject configSet;
                 configSet.FromString(configString.Value());
@@ -1406,22 +1665,62 @@ namespace WPEFramework {
                 {
                     JsonObject configurationOverrides;
                     configurationOverrides.FromString(configuration);
-                    auto configurationIterator = configurationOverrides.Variants();
-                    configurationIterator.Reset();
-                    while (configurationIterator.IsValid())
+                    JsonObject::Iterator configurationIterator = configurationOverrides.Variants();
+                    while (configurationIterator.Next())
                     {
                         configSet[configurationIterator.Label()] = configurationIterator.Current();
-                        configurationIterator.Next();
                     }
                 }
                 configSet["clientidentifier"] = displayName;
+                if (!type.empty() && type == "Netflix")
+                {
+                    std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
+                    configSet["launchtosuspend"] = suspend;
+                    if (!suspend)
+                    {
+                        setSuspendResumeStateOnLaunch = false;
+                    }
+                }
 
                 status = getThunderControllerClient()->Set<JsonObject>(2000, method.c_str(), configSet);
 
-                JsonObject activateParams;
-                activateParams.Set("callsign",callsign.c_str());
-                JsonObject activateResult;
-                status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                if (launchType == RDKShellLaunchType::UNKNOWN)
+                {
+                    status = 0;
+                    string statusMethod = "status@"+callsign;
+                    Core::JSON::ArrayType<PluginHost::MetaData::Service> serviceResults;
+                    status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, statusMethod.c_str(),serviceResults);
+
+                    if (status == 0 && serviceResults.Length() > 0)
+                    {
+                        PluginHost::MetaData::Service service = serviceResults[0];
+                        if (service.JSONState == PluginHost::MetaData::Service::state::DEACTIVATED ||
+                            service.JSONState == PluginHost::MetaData::Service::state::DEACTIVATION ||
+                            service.JSONState == PluginHost::MetaData::Service::state::PRECONDITION)
+                        {
+                            launchType = RDKShellLaunchType::ACTIVATE;
+                            JsonObject activateParams;
+                            activateParams.Set("callsign",callsign.c_str());
+                            JsonObject activateResult;
+                            status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                        }
+                    }
+                    else
+                    {
+                        launchType = RDKShellLaunchType::ACTIVATE;
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                    }
+                }
+                else
+                {
+                    JsonObject activateParams;
+                    activateParams.Set("callsign",callsign.c_str());
+                    JsonObject activateResult;
+                    status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                }
 
                 if (status > 0)
                 {
@@ -1485,23 +1784,34 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
-                    if (suspend)
+                    if (setSuspendResumeStateOnLaunch)
                     {
+                        if (suspend)
+                        {
 
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "suspended";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        
-                        std::cout << "setting the state to suspended\n";
-                        visible = false;
-                    }
-                    else
-                    {
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "resumed";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        
-                        std::cout << "setting the state to resumed\n";
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "suspended";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            
+                            std::cout << "setting the state to suspended\n";
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::SUSPEND;
+                            }
+                            visible = false;
+                        }
+                        else
+                        {
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "resumed";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::RESUME;
+                            }
+                            
+                            std::cout << "setting the state to resumed\n";
+                        }
                     }
                     setVisibility(callsign, visible);
                     if (!visible)
@@ -1533,7 +1843,27 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    onLaunched(callsign);
+                    string launchTypeString;
+                    switch (launchType)
+                    {
+                        case CREATE:
+                            launchTypeString = "create";
+                            break;
+                        case ACTIVATE:
+                            launchTypeString = "activate";
+                            break;
+                        case SUSPEND:
+                            launchTypeString = "suspend";
+                            break;
+                        case RESUME:
+                            launchTypeString = "resume";
+                            break;
+                        default:
+                            launchTypeString = "unknown";
+                            break;
+                    }
+                    onLaunched(callsign, launchTypeString);
+                    response["launchType"] = launchTypeString;
                 }
                 
             }
@@ -1624,7 +1954,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
-            
+
             JsonArray availableTypes;
             for (uint16_t i = 0; i < joResult.Length(); i++)
             {
@@ -1656,50 +1986,154 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
-            
+
 
             JsonArray stateArray;
             for (uint16_t i = 0; i < joResult.Length(); i++)
             {
                 PluginHost::MetaData::Service service = joResult[i];
-                std::string configLine;
-                service.Configuration.ToString(configLine);
-                if (!configLine.empty())
+                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
                 {
-                    JsonObject serviceConfig = JsonObject(configLine.c_str());
-                    if (serviceConfig.HasLabel("clientidentifier"))
+                    std::string configLine;
+                    service.Configuration.ToString(configLine);
+                    if (!configLine.empty())
                     {
-                        std::string callsign;
-                        service.Callsign.ToString(callsign);
-                        callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                        WPEFramework::Core::JSON::String stateString;
-                        const string callsignWithVersion = callsign + ".1";
-                        uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-
-                        if (stateStatus == 0)
+                        JsonObject serviceConfig = JsonObject(configLine.c_str());
+                        if (serviceConfig.HasLabel("clientidentifier"))
                         {
-                            WPEFramework::Core::JSON::String urlString;
-                            uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
-                            
-                            JsonObject typeObject;
-                            typeObject["callsign"] = callsign;
-                            typeObject["state"] = stateString.Value();
-                            if (urlStatus == 0)
+                            std::string callsign;
+                            service.Callsign.ToString(callsign);
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
+
+                            WPEFramework::Core::JSON::String stateString;
+                            const string callsignWithVersion = callsign + ".1";
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+
+                            if (stateStatus == 0)
                             {
-                                typeObject["uri"] = urlString.Value();
+                                WPEFramework::Core::JSON::String urlString;
+                                uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+
+                                JsonObject typeObject;
+                                typeObject["callsign"] = callsign;
+                                typeObject["state"] = stateString.Value();
+                                if (urlStatus == 0)
+                                {
+                                    typeObject["uri"] = urlString.Value();
+                                }
+                                else
+                                {
+                                    typeObject["uri"] = "";
+                                }
+                                stateArray.Add(typeObject);
                             }
-                            else
-                            {
-                                typeObject["uri"] = "";
-                            }
-                            stateArray.Add(typeObject);
                         }
                     }
                 }
             }
             response["state"] = stateArray;
 
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            uint32_t freeKb=0, usedSwapKb=0, totalKb=0;
+            result = systemMemory(freeKb, totalKb, usedSwapKb);
+            if (!result) {
+              response["message"] = "failed to get system Ram";
+            }
+            else
+            {
+              response["freeRam"] = freeKb;
+              response["swapRam"] = usedSwapKb;
+              response["totalRam"] = totalKb;
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            JsonArray memoryInfo;
+
+            string method = "status";
+            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
+
+            /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
+                    std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
+                    std::cout << "ACTIVATED: " << PluginHost::MetaData::Service::state::ACTIVATED << std::endl;
+                    std::cout << "ACTIVATION: " << PluginHost::MetaData::Service::state::ACTIVATION << std::endl;
+                    std::cout << "DESTROYED: " << PluginHost::MetaData::Service::state::DESTROYED << std::endl;
+                    std::cout << "PRECONDITION: " << PluginHost::MetaData::Service::state::PRECONDITION << std::endl;
+                    std::cout << "SUSPENDED: " << PluginHost::MetaData::Service::state::SUSPENDED << std::endl;
+                    std::cout << "RESUMED: " << PluginHost::MetaData::Service::state::RESUMED << std::endl;*/
+
+            JsonArray stateArray;
+            for (uint16_t i = 0; i < joResult.Length(); i++)
+            {
+                PluginHost::MetaData::Service service = joResult[i];
+                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
+                {
+                    std::string configLine;
+                    service.Configuration.ToString(configLine);
+                    if (!configLine.empty())
+                    {
+                        JsonObject serviceConfig = JsonObject(configLine.c_str());
+                        if (serviceConfig.HasLabel("clientidentifier"))
+                        {
+                            std::string callsign;
+                            service.Callsign.ToString(callsign);
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
+
+                            WPEFramework::Core::JSON::String stateString;
+                            const string callsignWithVersion = callsign + ".1";
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+
+                            if (stateStatus == 0)
+                            {
+                                result = pluginMemoryUsage(callsign, memoryInfo);
+                            }
+                        }
+                    }
+                }
+            }
+
+            response["types"] = memoryInfo;
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              bool enable = parameters["enable"].Boolean();
+              if (parameters.HasLabel("interval"))
+              {
+                RdkShell::setMemoryMonitor(enable, std::stod(parameters["interval"].String()));
+              }
+              else
+              {
+                RdkShell::setMemoryMonitor(enable, 5); //default to 5 second interval
+              }
+            }
             returnResponse(result);
         }
 
@@ -1878,6 +2312,29 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::injectKey(keyCode, flags);
             gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::generateKey(const JsonArray& keyInputs)
+        {
+            bool ret = false;
+            for (int i=0; i<keyInputs.Length(); i++) {
+                const JsonObject& keyInputInfo = keyInputs[i].Object();
+                if (keyInputInfo.HasLabel("keyCode"))
+                {
+                  const uint32_t keyCode = keyInputInfo["keyCode"].Number();
+                  const uint32_t delay = keyInputInfo["delay"].Number();
+                  sleep(delay);
+                  const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
+                  uint32_t flags = 0;
+                  for (int k=0; k<modifiers.Length(); k++) {
+                    flags |= getKeyFlag(modifiers[k].String());
+                  }
+                  gRdkShellMutex.lock();
+                  ret = CompositorController::injectKey(keyCode, flags);
+                  gRdkShellMutex.unlock();
+                }
+            }
             return ret;
         }
 
@@ -2109,35 +2566,61 @@ namespace WPEFramework {
             return true;
         }
 
-        void RDKShell::onLaunched(const std::string& client)
+        void RDKShell::onLaunched(const std::string& client, const string& launchType)
         {
             std::cout << "RDKShell onLaunched event received for " << client << std::endl;
-            JsonObject response;
             JsonObject params;
             params["client"] = client;
-            response["params"] = params;
-            notify(RDKSHELL_EVENT_ON_LAUNCHED, response);
+            params["launchType"] = launchType;
+            notify(RDKSHELL_EVENT_ON_LAUNCHED, params);
         }
 
         void RDKShell::onSuspended(const std::string& client)
         {
             std::cout << "RDKShell onSuspended event received for " << client << std::endl;
-            JsonObject response;
             JsonObject params;
             params["client"] = client;
-            response["params"] = params;
 
-            notify(RDKSHELL_EVENT_ON_SUSPENDED, response);
+            notify(RDKSHELL_EVENT_ON_SUSPENDED, params);
         }
 
         void RDKShell::onDestroyed(const std::string& client)
         {
             std::cout << "RDKShell onDestroyed event received for " << client << std::endl;
-            JsonObject response;
             JsonObject params;
             params["client"] = client;
-            response["params"] = params;
-            notify(RDKSHELL_EVENT_ON_DESTROYED, response);
+            notify(RDKSHELL_EVENT_ON_DESTROYED, params);
+        }
+
+        bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
+        {
+            gRdkShellMutex.lock();
+            bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::pluginMemoryUsage(const string callsign, JsonArray& memoryInfo)
+        {
+            JsonObject memoryDetails;
+            PluginHost::IShell* plugin(mCurrentService->QueryInterfaceByCallsign<PluginHost::IShell>(callsign.c_str()));
+            memoryDetails["callsign"] = callsign;
+            memoryDetails["ram"] = -1;
+            if (nullptr != plugin)
+            {
+                Exchange::IMemory* memory = plugin->QueryInterface<Exchange::IMemory>();
+
+                if (memory != nullptr)
+                {
+                    memoryDetails["ram"] = memory->Resident()/1024;
+                }
+                else
+                {
+                    std::cout << "Memory information not available for " << callsign << std::endl;
+                }
+                memoryInfo.Add(memoryDetails);
+            }
+            return true;
         }
 
         // Internal methods end

@@ -22,795 +22,1026 @@
  * @brief Thunder Plugin based Implementation of CPP Test Client for System service API's.
  * @reference RDK-25849.
  */
-
 #include <iostream>
 #include <bits/stdc++.h>
 #include <ctime>
+#include <cassert>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <vector>
+#include <map>
 #include <string>
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <type_traits>
+#include <core/core.h>
+#include <websocket/websocket.h>
+#include <securityagent/SecurityTokenUtil.h>
 
-#include "Module.h"
-
-#define SYSSRV_CALLSIGN "org.rdk.SystemServices"
-#define SERVER_DETAILS  "127.0.0.1:9998"
+#define SYSPLUGIN_CALLSIGN		"org.rdk.System"
+#define SYSPLUGIN_SERVER_PORT	"127.0.0.1:9998"
+#define MAX_LENGTH 1024
 
 using namespace std;
 using namespace WPEFramework;
 
-/* This section can be used for API validation logic. */
-void showMenu()
+/* Thunder-Security: Security Token */
+unsigned char g_ucSecToken[MAX_LENGTH] = {0};
+std::string g_strSecToken = "";
+
+uint64_t TimeStamp(void)
 {
-    std::cout<<"Enter your choice\n";
-    std::cout<<"1.setTimeZoneDST\n";
-    std::cout<<"2.getTimeZoneDST\n";
-    std::cout<<"3.getCoreTemperature\n";
-    std::cout<<"4.getPreviousRebootInfo\n";
-    std::cout<<"5.getCachedValue\n";
-    std::cout<<"6.isGzEnabled\n";
-    std::cout<<"7.updateFirmware\n";
-    std::cout<<"8.getMode\n";
-    std::cout<<"9.getPreferredStandbyMode\n";
-    std::cout<<"10.getAvailableStandbyModes\n";
-    std::cout<<"11.setCachedValue\n";
-    std::cout<<"12.setMode\n";
-    std::cout<<"13.setpreferredStandbyModes\n";
-    std::cout<<"14.cacheContains api\n";
-    std::cout<<"15.removeCacheKey api\n";
-    std::cout<<"16.setGzEnabled api\n";
-    std::cout<<"17.getFirmwareUpdateInfo\n";
-    std::cout<<"18.getSystemVersions\n";
-    std::cout<<"19.getDownloadPercent\n";
-    std::cout<<"20.getTemperatureThreshold\n";
-    std::cout<<"21.setTemperatureThreshold\n";
-    std::cout<<"22.getXconfParams\n";
-    std::cout<<"23.setDeepSleepTimer\n";
+	return std::chrono::duration_cast<std::chrono::microseconds>
+		(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-/* This section is related to the event handler implementation for SystemService Plugin Events. */
+std::string makePretty(std::string result)
+{
+	/* Hack ? - remove the escape characters from the result for aesthetics. */
+	result.erase(std::remove(result.begin(), result.end(), '\\'), result.end());
+	return result;
+}
 
+typedef enum SME_t {
+#ifdef DEBUG
+	SME_sampleSystemServiceAPI,
+#endif /* DEBUG */
+	SME_cacheContains = 1,
+	SME_clearLastDeepSleepReason,
+	SME_enableMoca,
+	SME_getAvailableStandbyModes,
+	SME_getCachedValue,
+	SME_getCoreTemperature,
+	SME_getDeviceInfo,
+	SME_getDownloadedFirmwareInfo,
+	SME_getFirmwareDownloadPercent,
+	SME_getFirmwareUpdateInfo,
+	SME_getFirmwareUpdateState,
+	SME_getLastDeepSleepReason,
+	SME_getMacAddresses,
+	SME_getMilestones,
+	SME_getMode,
+	SME_getPowerState,
+	SME_getPreferredStandbyMode,
+	SME_getPreviousRebootInfo,
+	SME_getPreviousRebootInfo2,
+	SME_getPreviousRebootReason,
+	SME_getRFCConfig,
+	SME_getSerialNumber,
+	SME_getStateInfo,
+	SME_getSystemVersions,
+	SME_getTemperatureThresholds,
+	SME_getTimeZoneDST,
+	SME_getXconfParams,
+	SME_hasRebootBeenRequested,
+	SME_isGzEnabled,
+	SME_queryMocaStatus,
+	SME_reboot,
+	SME_removeCacheKey,
+	SME_requestSystemUptime,
+	SME_setCachedValue,
+	SME_setDeepSleepTimer,
+	SME_setGzEnabled,
+	SME_setMode,
+	SME_setPowerState,
+	SME_setPreferredStandbyMode,
+	SME_setTemperatureThresholds,
+	SME_setTimeZoneDST,
+	SME_updateFirmware,
+	SME_MAX,
+};
+
+std::map<SME_t, std::string> SMName = {
+#ifdef DEBUG
+	{SME_sampleSystemServiceAPI, "sampleSystemServiceAPI"},
+#endif /* DEBUG */
+	{SME_cacheContains, "cacheContains"},
+	{SME_clearLastDeepSleepReason, "clearLastDeepSleepReason"},
+	{SME_enableMoca, "enableMoca"},
+	{SME_getAvailableStandbyModes, "getAvailableStandbyModes"},
+	{SME_getCachedValue, "getCachedValue"},
+	{SME_getCoreTemperature, "getCoreTemperature"},
+	{SME_getDeviceInfo, "getDeviceInfo"},
+	{SME_getDownloadedFirmwareInfo, "getDownloadedFirmwareInfo"},
+	{SME_getFirmwareDownloadPercent, "getFirmwareDownloadPercent"},
+	{SME_getFirmwareUpdateInfo, "getFirmwareUpdateInfo"},
+	{SME_getFirmwareUpdateState, "getFirmwareUpdateState"},
+	{SME_getLastDeepSleepReason, "getLastDeepSleepReason"},
+	{SME_getMacAddresses, "getMacAddresses"},
+	{SME_getMilestones, "getMilestones"},
+	{SME_getMode, "getMode"},
+	{SME_getPowerState, "getPowerState"},
+	{SME_getPreferredStandbyMode, "getPreferredStandbyMode"},
+	{SME_getPreviousRebootInfo, "getPreviousRebootInfo"},
+	{SME_getPreviousRebootInfo2, "getPreviousRebootInfo2"},
+	{SME_getPreviousRebootReason, "getPreviousRebootReason"},
+	{SME_getRFCConfig, "getRFCConfig"},
+	{SME_getSerialNumber, "getSerialNumber"},
+	{SME_getStateInfo, "getStateInfo"},
+	{SME_getSystemVersions, "getSystemVersions"},
+	{SME_getTemperatureThresholds, "getTemperatureThresholds"},
+	{SME_getTimeZoneDST, "getTimeZoneDST"},
+	{SME_getXconfParams, "getXconfParams"},
+	{SME_hasRebootBeenRequested, "hasRebootBeenRequested"},
+	{SME_isGzEnabled, "isGzEnabled"},
+	{SME_queryMocaStatus, "queryMocaStatus"},
+	{SME_reboot, "reboot"},
+	{SME_removeCacheKey, "removeCacheKey"},
+	{SME_requestSystemUptime, "requestSystemUptime"},
+	{SME_setCachedValue, "setCachedValue"},
+	{SME_setDeepSleepTimer, "setDeepSleepTimer"},
+	{SME_setGzEnabled, "setGzEnabled"},
+	{SME_setMode, "setMode"},
+	{SME_setPowerState, "setPowerState"},
+	{SME_setPreferredStandbyMode, "setPreferredStandbyMode"},
+	{SME_setTemperatureThresholds, "setTemperatureThresholds"},
+	{SME_setTimeZoneDST, "setTimeZoneDST"},
+	{SME_updateFirmware, "updateFirmware"},
+	{SME_MAX, "MAX"},
+};
+
+bool invokeJSONRPC(JSONRPC::LinkType<Core::JSON::IElement> *remoteObject, std::string method, JsonObject &param, JsonObject &result)
+{
+	bool ret = false;
+	uint32_t retStatus = Core::ERROR_GENERAL;
+	std::string response;
+	assert(remoteObject != NULL);
+
+	param.ToString(response);
+	printf("\ninvokeJSONRPC '%s' with param: '%s'\n", method.c_str(), response.c_str());
+
+	retStatus = remoteObject->Invoke<JsonObject, JsonObject>(5000, _T(method), param, result);
+	if (Core::ERROR_NONE != retStatus) {
+		printf("\nremoteObject->Invoke '%s' failed [retStatus: 0x%x]\n", method.c_str(), retStatus);
+	} else {
+		ret = true;
+	}
+	return ret;
+}
+
+/******************************* Begin: Handle Selection *******************************/
+
+#ifdef DEBUG
+void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+#endif /* DEBUG */
+
+void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+	JsonObject parameters, response;
+	std::string result;
+	std::string key;
+
+	printf("\nKey name to check :");
+	std::cin >> key;
+	parameters["key"] = key;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+	JsonObject parameters, response;
+	std::string result;
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void enableMoca(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+	JsonObject parameters, response;
+	std::string result;
+	bool enable = false;
+
+	printf("\nEnable ? {value: 0/1} :");
+	std::cin >> enable;
+	parameters["value"] = enable;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getAvailableStandbyModes(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+	std::string key;
+
+	printf("\nKey name to check :");
+	std::cin >> key;
+	parameters["key"] = key;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getCoreTemperature(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getDeviceInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+	JsonArray paramsArray;
+	std::string input;
+
+	printf("\nInput 'key(s)' [Type 'end' to finish] :");
+	do {
+		input.empty();
+		std::cin >> input;
+
+		if (!input.length() || (input == "end"))
+			break;
+
+		paramsArray.Add(input);
+	} while (true);
+
+	/* TODO: "params" or "param" ? */
+	parameters["params"] = paramsArray;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getDownloadedFirmwareInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getFirmwareDownloadPercent(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getFirmwareUpdateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, guid;
+
+	/* GUID is optional. */
+	printf("\nGUID (Optional):");
+	std::cin >> guid;
+
+	if (guid.length()) {
+		parameters["GUID"] = guid;
+	}
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getFirmwareUpdateState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getMacAddresses(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getMilestones(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getPreviousRebootInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getPreviousRebootInfo2(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getPreviousRebootReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getRFCConfig(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, rfcListStr;
+	JsonArray rfcListArray;
+
+	printf("\nInput required RFC List [type 'end' to finish]: ");
+	do {
+		std::cin >> rfcListStr;
+		if (!rfcListStr.length() || (rfcListStr == "end"))
+			break;
+		rfcListArray.Add(rfcListStr);
+	} while (true);
+
+	/* TODO: Documentation updation required. */
+	parameters["rfcList"] = rfcListArray;
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getSerialNumber(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getStateInfo(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, queryState;
+
+	printf("\nInput property state to be queried :");
+	std::cin >> queryState;
+
+	parameters["param"] = queryState;
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getSystemVersions(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void getXconfParams(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void hasRebootBeenRequested(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void isGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void queryMocaStatus(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, reason;
+
+	/* Optional: reboot reason. */
+	printf("\nInput reboot reason (Optional) :");
+	std::cin >> reason;
+	if (reason.length()) {
+		/* TODO: Update code & Doc to match SM Doc - "reason" with "rebootReason". */
+		parameters["rebootReason"] = reason;
+	}
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, key;
+
+	printf("\nInput 'key' to be removed :");
+	std::cin >> key;
+
+	parameters["key"] = key;
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void requestSystemUptime(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	JsonObject parameters, response;
+	std::string result, key, value;
+
+	printf("\nInput cache 'key' :");
+	std::cin >> key;
+	printf("\nInput cache 'value' :");
+	std::cin >> value;
+
+	parameters["key"] = key;
+	parameters["value"] = value;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setDeepSleepTimer(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+	unsigned int seconds = 0;
+
+	printf("\nInput Seconds :");
+	std::cin >> seconds;
+
+	parameters["seconds"] = seconds;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+	bool enabled = false;
+
+	/* TODO: correct doc with "enabled" */
+	printf("\nEnable ? (0/1) :");
+	std::cin >> enabled;
+	parameters["enabled"] = enabled;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response, modeInfo;
+	std::string result, mode;
+	int duration = 0;
+
+	printf("\nInput 'mode' :");
+	std::cin >> mode;
+	printf("\nInput 'duration(in seconds)' :");
+	std::cin >> duration;
+
+	modeInfo["mode"] = mode;
+	modeInfo["duration"] = duration;
+	parameters["modeInfo"] = modeInfo;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setPowerState(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, powerState, standbyReason;
+
+	printf("\nInput 'powerState' :");
+	std::cin >> powerState;
+	printf("\nInput 'standbyReason' :");
+	std::cin >> standbyReason;
+
+	parameters["powerState"] = powerState;
+	parameters["standbyReason"] = standbyReason;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, standbyMode;
+
+	printf("\nInput 'standbyMode' :");
+	std::cin >> standbyMode;
+
+	parameters["standbyMode"] = standbyMode;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response, thresholds;
+	std::string result, WARN, MAX;
+
+	printf("\nInput 'WARN' level :");
+	std::cin >> WARN;
+	printf("\nInput 'MAX' level :");
+	std::cin >> MAX;
+
+	thresholds["WARN"] = WARN;
+	thresholds["MAX"] = MAX;
+	parameters["thresholds"] = thresholds;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result, timeZone;
+
+	printf("\nInput 'timeZone' :");
+	std::cin >> timeZone;
+
+	parameters["timeZone"] = timeZone;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+	JsonObject parameters, response;
+	std::string result;
+
+	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+		response.ToString(result);
+		printf("\nResponse: '%s'\n", result.c_str());
+	}
+}
+
+/******************************** End : Handle Selection *******************************/
+
+void showUsage(char *pName)
+{
+	printf("%s <Thunder Access Environment> <ip:port> <callSign> <token>\n", pName);
+	printf("%s THUNDER_ACCESS %s %s <token>\n", pName, SYSPLUGIN_SERVER_PORT, SYSPLUGIN_CALLSIGN);
+	exit(0);
+}
+
+/* This section is related to the event handler implementation for Thunder Plugin Events. */
 namespace Handlers {
-    /* Event Handlers */
-    static void onSystemPowerStateChangedHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onSystemModeChangedHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onFirmwareUpdateInfoReceivedHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onFirmwareUpdateStateChangeHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onTemperatureThresholdChangedHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onMacAddressesRetreivedHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onRebootRequestHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
-    static void onSampleEventHandler(const Core::JSON::String& parameters) {
-        std::string message;
-        parameters.ToString(message);
-        std::cout << "[SysSrvEvt] " << __FUNCTION__ << ": " << message << std::endl;
-    }
+	/* Common Event Handler */
+	static void onEventHandler(const Core::JSON::JsonContainer& parameters) {
+		std::string message;
+		parameters.ToString(message);
+		printf("\n[%llu][System-JSONRPCEvt]: '%s'\n", TimeStamp(), makePretty(message).c_str());
+	}
+}
+
+std::string getMethodName(SME_t SME)
+{
+	std::string methodName = "None";
+
+	auto it = SMName.find(SME);
+	if (SMName.end() != it) {
+		methodName = it->second;
+	}
+	return methodName;
+}
+
+int getChoice(void)
+{
+	int SMEOption;
+
+	printf("\n================================= Menu =================================\n");
+	for (int i = 0 ; i < SME_MAX; i++) {
+		printf("(%2d) %-30s	 ", i, getMethodName((SME_t)i).c_str());
+		if (i%2) {
+			printf("\n");
+		}
+	}
+	printf("\n==========> Enter Option(Number)[MAX+ to Quit] : ");
+	scanf("%d", &SMEOption);
+	printf("\nReceived SMEOption = %d\n", SMEOption);
+	printf("\n============================== Processing ==============================\n");
+	if (SMEOption < 0)
+		SMEOption = SME_MAX;
+	return ((SMEOption < SME_MAX)? SMEOption : SME_MAX);
+}
+
+/* System plugin - Invoke System plugin with supplied Method test payloads. */
+int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
+{
+	int retStatus = 0;
+
+	do {
+		switch((retStatus = getChoice())) {
+			case SME_cacheContains: cacheContains(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_clearLastDeepSleepReason: clearLastDeepSleepReason(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_enableMoca: enableMoca(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getAvailableStandbyModes: getAvailableStandbyModes(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getCachedValue: getCachedValue(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getCoreTemperature: getCoreTemperature(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getDeviceInfo: getDeviceInfo(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getDownloadedFirmwareInfo: getDownloadedFirmwareInfo(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getFirmwareDownloadPercent: getFirmwareDownloadPercent(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getFirmwareUpdateInfo: getFirmwareUpdateInfo(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getFirmwareUpdateState: getFirmwareUpdateState(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getLastDeepSleepReason: getLastDeepSleepReason(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getMacAddresses: getMacAddresses(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getMilestones: getMilestones(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getMode: getMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPowerState: getPowerState(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPreferredStandbyMode: getPreferredStandbyMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPreviousRebootInfo: getPreviousRebootInfo(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPreviousRebootInfo2: getPreviousRebootInfo2(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPreviousRebootReason: getPreviousRebootReason(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getRFCConfig: getRFCConfig(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getSerialNumber: getSerialNumber(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getStateInfo: getStateInfo(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getSystemVersions: getSystemVersions(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getTemperatureThresholds: getTemperatureThresholds(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getTimeZoneDST: getTimeZoneDST(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getXconfParams: getXconfParams(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_hasRebootBeenRequested: hasRebootBeenRequested(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_isGzEnabled: isGzEnabled(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_queryMocaStatus: queryMocaStatus(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_reboot: reboot(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_removeCacheKey: removeCacheKey(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_requestSystemUptime: requestSystemUptime(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setCachedValue: setCachedValue(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setDeepSleepTimer: setDeepSleepTimer(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setGzEnabled: setGzEnabled(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setMode: setMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setPowerState: setPowerState(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setPreferredStandbyMode: setPreferredStandbyMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setTemperatureThresholds: setTemperatureThresholds(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setTimeZoneDST: setTimeZoneDST(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_updateFirmware: updateFirmware(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_MAX:
+			default:
+				break;
+		}
+	} while (retStatus != SME_MAX);
+
+	return retStatus;
 }
 
 int main(int argc, char** argv)
 {
-    int retStatus = -1;
-    JSONRPC::Client* remoteObject = NULL;
-    std::string reqPayload;
+	int retStatus = -1;
+	std::string env, server, callsign, sToken;
 
-    int choice;
-    JsonObject result,response,value;
-    JsonObject parameters,params;
-    uint32_t ret;
-    int size;
-    int i;
-    string req, appName, json, jsonObj_str, resp, str;
+	if (argc != 5) {
+		showUsage(argv[0]);
+	}
 
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+	for (int i = 0; i < argc; i++) {
+		switch (i) {
+			case 0: break; /* Self-name */
+			case 1: env = argv[i]; break;
+			case 2: server = argv[i]; break;
+			case 3: callsign = argv[i]; break;
+			case 4: sToken = argv[i]; break;
+			default: showUsage(argv[0]); break;
+		}
+	}
 
-    if (NULL == remoteObject) {
-        remoteObject = new JSONRPC::Client(_T(SYSSRV_CALLSIGN), _T(""));
-        if (NULL == remoteObject) {
-            std::cout << "JSONRPC::Client initialization failed" << std::endl;
-        } else {
-            JsonObject request, response;
+	Core::SystemInfo::SetEnvironment(_T(env), (_T(server)));
 
-            /* Register handlers for Event reception. */
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onSystemPowerStateChanged"),
-                        &Handlers::onSystemPowerStateChangedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSystemPowerStateChangedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSystemPowerStateChangedHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onSystemModeChanged"),
-                        &Handlers::onSystemModeChangedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSystemModeChangedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSystemModeChangedHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onFirmwareUpdateInfoReceived"),
-                        &Handlers::onFirmwareUpdateInfoReceivedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onFirmwareUpdateInfoReceivedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onFirmwareUpdateInfoReceivedHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onFirmwareUpdateStateChange"),
-                        &Handlers::onFirmwareUpdateStateChangeHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onFirmwareUpdateStateChangeHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onFirmwareUpdateStateChangeHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onTemperatureThresholdChanged"),
-                        &Handlers::onTemperatureThresholdChangedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onTemperatureThresholdChangedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onTemperatureThresholdChangedHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onMacAddressesRetreived"),
-                        &Handlers::onMacAddressesRetreivedHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onMacAddressesRetreivedHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onMacAddressesRetreivedHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onRebootRequest"),
-                        &Handlers::onRebootRequestHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onRebootRequestHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onRebootRequestHandler" << std::endl;
-            }
-            if (remoteObject->Subscribe<Core::JSON::String>(1000, _T("onSampleEvent"),
-                        &Handlers::onSampleEventHandler) == Core::ERROR_NONE) {
-                std::cout << "Subscribed to : onSampleEventHandler" << std::endl;
-            } else {
-                std::cout << "Failed to Subscribe notification handler : onSampleEventHandler" << std::endl;
-            }
+	/* Thunder-Security: Get Security Token */
+	if (sToken.length()) {
+		g_strSecToken = "token=" + sToken;
+		printf("\nObtained token: '%s'\n", g_strSecToken.c_str());
+	}
 
-            /* API Validation Logic. */
-            while (true) {
-                showMenu();
-                std::cin >> choice;
-                switch (choice) {
-                    case 1:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"set DST Time zone\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            std::cout<<"enter time zone\n";
-                            string timeZone;
-                            std::cin>> timeZone;
-                            params["appName"] = appName;
-                            param["timezone"] = timeZone;
-                            string param_json;
-                            param.ToString(param_json);
-                            std::cout<<"param json object is "<<param_json.c_str();
-                            params["param"].FromString(param_json);
-                            params.ToString(json);
-                            std::cout<<"setTimeZoneDST :the request json  is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setTimeZoneDST"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"SystemServices setTimeZoneDST call Success\n";
-                            } else {
-                                std::cout<<"SystemServices setTimeZoneDST call failed \n";
-                            }
-                        }
-                        break;
+	JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(callsign), _T(""), false, g_strSecToken);
 
-                    case 2:
-                        {
-                            JsonObject params;
-                            std::cout<<"getTimeZoneDST\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getTimeZoneDST the request json  is "<<
-                                json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getTimeZoneDST"), params, result);
-                            if (result["success"].Boolean()) {
-                                string tzone = result["timeZone"].String();
-                                std::cout<<"SystemServices: getTimeZoneDST time zone value is "<<tzone<<"\n";
-                                std::cout<<"SystemServices: getTimeZoneDST call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: getTimeZoneDST  call failed \n";
-                            }
-                        }
-                        break;
+	if (remoteObject) {
+		/* System plugin Events */
+		std::vector<std::string> SystemEventNames;
+#ifdef DEBUG
+		SystemEventNames.push_back("onSampleEvent");
+#endif /* DEBUG */
+		SystemEventNames.push_back("onSystemPowerStateChanged");
+		SystemEventNames.push_back("onSystemModeChanged");
+		SystemEventNames.push_back("onFirmwareUpdateInfoReceived");
+		SystemEventNames.push_back("onFirmwareUpdateStateChange");
+		SystemEventNames.push_back("onTemperatureThresholdChanged");
+		SystemEventNames.push_back("onMacAddressesRetreived");
+		SystemEventNames.push_back("onRebootRequest");
 
-                    case 3:
-                        {
-                            JsonObject params;
-                            std::cout<<"getCoreTemperature\n";
-                            std::cout<<"enter the app name\n";
+		printf("\n[%llu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
+		/* Experimental: Register a common Event Handler for all Events */
+		for (std::string eventName : SystemEventNames) {
+			if (remoteObject->Subscribe<Core::JSON::JsonContainer>(1000, _T(eventName),
+						&Handlers::onEventHandler) == Core::ERROR_NONE) {
+				printf("\n[%llu][System-MainFunctn] : Subscribed to '%s'...\n",
+					TimeStamp(), eventName.c_str());
+			} else {
+				printf("\n[%llu][System-MainFunctn] : Failed to subscribed to '%s'...\n",
+					TimeStamp(), eventName.c_str());
+			}
+		}
 
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getCoreTemperature the request json  is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getCoreTemperature"), params, result);
-                            if (result["success"].Boolean()) {
-                                string temp = result["temperature"].String();
-                                std::cout<<"SystemServices: getCoreTemperature temperature  value is "<<temp<<"\n";
-                                std::cout<<"SystemServices: getCoreTemperature call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: getCoreTemperature  call failed \n";
-                            }
-                        }
-                        break;
+		/* Busy loop. */
+		printf("\n[%llu][System-MainFunctn] : Method validation loop...\n", TimeStamp());
+		retStatus = EvaluateMethods(remoteObject);
 
-                    case 4:
-                        {
-                            JsonObject params;
-                            std::cout<<"getPreviousRebootInfo\n";
-                            std::cout<<"enter the app name\n";
+		/* Clean-Up */
+		printf("\n[%llu][System-MainFunctn] : Clean-Up triggered...\n", TimeStamp());
 
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getPreviousRebootInfo the request json  is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getPreviousRebootInfo"), params, result);
-                            if (result["success"].Boolean()) {
-                                string timeStamp=result["timeStamp"].String();
-                                string reason=result["reason"].String();
-                                std::cout<<"SystemServices:  getPreviousRebootInfo time stamp  value is "
-                                    <<timeStamp<<"reason is"<<reason<<"\n";
-                                std::cout<<"SystemServices: getPreviousRebootInfo  call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: getPreviousRebootInfo  call failed \n";
-                            }
-                        }
-                        break;
+		for (std::string eventName : SystemEventNames) {
+			remoteObject->Unsubscribe(1000, _T(eventName));
+			printf("\n[%llu][System-MainFunctn] : Unsubscribed from '%s'...\n",
+					TimeStamp(), eventName.c_str());
+		}
+		delete remoteObject;
+	} else {
+		printf("\n[%llu][System-MainFunctn] : remoteObject creation failed...\n", TimeStamp());
+	}
 
-                    case 5:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"getCachedValue\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter cache key string\n";
-                            string cachekey;
-                            std::cin>> cachekey;
-                            param["cacheKey"] = cachekey;
-                            string param_json;
-                            param.ToString(param_json);
-                            std::cout<<"param json object is "<<param_json.c_str()<<"\n";
-                            params["param"].FromString(param_json);
-                            string json;
-                            params.ToString(json);
-                            std::cout<<"getCachedValue the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getCachedValue"), params, result);
-                            if (result["success"].Boolean()) {
-                                result.ToString(resp);
-                                std::cout<<"json output getCached value "<<resp.c_str()<<"\n";
-                                std::cout<<"SystemServices: getCachedValue  call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: getCachedValue  call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 6:
-                        {
-                            JsonObject params;
-                            std::cout<<"isGzEnabled\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"isGzEnabled the json request string is "<<json.c_str()<<"\n";
-
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000, _T("isGzEnabled"), params, result);
-                            if (result["success"].Boolean()) {
-                                bool enable = result["enabled"].Boolean();
-                                std::cout<<"SystemServices: isGzEnabled enabled value is "<<enable<<"\n";
-                                std::cout<<"SystemServices: isGzEnabled  call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: isGzEnabled  call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 7:
-                        {
-                            JsonObject params;
-                            std::cout<<"updateFirmware\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"updateFirmware the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("updateFirmware"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"SystemServices: updateFirmware  call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: updateFirmware  call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 8:
-                        {
-                            JsonObject params;
-                            std::cout<<"getMode\n";
-                            std::cout<<"enter the app name\n";
-
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getMode the json request string is "<<json.c_str()<<"\n";
-
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getMode"), params, result);
-                            if (result["success"].Boolean()) {
-                                JsonObject param;
-                                string resp_str;
-                                resp_str = result["modeInfo"].String();
-                                std::cout<<"result of getMode "<<resp_str.c_str()<<"\n";
-                                param.FromString(resp_str);
-                                std::cout<<"getmode the result json object is "<<resp_str.c_str()<<"\n";
-                                string duration = param["duration"].String();
-                                string mode = param["mode"].String();
-                                std::cout<<"SystemServices : getMode  mode is "
-                                    <<mode<<"duration is "<<duration<<"\n";
-                                std::cout<<"SystemServices: getMode  call Success\n";
-                            } else {
-                                std::cout<<"SystemService: getMode  call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 9:
-                        {
-                            JsonObject params;
-                            std::cout<<"getPreferredStandbyMode\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getPreferredStandbyMode the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getPreferredStandbyMode"), params, result);
-                            if (result["success"].Boolean()) {
-                                string standBy=result["preferredStandbyMode"].String();
-                                std::cout<<"SystemServices: preferredStandbyMode value is  "<<standBy<<"\n";
-                                std::cout<<"SystemServices: preferredStandbyMode  call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: preferredStandbyMode call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 10:
-                        {
-                            JsonObject params;
-                            std::cout<<"getAvailableStandbyModes\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            params.ToString(json);
-                            std::cout<<"getAvailableStandbyModes the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getAvailableStandbyModes"), params, result);
-                            if (result["success"].Boolean()) {
-                                string standBy=result["supportedStandbyModes"].String();
-                                std::cout<<"SystemServices: getAvailableStandbyModes value is  "<<standBy<<"\n";
-                                std::cout<<"SystemServices : getAvailableStandbyModes   call Success\n";
-                            } else {
-                                std::cout<<"SystemServices: getAvailableStandbyModes  call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 11:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"setCachedValue\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter cache key value\n";
-                            string cachekey;
-                            std::cin>> cachekey;
-                            std::cout<<"enter cache value\n";
-                            string cachevalue;
-                            std::cin>> cachevalue;
-                            param["cacheKey"] = cachekey;
-                            param["cacheValue"] = cachevalue;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"setCachedValue param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setCachedValue"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :set cached value api success\n";
-                            } else {
-                                std::cout<<"Systemservice :set cached value api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 12:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"setMode api\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter mode\n";
-                            string mode;
-                            std::cin>> mode;
-                            std::cout<<"enter duration\n";
-                            string duration;
-                            std::cin>> duration;
-                            param["mode"] = mode;
-                            param["duration"] = duration;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"setMode the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setMode"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :setmode api success\n";
-                            } else {
-                                std::cout<<"Systemservice :setmode  api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 13:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"setpreferredStandbyModes\n";
-                            std::cout<<"enter app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            string mode;
-                            std::cout<<"enter mode\n";
-                            std::cin>> mode;
-                            param["mode"] = mode;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"setPreferredStandbyModes the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setPreferredStandbyMode"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :setPreferredStandbyMode api success\n";
-                            } else {
-                                std::cout<<"Systemservice :setPreferredStandbyMode api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 14:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"cacheContains api\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter cache key\n";
-                            string cacheKey;
-                            std::cin>> cacheKey;
-                            param["cacheKey"] = cacheKey;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"cacheContains the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("cacheContains"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :cacheContains api success\n";
-                            } else {
-                                std::cout<<"Systemservice :cacheContains  api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 15:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"removeCacheKey api\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter cache key\n";
-                            string cacheKey;
-                            std::cin>> cacheKey;
-                            param["cacheKey"]=cacheKey;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"removeCacheKey the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("removeCacheKey"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :removeCacheKey api success\n";
-                            } else {
-                                std::cout<<"Systemservice :removeCacheKey api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 16:
-                        {
-                            JsonObject params;
-                            std::cout<<"setGzEnabled api\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            bool param;
-                            std::cout<<"enter if GzEnabled is true(enter 1) or false(enter 0)\n";
-                            std::cin>> param;
-                            params["param"] = param;
-                            params.ToString(json);
-                            std::cout<<"setGzEnabled the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setGzEnabled"), params, result);
-                            if (result["success"].Boolean()) {
-                                std::cout<<"Systemservice :setGzEnabled api success\n";
-                            } else {
-                                std::cout<<"Systemservice :setGzEnabled api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 17:
-                        {
-                            JsonObject params,param;
-                            std::cout<<"getFirmwareUpdateInfo\n";
-                            std::cout<<"enter the app name\n";
-                            std::cin>> appName;
-                            params["appName"] = appName;
-                            std::cout<<"enter the GUID value\n";
-                            string guid;
-                            std::cin>> guid;
-                            param["GUID"] = guid;
-                            param.ToString(jsonObj_str);
-                            std::cout<<"param json object is "<<jsonObj_str.c_str()<<"\n";
-                            params["param"].FromString(jsonObj_str);
-                            params.ToString(json);
-                            std::cout<<"getFirmwareUpdateInfo  the json request string is "<<json.c_str()<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getFirmwareUpdateInfo"), params, result);
-                            if (result["success"].Boolean()) {
-                                bool asyncResponse;
-                                asyncResponse = result["asyncResponse"].Boolean();
-                                std::cout<<"firmwareupdateinfo asyncresponse value is "<<asyncResponse<<"\n";
-                                std::cout<<"Systemservice :getFirmwareUpdateInfo  api success\n";
-                            } else {
-                                std::cout<<"Systemservice :getFirmwareUpdateInfo  api failure\n";
-                            }
-                        }
-                        break;
-
-                    case 18:
-                        {
-                            std::cout<<"----------getSystemVersions----------\n";
-                            std::cout<<"Enter the number of properties\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n1.Enter the name pf API\n";
-                            for (i = 0; i < size; i++) {
-                                std::cin>> pName[i];
-                            }
-                            req="\"" + pName[0] +"\"";
-                            parameters["appName"].FromString(req);
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getSystemVersions"), parameters, result);
-                            std::cout<<ret;
-                            result.ToString(str);
-                            std::cout<<str<<"\n";
-                            if (result["success"].Boolean()) {
-                                string stbVersion =  result["stbVersion"].String();
-                                string receiverVersion = result["receiverVersion"].String();
-                                string stbTimestamp = result["stbTimestamp"].String();
-                                std::cout<<"stbVersionNumber  = "<<stbVersion<<"\n";
-                                std::cout<<"receiverVersion = "<<receiverVersion<<"\n";
-                                std::cout<<"stbTimestamp = "<<stbTimestamp<<"\n";
-                                std::cout<<"Successfully get requested the API getSystemVersions \n";
-                            } else {
-                                std::cout<<"call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 19:
-                        {
-                            std::cout<<"----getFirmwareDownloadPercent------\n";
-                            std::cout<<"Enter the number of properties\n1.Enter the name pf API\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n";
-                            for(i=0;i<size;i++){
-                                std::cin>> pName[i];
-                            }
-                            //To create the json format request string
-                            req="\"" + pName[0] +"\"";
-                            std::cout<<"Request string is"<<req<<"\n";
-                            parameters["appName"].FromString(req);
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getFirmwareDownloadPercent"), parameters, result);
-                            result.ToString(str);
-                            std::cout<<str<<"\n";
-                            if (result["success"].Boolean()) {
-                                int m_downloadPercent = result["downloadPercent"].Number();
-                                std::cout<<"downloadPercent = "<<m_downloadPercent<<"\n";
-                                std::cout<<"Successfully get requested the API getFirmwareDownloadPercent \n";
-                            } else {
-                                std::cout<<" call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 20:
-                        {
-                            std::cout<<"-----getTemperatureThresholds-------\n";
-                            std::cout<<"Enter the number of properties\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n1.Enter the name of API\n";
-                            for(i=0;i<size;i++){
-                                std::cin>> pName[i];
-                            }
-                            req="\"" + pName[0] +"\"";
-                            std::cout<<"\nRequested string is"<<req<<"\n";
-                            parameters["appName"].FromString(req);
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getTemperatureThresholds"), parameters, response);
-
-                            value.FromString(response["temperatureThresholds"].String());
-                            response.ToString(str);
-                            std::cout<<str<<"\n";
-                            if (response["success"].Boolean()) {
-                                string warnData = value["WARN"].String();
-                                string maxData = value["MAX"].String();
-                                string temperatureData = value["temperature"].String();
-                                std::cout<<"Temperature WARN = "<<warnData<<"\n";
-                                std::cout<<"Temperature MAX = "<<maxData<<"\n";
-                                std::cout<<"Temperature = "<<temperatureData<<"\n";
-                                std::cout<<"Successfully get requested the API getTemperatureThresholds \n";
-                            } else {
-                                std::cout<<"call failed \n";
-                            }
-                        }
-                        break;
-                    case 21:
-                        {
-                            std::cout<<"-------setTemperatureThresholds-----\n";
-                            std::cout<<"Enter the number of properties\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n1.Enter the WARN value of temperature\n2.Enter the MAX value of temperature\n";
-                            for(i=0;i<size;i++){
-                                std::cin>> pName[i];
-                            }
-                            parameters["appName"].FromString(req);
-                            value["WARN"] = pName[1];
-                            value["MAX"] = pName[2];
-                            parameters["param"] = value;
-                            std::cout<<"Request string is"<<req<<"\n";
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setTemperatureThresholds"), parameters, response);
-                            response.ToString(str);
-                            std::cout<<str<<"\n";
-                            if (response["success"].Boolean()) {
-                                std::cout<<"set sucessfully\n";
-                            } else {
-                                std::cout<<" call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 22:
-                        {
-                            std::cout<<"-----getXconfParams----------- \n";
-                            std::cout<<"Enter the number of properties\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n1.Enter the name of API\n";
-                            for(i=0;i<size;i++){
-                                std::cin>> pName[i];
-                            }
-                            req="\"" + pName[0] +"\"";
-                            std::cout<<"Request string is"<<req<<"\n";
-                            parameters["appName"].FromString(req);
-
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("getXconfParams"), parameters, result);
-                            result.ToString(str);
-                            std::cout<<str<<"\n";
-                            if (result["success"].Boolean()) {
-                                value.FromString(result["xconfParams"].String());
-                                string eStbMac = value["eStbMac"].String();
-                                string model = value["model"].String();
-                                string firmwareVersion = value["firmwareVersion"].String();
-                                std::cout<<"eStbMac = "<<eStbMac<<"\n";
-                                std::cout<<"STB Model = "<<model<<"\n";
-                                std::cout<<"firmwareVersion = "<<firmwareVersion<<"\n";
-                                std::cout<<"Successfully get requested XconfParams \n";
-                            } else {
-                                std::cout<<" call failed \n";
-                            }
-                        }
-                        break;
-
-                    case 23:
-                        {
-                            std::cout<<"---------setDeepSleepTimer---------\n";
-                            std::cout<<"Enter the number of properties\n";
-                            std::cin>> size;
-                            string pName[size];
-                            std::cout<<"Enter the properties which needs to be registered\n";
-                            for(i=0;i<size;i++){
-                                std::cin>> pName[i];
-                            }
-                            parameters["appName"].FromString(req);
-                            value["deepSleepInterval"]=pName[1];
-                            parameters["param"]=value;
-
-                            ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                    _T("setDeepSleepTimer"), parameters, response);
-                            response.ToString(str);
-                            std::cout<<str<<"\n";
-
-                            if (response["success"].Boolean()) {
-                                std::cout<<"set successfully"<<"\n";
-                            } else {
-                                std::cout<<"call failed"<<"\n";
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                std::cout<<"to continue press y to quit press any other key \n";
-                char c;
-                std::cin >> c;
-                if ((c == 'y') || (c == 'Y')) {
-                    continue;
-                } else {
-                    break;
-                }
-            }
-        }
-
-    }
-    return retStatus;
+	return retStatus;
 }
+

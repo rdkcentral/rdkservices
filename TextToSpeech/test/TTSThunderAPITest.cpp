@@ -36,7 +36,7 @@
 #include <securityagent/SecurityTokenUtil.h>
 #define MAX_LENGTH 1024
 
-#define TTSSRV_CALLSIGN "org.rdk.TextToSpeech"
+#define TTSSRV_CALLSIGN "org.rdk.TextToSpeech.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define MAX_STRING_LENGTH 2048
 
@@ -178,11 +178,6 @@ namespace Handlers {
         int speechId     = params["speechid"].Number();
         cout << endl << "Event: onSpeechResume - speechid: (" << speechId << ")" << endl;
     }
-    static void onSpeechCancelledHandler(const JsonObject& params) {
-        std::string speechId     = params["speechid"].String();
-        cout << endl << "Event: onSpeechCancel - speechid: (" << speechId << ")" << endl;
-        currentSpeechId = 0;
-    }
     static void onSpeechInterruptedHandler(const JsonObject& params) {
         int speechId     = params["speechid"].Number();
         cout << endl << "Event: onSpeechInterrupt - speechid: (" << speechId << ")" << endl;
@@ -228,7 +223,7 @@ int main(int argc, char *argv[]) {
         {
             string sToken = (char*)buffer;
             string query = "token=" + sToken;
-            remoteObject = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>("org.rdk.TextToSpeech.1", "", false, query);
+            remoteObject = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(TTSSRV_CALLSIGN, "", false, query);
         }
         if (NULL == remoteObject) {
             LOGERR("JSONRPC::Client initialization failed");
@@ -259,11 +254,7 @@ int main(int argc, char *argv[]) {
                         &Handlers::onSpeechResumeHandler) == Core::ERROR_NONE) {
                 LOGERR("Failed to Subscribe notification handler : onspeechresumeHandler");
             }
-            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onspeechcancelled"),
-                        &Handlers::onSpeechCancelledHandler) == Core::ERROR_NONE) {
-                LOGERR("Failed to Subscribe notification handler : onspeechcancelledHandler");
-            }
-            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onspeecinterrupted"),
+            if (!remoteObject->Subscribe<Core::JSON::VariantContainer>(1000, _T("onspeechinterrupted"),
                         &Handlers::onSpeechInterruptedHandler) == Core::ERROR_NONE) {
                 LOGERR("Failed to Subscribe notification handler : onspeechinterruptedHandler");
             }

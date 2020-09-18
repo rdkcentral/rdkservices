@@ -59,7 +59,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_INJECT_KEY;
-            static const string RDKSHELL_METHOD_INJECT_KEYS;
+            static const string RDKSHELL_METHOD_GENERATE_KEYS;
             static const string RDKSHELL_METHOD_GET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_SET_SCREEN_RESOLUTION;
             static const string RDKSHELL_METHOD_CREATE_DISPLAY;
@@ -83,6 +83,9 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_DESTROY;
             static const string RDKSHELL_METHOD_GET_AVAILABLE_TYPES;
             static const string RDKSHELL_METHOD_GET_STATE;
+            static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
+            static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
+            static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -96,6 +99,10 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
+            static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING;
+            static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING;
+            static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
+            static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
 
         private/*registered methods (wrappers)*/:
 
@@ -112,7 +119,7 @@ namespace WPEFramework {
             uint32_t addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t injectKeysWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t generateKeyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setScreenResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t createDisplayWrapper(const JsonObject& parameters, JsonObject& response);
@@ -136,6 +143,9 @@ namespace WPEFramework {
             uint32_t destroyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getState(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -153,7 +163,7 @@ namespace WPEFramework {
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
             bool addAnyKeyListener(const string& client, const JsonArray& listeners);
             bool injectKey(const uint32_t& keyCode, const JsonArray& modifiers);
-            bool injectKeys(const JsonArray& keyInputs);
+            bool generateKey(const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool createDisplay(const string& client, const string& displayName);
@@ -171,9 +181,11 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const string interval);
-            void onLaunched(const std::string& client);
+            void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
+            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
+            bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static void getSecurityToken(std::string& token);
@@ -181,7 +193,6 @@ namespace WPEFramework {
 
             static std::string m_sToken;
             static bool m_sThunderSecurityChecked;
-
 
         private/*classes */:
 
@@ -206,6 +217,10 @@ namespace WPEFramework {
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
                 virtual void onUserInactive(const double minutes);
+                virtual void onDeviceLowRamWarning(const int32_t freeKb);
+                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
+                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
+                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
 
               private:
                   RDKShell& mShell;
@@ -244,6 +259,7 @@ namespace WPEFramework {
             bool mEnableUserInactivityNotification;
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
+            PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
         };
     } // namespace Plugin

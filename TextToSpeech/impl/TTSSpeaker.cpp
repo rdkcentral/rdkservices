@@ -146,6 +146,8 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipelineConstructionFailures(0),
     m_maxPipelineConstructionFailures(INT_FROM_ENV("MAX_PIPELINE_FAILURE_THRESHOLD", 1)) {
         setenv("GST_DEBUG", "2", 0);
+        if (!gst_is_initialized())
+            gst_init(NULL,NULL);
         this->main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
 }
 
@@ -221,19 +223,13 @@ bool TTSSpeaker::isSpeaking(uint32_t id) {
     return false;
 }
 
-bool TTSSpeaker::cancelCurrentSpeech(uint32_t id) {
+bool TTSSpeaker::cancelSpeech(uint32_t id) {
     TTSLOG_VERBOSE("Cancelling current speech");
     bool status = false;
-    if(m_isSpeaking) {
+    if(m_isSpeaking && m_currentSpeech && ((m_currentSpeech->id == id) || (id == 0))) {
         m_isPaused = false;
         m_flushed = true;
-        if(m_currentSpeech && (m_currentSpeech->id == id) && m_clientSpeaking)
-        {
-            std::vector<uint32_t> speechCancelled;
-            speechCancelled.push_back(m_currentSpeech->id);
-            m_clientSpeaking->cancelled(speechCancelled);
-            status = true;
-        }
+        status = true;
         m_condition.notify_one();
     }
     return status;
@@ -241,7 +237,7 @@ bool TTSSpeaker::cancelCurrentSpeech(uint32_t id) {
 
 bool TTSSpeaker::reset() {
     TTSLOG_VERBOSE("Resetting Speaker");
-    cancelCurrentSpeech();
+    cancelSpeech();
     flushQueue();
 
     return true;
@@ -368,11 +364,11 @@ void TTSSpeaker::createPipeline() {
     m_source = gst_element_factory_make("souphttpsrc", NULL);
 
     // create soc specific elements
-//#if defined(BCM_NEXUS)
+#if defined(BCM_NEXUS)
     GstElement *decodebin = NULL;
     decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
-//#endif
+#endif
 
     std::string tts_url =
         !m_defaultConfig.secureEndPoint().empty() ? m_defaultConfig.secureEndPoint().c_str() : m_defaultConfig.endPoint().c_str();
@@ -398,11 +394,11 @@ void TTSSpeaker::createPipeline() {
 
     // Add elements to pipeline and link
     bool result = TRUE;
-//#if defined(BCM_NEXUS)
+#if defined(BCM_NEXUS)
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
-//#endif
+#endif
 
     if(!result) {
         TTSLOG_ERROR("failed to link elements!");

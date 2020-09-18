@@ -270,7 +270,7 @@ TTS_Error TTSManager::resume(uint32_t id) {
 TTS_Error TTSManager::shut(uint32_t id) {
     TTSLOG_TRACE("Shut");
 
-    if(m_speaker && m_speaker->cancelCurrentSpeech(id))
+    if((id != 0) && m_speaker && m_speaker->cancelSpeech(id))
         return TTS_OK;
 
     return TTS_FAIL;

@@ -41,6 +41,14 @@ typedef enum {
     STATUS_METHOD_NOT_FOUND
 } StatusCode;
 
+typedef enum
+{
+    RF4CE_CHIP_CONNECTIVITY_NOT_CONNECTED,
+    RF4CE_CHIP_CONNECTIVITY_CONNECTED,
+    RF4CE_CHIP_CONNECTIVITY_NOT_SUPPORTED,
+    RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR,
+} eCheckRf4ceChipConnectivity;
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -102,6 +110,7 @@ namespace WPEFramework {
             uint32_t endPairingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t canFindMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t checkRf4ceChipConnectivityWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
@@ -139,6 +148,7 @@ namespace WPEFramework {
             StatusCode endPairingMode(int& bindStatus);
             StatusCode findMyRemote(int timeOutPeriod, bool bOnlyLastUsed);
             bool       canFindMyRemote();
+            eCheckRf4ceChipConnectivity checkRf4ceChipConnectivity();
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);
