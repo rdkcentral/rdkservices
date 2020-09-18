@@ -18,6 +18,7 @@
 set(PLUGIN_NAME DeviceIdentification)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+option(CODE_FROM_EXTERNAL_REPOSITORY "Include code from External Repository" ON)
 option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
 
 find_package(NEXUS QUIET)
