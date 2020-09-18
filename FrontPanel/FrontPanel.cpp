@@ -116,16 +116,12 @@ namespace
         string range;
 
         indicator.getBrightnessLevels(levels, min, max);
-        range = (levels <=2)?"boolean":"int";
+        range = ((min == 0) && (max == 1))?"boolean":"int";
         indicatorInfo["range"] = range;
 
         indicatorInfo["min"] = JsonValue(min);
         indicatorInfo["max"] = JsonValue(max);
-
-        if (range == ("int"))
-        {
-            indicatorInfo["step"] = JsonValue((max-min)/levels);
-        }
+        indicatorInfo["step"] = JsonValue(levels);
         JsonArray availableColors;
         const device::List <device::FrontPanelIndicator::Color> colorsList = indicator.getSupportedColors();
         for (uint j = 0; j < colorsList.size(); j++)
@@ -260,29 +256,36 @@ namespace WPEFramework
                     string fp_ind;
                     fp_ind = svc2iarm(parameters["index"].String());
                     LOGWARN("FP calling setBrightness of %s", fp_ind.c_str());
+                    int min=0, max=0, step=1;
 
-                    if (brightness >= 0)
-                    {
-                        LOGWARN("FP calling setBrightness of %s to %d", fp_ind.c_str(), brightness);
-#ifdef CLOCK_BRIGHTNESS_ENABLED
-                        if (TEXT_LED == fp_ind)
+                    try {
+                        device::FrontPanelIndicator::getInstance(fp_ind.c_str()).getBrightnessLevels(step, min, max);
+                    
+                        if ((brightness >= 0) && ((brightness % step) == 0))
                         {
-                            setClockBrightness(int(brightness));
-                            ok = true;
-                        }
-                        else
+                            LOGWARN("FP calling setBrightness of %s to %d", fp_ind.c_str(), brightness);
+#ifdef CLOCK_BRIGHTNESS_/ENABLED
+                            if (TEXT_LED == fp_ind)
+                            {
+                                setClockBrightness(int(brightness));
+                                ok = true;
+                            }
+                            else
 #endif
-                        {
-                            try
                             {
                                 device::FrontPanelIndicator::getInstance(fp_ind.c_str()).setBrightness(int(brightness));
                                 ok = true;
                             }
-                            catch (...)
-                            {
-                                ok = false;
-                            }
                         }
+                        else
+                        {
+                            LOGWARN("Not supported Brightness value : %d", brightness);
+                        }
+
+                    }
+                    catch (...)
+                    {
+                        ok = false;
                     }
                 }
             }
@@ -695,9 +698,16 @@ namespace WPEFramework
          * @param[in] is24Hour true if 24 hour clock format.
          * @ingroup SERVMGR_FRONTPANEL_API
          */
-        void FrontPanel::set24HourClock(bool is24Hour)
+        bool FrontPanel::set24HourClock(bool is24Hour)
         {
+            bool success = false;
+    #ifdef CLOCK_BRIGHTNESS_ENABLED
             CFrontPanel::instance()->set24HourClock(is24Hour);
+            success = true;
+    #else
+        LOGWARN("%s: disabled for this platform", __FUNCTION__);
+    #endif
+            return success;
         }
 
         /**
@@ -724,8 +734,9 @@ namespace WPEFramework
          * @return true if method succeeded.
          * @ingroup SERVMGR_FRONTPANEL_API
          */
-        void FrontPanel::setClockTestPattern(bool show)
+        bool FrontPanel::setClockTestPattern(bool show)
         {
+        bool success = false;
         #ifdef CLOCK_BRIGHTNESS_ENABLED
             try{
                 device::FrontPanelTextDisplay& display = device::FrontPanelConfig::getInstance().getTextDisplay("Text");
@@ -784,6 +795,7 @@ namespace WPEFramework
                         m_savedClockBrightness = -1;
                     }
                 }
+                success = true;
             }
             catch (...)
             {
@@ -792,6 +804,7 @@ namespace WPEFramework
         #else
             LOGWARN("%s: disabled for this platform", __FUNCTION__);
         #endif
+            return success;
         }
 
 
@@ -831,8 +844,7 @@ namespace WPEFramework
             {
                 bool is24Hour = false;
                 getBoolParameter("is24Hour", is24Hour );
-                set24HourClock(is24Hour);
-                success = true;
+                success = set24HourClock(is24Hour);
             }
             returnResponse(success);
         }
@@ -846,10 +858,11 @@ namespace WPEFramework
 
         uint32_t FrontPanel::setClockTestPatternWrapper(const JsonObject& parameters, JsonObject& response)
         {
+            bool success = false;
             if (!parameters.HasLabel("show"))
             {
                 LOGWARN("'show' parameter wasn't passed");
-                returnResponse(false);
+                returnResponse(success);
             }
 
             bool show = false;
@@ -859,9 +872,9 @@ namespace WPEFramework
             if (parameters.HasLabel("timerInterval"))
                 getNumberParameter("timerInterval", m_LedDisplayPatternUpdateTimerInterval);
 
-            setClockTestPattern(show);
+            success = setClockTestPattern(show);
 
-            returnResponse(true);
+            returnResponse(success);
         }
 
         void FrontPanel::updateLedTextPattern()
