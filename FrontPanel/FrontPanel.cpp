@@ -264,7 +264,7 @@ namespace WPEFramework
                         if ((brightness >= 0) && ((brightness % step) == 0))
                         {
                             LOGWARN("FP calling setBrightness of %s to %d", fp_ind.c_str(), brightness);
-#ifdef CLOCK_BRIGHTNESS_/ENABLED
+#ifdef CLOCK_BRIGHTNESS_ENABLED
                             if (TEXT_LED == fp_ind)
                             {
                                 setClockBrightness(int(brightness));
