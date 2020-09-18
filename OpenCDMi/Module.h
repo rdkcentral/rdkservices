@@ -26,6 +26,11 @@
 
 #include <plugins/plugins.h>
 
+// Get in the definitions required for access to the OCDM
+// counter part living in the applications
+#include <ocdm/IOCDM.h>
+#include <ocdm/open_cdm.h>
+
 #undef EXTERNAL
 #define EXTERNAL
 
