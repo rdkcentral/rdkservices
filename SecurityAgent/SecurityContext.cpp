@@ -53,9 +53,10 @@ namespace WPEFramework {
 namespace Plugin {
 
     SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[])
-        : _accessControlList(nullptr)
+        : _token(string(reinterpret_cast<const TCHAR*>(payload), length))
+        , _accessControlList(nullptr)
     {
-        _context.FromString(string(reinterpret_cast<const TCHAR*>(payload), length));
+        _context.FromString(_token);
 
         if ( (_context.URL.IsSet() == true) && (acl != nullptr) ) {
             _accessControlList = acl->FilterMapFromURL(_context.URL.Value());
@@ -77,9 +78,8 @@ namespace Plugin {
     {
         bool allowed = (_accessControlList != nullptr);
 
-		if (allowed == true) {
-			
-		}
+        if (allowed == true) {
+        }
 
         return (allowed);
     }
@@ -87,7 +87,13 @@ namespace Plugin {
     //! Allow a JSONRPC message to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Core::JSONRPC::Message& message) const /* override */ 
     {
-        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign())));
+        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
     }
+
+    string SecurityContext::Token() const /* override */
+    {
+        return (_token);
+    }
+
 }
 }

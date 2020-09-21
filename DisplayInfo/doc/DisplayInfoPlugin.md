@@ -105,8 +105,7 @@ Provides access to the display general information.
 | (property).connected | boolean | HDMI display connection status |
 | (property).width | number | Width of the connected HDMI display |
 | (property).height | number | Height of the connected HDMI display |
-| (property).hdcpmajor | number | Major version of the HDCP supported by the device |
-| (property).hdcpminor | number | Minor version of the HDCP supported by the device |
+| (property).hdcpprotection | string | HDCP Protection (must be one of the following: *Unencrypted*, *HDCP1x*, *HDCP2x*) |
 | (property).hdrtype | string | HDR Type used (must be one of the following: *HDROff*, *HDR10*, *HDR10Plus*, *HDRDolbyVision*, *HDRTechnicolor*) |
 
 ### Example
@@ -133,8 +132,7 @@ Provides access to the display general information.
         "connected": true,
         "width": 1280,
         "height": 720,
-        "hdcpmajor": 2,
-        "hdcpminor": 2,
+        "hdcpprotection": "HDCP1x",
         "hdrtype": "HDROff"
     }
 }
@@ -142,7 +140,7 @@ Provides access to the display general information.
 <a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the plugin, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers.Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the DisplayInfo plugin:
 
