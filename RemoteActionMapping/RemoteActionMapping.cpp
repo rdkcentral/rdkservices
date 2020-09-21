@@ -636,28 +636,22 @@ namespace WPEFramework {
                         LOGWARN("keyActionMap[%d]: keyName value: 0x%02X.", i, actionMap.keyName);
                     }
                     // Get the rfKeyCode
+                    int inRFKeyCode = -1;
                     paramKey = "rfKeyCode";
-                    if (!jsonActionMap.HasLabel(paramKey))
+                    if (jsonActionMap.HasLabel(paramKey))
                     {
-                        LOGERR("ERROR - keyActionMap[%d]: missing rfKeyCode parameter!", i);
+                        getNumberParameterObject(jsonActionMap, paramKey, inRFKeyCode);
+                    }
+                    // Lookup the rfKeyCode ourselves, using the keyName value
+                    actionMap.rfKeyCode = m_helper.lookupRFKey(actionMap.keyName);
+                    if ((actionMap.rfKeyCode < 0) || (actionMap.rfKeyCode > 255))
+                    {
+                        // rfKeyCode is out of range. We will treat this as a fatal error. Exit now.
+                        LOGERR("ERROR - Bad lookup 'rfKeyCode' value: %d!", actionMap.rfKeyCode);
                         response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                         returnResponse(false);
                     }
-                    else
-                    {
-                        int value = 0;
-                        getNumberParameterObject(jsonActionMap, paramKey, value);
-                        // Lookup the rfKeyCode ourselves, using the keyName value
-                        actionMap.rfKeyCode = m_helper.lookupRFKey(actionMap.keyName);
-                        if ((actionMap.rfKeyCode < 0) || (actionMap.rfKeyCode > 255))
-                        {
-                            // rfKeyCode is out of range. We will treat this as a fatal error. Exit now.
-                            LOGERR("ERROR - Bad lookup 'rfKeyCode' value: %d!", actionMap.rfKeyCode);
-                            response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
-                            returnResponse(false);
-                        }
-                        LOGWARN("keyActionMap[%d]: rfKeyCode value: 0x%02X, input rfKeyCode: 0x%02X.", i, actionMap.rfKeyCode, value);
-                    }
+                    LOGWARN("keyActionMap[%d]: rfKeyCode value: 0x%02X, input rfKeyCode: 0x%02X.", i, actionMap.rfKeyCode, inRFKeyCode);
 
                     // Get the tvIRKeyCode IR waveform data
                     paramKey = "tvIRKeyCode";
