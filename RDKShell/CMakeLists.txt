@@ -19,17 +19,19 @@ set(PLUGIN_NAME RDKShell)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-
+find_package(IARMBus)
+    
 add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
         Module.cpp
+        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
 
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
