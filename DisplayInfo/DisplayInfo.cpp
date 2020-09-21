@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "DisplayInfo.h"
 
 namespace WPEFramework {
@@ -42,12 +42,15 @@ namespace Plugin {
         if (_connectionProperties != nullptr) {
 
             _graphicsProperties = _connectionProperties->QueryInterface<Exchange::IGraphicsProperties>();
+            _hdrProperties = _connectionProperties->QueryInterface<Exchange::IHDRProperties>();
             if (_graphicsProperties == nullptr) {
 
                 _connectionProperties->Release();
                 _connectionProperties = nullptr;
             } else {
                 _notification.Initialize(_connectionProperties);
+                Exchange::JConnectionProperties::Register(*this, _connectionProperties);
+                Exchange::JHDRProperties::Register(*this, _hdrProperties);
             }
         }
 
@@ -61,6 +64,9 @@ namespace Plugin {
     /* virtual */ void DisplayInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_connectionProperties != nullptr);
+
+        Exchange::JHDRProperties::Unregister(*this);
+        Exchange::JConnectionProperties::Unregister(*this);
 
         _notification.Deinitialize();
 
@@ -76,6 +82,10 @@ namespace Plugin {
             _connectionProperties = nullptr;
         }
 
+        if (_hdrProperties != nullptr) {
+            _hdrProperties->Release();
+            _hdrProperties = nullptr;
+        }
         _connectionId = 0;
     }
 
@@ -122,15 +132,33 @@ namespace Plugin {
 
     void DisplayInfo::Info(JsonData::DisplayInfo::DisplayinfoData& displayInfo) const
     {
+        bool boolean;
+        uint32_t value;
+        Exchange::IHDRProperties::HDRType hdrType;
+        Exchange::IConnectionProperties::HDCPProtectionType hdcpType;
+
         displayInfo.Totalgpuram = _graphicsProperties->TotalGpuRam();
         displayInfo.Freegpuram = _graphicsProperties->FreeGpuRam();
 
-        displayInfo.Audiopassthrough = _connectionProperties->IsAudioPassthrough();
-        displayInfo.Connected = _connectionProperties->Connected();
-        displayInfo.Width = _connectionProperties->Width();
-        displayInfo.Height = _connectionProperties->Height();
-        displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(_connectionProperties->HDCPProtection());
-        displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(_connectionProperties->Type());
+        if (_connectionProperties->IsAudioPassthrough(boolean) == Core::ERROR_NONE) {
+            displayInfo.Audiopassthrough = boolean;
+        }
+        if (_connectionProperties->Connected(boolean) == Core::ERROR_NONE) {
+            displayInfo.Connected = boolean;
+        }
+        if (_connectionProperties->Width(value) == Core::ERROR_NONE) {
+            displayInfo.Width = value;
+        }
+        if (_connectionProperties->Height(value) == Core::ERROR_NONE) {
+            displayInfo.Height = value;
+        }
+
+        if (static_cast<const Exchange::IConnectionProperties*>(_connectionProperties)->HDCPProtection(hdcpType) == Core::ERROR_NONE) {
+            displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(hdcpType);
+        }
+        if ((_hdrProperties != nullptr) && (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE)) {
+            displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(hdrType);
+        }
     }
 
 } // namespace Plugin
