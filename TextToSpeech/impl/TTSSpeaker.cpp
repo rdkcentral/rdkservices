@@ -364,7 +364,7 @@ void TTSSpeaker::createPipeline() {
     m_source = gst_element_factory_make("souphttpsrc", NULL);
 
     // create soc specific elements
-#if defined(BCM_NEXUS)
+#ifdef PLATFORM_BROADCOM
     GstElement *decodebin = NULL;
     decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
@@ -394,7 +394,7 @@ void TTSSpeaker::createPipeline() {
 
     // Add elements to pipeline and link
     bool result = TRUE;
-#if defined(BCM_NEXUS)
+#ifdef PLATFORM_BROADCOM
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
