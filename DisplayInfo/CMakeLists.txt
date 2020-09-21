@@ -45,6 +45,12 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
+if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
+    target_compile_definitions(${MODULE_NAME}
+        PRIVATE
+            DISPLAYINFO_BCM_VERSION_MAJOR=${PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR})
+endif()
+
 if (NXCLIENT_FOUND AND NEXUS_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
@@ -53,12 +59,6 @@ if (NXCLIENT_FOUND AND NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-
-if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
-    target_compile_definitions(${MODULE_NAME}
-        PRIVATE
-            DISPLAYINFO_BCM_VERSION_MAJOR=${PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR})
-endif ()
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE

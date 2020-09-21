@@ -147,7 +147,7 @@ if(PLUGIN_HDMICECSINK)
     add_subdirectory(HdmiCecSink)
 endif()
 
-if(PLUGIN_LOCATIONYNC)
+if(PLUGIN_LOCATIONSYNC)
     add_subdirectory(LocationSync)
 endif()
 
@@ -209,18 +209,6 @@ endif()
 
 if(HAS_AUTHSERVICE)
     add_subdirectory(AuthService)
-endif()
-
-if(PLUGIN_TTSSETTINGS)
-    add_subdirectory(TTSSettings)
-endif()
-
-if(PLUGIN_TTSRESOURCE)
-    add_subdirectory(TTSResource)
-endif()
-
-if(PLUGIN_TTSSESSIONSERVICE)
-    add_subdirectory(TTSSessionService)
 endif()
 
 if(PLUGIN_CONTINUEWATCHING)

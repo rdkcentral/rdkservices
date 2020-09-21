@@ -956,6 +956,14 @@ namespace WPEFramework {
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGERR("Size too large to use ToString base64 wpe api");
             string edidbase64;
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
             response["EDID"] = edidbase64;
             returnResponse(true);
@@ -982,6 +990,16 @@ namespace WPEFramework {
             uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
             if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
                 LOGINFO("size too large to use ToString base64 wpe api");
+
+            // Align input string size to multiple of 3
+            int paddingSize = 0;
+            for (; paddingSize < (3-size%3);paddingSize++)
+            {
+                edidVec.push_back(0x00);
+            }
+            size += paddingSize;
+
+
             Core::ToString((uint8_t*)&edidVec[0], size, false, base64String);
             response["EDID"] = base64String;
             returnResponse(true);
