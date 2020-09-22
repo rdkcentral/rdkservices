@@ -702,8 +702,7 @@ namespace WPEFramework
         {
             bool success = false;
     #ifdef CLOCK_BRIGHTNESS_ENABLED
-            CFrontPanel::instance()->set24HourClock(is24Hour);
-            success = true;
+            success = CFrontPanel::instance()->set24HourClock(is24Hour);
     #else
         LOGWARN("%s: disabled for this platform", __FUNCTION__);
     #endif
