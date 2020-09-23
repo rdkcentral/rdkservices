@@ -461,14 +461,12 @@ private:
                                        (_T("HDCP State=[%s]")
                                         _T(" ReadyForEncryption=[%s]")
                                         _T(" HDCP1.1Features=[%s]")
-                                        _T(" 1.xDeviceDownstream=[%s]")
 #ifdef NEXUS_HDCPVERSION_SUPPORTED
                                         _T(" MaxHDCPVersion=[%s]")
 #endif
                                         , NEXUSHdmiOutputHdcpStateToString(hdcpStatus.hdcpState).c_str()
                                         , hdcpStatus.linkReadyForEncryption ? _T("true") : _T("false")
                                         , hdcpStatus.hdcp1_1Features ? _T("true") : _T("false")
-                                        , hdcpStatus.hdcp2_2RxInfo.hdcp1_xDeviceDownstream ? _T("true") : _T("false")
 #ifdef NEXUS_HDCPVERSION_SUPPORTED
                                         , NEXUSHdcpVersionToString(hdcpStatus.rxMaxHdcpVersion).c_str()
 #endif
