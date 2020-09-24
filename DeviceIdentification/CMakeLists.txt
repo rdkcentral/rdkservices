@@ -18,7 +18,6 @@
 set(PLUGIN_NAME DeviceIdentification)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-option(CODE_FROM_EXTERNAL_REPOSITORY "Include code from External Repository" ON)
 option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
 
 find_package(NEXUS QUIET)
@@ -46,7 +45,8 @@ elseif (NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-    if (CODE_FROM_EXTERNAL_REPOSITORY)
+    option(DEVICEIDENTIFICATION_EXTERNAL_REPOSITORY "Include code from External Repository" ON)
+    if (DEVICEIDENTIFICATION_EXTERNAL_REPOSITORY)
         include(GetExternalCode)
         GetExternalCode(
             GIT_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification"
