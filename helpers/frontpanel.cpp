@@ -549,10 +549,10 @@ namespace WPEFramework
                 frontPanelBlinkInfo.ledIndicator = ledIndicator;
                 int brightness = -1;
                 if (frontPanelBlinkHash.HasLabel("brightness"))
-                    getNumberParameterObject(blinkInfo, "brightness", brightness);
+                    getNumberParameterObject(frontPanelBlinkHash, "brightness", brightness);
 
                 int duration;
-                getNumberParameterObject(blinkInfo, "duration", duration);
+                getNumberParameterObject(frontPanelBlinkHash, "duration", duration);
                 LOGWARN("setBlink ledIndicator: %s iterations: %d brightness: %d duration: %d", ledIndicator.c_str(), iterations, brightness, duration);
                 frontPanelBlinkInfo.brightness = brightness;
                 frontPanelBlinkInfo.durationInMs = duration;
@@ -567,9 +567,9 @@ namespace WPEFramework
                 {
                     unsigned int red,green,blue;
 
-                    getNumberParameterObject(blinkInfo, "red", red);
-                    getNumberParameterObject(blinkInfo, "green", green);
-                    getNumberParameterObject(blinkInfo, "blue", blue);
+                    getNumberParameterObject(frontPanelBlinkHash, "red", red);
+                    getNumberParameterObject(frontPanelBlinkHash, "green", green);
+                    getNumberParameterObject(frontPanelBlinkHash, "blue", blue);
 
                     frontPanelBlinkInfo.colorValue = (red << 16) | (green << 8) | blue;
                     frontPanelBlinkInfo.colorMode = 1;
