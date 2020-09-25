@@ -1456,7 +1456,7 @@ static GSourceFuncs _handlerIntervention =
 
             // Disk Cache
             if (_config.DiskCache.Value().empty() == false)
-               Core::SystemInfo::SetEnvironment(_T("XDG_CACHE_HOME"), service->PersistentPath() + _config.DiskCacheDir.Value(), !environmentOverride);
+                Core::SystemInfo::SetEnvironment(_T("WPE_DISK_CACHE_SIZE"), _config.DiskCache.Value(), !environmentOverride);
 
             // Disk Cache Dir
             if (_config.DiskCacheDir.Value().empty() == false)
