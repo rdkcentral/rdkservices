@@ -73,7 +73,7 @@ namespace WPEFramework
         static int libcecInitStatus = 0;
 
         HdmiCec::HdmiCec()
-        : AbstractPlugin()
+        : AbstractPlugin(),smConnection(nullptr),cecEnableStatus(false)
         {
             LOGINFO();
             HdmiCec::_instance = this;
@@ -414,7 +414,10 @@ namespace WPEFramework
                 LibCCEC::getInstance().term();
             }
 
-            libcecInitStatus--;
+            if(libcecInitStatus > 0)
+            {
+                libcecInitStatus--;
+            }
 
             return;
         }
