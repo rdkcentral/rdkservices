@@ -22,6 +22,7 @@
 #include "videoOutputPort.hpp"
 #include "videoOutputPortConfig.hpp"
 #include "dsMgr.h"
+#include "manager.hpp"
 
 #include "utils.h"
 
@@ -50,6 +51,7 @@ namespace WPEFramework
             HdcpProfile::_instance = this;
 
             InitializeIARM();
+            device::Manager::Initialize();
 
             registerMethod(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
             registerMethod(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
@@ -59,7 +61,7 @@ namespace WPEFramework
         {
             LOGINFO();
             HdcpProfile::_instance = nullptr;
-
+            device::Manager::DeInitialize();
             DeinitializeIARM();
         }
 
