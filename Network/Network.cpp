@@ -154,7 +154,7 @@ namespace WPEFramework
             Register("setIPSettings", &Network::setIPSettings, this);
             Register("getIPSettings", &Network::getIPSettings, this);
 
-            Register("getStbIp_family", &Network::getStbIp_family, this);
+            Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -367,7 +367,7 @@ namespace WPEFramework
             returnResponse(true);
         }
 
-        uint32_t Network::getStbIp_family(const JsonObject &parameters, JsonObject &response)
+        uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
         {
             if (parameters.HasLabel("family"))
             {
