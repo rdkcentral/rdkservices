@@ -46,7 +46,11 @@ elseif (NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-    if (CODE_FROM_EXTERNAL_REPOSITORY)
+    if (DEVICEIDENTIFICATION_IMPLEMENTATION_PATH)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                ${DEVICEIDENTIFICATION_IMPLEMENTATION_PATH}/Nexus.cpp)
+    elseif (CODE_FROM_EXTERNAL_REPOSITORY)
         include(GetExternalCode)
         GetExternalCode(
             GIT_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification"
