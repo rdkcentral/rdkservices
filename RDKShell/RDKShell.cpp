@@ -158,7 +158,6 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
                 {
-
                     /*PluginHost::ISubSystem* subSystems(service->SubSystems());
                     if (subSystems != nullptr)
                     {
@@ -830,7 +829,13 @@ namespace WPEFramework {
             {
                 const JsonArray keyInputs = parameters["keys"].Array();
 
-                result = generateKey(keyInputs);
+                string client = parameters.HasLabel("client") ? parameters["client"].String() : "";
+                if (client.empty())
+                {
+                  client = parameters.HasLabel("callsign") ? parameters["callsign"].String() : "";
+                }
+                result = generateKey(client, keyInputs);
+
                 if (false == result) {
                   response["message"] = "failed to generate keys";
                 }
@@ -1441,6 +1446,7 @@ namespace WPEFramework {
                 string behind;
                 string displayName = "wst-" + callsign;
                 bool scaleToFit = false;
+                bool setSuspendResumeStateOnLaunch = true;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -1559,6 +1565,15 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
+                if (!type.empty() && type == "Netflix")
+                {
+                    std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
+                    configSet["launchtosuspend"] = suspend;
+                    if (!suspend)
+                    {
+                        setSuspendResumeStateOnLaunch = false;
+                    }
+                }
 
                 status = getThunderControllerClient()->Set<JsonObject>(2000, method.c_str(), configSet);
 
@@ -1662,31 +1677,34 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
-                    if (suspend)
+                    if (setSuspendResumeStateOnLaunch)
                     {
+                        if (suspend)
+                        {
 
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "suspended";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        
-                        std::cout << "setting the state to suspended\n";
-                        if (launchType == RDKShellLaunchType::UNKNOWN)
-                        {
-                            launchType = RDKShellLaunchType::SUSPEND;
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "suspended";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            
+                            std::cout << "setting the state to suspended\n";
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::SUSPEND;
+                            }
+                            visible = false;
                         }
-                        visible = false;
-                    }
-                    else
-                    {
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "resumed";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        if (launchType == RDKShellLaunchType::UNKNOWN)
+                        else
                         {
-                            launchType = RDKShellLaunchType::RESUME;
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "resumed";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::RESUME;
+                            }
+                            
+                            std::cout << "setting the state to resumed\n";
                         }
-                        
-                        std::cout << "setting the state to resumed\n";
                     }
                     setVisibility(callsign, visible);
                     if (!visible)
@@ -2190,7 +2208,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::generateKey(const JsonArray& keyInputs)
+        bool RDKShell::generateKey(const string& client, const JsonArray& keyInputs)
         {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
@@ -2201,12 +2219,17 @@ namespace WPEFramework {
                   const uint32_t delay = keyInputInfo["delay"].Number();
                   sleep(delay);
                   const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
+                  std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
+                  if (keyClient.empty())
+                  {
+                    keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
+                  }
                   uint32_t flags = 0;
                   for (int k=0; k<modifiers.Length(); k++) {
                     flags |= getKeyFlag(modifiers[k].String());
                   }
                   gRdkShellMutex.lock();
-                  ret = CompositorController::injectKey(keyCode, flags);
+                  ret = CompositorController::generateKey(keyClient, keyCode, flags);
                   gRdkShellMutex.unlock();
                 }
             }
