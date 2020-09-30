@@ -32,6 +32,7 @@ include_directories(${STAGING_INCDIR}/libdrm)
 
 add_library(${MODULE_NAME} SHARED
     DisplayInfo.cpp
+    DisplayInfoJsonRpc.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES

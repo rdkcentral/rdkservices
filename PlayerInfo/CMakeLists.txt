@@ -24,6 +24,7 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
     PlayerInfo.cpp
+    PlayerInfoJsonRpc.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES

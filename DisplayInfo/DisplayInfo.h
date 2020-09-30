@@ -85,10 +85,12 @@ namespace Plugin {
             , _hdrProperties(nullptr)
             , _notification(this)
         {
+            RegisterAll();
         }
 
         virtual ~DisplayInfo()
         {
+            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(DisplayInfo)
@@ -114,6 +116,8 @@ namespace Plugin {
 
     private:
         // JsonRpc
+        void RegisterAll();
+        void UnregisterAll();
         uint32_t get_displayinfo(JsonData::DisplayInfo::DisplayinfoData&) const;
 
         void Info(JsonData::DisplayInfo::DisplayinfoData&) const;
