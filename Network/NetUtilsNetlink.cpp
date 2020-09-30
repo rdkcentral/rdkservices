@@ -20,7 +20,7 @@
 #include "NetUtilsNetlink.h"
 #include <fcntl.h>
 #include <linux/rtnetlink.h>
-#include <linux/if.h>
+#include <net/if.h>
 #include <string.h>
 #include <sys/types.h>
 

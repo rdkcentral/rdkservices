@@ -127,11 +127,10 @@ namespace
             indicatorInfo["step"] = JsonValue((max-min)/levels);
         }
         JsonArray availableColors;
-        device::List <device::FrontPanelIndicator::Color> colorsList = indicator.getSupportedColors();
+        const device::List <device::FrontPanelIndicator::Color> colorsList = indicator.getSupportedColors();
         for (uint j = 0; j < colorsList.size(); j++)
         {
-            // todo - device setting support needed to convert color into a string value
-            //        and then add to the availableColors list
+            availableColors.Add(colorsList.at(j).getName());
         }
         if (availableColors.Length() > 0)
         {

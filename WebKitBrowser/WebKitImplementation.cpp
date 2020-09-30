@@ -740,18 +740,20 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetHeaders(const string& headers) final
         {
-            _adminLock.Lock();
-            _headers = headers;
-            _adminLock.Unlock();
-
             if (_context != nullptr) {
-                g_main_context_invoke(
+                using SetHeadersData = std::tuple<WebKitImplementation*, string>;
+                auto* data = new SetHeadersData(this, headers);
+
+                g_main_context_invoke_full(
                     _context,
+                    G_PRIORITY_DEFAULT,
                     [](gpointer customdata) -> gboolean {
-                        WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                        auto& data = *static_cast<SetHeadersData*>(customdata);
+                        WebKitImplementation* object = std::get<0>(data);
+                        const string& headers = std::get<1>(data);
 
                         object->_adminLock.Lock();
-                        string headers = object->_headers;
+                        object->_headers = headers;
                         object->_adminLock.Unlock();
 
                         auto messageName = WKStringCreateWithUTF8CString(Tags::Headers);
@@ -764,7 +766,10 @@ static GSourceFuncs _handlerIntervention =
 
                         return G_SOURCE_REMOVE;
                     },
-                    this);
+                    data,
+                    [](gpointer customdata) {
+                        delete static_cast<SetHeadersData*>(customdata);
+                    });
             }
         }
 
@@ -779,32 +784,35 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetUserAgent(const string& useragent) final
         {
-            _adminLock.Lock();
-            _config.UserAgent = useragent;
-            _adminLock.Unlock();
-
-            TRACE(Trace::Information, (_T("New user agent: %s"), useragent.c_str()));
-
             if (_context == nullptr)
                 return;
 
-            g_main_context_invoke(
+            using SetUserAgentData = std::tuple<WebKitImplementation*, string>;
+            auto* data = new SetUserAgentData(this, useragent);
+
+            TRACE(Trace::Information, (_T("New user agent: %s"), useragent.c_str()));
+
+            g_main_context_invoke_full(
                 _context,
+                G_PRIORITY_DEFAULT,
                 [](gpointer customdata) -> gboolean {
-                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
-                    string useragent;
+                    auto& data = *static_cast<SetUserAgentData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    const string& useragent = std::get<1>(data);
 
                     object->_adminLock.Lock();
-                    useragent = object->_config.UserAgent.Value();
+                    object->_config.UserAgent = useragent;
                     object->_adminLock.Unlock();
 
                     auto ua = WKStringCreateWithUTF8CString(useragent.c_str());
                     WKPageSetCustomUserAgent(object->_page, ua);
                     WKRelease(ua);
-
                     return G_SOURCE_REMOVE;
                 },
-                this);
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetUserAgentData*>(customdata);
+                });
         }
 
         virtual string GetLanguages() const final
@@ -820,31 +828,31 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetLanguages(const string& langs) final
         {
-            Core::OptionalType<Core::JSON::Error> error;
-            Core::JSON::ArrayType<Core::JSON::String> array;
-
-            if (!array.FromString(langs, error)) {
-                TRACE(Trace::Error,
-                     (_T("Failed to parse languages array, error='%s', array='%s'\n"),
-                      (error.IsSet() ? error.Value().Message().c_str() : "unknown"), langs.c_str()));
-                return;
-            }
-
-            _adminLock.Lock();
-            _config.Languages = array;
-            _adminLock.Unlock();
-
             if (_context == nullptr)
                 return;
 
-            g_main_context_invoke(
+            using SetLanguagesData = std::tuple<WebKitImplementation*, string>;
+            auto* data = new SetLanguagesData(this, langs);
+            g_main_context_invoke_full(
                 _context,
+                G_PRIORITY_DEFAULT,
                 [](gpointer customdata) -> gboolean {
-                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                    auto& data = *static_cast<SetLanguagesData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    const string& langs = std::get<1>(data);
+
+                    Core::OptionalType<Core::JSON::Error> error;
                     Core::JSON::ArrayType<Core::JSON::String> array;
 
+                    if (!array.FromString(langs, error)) {
+                        SYSLOG(Trace::Error,
+                              (_T("Failed to parse languages array, error='%s', array='%s'\n"),
+                               (error.IsSet() ? error.Value().Message().c_str() : "unknown"), langs.c_str()));
+                        return G_SOURCE_REMOVE;
+                    }
+
                     object->_adminLock.Lock();
-                    array = object->_config.Languages;
+                    object->_config.Languages = array;
                     object->_adminLock.Unlock();
 
                     auto languages = WKMutableArrayCreate();
@@ -861,7 +869,10 @@ static GSourceFuncs _handlerIntervention =
                     WKRelease(languages);
                     return G_SOURCE_REMOVE;
                 },
-                this);
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetLanguagesData*>(customdata);
+                });
         }
 
         virtual bool GetLocalStorageEnabled() const final
@@ -875,21 +886,21 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetLocalStorageEnabled(const bool enabled) final
         {
-            _adminLock.Lock();
-            _localStorageEnabled = enabled;
-            _adminLock.Unlock();
-
             if (_context == nullptr)
                 return;
 
-            g_main_context_invoke(
+            using SetLocalStorageEnabledData = std::tuple<WebKitImplementation*, bool>;
+            auto* data = new SetLocalStorageEnabledData(this, enabled);
+            g_main_context_invoke_full(
                 _context,
+                G_PRIORITY_DEFAULT,
                 [](gpointer customdata) -> gboolean {
-                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                    auto& data = *static_cast<SetLocalStorageEnabledData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    bool enabled = std::get<1>(data);
 
-                    bool enabled;
                     object->_adminLock.Lock();
-                    enabled = object->_localStorageEnabled;
+                    object->_localStorageEnabled = enabled;
                     object->_adminLock.Unlock();
 
                     auto group = WKPageGetPageGroup(object->_page);
@@ -897,7 +908,10 @@ static GSourceFuncs _handlerIntervention =
                     WKPreferencesSetLocalStorageEnabled(preferences, enabled);
                     return G_SOURCE_REMOVE;
                 },
-                this);
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetLocalStorageEnabledData*>(customdata);
+                });
         }
 
         virtual Exchange::IWebKitBrowser::HTTPCookieAcceptPolicy GetHTTPCookieAcceptPolicy() final
@@ -926,6 +940,9 @@ static GSourceFuncs _handlerIntervention =
 
         virtual void SetHTTPCookieAcceptPolicy(const Exchange::IWebKitBrowser::HTTPCookieAcceptPolicy policy) final
         {
+            if (_context == nullptr)
+                return;
+
             auto translatePolicy =
                 [](Exchange::IWebKitBrowser::HTTPCookieAcceptPolicy policy) {
                     switch(policy) {
@@ -942,21 +959,19 @@ static GSourceFuncs _handlerIntervention =
                     return kWKHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain;
                 };
 
-            _adminLock.Lock();
-            _httpCookieAcceptPolicy = translatePolicy(policy);
-            _adminLock.Unlock();
+            using SetHTTPCookieAcceptPolicyData = std::tuple<WebKitImplementation*, WKHTTPCookieAcceptPolicy>;
+            auto* data = new SetHTTPCookieAcceptPolicyData(this, translatePolicy(policy));
 
-            if (_context == nullptr)
-                return;
-
-            g_main_context_invoke(
+            g_main_context_invoke_full(
                 _context,
+                G_PRIORITY_DEFAULT,
                 [](gpointer customdata) -> gboolean {
-                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+                    auto& data = *static_cast<SetHTTPCookieAcceptPolicyData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    WKHTTPCookieAcceptPolicy policy =  std::get<1>(data);
 
-                    WKHTTPCookieAcceptPolicy policy;
                     object->_adminLock.Lock();
-                    policy = object->_httpCookieAcceptPolicy;
+                    object->_httpCookieAcceptPolicy = policy;
                     object->_adminLock.Unlock();
 
                     auto context = WKPageGetContext(object->_page);
@@ -964,7 +979,10 @@ static GSourceFuncs _handlerIntervention =
                     WKCookieManagerSetHTTPCookieAcceptPolicy(manager, policy);
                     return G_SOURCE_REMOVE;
                 },
-                this);
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetHTTPCookieAcceptPolicyData*>(customdata);
+                });
         }
 
         virtual void BridgeReply(const string& payload) final
@@ -1072,7 +1090,10 @@ static GSourceFuncs _handlerIntervention =
         }
         virtual PluginHost::IStateControl::state State() const final
         {
-            return (_state);
+            _adminLock.Lock();
+            auto result =  (_state);
+            _adminLock.Unlock();
+            return result;
         }
         virtual uint32_t Request(PluginHost::IStateControl::command command) final
         {

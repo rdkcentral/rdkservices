@@ -88,6 +88,8 @@ namespace WPEFramework {
             registerMethod("canFindMyRemote", &ControlService::canFindMyRemoteWrapper, this);
             registerMethod("findMyRemote", &ControlService::findMyRemoteWrapper, this);
 
+            registerMethod("checkRf4ceChipConnectivity", &ControlService::checkRf4ceChipConnectivityWrapper, this);
+
             setApiVersionNumber(7);
         }
 
@@ -728,6 +730,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             JsonArray array;
             array.Add("DELIA-43686");
+            array.Add("RDK-28767");
             response["quirks"] = array;
             returnResponse(true);
         }
@@ -1011,6 +1014,25 @@ namespace WPEFramework {
 
             response["status_code"] = (int)status_code;
             returnResponse(status_code == STATUS_OK);
+        }
+
+        uint32_t ControlService::checkRf4ceChipConnectivityWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            eCheckRf4ceChipConnectivity result = RF4CE_CHIP_CONNECTIVITY_NOT_SUPPORTED;
+
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            result = checkRf4ceChipConnectivity();
+
+            if(result == RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR)
+            {
+                LOGERR("IARM_CALL_RESULT_ERROR.");
+                returnResponse(false);
+            }
+
+            response["rf4ceChipConnected"] = (int)result;
+            returnResponse(true);
         }
         //End methods
 
@@ -1588,6 +1610,65 @@ namespace WPEFramework {
 
             return result;
         }
+
+        eCheckRf4ceChipConnectivity ControlService::checkRf4ceChipConnectivity()
+        {
+            eCheckRf4ceChipConnectivity        result = RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR;
+
+#if (CTRLM_MAIN_IARM_BUS_API_REVISION > 9)
+            IARM_Result_t                      retval;
+            ctrlm_main_iarm_call_chip_status_t call;
+            ctrlm_network_id_t                 rf4ceId = CTRLM_MAIN_NETWORK_ID_INVALID;
+
+            // Start by finding the network_id of the rf4ce network on this STB.
+            if (!getRf4ceNetworkId(rf4ceId))
+            {
+                LOGERR("ERROR - No RF4CE network_id found!!");
+                return RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR;
+            }
+            else
+            {
+                LOGINFO("Found rf4ce network_id: %d.", (int)rf4ceId);
+            }
+
+            memset((void*)&call, 0, sizeof(call));
+            call.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
+            call.network_id   = rf4ceId;
+
+            // Make the IARM bus call to controlMgr
+            retval = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_CHIP_STATUS_GET, (void *)&call, sizeof(call));
+            if (retval != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_CHIP_STATUS_GET - IARM_Bus_Call FAILED, retval: <%d>.\n",
+                         (int)retval);
+                result = RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR;
+            }
+            else
+            {
+                if (call.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+                {
+                    if (call.result == CTRLM_IARM_CALL_RESULT_ERROR_NOT_SUPPORTED)
+                    {
+                        LOGWARN("CTRLM_MAIN_IARM_CALL_CHIP_STATUS_GET - Not Supported.\n");
+                        result = RF4CE_CHIP_CONNECTIVITY_NOT_SUPPORTED;
+                    }
+                    else
+                    {
+                        LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_CHIP_STATUS_GET - FAILED, result: <%d>.\n", (int)call.result);
+                        result = RF4CE_CHIP_CONNECTIVITY_IARM_CALL_RESULT_ERROR;
+                    }
+                }
+                else
+                {
+                    result = (eCheckRf4ceChipConnectivity)call.chip_connected;
+                    LOGINFO("Chip connected <%d>.\n", (int)result);
+                }
+            }
+
+#endif // CTRLM_MAIN_IARM_BUS_API_REVISION > 9
+
+            return result;
+        }
         // End private method implementations
 
         // Begin local private utility methods
@@ -2015,8 +2096,9 @@ namespace WPEFramework {
 
             if (netStatus.status.rf4ce.controller_qty == 0)
             {
-                LOGERR("ERROR - No RF4CE controllers found!");
-                return false;
+                LOGWARN("No RF4CE controllers found!");
+                m_numOfBindRemotes = 0;
+                return true;
             }
             // Make sure we don't overrrun the m_remoteInfo array.
             if (netStatus.status.rf4ce.controller_qty > CTRLM_MAIN_MAX_BOUND_CONTROLLERS)
