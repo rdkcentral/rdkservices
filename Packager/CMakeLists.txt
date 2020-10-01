@@ -20,23 +20,52 @@ set(MODULE_NAME WPEFramework${PLUGIN_NAME})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
+find_library(LIBUUID_LIBRARY libuuid.so)
+include_directories(${LIBUUID_INCLUDE_DIR})
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(libprovision QUIET)
 find_package(LibOPKG REQUIRED)
+find_package(GLIB REQUIRED)
+
 find_package(CompileSettingsDebug CONFIG REQUIRED)
+
+# enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
+if (USE_SQLITE_SEE)
+    find_package(SqliteSee REQUIRED)
+else()
+    find_package(Sqlite REQUIRED)
+endif()
+
 
 add_library(${MODULE_NAME} SHARED
     Module.cpp
     Packager.cpp
-    PackagerImplementation.cpp)
+    PackagerImplementation.cpp
+    PackagerExUtils.cpp
+    PackagerExImplementation.cpp)
+
+add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
+link_directories(${SQLITE_LIBRARY_DIRS})
+
+
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers
+        ${SQLITE_INCLUDE_DIRS}
+        ${PLABELS_INCLUDE_DIRS}
+        ${GLIB_INCLUDE_DIRS})
 
 if (libprovision_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             CompileSettingsDebug::CompileSettingsDebug
             ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            libprovision::libprovision
             LibOPKG::LibOPKG
+            ${LIBUUID_LIBRARY}
+            ${SQLITE_LIBRARIES}
+            ${GLIB_LIBRARIES}
+            libprovision::libprovision
+
             )
 else (libprovision_FOUND)
      target_include_directories(${MODULE_NAME}

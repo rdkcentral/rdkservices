@@ -25,14 +25,21 @@
 #include <list>
 #include <string>
 
+#include "PackagerExImplementation.h"
+
+
 // Forward declarations so we do not need to include the OPKG headers here.
 struct opkg_conf;
 struct _opkg_progress_data_t;
 
+struct JobMeta_t; // fwd
+
 namespace WPEFramework {
 namespace Plugin {
 
-    class PackagerImplementation : public Exchange::IPackager {
+
+    class PackagerImplementation : public Exchange::IPackager
+    {
     public:
         PackagerImplementation(const PackagerImplementation&) = delete;
         PackagerImplementation& operator=(const PackagerImplementation&) = delete;
@@ -90,7 +97,9 @@ namespace Plugin {
             , _worker(this)
             , _isUpgrade(false)
             , _isSyncing(false)
+            , _taskNumber(0)
         {
+            InitPackageDB();
         }
 
         ~PackagerImplementation() override;
@@ -102,9 +111,62 @@ namespace Plugin {
         //   IPackager methods
         void Register(Exchange::IPackager::INotification* observer) override;
         void Unregister(const Exchange::IPackager::INotification* observer) override;
+
+
+        virtual void Register(PluginHost::IStateControl::INotification* sink)
+        {
+            _adminLock.Lock();
+
+            // Make sure a sink is not registered multiple times.
+            ASSERT(std::find(_stateControlClients.begin(), _stateControlClients.end(), sink) == _stateControlClients.end());
+
+            _stateControlClients.push_back(sink);
+            sink->AddRef();
+
+            _adminLock.Unlock();
+
+            TRACE_L1("Registered a sink on the browser %p", sink);
+        }
+
+        virtual void Unregister(PluginHost::IStateControl::INotification* sink)
+        {
+            _adminLock.Lock();
+
+            std::list<PluginHost::IStateControl::INotification*>::iterator index(std::find(_stateControlClients.begin(), _stateControlClients.end(), sink));
+
+            // Make sure you do not unregister something you did not register !!!
+            ASSERT(index != _stateControlClients.end());
+
+            if (index != _stateControlClients.end()) {
+                (*index)->Release();
+                _stateControlClients.erase(index);
+                TRACE_L1("Unregistered a sink on the browser %p", sink);
+            }
+
+            _adminLock.Unlock();
+        }
+
         uint32_t Configure(PluginHost::IShell* service) override;
+
+        // Packager API
         uint32_t Install(const string& name, const string& version, const string& arch) override;
         uint32_t SynchronizeRepository() override;
+
+        // DAC Installer API
+
+        uint32_t Install(const string& pkgId, const string& type, const string& url, 
+                         const string& token, const string& listener);
+
+        uint32_t Remove(const string& pkgId, const string& listener);
+        uint32_t Cancel(const string& task, const string& listener);
+
+        uint32_t                   IsInstalled(const string& pkgId);
+        uint32_t                   GetInstallProgress( const string& task);
+        PackageInfoEx::IIterator*  GetInstalled();
+        PackageInfoEx*             GetPackageInfo(const string& pkgId);
+        int64_t                    GetAvailableSpace();
+
+      //  uint32_t                   getNextTaskID()  { return _taskNumber++; }
 
     private:
         class PackageInfo : public Exchange::IPackager::IPackageInfo {
@@ -149,6 +211,14 @@ namespace Plugin {
             std::string _name;
             std::string _version;
             std::string _arch;
+
+            std::string _pkgId;
+            std::string _type;
+            std::string _url;
+            std::string _token;
+            std::string _listener;
+
+            uint32_t    _refcount;
         };
 
         class InstallInfo : public Exchange::IPackager::IInstallationInfo {
@@ -236,20 +306,25 @@ namespace Plugin {
             InstallThread& operator=(const InstallThread&) = delete;
             InstallThread(const InstallThread&) = delete;
 
-            uint32_t Worker() override {
-                while(IsRunning() == true) {
+            uint32_t Worker() override
+            {
+                while(IsRunning() == true)
+                {
                     _parent->_adminLock.Lock(); // The parent may have lock when this starts so wait for it to release.
                     bool isInstall = _parent->_inProgress.Install != nullptr;
                     ASSERT(isInstall != true || _parent->_inProgress.Package != nullptr);
                     _parent->_adminLock.Unlock();
-
+           
                     // After this point locking is not needed because API running on other threads only read if in
                     // progress is filled in.
                     _parent->BlockingSetupLocalRepoNoLock(isInstall == true ? RepoSyncMode::SETUP : RepoSyncMode::FORCED);
                     if (isInstall)
+                    {
                         _parent->BlockingInstallUntilCompletionNoLock();
+                    }
 
-                    if (isInstall) {
+                    if (isInstall)
+                    {
                         _parent->_adminLock.Lock();
                         _parent->_inProgress.Install->Release();
                         _parent->_inProgress.Package->Release();
@@ -274,12 +349,31 @@ namespace Plugin {
         };
 
         uint32_t DoWork(const string* name, const string* version, const string* arch);
+
         void UpdateConfig() const;
 #if !defined (DO_NOT_USE_DEPRECATED_API)
         static void InstallationProgessNoLock(const _opkg_progress_data_t* progress, void* data);
 #endif
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
+
+        void InitPackageDB();
+        void TermPackageDB();
+
+        void NotifyIntallStep(Exchange::IPackager::state status, uint32_t task = 0, string id = "", int32_t code = 0);   // NOTIFY
+
+        static const int64_t STORE_BYTES_QUOTA;
+        static const char*   STORE_NAME;
+        static const char*   STORE_KEY;
+
+        uint32_t doInstall(const JobMeta_t &job);
+
+        uint32_t doInstall(uint32_t taskId, 
+                const string& pkgId, const string& type, const string& url,
+                const string& token, const string& listener);
+
+    private:
+ 
         void BlockingInstallUntilCompletionNoLock();
         void BlockingSetupLocalRepoNoLock(RepoSyncMode mode);
         bool InitOPKG();
@@ -296,10 +390,16 @@ namespace Plugin {
         bool _volatileCache;
         bool _opkgInitialized;
         std::vector<Exchange::IPackager::INotification*> _notifications;
+        std::list<PluginHost::IStateControl::INotification*> _stateControlClients;
+
         InstallationData _inProgress;
         InstallThread _worker;
         bool _isUpgrade;
         bool _isSyncing;
+
+        uint32_t _taskNumber;
+
+        PackageList_t _packageList;
     };
 
 }  // namespace Plugin
