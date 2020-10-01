@@ -1568,6 +1568,7 @@ namespace WPEFramework {
                 string displayName = "wst-" + callsign;
                 bool scaleToFit = false;
                 bool setSuspendResumeStateOnLaunch = true;
+                bool holePunch = true;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -1616,6 +1617,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("h"))
                 {
                     height = parameters["h"].Number();
+                }
+                if (parameters.HasLabel("holePunch"))
+                {
+                    holePunch = parameters["holePunch"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -1828,6 +1833,7 @@ namespace WPEFramework {
                         }
                     }
                     setVisibility(callsign, visible);
+                    setHolePunch(callsign, holePunch);
                     if (!visible)
                     {
                         focused = false;
