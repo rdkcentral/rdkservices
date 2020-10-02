@@ -152,7 +152,9 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         void RegisterAll();
         void UnregisterAll();
+        #ifdef SECURITY_TESTING_MODE
         uint32_t endpoint_createtoken(const JsonData::SecurityAgent::CreatetokenParamsData& params, JsonData::SecurityAgent::CreatetokenResultInfo& response);
+        #endif // DEBUG
         uint32_t endpoint_validate(const JsonData::SecurityAgent::CreatetokenResultInfo& params, JsonData::SecurityAgent::ValidateResultData& response);
 
 

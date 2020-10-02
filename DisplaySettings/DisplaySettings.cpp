@@ -154,8 +154,10 @@ namespace WPEFramework {
             registerMethod("setMISteering", &DisplaySettings::setMISteering, this);
             registerMethod("setGain", &DisplaySettings::setGain, this);
             registerMethod("getGain", &DisplaySettings::getGain, this);
-            registerMethod("setLevel", &DisplaySettings::setLevel, this);
-            registerMethod("getLevel", &DisplaySettings::getLevel, this);
+            registerMethod("setMuted", &DisplaySettings::setMuted, this);
+            registerMethod("getMuted", &DisplaySettings::getMuted, this);
+            registerMethod("setVolumeLevel", &DisplaySettings::setVolumeLevel, this);
+            registerMethod("getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
             registerMethod("setDRCMode", &DisplaySettings::setDRCMode, this);
             registerMethod("getMISteering", &DisplaySettings::getMISteering, this);
 
@@ -1298,7 +1300,28 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
-        uint32_t DisplaySettings::getLevel (const JsonObject& parameters, JsonObject& response)
+        uint32_t DisplaySettings::getMuted (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            bool muted = false;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                muted = aPort.isMuted();
+                response["muted"] = muted;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string(audioPort));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getVolumeLevel (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool success = true;
@@ -1309,7 +1332,7 @@ namespace WPEFramework {
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 level = aPort.getLevel();
-                response["level"] = to_string(level);
+                response["volumeLevel"] = to_string(level);
             }
             catch(const device::Exception& err)
             {
@@ -1569,11 +1592,38 @@ namespace WPEFramework {
                 returnResponse(success);
         }
 
-        uint32_t DisplaySettings::setLevel(const JsonObject& parameters, JsonObject& response)
+        uint32_t DisplaySettings::setMuted (const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
-                returnIfParamNotFound(parameters, "level");
-                string sLevel = parameters["level"].String();
+                returnIfParamNotFound(parameters, "muted");
+                string sMuted = parameters["muted"].String();
+                bool muted = false;
+                try {
+                        muted = parameters["muted"].Boolean();
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMuted);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    aPort.setMuted(muted);
+                }
+                catch (const device::Exception& err)
+                {
+                    LOG_DEVICE_EXCEPTION2(audioPort, sMuted);
+                    success = false;
+                }
+                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "volumeLevel");
+                string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
                 try {
                         level = stof(sLevel);
