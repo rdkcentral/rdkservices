@@ -73,6 +73,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_OPACITY;
             static const string RDKSHELL_METHOD_GET_SCALE;
             static const string RDKSHELL_METHOD_SET_SCALE;
+            static const string RDKSHELL_METHOD_GET_HOLE_PUNCH;
+            static const string RDKSHELL_METHOD_SET_HOLE_PUNCH;
+            static const string RDKSHELL_METHOD_GET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_SET_LOG_LEVEL;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
@@ -133,6 +137,10 @@ namespace WPEFramework {
             uint32_t setOpacityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScaleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
@@ -163,7 +171,7 @@ namespace WPEFramework {
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
             bool addAnyKeyListener(const string& client, const JsonArray& listeners);
             bool injectKey(const uint32_t& keyCode, const JsonArray& modifiers);
-            bool generateKey(const JsonArray& keyInputs);
+            bool generateKey(const string& client, const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool createDisplay(const string& client, const string& displayName);
@@ -177,6 +185,8 @@ namespace WPEFramework {
             bool setOpacity(const string& client, const unsigned int opacity);
             bool getScale(const string& client, double& scaleX, double& scaleY);
             bool setScale(const string& client, const double scaleX, const double scaleY);
+            bool getHolePunch(const string& client, bool& holePunch);
+            bool setHolePunch(const string& client, const bool holePunch);
             bool removeAnimation(const string& client);
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
