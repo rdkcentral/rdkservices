@@ -549,10 +549,10 @@ namespace WPEFramework
                 frontPanelBlinkInfo.ledIndicator = ledIndicator;
                 int brightness = -1;
                 if (frontPanelBlinkHash.HasLabel("brightness"))
-                    getNumberParameterObject(blinkInfo, "brightness", brightness);
+                    getNumberParameterObject(frontPanelBlinkHash, "brightness", brightness);
 
                 int duration;
-                getNumberParameterObject(blinkInfo, "duration", duration);
+                getNumberParameterObject(frontPanelBlinkHash, "duration", duration);
                 LOGWARN("setBlink ledIndicator: %s iterations: %d brightness: %d duration: %d", ledIndicator.c_str(), iterations, brightness, duration);
                 frontPanelBlinkInfo.brightness = brightness;
                 frontPanelBlinkInfo.durationInMs = duration;
@@ -567,9 +567,9 @@ namespace WPEFramework
                 {
                     unsigned int red,green,blue;
 
-                    getNumberParameterObject(blinkInfo, "red", red);
-                    getNumberParameterObject(blinkInfo, "green", green);
-                    getNumberParameterObject(blinkInfo, "blue", blue);
+                    getNumberParameterObject(frontPanelBlinkHash, "red", red);
+                    getNumberParameterObject(frontPanelBlinkHash, "green", green);
+                    getNumberParameterObject(frontPanelBlinkHash, "blue", blue);
 
                     frontPanelBlinkInfo.colorValue = (red << 16) | (green << 8) | blue;
                     frontPanelBlinkInfo.colorMode = 1;
@@ -686,8 +686,9 @@ namespace WPEFramework
             //if not blink again then the led color should stay on the LAST element in the array as stated in the spec
         }
 
-        void CFrontPanel::set24HourClock(bool is24Hour)
+        bool CFrontPanel::set24HourClock(bool is24Hour)
         {
+            bool success = false;
             try
             {
                 int newFormat = is24Hour ? device::FrontPanelTextDisplay::kModeClock24Hr : device::FrontPanelTextDisplay::kModeClock12Hr;
@@ -697,11 +698,13 @@ namespace WPEFramework
                 textDisplay.setTimeFormat(newFormat);
                 currentFormat = textDisplay.getCurrentTimeFormat();
                 LOGINFO("set24HourClock - After setting %d - Time zone read from DS is %d", newFormat, currentFormat);
+                success = true;
             }
             catch (...)
             {
                 LOGERR("Exception Caught during set24HourClock");
             }
+            return success;
         }
 
         bool CFrontPanel::is24HourClock()
