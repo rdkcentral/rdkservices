@@ -55,6 +55,7 @@ void showMenu()
     std::cout<<"9.endPairingMode\n";
     std::cout<<"10.canFindMyRemote\n";
     std::cout<<"11.findMyRemote\n";
+    std::cout<<"12.checkRf4ceChipConnectivity\n";
     std::cout<<"\nEnter your choice: ";
 }
 
@@ -789,6 +790,23 @@ int main(int argc, char** argv)
                                     std::cout<<"ControlService findMyRemote call - Success!\n";
                                 } else {
                                     std::cout<<"ControlService findMyRemote call - failed!\n";
+                                }
+                                std::cout<<"result : "<<res<<"\n";
+                            }
+                            break;
+
+                        case 12:
+                            {
+                                JsonObject params;
+                                string res;
+                                ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                                                    _T("checkRf4ceChipConnectivity"), params, result);
+                                std::cout<<"ControlService Invoke ret : "<< ret <<"\n";
+                                result.ToString(res);
+                                if (result["success"].Boolean()) {
+                                    std::cout<<"ControlService checkRf4ceChipConnectivity call - Success!\n";
+                                } else {
+                                    std::cout<<"ControlService checkRf4ceChipConnectivity call - failed!\n";
                                 }
                                 std::cout<<"result : "<<res<<"\n";
                             }
