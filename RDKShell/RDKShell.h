@@ -96,6 +96,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
+            static const string RDKSHELL_EVENT_ON_APP_ACTIVATED;
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
@@ -211,6 +212,7 @@ namespace WPEFramework {
                 virtual void onApplicationFirstFrame(const std::string& client);
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
+                virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
                 virtual void onDeviceLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);

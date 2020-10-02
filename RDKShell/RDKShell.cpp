@@ -78,6 +78,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_TERMINATED = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FIRST_FRAME = "onApplicationFirstFrame";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_SUSPENDED = "onApplicationSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "onApplicationResumed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_ACTIVATED = "onApplicationActivated";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
@@ -388,6 +389,14 @@ namespace WPEFramework {
           JsonObject params;
           params["client"] = client;
           mShell.notify(RDKSHELL_EVENT_ON_APP_RESUMED, params);
+        }
+
+        void RDKShell::RdkShellListener::onApplicationActivated(const std::string& client)
+        {
+            std::cout << "RDKShell onApplicationActivated event received for " << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            mShell.notify(RDKSHELL_EVENT_ON_APP_ACTIVATED, params);
         }
 
         void RDKShell::RdkShellListener::onUserInactive(const double minutes)
