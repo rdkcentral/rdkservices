@@ -404,6 +404,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SET_ACTIVE_SOURCE, &HdmiCecSink::setActiveSourceWrapper, this);
 	       registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
 		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
+		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveActiveWrapper, this);
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
