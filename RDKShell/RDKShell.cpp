@@ -2579,6 +2579,18 @@ namespace WPEFramework {
                         std::string tween = animationInfo["tween"].String();
                         animationProperties["tween"] = tween;
                     }
+                    if (animationInfo.HasLabel("delay"))
+                    {
+                        try
+                        {
+                          double duration = std::stod(animationInfo["delay"].String());
+                          animationProperties["delay"] = duration;
+                        }
+                        catch (...)
+                        {
+                          std::cout << "RDKShell unable to set delay for animation  " << std::endl;
+                        }
+                    }
                     CompositorController::addAnimation(client, duration, animationProperties);
                 }
             }
