@@ -2144,15 +2144,22 @@ namespace WPEFramework {
             }
             if (result)
             {
-              bool enable = parameters["enable"].Boolean();
+              std::map<std::string, RdkShellData> configuration;
+              configuration["enable"] = parameters["enable"].Boolean();
+            
               if (parameters.HasLabel("interval"))
               {
-                RdkShell::setMemoryMonitor(enable, std::stod(parameters["interval"].String()));
+                configuration["interval"] = std::stod(parameters["interval"].String());
               }
-              else
+              if (parameters.HasLabel("lowRam"))
               {
-                RdkShell::setMemoryMonitor(enable, 5); //default to 5 second interval
+                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
               }
+              if (parameters.HasLabel("criticallyLowRam"))
+              {
+                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
+              }
+              RdkShell::setMemoryMonitor(configuration);
             }
             returnResponse(result);
         }
