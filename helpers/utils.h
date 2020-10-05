@@ -23,7 +23,10 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+
+#ifdef RFC_ENABLED
 #include "rfcapi.h"
+#endif
 
 // IARM
 #ifdef USE_IARM
@@ -318,5 +321,7 @@ namespace Utils
         static bool m_sThunderSecurityChecked;
     };
 
+#ifdef RFC_ENABLED
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
+#endif
 }
