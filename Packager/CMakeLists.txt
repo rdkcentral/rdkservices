@@ -78,6 +78,9 @@ else (libprovision_FOUND)
             CompileSettingsDebug::CompileSettingsDebug
             ${NAMESPACE}Plugins::${NAMESPACE}Plugins
             ${LIBOPKG_LIBRARIES}
+            ${LIBUUID_LIBRARY}
+            ${SQLITE_LIBRARIES}
+            ${GLIB_LIBRARIES}
             )
 endif (libprovision_FOUND)
 
