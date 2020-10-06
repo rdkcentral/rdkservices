@@ -283,7 +283,7 @@ namespace {
             //
             Register<void, JsonObject>(kDAC_GetAvailableSpaceMethodName,  [this](JsonObject& response) -> uint32_t
             {
-                int64_t bytes = this->_implementation->GetAvailableSpace();
+                uint64_t bytes = this->_implementation->GetAvailableSpace();
 
                 response["availableSpaceInKB"] = std::to_string(bytes);
                 returnResponse(true);

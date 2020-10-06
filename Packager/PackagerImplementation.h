@@ -164,7 +164,7 @@ namespace Plugin {
         uint32_t                   GetInstallProgress( const string& task);
         PackageInfoEx::IIterator*  GetInstalled();
         PackageInfoEx*             GetPackageInfo(const string& pkgId);
-        int64_t                    GetAvailableSpace();
+        uint64_t                   GetAvailableSpace();
 
       //  uint32_t                   getNextTaskID()  { return _taskNumber++; }
 
@@ -362,9 +362,9 @@ namespace Plugin {
 
         void NotifyIntallStep(Exchange::IPackager::state status, uint32_t task = 0, string id = "", int32_t code = 0);   // NOTIFY
 
-        static const int64_t STORE_BYTES_QUOTA;
-        static const char*   STORE_NAME;
-        static const char*   STORE_KEY;
+        static const uint64_t STORE_BYTES_QUOTA;
+        static const char*    STORE_NAME;
+        static const char*    STORE_KEY;
 
         uint32_t doInstall(const JobMeta_t &job);
 

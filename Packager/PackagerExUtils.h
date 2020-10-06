@@ -147,7 +147,7 @@ namespace Plugin {
             static PackageInfoEx* getPkgRow(const string& pkgId);
             static bool           delPkgRow(const string& pkgId);
 
-            static int64_t        sumSizeInBytes();
+            static uint64_t       sumSizeInBytes();
 
             static void           showTable();
 
@@ -185,8 +185,8 @@ namespace Plugin {
 
             static Core::CriticalSection    mThreadLock;
 
-            static const int64_t  MAX_SIZE_BYTES;
-            static const int64_t  MAX_VALUE_SIZE_BYTES;
+            static const uint64_t  MAX_SIZE_BYTES;
+            static const uint64_t  MAX_VALUE_SIZE_BYTES;
     };
   } // namespace Plugin
 }  // namespace WPEFramework

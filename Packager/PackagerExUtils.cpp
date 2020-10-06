@@ -65,9 +65,9 @@ static PackageInfoEx* row2pkg(sqlite3_stmt *stmt); // private fwd
 
 // Storage
 //
-const int64_t                        PackagerExUtils::MAX_SIZE_BYTES       = 1000000;
-const int64_t                        PackagerExUtils::MAX_VALUE_SIZE_BYTES = 1000;
-JsonObject                           PackagerExUtils::mPackageCfg;
+const uint64_t                        PackagerExUtils::MAX_SIZE_BYTES       = 1000000;
+const uint64_t                        PackagerExUtils::MAX_VALUE_SIZE_BYTES = 1000;
+JsonObject                            PackagerExUtils::mPackageCfg;
 
 // std::list<PackageInfoEx *>           PackagerExUtils::mPackages;
 //std::list<PackageInfoEx *>::iterator PackagerExUtils::mPkgIter;
@@ -115,7 +115,7 @@ void*                                PackagerExUtils::mData = nullptr;
 
     uint64_t PackagerExUtils::folderSize(const char *d)
     {
-        int64_t total_size = 0;
+        uint64_t total_size = 0;
 #if 1
         string path(d);
 
@@ -602,7 +602,7 @@ LOGINFO(" ... Adding row for '%s'... ", pkg->Name().c_str());
 
         //     if (sqlite3_step(stmt) == SQLITE_ROW)
         //     {
-        //         int64_t size = sqlite3_column_int64(stmt, 0);
+        //         uint64_t size = sqlite3_column_int64(stmt, 0);
         //         if (size > MAX_SIZE_BYTES)
         //         {
         //             // LOGWARN("max size exceeded: %lld", size);
@@ -736,7 +736,7 @@ success = true;
 
 //             if (sqlite3_step(stmt) == SQLITE_ROW)
 //             {
-//                 int64_t size = sqlite3_column_int64(stmt, 0);
+//                 uint64_t size = sqlite3_column_int64(stmt, 0);
 //                 if (size > MAX_SIZE_BYTES)
 //                 {
 //                     // LOGWARN("max size exceeded: %lld", size);
@@ -938,10 +938,10 @@ success = true;
         }
     }
 
-    int64_t PackagerExUtils::sumSizeInBytes()
+    uint64_t PackagerExUtils::sumSizeInBytes()
     {
         sqlite3* &db = SQLITE;
-        int64_t total = 0;
+        uint64_t total = 0;
 
         if (db)
         {

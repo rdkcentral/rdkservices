@@ -113,8 +113,8 @@ namespace Plugin {
         void setInstalled( string v)        { _installed = v;                 };
         void setInstalled( uchar_t *v )     { _installed = uchar2string(v);   };
 
-        int64_t  SizeInBytes()        const override { return _sizeInBytes; };
-        void setSizeInBytes( int64_t v)     { _sizeInBytes = v;               };
+        uint64_t  SizeInBytes()       const override { return _sizeInBytes;   };
+        void setSizeInBytes( uint64_t v)    { _sizeInBytes = v;               };
 
         string  Type()                const override { return _type;          };
         void setType( string v)             { _type = v;                      };
@@ -131,13 +131,13 @@ namespace Plugin {
               return json; // empty
             }
 
-            json["name"]       = pkg->Name();
-            json["bundlePath"] = pkg->BundlePath();
-            json["version"]    = pkg->Version();
-            json["id"]         = pkg->PkgId();
-            json["installed"]  = pkg->Installed();
-            json["size"]       = std::to_string( pkg->SizeInBytes() );
-            json["type"]       = pkg->Type();
+            json["name"]        = pkg->Name();
+            json["bundlePath"]  = pkg->BundlePath();
+            json["version"]     = pkg->Version();
+            json["id"]          = pkg->PkgId();
+            json["installed"]   = pkg->Installed();
+            json["sizeInBytes"] = std::to_string( pkg->SizeInBytes() );
+            json["type"]        = pkg->Type();
 
             return json;
         };
@@ -154,13 +154,13 @@ namespace Plugin {
             char sizeInBytes[255];
             snprintf(sizeInBytes, sizeof(sizeInBytes), "%jd", pkg.SizeInBytes());
 
-            json["name"]       = pkg.Name();
-            json["bundlePath"] = pkg.BundlePath();
-            json["version"]    = pkg.Version();
-            json["id"]         = pkg.PkgId();
-            json["installed"]  = pkg.Installed();
-            json["size"]       = std::string(sizeInBytes);//pgk.SizeInBytes();
-            json["type"]       = pkg.Type();
+            json["name"]        = pkg.Name();
+            json["bundlePath"]  = pkg.BundlePath();
+            json["version"]     = pkg.Version();
+            json["id"]          = pkg.PkgId();
+            json["installed"]   = pkg.Installed();
+            json["sizeInBytes"] = std::string(sizeInBytes);//pgk.SizeInBytes();
+            json["type"]        = pkg.Type();
 
             return json;
         };
@@ -169,13 +169,13 @@ namespace Plugin {
         {
             PackageInfoEx *pkg = Core::Service<PackageInfoEx>::Create<PackageInfoEx>();
 
-            pkg->setName(                   json[ "name"       ].String().c_str()  );
-            pkg->setBundlePath(             json[ "bundlePath" ].String().c_str()  );
-            pkg->setVersion(                json[ "version"    ].String().c_str()  );
-            pkg->setPkgId(                  json[ "id"         ].String().c_str()  );
-            pkg->setInstalled(              json[ "installed"  ].String().c_str()  );
-            pkg->setSizeInBytes( std::stoi( json[ "size"       ].String().c_str()) );
-            pkg->setType(                   json[ "type"       ].String().c_str()  );
+            pkg->setName(                   json[ "name"        ].String().c_str()  );
+            pkg->setBundlePath(             json[ "bundlePath"  ].String().c_str()  );
+            pkg->setVersion(                json[ "version"     ].String().c_str()  );
+            pkg->setPkgId(                  json[ "id"          ].String().c_str()  );
+            pkg->setInstalled(              json[ "installed"   ].String().c_str()  );
+            pkg->setSizeInBytes( std::stoi( json[ "sizeInBytes" ].String().c_str()) );
+            pkg->setType(                   json[ "type"        ].String().c_str()  );
 
             return pkg;
         };
@@ -187,13 +187,13 @@ namespace Plugin {
             return;
           }
 
-          LOGWARN("pkgInfo >>>>>>>       name: %s",  pkg->Name()       .c_str() ); // name
-          LOGWARN("pkgInfo >>>>>>>       path: %s",  pkg->BundlePath() .c_str() ); // path
-          LOGWARN("pkgInfo >>>>>>>    version: %s",  pkg->Version()    .c_str() ); // version
-          LOGWARN("pkgInfo >>>>>>>         id: %s",  pkg->PkgId()      .c_str() ); // id
-          LOGWARN("pkgInfo >>>>>>>  installed: %s",  pkg->Installed()  .c_str() ); // installed
-          LOGWARN("pkgInfo >>>>>>>       size: %jd", pkg->SizeInBytes()         ); // size
-          LOGWARN("pkgInfo >>>>>>>       type: %s",  pkg->Type()       .c_str() ); // type
+          LOGWARN("pkgInfo >>>>>>>         name: %s",  pkg->Name()       .c_str() ); // name
+          LOGWARN("pkgInfo >>>>>>>         path: %s",  pkg->BundlePath() .c_str() ); // path
+          LOGWARN("pkgInfo >>>>>>>      version: %s",  pkg->Version()    .c_str() ); // version
+          LOGWARN("pkgInfo >>>>>>>           id: %s",  pkg->PkgId()      .c_str() ); // id
+          LOGWARN("pkgInfo >>>>>>>    installed: %s",  pkg->Installed()  .c_str() ); // installed
+          LOGWARN("pkgInfo >>>>>>>  sizeInBytes: %jd", pkg->SizeInBytes()         ); // size
+          LOGWARN("pkgInfo >>>>>>>         type: %s",  pkg->Type()       .c_str() ); // type
         }
 
         static void printPkg(PackageInfoEx &pkg)
@@ -209,7 +209,7 @@ namespace Plugin {
         string   _version;
         string   _pkgId;
         string   _installed;    // timestamp
-        int64_t  _sizeInBytes;  // bytes
+        uint64_t _sizeInBytes;  // bytes
         string   _type;
 
         int _refCount;
