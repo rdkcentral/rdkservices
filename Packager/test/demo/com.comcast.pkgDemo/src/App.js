@@ -84,7 +84,7 @@ export default class App extends Lightning.Component
         w: 1920,
         h: 1080,
         color: 0xff8888aa,
-        src: Utils.asset('images/background1.png'),
+        src: Utils.asset('images/background.png'),
       },
 
       Title: {
