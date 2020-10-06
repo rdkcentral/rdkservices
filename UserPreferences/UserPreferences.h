@@ -48,9 +48,6 @@ namespace WPEFramework {
         public:
             static UserPreferences* _instance;
 
-        private:
-            string _language;
-
         };
     } // namespace Plugin
 } // namespace WPEFramework
