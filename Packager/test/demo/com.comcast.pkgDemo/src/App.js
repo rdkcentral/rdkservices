@@ -278,13 +278,6 @@ export default class App extends Lightning.Component
         },
       }, // ConsoleBG
 
-      // InfoButton: {
-      //   w: 60,
-      //   h: 60,
-
-      //   src: Utils.asset('images/info.png'),
-      // },
-
       OkCancel: { type: OkCancel, x: 1920/2, y: 400, w: 600, h: 180, alpha: 0.0 },
 
       // LineH: { mountY: 0.5, x: 0, y: 1080/2, w: 1920, h: 2, rect: true, color: 0xff00FF00 },
