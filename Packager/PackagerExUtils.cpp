@@ -328,9 +328,6 @@ void*                                PackagerExUtils::mData = nullptr;
         // Based on pxCore, Copyright 2015-2018 John Robinson
         // Licensed under the Apache License, Version 2.0
         //
-        // pxCore is Copyright 2015-2018 John Robinson
-        // Licensed under the Apache License, Version 2.0
-        //
     
         if (shouldEncrypt)
         {
@@ -975,6 +972,9 @@ success = true;
     }
 
 
+    // Copyright (c) 2003-2018 Tim Kientzle
+    // Licensed under the BSD-2 License
+    //
     // ARCHIVE CODE
     static int
     copy_data(struct archive *ar, struct archive *aw)
@@ -1190,24 +1190,22 @@ LOGINFO(" ... Extracting >>>  '%s' ", filename);
          return DACrc_t::dac_FAIL;
     }
 
-    // Inspired by -
-    //
-    // https://stackoverflow.com/questions/5620235/cpp-regular-expression-to-validate-url/31613265
-    //
     PackagerExUtils::DACrc_t PackagerExUtils::validateURL(const char *url)
     {
-        std::regex url_regex (
+        // Regular expression from https://tools.ietf.org/html/rfc3986 Appendix B
+        //
+        std::regex regex_URL (
             R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
             std::regex::extended
         );
 
-        std::smatch url_match_result;
+        std::smatch matches;
 
         LOGINFO(" ... Checking URL: %s ", url);
 
         std::string urlS(url);
 
-        if (std::regex_match( urlS, url_match_result, url_regex))
+        if (std::regex_match( urlS, matches, regex_URL))
         {
             LOGINFO(" ... Valid URL: %s \n", url);
 
