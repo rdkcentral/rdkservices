@@ -28,10 +28,10 @@
 #include <list>
 #include <mutex>
 #include <thread>
+#include <vector>
 #include <condition_variable>
 
 #include "TTSCommon.h"
-#include <vector>
 
 // --- //
 
