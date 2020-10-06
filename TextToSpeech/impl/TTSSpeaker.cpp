@@ -18,7 +18,6 @@
  */
 
 #include "TTSSpeaker.h"
-#include "logger.h"
 
 #include <curl/curl.h>
 #include <unistd.h>
@@ -45,42 +44,42 @@ void TTSConfiguration::setEndPoint(const std::string endpoint) {
     if(!endpoint.empty())
         m_ttsEndPoint = endpoint;
     else
-        TTSLOG_WARNING("Invalid TTSEndPoint input \"%s\"", endpoint.c_str());
+        TTSLOG_VERBOSE("Invalid TTSEndPoint input \"%s\"", endpoint.c_str());
 }
 
 void TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
     if(!endpoint.empty())
         m_ttsEndPointSecured = endpoint;
     else
-        TTSLOG_WARNING("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
+        TTSLOG_VERBOSE("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
 }
 
 void TTSConfiguration::setLanguage(const std::string language) {
     if(!language.empty())
         m_language = language;
     else
-        TTSLOG_WARNING("Empty Language input");
+        TTSLOG_VERBOSE("Empty Language input");
 }
 
 void TTSConfiguration::setVoice(const std::string voice) {
     if(!voice.empty())
         m_voice = voice;
     else
-        TTSLOG_WARNING("Empty Voice input");
+        TTSLOG_VERBOSE("Empty Voice input");
 }
 
 void TTSConfiguration::setVolume(const double volume) {
     if(volume >= 1 && volume <= 100)
         m_volume = volume;
     else
-        TTSLOG_WARNING("Invalid Volume input \"%lf\"", volume);
+        TTSLOG_VERBOSE("Invalid Volume input \"%lf\"", volume);
 }
 
 void TTSConfiguration::setRate(const uint8_t rate) {
     if(rate >= 1 && rate <= 100)
         m_rate = rate;
     else
-        TTSLOG_WARNING("Invalid Rate input \"%u\"", rate);
+        TTSLOG_VERBOSE("Invalid Rate input \"%u\"", rate);
 }
 
 void TTSConfiguration::setPreemptiveSpeak(const bool preemptive) {
@@ -93,10 +92,10 @@ const std::string TTSConfiguration::voice() {
     if(!m_voice.empty())
         return m_voice;
     else {
-        std::string key = std::string("voice_for_") + m_language.c_str();
+        std::string key = std::string("voice_for_") + m_language;
         auto it = m_others.find(key);
         if(it != m_others.end())
-            str = it->second.c_str();
+            str = it->second;
         return str;
     }
 }
@@ -376,7 +375,7 @@ void TTSSpeaker::createPipeline() {
 #endif
 
     std::string tts_url =
-        !m_defaultConfig.secureEndPoint().empty() ? m_defaultConfig.secureEndPoint().c_str() : m_defaultConfig.endPoint().c_str();
+        !m_defaultConfig.secureEndPoint().empty() ? m_defaultConfig.secureEndPoint() : m_defaultConfig.endPoint();
     if(!tts_url.empty()) {
         if(!m_defaultConfig.voice().empty()) {
             tts_url.append("voice=");
@@ -585,7 +584,7 @@ void TTSSpeaker::curlSanitize(std::string &sanitizedString) {
 }
 
 void TTSSpeaker::sanitizeString(std::string &input, std::string &sanitizedString) {
-    sanitizedString = input.c_str();
+    sanitizedString = input;
 
     replaceIfIsolated(sanitizedString, "$", "dollar");
     replaceIfIsolated(sanitizedString, "#", "pound");
@@ -621,7 +620,7 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
     // Voice
     if(!config.voice().empty()) {
         tts_request.append("voice=");
-        tts_request.append(config.voice().c_str());
+        tts_request.append(config.voice());
     }
 
     // Language
