@@ -52,9 +52,9 @@
 
 #define MB_in_BYTES  1000000
 
-const int64_t WPEFramework::Plugin::PackagerImplementation::STORE_BYTES_QUOTA = 10 * MB_in_BYTES;
-const char*   WPEFramework::Plugin::PackagerImplementation::STORE_NAME        = "DACstorage";
-const char*   WPEFramework::Plugin::PackagerImplementation::STORE_KEY         = "4d4680a1-b3b0-471c-968b-39495d2b1cc3";
+const uint64_t WPEFramework::Plugin::PackagerImplementation::STORE_BYTES_QUOTA = 10 * MB_in_BYTES;
+const char*    WPEFramework::Plugin::PackagerImplementation::STORE_NAME        = "DACstorage";
+const char*    WPEFramework::Plugin::PackagerImplementation::STORE_KEY         = "4d4680a1-b3b0-471c-968b-39495d2b1cc3";
 
 using namespace std;
 
@@ -459,9 +459,9 @@ JUNK_SLEEP_MS(200);
     return pkg;
   }
 
-  int64_t PackagerImplementation::GetAvailableSpace()
+  uint64_t PackagerImplementation::GetAvailableSpace()
   {
-    int64_t used_bytes = PackagerExUtils::sumSizeInBytes();
+    uint64_t used_bytes = PackagerExUtils::sumSizeInBytes();
 
     // LOGINFO("PackagerExImplementation::GetAvailableSpace()  ... used_bytes: %jd ", used_bytes);
     // LOGINFO("PackagerExImplementation::GetAvailableSpace()  ... STORE_BYTES_QUOTA: %jd ", STORE_BYTES_QUOTA);
