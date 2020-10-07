@@ -137,8 +137,14 @@ namespace Plugin {
         Exchange::IHDRProperties::HDRType hdrType;
         Exchange::IConnectionProperties::HDCPProtectionType hdcpType;
 
-        displayInfo.Totalgpuram = _graphicsProperties->TotalGpuRam();
-        displayInfo.Freegpuram = _graphicsProperties->FreeGpuRam();
+        uint64_t ram = 0;
+        if (_graphicsProperties->TotalGpuRam(ram) == Core::ERROR_NONE) {
+            displayInfo.Totalgpuram = ram;
+        }
+        ram = 0;
+        if (_graphicsProperties->FreeGpuRam(ram) == Core::ERROR_NONE) {
+            displayInfo.Freegpuram = ram;
+        }
 
         if (_connectionProperties->IsAudioPassthrough(boolean) == Core::ERROR_NONE) {
             displayInfo.Audiopassthrough = boolean;

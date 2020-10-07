@@ -49,6 +49,7 @@ private:
 public:
     DisplayInfoImplementation()
     {
+        LOGINFO();
         DisplayInfoImplementation::_instance = this;
         try
         {
@@ -69,8 +70,10 @@ public:
 
     DisplayInfoImplementation(const DisplayInfoImplementation&) = delete;
     DisplayInfoImplementation& operator= (const DisplayInfoImplementation&) = delete;
+
     virtual ~DisplayInfoImplementation()
     {
+        LOGINFO();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE) );
         IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE) );
@@ -79,18 +82,23 @@ public:
 
 public:
     // Graphics Properties interface
-    uint64_t TotalGpuRam() const override
+    uint32_t TotalGpuRam(uint64_t& total) const override
     {
-        return 0; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        total = 0; // TODO: Implement using DeviceSettings
+        return (Core::ERROR_NONE);
     }
-    uint64_t FreeGpuRam() const override
+    uint32_t FreeGpuRam(uint64_t& free ) const override
     {
-        return 0; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        free = 0; // TODO: Implement using DeviceSettings
+        return (Core::ERROR_NONE);
     }
 
     // Connection Properties interface
     uint32_t Register(INotification* notification) override
     {
+        LOGINFO();
         _adminLock.Lock();
 
         // Make sure a sink is not registered multiple times.
@@ -105,6 +113,7 @@ public:
     }
     uint32_t Unregister(INotification* notification) override
     {
+        LOGINFO();
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::iterator index(std::find(_observers.begin(), _observers.end(), notification));
@@ -124,6 +133,7 @@ public:
 
     static void ResolutionChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
+        LOGINFO();
         IConnectionProperties::INotification::Source eventtype;
         if (strcmp(owner, IARM_BUS_DSMGR_NAME) == 0)
         {
@@ -144,6 +154,7 @@ public:
 
     void ResolutionChangeImpl(IConnectionProperties::INotification::Source eventtype)
     {
+        LOGINFO();
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
@@ -158,32 +169,38 @@ public:
 
     uint32_t IsAudioPassthrough (bool& value) const override
     {
+        LOGINFO();
         value = false; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t Connected(bool& connected) const override
     {
+        LOGINFO();
         connected = false; // TODO: Implement using DeviceSettings (or use HDCP Profile plugin for this)
         return (Core::ERROR_NONE);
     }
     uint32_t Width(uint32_t& value) const override
     {
+        LOGINFO();
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t Height(uint32_t& value) const override
     {
+        LOGINFO();
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t VerticalFreq(uint32_t& value) const override
     {
+        LOGINFO();
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
 
     uint32_t HDCPProtection(HDCPProtectionType& value) const override //get
     {
+        LOGINFO();
         int hdcpversion = 1;
         string portname;
         PortName(portname);
@@ -196,8 +213,8 @@ public:
                 switch(static_cast<dsHdcpProtocolVersion_t>(hdcpversion))
                 {
                     case dsHDCP_VERSION_1X: value = IConnectionProperties::HDCPProtectionType::HDCP_1X; break;
-                    case dsHDCP_VERSION_2X:
-                    case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_2X; break;
+                    case dsHDCP_VERSION_2X: value = IConnectionProperties::HDCPProtectionType::HDCP_2X; break;
+                    case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_AUTO; break;
                 }
             }
             catch(const device::Exception& err)
@@ -212,8 +229,9 @@ public:
         return (Core::ERROR_NONE);
     }
 
-    uint32_t HDCPProtection(const HDCPProtectionType& value) override //set
+    uint32_t HDCPProtection(const HDCPProtectionType value) override //set
     {
+        LOGINFO();
         dsHdcpProtocolVersion_t hdcpversion = dsHDCP_VERSION_MAX;
         string portname;
         PortName(portname);
@@ -223,7 +241,7 @@ public:
             {
                 case IConnectionProperties::HDCPProtectionType::HDCP_1X : hdcpversion = dsHDCP_VERSION_1X; break;
                 case IConnectionProperties::HDCPProtectionType::HDCP_2X: hdcpversion = dsHDCP_VERSION_2X; break;
-                default: hdcpversion = dsHDCP_VERSION_MAX;
+                case IConnectionProperties::HDCPProtectionType::HDCP_AUTO: hdcpversion = dsHDCP_VERSION_MAX; break;
             }
             try
             {
@@ -248,6 +266,7 @@ public:
 
     uint32_t EDID (uint16_t& length /* @inout */, uint8_t data[] /* @out @length:length */) const override
     {
+        LOGINFO();
         vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
         try
         {
@@ -292,6 +311,7 @@ public:
 
     uint32_t PortName (string& name /* @out */) const
     {
+        LOGINFO();
         try
         {
             device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
@@ -318,6 +338,7 @@ public:
     // @return HDRType: array of HDR formats
     uint32_t TVCapabilities(IHDRIterator*& type /* out */) const override
     {
+        LOGINFO();
         std::list<Exchange::IHDRProperties::HDRType> hdrCapabilities;
 
         int capabilities = static_cast<int>(dsHDRSTANDARD_NONE);
@@ -351,6 +372,7 @@ public:
     // @return HDRType: array of HDR formats
     uint32_t STBCapabilities(IHDRIterator*& type /* out */) const override
     {
+        LOGINFO();
         std::list<Exchange::IHDRProperties::HDRType> hdrCapabilities;
 
         int capabilities = static_cast<int>(dsHDRSTANDARD_NONE);
@@ -377,7 +399,10 @@ public:
     // @property
     // @brief HDR format in use
     // @param type: HDR format
-    uint32_t HDRSetting(HDRType& type /* @out */) const override {
+    uint32_t HDRSetting(HDRType& type /* @out */) const override
+    {
+        LOGINFO();
+        LOGINFO();
         type = IHDRProperties::HDRType::HDR_OFF;
         bool isHdr = false;
         try

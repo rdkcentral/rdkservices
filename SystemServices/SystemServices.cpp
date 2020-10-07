@@ -344,6 +344,8 @@ namespace WPEFramework {
             registerMethod("getRFCConfig", &SystemServices::getRFCConfig, this);
             registerMethod("getMilestones", &SystemServices::getMilestones, this);
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
+            registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
+            registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
         }
 
         SystemServices::~SystemServices()
@@ -1075,6 +1077,65 @@ namespace WPEFramework {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
 		returnResponse(status);
+        }
+
+        /***
+         * @brief Sets the Network standby mode by invoking the corresponding
+         * systemService method. This function used as an interface function in Java script.
+         * @param1[in]	: {"jsonrpc":"2.0","id":"3","method":"org.rdk.SystemServices.1.setNetworkStandbyMode",
+         *				"params":{"nwStandby":<bool>}}
+         * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return		: Core::<StatusCode>
+         */
+         uint32_t SystemServices::setNetworkStandbyMode (const JsonObject& parameters,
+             JsonObject& response)
+         {
+             bool status = false;
+             IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+             if (parameters.HasLabel("nwStandby")) {
+                 param.bStandbyMode = parameters["nwStandby"].Boolean();
+                 LOGWARN("setNetworkStandbyMode called, with NwStandbyMode : %s\n",
+                          (param.bStandbyMode)?("Enabled"):("Disabled"));
+                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                        IARM_BUS_PWRMGR_API_SetNetworkStandbyMode, (void *)&param,
+                                        sizeof(param));
+
+                 if (IARM_RESULT_SUCCESS == res) {
+                     status = true;
+                 } else {
+                     status = false;
+                 }
+             } else {
+                 populateResponseWithError(SysSrv_MissingKeyValues, response);
+             }
+             returnResponse(status);
+        }
+
+        /***
+         * @brief : To retrieve Device Power State.
+         * @param1[in] : {"params":{}}
+         * @param2[out] : {"result":{"nwStandby":"<bool>","success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getNetworkStandbyMode(const JsonObject& parameters,
+            JsonObject& response)
+        {
+            bool retVal = false;
+            IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                   IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
+                                   sizeof(param));
+            bool nwStandby = param.bStandbyMode;
+
+            LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
+                     nwStandby?("Enabled"):("Disabled"));
+            response["nwStandby"] = nwStandby;
+            if (IARM_RESULT_SUCCESS == res) {
+                retVal = true;
+            } else {
+                retVal = false;
+            }
+            returnResponse(retVal);
         }
 
         /***
