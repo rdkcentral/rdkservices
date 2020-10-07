@@ -29,6 +29,14 @@ find_package(libprovision QUIET)
 find_package(LibOPKG REQUIRED)
 find_package(GLIB REQUIRED)
 
+find_package(CURL)
+if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+endif (CURL_FOUND)
+
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 # enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
