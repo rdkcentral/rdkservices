@@ -105,6 +105,31 @@ namespace WPEFramework
                 m_resetThread.join();
         }
 
+        const string Warehouse::Initialize(PluginHost::IShell* /* service */)
+        {
+            LOGINFO();
+            InitializeIARM();
+            // On success return empty, to indicate there is no error text.
+            return (string());
+        }
+
+        void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
+        {
+            LOGINFO();
+            DeinitializeIARM();
+        }
+
+        void Warehouse::InitializeIARM()
+        {
+            LOGINFO();
+            Utils::IARM::init();
+        }
+
+        void Warehouse::DeinitializeIARM()
+        {
+            LOGINFO();
+        }
+
         /**
          * @brief This function is used to write the client name in the host file if
          * the string list is empty by default ".warehouse.ccp.xcal.tv" will write in
@@ -163,11 +188,31 @@ namespace WPEFramework
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-        static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot)
+        static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
-            IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
-            whParam.suppressReboot = suppressReboot;
-            IARM_Result_t err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
+            IARM_Result_t err;
+            if (resetType.compare("COLD") == 0)
+            {
+                LOGINFO("%s reset...", resetType.c_str());
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
+            }
+            else if (resetType.compare("FACTORY") == 0)
+            {
+                LOGINFO("%s reset...", resetType.c_str());
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
+            }
+            else if (resetType.compare("USERFACTORY") == 0)
+            {
+                LOGINFO("%s reset...", resetType.c_str());
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
+            }
+            else // WAREHOUSE
+            {
+                LOGINFO("WAREHOUSE reset...");
+                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                whParam.suppressReboot = suppressReboot;
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
+            }
 
             bool ok = err == IARM_RESULT_SUCCESS;
             JsonObject params;
@@ -175,7 +220,10 @@ namespace WPEFramework
             params[PARAM_SUCCESS] = ok;
 
             if (!ok)
+            {
+                LOGWARN("%s", C_STR(Utils::formatIARMResult(err)));
                 params[PARAM_ERROR] = "Reset failed";
+            }
 
             string json;
             params.ToString(json);
@@ -212,16 +260,16 @@ namespace WPEFramework
         }
 #endif
 
-        void Warehouse::resetDevice(bool suppressReboot)
+        void Warehouse::resetDevice(bool suppressReboot, const string& resetType)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 
-            LOGWARN("Received request to terminate CoPilot");
+            LOGWARN("Received request to reset device");
 
             if (m_resetThread.joinable())
                 m_resetThread.join();
 
-            m_resetThread = std::thread(WareHouseResetIARM, this, suppressReboot);
+            m_resetThread = std::thread(WareHouseResetIARM, this, suppressReboot, resetType);
 #else
 
             JsonObject params;
@@ -678,7 +726,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::resetDeviceWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool suppressReboot = false;
             if (parameters.HasLabel("suppressReboot"))
@@ -686,7 +734,13 @@ namespace WPEFramework
                 getBoolParameter("suppressReboot", suppressReboot);
             }
 
-            resetDevice(suppressReboot);
+            string resetType;
+            if (parameters.HasLabel("resetType"))
+            {
+                getStringParameter("resetType", resetType);
+            }
+
+            resetDevice(suppressReboot, resetType);
 
             response[PARAM_SUCCESS] = true;
             returnResponse(true);
