@@ -2130,7 +2130,9 @@ namespace WPEFramework {
                     JsonObject ociContainerResult;
                     JsonObject param;
 
-                    param["containerId"] = uri;
+                    // Container ID set to client so we can find the container
+                    // when suspend/resume/killing which use client id
+                    param["containerId"] = client;
                     param["bundlePath"] = bundlePath;
                     param["westerosSocket"] = display;
 
