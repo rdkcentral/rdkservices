@@ -197,6 +197,14 @@ namespace Plugin {
         void RegisterAll();
         void UnregisterAll();
         uint32_t endpoint_sync();
+
+        int tzDecode(char *p);
+        char *timefmt(char *p, int len, int interval);
+        int weekofmonth(int mday);
+        void getZoneInfo(std::string file, std::string &zoneInfo);
+        void processTimeZones(std::string dir, JsonObject& out);
+        uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
+
         uint32_t get_location(JsonData::LocationSync::LocationData& response) const;
         void event_locationchange();
 

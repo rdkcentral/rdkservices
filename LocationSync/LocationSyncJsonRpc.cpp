@@ -34,12 +34,14 @@ namespace Plugin {
     {
         Register<void,void>(_T("sync"), &LocationSync::endpoint_sync, this);
         Property<LocationData>(_T("location"), &LocationSync::get_location, nullptr, this);
+        Register(_T("getTimeZones"), &LocationSync::getTimeZones, this);
     }
 
     void LocationSync::UnregisterAll()
     {
         Unregister(_T("sync"));
         Unregister(_T("location"));
+        Unregister(_T("getTimeZones"));
     }
 
     // API implementation
