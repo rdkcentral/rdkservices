@@ -76,7 +76,6 @@ namespace WPEFramework
             registerMethod(TIMER_METHOD_GET_TIMER_STATUS, &Timer::getTimerStatusWrapper, this);
             registerMethod(TIMER_METHOD_GET_TIMERS, &Timer::getTimersWrapper, this);
 
-            m_timer.setSingleShot(true);
             m_timer.connect(std::bind(&Timer::onTimerCallback, this));
         }
 
@@ -129,7 +128,14 @@ namespace WPEFramework
                 minTimeout = TIMER_ACCURACY;
 
             if (minTimeout < 100000)
-                m_timer.start(int(minTimeout * 1000));
+            {
+                if (!m_timer.isActive())
+                    m_timer.start(int(minTimeout * 1000));
+                else
+                    m_timer.setInterval(int(minTimeout * 1000));
+            }
+            else
+                m_timer.stop();
         }
 
         void Timer::startTimer(int timerId)
