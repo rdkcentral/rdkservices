@@ -87,7 +87,7 @@ export default class StoreTile extends lng.Component
                   x: 210 / 2,
                   y: 150,
 
-                  Button1: { btnId: "CHECK", flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/check_mark80x80.png')  },
+                  Button1: { btnId: "CHECK", flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/RDKcheckmark80x80.png')  },
                   Button2: { btnId: "KILL",  flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/x_mark.png')           },
                   Button3: { btnId: "TRASH", flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/TrashCan80x80.png')    },
                 }
@@ -194,9 +194,6 @@ export default class StoreTile extends lng.Component
 
     setInfo(ii)
     {
-      // var check_mark_PNG = Utils.asset('images/check_mark.png');
-      // var download_PNG   = Utils.asset('images/download3.png');
-
       if(ii)
       {
         if(ii.id)
@@ -212,9 +209,6 @@ export default class StoreTile extends lng.Component
         else
         if(ii.pkgId) this.setLabel(ii.pkgId)
         else         this.setLabel("unknown22")
-
-        // var icon = (ii.pkgInstalled) ? check_mark_PNG : download_PNG;
-        // this.setIcon(icon);
       }
       else
       {

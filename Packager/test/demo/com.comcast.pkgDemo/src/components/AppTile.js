@@ -87,7 +87,7 @@ export default class StoreTile extends Tile
                   x: 210 / 2,
                   y: 150,
 
-                  Button1: { btnId: "RESUME", flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/check_mark80x80.png')  },
+                  Button1: { btnId: "RESUME", flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/RDKcheckmark80x80.png')  },
                   Button2: { btnId: "KILL",   flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/x_mark.png')           },
                   Button3: { btnId: "TRASH",  flexItem: { margin: 30 }, type: IconButton, src1: Utils.asset('images/TrashCan80x80.png')    },
                 }
