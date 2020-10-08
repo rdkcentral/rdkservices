@@ -123,7 +123,7 @@ namespace WPEFramework
             void stopBlinkTimer();
             bool remoteLedOn();
             bool remoteLedOff();
-            void set24HourClock(bool is24Hour);
+            bool set24HourClock(bool is24Hour);
             bool is24HourClock();
 
             void onBlinkTimer();

@@ -56,6 +56,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_OPACITY = "getO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_OPACITY = "setOpacity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCALE = "getScale";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_SCALE = "setScale";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_HOLE_PUNCH = "getHolePunch";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_HOLE_PUNCH = "setHolePunch";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOG_LEVEL = "getLogLevel";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_LOG_LEVEL = "setLogLevel";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = "removeAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING = "enableInactivityReporting";
@@ -158,7 +162,6 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
                 {
-
                     /*PluginHost::ISubSystem* subSystems(service->SubSystems());
                     if (subSystems != nullptr)
                     {
@@ -221,6 +224,10 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_OPACITY, &RDKShell::setOpacityWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCALE, &RDKShell::getScaleWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_SCALE, &RDKShell::setScaleWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_HOLE_PUNCH, &RDKShell::getHolePunchWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_HOLE_PUNCH, &RDKShell::setHolePunchWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOG_LEVEL, &RDKShell::getLogLevelWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_LOG_LEVEL, &RDKShell::setLogLevelWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_ANIMATION, &RDKShell::removeAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING, &RDKShell::enableInactivityReportingWrapper, this);
@@ -830,7 +837,13 @@ namespace WPEFramework {
             {
                 const JsonArray keyInputs = parameters["keys"].Array();
 
-                result = generateKey(keyInputs);
+                string client = parameters.HasLabel("client") ? parameters["client"].String() : "";
+                if (client.empty())
+                {
+                  client = parameters.HasLabel("callsign") ? parameters["callsign"].String() : "";
+                }
+                result = generateKey(client, keyInputs);
+
                 if (false == result) {
                   response["message"] = "failed to generate keys";
                 }
@@ -1256,6 +1269,119 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::getHolePunchWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                bool holePunch = true;
+                result = getHolePunch(client, holePunch);
+                if (false == result) {
+                  response["message"] = "failed to get hole punch";
+                }
+                else {
+                  response["holePunch"] = holePunch;
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setHolePunchWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (!parameters.HasLabel("holePunch"))
+            {
+                result = false;
+                response["message"] = "please specify hole punch (holePunch = true/false)";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                const bool holePunch  = parameters["holePunch"].Boolean();
+
+                result = setHolePunch(client, holePunch);
+
+                if (false == result) {
+                  response["message"] = "failed to set hole punch";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogLevelWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            std::string logLevel = "INFO";
+            gRdkShellMutex.lock();
+            result = CompositorController::getLogLevel(logLevel);
+            gRdkShellMutex.unlock();
+            if (false == result) {
+                response["message"] = "failed to get log level";
+            }
+            else {
+                response["logLevel"] = logLevel;
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setLogLevelWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("logLevel"))
+            {
+                result = false;
+                response["message"] = "please specify log level (logLevel = DEBUG/INFO/WARN/ERROR/FATAL)";
+            }
+            if (result)
+            {
+                std::string logLevel  = parameters["logLevel"].String();
+                std::string currentLogLevel = "INFO";
+                gRdkShellMutex.lock();
+                result = CompositorController::setLogLevel(logLevel);
+                CompositorController::getLogLevel(currentLogLevel);
+                gRdkShellMutex.unlock();
+                if (false == result) {
+                    response["message"] = "failed to set log level";
+                }
+                else
+                {
+                    response["logLevel"] = currentLogLevel;
+                }
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::removeAnimationWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -1441,6 +1567,8 @@ namespace WPEFramework {
                 string behind;
                 string displayName = "wst-" + callsign;
                 bool scaleToFit = false;
+                bool setSuspendResumeStateOnLaunch = true;
+                bool holePunch = true;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -1489,6 +1617,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("h"))
                 {
                     height = parameters["h"].Number();
+                }
+                if (parameters.HasLabel("holePunch"))
+                {
+                    holePunch = parameters["holePunch"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -1559,6 +1691,15 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
+                if (!type.empty() && type == "Netflix")
+                {
+                    std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
+                    configSet["launchtosuspend"] = suspend;
+                    if (!suspend)
+                    {
+                        setSuspendResumeStateOnLaunch = false;
+                    }
+                }
 
                 status = getThunderControllerClient()->Set<JsonObject>(2000, method.c_str(), configSet);
 
@@ -1662,33 +1803,37 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
-                    if (suspend)
+                    if (setSuspendResumeStateOnLaunch)
                     {
+                        if (suspend)
+                        {
 
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "suspended";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        
-                        std::cout << "setting the state to suspended\n";
-                        if (launchType == RDKShellLaunchType::UNKNOWN)
-                        {
-                            launchType = RDKShellLaunchType::SUSPEND;
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "suspended";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            
+                            std::cout << "setting the state to suspended\n";
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::SUSPEND;
+                            }
+                            visible = false;
                         }
-                        visible = false;
-                    }
-                    else
-                    {
-                        WPEFramework::Core::JSON::String stateString;
-                        stateString = "resumed";
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
-                        if (launchType == RDKShellLaunchType::UNKNOWN)
+                        else
                         {
-                            launchType = RDKShellLaunchType::RESUME;
+                            WPEFramework::Core::JSON::String stateString;
+                            stateString = "resumed";
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                launchType = RDKShellLaunchType::RESUME;
+                            }
+                            
+                            std::cout << "setting the state to resumed\n";
                         }
-                        
-                        std::cout << "setting the state to resumed\n";
                     }
                     setVisibility(callsign, visible);
+                    setHolePunch(callsign, holePunch);
                     if (!visible)
                     {
                         focused = false;
@@ -2190,7 +2335,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::generateKey(const JsonArray& keyInputs)
+        bool RDKShell::generateKey(const string& client, const JsonArray& keyInputs)
         {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
@@ -2201,12 +2346,17 @@ namespace WPEFramework {
                   const uint32_t delay = keyInputInfo["delay"].Number();
                   sleep(delay);
                   const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
+                  std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
+                  if (keyClient.empty())
+                  {
+                    keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
+                  }
                   uint32_t flags = 0;
                   for (int k=0; k<modifiers.Length(); k++) {
                     flags |= getKeyFlag(modifiers[k].String());
                   }
                   gRdkShellMutex.lock();
-                  ret = CompositorController::injectKey(keyCode, flags);
+                  ret = CompositorController::generateKey(keyClient, keyCode, flags);
                   gRdkShellMutex.unlock();
                 }
             }
@@ -2352,6 +2502,24 @@ namespace WPEFramework {
             return ret;
         }
 
+        bool RDKShell::getHolePunch(const string& client, bool& holePunch)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getHolePunch(client, holePunch);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setHolePunch(const string& client, const bool holePunch)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setHolePunch(client, holePunch);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
         bool RDKShell::removeAnimation(const string& client)
         {
             bool ret = false;
@@ -2410,6 +2578,18 @@ namespace WPEFramework {
                     {
                         std::string tween = animationInfo["tween"].String();
                         animationProperties["tween"] = tween;
+                    }
+                    if (animationInfo.HasLabel("delay"))
+                    {
+                        try
+                        {
+                          double duration = std::stod(animationInfo["delay"].String());
+                          animationProperties["delay"] = duration;
+                        }
+                        catch (...)
+                        {
+                          std::cout << "RDKShell unable to set delay for animation  " << std::endl;
+                        }
                     }
                     CompositorController::addAnimation(client, duration, animationProperties);
                 }
