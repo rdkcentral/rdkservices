@@ -20,6 +20,9 @@
 #include <memory>
 #include <utility>
 #include <tuple>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 
 #include "Module.h"
 
@@ -2253,9 +2256,14 @@ static GSourceFuncs _handlerIntervention =
                                             activeURL.c_str()));
             }
 
-            if (_unresponsiveReplyNum == kWebProcessUnresponsiveReplyDefaultLimit)
+                if (_unresponsiveReplyNum == kWebProcessUnresponsiveReplyDefaultLimit)
             {
-                DeactivateBrowser(PluginHost::IShell::WATCHDOG_EXPIRED);
+                Logging::DumpSystemFiles(webprocessPID);
+
+                if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
+                {
+                    SYSLOG(Trace::Error, ("tgkill failed, signal=%d process=%u errno=%d (%s)", SIGFPE, webprocessPID, errno, strerror(errno)));
+                }
             }
             else if (_unresponsiveReplyNum == (2 * kWebProcessUnresponsiveReplyDefaultLimit))
             {
