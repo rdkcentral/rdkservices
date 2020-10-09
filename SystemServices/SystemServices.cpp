@@ -2460,7 +2460,7 @@ namespace WPEFramework {
                     if (strstr(line.c_str(), "imagename:")) {
                         std::string gp = line.c_str();
                         std::string delimiter = ":";
-                        std::string token = gp.substr((gp.find(delimiter)+1), 43);
+                        std::string token = gp.substr((gp.find(delimiter)+1));
                         if (token.length()){
                             versionFound = true;
                             m_stbVersionString = token;
