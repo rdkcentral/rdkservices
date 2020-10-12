@@ -139,6 +139,7 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_busThread(true),
     m_flushed(false),
     m_isEOS(false),
+    m_pcmAudioEnabled(false),
     m_ensurePipeline(false),
     m_gstThread(new std::thread(GStreamerThreadFunc, this)),
     m_busWatch(0),
@@ -156,6 +157,7 @@ TTSSpeaker::~TTSSpeaker() {
         m_flushed = true;
     m_runThread = false;
     m_busThread = false;
+    m_pcmAudioEnabled = false;
     m_condition.notify_one();
 
     if(m_gstThread) {
@@ -347,6 +349,9 @@ bool TTSSpeaker::waitForStatus(GstState expected_state, uint32_t timeout_ms) {
 // GStreamer Releated members
 void TTSSpeaker::createPipeline() {
     m_isEOS = false;
+    GstCaps *audiocaps=NULL;
+    GstElement *capsfilter=NULL;
+    m_pcmAudioEnabled = false; //default is cloud
 
     if(!m_ensurePipeline || m_pipeline) {
         TTSLOG_WARNING("Skipping Pipeline creation");
@@ -389,6 +394,12 @@ void TTSSpeaker::createPipeline() {
         }
 
         tts_url.append("&text=init");
+	std::string nuanceLoopbackAddr = NUANCE_LOOPBACK_ADDR;
+	std::string  nuanceLocalhostAddr = NUANCE_LOCALHOST_ADDR;
+	//Check if url contains nuance endpoint on localhost, enable PCM audio
+	if((tts_url.rfind(nuanceLoopbackAddr,0) != std::string::npos)  || (tts_url.rfind(nuanceLocalhostAddr,0) != std::string::npos)){
+	   m_pcmAudioEnabled = true;
+	}
         curlSanitize(tts_url);
 
         g_object_set(G_OBJECT(m_source), "location", tts_url.c_str(), NULL);
@@ -398,18 +409,53 @@ void TTSSpeaker::createPipeline() {
     g_object_set(G_OBJECT(m_audioSink), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
 
     // Add elements to pipeline and link
+     if(m_pcmAudioEnabled) {
+        //Add raw audio caps
+       audiocaps = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "S16LE", "rate", G_TYPE_INT, 22050,
+                                "channels", G_TYPE_INT, 1, NULL);
+       if(audiocaps == NULL) {
+	   m_pcmAudioEnabled = false;
+           TTSLOG_ERROR("Unable to add audio caps for PCM audio.");
+           return ;
+       }
+      capsfilter = gst_element_factory_make ("capsfilter", NULL);
+      if (capsfilter) {
+         g_object_set (G_OBJECT (capsfilter), "caps", audiocaps, NULL);
+         gst_caps_unref(audiocaps);
+      }
+      else {
+          m_pcmAudioEnabled = false;
+          TTSLOG_ERROR( "Unable to create capsfilter for PCM audio.");
+          return;
+      }
+     }
     bool result = TRUE;
 #if defined(PLATFORM_BROADCOM)
+    if(!m_pcmAudioEnabled){
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
+    }
+    else {
+        TTSLOG_INFO("PCM audio capsfilter  added to sink");
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, capsfilter, m_audioSink,NULL);
+        result = gst_element_link_many (m_source,capsfilter,m_audioSink,NULL);
+    }
 #elif defined(PLATFORM_AMLOGIC)
+    if(!m_pcmAudioEnabled){
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
     result &= gst_element_link (m_source, parser);
     result &= gst_element_link (parser, decodebin);
     result &= gst_element_link (decodebin, convert);
     result &= gst_element_link (convert, resample);
     result &= gst_element_link (resample, m_audioSink);
+    }
+    else {
+         //TODO find PCM playback on Amlogic
+         TTSLOG_ERROR("PCM playback not Implemented");
+         gst_bin_add_many(GST_BIN(m_pipeline), m_source, capsfilter, convert, resample, m_audioSink, NULL);
+         result = gst_element_link_many (m_source,capsfilter,convert,resample,m_audioSink,NULL);
+    }
 #endif
 
     if(!result) {
@@ -659,7 +705,13 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
         //Wait for EOS with a timeout incase EOS never comes
-        waitForAudioToFinishTimeout(10);
+	if(m_pcmAudioEnabled) {
+	  //FIXME, find out way to EOS or position for raw PCM audio
+           waitForAudioToFinishTimeout(60);
+	}
+	else {
+              waitForAudioToFinishTimeout(10);
+	}
     } else {
         TTSLOG_WARNING("m_pipeline=%p, m_pipelineError=%d", m_pipeline, m_pipelineError);
     }

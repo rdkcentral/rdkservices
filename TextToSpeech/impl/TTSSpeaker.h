@@ -41,6 +41,10 @@ namespace TTS {
 #define DEFAULT_WPM 200
 #define MAX_VOLUME 100
 
+//Nuance Endpoint
+#define NUANCE_LOOPBACK_ADDR "http://127.0.0.1:50050/nuanceEve"
+#define NUANCE_LOCALHOST_ADDR "http://localhost:50050/nuanceEve"
+
 // --- //
 
 class TTSConfiguration {
@@ -162,6 +166,7 @@ private:
     bool        m_busThread;
     bool        m_flushed;
     bool        m_isEOS;
+    bool        m_pcmAudioEnabled;
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
     guint       m_busWatch;
