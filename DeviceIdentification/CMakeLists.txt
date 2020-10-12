@@ -18,7 +18,6 @@
 set(PLUGIN_NAME DeviceIdentification)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-option(CODE_FROM_EXTERNAL_REPOSITORY "Include code from External Repository" ON)
 option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
 
 find_package(NEXUS QUIET)
@@ -50,18 +49,14 @@ elseif (NEXUS_FOUND)
         target_sources(${MODULE_NAME}
             PRIVATE
                 ${DEVICEIDENTIFICATION_IMPLEMENTATION_PATH}/Nexus.cpp)
-    elseif (CODE_FROM_EXTERNAL_REPOSITORY)
+    else()
         include(GetExternalCode)
         set(DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION "master" CACHE STRING "DeviceIdentification implementation version")
         GetExternalCode(
             GIT_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification"
             GIT_TAG ${DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION}
-            SOURCE_DIR "Implementation/NexusExt"
+            SOURCE_DIR "Implementation/Nexus"
         )
-        target_sources(${MODULE_NAME}
-            PRIVATE
-                Implementation/NexusExt/Nexus.cpp)
-    else()
         target_sources(${MODULE_NAME}
             PRIVATE
                 Implementation/Nexus/Nexus.cpp)
