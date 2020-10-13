@@ -364,10 +364,15 @@ void TTSSpeaker::createPipeline() {
     m_source = gst_element_factory_make("souphttpsrc", NULL);
 
     // create soc specific elements
-#ifdef PLATFORM_BROADCOM
-    GstElement *decodebin = NULL;
-    decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
+#if defined(PLATFORM_BROADCOM)
+    GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+#elif defined(PLATFORM_AMLOGIC)
+    GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
+    GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
+    GstElement *convert = gst_element_factory_make("audioconvert", NULL);
+    GstElement *resample = gst_element_factory_make("audioresample", NULL);
+    m_audioSink = gst_element_factory_make("amlhalasink", NULL);
 #endif
 
     std::string tts_url =
@@ -394,10 +399,17 @@ void TTSSpeaker::createPipeline() {
 
     // Add elements to pipeline and link
     bool result = TRUE;
-#ifdef PLATFORM_BROADCOM
+#if defined(PLATFORM_BROADCOM)
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
     result &= gst_element_link (m_source, decodebin);
     result &= gst_element_link (decodebin, m_audioSink);
+#elif defined(PLATFORM_AMLOGIC)
+    gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
+    result &= gst_element_link (m_source, parser);
+    result &= gst_element_link (parser, decodebin);
+    result &= gst_element_link (decodebin, convert);
+    result &= gst_element_link (convert, resample);
+    result &= gst_element_link (resample, m_audioSink);
 #endif
 
     if(!result) {
