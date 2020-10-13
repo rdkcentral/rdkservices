@@ -1819,8 +1819,8 @@ namespace WPEFramework {
 				if (m_cacheService.contains(key)) {
 					retStat = true;
 				} else {
-					LOGERR("Accessing m_cacheService.contains failed\n.");
-					populateResponseWithError(SysSrv_Unexpected, response);
+					LOGERR("Accessing m_cacheService.contains; no matching key '%s'\n.", key.c_str());
+					populateResponseWithError(SysSrv_KeyNotFound, response);
 				}
 			} else {
 				populateResponseWithError(SysSrv_UnSupportedFormat, response);
