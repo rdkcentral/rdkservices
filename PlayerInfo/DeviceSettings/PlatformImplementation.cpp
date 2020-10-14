@@ -148,6 +148,7 @@ public:
 
     uint32_t Resolution(PlaybackResolution& res /* @out */) const override
     {
+        LOGINFO();
         res = RESOLUTION_UNKNOWN;
 
         string currentResolution = "0";
@@ -174,6 +175,7 @@ public:
 
     uint32_t IsAudioEquivalenceEnabled(bool& isEnbaled /* @out */) const override
     {
+        LOGINFO();
         isEnbaled = false;
         try
         {
@@ -201,6 +203,7 @@ public:
 
     uint32_t Register(Exchange::Dolby::IOutput::INotification* notification) override
     {
+        LOGINFO();
         _adminLock.Lock();
 
         // Make sure a sink is not registered multiple times.
@@ -216,6 +219,7 @@ public:
 
     uint32_t Unregister(Exchange::Dolby::IOutput::INotification* notification) override
     {
+        LOGINFO();
         _adminLock.Lock();
 
         std::list<Exchange::Dolby::IOutput::INotification*>::iterator index(std::find(_observers.begin(), _observers.end(), notification));
@@ -235,6 +239,7 @@ public:
 
     static void AudioModeHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
+        LOGINFO();
         if(PlayerInfoImplementation::_instance)
         {
             PlayerInfoImplementation::_instance->audiomodeChanged(STEREO, true);
@@ -243,7 +248,8 @@ public:
 
     void audiomodeChanged(Exchange::Dolby::IOutput::SoundModes mode, bool enable)
     {
-         _adminLock.Lock();
+        LOGINFO();
+        _adminLock.Lock();
 
         std::list<Exchange::Dolby::IOutput::INotification*>::const_iterator index = _observers.begin();
 
@@ -258,17 +264,20 @@ public:
 
     uint32_t Mode(const Exchange::Dolby::IOutput::Type& mode) override
     {
+        LOGINFO();
         return (Core::ERROR_GENERAL);
     }
 
     uint32_t Mode(Exchange::Dolby::IOutput::Type& mode) const override
     {
+        LOGINFO();
         return (Core::ERROR_GENERAL);
     }
 
 
     uint32_t AtmosMetadata(bool& supported /* @out */) const override
     {
+        LOGINFO();
         dsATMOSCapability_t atmosCapability;
         supported = false;
         try
@@ -294,6 +303,7 @@ public:
 
     uint32_t SoundMode(Exchange::Dolby::IOutput::SoundModes& mode /* @out */) const override
     {
+        LOGINFO();
         string audioPort;
         device::AudioStereoMode soundmode = device::AudioStereoMode::kStereo;
         mode = UNKNOWN;
@@ -348,6 +358,7 @@ public:
 
     uint32_t EnableAtmosOutput(const bool& enable /* @in */)
     {
+        LOGINFO();
         try
         {
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");

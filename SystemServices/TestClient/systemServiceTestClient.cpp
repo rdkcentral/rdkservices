@@ -872,7 +872,7 @@ void showUsage(char *pName)
 /* This section is related to the event handler implementation for Thunder Plugin Events. */
 namespace Handlers {
 	/* Common Event Handler */
-	static void onEventHandler(const Core::JSON::JsonContainer& parameters) {
+	static void onEventHandler(const JsonObject& parameters) {
 		std::string message;
 		parameters.ToString(message);
 		printf("\n[%llu][System-JSONRPCEvt]: '%s'\n", TimeStamp(), makePretty(message).c_str());
@@ -1015,7 +1015,7 @@ int main(int argc, char** argv)
 		printf("\n[%llu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
 		/* Experimental: Register a common Event Handler for all Events */
 		for (std::string eventName : SystemEventNames) {
-			if (remoteObject->Subscribe<Core::JSON::JsonContainer>(1000, _T(eventName),
+			if (remoteObject->Subscribe<JsonObject>(1000, _T(eventName),
 						&Handlers::onEventHandler) == Core::ERROR_NONE) {
 				printf("\n[%llu][System-MainFunctn] : Subscribed to '%s'...\n",
 					TimeStamp(), eventName.c_str());
