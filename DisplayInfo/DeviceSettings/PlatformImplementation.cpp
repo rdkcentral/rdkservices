@@ -37,6 +37,9 @@
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
 
+#define EDID_MAX_HORIZONTAL_SIZE 21
+#define EDID_MAX_VERTICAL_SIZE   22
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -169,31 +172,31 @@ public:
 
     uint32_t IsAudioPassthrough (bool& value) const override
     {
-        LOGINFO();
+        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
         value = false; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t Connected(bool& connected) const override
     {
-        LOGINFO();
+        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
         connected = false; // TODO: Implement using DeviceSettings (or use HDCP Profile plugin for this)
         return (Core::ERROR_NONE);
     }
     uint32_t Width(uint32_t& value) const override
     {
-        LOGINFO();
+        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t Height(uint32_t& value) const override
     {
-        LOGINFO();
+        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t VerticalFreq(uint32_t& value) const override
     {
-        LOGINFO();
+        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
         value = 0; // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
@@ -260,6 +263,66 @@ public:
         else
         {
             TRACE(Trace::Information, (_T("No STB video ouptut ports connected to TV, returning HDCP as unencrypted %d"), hdcpversion));
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t WidthInCentimeters(uint8_t& width /* @out */) const override
+    {
+        LOGINFO();
+        try
+        {
+            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                std::vector<uint8_t> edidVec;
+
+                vPort.getDisplay().getEDIDBytes(edidVec);
+
+                if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
+                {
+                    width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
+                    TRACE(Trace::Information, (_T("Width in cm = %d"), width));
+                }
+                else
+                {
+                    LOGWARN("Failed to get Display Size!\n");
+                }
+            }
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t HeightInCentimeters(uint8_t& height /* @out */) const override
+    {
+        LOGINFO();
+        try
+        {
+            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                std::vector<uint8_t> edidVec;
+
+                vPort.getDisplay().getEDIDBytes(edidVec);
+
+                if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
+                {
+                    height = edidVec[EDID_MAX_VERTICAL_SIZE];
+                    TRACE(Trace::Information, (_T("Height in cm = %d"), height));
+                }
+                else
+                {
+                    LOGWARN("Failed to get Display Size!\n");
+                }
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
         return (Core::ERROR_NONE);
     }
