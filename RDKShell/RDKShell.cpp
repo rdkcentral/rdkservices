@@ -97,7 +97,7 @@ extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
-
+vector<std::string> gActivePlugins;
 
 #define ANY_KEY 65536
 
@@ -158,6 +158,7 @@ namespace WPEFramework {
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
+                       gActivePlugins.push_back(service->Callsign());
                    }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
@@ -185,6 +186,20 @@ namespace WPEFramework {
                         RdkShell::CompositorController::kill(clientidentifier);
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
+                    }
+                    
+                    std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
+                    for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
+                    {
+                      if ((*iter) == service->Callsign())
+                      {
+                        pluginToRemove = iter;
+                        break;
+                      }
+                    }
+                    if (pluginToRemove != gActivePlugins.end())
+                    {
+                      gActivePlugins.erase(pluginToRemove);
                     }
                 }
             }
@@ -252,6 +267,7 @@ namespace WPEFramework {
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
+            gActivePlugins.clear();
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -1541,6 +1557,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            double launchStartTime = RdkShell::seconds();
             bool result = true;
             if (!parameters.HasLabel("callsign"))
             {
@@ -1626,6 +1643,19 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
+                for (auto pluginName : gActivePlugins)
+                {
+                  if (pluginName == callsign)
+                  {
+                    newPluginFound = true;
+                    break;
+                  }
+                  else if (pluginName == type)
+                  {
+                    originalPluginFound = true;
+                  }
+                }
+                if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
                     uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, "status", availablePluginResult);
@@ -1882,6 +1912,7 @@ namespace WPEFramework {
                             launchTypeString = "unknown";
                             break;
                     }
+                    std::cout << "Application:" << callsign << " took " << (RdkShell::seconds() - launchStartTime)*1000 << " milliseconds to launch " << std::endl;
                     onLaunched(callsign, launchTypeString);
                     response["launchType"] = launchTypeString;
                 }
