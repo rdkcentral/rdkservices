@@ -199,6 +199,10 @@ if(PLUGIN_OPENCDMI)
     add_subdirectory(OpenCDMi)
 endif()
 
+if(PLUGIN_MOTION_DETECTION)
+    add_subdirectory(MotionDetection)
+endif()
+
 if(PLUGIN_PLAYERINFO)
     add_subdirectory(PlayerInfo)
 endif()
