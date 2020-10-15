@@ -20,7 +20,6 @@
 #include "LocationSync.h"
 
 #include "utils.h"
-#include "tzfile.h"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
