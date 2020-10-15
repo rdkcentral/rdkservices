@@ -19,6 +19,11 @@
  
 #include "LocationSync.h"
 
+#include "utils.h"
+#include "tzfile.h"
+
+#define ZONEINFO_DIR "/usr/share/zoneinfo"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -153,6 +158,95 @@ namespace Plugin {
                 event_locationchange();
             }
         }
+    }
+
+
+    void LocationSync::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+    {
+        std::string cmd = "zdump ";
+        cmd += file;
+
+        FILE *p = popen(cmd.c_str(), "r");
+
+        if(!p)
+        {
+            TRACE_L1("failed to start %s: %s", cmd, strerror(errno));
+            zoneInfo = "";
+            return;
+
+        }
+
+        char buf[1024];
+        while(fgets(buf, sizeof(buf), p) != NULL)
+            zoneInfo += buf;
+
+        int err = pclose(p);
+        if (0 == err)
+        {
+            zoneInfo.erase(0, zoneInfo.find_first_of(" \t")); // Skip filename
+            zoneInfo.erase(0, zoneInfo.find_first_not_of(" \n\r\t")); // Trim whitespaces
+            zoneInfo.erase(zoneInfo.find_last_not_of(" \n\r\t") + 1);
+        }
+        else
+        {    
+            zoneInfo = "";
+            TRACE_L1("%s failed with code %d", cmd.c_str(), err);
+        }
+    }
+
+    void LocationSync::processTimeZones(std::string dir, JsonObject& out)
+    {
+        DIR *d = opendir(dir.c_str());
+
+        struct dirent *de;
+
+        while ((de = readdir(d)))
+        {
+            if (0 == de->d_name[0] || 0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
+                continue;
+
+            std::string fullName = dir;
+            fullName += "/";
+            fullName += de->d_name;
+
+            struct stat deStat;
+            if (stat(fullName.c_str(), &deStat))
+            {
+                TRACE_L1("stat() failed: %s", strerror(errno));
+                continue;
+            }
+
+            if (S_ISDIR(deStat.st_mode))
+            {
+                JsonObject dirObject;
+                processTimeZones(fullName, dirObject);
+                out[de->d_name] = dirObject;
+            }
+            else
+            {
+                if (0 == access(fullName.c_str(), R_OK))
+                {
+                    std::string zoneInfo;
+                    getZoneInfoZDump(fullName, zoneInfo);
+                    out[de->d_name] = zoneInfo;
+                }
+                else
+                    TRACE_L1("no access to %s", fullName.c_str());
+            }
+        }
+    }
+
+    uint32_t LocationSync::getTimeZones(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("called");
+        TRACE_L1("called");
+
+        JsonObject dirObject;
+        processTimeZones(ZONEINFO_DIR, dirObject);
+
+        response["zoneinfo"] = dirObject;
+
+        return Core::ERROR_NONE;
     }
 
 } // namespace Plugin
