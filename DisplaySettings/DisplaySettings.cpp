@@ -160,6 +160,14 @@ namespace WPEFramework {
             registerMethod("getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
             registerMethod("setDRCMode", &DisplaySettings::setDRCMode, this);
             registerMethod("getMISteering", &DisplaySettings::getMISteering, this);
+            registerMethod("setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
+            registerMethod("getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
+            registerMethod("setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
+            registerMethod("getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
+            registerMethod("setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
+            registerMethod("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
+            registerMethod("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
+            registerMethod("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
 
             registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
@@ -1739,6 +1747,212 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setMS12AudioCompression (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "compresionLevel");
+
+            string sCompresionLevel = parameters["compresionLevel"].String();
+                       int compresionLevel = 0;
+            try {
+                compresionLevel = stoi(sCompresionLevel);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse compresionLevel '%s'", sCompresionLevel.c_str());
+                          returnResponse(false);
+            }
+
+            bool success = true;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                aPort.setCompression (compresionLevel);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sCompresionLevel);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getMS12AudioCompression (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+                       bool success = true;
+                       int compressionlevel = 0;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                compressionlevel = aPort.getCompression();
+                response["compressionlevel"] = compressionlevel;
+                               response["enable"] = (compressionlevel ? true : false);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                response["compressionlevel"] = 0;
+                               response["enable"] = false;
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setDolbyVolumeMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "dolbyVolumeMode");
+
+                       string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
+            bool dolbyVolumeMode = false;
+            int iDolbyVolumeMode = 0;
+
+            try
+            {
+                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
+            }
+            catch (const std::exception &err)
+            {
+               LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
+               returnResponse(false);
+            }
+            if (0 == iDolbyVolumeMode) {
+                dolbyVolumeMode = false;
+            } else {
+                dolbyVolumeMode = true;
+            }
+
+
+            bool success = true;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                aPort.setDolbyVolumeMode (dolbyVolumeMode);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sDolbyVolumeMode);
+                success = false;
+           }
+           returnResponse(success);
+       }
+
+       uint32_t DisplaySettings::getDolbyVolumeMode (const JsonObject& parameters, JsonObject& response)
+       {   //sample servicemanager response:
+           LOGINFOMETHOD();
+                      bool success = true;
+           try
+           {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                response["dolbyVolumeMode"] = aPort.getDolbyVolumeMode();
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setDialogEnhancement (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "enhancerlevel");
+
+            string sEnhancerlevel = parameters["enhancerlevel"].String();
+                       int enhancerlevel = 0;
+            try {
+                enhancerlevel = stoi(sEnhancerlevel);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse enhancerlevel '%s'", sEnhancerlevel.c_str());
+                          returnResponse(false);
+            }
+
+            bool success = true;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                aPort.setDialogEnhancement (enhancerlevel);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sEnhancerlevel);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getDialogEnhancement (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+                       bool success = true;
+                       int enhancerlevel = 0;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                enhancerlevel = aPort.getDialogEnhancement();
+                response["enable"] = (enhancerlevel ? true : false);
+                response["enhancerlevel"] = enhancerlevel;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                response["enable"] = false;
+                response["enhancerlevel"] = 0;
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setIntelligentEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "intelligentEqualizerMode");
+
+            string sIntelligentEqualizerMode = parameters["intelligentEqualizerMode"].String();
+                       int intelligentEqualizerMode = 0;
+            try {
+                intelligentEqualizerMode = stoi(sIntelligentEqualizerMode);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse intelligentEqualizerMode '%s'", sIntelligentEqualizerMode.c_str());
+                          returnResponse(false);
+            }
+
+            bool success = true;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                aPort.setIntelligentEqualizerMode (intelligentEqualizerMode);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sIntelligentEqualizerMode);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getIntelligentEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+                       bool success = true;
+                       int intelligentEqualizerMode = 0;
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                intelligentEqualizerMode = aPort.getIntelligentEqualizerMode ();
+                response["enable"] = (intelligentEqualizerMode ? true : false);
+                response["mode"] = intelligentEqualizerMode;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                response["enable"] = false;
+                response["mode"] = 0;
+                success = false;
+            }
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::getAudioDelay (const JsonObject& parameters, JsonObject& response) 

@@ -77,6 +77,10 @@ elseif (BUILD_AMLOGIC)
     target_sources(${MODULE_NAME}
         PRIVATE
             Implementation/Amlogic/Amlogic.cpp)
+elseif (BUILD_REALTEK)
+	target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Realtek/Realtek.cpp)
 else ()
     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
 endif()
