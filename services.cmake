@@ -18,6 +18,13 @@
 #
 # features
 #
+
+option(PLUGIN_DISPLAYSETTINGS "Include DisplaySettings plugin" ON)
+option(PLUGIN_LOGGING_PREFERENCES "Include LoggingPreferences plugin" ON)
+option(PLUGIN_USER_PREFERENCES "Include UserPreferences plugin" ON)
+option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
+option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
+
 #add_definitions (-DENABLE_MEMORYINFO_SERVICE)
 
 add_definitions (-DWAREHOUSE_API)
