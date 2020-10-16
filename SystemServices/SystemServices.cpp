@@ -1690,13 +1690,20 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-            JsonObject param;
-            param.FromString(parameters["param"].String());
-            std::string key = param["cacheKey"].String();
-            if (m_cacheService.contains(key)) {
-                retStat = true;
+            if (parameters.HasLabel("key")) {
+                std::string key = parameters["key"].String();
+                if (key.length()) {
+                    if (m_cacheService.contains(key)) {
+                        retStat = true;
+                    } else {
+                        LOGERR("Accessing m_cacheService.contains; no matching key '%s'\n.", key.c_str());
+                        populateResponseWithError(SysSrv_KeyNotFound, response);
+                    }
+                } else {
+                    populateResponseWithError(SysSrv_UnSupportedFormat, response);
+                }
             } else {
-                LOGERR("Accessing m_cacheService.contains failed\n.");
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
             }
             returnResponse(retStat);
         }
