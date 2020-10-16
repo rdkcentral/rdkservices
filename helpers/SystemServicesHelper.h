@@ -91,7 +91,8 @@ enum SysSrv_ErrorCode {
     SysSrv_SupportNotAvailable,
     SysSrv_LibcurlError,
     SysSrv_DynamicMemoryAllocationFailed,
-    SysSrv_ManufacturerDataReadFailed
+    SysSrv_ManufacturerDataReadFailed,
+    SysSrv_KeyNotFound
 };
 
 enum FirmwareUpdateState {
