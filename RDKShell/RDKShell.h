@@ -107,6 +107,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
+            static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
         private/*registered methods (wrappers)*/:
 
@@ -226,6 +227,7 @@ namespace WPEFramework {
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
+                virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
 
               private:
                   RDKShell& mShell;
