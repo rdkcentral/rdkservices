@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "DisplayInfo.h"
 
 namespace WPEFramework {
@@ -47,7 +47,18 @@ namespace Plugin {
                 _connectionProperties->Release();
                 _connectionProperties = nullptr;
             } else {
-                _notification.Initialize(_connectionProperties);
+                _hdrProperties = _connectionProperties->QueryInterface<Exchange::IHDRProperties>();
+                if (_hdrProperties == nullptr) {
+                    _connectionProperties->Release();
+                    _connectionProperties = nullptr;
+                    _graphicsProperties->Release();
+                    _graphicsProperties = nullptr;
+                } else {
+                    _notification.Initialize(_connectionProperties);
+                    Exchange::JGraphicsProperties::Register(*this, _graphicsProperties);
+                    Exchange::JConnectionProperties::Register(*this, _connectionProperties);
+                    Exchange::JHDRProperties::Register(*this, _hdrProperties);
+                }
             }
         }
 
@@ -61,6 +72,9 @@ namespace Plugin {
     /* virtual */ void DisplayInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_connectionProperties != nullptr);
+
+        Exchange::JHDRProperties::Unregister(*this);
+        Exchange::JConnectionProperties::Unregister(*this);
 
         _notification.Deinitialize();
 
@@ -76,6 +90,10 @@ namespace Plugin {
             _connectionProperties = nullptr;
         }
 
+        if (_hdrProperties != nullptr) {
+            _hdrProperties->Release();
+            _hdrProperties = nullptr;
+        }
         _connectionId = 0;
     }
 
@@ -122,15 +140,42 @@ namespace Plugin {
 
     void DisplayInfo::Info(JsonData::DisplayInfo::DisplayinfoData& displayInfo) const
     {
-        displayInfo.Totalgpuram = _graphicsProperties->TotalGpuRam();
-        displayInfo.Freegpuram = _graphicsProperties->FreeGpuRam();
+        uint64_t ram = 0;
+        if (_graphicsProperties->TotalGpuRam(ram) == Core::ERROR_NONE) {
+            displayInfo.Totalgpuram = ram;
+        }
+        ram = 0;
+        if (_graphicsProperties->FreeGpuRam(ram) == Core::ERROR_NONE) {
+            displayInfo.Freegpuram = ram;
+        }
 
-        displayInfo.Audiopassthrough = _connectionProperties->IsAudioPassthrough();
-        displayInfo.Connected = _connectionProperties->Connected();
-        displayInfo.Width = _connectionProperties->Width();
-        displayInfo.Height = _connectionProperties->Height();
-        displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(_connectionProperties->HDCPProtection());
-        displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(_connectionProperties->Type());
+        bool status = false;
+        if (_connectionProperties->IsAudioPassthrough(status) == Core::ERROR_NONE) {
+            displayInfo.Audiopassthrough = status;
+        }
+        status = false;
+        if (_connectionProperties->Connected(status) == Core::ERROR_NONE) {
+            displayInfo.Connected = status;
+        }
+
+        uint32_t value = 0;
+        if (_connectionProperties->Width(value) == Core::ERROR_NONE) {
+            displayInfo.Width = value;
+        }
+        value = 0;
+        if (_connectionProperties->Height(value) == Core::ERROR_NONE) {
+            displayInfo.Height = value;
+        }
+
+        Exchange::IConnectionProperties::HDCPProtectionType hdcpProtection(Exchange::IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted);
+        if ((const_cast<const Exchange::IConnectionProperties*>(_connectionProperties))->HDCPProtection(hdcpProtection) == Core::ERROR_NONE) {
+            displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(hdcpProtection);
+        }
+
+        Exchange::IHDRProperties::HDRType hdrType(Exchange::IHDRProperties::HDRType::HDR_OFF);
+        if (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE) {
+            displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(hdrType);
+        }
     }
 
 } // namespace Plugin
