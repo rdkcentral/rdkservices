@@ -1,9 +1,0 @@
-{
- "locator":"libWPEFrameworkMotionDetection.so",
- "classname":"MotionDetection",
- "precondition":[
-  "Platform"
- ],
- "callsign":"org.rdk.MotionDetection",
- "autostart":false
-}
