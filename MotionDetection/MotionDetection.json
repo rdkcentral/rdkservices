@@ -5,5 +5,5 @@
   "Platform"
  ],
  "callsign":"org.rdk.MotionDetection",
- "autostart":true
+ "autostart":false
 }
