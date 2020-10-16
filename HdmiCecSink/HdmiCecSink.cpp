@@ -438,12 +438,12 @@ namespace WPEFramework
 				m_numofHdmiInput = 3;
 			}
 
-			LOGINFO("Kanna01 -> initalize inputs \n");
+			LOGINFO(" initalize inputs \n");
 
 			for ( int i=0; i<m_numofHdmiInput; i++ )
 			{
 				HdmiPortMap hdmiPort((uint8_t)i);
-				LOGINFO("Kanna01 -> Add to vector [%d] \n", i);
+				LOGINFO(" Add to vector [%d] \n", i);
 				hdmiInputs.push_back(hdmiPort);
 			}
 
