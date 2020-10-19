@@ -15,31 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME XCast)
+set(PLUGIN_NAME MotionDetection)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
-        XCast.cpp
-        Module.cpp
-        RtXcastConnector.cpp
-	../helpers/tptimer.cpp
-        ../helpers/utils.cpp)
+        MotionDetection.cpp
+        Module.cpp)
 
-find_package(RFC)
-find_package(IARMBus)
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-add_definitions (-DRT_PLATFORM_LINUX)
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
-target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ../helpers)
-target_include_directories(${MODULE_NAME} PRIVATE $ENV{PKG_CONFIG_SYSROOT_DIR}/usr/include/pxcore)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins rtRemote rtCore ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})
-
+#find_package(DS)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins md-hal)
+#endif(DS_FOUND)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
