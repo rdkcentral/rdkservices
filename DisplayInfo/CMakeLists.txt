@@ -86,6 +86,22 @@ elseif (BUILD_AMLOGIC)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
          drm)
+elseif (BUILD_REALTEK)
+    find_package(DS REQUIRED)
+    find_package(IARMBus REQUIRED)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS}
+        ${DS_INCLUDE_DIRS}
+        ../helpers
+        )
+    target_link_libraries(${MODULE_NAME} PRIVATE
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${IARMBUS_LIBRARIES}
+        ${DS_LIBRARIES})
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Realtek/PlatformImplementation.cpp
+            Realtek/kms.c
+            ../helpers/utils.cpp)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
