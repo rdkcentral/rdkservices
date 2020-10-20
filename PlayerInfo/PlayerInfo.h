@@ -16,17 +16,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
-#include <interfaces/IPlayerInfo.h>
 #include <interfaces/json/JsonData_PlayerInfo.h>
+#include <interfaces/json/JDolbyOutput.h>
+#include <interfaces/json/JPlayerProperties.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
     class PlayerInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
+    private:
+        class Notification : protected Exchange::Dolby::IOutput::INotification {
+        private:
+            Notification() = delete;
+            Notification(const Notification&) = delete;
+            Notification& operator=(const Notification&) = delete;
+        public:
+            explicit Notification(PlayerInfo* parent)
+                : _parent(*parent)
+            {
+                ASSERT(parent != nullptr);
+            }
+            virtual ~Notification()
+            {
+            }
+
+            void Initialize(Exchange::Dolby::IOutput* client)
+            {
+                ASSERT(client != nullptr);
+                _client = client;
+                _client->AddRef();
+                _client->Register(this);
+            }
+            void Deinitialize()
+            {
+                ASSERT(_client != nullptr);
+                if (_client != nullptr) {
+                    _client->Unregister(this);
+                    _client->Release();
+                    _client = nullptr;
+                }
+            }
+            void AudioModeChanged(const Exchange::Dolby::IOutput::SoundModes mode, bool enabled) override
+            {
+                Exchange::Dolby::JOutput::Event::AudioModeChanged(_parent, mode, enabled);
+            }
+            BEGIN_INTERFACE_MAP(Notification)
+            INTERFACE_ENTRY(Exchange::Dolby::IOutput::INotification)
+            END_INTERFACE_MAP
+
+        private:
+            PlayerInfo& _parent;
+            Exchange::Dolby::IOutput* _client;
+        };
     public:
         PlayerInfo(const PlayerInfo&) = delete;
         PlayerInfo& operator=(const PlayerInfo&) = delete;
@@ -37,19 +82,19 @@ namespace Plugin {
             , _player(nullptr)
             , _audioCodecs(nullptr)
             , _videoCodecs(nullptr)
+            , _notification(this)
         {
-            RegisterAll();
         }
 
         virtual ~PlayerInfo()
         {
-            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(PlayerInfo)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::IPlayerProperties, _player)
         END_INTERFACE_MAP
 
     public:
@@ -65,20 +110,22 @@ namespace Plugin {
         virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
-        // JsonRpc
-        void RegisterAll();
-        void UnregisterAll();
-        uint32_t get_playerinfo(JsonData::PlayerInfo::CodecsData&) const;
 
+        uint32_t get_playerinfo(JsonData::PlayerInfo::CodecsData&) const;
         void Info(JsonData::PlayerInfo::CodecsData&) const;
+
+        uint32_t get_dolbymode(Core::JSON::EnumType<JsonData::PlayerInfo::DolbyType>&) const;
+        uint32_t set_dolbymode(const Core::JSON::EnumType<JsonData::PlayerInfo::DolbyType>&);
 
     private:
         uint8_t _skipURL;
         uint32_t _connectionId;
-        Exchange::IPlayerProperties* _player;
 
-        Exchange::IPlayerProperties::IAudioIterator* _audioCodecs;
-        Exchange::IPlayerProperties::IVideoIterator* _videoCodecs;
+        Exchange::IPlayerProperties* _player;
+        Exchange::IPlayerProperties::IAudioCodecIterator* _audioCodecs;
+        Exchange::IPlayerProperties::IVideoCodecIterator* _videoCodecs;
+        Exchange::Dolby::IOutput* _dolbyOut;
+        Core::Sink<Notification> _notification;
     };
 
 } // namespace Plugin
