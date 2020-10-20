@@ -221,6 +221,10 @@ endif()
         add_subdirectory(OpenCDMi)
     endif()
 
+    if(PLUGIN_MOTION_DETECTION)
+        add_subdirectory(MotionDetection)
+    endif()
+
     if(ENABLE_PLAYER_INFO)
         add_subdirectory(PlayerInfo)
     endif()

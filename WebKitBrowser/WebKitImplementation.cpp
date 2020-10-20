@@ -745,8 +745,11 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
 
             if (_context != nullptr) {
-                g_main_context_invoke(
+                using SetURLData = std::tuple<WebKitImplementation*, string>;
+                auto *data = new SetURLData(this, URL);
+                g_main_context_invoke_full(
                     _context,
+                    G_PRIORITY_DEFAULT,
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
 
@@ -1072,7 +1075,10 @@ static GSourceFuncs _handlerIntervention =
         }
         virtual PluginHost::IStateControl::state State() const final
         {
-            return (_state);
+            _adminLock.Lock();
+            auto result =  (_state);
+            _adminLock.Unlock();
+            return result;
         }
         virtual uint32_t Request(PluginHost::IStateControl::command command) final
         {
