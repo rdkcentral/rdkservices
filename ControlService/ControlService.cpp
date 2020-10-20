@@ -2017,7 +2017,7 @@ namespace WPEFramework {
             remoteInfo["numVoicePacketsSentPreviousDay"]  = JsonValue((int)ctrlStatus.status.voice_packets_sent_yesterday);
             remoteInfo["numVoicePacketsSentCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packets_sent_today);
             remoteInfo["numVoicePacketsLostPreviousDay"]  = JsonValue((int)ctrlStatus.status.voice_packets_lost_yesterday);
-            remoteInfo["numVoicePacketsLostCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packet_loss_average_today);
+            remoteInfo["numVoicePacketsLostCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packets_lost_today);
             remoteInfo["aveVoicePacketLossPreviousDay"]   = JsonValue(std::to_string(ctrlStatus.status.voice_packet_loss_average_yesterday));   // TODO: Fix problem with FP parameters
             remoteInfo["aveVoicePacketLossCurrentDay"]    = JsonValue(std::to_string(ctrlStatus.status.voice_packet_loss_average_today));       // TODO: Fix problem with FP parameters
             remoteInfo["numVoiceCmdsHighLossPreviousDay"] = JsonValue((int)ctrlStatus.status.utterances_exceeding_packet_loss_threshold_yesterday);
