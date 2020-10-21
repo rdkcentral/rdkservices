@@ -22,12 +22,12 @@ org.rdk.Xcast plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the org.rdk.Xcast plugin. It includes detailed specification of its configuration, methods provided and notifications sent.
+This document describes purpose and functionality of the org.rdk.Xcast plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -74,7 +74,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *org.rdk.Xcast*) |
 | classname | string | Class name: *org.rdk.Xcast* |
 | locator | string | Library name: *libWPEFrameworkXCast.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
@@ -85,13 +85,14 @@ XCast interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setenabled](#method.setenabled) | Enables, or disables, the cast service |
-| [getenabled](#method.getenabled) | Reports whether the cast service is enabled or disabled |
-| [getapiversionnumber](#method.getapiversionnumber) | Gets the API version |
-| [onapplicationstatechanged](#method.onapplicationstatechanged) | Notifies whenever an application changes state (due to user activity, an internal error, or other reasons) |
+| [setEnabled](#method.setEnabled) | Enables, or disables, the cast service |
+| [getEnabled](#method.getEnabled) | Reports whether the cast service is enabled or disabled |
+| [getApiVersionNumber](#method.getApiVersionNumber) | Gets the API version |
+| [onApplicationStateChanged](#method.onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
 
-<a name="method.setenabled"></a>
-## *setenabled <sup>method</sup>*
+
+<a name="method.setEnabled"></a>
+## *setEnabled <sup>method</sup>*
 
 Enables, or disables, the cast service.
 
@@ -117,12 +118,13 @@ Enables, or disables, the cast service.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.Xcast.1.setenabled",
+    "method": "org.rdk.Xcast.1.setEnabled",
     "params": {
         "enabled": true
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -134,8 +136,9 @@ Enables, or disables, the cast service.
     }
 }
 ```
-<a name="method.getenabled"></a>
-## *getenabled <sup>method</sup>*
+
+<a name="method.getEnabled"></a>
+## *getEnabled <sup>method</sup>*
 
 Reports whether the cast service is enabled or disabled.
 
@@ -159,9 +162,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.Xcast.1.getenabled"
+    "method": "org.rdk.Xcast.1.getEnabled"
 }
 ```
+
 #### Response
 
 ```json
@@ -174,8 +178,9 @@ This method takes no parameters.
     }
 }
 ```
-<a name="method.getapiversionnumber"></a>
-## *getapiversionnumber <sup>method</sup>*
+
+<a name="method.getApiVersionNumber"></a>
+## *getApiVersionNumber <sup>method</sup>*
 
 Gets the API version.
 
@@ -199,9 +204,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.Xcast.1.getapiversionnumber"
+    "method": "org.rdk.Xcast.1.getApiVersionNumber"
 }
 ```
+
 #### Response
 
 ```json
@@ -214,10 +220,11 @@ This method takes no parameters.
     }
 }
 ```
-<a name="method.onapplicationstatechanged"></a>
-## *onapplicationstatechanged <sup>method</sup>*
 
-Notifies whenever an application changes state (due to user activity, an internal error, or other reasons). For a singleton application, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  
+<a name="method.onApplicationStateChanged"></a>
+## *onApplicationStateChanged <sup>method</sup>*
+
+provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  
  Client Error Mapping Example:  
 | Error | Description | HTTP Status Codes |  
  | :-------- | :-------- | :-------- |   
@@ -252,7 +259,7 @@ Notifies whenever an application changes state (due to user activity, an interna
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.Xcast.1.onapplicationstatechanged",
+    "method": "org.rdk.Xcast.1.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
@@ -261,6 +268,7 @@ Notifies whenever an application changes state (due to user activity, an interna
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -272,6 +280,7 @@ Notifies whenever an application changes state (due to user activity, an interna
     }
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -283,14 +292,15 @@ XCast interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onapplicationlaunchrequest](#event.onapplicationlaunchrequest) | Triggered when the cast service receives a launch request from a client |
-| [onapplicationhiderequest](#event.onapplicationhiderequest) | Triggered when the cast service receives a hide request from a client |
-| [onapplicationresumerequest](#event.onapplicationresumerequest) | Triggered when the cast service receives a resume request from a client |
-| [onapplicationstoprequest](#event.onapplicationstoprequest) | Triggered when the cast service receives a stop request from a client |
-| [onapplicationstaterequest](#event.onapplicationstaterequest) | Triggered when the cast service needs an update of the application state |
+| [onApplicationLaunchRequest](#event.onApplicationLaunchRequest) | Triggered when the cast service receives a launch request from a client |
+| [onApplicationHideRequest](#event.onApplicationHideRequest) | Triggered when the cast service receives a hide request from a client |
+| [onApplicationResumeRequest](#event.onApplicationResumeRequest) | Triggered when the cast service receives a resume request from a client |
+| [onApplicationStopRequest](#event.onApplicationStopRequest) | Triggered when the cast service receives a stop request from a client |
+| [onApplicationStateRequest](#event.onApplicationStateRequest) | Triggered when the cast service needs an update of the application state |
 
-<a name="event.onapplicationlaunchrequest"></a>
-## *onapplicationlaunchrequest <sup>event</sup>*
+
+<a name="event.onApplicationLaunchRequest"></a>
+## *onApplicationLaunchRequest <sup>event</sup>*
 
 Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context.  If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  
 Upon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).
@@ -309,7 +319,7 @@ Upon launching the application, the resident application is responsible for call
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onapplicationlaunchrequest",
+    "method": "client.events.1.onApplicationLaunchRequest",
     "params": {
         "applicationName": "NetflixApp",
         "parameters": {
@@ -318,8 +328,9 @@ Upon launching the application, the resident application is responsible for call
     }
 }
 ```
-<a name="event.onapplicationhiderequest"></a>
-## *onapplicationhiderequest <sup>event</sup>*
+
+<a name="event.onApplicationHideRequest"></a>
+## *onApplicationHideRequest <sup>event</sup>*
 
 Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  
  Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.
@@ -337,15 +348,16 @@ Triggered when the cast service receives a hide request from a client. This is a
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onapplicationhiderequest",
+    "method": "client.events.1.onApplicationHideRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
     }
 }
 ```
-<a name="event.onapplicationresumerequest"></a>
-## *onapplicationresumerequest <sup>event</sup>*
+
+<a name="event.onApplicationResumeRequest"></a>
+## *onApplicationResumeRequest <sup>event</sup>*
 
 Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  
  Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
@@ -363,15 +375,16 @@ Triggered when the cast service receives a resume request from a client. This is
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onapplicationresumerequest",
+    "method": "client.events.1.onApplicationResumeRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
     }
 }
 ```
-<a name="event.onapplicationstoprequest"></a>
-## *onapplicationstoprequest <sup>event</sup>*
+
+<a name="event.onApplicationStopRequest"></a>
+## *onApplicationStopRequest <sup>event</sup>*
 
 Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  
  Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
@@ -389,15 +402,16 @@ Triggered when the cast service receives a stop request from a client. This is a
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onapplicationstoprequest",
+    "method": "client.events.1.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
     }
 }
 ```
-<a name="event.onapplicationstaterequest"></a>
-## *onapplicationstaterequest <sup>event</sup>*
+
+<a name="event.onApplicationStateRequest"></a>
+## *onApplicationStateRequest <sup>event</sup>*
 
 Triggered when the cast service needs an update of the application state.  
  The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.
@@ -415,10 +429,11 @@ Triggered when the cast service needs an update of the application state.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onapplicationstaterequest",
+    "method": "client.events.1.onApplicationStateRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
     }
 }
 ```
+
