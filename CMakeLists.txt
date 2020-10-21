@@ -157,6 +157,11 @@ endif()
        add_subdirectory(HdmiCec_2)
     endif()
 
+    if(HAS_API_HDMI_CEC_SINK)
+       add_subdirectory(HdmiCecSink)
+    endif()
+
+
     if(ENABLE_LOCATION_SYNC)
         add_subdirectory(LocationSync)
     endif()
@@ -207,6 +212,10 @@ endif()
 
     if(ENABLE_OPEN_CDMI)
         add_subdirectory(OpenCDMi)
+    endif()
+
+    if(PLUGIN_MOTION_DETECTION)
+        add_subdirectory(MotionDetection)
     endif()
 
     if(ENABLE_PLAYER_INFO)
