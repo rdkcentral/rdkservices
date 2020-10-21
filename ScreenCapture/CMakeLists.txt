@@ -33,9 +33,8 @@ find_path(FRAMEBUFFER_API_HEADER NAMES framebuffer-api.h)
 if (NOT ${FRAMEBUFFER_API_HEADER} STREQUAL "FRAMEBUFFER_API_HEADER-NOTFOUND")
     message("Found framebuffer-api.h")
 add_definitions (-DHAS_FRAMEBUFFER_API_HEADER)
-endif()
-
 find_library(VNC_FRAMEBUFFER_LIBRARIES NAMES vncframebuffer)
+endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
