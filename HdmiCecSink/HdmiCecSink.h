@@ -427,7 +427,7 @@ namespace WPEFramework {
 			uint32_t getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t requestActiveActiveWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 
 			
             //End methods
