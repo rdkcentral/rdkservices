@@ -40,6 +40,13 @@
 #define EDID_MAX_HORIZONTAL_SIZE 21
 #define EDID_MAX_VERTICAL_SIZE   22
 
+#ifdef USE_DISPLAYINFO_REALTEK
+#include "Realtek/kms.h"
+#define TOTAL_MEM_PARAM_STR  "MemTotal:"
+#define FREE_MEM_PARAM_STR  "MemFree:"
+#define DEFAULT_DEVICE "/dev/dri/card0"
+#endif
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -51,6 +58,8 @@ private:
     using HdrteratorImplementation = RPC::IteratorType<Exchange::IHDRProperties::IHDRIterator>;
 public:
     DisplayInfoImplementation()
+        : _totalGpuRam(0)
+        , _frameRate(0)
     {
         LOGINFO();
         DisplayInfoImplementation::_instance = this;
@@ -64,6 +73,10 @@ public:
             //TODO: this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
+            UpdateFrameRate(_frameRate);
+#ifdef USE_DISPLAYINFO_REALTEK
+            UpdateTotalMem(_totalGpuRam);
+#endif
         }
         catch(...)
         {
@@ -88,13 +101,21 @@ public:
     uint32_t TotalGpuRam(uint64_t& total) const override
     {
         LOGINFO();
-        total = 0; // TODO: Implement using DeviceSettings
+        
+        // TODO: Implement using DeviceSettings
+		total = _totalGpuRam;
         return (Core::ERROR_NONE);
     }
     uint32_t FreeGpuRam(uint64_t& free ) const override
     {
         LOGINFO();
-        free = 0; // TODO: Implement using DeviceSettings
+
+        // TODO: Implement using DeviceSettings
+#ifdef USE_DISPLAYINFO_REALTEK
+        free = GetMemInfo(FREE_MEM_PARAM_STR);
+#else
+        free = 0;
+#endif
         return (Core::ERROR_NONE);
     }
 
@@ -161,7 +182,10 @@ public:
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
-
+        if(eventtype == IConnectionProperties::INotification::Source::POST_RESOLUTION_CHANGE) {
+            UpdateFrameRate(_frameRate);
+        }
+        
         while(index != _observers.end()) {
             (*index)->Updated(IConnectionProperties::INotification::Source::POST_RESOLUTION_CHANGE);
             index++;
@@ -172,32 +196,63 @@ public:
 
     uint32_t IsAudioPassthrough (bool& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = false; // TODO: Implement using DeviceSettings
-        return (Core::ERROR_NONE);
+        uint32_t ret =  (Core::ERROR_NONE);
+        value = false;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            device::AudioStereoMode mode = vPort.getAudioOutputPort().getStereoMode(true);
+            if (mode == device::AudioStereoMode::kPassThru)
+                value = true;
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           ret = Core::ERROR_GENERAL;
+        }
+		return ret;
     }
     uint32_t Connected(bool& connected) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        connected = false; // TODO: Implement using DeviceSettings (or use HDCP Profile plugin for this)
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            connected = vPort.isDisplayConnected();
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
         return (Core::ERROR_NONE);
     }
     uint32_t Width(uint32_t& value) const override
     {
+        // TODO: Implement using DeviceSettings
+#ifdef USE_DISPLAYINFO_REALTEK
+        uint32_t temp = 0;
+        UpdateGraphicSize(value, temp);
+#else
         LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        value = 0;
+#endif
         return (Core::ERROR_NONE);
     }
     uint32_t Height(uint32_t& value) const override
     {
+        // TODO: Implement using DeviceSettings
+#ifdef USE_DISPLAYINFO_REALTEK
+        uint32_t temp = 0;
+        UpdateGraphicSize(temp, value);
+#else
         LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        value = 0;
+#endif
         return (Core::ERROR_NONE);
     }
     uint32_t VerticalFreq(uint32_t& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        value = _frameRate;
         return (Core::ERROR_NONE);
     }
 
@@ -499,6 +554,178 @@ public:
 private:
     std::list<IConnectionProperties::INotification*> _observers;
     mutable Core::CriticalSection _adminLock;
+    uint64_t _totalGpuRam;
+    uint32_t _frameRate;
+
+    static uint64_t parseLine(const char * line)
+    {
+        string str(line);
+        uint64_t val = 0;
+        size_t begin = str.find_first_of("0123456789");
+        size_t end = std::string::npos;
+
+        if (std::string::npos != begin)
+            end = str.find_first_not_of("0123456789", begin);
+
+        if (std::string::npos != begin && std::string::npos != end)
+        {
+
+            str = str.substr(begin, end);
+            val = strtoul(str.c_str(), NULL, 10);
+
+        }
+        else
+        {
+            printf("%s:%d Failed to parse value from %s", __FUNCTION__, __LINE__,line);
+
+        }
+
+        return val;
+    }
+    
+    static uint64_t GetMemInfo(const char * param)
+    {
+        uint64_t memVal = 0;
+        FILE *meminfoFile = fopen("/proc/meminfo", "r");
+        if (NULL == meminfoFile)
+        {
+            printf("%s:%d : Failed to open /proc/meminfo:%s", __FUNCTION__, __LINE__, strerror(errno));
+        }
+        else
+        {
+            std::vector <char> buf;
+            buf.resize(1024);
+
+            while (fgets(buf.data(), buf.size(), meminfoFile))
+            {
+                 if ( strstr(buf.data(), param ) == buf.data())
+                 {
+                     memVal = parseLine(buf.data()) * 1000;
+                     break;
+                 }
+            }
+
+            fclose(meminfoFile);
+        }
+        return memVal;
+    }
+
+#ifdef USE_DISPLAYINFO_REALTEK
+    void UpdateTotalMem(uint64_t& totalRam)
+    {
+        totalRam = GetMemInfo(TOTAL_MEM_PARAM_STR);
+    }
+   
+    static void get_primary_plane(int drm_fd, kms_ctx *kms, drmModePlane **plane) 
+    {
+        kms_get_plane(drm_fd, kms);
+        printf("[INFO] Primary Plane ID :  %d\n", kms->primary_plane_id);
+        *plane = drmModeGetPlane(drm_fd, kms->primary_plane_id );
+        if(*plane)
+            printf("fb id : %d\n", (*plane)->fb_id); 
+    }
+    
+    static uint32_t UpdateGraphicSize(uint32_t &w, uint32_t &h)
+    {
+        uint32_t ret =  (Core::ERROR_NONE);
+        int drm_fd;
+        kms_ctx *kms = NULL;
+        drmModePlane *plane = NULL;
+        int trytimes = 0;
+        
+        do {
+            /* Setup buffer information */
+            drm_fd = open( DEFAULT_DEVICE, O_RDWR);
+
+            /* Setup KMS */
+            kms = kms_setup(drm_fd);
+            if( !kms->crtc ) {
+                ret = Core::ERROR_GENERAL;
+                printf("[UpdateGraphicSize] kms_setup fail\n");
+                break;
+            }
+            
+            /* Get primary buffer */
+            get_primary_plane(drm_fd, kms, &plane);
+            if( !plane) {
+                ret = Core::ERROR_GENERAL;
+                printf("[UpdateGraphicSize] fail to get_primary_plane\n");
+                break;
+            }
+        
+            /* get fb */
+            drmModeFB *fb = drmModeGetFB(drm_fd, plane->fb_id);
+            while(!fb) {
+                get_primary_plane(drm_fd, kms, &plane);
+                fb = drmModeGetFB(drm_fd, plane->fb_id);
+                if (trytimes++ > 100) {
+                    ret = Core::ERROR_GENERAL;
+                    printf("[UpdateGraphicSize] fail to get_primary_plane\n");
+                    break;
+                }
+            }
+            
+            /* Get the width and height */
+            if(fb) {
+                w = fb->width;
+                h = fb->height;
+                drmModeFreeFB(fb);
+            }
+        } while(0);
+
+        /* release */
+        /* Cleanup buffer info */
+        if(kms) {
+            kms_cleanup_context(kms);
+            free(kms);
+        }
+        
+        printf("[UpdateGraphicSize] width : %d\n", w);
+        printf("[UpdateGraphicSize] height : %d\n", h);
+        return ret;
+    }
+#endif
+   
+   uint32_t UpdateFrameRate(uint32_t &rate)
+   {
+        uint32_t ret =  (Core::ERROR_NONE);
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            device::VideoResolution resolution = vPort.getResolution();
+            device::PixelResolution pr = resolution.getPixelResolution();
+            device::FrameRate fr = resolution.getFrameRate();
+            if (fr == device::FrameRate::k24 ) {
+                rate = 24;
+            } else if(fr == device::FrameRate::k25) {
+                rate = 25;
+            } else if(fr == device::FrameRate::k30) {
+                rate = 30;
+            } else if(fr == device::FrameRate::k60) {
+                rate = 60;
+            } else if(fr == device::FrameRate::k23dot98) {
+                rate = 23;
+            } else if(fr == device::FrameRate::k29dot97) {
+                rate = 29;
+            } else if(fr == device::FrameRate::k50) {
+                rate = 50;
+            } else if(fr == device::FrameRate::k59dot94) {
+                rate = 59;
+            } else {
+                ret = Core::ERROR_GENERAL;
+            }
+           
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           ret = Core::ERROR_GENERAL;
+        }
+        
+        return ret;
+    }
+   
+
 
 public:
     static DisplayInfoImplementation* _instance;

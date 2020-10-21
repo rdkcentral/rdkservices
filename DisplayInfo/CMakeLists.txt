@@ -90,6 +90,14 @@ else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
 
+if (BUILD_REALTEK)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            DeviceSettings/Realtek/kms.c
+    )
+    add_definitions("-DUSE_DISPLAYINFO_REALTEK=1")
+endif ()
+
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
