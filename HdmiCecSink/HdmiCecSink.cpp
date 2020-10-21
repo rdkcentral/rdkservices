@@ -403,7 +403,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_SOURCE, &HdmiCecSink::getActiveSourceWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_ACTIVE_SOURCE, &HdmiCecSink::setActiveSourceWrapper, this);
 	       registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
-		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveActiveWrapper, this);
+		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
@@ -438,12 +438,12 @@ namespace WPEFramework
 				m_numofHdmiInput = 3;
 			}
 
-			LOGINFO("Kanna01 -> initalize inputs \n");
+			LOGINFO("initalize inputs \n");
 
 			for ( int i=0; i<m_numofHdmiInput; i++ )
 			{
 				HdmiPortMap hdmiPort((uint8_t)i);
-				LOGINFO("Kanna01 -> Add to vector [%d] \n", i);
+				LOGINFO(" Add to vector [%d] \n", i);
 				hdmiInputs.push_back(hdmiPort);
 			}
 
@@ -859,7 +859,7 @@ namespace WPEFramework
 			returnResponse(true);
         }
 
-		uint32_t HdmiCecSink::requestActiveActiveWrapper(const JsonObject& parameters, JsonObject& response)
+		uint32_t HdmiCecSink::requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response)
 		{
 			requestActiveSource();
 			returnResponse(true);
