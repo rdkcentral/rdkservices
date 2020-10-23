@@ -2498,7 +2498,7 @@ namespace WPEFramework {
                     if (strstr(line.c_str(), "imagename:")) {
                         std::string gp = line.c_str();
                         std::string delimiter = ":";
-                        std::string token = gp.substr((gp.find(delimiter)+1), 43);
+                        std::string token = gp.substr((gp.find(delimiter)+1), string::npos);
                         if (token.length()){
                             versionFound = true;
                             m_stbVersionString = token;
@@ -2720,17 +2720,19 @@ namespace WPEFramework {
                 void *data, size_t len)
         {
             LOGINFO("len = %d\n", len);
-            switch (eventId) {
+            /* Only handle state events */
+            if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
+
+            IARM_Bus_SYSMgr_EventData_t *sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+            IARM_Bus_SYSMgr_SystemState_t stateId = sysEventData->data.systemStates.stateId;
+            int state = sysEventData->data.systemStates.state;
+
+            switch (stateId) {
                 case IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE:
                     {
-                        int newState = IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_UNINITIALIZED;
-                        IARM_Bus_SYSMgr_EventData_t *eventData = (IARM_Bus_SYSMgr_EventData_t *)data;
-                        LOGWARN("IARM Event: [State/Error/Payload]=[%d/%d/%s]\n",
-                                eventData->data.systemStates.state,
-                                eventData->data.systemStates.error,
-                                eventData->data.systemStates.payload);
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE = '%d'\n", state);
                         if (SystemServices::_instance) {
-                            SystemServices::_instance->onFirmwareUpdateStateChange(newState);
+                            SystemServices::_instance->onFirmwareUpdateStateChange(state);
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
