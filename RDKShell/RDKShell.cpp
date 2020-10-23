@@ -92,6 +92,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNI
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 
 using namespace std;
 using namespace RdkShell;
@@ -456,6 +457,47 @@ namespace WPEFramework {
           JsonObject params;
           params["ram"] = freeKb;
           mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED, params);
+        }
+
+        void RDKShell::RdkShellListener::onEasterEgg(const std::string& name, const std::string& actionJson)
+        {
+          std::cout << "RDKShell onEasterEgg event received ..." << name << std::endl;
+          
+          if (actionJson.length() == 0)
+          {
+            JsonObject params;
+            params["name"] = name;
+            mShell.notify(RDKSHELL_EVENT_ON_EASTER_EGG, params);
+          }
+          else
+          {
+            try
+            {
+              JsonObject actionObject = JsonObject(actionJson.c_str());
+              if (actionObject.HasLabel("invoke"))
+              {
+                std::string invoke = actionObject["invoke"].String();
+                JsonObject joParams;
+                joParams["params"] = JsonObject();
+                JsonObject joResult;
+                if (actionObject.HasLabel("params"))
+                {
+                  joParams["params"] = actionObject["params"].Object();
+                }
+                std::cout << "invoking method " << invoke.c_str() << std::endl;
+                // setting wait Time to 2 seconds
+                uint32_t status = getThunderControllerClient()->Invoke(2000, invoke.c_str(), joParams, joResult);
+                if (status > 0)
+                {
+                    std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                }
+              }
+            }
+            catch(...)
+            {
+              std::cout << "error in parsing action for easter egg " << std::endl;
+            }
+          }
         }
 
         // Registered methods (wrappers) begin
