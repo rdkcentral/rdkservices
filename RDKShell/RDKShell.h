@@ -83,7 +83,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
+            static const string RDKSHELL_METHOD_LAUNCH_APP;
             static const string RDKSHELL_METHOD_SUSPEND;
+            static const string RDKSHELL_METHOD_SUSPEND_APP;
+            static const string RDKSHELL_METHOD_RESUME_APP;
             static const string RDKSHELL_METHOD_DESTROY;
             static const string RDKSHELL_METHOD_GET_AVAILABLE_TYPES;
             static const string RDKSHELL_METHOD_GET_STATE;
@@ -149,6 +152,10 @@ namespace WPEFramework {
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t destroyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t destroyApplicationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getState(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
@@ -174,6 +181,8 @@ namespace WPEFramework {
             bool generateKey(const string& client, const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
+            bool setMimeType(const string& client, const string& mimeType);
+            bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
@@ -198,7 +207,8 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
-
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
         private/*classes */:
 
             class RdkShellListener :  public RdkShell::RdkShellEventListener {

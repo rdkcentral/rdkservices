@@ -66,7 +66,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_R
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL = "setInactivityInterval";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SCALE_TO_FIT = "scaleToFit";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH = "launch";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_APP = "launchApplication";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND = "suspend";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND_APP = "suspendApplication";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESUME_APP = "resumeApplication";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DESTROY = "destroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AVAILABLE_TYPES = "getAvailableTypes";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getState";
@@ -234,7 +237,10 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL, &RDKShell::setInactivityIntervalWrapper, this);
             registerMethod(RDKSHELL_METHOD_SCALE_TO_FIT, &RDKShell::scaleToFitWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH, &RDKShell::launchWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_APP, &RDKShell::launchApplicationWrapper, this);
             registerMethod(RDKSHELL_METHOD_SUSPEND, &RDKShell::suspendWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SUSPEND_APP, &RDKShell::suspendApplicationWrapper, this);
+            registerMethod(RDKSHELL_METHOD_RESUME_APP, &RDKShell::resumeApplicationWrapper, this);
             registerMethod(RDKSHELL_METHOD_DESTROY, &RDKShell::destroyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_AVAILABLE_TYPES, &RDKShell::getAvailableTypesWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_STATE, &RDKShell::getState, this);
@@ -262,6 +268,7 @@ namespace WPEFramework {
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
+#ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
@@ -280,6 +287,7 @@ namespace WPEFramework {
                 }
               }
             }
+#endif
 
             service->Register(mClientsMonitor);
 
@@ -340,6 +348,18 @@ namespace WPEFramework {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
             return thunderClient;
+        }
+
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
+        {
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "");
+        }
+
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
+        {
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "");
         }
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
@@ -577,9 +597,66 @@ namespace WPEFramework {
                 {
                     client = parameters["callsign"].String();
                 }
+
+                // Get the client mime type
+                std::string mimeType;
+                getMimeType(client, mimeType);
+
+                // Kill the display
                 result = kill(client);
-                if (false == result) {
-                  response["message"] = "failed to kill client";
+                if (!result)
+                {
+                    response["message"] = "failed to kill client";
+                    returnResponse(false);
+                }
+
+                // App was a DAC app, so kill the container if it's still running
+                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
+                {
+                    LOGINFO("Killing container");
+
+                    auto ociContainerPlugin = getOCIContainerPlugin();
+                    if (!ociContainerPlugin)
+                    {
+                        response["message"] = "OCIContainer plugin initialisation failed";
+                        returnResponse(false);
+                    }
+
+                    JsonObject containerInfoResult;
+                    JsonObject stopContainerResult;
+                    JsonObject param;
+                    param["containerId"] = client;
+
+                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "getContainerInfo", param, containerInfoResult);
+
+                    // If success is false, the container isn't running so nothing to do
+                    if (containerInfoResult["success"].Boolean())
+                    {
+                        auto containerInfo = containerInfoResult["info"].Object();
+
+                        // Dobby knows about that container - what's it doing?
+                        if (containerInfo["state"] == "running" || containerInfo["state"] == "starting")
+                        {
+                            ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "stopContainer", param, stopContainerResult);
+                        }
+                        else if (containerInfo["state"] == "paused")
+                        {
+                            // Paused, so force stop
+                            param["force"] = true;
+                            ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "stopContainer", param, stopContainerResult);
+                        }
+                        else
+                        {
+                            response["message"] = "Container is not in a state that can be stopped";
+                            returnResponse(false);
+                        }
+
+                        if (!stopContainerResult["success"].Boolean())
+                        {
+                            result = false;
+                            response["message"] = "Failed to stop container";
+                        }
+                    }
                 }
             }
             returnResponse(result);
@@ -1966,6 +2043,263 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::launchApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (!parameters.HasLabel("uri"))
+            {
+                result = false;
+                response["message"] = "please specify uri";
+            }
+            if (!parameters.HasLabel("mimeType"))
+            {
+                result = false;
+                response["message"] = "please specify mimeType";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+                const string uri = parameters["uri"].String();
+                const string mimeType = parameters["mimeType"].String();
+
+                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
+                {
+                    // Starting a DAC app. Get the info from Packager
+                    LOGINFO("Starting DAC app");
+
+                    auto packagerPlugin = getPackagerPlugin();
+                    if (!packagerPlugin)
+                    {
+                        response["message"] = "Packager initialisation failed";
+                        returnResponse(false);
+                    }
+
+                    // See if the app is actually installed
+                    JsonObject installParams;
+                    JsonObject installResult;
+
+                    installParams.Set("pkgId", uri.c_str());
+                    packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "isInstalled", installParams, installResult);
+
+                    if (!installResult.Get("available").Boolean())
+                    {
+                        response["message"] = "Packager reports app is not installed";
+                        returnResponse(false);
+                    }
+
+                    // App is installed, find the bundle location
+                    JsonObject infoParams;
+                    JsonObject infoResult;
+
+                    infoParams.Set("pkgId", uri.c_str());
+                    packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "getPackageInfo", infoParams, infoResult);
+
+                    string bundlePath = infoResult["bundlePath"].String();
+
+                    // We know where the app lives and are ready to start it,
+                    // create a display with rdkshell
+                    if (!createDisplay(client, uri))
+                    {
+                        response["message"] = "Could not create display";
+                        returnResponse(false);
+                    }
+
+                    string runtimeDir = getenv("XDG_RUNTIME_DIR");
+                    string display = runtimeDir + "/" + uri;
+
+                    // Set mime type
+                    if (!setMimeType(client, mimeType))
+                    {
+                        LOGWARN("Failed to set mime type - non fatal...");
+                    }
+
+                    // Start container
+                    auto ociContainerPlugin = getOCIContainerPlugin();
+                    if (!ociContainerPlugin)
+                    {
+                        response["message"] = "OCIContainer initialisation failed";
+                        returnResponse(false);
+                    }
+
+                    JsonObject ociContainerResult;
+                    JsonObject param;
+
+                    // Container ID set to client so we can find the container
+                    // when suspend/resume/killing which use client id
+                    param["containerId"] = client;
+                    param["bundlePath"] = bundlePath;
+                    param["westerosSocket"] = display;
+
+                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "startContainer", param, ociContainerResult);
+
+                    if (!ociContainerResult["success"].Boolean())
+                    {
+                        // Something went wrong starting the container, destory the display we just created
+                        kill(client);
+                        response["message"] = "Could not start Dobby container";
+                        returnResponse(false);
+                    }
+                }
+                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                    gRdkShellMutex.lock();
+                    result = CompositorController::launchApplication(client, uri, mimeType);
+                    gRdkShellMutex.unlock();
+
+                    if (!result)
+                    {
+                        response["message"] = "failed to launch application";
+                    }
+                }
+                else
+                {
+                    result = false;
+                    response["message"] = "Unsupported MIME type";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+
+                std::string mimeType;
+                if (!getMimeType(client, mimeType))
+                {
+                    response["message"] = "Could not determine app mime type";
+                    returnResponse(false);
+                }
+
+                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                    gRdkShellMutex.lock();
+                    result = CompositorController::suspendApplication(client);
+                    gRdkShellMutex.unlock();
+                }
+                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
+                {
+                    // Pause the container with Dobby
+                    LOGINFO("Pausing DAC app");
+
+                    auto ociContainerPlugin = getOCIContainerPlugin();
+
+                    if (!ociContainerPlugin)
+                    {
+                        response["message"] = "OCIContainer initialisation failed";
+                        returnResponse(false);
+                    }
+
+                    JsonObject ociContainerResult;
+                    JsonObject param;
+                    param["containerId"] = client;
+
+                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "pauseContainer", param, ociContainerResult);
+
+                    if (!ociContainerResult["success"].Boolean())
+                    {
+                        response["message"] = "Could not pause container";
+                        returnResponse(false);
+                    }
+                }
+                else
+                {
+                    response["message"] = "Unsupported mime type";
+                    returnResponse(false);
+                }
+
+                // Make the application hidden
+                result = setVisibility(client, false);
+                if (!result)
+                {
+                    response["message"] = "failed to suspend application";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                const string client = parameters["client"].String();
+
+                std::string mimeType;
+                if (!getMimeType(client, mimeType))
+                {
+                    response["message"] = "Could not determine app mime type";
+                    returnResponse(false);
+                }
+
+                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
+                {
+                    gRdkShellMutex.lock();
+                    result = CompositorController::resumeApplication(client);
+                    gRdkShellMutex.unlock();
+                }
+                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
+                {
+                    // Resume the container with Dobby
+                    LOGINFO("Resuming DAC app");
+
+                    auto ociContainerPlugin = getOCIContainerPlugin();
+                    if (!ociContainerPlugin)
+                    {
+                        response["message"] = "OCIContainer initialisation failed";
+                        returnResponse(false);
+                    }
+
+                    JsonObject ociContainerResult;
+                    JsonObject param;
+
+                    param["containerId"] = client;
+                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(2000, "resumeContainer", param, ociContainerResult);
+
+                    if (!ociContainerResult["success"].Boolean())
+                    {
+                        response["message"] = "Could not resume container";
+                        returnResponse(false);
+                    }
+                }
+                else
+                {
+                    response["message"] = "Unsupported mime type";
+                    returnResponse(false);
+                }
+
+                // Make the application visible
+                result = setVisibility(client, true);
+
+                if (!result)
+                {
+                    response["message"] = "failed to resume application";
+                }
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -2386,6 +2720,24 @@ namespace WPEFramework {
             resolutionHeight = h;
             gRdkShellMutex.unlock();
             return true;
+        }
+
+        bool RDKShell::setMimeType(const string& client, const string& mimeType)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setMimeType(client, mimeType);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::getMimeType(const string& client, string& mimeType)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getMimeType(client, mimeType);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         bool RDKShell::createDisplay(const string& client, const string& displayName)
