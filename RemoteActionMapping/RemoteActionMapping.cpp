@@ -547,9 +547,16 @@ namespace WPEFramework {
                     // meaning this method can't succeed.  Fail now.
                     if (bHas5DCPresent)
                     {
+#ifdef RAMS_USE_FORCE_DOWNLOAD
+                        // Don't fail here, because we will force the download to the controller.
+                        LOGWARN("callMethod(%s): WARNING - controller(%d) has a 5-Digit Code set, download will be forced!", __FUNCTION__, deviceID);
+#else
+                        // If the controller involved has a 5-Digit Code already set,
+                        // clearKeyActionMapping() won't work.  Fail now.
                         LOGERR("ERROR - controller(%d) has a 5-Digit Code set, which blocks this method!!", deviceID);
                         response["status_code"] = (int)STATUS_INVALID_STATE;
                         returnResponse(false);
+#endif
                     }
                     else
                     {
@@ -924,9 +931,16 @@ namespace WPEFramework {
                     // meaning this method can't succeed.  Fail now.
                     if (bHas5DCPresent)
                     {
+#ifdef RAMS_USE_FORCE_DOWNLOAD
+                        // Don't fail here, because we will force the download to the controller.
+                        LOGWARN("callMethod(%s): WARNING - controller(%d) has a 5-Digit Code set, download will be forced!", __FUNCTION__, deviceID);
+#else
+                        // If the controller involved has a 5-Digit Code already set,
+                        // setKeyActionMapping() won't work.  Fail now.
                         LOGERR("ERROR - controller(%d) has a 5-Digit Code set, which blocks this method!!", deviceID);
                         response["status_code"] = (int)STATUS_INVALID_STATE;
                         returnResponse(false);
+#endif
                     }
                     else
                     {
