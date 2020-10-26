@@ -506,26 +506,76 @@ namespace WPEFramework
             JsonObject CECAddress;
             LOGINFO("Entered getCECAddresses ");
 
-            JsonArray pa;
-            pa.Add((physicalAddress >> 24) & 0xff);
-            pa.Add((physicalAddress >> 16) & 0xff);
-            pa.Add((physicalAddress >> 8)  & 0xff);
-            pa.Add( physicalAddress        & 0xff);
+            char pa[32] = {0};
+            snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
 
-            CECAddress["physicalAddress"] = pa;
+            CECAddress["physicalAddress"] = (const char *)pa;
 
             JsonObject logical;
             logical["deviceType"] = logicalAddressDeviceType;
             logical["logicalAddress"] = logicalAddress;
 
-            JsonArray logicalArray;
-            logicalArray.Add(logical);
-
-            CECAddress["logicalAddresses"] = logicalArray;
+            CECAddress["logicalAddresses"] = logical;
             LOGWARN("getCECAddresses: physicalAddress from QByteArray : %x %x %x %x ", (physicalAddress >> 24) & 0xFF, (physicalAddress >> 16) & 0xFF, (physicalAddress >> 8)  & 0xFF, (physicalAddress) & 0xFF);
             LOGWARN("getCECAddresses: logical address: %x  ", logicalAddress);
 
             return CECAddress;
+        }
+
+        // Copy of Core::FromString, which doesn't add extra zero at the end
+        uint16_t HdmiCec::FromBase64String(const string& newValue, uint8_t object[], uint16_t& length, const TCHAR* ignoreList)
+        {
+            uint8_t state = 0;
+            uint16_t index = 0;
+            uint16_t filler = 0;
+            uint8_t lastStuff = 0;
+
+            while ((index < newValue.size()) && (filler < length)) {
+                uint8_t converted;
+                TCHAR current = newValue[index++];
+
+                if ((current >= 'A') && (current <= 'Z')) {
+                    converted = (current - 'A');
+                } else if ((current >= 'a') && (current <= 'z')) {
+                    converted = (current - 'a' + 26);
+                } else if ((current >= '0') && (current <= '9')) {
+                    converted = (current - '0' + 52);
+                } else if (current == '+') {
+                    converted = 62;
+                } else if (current == '/') {
+                    converted = 63;
+                } else if ((ignoreList != nullptr) && (::strchr(ignoreList, current) != nullptr)) {
+                    continue;
+                } else {
+                    break;
+                }
+
+                if (state == 0) {
+                    lastStuff = converted << 2;
+                    state = 1;
+                } else if (state == 1) {
+                    object[filler++] = (((converted & 0x30) >> 4) | lastStuff);
+                    lastStuff = ((converted & 0x0F) << 4);
+                    state = 2;
+                } else if (state == 2) {
+                    object[filler++] = (((converted & 0x3C) >> 2) | lastStuff);
+                    lastStuff = ((converted & 0x03) << 6);
+                    state = 3;
+                } else if (state == 3) {
+                    object[filler++] = ((converted & 0x3F) | lastStuff);
+                    state = 0;
+                }
+            }
+
+            // No need to do this
+            /*if ((state != 0) && (filler < length)) {
+                object[filler++] = lastStuff;
+                LOGINFO("state %d, lastStuff = %d", state, lastStuff);
+            }*/
+
+            length = filler;
+
+            return (index);
         }
 
         void HdmiCec::sendMessage(std::string message)
@@ -537,7 +587,9 @@ namespace WPEFramework
                 std::vector <unsigned char> buf;
                 buf.resize(message.size());
 
-                uint16_t decodedLen = Core::URL::Base64Decode(message.c_str(), message.size(), (uint8_t*)buf.data(), buf.size());
+                uint16_t decodedLen = message.size();
+                FromBase64String(message, (uint8_t*)buf.data(), decodedLen, NULL);
+
                 CECFrame frame = CECFrame((const uint8_t *)buf.data(), decodedLen);
         //      SVCLOG_WARN("Frame to be sent from servicemanager in %s \n",__FUNCTION__);
         //      frame.hexDump();
@@ -558,7 +610,10 @@ namespace WPEFramework
             LOGWARN(" cecAddressesChanged Change Status : %d ", changeStatus);
             if(PHYSICAL_ADDR_CHANGED == changeStatus)
             {
-                CECAddresses["physicalAddress"] = physicalAddress;
+                char pa[32] = {0};
+                snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
+
+                CECAddresses["physicalAddress"] = (const char *)pa;
             }
             else if(LOGICAL_ADDR_CHANGED == changeStatus)
             {
