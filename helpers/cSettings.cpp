@@ -30,7 +30,17 @@
 cSettings::cSettings(std::string file)
 {
     filename = file;
-    readFromFile();
+    if (!readFromFile()) {
+        /* File not present; create a new one assuming a fresh partition. */
+        std::fstream fs;
+        fs.open(filename.c_str(), std::fstream::in|std::fstream::out|std::fstream::app);
+        if (!fs.is_open()) {
+            std::cout << "Error:[ctor cSettings] unable to open configuration file." << std::endl;
+        } else {
+            fs << flush;
+            fs.close();
+        }
+    }
 }
 
 /***
