@@ -38,7 +38,7 @@ namespace {
 
         _service->Register(&_notification);
 
-         string result;
+        string result;
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
             result = _T("Couldn't create PACKAGER instance ");
@@ -47,6 +47,8 @@ namespace {
             if (_implementation->Configure(_service) != Core::ERROR_NONE) {
                 result = _T("Couldn't initialize PACKAGER instance");
             }
+
+            _implementation->Register(&_notification);
         }
 
         return (result);
