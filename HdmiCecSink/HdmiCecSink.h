@@ -503,6 +503,8 @@ private:
 			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
 			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
 			void sendStandbyMessage();
+			void setCurrentLanguage(const Language &lang);
+			void sendMenuLanguage();
 			void setActiveSource(bool isResponse);
 			void requestActiveSource();
                         void startArc();
@@ -532,6 +534,8 @@ private:
 			uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
+
 			
             //End methods
             std::string logicalAddressDeviceType;
