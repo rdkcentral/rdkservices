@@ -16,24 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
-#include <interfaces/IDisplayInfo.h>
 #include <interfaces/json/JsonData_DisplayInfo.h>
+#include <interfaces/json/JConnectionProperties.h>
+#include <interfaces/json/JHDRProperties.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
     class DisplayInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
-    private:private:
+    private:
         class Notification : protected Exchange::IConnectionProperties::INotification {
         private:
             Notification() = delete;
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
-
         public:
             explicit Notification(DisplayInfo* parent)
                 : _parent(*parent)
@@ -60,9 +60,9 @@ namespace Plugin {
                     _client = nullptr;
                 }
             }
-            void Updated() override
+            void Updated(const Exchange::IConnectionProperties::INotification::Source event) override
             {
-                _parent.Updated();
+                Exchange::JConnectionProperties::Event::Updated(_parent, event);
             }
             BEGIN_INTERFACE_MAP(Notification)
             INTERFACE_ENTRY(Exchange::IConnectionProperties::INotification)
@@ -82,14 +82,13 @@ namespace Plugin {
             , _connectionId(0)
             , _graphicsProperties(nullptr)
             , _connectionProperties(nullptr)
+            , _hdrProperties(nullptr)
             , _notification(this)
         {
-            RegisterAll();
         }
 
         virtual ~DisplayInfo()
         {
-            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(DisplayInfo)
@@ -97,6 +96,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_AGGREGATE(Exchange::IGraphicsProperties, _graphicsProperties)
         INTERFACE_AGGREGATE(Exchange::IConnectionProperties, _connectionProperties)
+        INTERFACE_AGGREGATE(Exchange::IHDRProperties, _hdrProperties)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP
 
@@ -112,17 +112,9 @@ namespace Plugin {
         virtual void Inbound(Web::Request& request) override;
         virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
-        void Updated()
-        {
-            event_updated();
-        }
-
     private:
         // JsonRpc
-        void RegisterAll();
-        void UnregisterAll();
         uint32_t get_displayinfo(JsonData::DisplayInfo::DisplayinfoData&) const;
-        void event_updated();
 
         void Info(JsonData::DisplayInfo::DisplayinfoData&) const;
 
@@ -131,6 +123,7 @@ namespace Plugin {
         uint32_t _connectionId;
         Exchange::IGraphicsProperties* _graphicsProperties;
         Exchange::IConnectionProperties* _connectionProperties;
+        Exchange::IHDRProperties* _hdrProperties;
         Core::Sink<Notification> _notification;
     };
 
