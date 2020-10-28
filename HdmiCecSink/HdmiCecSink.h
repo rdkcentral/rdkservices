@@ -230,6 +230,137 @@ namespace WPEFramework {
 				m_lastPowerUpdateTime = std::chrono::system_clock::now();
 			}
 		};
+
+		class DeviceNode {
+			public:
+			uint8_t m_childsLogicalAddr[LogicalAddress::UNREGISTERED];
+
+			DeviceNode() {
+				int i;
+				for (i; i < LogicalAddress::UNREGISTERED; i++ )
+				{
+					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
+				}
+			}
+			
+		} ;
+		
+		class HdmiPortMap {
+			public:
+			uint8_t m_portID;
+			bool m_isConnected;
+			LogicalAddress m_logicalAddr;
+			PhysicalAddress m_physicalAddr;
+			DeviceNode m_deviceChain[3];
+			
+			HdmiPortMap(uint8_t portID) : m_portID(portID), 	    m_physicalAddr(portID+1,0,0,0),m_logicalAddr(LogicalAddress::UNREGISTERED)
+			{
+				m_isConnected = false;
+			}
+
+			void update(bool isConnected)
+			{
+				m_isConnected = isConnected;
+			}
+
+			void update( const LogicalAddress &addr )
+			{
+				m_logicalAddr = addr;
+			}
+
+			void addChild( const LogicalAddress &logical_addr, const PhysicalAddress &physical_addr )
+			{
+				LOGINFO(" logicalAddr = %d, phisicalAddr = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
+				
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED &&
+						m_logicalAddr.toInt() != logical_addr.toInt() )
+				{
+					LOGINFO(" update own logicalAddr = %d, new devcie logicalAddress", m_logicalAddr.toInt(), logical_addr.toInt() );
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1] = logical_addr.toInt();
+						}
+						else if ( physical_addr.getByteValue(2) != 0 )
+						{
+							m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1] = logical_addr.toInt();
+						}
+						else if ( physical_addr.getByteValue(1) != 0 )
+						{
+							m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1] = logical_addr.toInt();
+						}
+					}
+				}
+				else if ( physical_addr == m_physicalAddr )
+				{
+					update(logical_addr);
+					LOGINFO(" update own logicalAddr = %d", m_logicalAddr.toInt());
+				}
+			}
+
+			void removeChild(    PhysicalAddress &physical_addr )
+			{
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED )
+				{
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1] = LogicalAddress::UNREGISTERED;
+						}
+						else if ( physical_addr.getByteValue(2) != 0 )
+						{
+							m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1] = LogicalAddress::UNREGISTERED;
+						}
+						else if ( physical_addr.getByteValue(1) != 0 )
+						{
+							m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1] = LogicalAddress::UNREGISTERED;
+						}
+					}
+				}
+			}
+
+			void getRoute(    PhysicalAddress &physical_addr, std::vector<uint8_t> &   route )
+			{
+				LOGINFO(" logicalAddr = %d, phsical = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
+				
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED )
+				{
+					LOGINFO(" search for logicalAddr = %d", m_logicalAddr.toInt());
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							route.push_back(m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1]);
+						}
+						
+						if ( physical_addr.getByteValue(2) != 0 )
+						{
+							route.push_back(m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1]);
+						}
+						
+						if ( physical_addr.getByteValue(1) != 0 )
+						{
+							route.push_back(m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1]);
+						}
+
+						route.push_back(m_logicalAddr.toInt());
+					}
+					else
+					{
+						route.push_back(m_logicalAddr.toInt());
+						LOGINFO("logicalAddr = %d, physical = %s", m_logicalAddr.toInt(), m_physicalAddr.toString().c_str());	
+					}
+				}
+			}
+		};
 		
 		// This is a server for a JSONRPC communication channel. 
 		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
@@ -261,15 +392,21 @@ namespace WPEFramework {
             virtual ~HdmiCecSink();
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
+			std::vector<HdmiPortMap> hdmiInputs;
 			int m_currentActiveSource;
 			void updateInActiveSource(const int logical_address, const InActiveSource &source );
 			void updateActiveSource(const int logical_address, const ActiveSource &source );
 			void updateTextViewOn(const int logicalAddress);
 			void updateImageViewOn(const int logicalAddress);
+			void updateDeviceChain(const LogicalAddress &logicalAddress, const PhysicalAddress &phy_addr);
+			void getActiveRoute(const LogicalAddress &logicalAddress, std::vector<uint8_t> &route);
 			void removeDevice(const int logicalAddress);
 			void addDevice(const int logicalAddress);
 			void printDeviceList();
-			void setActivePath();
+			void setStreamPath( const PhysicalAddress &physical_addr);
+			void setRoutingChange(const std::string &from, const std::string &to);
+			void setActiveSource(bool isResponse);
+			void requestActiveSource();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -285,8 +422,13 @@ namespace WPEFramework {
             uint32_t getVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t printDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setActivePathWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t setRoutingChangeWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t setActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+
 			
             //End methods
             std::string logicalAddressDeviceType;
@@ -294,6 +436,7 @@ namespace WPEFramework {
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
 			bool m_isHdmiInConnected;
+			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
 			int m_logicalAddressAllocated;
 			std::thread m_pollThread;
