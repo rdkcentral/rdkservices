@@ -405,6 +405,8 @@ namespace WPEFramework {
 			void printDeviceList();
 			void setStreamPath( const PhysicalAddress &physical_addr);
 			void setRoutingChange(const std::string &from, const std::string &to);
+			void setCurrentLanguage(const Language &lang);
+			void sendMenuLanguage();
 			void setActiveSource(bool isResponse);
 			void requestActiveSource();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
@@ -428,6 +430,7 @@ namespace WPEFramework {
 			uint32_t setActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
 
 			
             //End methods
