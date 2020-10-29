@@ -245,6 +245,8 @@ namespace WPEFramework {
             : AbstractPlugin()
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
+            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
+
             SystemServices::_instance = this;
 
             //Initialise timer with interval and callback function.
@@ -321,7 +323,6 @@ namespace WPEFramework {
             registerMethod("getMacAddresses",&SystemServices::getMacAddresses, this);
             registerMethod("setTimeZoneDST", &SystemServices::setTimeZoneDST, this);
             registerMethod("getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
-            registerMethod("getTimeZones", &SystemServices::getTimeZones, this);
             registerMethod("getCoreTemperature", &SystemServices::getCoreTemperature,
                     this);
             registerMethod("getCachedValue", &SystemServices::getCachedValue, this);
@@ -349,10 +350,18 @@ namespace WPEFramework {
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
+
+            systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
         }
 
         SystemServices::~SystemServices()
         {
+            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
+            if (systemVersion_2) 
+                systemVersion_2->Unregister("getTimeZones");
+            else
+                LOGERR("Failed to get handler for version 2");
+
             SystemServices::_instance = nullptr;
         }
 
