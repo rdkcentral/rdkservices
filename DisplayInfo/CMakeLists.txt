@@ -99,6 +99,7 @@ elseif (BUILD_REALTEK)
     target_sources(${MODULE_NAME}
         PRIVATE
             Realtek/PlatformImplementation.cpp
+            Realtek/kms.c
             ../helpers/utils.cpp)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
