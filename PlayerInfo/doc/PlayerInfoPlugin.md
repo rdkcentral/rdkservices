@@ -15,6 +15,7 @@ PlayerInfo plugin for Thunder framework.
 - [Configuration](#head.Configuration)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
+- [Notifications](#head.Notifications)
 
 <a name="head.Introduction"></a>
 # Introduction
@@ -22,12 +23,12 @@ PlayerInfo plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the PlayerInfo plugin. It includes detailed specification of its configuration, methods and properties provided.
+This document describes purpose and functionality of the PlayerInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -60,7 +61,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The PlayerInfo plugin helps to get system supported Audio Video codecs
+The PlayerInfo plugin helps to get system supported Audio Video codecs.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -74,7 +75,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *PlayerInfo*) |
 | classname | string | Class name: *PlayerInfo* |
 | locator | string | Library name: *libWPEPlayerInfo.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
@@ -87,6 +88,7 @@ PlayerProperties interface methods:
 | :-------- | :-------- |
 | [audiocodecs](#method.audiocodecs) |  |
 | [videocodecs](#method.videocodecs) |  |
+
 
 <a name="method.audiocodecs"></a>
 ## *audiocodecs <sup>method</sup>*
@@ -113,6 +115,7 @@ This method takes no parameters.
     "method": "PlayerInfo.1.audiocodecs"
 }
 ```
+
 #### Response
 
 ```json
@@ -124,6 +127,7 @@ This method takes no parameters.
     ]
 }
 ```
+
 <a name="method.videocodecs"></a>
 ## *videocodecs <sup>method</sup>*
 
@@ -149,6 +153,7 @@ This method takes no parameters.
     "method": "PlayerInfo.1.videocodecs"
 }
 ```
+
 #### Response
 
 ```json
@@ -160,6 +165,7 @@ This method takes no parameters.
     ]
 }
 ```
+
 <a name="head.Properties"></a>
 # Properties
 
@@ -180,6 +186,7 @@ Dolby Output interface properties:
 | [dolby soundmode](#property.dolby_soundmode) <sup>RO</sup> | Sound Mode - Mono/Stereo/Surround |
 | [dolby enableatmosoutput](#property.dolby_enableatmosoutput) <sup>WO</sup> | Enable Atmos Audio Output |
 | [dolby mode](#property.dolby_mode) | Dolby Mode |
+
 
 <a name="property.resolution"></a>
 ## *resolution <sup>property</sup>*
@@ -205,6 +212,7 @@ Provides access to the current Video playback resolution.
     "method": "PlayerInfo.1.resolution"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -214,6 +222,7 @@ Provides access to the current Video playback resolution.
     "result": "ResolutionUnknown"
 }
 ```
+
 <a name="property.isaudioequivalenceenabled"></a>
 ## *isaudioequivalenceenabled <sup>property</sup>*
 
@@ -238,6 +247,7 @@ Provides access to the checks Loudness Equivalence in platform.
     "method": "PlayerInfo.1.isaudioequivalenceenabled"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -247,6 +257,7 @@ Provides access to the checks Loudness Equivalence in platform.
     "result": false
 }
 ```
+
 <a name="property.dolby_atmosmetadata"></a>
 ## *dolby_atmosmetadata <sup>property</sup>*
 
@@ -271,6 +282,7 @@ Provides access to the atmos capabilities of Sink.
     "method": "PlayerInfo.1.dolby_atmosmetadata"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -280,6 +292,7 @@ Provides access to the atmos capabilities of Sink.
     "result": false
 }
 ```
+
 <a name="property.dolby_soundmode"></a>
 ## *dolby_soundmode <sup>property</sup>*
 
@@ -304,6 +317,7 @@ Provides access to the sound Mode - Mono/Stereo/Surround.
     "method": "PlayerInfo.1.dolby_soundmode"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -313,6 +327,7 @@ Provides access to the sound Mode - Mono/Stereo/Surround.
     "result": "Unknown"
 }
 ```
+
 <a name="property.dolby_enableatmosoutput"></a>
 ## *dolby_enableatmosoutput <sup>property</sup>*
 
@@ -338,6 +353,7 @@ Provides access to the enable Atmos Audio Output.
     "params": false
 }
 ```
+
 #### Set Response
 
 ```json
@@ -347,6 +363,7 @@ Provides access to the enable Atmos Audio Output.
     "result": "null"
 }
 ```
+
 <a name="property.dolby_mode"></a>
 ## *dolby_mode <sup>property</sup>*
 
@@ -356,7 +373,7 @@ Provides access to the dolby Mode.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | Dolby Mode (must be one of the following: *DigitalPcm*, *DigitalPlus*, *DigitalAc3*, *Auto*) |
+| (property) | string | Dolby Mode (must be one of the following: *DigitalPcm*, *DigitalPlus*, *DigitalAc3*, *Auto*, *Ms12*) |
 
 ### Example
 
@@ -369,6 +386,7 @@ Provides access to the dolby Mode.
     "method": "PlayerInfo.1.dolby_mode"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -378,6 +396,7 @@ Provides access to the dolby Mode.
     "result": "DigitalPcm"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -388,6 +407,7 @@ Provides access to the dolby Mode.
     "params": "DigitalPcm"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -397,6 +417,7 @@ Provides access to the dolby Mode.
     "result": "null"
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -409,6 +430,7 @@ Dolby Output interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [dolby audiomodechanged](#event.dolby_audiomodechanged) |  |
+
 
 <a name="event.dolby_audiomodechanged"></a>
 ## *dolby_audiomodechanged <sup>event</sup>*
@@ -433,3 +455,4 @@ Dolby Output interface events:
     }
 }
 ```
+

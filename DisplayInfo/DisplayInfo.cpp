@@ -42,15 +42,23 @@ namespace Plugin {
         if (_connectionProperties != nullptr) {
 
             _graphicsProperties = _connectionProperties->QueryInterface<Exchange::IGraphicsProperties>();
-            _hdrProperties = _connectionProperties->QueryInterface<Exchange::IHDRProperties>();
             if (_graphicsProperties == nullptr) {
 
                 _connectionProperties->Release();
                 _connectionProperties = nullptr;
             } else {
-                _notification.Initialize(_connectionProperties);
-                Exchange::JConnectionProperties::Register(*this, _connectionProperties);
-                Exchange::JHDRProperties::Register(*this, _hdrProperties);
+                _hdrProperties = _connectionProperties->QueryInterface<Exchange::IHDRProperties>();
+                if (_hdrProperties == nullptr) {
+                    _connectionProperties->Release();
+                    _connectionProperties = nullptr;
+                    _graphicsProperties->Release();
+                    _graphicsProperties = nullptr;
+                } else {
+                    _notification.Initialize(_connectionProperties);
+                    Exchange::JGraphicsProperties::Register(*this, _graphicsProperties);
+                    Exchange::JConnectionProperties::Register(*this, _connectionProperties);
+                    Exchange::JHDRProperties::Register(*this, _hdrProperties);
+                }
             }
         }
 
@@ -132,11 +140,6 @@ namespace Plugin {
 
     void DisplayInfo::Info(JsonData::DisplayInfo::DisplayinfoData& displayInfo) const
     {
-        bool boolean;
-        uint32_t value;
-        Exchange::IHDRProperties::HDRType hdrType;
-        Exchange::IConnectionProperties::HDCPProtectionType hdcpType;
-
         uint64_t ram = 0;
         if (_graphicsProperties->TotalGpuRam(ram) == Core::ERROR_NONE) {
             displayInfo.Totalgpuram = ram;
@@ -146,23 +149,31 @@ namespace Plugin {
             displayInfo.Freegpuram = ram;
         }
 
-        if (_connectionProperties->IsAudioPassthrough(boolean) == Core::ERROR_NONE) {
-            displayInfo.Audiopassthrough = boolean;
+        bool status = false;
+        if (_connectionProperties->IsAudioPassthrough(status) == Core::ERROR_NONE) {
+            displayInfo.Audiopassthrough = status;
         }
-        if (_connectionProperties->Connected(boolean) == Core::ERROR_NONE) {
-            displayInfo.Connected = boolean;
+        status = false;
+        if (_connectionProperties->Connected(status) == Core::ERROR_NONE) {
+            displayInfo.Connected = status;
         }
+
+        uint32_t value = 0;
         if (_connectionProperties->Width(value) == Core::ERROR_NONE) {
             displayInfo.Width = value;
         }
+        value = 0;
         if (_connectionProperties->Height(value) == Core::ERROR_NONE) {
             displayInfo.Height = value;
         }
 
-        if (static_cast<const Exchange::IConnectionProperties*>(_connectionProperties)->HDCPProtection(hdcpType) == Core::ERROR_NONE) {
-            displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(hdcpType);
+        Exchange::IConnectionProperties::HDCPProtectionType hdcpProtection(Exchange::IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted);
+        if (_connectionProperties->HDCPProtection(hdcpProtection) == Core::ERROR_NONE) {
+            displayInfo.Hdcpprotection = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(hdcpProtection);
         }
-        if ((_hdrProperties != nullptr) && (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE)) {
+
+        Exchange::IHDRProperties::HDRType hdrType(Exchange::IHDRProperties::HDRType::HDR_OFF);
+        if (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE) {
             displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(hdrType);
         }
     }
