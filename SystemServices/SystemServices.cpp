@@ -2660,7 +2660,7 @@ namespace WPEFramework {
         {
             bool status = false;
             bool isPowerStateManagedByDevice = true;
-            char *env_var= getenv("RDK_NO_ACTION_ON_POWER");
+            char *env_var= getenv("RDK_NO_ACTION_ON_POWER_KEY");
             if (env_var)
             {
                 int isPowerStateManagedByDeviceValue = atoi(env_var);
