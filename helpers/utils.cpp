@@ -26,6 +26,9 @@
 #include <sstream>
 #include "utils.h"
 #include "libIBus.h"
+#include <curl/curl.h>
+
+#define MAX_STRING_LENGTH 2048
 
 using namespace WPEFramework;
 using namespace std;
