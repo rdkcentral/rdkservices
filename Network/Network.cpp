@@ -27,6 +27,7 @@
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
+#define MAX_IP_FAMILY_SIZE 10
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -37,6 +38,7 @@
 #define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
 #define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -59,6 +61,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     char interfaceCount;
     bool isInterfaceEnabled;
     bool persist;
+    char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
 typedef struct {
@@ -150,6 +153,8 @@ namespace WPEFramework
 
             Register("setIPSettings", &Network::setIPSettings, this);
             Register("getIPSettings", &Network::getIPSettings, this);
+
+            Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -362,6 +367,33 @@ namespace WPEFramework
             returnResponse(true);
         }
 
+        uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
+        {
+            if (parameters.HasLabel("family"))
+            {
+                IARM_Result_t ret = IARM_RESULT_SUCCESS;
+                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                memset(&param, 0, sizeof(param));
+           
+                std::string ipfamily("");
+                getStringParameter("family", ipfamily);
+                strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
+                ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param));
+                if (ret != IARM_RESULT_SUCCESS )
+                {
+                    LOGWARN ("Query to get IPaddress by Family Failed..\n");
+                    response["ip"] = "";
+                    returnResponse(false);
+                }
+            response["ip"] = std::string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN-1);
+            returnResponse(true);
+          }
+          else
+          {
+                LOGWARN ("Required Family Attribute is not provided.\n");
+          }
+          returnResponse(false);
+       }
         uint32_t Network::isInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
             LOGWARN ("Entering %s \n", __FUNCTION__);

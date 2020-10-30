@@ -69,6 +69,8 @@ namespace WPEFramework
             LOGINFO();
             Timer::_instance = this;
 
+            Utils::IARM::init();
+
             registerMethod(TIMER_METHOD_START_TIMER, &Timer::startTimerWrapper, this);
             registerMethod(TIMER_METHOD_CANCEL, &Timer::cancelWrapper, this);
             registerMethod(TIMER_METHOD_SUSPEND, &Timer::suspendWrapper, this);

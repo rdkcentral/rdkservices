@@ -207,6 +207,7 @@ namespace WPEFramework {
                 uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
+                uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

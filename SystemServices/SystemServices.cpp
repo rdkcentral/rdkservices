@@ -1,4 +1,4 @@
-/**
+/9**
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
@@ -350,6 +350,7 @@ namespace WPEFramework {
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
+            registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
 
             systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
         }
@@ -2744,6 +2745,30 @@ namespace WPEFramework {
             response["stbVersion"]      = getStbVersionString();
             response["receiverVersion"] = getClientVersionString();
             response["stbTimestamp"]    = getStbTimestampString();
+            status = true;
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To retrieve is power state is managed by device
+         * @param1[in] : {"params":{}}
+         * @aparm2[in] : {"result":{"powerStateManagedByDevice":"<bool>",
+         *      "success":<bool>}}
+         */
+        uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
+        {
+            bool status = false;
+            bool isPowerStateManagedByDevice = true;
+            char *env_var= getenv("RDK_NO_ACTION_ON_POWER_KEY");
+            if (env_var)
+            {
+                int isPowerStateManagedByDeviceValue = atoi(env_var);
+                if (1 == isPowerStateManagedByDeviceValue)
+                {
+                    isPowerStateManagedByDevice = false;
+                }
+            }
+            response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
             status = true;
             returnResponse(status);
         }
