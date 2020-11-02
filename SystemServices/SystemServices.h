@@ -36,6 +36,7 @@
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
+#include "deepSleepMgr.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #include "sysMgr.h"
@@ -179,6 +180,7 @@ namespace WPEFramework {
                 uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
+		  uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
