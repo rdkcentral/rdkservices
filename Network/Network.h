@@ -73,6 +73,7 @@ namespace WPEFramework {
             uint32_t pingNamedEndpoint(const JsonObject& parameters, JsonObject& response);
             uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSTBIPFamily(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);

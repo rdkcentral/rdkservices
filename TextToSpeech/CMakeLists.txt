@@ -6,8 +6,11 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_subdirectory(test)
 
 add_library(${MODULE_NAME} SHARED
-        TextToSpeech.cpp
         Module.cpp
+        TextToSpeech.cpp
+        TextToSpeechJsonRpc.cpp
+        ProxyStubs_TextToSpeech.cpp
+        TextToSpeechImplementation.cpp
         impl/TTSManager.cpp
         impl/TTSSpeaker.cpp
         impl/logger.cpp
