@@ -56,15 +56,13 @@ namespace {
 
         _service->Unregister(&_notification);
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
-
-            ASSERT(_connectionId != 0);
-
+        _implementation->Release();
+        
+        if(_connectionId != 0){
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
             // The process can disappear in the meantime...
             if (connection != nullptr) {
-
                 // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
                 connection->Terminate();
                 connection->Release();

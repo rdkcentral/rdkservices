@@ -145,17 +145,13 @@ namespace Plugin {
 
         _opencdmi->Deinitialize(service);
 
-        if (_opencdmi->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        _opencdmi->Release();
 
-            ASSERT(_connectionId != 0);
-
-            TRACE_L1("OCDM Plugin is not properly destructed. %d", _connectionId);
-
+        if(_connectionId != 0){
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
             // The process can disappear in the meantime...
             if (connection != nullptr) {
-
                 // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
                 connection->Terminate();
                 connection->Release();
