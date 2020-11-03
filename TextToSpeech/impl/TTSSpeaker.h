@@ -153,6 +153,9 @@ private:
     GstElement *m_pipeline;
     GstElement *m_source;
     GstElement *m_audioSink;
+#if defined(PLATFORM_REALTEK)
+    GstElement *m_audioVolume;
+#endif
     GMainLoop  *main_loop;
     GMainContext *main_context;
     GThread *main_loop_thread;
