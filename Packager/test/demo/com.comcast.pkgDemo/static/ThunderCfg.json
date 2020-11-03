@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 9999,
+  "debug": false,
+  "versions":
+  {
+    "default": 1,
+    "Controller": 1,
+    "Packager": 1
+  }
+}

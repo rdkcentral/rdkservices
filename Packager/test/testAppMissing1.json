@@ -1,0 +1,7 @@
+{
+  "name": "testAppMissing",
+  "pkgId": "testAppMissing123",
+  "version": "1.0",
+  "install": "http://127.0.0.1:80/DOES_NOT_EXIST.tgz",
+  "label": ">> My Missing lsTest App <<"
+}
