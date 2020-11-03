@@ -1,0 +1,9 @@
+{
+  "name": "com.comcast.pkgDemo",
+  "description": "pkgDemo",
+  "dependencies": {
+    "ThunderJS": "github:rdkcentral/ThunderJS",
+    "json-beautify": "^1.1.1",
+    "wpe-lightning-sdk": "rdkcentral/Lightning-SDK"
+  }
+}
