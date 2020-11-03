@@ -371,6 +371,8 @@ namespace WPEFramework {
             LOGINFO();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
+            if (!Utils::IARM::isConnected())
+                return _T("IARM could not be Initialized");
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             /* On Success; return empty to indicate no error text. */
             return (string());
