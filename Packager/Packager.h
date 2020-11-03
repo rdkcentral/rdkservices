@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
@@ -34,7 +34,7 @@ namespace {
     constexpr auto* kSynchronizeMethodName = _T("synchronize");
 
 
-//    constexpr auto* kDAC_InstallMethodName            = _T("install");    NOT USED 
+//    constexpr auto* kDAC_InstallMethodName            = _T("install");    NOT USED
     constexpr auto* kDAC_RemoveMethodName             = _T("remove");
     constexpr auto* kDAC_CancelMethodName             = _T("cancel");
     constexpr auto* kDAC_IsInstalledMethodName        = _T("isInstalled");
@@ -44,8 +44,8 @@ namespace {
     constexpr auto* kDAC_GetAvailableSpaceMethodName  = _T("getAvailableSpace");
 }
 
-    class Packager : public PluginHost::IPlugin, 
-                     public PluginHost::IWeb, 
+    class Packager : public PluginHost::IPlugin,
+                     public PluginHost::IWeb,
                      public PluginHost::JSONRPC
     {
     public:
@@ -100,7 +100,7 @@ namespace {
             Core::JSON::String Url;
             Core::JSON::String Token;
             Core::JSON::String Listener;
-        }; // STRUCT     
+        }; // STRUCT
 
         // We do not allow this plugin to be copied !!
         Packager(const Packager&) = delete;
@@ -124,9 +124,9 @@ namespace {
                     //
                     // DAC::Install()
                     //
-                    uint32_t task = this->_implementation->Install(params.PkgId.Value(), params.Type.Value(), 
+                    uint32_t task = this->_implementation->Install(params.PkgId.Value(), params.Type.Value(),
                                                                  params.Url.Value(),   params.Token.Value(),
-                                                                 params.Listener.Value()); 
+                                                                 params.Listener.Value());
                     JsonObject result;
 
                     response["task"]   = std::to_string( task );
@@ -152,7 +152,7 @@ namespace {
             // DAC::Remove()
             //
             Register<Params, JsonObject>(kDAC_RemoveMethodName, [this](const Params& params, JsonObject& response) -> uint32_t
-            {                 
+            {
                 uint32_t rc = this->_implementation->Remove(params.PkgId.Value(), params.Listener.Value());
 
                 response["task"]   = 123; // TODO ... (rc > 0) ? std::to_string( rc ) : "Remove Failed";
@@ -173,7 +173,7 @@ namespace {
             });
             //
             // DAC::IsInstalled()
-            //            
+            //
             Register<Params, JsonObject>(kDAC_IsInstalledMethodName, [this](const Params& params, JsonObject& response) -> uint32_t
             {
                 uint32_t result = Core::ERROR_NONE;
@@ -192,8 +192,8 @@ namespace {
                 uint32_t result = Core::ERROR_NONE;
 
                 uint32_t pc = this->_implementation->GetInstallProgress(params.Task.Value());
-                
-                LOGINFO(" >>>>> Call ... DAC::GetInstallProgress()   pc: [%d]", pc); 
+
+                LOGINFO(" >>>>> Call ... DAC::GetInstallProgress()   pc: [%d]", pc);
 
                 response["percentage"] = pc;
                 returnResponse(true);
@@ -206,7 +206,7 @@ namespace {
             //
             Register<void, JsonObject>(kDAC_GetInstalledMethodName, [this](JsonObject& response) -> uint32_t
             {
-                LOGINFO(" >>>>> Call ... DAC::GetInstalled() "); 
+                LOGINFO(" >>>>> Call ... DAC::GetInstalled() ");
 
                 Exchange::IPackager::IPackageInfoEx::IIterator *iter = this->_implementation->GetInstalled();
 
@@ -238,7 +238,7 @@ namespace {
                 {
                     LOGERR("Packager::GetInstalled() - ERRORS...");
                 }
-               
+
                 response["applications"] = list;
                 returnResponse(true);
 
@@ -276,7 +276,7 @@ namespace {
                     returnResponse(false);
                 }
 
-                return 0; 
+                return 0;
             });
             //
             // DAC::GetAvailableSpace()
@@ -353,7 +353,7 @@ namespace {
                 _parent.Deactivated(connection);
             }
 
-            virtual void StateChange(Exchange::IPackager::IPackageInfo* package, 
+            virtual void StateChange(Exchange::IPackager::IPackageInfo* package,
                                      Exchange::IPackager::IInstallationInfo* install) override
             {
                // Needed >> Exchange::IPackager::INotification is Pure Virtual
