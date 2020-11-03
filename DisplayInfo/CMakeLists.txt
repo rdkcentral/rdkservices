@@ -90,6 +90,13 @@ else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
 
+if (BUILD_BROADCOM)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            DeviceSettings/Broadcom/SoC_abstraction.cpp
+    )
+endif ()
+
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
