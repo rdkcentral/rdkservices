@@ -607,7 +607,7 @@ export default class App extends Lightning.Component
 
     if(InstalledApps.length == 0)
     {
-      this._setState('StoreRowState'); // No apps installed >>> BACK TO STORE 
+      this._setState('StoreRowState'); // No apps installed >>> BACK TO STORE
     }
   }
 
