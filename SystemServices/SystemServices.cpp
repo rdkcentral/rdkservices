@@ -57,6 +57,10 @@
 #include "mfrMgr.h"
 #endif
 
+#ifdef ENABLE_DEEP_SLEEP
+#include "deepSleepMgr.h"
+#endif
+
 using namespace std;
 
 #define SYSSRV_MAJOR_VERSION 1
@@ -353,7 +357,9 @@ namespace WPEFramework {
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
 
             systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
-	     systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+#ifdef ENABLE_DEEP_SLEEP
+	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+#endif
         }
 
         SystemServices::~SystemServices()
@@ -361,7 +367,9 @@ namespace WPEFramework {
             Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
             if (systemVersion_2) {
                 systemVersion_2->Unregister("getTimeZones");
-		 systemVersion_2->Unregister("getWakeupReason");
+#ifdef ENABLE_DEEP_SLEEP
+		systemVersion_2->Unregister("getWakeupReason");
+#endif
 	     }
             else
                 LOGERR("Failed to get handler for version 2");
@@ -1209,7 +1217,7 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
-
+#ifdef ENABLE_DEEP_SLEEP
         /***
          * @brief Returns the deepsleep wakeup reason.
 	 * Possible values are "WAKEUP_REASON_IR", "WAKEUP_REASON_RCU_BT"
@@ -1282,7 +1290,7 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
-
+#endif
         /***
          * @brief Returns an array of strings containing the supported standby modes.
          * Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".
