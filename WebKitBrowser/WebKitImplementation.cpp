@@ -45,13 +45,6 @@
 #include "BrowserConsoleLog.h"
 #include "InjectedBundle/Tags.h"
 
-#include <wpe/wpe.h>
-
-#include <glib.h>
-
-#include "HTML5Notification.h"
-#include "WebKitBrowser.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,6 +59,13 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 #endif
 
 #endif
+
+#include <wpe/wpe.h>
+
+#include <glib.h>
+
+#include "HTML5Notification.h"
+#include "WebKitBrowser.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -1719,7 +1719,9 @@ static GSourceFuncs _handlerIntervention =
                     _context,
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
-
+#ifdef WEBKIT_GLIB_API
+                        webkit_web_view_suspend(object->_view);
+#else
                          if (object->_config.LoadBlankPageOnSuspendEnabled.Value()) {
                             const char kBlankURL[] = "about:blank";
                             if (GetPageActiveURL(object->_page) != kBlankURL)
@@ -1727,9 +1729,6 @@ static GSourceFuncs _handlerIntervention =
                             ASSERT(object->_URL == kBlankURL);
                         }
 
-#ifdef WEBKIT_GLIB_API
-                        webkit_web_view_suspend(object->_view);
-#else
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
 #endif
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
@@ -2219,7 +2218,6 @@ static GSourceFuncs _handlerIntervention =
 
             return Core::infinite;
         }
-#endif // WEBKIT_GLIB_API
 
         void CheckWebProcess()
         {
@@ -2296,6 +2294,7 @@ static GSourceFuncs _handlerIntervention =
                 self._unresponsiveReplyNum = 0;
             }
         }
+#endif // WEBKIT_GLIB_API
 
         void DeactivateBrowser(PluginHost::IShell::reason reason) {
             ASSERT(_service != nullptr);
