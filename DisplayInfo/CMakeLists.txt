@@ -95,6 +95,12 @@ if (BUILD_BROADCOM)
         PRIVATE
             DeviceSettings/Broadcom/SoC_abstraction.cpp
     )
+elseif (BUILD_REALTEK)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            DeviceSettings/Realtek/SoC_abstraction.cpp
+            DeviceSettings/Realtek/kms.c
+    )
 endif ()
 
 install(TARGETS ${MODULE_NAME}
