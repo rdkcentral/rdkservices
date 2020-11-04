@@ -1,0 +1,7 @@
+{
+  "name": "testApp1",
+  "pkgId": "testApp0123ABC",
+  "version": "1.0",
+  "install": "http://127.0.0.1:80/testApp1.tgz",
+  "label": ">> My Test App <<"
+}
