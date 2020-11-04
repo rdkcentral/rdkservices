@@ -58,7 +58,7 @@ namespace WPEFramework
                 return pingResult;
             }
 
-            if (!_getDefaultInterface(interface, gateway))
+            if (!_getDefaultInterface(interface, gateway) || interface.empty())
             {
                 LOGERR("%s: Could not get default interface", __FUNCTION__);
                 pingResult["success"] = false;
@@ -195,9 +195,9 @@ namespace WPEFramework
 
             if (endpointName == "CMTS")
             {
+                std::string interface;
                 std::string gateway = "";
-                string interface;
-                if (_getDefaultInterface(interface, gateway))
+                if (_getDefaultInterface(interface, gateway) && !gateway.empty())
                 {
                     returnResult = _doPing(gateway, packets);
                 }
