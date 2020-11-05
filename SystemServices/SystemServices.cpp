@@ -57,10 +57,16 @@
 #include "mfrMgr.h"
 #endif
 
+#ifdef ENABLE_DEEP_SLEEP
+#include "deepSleepMgr.h"
+#endif
+
 using namespace std;
 
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
+
+#define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 /**
  * @struct firmwareUpdate
@@ -243,6 +249,8 @@ namespace WPEFramework {
             : AbstractPlugin()
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
+            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
+
             SystemServices::_instance = this;
 
             //Initialise timer with interval and callback function.
@@ -347,10 +355,25 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+
+            systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
+#ifdef ENABLE_DEEP_SLEEP
+	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+#endif
         }
 
         SystemServices::~SystemServices()
         {
+            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
+            if (systemVersion_2) {
+                systemVersion_2->Unregister("getTimeZones");
+#ifdef ENABLE_DEEP_SLEEP
+		systemVersion_2->Unregister("getWakeupReason");
+#endif
+	     }
+            else
+                LOGERR("Failed to get handler for version 2");
+
             SystemServices::_instance = nullptr;
         }
 
@@ -1194,7 +1217,80 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
+#ifdef ENABLE_DEEP_SLEEP
+        /***
+         * @brief Returns the deepsleep wakeup reason.
+	 * Possible values are "WAKEUP_REASON_IR", "WAKEUP_REASON_RCU_BT"
+	 * "WAKEUP_REASON_RCU_RF4CE", WAKEUP_REASON_GPIO", "WAKEUP_REASON_LAN",
+	 * "WAKEUP_REASON_WLAN", "WAKEUP_REASON_TIMER", "WAKEUP_REASON_FRONT_PANEL",
+	 * "WAKEUP_REASON_WATCHDOG", "WAKEUP_REASON_SOFTWARE_RESET", "WAKEUP_REASON_THERMAL_RESET",
+	 * "WAKEUP_REASON_WARM_RESET", "WAKEUP_REASON_COLDBOOT", "WAKEUP_REASON_STR_AUTH_FAILURE",
+	 * "WAKEUP_REASON_CEC", "WAKEUP_REASON_PRESENCE", "WAKEUP_REASON_VOICE", "WAKEUP_REASON_UNKNOWN"
+         *
+         * @param1[in]  : {"params":{"appName":"abc"}}
+         * @param2[out] : {"result":{"wakeupReason":<string>","success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getWakeupReason(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool status = false;
+	    DeepSleep_WakeupReason_t param;
+	    std::string wakeupReason = "WAKEUP_REASON_UNKNOWN";
 
+	    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+			IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason, (void *)&param,
+			sizeof(param));
+
+            if (IARM_RESULT_SUCCESS == res)
+            {
+                status = true;
+                if (param == DEEPSLEEP_WAKEUPREASON_IR) {
+                   wakeupReason = "WAKEUP_REASON_IR";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_RCU_BT) {
+                   wakeupReason = "WAKEUP_REASON_RCU_BT";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_RCU_RF4CE) {
+                   wakeupReason = "WAKEUP_REASON_RCU_RF4CE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_GPIO) {
+                   wakeupReason = "WAKEUP_REASON_GPIO";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_LAN) {
+                   wakeupReason = "WAKEUP_REASON_LAN";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WLAN) {
+                   wakeupReason = "WAKEUP_REASON_WLAN";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_TIMER) {
+                   wakeupReason = "WAKEUP_REASON_TIMER";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_FRONT_PANEL) {
+                   wakeupReason = "WAKEUP_REASON_FRONT_PANEL";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WATCHDOG) {
+                   wakeupReason = "WAKEUP_REASON_WATCHDOG";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_SOFTWARE_RESET) {
+                   wakeupReason = "WAKEUP_REASON_SOFTWARE_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_THERMAL_RESET) {
+                   wakeupReason = "WAKEUP_REASON_THERMAL_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WARM_RESET) {
+                   wakeupReason = "WAKEUP_REASON_WARM_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_COLDBOOT) {
+                   wakeupReason = "WAKEUP_REASON_COLDBOOT";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_STR_AUTH_FAILURE) {
+                   wakeupReason = "WAKEUP_REASON_STR_AUTH_FAILURE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_CEC) {
+                   wakeupReason = "WAKEUP_REASON_CEC";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_PRESENCE) {
+                   wakeupReason = "WAKEUP_REASON_PRESENCE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_VOICE) {
+                   wakeupReason = "WAKEUP_REASON_VOICE";
+                }
+            }
+	    else
+	    {
+		status = false;
+	    }
+	    LOGWARN("WakeupReason : %s\n", wakeupReason.c_str());
+            response["wakeupReason"] = wakeupReason;
+
+            returnResponse(status);
+        }
+#endif
         /***
          * @brief Returns an array of strings containing the supported standby modes.
          * Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".
@@ -1721,6 +1817,93 @@ namespace WPEFramework {
                 resp = false;
             }
             returnResponse(resp);
+        }
+
+        void SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+        {
+            std::string cmd = "zdump ";
+            cmd += file;
+
+            FILE *p = popen(cmd.c_str(), "r");
+
+            if(!p)
+            {
+                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                zoneInfo = "";
+                return;
+
+            }
+
+            char buf[1024];
+            while(fgets(buf, sizeof(buf), p) != NULL)
+                zoneInfo += buf;
+
+            int err = pclose(p);
+            if (0 == err)
+            {
+                zoneInfo.erase(0, zoneInfo.find_first_of(" \t")); // Skip filename
+                zoneInfo.erase(0, zoneInfo.find_first_not_of(" \n\r\t")); // Trim whitespaces
+                zoneInfo.erase(zoneInfo.find_last_not_of(" \n\r\t") + 1);
+            }
+            else
+            {    
+                zoneInfo = "";
+                LOGERR("%s failed with code %d", cmd.c_str(), err);
+            }
+        }
+
+        void SystemServices::processTimeZones(std::string dir, JsonObject& out)
+        {
+            DIR *d = opendir(dir.c_str());
+
+            struct dirent *de;
+
+            while ((de = readdir(d)))
+            {
+                if (0 == de->d_name[0] || 0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
+                    continue;
+
+                std::string fullName = dir;
+                fullName += "/";
+                fullName += de->d_name;
+
+                struct stat deStat;
+                if (stat(fullName.c_str(), &deStat))
+                {
+                    LOGERR("stat() failed: %s", strerror(errno));
+                    continue;
+                }
+
+                if (S_ISDIR(deStat.st_mode))
+                {
+                    JsonObject dirObject;
+                    processTimeZones(fullName, dirObject);
+                    out[de->d_name] = dirObject;
+                }
+                else
+                {
+                    if (0 == access(fullName.c_str(), R_OK))
+                    {
+                        std::string zoneInfo;
+                        getZoneInfoZDump(fullName, zoneInfo);
+                        out[de->d_name] = zoneInfo;
+                    }
+                    else
+                        LOGWARN("no access to %s", fullName.c_str());
+                }
+            }
+        }
+
+        uint32_t SystemServices::getTimeZones(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO("called");
+
+            JsonObject dirObject;
+            processTimeZones(ZONEINFO_DIR, dirObject);
+
+            response["zoneinfo"] = dirObject;
+
+            return Core::ERROR_NONE;
         }
 
         /***
@@ -2693,10 +2876,25 @@ namespace WPEFramework {
                 case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
                     {
                         IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
-                        std::string curState = (eventData->data.state.curState ==
-                                IARM_BUS_PWRMGR_POWERSTATE_ON) ? "ON" : "STANDBY";
-                        std::string newState = (eventData->data.state.newState ==
-                                IARM_BUS_PWRMGR_POWERSTATE_ON) ? "ON" : "STANDBY";
+			std::string curState,newState = "";
+
+			if(eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+				curState = "ON";
+			} else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
+				   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+				curState = "LIGHT_SLEEP";
+			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+				curState = "DEEP_SLEEP";
+			}
+
+			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+				newState = "ON";
+			} else if((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
+				  (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                                newState = "LIGHT_SLEEP";
+			} else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+                                newState = "DEEP_SLEEP";
+			}
                         LOGWARN("IARM Event triggered for PowerStateChange.\
                                 Old State %s, New State: %s\n",
                                 curState.c_str() , newState.c_str());

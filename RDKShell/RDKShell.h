@@ -99,6 +99,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
+            static const string RDKSHELL_EVENT_ON_APP_ACTIVATED;
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
@@ -198,14 +199,6 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
-            static void getSecurityToken(std::string& token);
-            static bool isThunderSecurityConfigured();
-
-            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
-            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
-
-            static std::string m_sToken;
-            static bool m_sThunderSecurityChecked;
 
         private/*classes */:
 
@@ -229,6 +222,7 @@ namespace WPEFramework {
                 virtual void onApplicationFirstFrame(const std::string& client);
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
+                virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
                 virtual void onDeviceLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
