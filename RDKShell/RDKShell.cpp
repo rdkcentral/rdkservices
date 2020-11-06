@@ -1695,7 +1695,20 @@ namespace WPEFramework {
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
                     configSet["launchtosuspend"] = suspend;
-                    if (!suspend)
+                    WPEFramework::Core::JSON::String stateString;
+                    uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+
+                    bool alreadySuspended = false;
+                    if (stateStatus == 0)
+                    {
+                        std::string stateValue = stateString.Value();
+                        std::cout << "state of netflix is " << stateValue << std::endl;
+                        if (stateValue.compare("suspended") == 0)
+                        {
+                            alreadySuspended = true;
+                        }
+                    }
+                    if (!suspend && !alreadySuspended)
                     {
                         setSuspendResumeStateOnLaunch = false;
                     }
