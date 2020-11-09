@@ -357,12 +357,12 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
-            registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
 
             systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
 #ifdef ENABLE_DEEP_SLEEP
 	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
 #endif
+            systemVersion_2.Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
         }
 
         SystemServices::~SystemServices()
@@ -373,6 +373,7 @@ namespace WPEFramework {
 #ifdef ENABLE_DEEP_SLEEP
 		systemVersion_2->Unregister("getWakeupReason");
 #endif
+                systemVersion_2->Unregister("uploadLogs");
 	     }
             else
                 LOGERR("Failed to get handler for version 2");
