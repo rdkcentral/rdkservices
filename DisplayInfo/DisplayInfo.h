@@ -21,6 +21,7 @@
 
 #include "Module.h"
 #include <interfaces/json/JsonData_DisplayInfo.h>
+#include <interfaces/json/JGraphicsProperties.h>
 #include <interfaces/json/JConnectionProperties.h>
 #include <interfaces/json/JHDRProperties.h>
 
@@ -34,6 +35,7 @@ namespace Plugin {
             Notification() = delete;
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
+
         public:
             explicit Notification(DisplayInfo* parent)
                 : _parent(*parent)
@@ -113,8 +115,6 @@ namespace Plugin {
         virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
-        // JsonRpc
-        uint32_t get_displayinfo(JsonData::DisplayInfo::DisplayinfoData&) const;
 
         void Info(JsonData::DisplayInfo::DisplayinfoData&) const;
 
