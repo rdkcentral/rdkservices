@@ -1695,7 +1695,6 @@ namespace WPEFramework {
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
                     configSet["launchtosuspend"] = suspend;
-
                     if (!suspend)
                     {
                         setSuspendResumeStateOnLaunch = false;
