@@ -33,7 +33,7 @@
 
 /* Status-keeper files */
 
-#if defined (PLATFORM_BROADCOM) || defined (PLATFORM_REALTEK)
+#if defined (PLATFORM_BROADCOM) || defined (PLATFORM_BROADCOM_REF) || defined (PLATFORM_REALTEK)
 #define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/secure/reboot/reboot.info"
 #define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/secure/reboot/previousreboot.info"
 #define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/secure/reboot/hardpower.info"
