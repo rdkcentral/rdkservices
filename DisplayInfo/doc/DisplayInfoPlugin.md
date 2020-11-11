@@ -23,12 +23,12 @@ DisplayInfo plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification of its configuration, methods and properties provided, as well as notifications sent.
+This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -75,7 +75,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *DisplayInfo*) |
 | classname | string | Class name: *DisplayInfo* |
 | locator | string | Library name: *libWPEFrameworkDisplayInfo.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
@@ -87,6 +87,9 @@ ConnectionProperties interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [edid](#method.edid) | TV's Extended Display Identification Data |
+| [widthincentimeters](#method.widthincentimeters) | Horizontal size in centimeters |
+| [heightincentimeters](#method.heightincentimeters) | Vertical size in centimeters |
+
 
 <a name="method.edid"></a>
 ## *edid <sup>method</sup>*
@@ -122,6 +125,7 @@ TV's Extended Display Identification Data.
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -134,6 +138,81 @@ TV's Extended Display Identification Data.
     }
 }
 ```
+
+<a name="method.widthincentimeters"></a>
+## *widthincentimeters <sup>method</sup>*
+
+Horizontal size in centimeters.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | integer |  |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "DisplayInfo.1.widthincentimeters"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": 0
+}
+```
+
+<a name="method.heightincentimeters"></a>
+## *heightincentimeters <sup>method</sup>*
+
+Vertical size in centimeters.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | integer |  |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "DisplayInfo.1.heightincentimeters"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": 0
+}
+```
+
 <a name="head.Properties"></a>
 # Properties
 
@@ -145,6 +224,7 @@ GraphicsProperties interface properties:
 | :-------- | :-------- |
 | [totalgpuram](#property.totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
 | [freegpuram](#property.freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
+
 ConnectionProperties interface properties:
 
 | Property | Description |
@@ -156,6 +236,7 @@ ConnectionProperties interface properties:
 | [verticalfreq](#property.verticalfreq) <sup>RO</sup> | Vertical Frequency |
 | [hdcpprotection](#property.hdcpprotection) | HDCP protocol used for transmission |
 | [portname](#property.portname) <sup>RO</sup> | Video output port on the STB used for connection to TV |
+
 HDRProperties interface properties:
 
 | Property | Description |
@@ -163,6 +244,7 @@ HDRProperties interface properties:
 | [tvcapabilities](#property.tvcapabilities) <sup>RO</sup> | HDR formats supported by TV |
 | [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | HDR formats supported by STB |
 | [hdrsetting](#property.hdrsetting) <sup>RO</sup> | HDR format in use |
+
 
 <a name="property.totalgpuram"></a>
 ## *totalgpuram <sup>property</sup>*
@@ -188,6 +270,7 @@ Provides access to the total GPU DRAM memory (in bytes).
     "method": "DisplayInfo.1.totalgpuram"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -197,6 +280,7 @@ Provides access to the total GPU DRAM memory (in bytes).
     "result": 0
 }
 ```
+
 <a name="property.freegpuram"></a>
 ## *freegpuram <sup>property</sup>*
 
@@ -221,6 +305,7 @@ Provides access to the free GPU DRAM memory (in bytes).
     "method": "DisplayInfo.1.freegpuram"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -230,6 +315,7 @@ Provides access to the free GPU DRAM memory (in bytes).
     "result": 0
 }
 ```
+
 <a name="property.isaudiopassthrough"></a>
 ## *isaudiopassthrough <sup>property</sup>*
 
@@ -254,6 +340,7 @@ Provides access to the current audio passthrough status on HDMI.
     "method": "DisplayInfo.1.isaudiopassthrough"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -263,6 +350,7 @@ Provides access to the current audio passthrough status on HDMI.
     "result": false
 }
 ```
+
 <a name="property.connected"></a>
 ## *connected <sup>property</sup>*
 
@@ -287,6 +375,7 @@ Provides access to the current HDMI connection status.
     "method": "DisplayInfo.1.connected"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -296,6 +385,7 @@ Provides access to the current HDMI connection status.
     "result": false
 }
 ```
+
 <a name="property.width"></a>
 ## *width <sup>property</sup>*
 
@@ -320,15 +410,17 @@ Provides access to the horizontal resolution of TV.
     "method": "DisplayInfo.1.width"
 }
 ```
+
 #### Get Response
 
 ```json
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "result": 1280
+    "result": 0
 }
 ```
+
 <a name="property.height"></a>
 ## *height <sup>property</sup>*
 
@@ -353,15 +445,17 @@ Provides access to the vertical resolution of TV.
     "method": "DisplayInfo.1.height"
 }
 ```
+
 #### Get Response
 
 ```json
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "result": 720
+    "result": 0
 }
 ```
+
 <a name="property.verticalfreq"></a>
 ## *verticalfreq <sup>property</sup>*
 
@@ -386,6 +480,7 @@ Provides access to the vertical Frequency.
     "method": "DisplayInfo.1.verticalfreq"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -395,6 +490,7 @@ Provides access to the vertical Frequency.
     "result": 0
 }
 ```
+
 <a name="property.hdcpprotection"></a>
 ## *hdcpprotection <sup>property</sup>*
 
@@ -404,7 +500,7 @@ Provides access to the HDCP protocol used for transmission.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | HDCP protocol used for transmission (must be one of the following: *HdcpUnencrypted*, *Hdcp1X*, *Hdcp2X*) |
+| (property) | string | HDCP protocol used for transmission (must be one of the following: *HdcpUnencrypted*, *Hdcp1X*, *Hdcp2X*, *HdcpAuto*) |
 
 ### Example
 
@@ -417,6 +513,7 @@ Provides access to the HDCP protocol used for transmission.
     "method": "DisplayInfo.1.hdcpprotection"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -426,6 +523,7 @@ Provides access to the HDCP protocol used for transmission.
     "result": "HdcpUnencrypted"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -436,6 +534,7 @@ Provides access to the HDCP protocol used for transmission.
     "params": "HdcpUnencrypted"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -445,6 +544,7 @@ Provides access to the HDCP protocol used for transmission.
     "result": "null"
 }
 ```
+
 <a name="property.portname"></a>
 ## *portname <sup>property</sup>*
 
@@ -469,6 +569,7 @@ Provides access to the video output port on the STB used for connection to TV.
     "method": "DisplayInfo.1.portname"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -478,6 +579,7 @@ Provides access to the video output port on the STB used for connection to TV.
     "result": ""
 }
 ```
+
 <a name="property.tvcapabilities"></a>
 ## *tvcapabilities <sup>property</sup>*
 
@@ -503,6 +605,7 @@ Provides access to the HDR formats supported by TV.
     "method": "DisplayInfo.1.tvcapabilities"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -514,6 +617,7 @@ Provides access to the HDR formats supported by TV.
     ]
 }
 ```
+
 <a name="property.stbcapabilities"></a>
 ## *stbcapabilities <sup>property</sup>*
 
@@ -539,6 +643,7 @@ Provides access to the HDR formats supported by STB.
     "method": "DisplayInfo.1.stbcapabilities"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -550,6 +655,7 @@ Provides access to the HDR formats supported by STB.
     ]
 }
 ```
+
 <a name="property.hdrsetting"></a>
 ## *hdrsetting <sup>property</sup>*
 
@@ -574,6 +680,7 @@ Provides access to the HDR format in use.
     "method": "DisplayInfo.1.hdrsetting"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -583,6 +690,7 @@ Provides access to the HDR format in use.
     "result": "HdrOff"
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -595,6 +703,7 @@ ConnectionProperties interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [updated](#event.updated) |  |
+
 
 <a name="event.updated"></a>
 ## *updated <sup>event</sup>*
@@ -617,3 +726,4 @@ ConnectionProperties interface events:
     }
 }
 ```
+
