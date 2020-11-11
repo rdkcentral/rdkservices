@@ -1,0 +1,230 @@
+{
+    "$schema": "../../../Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "XCast API", 
+        "class": "XCast", 
+        "description": "This XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL, Alexa, or WebPA). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`."
+    },
+    "definitions": {
+        "enabled": {
+            "summary":"`true` for enable or `false` for disable",
+            "type":"boolean",
+            "example": true
+        },
+        "applicationName": {
+            "summary":"Registered application name",
+            "type":"string",
+            "example": "NetflixApp"
+        },
+        "applicationId":{
+            "summary":"Application instance ID",
+            "type":"string",
+            "example":"1234"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "setEnabled":{
+            "summary": "Enables, or disables, the cast service",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getEnabled":{
+            "summary": "Reports whether the cast service is enabled or disabled",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                }, 
+                "required": [
+                    "enabled",
+                    "success"
+                ]               
+            }
+        },
+        "getApiVersionNumber":{
+            "summary": "Gets the API version",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "version": {
+                        "description": "a version number",
+                        "type":"integer",
+                        "example": 1
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                }, 
+                "required": [
+                    "version",
+                    "success"
+                ]               
+            }
+        },
+        "onApplicationStateChanged":{
+            "summary": "provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  \n Client Error Mapping Example:  \n| Error | Description | HTTP Status Codes |  \n | :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "state":{
+                        "summary":"A predefined application state. Either `running` or `stopped`.",
+                        "type":"string",
+                        "example":"running"
+                    },
+                    "applicationId":{
+                        "$ref": "#/definitions/applicationId"
+                    },
+                    "error":{
+                        "summary":"A predefined error from the cast target application. Either `none`, `forbidden` `unavailable` `invalid` or `internal`",
+                        "type":"string",
+                        "example":""
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "state"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onApplicationLaunchRequest": {
+            "summary": "Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context.  If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  \nUpon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "parameters": {
+                        "summary":"The format and interpretation is determined between the application launcher or cast target and the cast client for each application. For example, a Netflix DIAL-client returns a `pluginURL` parameter with the application launch string. A Youtube DIAL-client returns a `url` parameter with the application launch string.",
+                        "type":"object",
+                        "properties": {
+                            "pluginUrl":{
+                                "summary":"Application launch string",
+                                "type":"string",
+                                "example": "https://www.netflix.com"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "parameters"
+                ]
+            }
+        },
+        "onApplicationHideRequest": {
+            "summary": "Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  \n Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        },
+        "onApplicationResumeRequest": {
+            "summary": "Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  \n Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        },
+        "onApplicationStopRequest": {
+            "summary": "Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  \n Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        },
+        "onApplicationStateRequest": {
+            "summary": "Triggered when the cast service needs an update of the application state.  \n The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        }
+    }
+}
