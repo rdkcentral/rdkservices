@@ -686,8 +686,9 @@ namespace WPEFramework
             //if not blink again then the led color should stay on the LAST element in the array as stated in the spec
         }
 
-        void CFrontPanel::set24HourClock(bool is24Hour)
+        bool CFrontPanel::set24HourClock(bool is24Hour)
         {
+            bool success = false;
             try
             {
                 int newFormat = is24Hour ? device::FrontPanelTextDisplay::kModeClock24Hr : device::FrontPanelTextDisplay::kModeClock12Hr;
@@ -697,11 +698,13 @@ namespace WPEFramework
                 textDisplay.setTimeFormat(newFormat);
                 currentFormat = textDisplay.getCurrentTimeFormat();
                 LOGINFO("set24HourClock - After setting %d - Time zone read from DS is %d", newFormat, currentFormat);
+                success = true;
             }
             catch (...)
             {
                 LOGERR("Exception Caught during set24HourClock");
             }
+            return success;
         }
 
         bool CFrontPanel::is24HourClock()
