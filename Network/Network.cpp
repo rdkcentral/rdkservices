@@ -222,6 +222,8 @@ namespace WPEFramework
         uint32_t Network::getInterfaces (const JsonObject& parameters, JsonObject& response)
         {
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
+            bool result = false;
+
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
             {
                 JsonArray networkInterfaces;
@@ -229,7 +231,7 @@ namespace WPEFramework
                     for (int i = 0; i < list.size; i++)
                     {
                         JsonObject interface;
-                        std::string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+                        string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
 #ifdef NET_DEFINED_INTERFACES_ONLY
                         if (iface == "")
                             continue;					// Skip unrecognised interfaces...
@@ -243,29 +245,33 @@ namespace WPEFramework
                 }
 
                 response["interfaces"] = networkInterfaces;
-                returnResponse(true)
+                result = true;
             }
             else
                 LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::getDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
-            std::string interface;
-            std::string gateway;
+            string interface;
+            string gateway;
+            
+            bool result = false;
             if (_getDefaultInterface(interface, gateway))
             {
                 response["interface"] = m_netUtils.getInterfaceDescription(interface);
-                returnResponse(true);
+                result = true;
             }
-
-            returnResponse(false)
+            
+            returnResponse(result)
         }
 
         uint32_t Network::setDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
             {
                 string interface = "";
@@ -279,63 +285,66 @@ namespace WPEFramework
                 iarmData.persist = persist;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
-                {
-                    response["success"] = true;
-                    returnResponse(true)
-                }
+                    result = true;
                 else
                     LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
             }
-
-            returnResponse(false)
+            
+            returnResponse(result)
         }
 
         uint32_t Network::getStbIp(const JsonObject &parameters, JsonObject &response)
         {
-            IARM_Result_t ret = IARM_RESULT_SUCCESS;
             IARM_BUS_NetSrvMgr_Iface_EventData_t param;
             memset(&param, 0, sizeof(param));
-            ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param));
+            
+            bool result = false;
 
-            if (ret != IARM_RESULT_SUCCESS )
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
             {
-                response["ip"] = "";
-                returnResponse(false)
+                response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                result = true;
             }
-
-            response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN-1);
-            returnResponse(true)
+            else
+                response["ip"] = "";
+            
+            returnResponse(result)
         }
 
         uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
         {
+            bool result = false;
+
             if (parameters.HasLabel("family"))
             {
-                IARM_Result_t ret = IARM_RESULT_SUCCESS;
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param;
                 memset(&param, 0, sizeof(param));
-
-                std::string ipfamily("");
+                
+                string ipfamily("");
                 getStringParameter("family", ipfamily);
                 strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
-                ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param));
-                if (ret != IARM_RESULT_SUCCESS )
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
                 {
-                    LOGWARN ("Query to get IPaddress by Family Failed..\n");
-                    response["ip"] = "";
-                    returnResponse(false);
+                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                    result = true;
                 }
-            response["ip"] = std::string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN-1);
-            returnResponse(true);
-          }
-          else
-          {
-                LOGWARN ("Required Family Attribute is not provided.\n");
-          }
-          returnResponse(false);
-       }
+                else
+                {
+                    LOGWARN ("Query to get IPaddress by Family Failed..");
+                    response["ip"] = "";
+                }
+            }
+            else
+                LOGWARN ("Required Family Attribute is not provided.");
+            
+            returnResponse(result)
+        }
+        
         uint32_t Network::isInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if (parameters.HasLabel("interface"))
             {
                 string interface = "";
@@ -343,21 +352,24 @@ namespace WPEFramework
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
                 strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
+
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                 {
                     LOGINFO("%s :: Enabled = %d ",__FUNCTION__,param.isInterfaceEnabled);
                     response["enabled"] = param.isInterfaceEnabled;
-                    returnResponse(true)
+                    result = true;
                 }
                 else
                     LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
             }
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::setInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
             {
                 string interface = "";
@@ -374,15 +386,12 @@ namespace WPEFramework
                 iarmData.persist = persist;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
-                {
-                    response["success"] = true;
-                    returnResponse(true)
-                }
+                    result = true;
                 else
                     LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
             }
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::getNamedEndpoints(const JsonObject& parameters, JsonObject& response)
@@ -399,6 +408,8 @@ namespace WPEFramework
 
         uint32_t Network::trace(const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if (!parameters.HasLabel("endpoint"))
                 LOGERR("No endpoint specified");
             else
@@ -411,16 +422,18 @@ namespace WPEFramework
                     getNumberParameter("packets", packets);
 
                 if (_doTrace(endpoint, packets, response))
-                    returnResponse(true)
+                    result = true;
                 else
                     LOGERR("Failed to perform network trace");
             }
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::traceNamedEndpoint(const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if (!parameters.HasLabel("endpointName"))
                 LOGERR("No endpointName specified");
             else
@@ -433,11 +446,12 @@ namespace WPEFramework
                     getNumberParameter("packets", packets);
 
                 if (_doTraceNamedEndpoint(endpointName, packets, response))
-                    returnResponse(true)
+                    result = true;
                 else
                     LOGERR("Failed to perform network trace names endpoint");
             }
-            returnResponse(false)
+
+            returnResponse(result)
         }
 
         uint32_t Network::ping (const JsonObject& parameters, JsonObject& response)
@@ -448,17 +462,19 @@ namespace WPEFramework
             uint32_t packets;
             getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
 
+            bool result = false;
+
             if (parameters.HasLabel("endpoint"))
             {
                 string endpoint;
                 getStringParameter("endpoint", endpoint);
                 response = _doPing(guid, endpoint, packets);
-                returnResponse(response["success"])
+                result = response["success"].Boolean();
             }
             else
                 LOGERR("No endpoint argument");
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::pingNamedEndpoint (const JsonObject& parameters, JsonObject& response)
@@ -469,22 +485,26 @@ namespace WPEFramework
             uint32_t packets;
             getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
 
+            bool result = false;
+
             if (parameters.HasLabel("endpointName"))
             {
                 string endpointName;
                 getDefaultStringParameter("endpointName", endpointName, "")
 
                 response = _doPingNamedEndpoint(guid, endpointName, packets);
-                returnResponse(response["success"])
+                result = response["success"].Boolean();
             }
             else
                 LOGERR("No endpointName argument");
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
                 (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
                 (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
@@ -523,17 +543,19 @@ namespace WPEFramework
                                   sizeof(iarmData)))
                 {
                     response["supported"] = iarmData.isSupported;
-                    returnResponse(true)
+                    result = true;
                 }
                 else
                     response["supported"] = iarmData.isSupported;
             }
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+
             if (parameters.HasLabel("interface"))
             {
                 string interface = "";
@@ -553,11 +575,11 @@ namespace WPEFramework
                     response["gateway"] = string(iarmData.gateway);
                     response["primarydns"] = string(iarmData.primarydns);
                     response["secondarydns"] = string(iarmData.secondarydns);
-                    returnResponse(true)
+                    result = true;
                 }
             }
 
-            returnResponse(false)
+            returnResponse(result)
         }
 
         /*
@@ -689,8 +711,6 @@ namespace WPEFramework
             string res = Utils::cRunScript(script1).substr();
             LOGWARN("script1 '%s' result: '%s'", script1, res.c_str());
 
-            bool result = false;
-
             if (res == "hybrid")
             {
                 LOGINFO("Identified as hybrid device type");
@@ -759,12 +779,9 @@ namespace WPEFramework
             if (interface.length() == 0)
                 LOGWARN("Unable to detect default network interface");
             else
-            {
                 LOGWARN("Evaluated default network interface: '%s' and gateway: '%s'", interface.c_str(), gateway.c_str());
-                result = true;
-            }
 
-            return result;
+            return true;
         }
 
     } // namespace Plugin
