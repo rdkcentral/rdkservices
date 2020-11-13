@@ -88,4 +88,4 @@ none
 ```
 
 ## Full Reference
-https://etwiki.sys.comcast.net/display/RDK/RDKShell
+https://wiki.rdkcentral.com/display/RDK/RDK+Shell
