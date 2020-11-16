@@ -51,6 +51,7 @@
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONFWPENDINGREBOOT             "onFwPendingReboot" /* Auto Reboot notifier */
 
 namespace WPEFramework {
     namespace Plugin {
@@ -139,6 +140,7 @@ namespace WPEFramework {
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
+                void onFwPendingReboot( int seconds ); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -212,6 +214,8 @@ namespace WPEFramework {
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+                uint32_t fwPendingReboot (const JsonObject& parameters, JsonObject& response);
+                uint32_t fwDelayReboot (const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
