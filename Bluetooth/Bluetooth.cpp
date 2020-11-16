@@ -56,6 +56,7 @@ const string WPEFramework::Plugin::Bluetooth::METHOD_SET_EVENT_RESPONSE = "respo
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_DEVICE_INFO = "getDeviceInfo";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_AUDIO_INFO = "getAudioInfo";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
+const string WPEFramework::Plugin::Bluetooth::METHOD_GET_STATUS_SUPPORT = "getStatusSupport";
 
 const string WPEFramework::Plugin::Bluetooth::EVT_STATUS_CHANGED = "onStatusChanged";
 const string WPEFramework::Plugin::Bluetooth::EVT_PAIRING_REQUEST = "onPairingRequest";
@@ -156,6 +157,7 @@ namespace WPEFramework
             registerMethod(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
             registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
+            registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
 
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             rc = BTRMGR_Init();
@@ -1514,6 +1516,15 @@ namespace WPEFramework
                 successFlag = false;
             }
             returnResponse(successFlag);
+        }
+
+        uint32_t Bluetooth::getStatusSupportWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            string status;
+            getStatusSupport(status);
+            response["status"] = status;
+            returnResponse(true);
         }
         //
         /// Registered methods end
