@@ -110,6 +110,8 @@ namespace WPEFramework {
             uint32_t setVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
