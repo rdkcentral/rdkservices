@@ -21,11 +21,16 @@
 
 #include "Module.h"
 #include <interfaces/IPackager.h>
-#include <interfaces/json/JsonData_StateControl.h>
 
-#include "PackagerExImplementation.h"
+#ifdef INCLUDE_PACKAGER_EX 
 
-#include "utils.h"
+  #include <interfaces/json/JsonData_StateControl.h>
+
+  #include "PackagerExImplementation.h"
+
+  #include "utils.h"
+
+#endif // INCLUDE_PACKAGER_EX
 
 namespace WPEFramework {
 namespace Plugin {
@@ -33,6 +38,8 @@ namespace {
     constexpr auto* kInstallMethodName = _T("install");
     constexpr auto* kSynchronizeMethodName = _T("synchronize");
 
+
+#ifdef INCLUDE_PACKAGER_EX
 
 //    constexpr auto* kDAC_InstallMethodName            = _T("install");    NOT USED
     constexpr auto* kDAC_RemoveMethodName             = _T("remove");
@@ -42,6 +49,8 @@ namespace {
     constexpr auto* kDAC_GetInstalledMethodName       = _T("getInstalled");
     constexpr auto* kDAC_GetPackageInfoMethodName     = _T("getPackageInfo");
     constexpr auto* kDAC_GetAvailableSpaceMethodName  = _T("getAvailableSpace");
+
+#endif // INCLUDE_PACKAGER_EX
 }
 
     class Packager : public PluginHost::IPlugin,
@@ -69,6 +78,7 @@ namespace {
                 , Architecture(other.Architecture)
                 , Version(other.Version)
 
+#ifdef #ifdef INCLUDE_PACKAGER_EX
                 , Task(other.Task)
 
                 , PkgId(other.PkgId)
@@ -76,11 +86,14 @@ namespace {
                 , Url(other.Url)
                 , Token(other.Token)
                 , Listener(other.Listener)
+#endif
+
             {
                 Add(_T("package"), &Package);
                 Add(_T("architecture"), &Architecture);
                 Add(_T("version"), &Version);
 
+#ifdef INCLUDE_PACKAGER_EX
                 Add(_T("task"), &Task);
 
                 Add(_T("pkgId"), &PkgId);
@@ -88,10 +101,13 @@ namespace {
                 Add(_T("url"), &Url);
                 Add(_T("token"), &Token);
                 Add(_T("listener"), &Listener);
+#endif
             }
             Core::JSON::String Package;
             Core::JSON::String Architecture;
             Core::JSON::String Version;
+
+#ifdef INCLUDE_PACKAGER_EX
 
             Core::JSON::String Task;
 
@@ -100,6 +116,8 @@ namespace {
             Core::JSON::String Url;
             Core::JSON::String Token;
             Core::JSON::String Listener;
+#endif
+
         }; // STRUCT
 
         // We do not allow this plugin to be copied !!
@@ -113,6 +131,16 @@ namespace {
             , _implementation(nullptr)
             , _notification(this)
         {
+#ifndef INCLUDE_PACKAGER_EX
+            Register<Params, void>(kInstallMethodName, [this](const Params& params) -> uint32_t {
+                return this->_implementation->Install(params.Package.Value(), params.Version.Value(),
+                                                                 params.Architecture.Value());
+            });
+            Register<void, void>(kSynchronizeMethodName, [this]() -> uint32_t {
+                return this->_implementation->SynchronizeRepository();
+            });
+#else
+
             // Packager API
             Register<Params, JsonObject>(kInstallMethodName, [this](const Params& params, JsonObject& response) -> uint32_t
             {
@@ -290,6 +318,7 @@ namespace {
 
                 return 0;
             });
+#endif // INCLUDE_PACKAGER_EX
         }
 
         ~Packager() override
@@ -297,6 +326,7 @@ namespace {
             Unregister(kInstallMethodName);
             Unregister(kSynchronizeMethodName);
 
+#ifdef INCLUDE_PACKAGER_EX
             Unregister(kDAC_RemoveMethodName);
             Unregister(kDAC_CancelMethodName);
             Unregister(kDAC_IsInstalledMethodName);
@@ -304,6 +334,7 @@ namespace {
             Unregister(kDAC_GetInstalledMethodName);
             Unregister(kDAC_GetPackageInfoMethodName);
             Unregister(kDAC_GetAvailableSpaceMethodName);
+#endif // INCLUDE_PACKAGER_EX
         }
 
         BEGIN_INTERFACE_MAP(Packager)
@@ -324,14 +355,13 @@ namespace {
 
     private:
         class Notification : public RPC::IRemoteConnection::INotification,
+
+#ifdef INCLUDE_PACKAGER_EX
                              public PluginHost::IStateControl::INotification,
                              public Exchange::IPackager::INotification
-        {
-          private:
-            Notification() = delete;
-            Notification(const Notification&) = delete;
-            Notification& operator=(const Notification&) = delete;
+#endif
 
+        {
           public:
             explicit Notification(Packager* parent)
                 : _parent(*parent)
@@ -343,6 +373,10 @@ namespace {
             {
             }
 
+            Notification() = delete;
+            Notification(const Notification&) = delete;
+            Notification& operator=(const Notification&) = delete;
+
           public:
             virtual void Activated(RPC::IRemoteConnection*) override
             {
@@ -353,6 +387,7 @@ namespace {
                 _parent.Deactivated(connection);
             }
 
+#ifdef INCLUDE_PACKAGER_EX
             virtual void StateChange(Exchange::IPackager::IPackageInfo* package,
                                      Exchange::IPackager::IInstallationInfo* install) override
             {
@@ -373,10 +408,15 @@ namespace {
             {
                // Needed >> Exchange::IPackager::INotification is Pure Virtual
             }
+#endif // INCLUDE_PACKAGER_EX
 
             BEGIN_INTERFACE_MAP(Notification)
+
+#ifdef INCLUDE_PACKAGER_EX
                 INTERFACE_ENTRY(Exchange::IPackager::INotification)
                 INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
+#endif
+
                 INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
             END_INTERFACE_MAP
 
@@ -384,13 +424,15 @@ namespace {
             Packager& _parent;
         }; // CLASS - Notification
 
-        void Deactivated(RPC::IRemoteConnection* connection);
+#ifdef INCLUDE_PACKAGER_EX
 
         void IntallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code);
 
         // JSONRPC
         void event_installstep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code);
+#endif
 
+        void Deactivated(RPC::IRemoteConnection* connection);
 
         uint8_t _skipURL;
         uint32_t _connectionId;

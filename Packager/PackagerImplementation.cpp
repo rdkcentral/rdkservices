@@ -19,7 +19,11 @@
  
 #include "PackagerImplementation.h"
 
-#include "PackagerExUtils.h"
+#ifdef INCLUDE_PACKAGER_EX
+
+  #include "PackagerExUtils.h"
+
+#endif
 
 #if defined (DO_NOT_USE_DEPRECATED_API)
 #include <opkg_cmd.h>
@@ -121,10 +125,12 @@ namespace Plugin {
     {
         FreeOPKG();
 
-#ifdef USE_THREAD_POOL
-      PackagerExUtils::klllThreadQ(this);
-#endif
+#ifdef INCLUDE_PACKAGER_EX
 
+  #ifdef USE_THREAD_POOL
+      PackagerExUtils::klllThreadQ(this);
+  #endif
+#endif
         TermPackageDB();
     }
 
@@ -132,10 +138,8 @@ namespace Plugin {
     {
         ASSERT(notification);
         _adminLock.Lock();
-
         notification->AddRef();
         _notifications.push_back(notification);
-
         if (_inProgress.Install != nullptr) {
             ASSERT(_inProgress.Package != nullptr);
             notification->StateChange(_inProgress.Package, _inProgress.Install);
@@ -308,6 +312,8 @@ namespace Plugin {
         _adminLock.Unlock();
     }
 
+#ifdef INCLUDE_PACKAGER_EX
+
     void PackagerImplementation::NotifyIntallStep(Exchange::IPackager::state status, uint32_t task /*= 0*/, string id /* = "" */, int32_t code /*= 0*/)
     {
         _adminLock.Lock();
@@ -318,6 +324,8 @@ namespace Plugin {
         }
         _adminLock.Unlock();
     }
+#endif
+
 
     bool PackagerImplementation::InitOPKG()
     {

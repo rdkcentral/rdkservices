@@ -35,7 +35,6 @@ namespace {
 
         _service = service;
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
-
         _service->Register(&_notification);
 
         string result;
@@ -48,7 +47,9 @@ namespace {
                 result = _T("Couldn't initialize PACKAGER instance");
             }
 
+#ifdef INCLUDE_PACKAGER_EX
             _implementation->Register(&_notification);
+#endif
         }
 
         return (result);
@@ -59,7 +60,10 @@ namespace {
         ASSERT(_service == service);
 
         _service->Unregister(&_notification);
+
+#ifdef INCLUDE_PACKAGER_EX
         _implementation->Unregister(&_notification);
+#endif
 
         if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
 
@@ -88,6 +92,59 @@ namespace {
     void Packager::Inbound(Web::Request& request)
     {
     }
+
+#ifndef INCLUDE_PACKAGER_EX
+
+    Core::ProxyType<Web::Response> Packager::Process(const Web::Request& request)
+    {
+        ASSERT(_skipURL <= request.Path.length());
+
+        Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
+        Core::TextSegmentIterator index(Core::TextFragment(request.Path, _skipURL, request.Path.length() - _skipURL), false, '/');
+
+        // Always skip the first one, it is an empty part because we start with a '/' if there are more parameters.
+        index.Next();
+
+        result->ErrorCode = Web::STATUS_BAD_REQUEST;
+        result->Message = _T("Invalid request to packager plugin.");
+
+        if (index.Next() && (request.Verb == Web::Request::HTTP_POST || request.Verb == Web::Request::HTTP_PUT)) {
+            uint32_t status = Core::ERROR_UNAVAILABLE;
+            if (index.Current().Text() == "Install") {
+                std::array<char, kMaxValueLength> package {0};
+                std::array<char, kMaxValueLength> version {0};
+                std::array<char, kMaxValueLength> arch {0};
+                Core::URL::KeyValue options(request.Query.Value());
+                if (options.Exists(_T("Package"), true) == true) {
+                    const string name (options[_T("Package")].Text());
+                    Core::URL::Decode (name.c_str(), name.length(), package.data(), package.size());
+                }
+                if (options.Exists(_T("Architecture"), true) == true) {
+                                    const string name (options[_T("Architecture")].Text());
+                                    Core::URL::Decode (name.c_str(), name.length(), arch.data(), arch.size());
+                }
+                if (options.Exists(_T("Version"), true) == true) {
+                    const string name (options[_T("Version")].Text());
+                    Core::URL::Decode (name.c_str(), name.length(), version.data(), version.size());
+                }
+
+                status = _implementation->Install(package.data(), version.data(), arch.data());
+            } else if (index.Current().Text() == "SynchronizeRepository") {
+                status = _implementation->SynchronizeRepository();
+            }
+
+            if (status == Core::ERROR_NONE) {
+                result->ErrorCode = Web::STATUS_OK;
+                result->Message = _T("OK");
+            } else if (status == Core::ERROR_INPROGRESS) {
+                result->Message = _T("Some operation already in progress. Only one at a time is allowed");
+            }
+        }
+
+        return(result);
+    }
+
+#else
 
     // JSONRPC
 
@@ -122,6 +179,7 @@ namespace {
         
         Notify(str, params);
     }
+
 
     Core::ProxyType<Web::Response> Packager::Process(const Web::Request& request)
     {
@@ -361,6 +419,8 @@ namespace {
         // LOGINFO("Packager::IntallStep(uint32_t status)  >>> %u", status);
         event_installstep(status, task, id, code);
     }
+
+#endif // INCLUDE_PACKAGER_EX 
 
     void Packager::Deactivated(RPC::IRemoteConnection* connection)
     {

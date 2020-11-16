@@ -1,0 +1,10 @@
+{
+ "locator":"libWPEFrameworkPackager.so",
+ "classname":"Packager",
+ "autostart":true,
+ "configuration":{
+  "root":{
+   "outofprocess":true
+  }
+ }
+}

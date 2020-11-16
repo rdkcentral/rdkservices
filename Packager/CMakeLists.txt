@@ -16,92 +16,211 @@
 # limitations under the License.
 
 set(PLUGIN_NAME Packager)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(MODULE_NAME WPEFramework${PLUGIN_NAME})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
-find_library(LIBUUID_LIBRARY libuuid.so)
-include_directories(${LIBUUID_INCLUDE_DIR})
+option(BUILD_WITH_PACKAGER_EX "BUILD_WITH_PACKAGER_EX" OFF)
 
-find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(libprovision QUIET)
-find_package(LibOPKG REQUIRED)
-find_package(GLIB REQUIRED)
+######################################################################################################
+######################################################################################################
+##
+## Support for PACKAGER_EX additions
+##
 
-find_package(CURL)
-find_package(CompileSettingsDebug CONFIG REQUIRED)
+if (BUILD_WITH_PACKAGER_EX)
 
-# enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
-if (USE_SQLITE_SEE)
-    find_package(SqliteSee REQUIRED)
-else()
-    find_package(Sqlite REQUIRED)
-endif()
+    add_definitions(-DINCLUDE_PACKAGER_EX)
+
+    message("Building with support for PACKAGER_EX additions")
+
+    find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
+    find_library(LIBUUID_LIBRARY libuuid.so)
+    include_directories(${LIBUUID_INCLUDE_DIR})
+
+    find_package(${NAMESPACE}Plugins REQUIRED)
+    find_package(libprovision QUIET)
+    find_package(LibOPKG REQUIRED)
+    find_package(GLIB REQUIRED)
+
+    find_package(CURL)
+    find_package(CompileSettingsDebug CONFIG REQUIRED)
+
+    # enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
+    if (USE_SQLITE_SEE)
+        find_package(SqliteSee REQUIRED)
+    else()
+        find_package(Sqlite REQUIRED)
+    endif()
+
+    add_library(${MODULE_NAME} SHARED
+        Module.cpp
+        Packager.cpp
+        PackagerImplementation.cpp
+        PackagerExUtils.cpp
+        PackagerExImplementation.cpp)
+
+    if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+    else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+    endif (CURL_FOUND)
+
+    add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
+    link_directories(${SQLITE_LIBRARY_DIRS})
 
 
-add_library(${MODULE_NAME} SHARED
-    Module.cpp
-    Packager.cpp
-    PackagerImplementation.cpp
-    PackagerExUtils.cpp
-    PackagerExImplementation.cpp)
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers
+            ${SQLITE_INCLUDE_DIRS}
+            ${PLABELS_INCLUDE_DIRS}
+            ${GLIB_INCLUDE_DIRS})
 
-if (CURL_FOUND)
-    include_directories(${CURL_INCLUDE_DIRS})
-    target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
-else (CURL_FOUND)
-    message ("Curl/libcurl required.")
-endif (CURL_FOUND)
+    if (libprovision_FOUND)
+        target_link_libraries(${MODULE_NAME}
+            PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                LibOPKG::LibOPKG
+                ${LIBUUID_LIBRARY}
+                ${SQLITE_LIBRARIES}
+                ${GLIB_LIBRARIES}
+                libprovision::libprovision
 
-add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
-link_directories(${SQLITE_LIBRARY_DIRS})
+                )
+    else (libprovision_FOUND)
+        target_include_directories(${MODULE_NAME}
+            PRIVATE
+                ${LIBOPKG_INCLUDE_DIRS}
+                )
+
+        target_link_libraries(${MODULE_NAME}
+            PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                ${LIBOPKG_LIBRARIES}
+                ${LIBUUID_LIBRARY}
+                ${SQLITE_LIBRARIES}
+                ${GLIB_LIBRARIES}
+                )
+    endif (libprovision_FOUND)
+
+    string(TOLOWER ${NAMESPACE} STORAGENAME)
+    install(TARGETS ${MODULE_NAME} 
+        DESTINATION lib/${STORAGENAME}/plugins)
+
+    configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/opkg.conf.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
+            @ONLY)
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/opkg.conf
+            DESTINATION "/usr/share/${NAMESPACE}/${PLUGIN_NAME}")
+
+    write_config(${PLUGIN_NAME})
+
+######################################################################################################
+######################################################################################################
+##
+## Support for legacy PACKAGER
+##
+
+else (BUILD_WITH_PACKAGER_EX)
+
+    message("Building with support for legacy PACKAGER")
+
+    set(PLUGIN_NAME Packager)
+    set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+    find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
+    find_library(LIBUUID_LIBRARY libuuid.so)
+    include_directories(${LIBUUID_INCLUDE_DIR})
+
+    find_package(${NAMESPACE}Plugins REQUIRED)
+    find_package(libprovision QUIET)
+    find_package(LibOPKG REQUIRED)
+    find_package(GLIB REQUIRED)
+
+    find_package(CURL)
+    find_package(CompileSettingsDebug CONFIG REQUIRED)
+
+    # enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
+    if (USE_SQLITE_SEE)
+        find_package(SqliteSee REQUIRED)
+    else()
+        find_package(Sqlite REQUIRED)
+    endif()
 
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers
-        ${SQLITE_INCLUDE_DIRS}
-        ${PLABELS_INCLUDE_DIRS}
-        ${GLIB_INCLUDE_DIRS})
+    add_library(${MODULE_NAME} SHARED
+        Module.cpp
+        Packager.cpp
+        PackagerImplementation.cpp
+        PackagerExUtils.cpp
+        PackagerExImplementation.cpp)
 
-if (libprovision_FOUND)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            LibOPKG::LibOPKG
-            ${LIBUUID_LIBRARY}
-            ${SQLITE_LIBRARIES}
-            ${GLIB_LIBRARIES}
-            libprovision::libprovision
+    if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+    else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+    endif (CURL_FOUND)
 
-            )
-else (libprovision_FOUND)
-     target_include_directories(${MODULE_NAME}
-        PRIVATE
-            ${LIBOPKG_INCLUDE_DIRS}
-            )
+    add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
+    link_directories(${SQLITE_LIBRARY_DIRS})
 
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            ${LIBOPKG_LIBRARIES}
-            ${LIBUUID_LIBRARY}
-            ${SQLITE_LIBRARIES}
-            ${GLIB_LIBRARIES}
-            )
-endif (libprovision_FOUND)
 
-string(TOLOWER ${NAMESPACE} STORAGENAME)
-install(TARGETS ${MODULE_NAME} 
-    DESTINATION lib/${STORAGENAME}/plugins)
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers
+            ${SQLITE_INCLUDE_DIRS}
+            ${PLABELS_INCLUDE_DIRS}
+            ${GLIB_INCLUDE_DIRS})
 
-configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/opkg.conf.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
-        @ONLY)
+    if (libprovision_FOUND)
+        target_link_libraries(${MODULE_NAME}
+            PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                LibOPKG::LibOPKG
+                ${LIBUUID_LIBRARY}
+                ${SQLITE_LIBRARIES}
+                ${GLIB_LIBRARIES}
+                libprovision::libprovision
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/opkg.conf
-        DESTINATION "/usr/share/${NAMESPACE}/${PLUGIN_NAME}")
+                )
+    else (libprovision_FOUND)
+        target_include_directories(${MODULE_NAME}
+            PRIVATE
+                ${LIBOPKG_INCLUDE_DIRS}
+                )
 
-write_config(${PLUGIN_NAME})
+        target_link_libraries(${MODULE_NAME}
+            PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                ${LIBOPKG_LIBRARIES}
+                ${LIBUUID_LIBRARY}
+                ${SQLITE_LIBRARIES}
+                ${GLIB_LIBRARIES}
+                )
+    endif (libprovision_FOUND)
+
+    string(TOLOWER ${NAMESPACE} STORAGENAME)
+    install(TARGETS ${MODULE_NAME} 
+        DESTINATION lib/${STORAGENAME}/plugins)
+
+    configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/opkg.conf.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
+            @ONLY)
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/opkg.conf
+            DESTINATION "/usr/share/${NAMESPACE}/${PLUGIN_NAME}")
+
+    write_config(${PLUGIN_NAME})
+
+endif (BUILD_WITH_PACKAGER_EX)
+
+######################################################################################################
+######################################################################################################

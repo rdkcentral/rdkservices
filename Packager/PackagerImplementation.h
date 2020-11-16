@@ -25,14 +25,22 @@
 #include <list>
 #include <string>
 
-#include "PackagerExImplementation.h"
+#ifdef INCLUDE_PACKAGER_EX
+
+  #include "PackagerExImplementation.h"
+
+#endif
 
 
 // Forward declarations so we do not need to include the OPKG headers here.
 struct opkg_conf;
 struct _opkg_progress_data_t;
 
-struct JobMeta_t; // fwd
+#ifdef INCLUDE_PACKAGER_EX
+
+  struct JobMeta_t; // fwd
+
+#endif
 
 namespace WPEFramework {
 namespace Plugin {
@@ -97,9 +105,12 @@ namespace Plugin {
             , _worker(this)
             , _isUpgrade(false)
             , _isSyncing(false)
-            , _taskNumber(0)
         {
+#ifdef INCLUDE_PACKAGER_EX
+
+            _taskNumber = 0;
             InitPackageDB();
+#endif
         }
 
         ~PackagerImplementation() override;
@@ -112,6 +123,8 @@ namespace Plugin {
         void Register(Exchange::IPackager::INotification* observer) override;
         void Unregister(const Exchange::IPackager::INotification* observer) override;
 
+
+#ifdef INCLUDE_PACKAGER_EX
 
         virtual void Register(PluginHost::IStateControl::INotification* sink)
         {
@@ -146,11 +159,15 @@ namespace Plugin {
             _adminLock.Unlock();
         }
 
+#endif // INCLUDE_PACKAGER_EX
+
         uint32_t Configure(PluginHost::IShell* service) override;
 
         // Packager API
         uint32_t Install(const string& name, const string& version, const string& arch) override;
         uint32_t SynchronizeRepository() override;
+
+#ifdef INCLUDE_PACKAGER_EX
 
         // DAC Installer API
 
@@ -167,6 +184,9 @@ namespace Plugin {
         uint64_t                   GetAvailableSpace();
 
       //  uint32_t                   getNextTaskID()  { return _taskNumber++; }
+
+#endif // INCLUDE_PACKAGER_EX
+
 
     private:
         class PackageInfo : public Exchange::IPackager::IPackageInfo {
@@ -212,6 +232,8 @@ namespace Plugin {
             std::string _version;
             std::string _arch;
 
+#ifdef INCLUDE_PACKAGER_EX
+
             std::string _pkgId;
             std::string _type;
             std::string _url;
@@ -219,6 +241,7 @@ namespace Plugin {
             std::string _listener;
 
             uint32_t    _refcount;
+#endif
         };
 
         class InstallInfo : public Exchange::IPackager::IInstallationInfo {
@@ -306,25 +329,20 @@ namespace Plugin {
             InstallThread& operator=(const InstallThread&) = delete;
             InstallThread(const InstallThread&) = delete;
 
-            uint32_t Worker() override
-            {
-                while(IsRunning() == true)
-                {
+            uint32_t Worker() override {
+                while(IsRunning() == true) {
                     _parent->_adminLock.Lock(); // The parent may have lock when this starts so wait for it to release.
                     bool isInstall = _parent->_inProgress.Install != nullptr;
                     ASSERT(isInstall != true || _parent->_inProgress.Package != nullptr);
                     _parent->_adminLock.Unlock();
-           
+
                     // After this point locking is not needed because API running on other threads only read if in
                     // progress is filled in.
                     _parent->BlockingSetupLocalRepoNoLock(isInstall == true ? RepoSyncMode::SETUP : RepoSyncMode::FORCED);
                     if (isInstall)
-                    {
                         _parent->BlockingInstallUntilCompletionNoLock();
-                    }
 
-                    if (isInstall)
-                    {
+                    if (isInstall) {
                         _parent->_adminLock.Lock();
                         _parent->_inProgress.Install->Release();
                         _parent->_inProgress.Package->Release();
@@ -357,6 +375,8 @@ namespace Plugin {
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
 
+#ifdef INCLUDE_PACKAGER_EX
+
         void InitPackageDB();
         void TermPackageDB();
 
@@ -373,7 +393,10 @@ namespace Plugin {
                 const string& token, const string& listener);
 
     private:
- 
+
+#endif // INCLUDE_PACKAGER_EX
+
+
         void BlockingInstallUntilCompletionNoLock();
         void BlockingSetupLocalRepoNoLock(RepoSyncMode mode);
         bool InitOPKG();
@@ -390,16 +413,25 @@ namespace Plugin {
         bool _volatileCache;
         bool _opkgInitialized;
         std::vector<Exchange::IPackager::INotification*> _notifications;
+
+#ifdef INCLUDE_PACKAGER_EX
+
         std::list<PluginHost::IStateControl::INotification*> _stateControlClients;
+
+#endif
 
         InstallationData _inProgress;
         InstallThread _worker;
         bool _isUpgrade;
         bool _isSyncing;
 
+#ifdef INCLUDE_PACKAGER_EX
+
         uint32_t _taskNumber;
 
         PackageList_t _packageList;
+#endif
+
     };
 
 }  // namespace Plugin
