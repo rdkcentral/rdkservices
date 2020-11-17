@@ -776,11 +776,10 @@ namespace WPEFramework
                             , IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
                     interface = defaultRoute.interface;
                     gateway = defaultRoute.gateway;
+                    result = true;
                 }
                 else
                     LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
-
-                result = true;
             }
 
             if (interface.length() == 0)
