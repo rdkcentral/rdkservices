@@ -25,10 +25,10 @@
 #include <syscall.h>
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
-#include "rfcapi.h"
+//#include "rfcapi.h"
 
 // IARM
-#include "rdk/iarmbus/libIARM.h"
+//#include "rdk/iarmbus/libIARM.h"
 
 // std
 #include <string>
@@ -304,7 +304,7 @@ namespace Utils
      * @return       A corresponding string.
      *
      */
-    std::string formatIARMResult(IARM_Result_t result);
+    //std::string formatIARMResult(IARM_Result_t result);
 
     /***
      * @brief	: Execute shell script and get response
@@ -345,7 +345,7 @@ namespace Utils
 
     bool isPluginActivated(const char* callSign);
 
-    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
+    //bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
     bool isValidInt(char* x);
 
     //class for std::thread RAII
