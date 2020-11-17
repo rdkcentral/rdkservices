@@ -711,6 +711,8 @@ namespace WPEFramework
             string res = Utils::cRunScript(script1).substr();
             LOGWARN("script1 '%s' result: '%s'", script1, res.c_str());
 
+            bool result = false;
+
             if (res == "hybrid")
             {
                 LOGINFO("Identified as hybrid device type");
@@ -758,6 +760,9 @@ namespace WPEFramework
 
                 Utils::String::trim(gateway);
                 Utils::String::trim(interface);
+
+                if (interface.length() > 0)
+                    result = true;
             }
             else
             {
@@ -774,6 +779,8 @@ namespace WPEFramework
                 }
                 else
                     LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
+
+                result = true;
             }
 
             if (interface.length() == 0)
@@ -781,7 +788,7 @@ namespace WPEFramework
             else
                 LOGWARN("Evaluated default network interface: '%s' and gateway: '%s'", interface.c_str(), gateway.c_str());
 
-            return true;
+            return result;
         }
 
     } // namespace Plugin
