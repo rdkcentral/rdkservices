@@ -57,11 +57,15 @@ namespace WPEFramework {
             uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
+
+            uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             JsonArray getHDMIInputDevices();
             void writeEDID(int deviceId, std::string message);
             std::string readEDID();
+
+            bool setVideoRectangle(int x, int y, int width, int height);
 
             void hdmiInputHotplug( int input , int connect);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
