@@ -45,13 +45,6 @@
 #include "BrowserConsoleLog.h"
 #include "InjectedBundle/Tags.h"
 
-#include <wpe/wpe.h>
-
-#include <glib.h>
-
-#include "HTML5Notification.h"
-#include "WebKitBrowser.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,6 +59,13 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 #endif
 
 #endif
+
+#include <wpe/wpe.h>
+
+#include <glib.h>
+
+#include "HTML5Notification.h"
+#include "WebKitBrowser.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -451,6 +451,7 @@ static GSourceFuncs _handlerIntervention =
                 , Cursor(false)
                 , Touch(false)
                 , MSEBuffers()
+                , ThunderDecryptorPreference()
                 , MemoryProfile()
                 , MemoryPressure()
                 , MediaContentTypesRequiringHardwareSupport()
@@ -499,6 +500,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
                 Add(_T("msebuffers"), &MSEBuffers);
+                Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
                 Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
@@ -554,6 +556,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
             Core::JSON::String MSEBuffers;
+            Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
             Core::JSON::String MemoryPressure;
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
@@ -1507,6 +1510,10 @@ static GSourceFuncs _handlerIntervention =
             if (_config.Touch.Value() == true)
                 Core::SystemInfo::SetEnvironment(_T("WPE_BCMRPI_TOUCH"), _T("1"), !environmentOverride);
 
+            // Rank Thunder Decryptor higher than ClearKey one
+            if (_config.ThunderDecryptorPreference.Value() == true)
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_GST_EME_RANK_PRIORITY"), _T("Thunder"), !environmentOverride);
+
             // WPE allows the LLINT to be used if true
             if (_config.JavaScript.UseLLInt.Value() == false) {
                 Core::SystemInfo::SetEnvironment(_T("JSC_useLLInt"), _T("false"), !environmentOverride);
@@ -1719,7 +1726,9 @@ static GSourceFuncs _handlerIntervention =
                     _context,
                     [](gpointer customdata) -> gboolean {
                         WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
-
+#ifdef WEBKIT_GLIB_API
+                        webkit_web_view_suspend(object->_view);
+#else
                          if (object->_config.LoadBlankPageOnSuspendEnabled.Value()) {
                             const char kBlankURL[] = "about:blank";
                             if (GetPageActiveURL(object->_page) != kBlankURL)
@@ -1727,9 +1736,6 @@ static GSourceFuncs _handlerIntervention =
                             ASSERT(object->_URL == kBlankURL);
                         }
 
-#ifdef WEBKIT_GLIB_API
-                        webkit_web_view_suspend(object->_view);
-#else
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
 #endif
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
@@ -2219,7 +2225,6 @@ static GSourceFuncs _handlerIntervention =
 
             return Core::infinite;
         }
-#endif // WEBKIT_GLIB_API
 
         void CheckWebProcess()
         {
@@ -2296,6 +2301,7 @@ static GSourceFuncs _handlerIntervention =
                 self._unresponsiveReplyNum = 0;
             }
         }
+#endif // WEBKIT_GLIB_API
 
         void DeactivateBrowser(PluginHost::IShell::reason reason) {
             ASSERT(_service != nullptr);
