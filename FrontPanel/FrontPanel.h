@@ -99,9 +99,9 @@ namespace WPEFramework {
             void setPreferences(const JsonObject& preferences);
             bool setLED(const JsonObject& properties);
             void setBlink(const JsonObject& blinkInfo);
-            void set24HourClock(bool is24Hour);
+            bool set24HourClock(bool is24Hour);
             bool is24HourClock();
-            void setClockTestPattern(bool show);
+            bool setClockTestPattern(bool show);
 
             void loadPreferences();
 

@@ -41,6 +41,10 @@ namespace TTS {
 #define DEFAULT_WPM 200
 #define MAX_VOLUME 100
 
+//Local Endpoint
+#define LOOPBACK_ENDPOINT "http://127.0.0.1:50050/"
+#define LOCALHOST_ENDPOINT "http://localhost:50050/"
+
 // --- //
 
 class TTSConfiguration {
@@ -150,12 +154,12 @@ private:
     inline void setSpeakingState(bool state, TTSSpeakerClient *client=NULL);
 
     // GStreamer Releated members
-    GstElement *m_pipeline;
-    GstElement *m_source;
-    GstElement *m_audioSink;
-    GMainLoop  *main_loop;
-    GMainContext *main_context;
-    GThread *main_loop_thread;
+    GstElement  *m_pipeline;
+    GstElement  *m_source;
+    GstElement  *m_audioSink;
+    GMainLoop   *m_main_loop;
+    GMainContext *m_main_context;
+    GThread     *m_main_loop_thread;
     bool        m_pipelineError;
     bool        m_networkError;
     bool        m_runThread;

@@ -36,7 +36,6 @@
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
-#include "deepSleepMgr.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #include "sysMgr.h"
@@ -180,7 +179,9 @@ namespace WPEFramework {
                 uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
-		  uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+#ifdef ENABLE_DEEP_SLEEP
+		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+#endif
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
@@ -210,6 +211,7 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+                uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

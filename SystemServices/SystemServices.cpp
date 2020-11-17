@@ -57,12 +57,18 @@
 #include "mfrMgr.h"
 #endif
 
+#ifdef ENABLE_DEEP_SLEEP
+#include "deepSleepMgr.h"
+#endif
+
 using namespace std;
 
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+
+#define DEFAULT_STB_LOGS_UPLOAD_URL "https://stbrtl.stb.r53.xcal.tv"
 
 /**
  * @struct firmwareUpdate
@@ -353,7 +359,10 @@ namespace WPEFramework {
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
 
             systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
-	     systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+#ifdef ENABLE_DEEP_SLEEP
+	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+#endif
+            systemVersion_2.Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
         }
 
         SystemServices::~SystemServices()
@@ -361,7 +370,10 @@ namespace WPEFramework {
             Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
             if (systemVersion_2) {
                 systemVersion_2->Unregister("getTimeZones");
-		 systemVersion_2->Unregister("getWakeupReason");
+#ifdef ENABLE_DEEP_SLEEP
+		systemVersion_2->Unregister("getWakeupReason");
+#endif
+                systemVersion_2->Unregister("uploadLogs");
 	     }
             else
                 LOGERR("Failed to get handler for version 2");
@@ -1209,7 +1221,7 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
-
+#ifdef ENABLE_DEEP_SLEEP
         /***
          * @brief Returns the deepsleep wakeup reason.
 	 * Possible values are "WAKEUP_REASON_IR", "WAKEUP_REASON_RCU_BT"
@@ -1282,7 +1294,7 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
-
+#endif
         /***
          * @brief Returns an array of strings containing the supported standby modes.
          * Possible values are "LIGHT_SLEEP" and/or "DEEP_SLEEP".
@@ -3074,6 +3086,105 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
+        }
+
+        static size_t uploadLogs_CURL_readCallback(void *ptr, size_t size, size_t nmemb, void *stream)
+        {
+            FILE *fd = (FILE *)stream;
+            size_t retcode = fread(ptr, size, nmemb, fd);
+            // curl_off_t nread = (curl_off_t)retcode;
+            // LOGINFO("Read %" CURL_FORMAT_CURL_OFF_T " bytes from file", nread);
+            return retcode;
+        }
+
+        /***
+         * @brief : upload STB logs to the specified URL.
+         * @param1[in] : url::String
+         */
+        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = false;
+
+#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
+            string url;
+            getStringParameter("url", url);
+            if (url.empty())
+                url = DEFAULT_STB_LOGS_UPLOAD_URL;
+            if (url.find('\'') != string::npos)
+                response["error"] = "bad url";
+            else
+            {
+                string mac = collectDeviceInfo("eth_mac");
+                removeCharsFromString(mac, "\n\r:");
+                if (mac.empty())
+                    response["error"] = "get mac fail";
+                else
+                {
+                    string dt = currentDateTimeUtc("+%m-%d-%y-%I-%M%p");
+
+                    string logFile = "/tmp/" + convertCase(mac) + "_Logs_" + dt + ".tgz";
+                    LOGINFO("filename %s", logFile.c_str());
+
+                    string cmd = "nice -n 19 tar -C /opt/logs -zcvf " + logFile + " ./";
+                    Utils::cRunScript(cmd.c_str());
+
+                    if (!Utils::fileExists(logFile.c_str()))
+                        response["error"] = "prepare log fail";
+                    else
+                    {
+                        CURL *curl;
+                        CURLcode res;
+                        FILE *fd;
+                        struct stat file_info;
+                        long http_code = 0;
+
+                        stat(logFile.c_str(), &file_info);
+                        fd = fopen(logFile.c_str(), "rb");
+                        curl = curl_easy_init();
+                        if (curl)
+                        {
+                            curl_easy_setopt(curl, CURLOPT_READFUNCTION, uploadLogs_CURL_readCallback);
+                            curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+                            curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+                            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                            curl_easy_setopt(curl, CURLOPT_READDATA, fd);
+                            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
+                            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+                            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+
+                            res = curl_easy_perform(curl);
+                            if (res != CURLE_OK)
+                                LOGERR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+
+                            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+                            LOGINFO("curl response code %ld", http_code);
+
+                            curl_easy_cleanup(curl);
+                        }
+                        fclose(fd);
+
+                        int removeStatus = remove(logFile.c_str());
+                        LOGERR("remove %s exit code %d", logFile.c_str(), removeStatus);
+
+                        if (res != CURLE_OK || http_code != 200)
+                            response["error"] = "upload fail";
+                        else
+                        {
+                            if (removeStatus != 0)
+                                response["error"] = "cleanup fail";
+                            else
+                                success = true;
+                        }
+                    }
+                }
+            }
+#else
+            response["error"] = "unsupported";
+#endif
+
+            returnResponse(success);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
