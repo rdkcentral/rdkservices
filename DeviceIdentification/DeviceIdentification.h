@@ -48,6 +48,8 @@ namespace Plugin {
         BEGIN_INTERFACE_MAP(DeviceIdentification)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::IDeviceProperties, _device)
+            INTERFACE_AGGREGATE(PluginHost::ISubSystem::IIdentifier, _identifier)
         END_INTERFACE_MAP
 
     public:
@@ -68,7 +70,7 @@ namespace Plugin {
     private:
         string _deviceId;
         Exchange::IDeviceProperties* _device;
-        const PluginHost::ISubSystem::IIdentifier* _identifier;
+        PluginHost::ISubSystem::IIdentifier* _identifier;
 
         uint32_t _connectionId;
     };
