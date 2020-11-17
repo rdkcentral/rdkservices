@@ -159,6 +159,9 @@ namespace WPEFramework
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
 
+            Utils::IARM::init();
+
+            
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             rc = BTRMGR_Init();
             if (BTRMGR_RESULT_SUCCESS != rc)
