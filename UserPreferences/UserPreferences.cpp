@@ -20,6 +20,13 @@
 #include "UserPreferences.h"
 #include "utils.h"
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
+#define SETTINGS_FILE_NAME              "/opt/user_preferences.conf"
+#define SETTINGS_FILE_KEY               "ui_language"
+#define SETTINGS_FILE_GROUP              "General"
+
 using namespace std;
 
 namespace WPEFramework {
@@ -31,8 +38,7 @@ namespace WPEFramework {
         UserPreferences* UserPreferences::_instance = nullptr;
 
         UserPreferences::UserPreferences()
-            : AbstractPlugin()
-            , _language("")
+                : AbstractPlugin()
         {
             LOGINFO("ctor");
             UserPreferences::_instance = this;
@@ -50,16 +56,45 @@ namespace WPEFramework {
         uint32_t UserPreferences::getUILanguage(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["language"] = _language;
+
+            g_autoptr(GKeyFile) file = g_key_file_new();
+
+            g_autoptr(GError) error = nullptr;
+            if (!g_key_file_load_from_file (file, SETTINGS_FILE_NAME, G_KEY_FILE_NONE, &error))
+            {
+                LOGERR("Unable to load from file '%s': %s", SETTINGS_FILE_NAME, error->message);
+                returnResponse(false);
+            }
+
+            g_autofree gchar * val = g_key_file_get_string(file, SETTINGS_FILE_GROUP, SETTINGS_FILE_KEY, &error);
+            if (val == nullptr)
+            {
+                LOGERR("Unable to get key '%s' for group '%s' from file '%s': %s"
+                        , SETTINGS_FILE_KEY, SETTINGS_FILE_GROUP, SETTINGS_FILE_NAME, error->message);
+                returnResponse(false);
+            }
+
+            response[SETTINGS_FILE_KEY] = string(val);
+
             returnResponse(true);
         }
 
         uint32_t UserPreferences::setUILanguage(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            returnIfStringParamNotFound(parameters, SETTINGS_FILE_KEY);
+            string language = parameters[SETTINGS_FILE_KEY].String();
 
-            returnIfStringParamNotFound(parameters, "language");
-            _language = parameters["language"].String();
+            g_autoptr(GKeyFile) file = g_key_file_new();
+            g_key_file_set_string(file, SETTINGS_FILE_GROUP, SETTINGS_FILE_KEY, (gchar *)language.c_str());
+
+            g_autoptr(GError) error = nullptr;
+            if (!g_key_file_save_to_file (file, SETTINGS_FILE_NAME, &error))
+            {
+                LOGERR("Error to saving file '%s': %s", SETTINGS_FILE_NAME, error->message);
+                returnResponse(false);
+            }
+
             returnResponse(true);
         }
         //End methods
