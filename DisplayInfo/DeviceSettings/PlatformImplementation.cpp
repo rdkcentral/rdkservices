@@ -18,6 +18,7 @@
  */
 #include "../Module.h"
 #include "../DisplayInfoTracing.h"
+#include "SoC_abstraction.h"
 
 #include <interfaces/IDisplayInfo.h>
 
@@ -64,6 +65,7 @@ public:
             //TODO: this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
+            UpdateFrameRate(_frameRate);
         }
         catch(...)
         {
@@ -88,13 +90,13 @@ public:
     uint32_t TotalGpuRam(uint64_t& total) const override
     {
         LOGINFO();
-        total = 0; // TODO: Implement using DeviceSettings
+        total = SoC_GetTotalGpuRam(); // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
     uint32_t FreeGpuRam(uint64_t& free ) const override
     {
         LOGINFO();
-        free = 0; // TODO: Implement using DeviceSettings
+        free = SoC_GetFreeGpuRam(); // TODO: Implement using DeviceSettings
         return (Core::ERROR_NONE);
     }
 
@@ -161,9 +163,12 @@ public:
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
+        if(eventtype == IConnectionProperties::INotification::Source::POST_RESOLUTION_CHANGE) {
+            UpdateFrameRate(_frameRate);
+        }
 
         while(index != _observers.end()) {
-            (*index)->Updated(IConnectionProperties::INotification::Source::POST_RESOLUTION_CHANGE);
+            (*index)->Updated(eventtype);
             index++;
         }
 
@@ -172,32 +177,55 @@ public:
 
     uint32_t IsAudioPassthrough (bool& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = false; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        uint32_t ret =  (Core::ERROR_NONE);
+        value = false;
         return (Core::ERROR_NONE);
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            device::AudioStereoMode mode = vPort.getAudioOutputPort().getStereoMode(true);
+            if (mode == device::AudioStereoMode::kPassThru)
+                value = true;
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
     }
     uint32_t Connected(bool& connected) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        connected = false; // TODO: Implement using DeviceSettings (or use HDCP Profile plugin for this)
+        LOGINFO();
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            connected = vPort.isDisplayConnected();
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
         return (Core::ERROR_NONE);
     }
     uint32_t Width(uint32_t& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        value = SoC_GetGraphicsWidth();
         return (Core::ERROR_NONE);
     }
     uint32_t Height(uint32_t& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        value = SoC_GetGraphicsHeight();
         return (Core::ERROR_NONE);
     }
     uint32_t VerticalFreq(uint32_t& value) const override
     {
-        LOGINFO("Stubbed function. TODO: Implement using DeviceSettings");
-        value = 0; // TODO: Implement using DeviceSettings
+        LOGINFO();
+        value = _frameRate;
         return (Core::ERROR_NONE);
     }
 
@@ -497,8 +525,50 @@ public:
     END_INTERFACE_MAP
 
 private:
+    uint32_t UpdateFrameRate(uint32_t &rate)
+    {
+        rate = 0;
+        uint32_t ret =  (Core::ERROR_NONE);
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            device::VideoResolution resolution = vPort.getResolution();
+            device::PixelResolution pr = resolution.getPixelResolution();
+            device::FrameRate fr = resolution.getFrameRate();
+            if (fr == device::FrameRate::k24 ) {
+                rate = 24;
+            } else if(fr == device::FrameRate::k25) {
+                rate = 25;
+            } else if(fr == device::FrameRate::k30) {
+                rate = 30;
+            } else if(fr == device::FrameRate::k60) {
+                rate = 60;
+            } else if(fr == device::FrameRate::k23dot98) {
+                rate = 23;
+            } else if(fr == device::FrameRate::k29dot97) {
+                rate = 29;
+            } else if(fr == device::FrameRate::k50) {
+                rate = 50;
+            } else if(fr == device::FrameRate::k59dot94) {
+                rate = 59;
+            } else {
+                ret = Core::ERROR_GENERAL;
+            }
+
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           ret = Core::ERROR_GENERAL;
+        }
+
+        return ret;
+    }
+
+private:
     std::list<IConnectionProperties::INotification*> _observers;
     mutable Core::CriticalSection _adminLock;
+    uint32_t _frameRate;
 
 public:
     static DisplayInfoImplementation* _instance;
