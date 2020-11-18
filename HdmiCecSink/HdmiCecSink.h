@@ -407,6 +407,10 @@ namespace WPEFramework {
 			void setRoutingChange(const std::string &from, const std::string &to);
 			void setCurrentLanguage(const Language &lang);
 			void sendMenuLanguage();
+			int findLogicalAddress( const PhysicalAddress &physical_addr);
+			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
+			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
+			void sendStandbyMessage();
 			void setActiveSource(bool isResponse);
 			void requestActiveSource();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
@@ -470,6 +474,7 @@ namespace WPEFramework {
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int connectStatus);
 			void onPowerStateON();
+			void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);

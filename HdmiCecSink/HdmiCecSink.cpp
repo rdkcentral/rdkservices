@@ -73,6 +73,12 @@
 
 
 enum {
+	DEVICE_POWER_STATE_ON = 0,
+	DEVICE_POWER_STATE_OFF = 1
+};
+
+
+enum {
 	HDMICECSINK_EVENT_ACTIVE_SOURCE_CHANGE = 1,
 	HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY,
 	HDMICECSINK_EVENT_TEXT_VIEW_ON_MSG,
@@ -109,7 +115,7 @@ static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
 static LogicalAddress logicalAddress = 0xF;
 static Language defaultLanguage = "eng";
 static OSDName osdName = "TV Box";
-static int32_t powerState = 1;
+static int32_t powerState = DEVICE_POWER_STATE_OFF;
 
 
 namespace WPEFramework
@@ -422,7 +428,7 @@ namespace WPEFramework
                             sizeof(param));
             if(err == IARM_RESULT_SUCCESS)
             {
-                powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)?0:1 ;
+                powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)? DEVICE_POWER_STATE_ON :  DEVICE_POWER_STATE_OFF;
                 LOGINFO("Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
             }
 
@@ -577,12 +583,27 @@ namespace WPEFramework
                             param->data.state.curState, param->data.state.newState);
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
-                        powerState = 0; 
-						HdmiCecSink::_instance->onPowerStateON();
-                    }
+                        powerState = DEVICE_POWER_STATE_ON; 
+					}
                     else
-                        powerState = 1;
+                   	{
+                        powerState = DEVICE_POWER_STATE_OFF;
+                   	}
 
+					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED )
+					{
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
+
+						if ( powerState == DEVICE_POWER_STATE_ON )
+						{
+							HdmiCecSink::_instance->onPowerStateON();
+						}
+						else
+						{
+							HdmiCecSink::_instance->m_currentActiveSource = -1;
+							HdmiCecSink::_instance->sendStandbyMessage();	
+						}
+					}
                 }
            }
        }
@@ -591,13 +612,47 @@ namespace WPEFramework
        {
             LOGINFO();
 
-       		if ( powerState == 0 )
+       		if ( powerState == DEVICE_POWER_STATE_ON )
        		{
        			/*while wakeup From Standby, Ask for Active Source*/
-				m_currentActiveSource = -1;
-       			_instance->requestActiveSource(); 
+				_instance->requestActiveSource(); 
        		}
        }
+
+	  void HdmiCecSink::sendStandbyMessage()
+      {
+      		LOGINFO();
+			
+      		if(!HdmiCecSink::_instance)
+				return;
+
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated Or its not valid");
+				return;
+			}
+
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 5000);	
+       } 
+
+	   void HdmiCecSink::wakeupFromStandby()
+	   {
+		   LOGINFO();
+
+		   if ( powerState == DEVICE_POWER_STATE_OFF )
+		   {
+		   		IARM_Bus_PWRMgr_SetPowerState_Param_t param;
+				IARM_Result_t ret;
+
+				LOGINFO("Wakeup Device From standby ");
+				param.newState =  IARM_BUS_PWRMGR_POWERSTATE_ON;
+				ret = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetPowerState, (void *)&param, sizeof(param));
+
+				if ( ret != IARM_RESULT_SUCCESS )
+				{
+					LOGERR("Failed to wakeup from standby");
+				}
+		   	}
+	  }
 
        void HdmiCecSink::onCECDaemonInit()
        {
@@ -787,8 +842,13 @@ namespace WPEFramework
          	if (parameters.HasLabel("activePath"))
             {
                 std::string id = parameters["activePath"].String();
-		
-				setStreamPath(PhysicalAddress(id));
+				PhysicalAddress phy_addr = PhysicalAddress(id);
+
+				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
+
+				sendPowerOFFCommand(phy_addr);
+				sendPowerONCommand(phy_addr);
+				setStreamPath(phy_addr);
 				returnResponse(true);
             }
             else
@@ -1147,6 +1207,7 @@ namespace WPEFramework
 					_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
 			{
 				sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
+				wakeupFromStandby();
 			}
 
 			sendNotify(eventString[HDMICECSINK_EVENT_IMAGE_VIEW_ON_MSG], params);
@@ -1168,6 +1229,7 @@ namespace WPEFramework
 					_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
 			{
 				sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
+				wakeupFromStandby();
 			}
 
 			sendNotify(eventString[HDMICECSINK_EVENT_TEXT_VIEW_ON_MSG], params);
@@ -1458,10 +1520,103 @@ namespace WPEFramework
 			}
 		}
 
+		int HdmiCecSink::findLogicalAddress( const PhysicalAddress &physical_addr) {
+
+			int i;
+			int logicalAddr = LogicalAddress::UNREGISTERED;
+			
+			if(!HdmiCecSink::_instance)
+				return LogicalAddress::UNREGISTERED;
+		
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated Or its not valid");
+				return LogicalAddress::UNREGISTERED;
+			}
+
+			for(i=0; i< LogicalAddress::UNREGISTERED; i++)
+			{
+				if ( _instance->deviceList[i].m_isDevicePresent && ( _instance->deviceList[i].m_physicalAddr.toString() == physical_addr.toString() ))
+				{
+					logicalAddr = i;
+					LOGINFO("Found Logical Address %d for physical addr %s", logicalAddr, physical_addr.toString().c_str());
+					break;
+				}
+			}
+
+			LOGINFO("Logical Address %d for physical addr %s", logicalAddr, physical_addr.toString().c_str());
+
+			return logicalAddr;
+		}
+
+		
+		void HdmiCecSink::sendPowerOFFCommand( const PhysicalAddress &physical_addr ) 
+		{
+			if(!HdmiCecSink::_instance)
+				return;
+		
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated Or its not valid");
+				return;
+			}
+
+			LOGINFO("sendPowerOFFCommand");
+
+			if ( _instance->m_currentActiveSource != -1 && _instance->m_currentActiveSource != _instance->m_logicalAddressAllocated )
+			{
+				LOGINFO("Checking the Phy addr ");
+				if ( physical_addr.toString() != _instance->deviceList[_instance->m_currentActiveSource].m_physicalAddr.toString() )
+				{
+					LOGINFO("Sending Power OFF ");
+					/* send Power OFF Function to turn OFF */
+					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_OFF_FUNCTION)), 5000);			
+
+					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlReleased()), 5000);			
+				}
+			}
+		}
+
+		
+		void HdmiCecSink::sendPowerONCommand( const PhysicalAddress &physical_addr ) 
+		{
+			int logicalAddr = LogicalAddress::UNREGISTERED;
+			
+			if(!HdmiCecSink::_instance)
+				return;
+		
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated Or its not valid");
+				return;
+			}
+
+			LOGINFO("sendPowerONCommand");
+
+			logicalAddr = findLogicalAddress(physical_addr);
+
+			if ( logicalAddr != LogicalAddress::UNREGISTERED && 
+					logicalAddr != _instance->m_logicalAddressAllocated )
+			{
+				LOGINFO("checking the power status");
+
+				if ( _instance->deviceList[logicalAddr].m_powerStatus.toInt() == PowerStatus::STANDBY ||
+						_instance->deviceList[logicalAddr].m_powerStatus.toInt() == PowerStatus::POWER_STATUS_NOT_KNOWN )
+				{
+					LOGINFO("Sending Power ON");
+					/* send Power ON Function to turn ON */
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_ON_FUNCTION)), 5000); 		
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlReleased()), 5000);			
+				}
+			}
+		}
+
 		void HdmiCecSink::setStreamPath( const PhysicalAddress &physical_addr) {
 
 			if(!HdmiCecSink::_instance)
 				return;
+
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated Or its not valid");
+				return;
+			}
 
 			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(SetStreamPath(physical_addr)), 5000);	
 		}
@@ -1818,14 +1973,22 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 5000);	
 
-						 if ( powerState == 0 )
+						 if ( powerState == DEVICE_POWER_STATE_ON )
 						 {
 							_instance->requestActiveSource(); 
 						 }
+						 else
+						 {
+						 	/* send standby message if TV is in Standby */
+						 	_instance->sendStandbyMessage();
+						 }
+
+						 
 
 						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
