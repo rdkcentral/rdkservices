@@ -44,6 +44,7 @@ option(PLUGIN_CONTROLSERVICE "Include ControlService plugin" ON)
 option(PLUGIN_VIDEOAPPLICATIONEVENTS "Include video application events plugin" OFF)
 option(PLUGIN_INACTIVITYNOTIFIER "Include InactivityNotifier plugin" OFF)
 option(PLUGIN_RDKSHELL "Include RDKShell plugin" OFF)
+option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
