@@ -129,9 +129,9 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
-    main_loop(NULL),
-    main_context(NULL),
-    main_loop_thread(NULL),
+    m_main_loop(NULL),
+    m_main_context(NULL),
+    m_main_loop_thread(NULL),
     m_pipelineError(false),
     m_networkError(false),
     m_runThread(true),
@@ -140,15 +140,17 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_isEOS(false),
     m_pcmAudioEnabled(false),
     m_ensurePipeline(false),
-    m_gstThread(new std::thread(GStreamerThreadFunc, this)),
     m_busWatch(0),
     m_duration(0),
     m_pipelineConstructionFailures(0),
     m_maxPipelineConstructionFailures(INT_FROM_ENV("MAX_PIPELINE_FAILURE_THRESHOLD", 1)) {
+
         setenv("GST_DEBUG", "2", 0);
-        if (!gst_is_initialized())
-            gst_init(NULL,NULL);
-        this->main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
+        setenv("GST_REGISTRY_UPDATE", "no", 0);
+        setenv("GST_REGISTRY_FORK", "no", 0);
+
+        m_main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
+        m_gstThread = new std::thread(GStreamerThreadFunc, this);
 }
 
 TTSSpeaker::~TTSSpeaker() {
@@ -164,9 +166,9 @@ TTSSpeaker::~TTSSpeaker() {
         m_gstThread = NULL;
     }
 
-    if(g_main_loop_is_running(this->main_loop))
-        g_main_loop_quit(this->main_loop);
-    g_thread_join(this->main_loop_thread);
+    if(g_main_loop_is_running(m_main_loop))
+        g_main_loop_quit(m_main_loop);
+    g_thread_join(m_main_loop_thread);
 }
 
 void TTSSpeaker::ensurePipeline(bool flag) {
@@ -732,15 +734,17 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 void TTSSpeaker::event_loop(void *data)
 {
     TTSSpeaker *speaker= (TTSSpeaker*) data;
-    speaker->main_context = g_main_context_new();
-    speaker->main_loop = g_main_loop_new(NULL, false);
-    g_main_loop_run(speaker->main_loop);
+    speaker->m_main_context = g_main_context_new();
+    speaker->m_main_loop = g_main_loop_new(NULL, false);
+    g_main_loop_run(speaker->m_main_loop);
 }
 
 void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
+    TTSLOG_INFO("Starting GStreamerThread");
     TTSSpeaker *speaker = (TTSSpeaker*) ctx;
 
-    TTSLOG_INFO("Starting GStreamerThread");
+    if(!gst_is_initialized())
+        gst_init(NULL,NULL);
 
     while(speaker && speaker->m_runThread) {
         if(speaker->needsPipelineUpdate()) {
