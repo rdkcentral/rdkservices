@@ -54,8 +54,7 @@
 #define HDMICECSINK_METHOD_GET_ACTIVE_ROUTE   	"getActiveRoute"
 #define HDMICECSINK_METHOD_SET_MENU_LANGUAGE  	"setMenuLanguage"
 #define HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE "requestActiveSource"
-#define HDMICECSINK_METHOD_SET_ARC               "setARCRouting"
-
+#define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
 
 
 #define TEST_ADD 0
@@ -423,7 +422,7 @@ namespace WPEFramework
 	       registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
-                   registerMethod(HDMICECSINK_METHOD_SET_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
+                   registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
