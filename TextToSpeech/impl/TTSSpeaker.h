@@ -167,6 +167,7 @@ private:
     bool        m_flushed;
     bool        m_isEOS;
     bool        m_ensurePipeline;
+    bool        m_pcmAudioEnabled;
     std::thread *m_gstThread;
     guint       m_busWatch;
     gint64      m_duration;
