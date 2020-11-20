@@ -262,6 +262,7 @@ namespace WPEFramework {
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
+#ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
@@ -280,6 +281,7 @@ namespace WPEFramework {
                 }
               }
             }
+#endif
 
             service->Register(mClientsMonitor);
 
