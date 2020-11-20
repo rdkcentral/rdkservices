@@ -1778,6 +1778,7 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
+                std::vector<std::string> foundTypes;
                 for (auto pluginName : gActivePlugins)
                 {
                   if (pluginName == callsign)
@@ -1809,11 +1810,18 @@ namespace WPEFramework {
                         {
                             originalPluginFound = true;
                         }
+                        foundTypes.push_back(pluginName);
                     }
                 }
 
                 if (!newPluginFound && !originalPluginFound)
                 {
+                    std::cout << "this type was not found: " << type << ".  unable to launch application.  list of types found: " << std::endl;
+                    for (uint16_t i = 0; i < foundTypes.size(); i++)
+                    {
+                        std::cout << "available type " << i << ": " << foundTypes[i] << std::endl;
+                    }
+                    std::cout << "number of types found: " << foundTypes.size() << std::endl;
                     response["message"] = "failed to launch application.  type not found";
                     returnResponse(false);
                 }
