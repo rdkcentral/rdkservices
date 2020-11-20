@@ -2204,7 +2204,6 @@ namespace WPEFramework {
             string methodType;
 	    if (parameters.HasLabel("param")) {
                 methodType = parameters["param"].String();
-#ifdef HAS_STATE_OBSERVER
                 if (SYSTEM_CHANNEL_MAP == methodType) {
                     LOGERR("methodType : %s\n", methodType.c_str());
                     IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates,
@@ -2294,9 +2293,6 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_Unexpected, response);
                 }
-#else /* !HAS_STATE_OBSERVER */
-                populateResponseWithError(SysSrv_SupportNotAvailable, response);
-#endif /* !HAS_STATE_OBSERVER */
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
