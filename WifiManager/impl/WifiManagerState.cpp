@@ -92,15 +92,23 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
 {
     LOGINFOMETHOD();
     returnIfBooleanParamNotFound(parameters, "enable");
+    IARM_Result_t retVal = IARM_RESULT_SUCCESS;
 
     IARM_BUS_NetSrvMgr_Iface_EventData_t param;
     memset(&param, 0, sizeof(param));
 
     strncpy(param.setInterface, "WIFI", INTERFACE_SIZE - 1);
-    param.isInterfaceEnabled = parameters["enable"].Boolean();
 
-    // disables wifi interface when ethernet interface is active
-    IARM_Result_t retVal = IARM_Bus_BroadcastEvent(IARM_BUS_NM_SRV_MGR_NAME, (IARM_EventId_t)IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED, (void *)&param, sizeof(param));
+    bool enabled = parameters["enable"].Boolean();
+    if(enabled)
+    {
+        param.isInterfaceEnabled = enabled;
+    }
+    else
+    {
+        param.isInterfaceEnabled = enabled;
+    }
+        retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&param, sizeof(param));
 
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
