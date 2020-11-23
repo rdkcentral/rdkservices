@@ -1,0 +1,32 @@
+{
+    "version": "1.0",
+    "cwd": "/",
+    "args": [
+        "sleep",
+        "60"
+    ],
+    "env": [
+
+    ],
+    "user": {
+        "uid": 1000,
+        "gid": 1000
+    },
+    "console": {
+        "limit": 65536,
+        "path": "/tmp/container.log"
+    },
+    "etc": {
+        "group": [
+            "root:x:0:"
+        ],
+        "passwd": [
+            "root::0:0:root:/:/bin/false"
+        ]
+    },
+    "memLimit": 41943040,
+    "network": "nat",
+    "mounts": [
+
+    ]
+}
