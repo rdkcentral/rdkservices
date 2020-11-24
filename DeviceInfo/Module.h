@@ -25,6 +25,7 @@
 #endif
 
 #include <plugins/plugins.h>
+#include <tracing/tracing.h>
 
 #undef EXTERNAL
 #define EXTERNAL

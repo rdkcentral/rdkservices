@@ -21,6 +21,7 @@
 #define DEVICEINFO_DEVICEINFO_H
 
 #include "Module.h"
+#include <interfaces/IDeviceInfo.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
@@ -77,7 +78,11 @@ namespace Plugin {
             , _subSystem(nullptr)
             , _systemId()
             , _deviceId()
+            , _implementation(nullptr)
+            , _connectionId(0)
         {
+            TRACE_L1(_T("TREJS2"));
+
             RegisterAll();
         }
 
@@ -90,6 +95,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::IDeviceCapabilities, _implementation)
         END_INTERFACE_MAP
 
     public:
@@ -123,6 +129,8 @@ namespace Plugin {
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
         mutable string _deviceId;
+        Exchange::IDeviceCapabilities* _implementation;
+        uint32_t _connectionId;
     };
 
 } // namespace Plugin

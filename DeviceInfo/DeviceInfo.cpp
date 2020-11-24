@@ -28,10 +28,12 @@ namespace Plugin {
 
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
     {
-        ASSERT(_service == nullptr);
-        ASSERT(service != nullptr);
+        TRACE_L1(_T("Init method"));
 
+        ASSERT(_service == nullptr);
         ASSERT(_subSystem == nullptr);
+        ASSERT(_implementation == nullptr);
+        ASSERT(service != nullptr);
 
         Config config;
         config.FromString(service->ConfigLine());
@@ -39,6 +41,15 @@ namespace Plugin {
         _subSystem = service->SubSystems();
         _service = service;
         _systemId = Core::SystemInfo::Instance().Id(Core::SystemInfo::Instance().RawDeviceId(), ~0);
+
+        _implementation = _service->Root<Exchange::IDeviceCapabilities>(_connectionId, 2000, _T("DeviceInfoImplementation"));
+
+        if (_implementation == nullptr) {
+            _service = nullptr;
+            TRACE_L1(_T("DeviceInfo could not be instantiated"));
+        } else {
+            _implementation->Configure(_service);
+        }
 
         ASSERT(_subSystem != nullptr);
 
@@ -50,6 +61,20 @@ namespace Plugin {
     /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
+        ASSERT(_implementation != nullptr);
+
+        _implementation->Release();
+
+        if (_connectionId != 0) {
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            // The process can disappear in the meantime...
+            if (connection != nullptr) {
+                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                connection->Terminate();
+                connection->Release();
+            }
+        }
+        _service = nullptr;
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
