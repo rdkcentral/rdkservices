@@ -1628,9 +1628,18 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
+                uint32_t pluginsFound = 0;
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
-                    uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, "status", availablePluginResult);
+                    uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(3500, "status", availablePluginResult);
+
+                    std::cout << "status status: " << status << std::endl;
+                    if (status > 0)
+                    {
+                        std::cout << "trying status one more time...\n";
+                        status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(10000, "status", availablePluginResult);
+                        std::cout << "status status: " << status << std::endl;
+                    }
 
                     for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
                     {
@@ -1647,10 +1656,12 @@ namespace WPEFramework {
                             originalPluginFound = true;
                         }
                     }
+                    pluginsFound = availablePluginResult.Length();
                 }
 
                 if (!newPluginFound && !originalPluginFound)
                 {
+                    std::cout << "number of types found: " << pluginsFound << std::endl;
                     response["message"] = "failed to launch application.  type not found";
                     returnResponse(false);
                 }
