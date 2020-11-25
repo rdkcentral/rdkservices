@@ -22,7 +22,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(securityagent QUIET)
 
 option(PLUGIN_AMAZON_HAWAII "Enable the Amazon Player interface (Hawaii) in javascript." OFF)
-option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
+option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
 
