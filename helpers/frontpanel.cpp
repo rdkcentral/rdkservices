@@ -643,10 +643,6 @@ namespace WPEFramework
             int brightness = blinkInfo.brightness;
             try
             {
-                if (brightness == -1)
-                    brightness = device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).getBrightness();
-
-                device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setBrightness(brightness, false);
                 if (blinkInfo.colorMode == 1)
                 {
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(blinkInfo.colorValue, false);
@@ -655,6 +651,11 @@ namespace WPEFramework
                 {
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(device::FrontPanelIndicator::Color::getInstance(blinkInfo.colorName.c_str()), false);
                 }
+
+                if (brightness == -1)
+                    brightness = device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).getBrightness();
+
+                device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setBrightness(brightness, false);
             }
             catch (...)
             {
