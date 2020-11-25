@@ -168,11 +168,12 @@ namespace WPEFramework
             systemVersion_2.Register<JsonObject, JsonObject>(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this);
             systemVersion_2.Register<JsonObject, JsonObject>(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this);
 
-            BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
-            rc = BTRMGR_Init();
+            Utils::IARM::init();
+
+            BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
-                LOGWARN("Failed to init BTRMgr...!");
+                LOGWARN("Failed to Register BTRMgr...!");
             }
             else {
                 BTRMGR_RegisterEventCallback(bluetoothSrv_EventCallback);
@@ -192,6 +193,12 @@ namespace WPEFramework
                 LOGERR("Failed to get handler for version 2");
 
             Bluetooth::_instance = nullptr;
+
+            BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
+            if (BTRMGR_RESULT_SUCCESS != rc)
+            {
+                LOGWARN("Failed to UnRegister BTRMgr...!");
+            }
 
             if (m_executionThread.joinable())
                 m_executionThread.join();
