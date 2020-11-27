@@ -103,6 +103,7 @@ bool receivedResolutionRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 vector<std::string> gActivePlugins;
+bool gRdkShellSurfaceModeEnabled = false;
 
 #define ANY_KEY 65536
 
@@ -326,6 +327,7 @@ namespace WPEFramework {
                     subSystems->Release();
                 }
                 gRdkShellMutex.unlock();
+                gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
                 while(true) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
@@ -1719,6 +1721,10 @@ namespace WPEFramework {
                 string configuration;
                 string behind;
                 string displayName = "wst-" + callsign;
+                if (gRdkShellSurfaceModeEnabled)
+                {
+                    displayName = "rdkshell_display";
+                }
                 bool scaleToFit = false;
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
