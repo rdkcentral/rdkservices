@@ -175,9 +175,11 @@ namespace WPEFramework
             registerMethod(METHOD_FP_SET_LED, &FrontPanel::setLEDWrapper, this);
             registerMethod(METHOD_FP_SET_BLINK, &FrontPanel::setBlinkWrapper, this);
             registerMethod(METHOD_FP_SET_24_HOUR_CLOCK, &FrontPanel::set24HourClockWrapper, this);
-            registerMethod(METHOD_FP_SET_POWER_STATUS, &FrontPanel::setPowerStatusWrapper, this);
             registerMethod(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             registerMethod(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
+
+            Core::JSONRPC::Handler& version2 = JSONRPC::CreateHandler({ 2 }, *this);
+            version2.Register<JsonObject, JsonObject>(_T(METHOD_FP_SET_POWER_STATUS), &FrontPanel::setPowerStatusWrapper, this);
 
             InitializeIARM();
 
