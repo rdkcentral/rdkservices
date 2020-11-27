@@ -73,13 +73,21 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_OPACITY;
             static const string RDKSHELL_METHOD_GET_SCALE;
             static const string RDKSHELL_METHOD_SET_SCALE;
+            static const string RDKSHELL_METHOD_GET_HOLE_PUNCH;
+            static const string RDKSHELL_METHOD_SET_HOLE_PUNCH;
+            static const string RDKSHELL_METHOD_GET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_SET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_HIDE_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
+            static const string RDKSHELL_METHOD_LAUNCH_APP;
             static const string RDKSHELL_METHOD_SUSPEND;
+            static const string RDKSHELL_METHOD_SUSPEND_APP;
+            static const string RDKSHELL_METHOD_RESUME_APP;
             static const string RDKSHELL_METHOD_DESTROY;
             static const string RDKSHELL_METHOD_GET_AVAILABLE_TYPES;
             static const string RDKSHELL_METHOD_GET_STATE;
@@ -96,6 +104,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
+            static const string RDKSHELL_EVENT_ON_APP_ACTIVATED;
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
@@ -134,6 +143,11 @@ namespace WPEFramework {
             uint32_t setOpacityWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getScaleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setScaleWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
@@ -142,6 +156,10 @@ namespace WPEFramework {
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t destroyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t destroyApplicationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getState(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
@@ -167,6 +185,8 @@ namespace WPEFramework {
             bool generateKey(const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
+            bool setMimeType(const string& client, const string& mimeType);
+            bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
@@ -178,10 +198,12 @@ namespace WPEFramework {
             bool setOpacity(const string& client, const unsigned int opacity);
             bool getScale(const string& client, double& scaleX, double& scaleY);
             bool setScale(const string& client, const double scaleX, const double scaleY);
+            bool getHolePunch(const string& client, bool& holePunch);
+            bool setHolePunch(const string& client, const bool holePunch);
             bool removeAnimation(const string& client);
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
-            bool setInactivityInterval(const string interval);
+            bool setInactivityInterval(uint32_t interval);
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
@@ -189,11 +211,8 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
-            static void getSecurityToken(std::string& token);
-            static bool isThunderSecurityConfigured();
-
-            static std::string m_sToken;
-            static bool m_sThunderSecurityChecked;
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
         private/*classes */:
 
@@ -217,6 +236,7 @@ namespace WPEFramework {
                 virtual void onApplicationFirstFrame(const std::string& client);
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
+                virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
                 virtual void onDeviceLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);

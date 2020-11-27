@@ -28,6 +28,7 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
+option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -280,6 +281,10 @@ endif()
 
 if(PLUGIN_OCICONTAINER)
     add_subdirectory(OCIContainer)
+endif()
+
+if(PLUGIN_PERSISTENT_STORE)
+    add_subdirectory(PersistentStore)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

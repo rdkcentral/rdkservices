@@ -20,6 +20,8 @@
 #include "Network.h"
 #include <net/if.h>
 
+using namespace std;
+
 #define DEFAULT_PING_PACKETS 15
 
 /* Netsrvmgr Based Macros & Structures */
@@ -27,6 +29,9 @@
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
+#define MAX_IP_FAMILY_SIZE 10
+#define MAX_ENDPOINTS 5
+#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -37,6 +42,9 @@
 #define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
 #define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
+#define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
+#define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -59,6 +67,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     char interfaceCount;
     bool isInterfaceEnabled;
     bool persist;
+    char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
 typedef struct {
@@ -72,6 +81,12 @@ typedef struct {
     char secondarydns[16];
     bool isSupported;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
+
+typedef struct
+{
+    unsigned char size;
+    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
+} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
 
 typedef struct {
     char name[16];
@@ -119,11 +134,7 @@ namespace WPEFramework
 
         Network::Network() : PluginHost::JSONRPC()
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
             Network::_instance = this;
-
-            /* HardCode it for now; wait for Set API Version call to update this further */
-            m_apiVersionNumber = 1;
 
             // Quirk
             Register("getQuirks", &Network::getQuirks, this);
@@ -137,9 +148,6 @@ namespace WPEFramework
 
             Register("getStbIp", &Network::getStbIp, this);
 
-            Register("setApiVersionNumber", &Network::setApiVersionNumberWrapper, this);
-            Register("getApiVersionNumber", &Network::getApiVersionNumberWrapper, this);
-
             Register("trace", &Network::trace, this);
             Register("traceNamedEndpoint", &Network::traceNamedEndpoint, this);
 
@@ -151,13 +159,14 @@ namespace WPEFramework
             Register("setIPSettings", &Network::setIPSettings, this);
             Register("getIPSettings", &Network::getIPSettings, this);
 
+            Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
+            Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
+            Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
             m_netUtils.InitialiseNetUtils();
         }
 
         Network::~Network()
         {
-            LOGWARN("Destructor of Network_%d", m_apiVersionNumber);
-
             Unregister("getQuirks");
             Unregister("getInterfaces");
             Unregister("isInterfaceEnabled");
@@ -174,9 +183,9 @@ namespace WPEFramework
             Unregister("pingNamedEndpoint");
             Unregister("setIPSettings");
             Unregister("getIPSettings");
-
-            m_apiVersionNumber = 0;
-            Network::_instance = NULL;
+            Unregister("isConnectedToInternet");
+            Unregister("setConnectivityTestEndpoints");
+            Network::_instance = nullptr;
         }
 
         const string Network::Initialize(PluginHost::IShell* /* service */)
@@ -210,54 +219,31 @@ namespace WPEFramework
 
         string Network::Information() const
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            // No additional info to report.
-            return(string());
+             return(string());
         }
 
         // Wrapper methods
         uint32_t Network::getQuirks(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
             JsonArray array;
             array.Add("RDK-20093");
             response["quirks"] = array;
-            returnResponse(true);
-        }
-
-        uint32_t Network::setApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (parameters.HasLabel("version"))
-            {
-                getNumberParameter("version", m_apiVersionNumber);
-                returnResponse(true);
-            }
-            returnResponse(false);
-        }
-
-        uint32_t Network::getApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            response["version"] = m_apiVersionNumber;
-            returnResponse(true);
+            returnResponse(true)
         }
 
         uint32_t Network::getInterfaces (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
+            IARM_BUS_NetSrvMgr_InterfaceList_t list;
+            bool result = false;
 
-            if (m_apiVersionNumber >= 1)
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
             {
-                IARM_BUS_NetSrvMgr_InterfaceList_t list;
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
-                {
-                    JsonArray networkInterfaces;
+                JsonArray networkInterfaces;
 
                     for (int i = 0; i < list.size; i++)
                     {
                         JsonObject interface;
-                        std::string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+                        string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
 #ifdef NET_DEFINED_INTERFACES_ONLY
                         if (iface == "")
                             continue;					// Skip unrecognised interfaces...
@@ -267,431 +253,399 @@ namespace WPEFramework
                         interface["enabled"] = ((list.interfaces[i].flags & IFF_UP) != 0);
                         interface["connected"] = ((list.interfaces[i].flags & IFF_RUNNING) != 0);
 
-                        networkInterfaces.Add(interface);
-                    }
+                    networkInterfaces.Add(interface);
+                }
 
-                    response["interfaces"] = networkInterfaces;
-                    returnResponse(true);
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-                }
+                response["interfaces"] = networkInterfaces;
+                result = true;
             }
             else
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::getDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            string interface;
+            string gateway;
+            
+            bool result = false;
+            if (_getDefaultInterface(interface, gateway))
             {
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface, (void*)&param, sizeof(param)))
-                {
-                    LOGINFO("%s :: Interface = %s \n",__FUNCTION__,param.activeIface);
-                    std::string interface = param.activeIface;
-                    response["interface"] = interface;
-                    returnResponse(true);
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface);
-                }
+                response["interface"] = m_netUtils.getInterfaceDescription(interface);
+                result = true;
             }
-            else
-            {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
-            }
-
-            returnResponse(false);
+            
+            returnResponse(result)
         }
 
         uint32_t Network::setDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            bool result = false;
+
+            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
             {
-                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
-                {
-                    std::string interface = "";
-                    bool persist = false;
+                string interface = "";
+                bool persist = false;
 
-                    getStringParameter("interface", interface);
-                    getBoolParameter("persist", persist);
+                getStringParameter("interface", interface)
+                getBoolParameter("persist", persist)
 
-                    IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                    strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
-                    iarmData.persist = persist;
+                IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                iarmData.persist = persist;
 
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
-                    {
-                        response["success"] = true;
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
-                    }
-                }
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
+                    result = true;
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
             }
-            else
-            {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
-            }
-
-            returnResponse(false);
+            
+            returnResponse(result)
         }
 
         uint32_t Network::getStbIp(const JsonObject &parameters, JsonObject &response)
         {
-            IARM_Result_t ret = IARM_RESULT_SUCCESS;
             IARM_BUS_NetSrvMgr_Iface_EventData_t param;
             memset(&param, 0, sizeof(param));
-            ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param));
+            
+            bool result = false;
 
-            if (ret != IARM_RESULT_SUCCESS )
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
             {
-                response["ip"] = "";
-                returnResponse(false);
+                response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                result = true;
             }
-            response["ip"] = std::string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN-1);
-            returnResponse(true);
+            else
+                response["ip"] = "";
+            
+            returnResponse(result)
         }
 
-        uint32_t Network::isInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
+        uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            bool result = false;
+
+            if (parameters.HasLabel("family"))
             {
-                if (parameters.HasLabel("interface"))
+                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                memset(&param, 0, sizeof(param));
+                
+                string ipfamily("");
+                getStringParameter("family", ipfamily);
+                strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
                 {
-                    std::string interface = "";
-
-                    getStringParameter("interface", interface);
-
-                    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-                    strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
-                    {
-                        LOGINFO("%s :: Enabled = %d \n",__FUNCTION__,param.isInterfaceEnabled);
-                        response["enabled"] = param.isInterfaceEnabled;
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
-                    }
+                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Query to get IPaddress by Family Failed..");
+                    response["ip"] = "";
                 }
             }
             else
+                LOGWARN ("Required Family Attribute is not provided.");
+            
+            returnResponse(result)
+        }
+        
+        uint32_t Network::isInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+
+            if (parameters.HasLabel("interface"))
             {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                string interface = "";
+                getStringParameter("interface", interface)
+
+                IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
+                strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
+                {
+                    LOGINFO("%s :: Enabled = %d ",__FUNCTION__,param.isInterfaceEnabled);
+                    response["enabled"] = param.isInterfaceEnabled;
+                    result = true;
+                }
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
             }
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::setInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            bool result = false;
+
+            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
             {
-                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
-                {
-                    std::string interface = "";
-                    bool enabled = false;
-                    bool persist = false;
+                string interface = "";
+                bool enabled = false;
+                bool persist = false;
 
-                    getStringParameter("interface", interface);
-                    getBoolParameter("enabled", enabled);
-                    getBoolParameter("persist", persist);
+                getStringParameter("interface", interface)
+                getBoolParameter("enabled", enabled)
+                getBoolParameter("persist", persist)
 
-                    IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                    strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
-                    iarmData.isInterfaceEnabled = enabled;
-                    iarmData.persist = persist;
+                IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                iarmData.isInterfaceEnabled = enabled;
+                iarmData.persist = persist;
 
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
-                    {
-                        response["success"] = true;
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
-                    }
-                }
-            }
-            else
-            {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+                    result = true;
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
             }
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::getNamedEndpoints(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
-            {
-                JsonArray namedEndpoints;
-                JsonObject endpoint;
+            JsonArray namedEndpoints;
+            JsonObject endpoint;
 
-                endpoint["endpoint"] = "CMTS";
-                namedEndpoints.Add(endpoint);
+            endpoint["endpoint"] = "CMTS";
+            namedEndpoints.Add(endpoint);
 
-                response["endpoints"] = namedEndpoints;
-                returnResponse(true);
-            }
-            else
-            {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
-            }
-
-            returnResponse(false);
+            response["endpoints"] = namedEndpoints;
+            returnResponse(true)
         }
 
         uint32_t Network::trace(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
-            {
-                if (!parameters.HasLabel("endpoint"))
-                {
-                    LOGERR("No endpoint specified");
-                }
-                else
-                {
-                    std::string endpoint = "";
-                    int packets = 0;
+            bool result = false;
 
-                    getStringParameter("endpoint", endpoint);
-                    if (parameters.HasLabel("packets")) // packets is optional?
-                    {
-                        getNumberParameter("packets", packets);
-                    }
-
-                    if (_doTrace(endpoint, packets, response))
-                    {
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        LOGERR("Failed to perform network trace");
-                    }
-                }
-            }
+            if (!parameters.HasLabel("endpoint"))
+                LOGERR("No endpoint specified");
             else
             {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                string endpoint = "";
+                int packets = 0;
+
+                getStringParameter("endpoint", endpoint);
+                if (parameters.HasLabel("packets")) // packets is optional?
+                    getNumberParameter("packets", packets);
+
+                if (_doTrace(endpoint, packets, response))
+                    result = true;
+                else
+                    LOGERR("Failed to perform network trace");
             }
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::traceNamedEndpoint(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
-            {
-                if (!parameters.HasLabel("endpointName"))
-                {
-                    LOGERR("No endpointName specified");
-                }
-                else
-                {
-                    std::string endpointName = "";
-                    int packets = 0;
+            bool result = false;
 
-                    getStringParameter("endpointName", endpointName);
-                    if (parameters.HasLabel("packets")) // packets is optional?
-                    {
-                        getNumberParameter("packets", packets);
-                    }
-
-                    if (_doTraceNamedEndpoint(endpointName, packets, response))
-                    {
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        LOGERR("Failed to perform network trace names endpoint");
-                    }
-                }
-            }
+            if (!parameters.HasLabel("endpointName"))
+                LOGERR("No endpointName specified");
             else
             {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                string endpointName = "";
+                int packets = 0;
+
+                getStringParameter("endpointName", endpointName);
+                if (parameters.HasLabel("packets")) // packets is optional?
+                    getNumberParameter("packets", packets);
+
+                if (_doTraceNamedEndpoint(endpointName, packets, response))
+                    result = true;
+                else
+                    LOGERR("Failed to perform network trace names endpoint");
             }
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::ping (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            string guid;
+            getStringParameter("guid", guid)
+
+            uint32_t packets;
+            getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
+
+            bool result = false;
+
+            if (parameters.HasLabel("endpoint"))
             {
-                std::string endpoint = "";
-                uint32_t packets = DEFAULT_PING_PACKETS;
-
-                if (parameters.HasLabel("packets"))
-                {
-                    getNumberParameter("packets", packets);
-                }
-
-                if (parameters.HasLabel("endpoint"))
-                {
-                    getStringParameter("endpoint", endpoint);
-                    response = _doPing(endpoint, packets);
-
-                    returnResponse(response["success"]);
-                }
-                else
-                {
-                    // endpoint is required
-                    returnResponse(false);
-                }
+                string endpoint;
+                getStringParameter("endpoint", endpoint);
+                response = _doPing(guid, endpoint, packets);
+                result = response["success"].Boolean();
             }
             else
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                LOGERR("No endpoint argument");
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::pingNamedEndpoint (const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            string guid;
+            getStringParameter("guid", guid)
+
+            uint32_t packets;
+            getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
+
+            bool result = false;
+
+            if (parameters.HasLabel("endpointName"))
             {
-                std::string endpoint = "";
-                uint32_t packets = DEFAULT_PING_PACKETS;
+                string endpointName;
+                getDefaultStringParameter("endpointName", endpointName, "")
 
-                if (parameters.HasLabel("packets"))
-                {
-                    getNumberParameter("packets", packets);
-                }
-
-                if (parameters.HasLabel("endpointName"))
-                {
-                    getStringParameter("endpointName", endpoint);
-                    response = _doPingNamedEndpoint(endpoint, packets);
-
-                    returnResponse(response["success"]);
-                }
-                else
-                {
-                    // endpoint is required
-                    returnResponse(false);
-                }
+                response = _doPingNamedEndpoint(guid, endpointName, packets);
+                result = response["success"].Boolean();
             }
             else
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                LOGERR("No endpointName argument");
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            bool result = false;
+
+            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
+                (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
+                (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
             {
-                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
-                    (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
-                    (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+                string interface = "";
+                string ipversion = "";
+                bool autoconfig = false;
+                string ipaddr = "";
+                string netmask = "";
+                string gateway = "";
+                string primarydns = "";
+                string secondarydns = "";
+
+                getStringParameter("interface", interface);
+                getStringParameter("ipversion", ipversion);
+                getBoolParameter("autoconfig", autoconfig);
+                getStringParameter("ipaddr", ipaddr);
+                getStringParameter("netmask", netmask);
+                getStringParameter("gateway", gateway);
+                getStringParameter("primarydns", primarydns);
+                getStringParameter("secondarydns", secondarydns);
+
+                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
+                strncpy(iarmData.interface, interface.c_str(), 16);
+                strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+                iarmData.autoconfig = autoconfig;
+                strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
+                strncpy(iarmData.netmask, netmask.c_str(), 16);
+                strncpy(iarmData.gateway, gateway.c_str(), 16);
+                strncpy(iarmData.primarydns, primarydns.c_str(), 16);
+                strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
+                iarmData.isSupported = true;
+
+                if (IARM_RESULT_SUCCESS ==
+                    IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
+                                  sizeof(iarmData)))
                 {
-                    std::string interface = "";
-                    std::string ipversion = "";
-                    bool autoconfig = false;
-                    std::string ipaddr  = "";
-                    std::string netmask = "";
-                    std::string gateway = "";
-                    std::string primarydns   = "";
-                    std::string secondarydns = "";
-
-                    getStringParameter("interface", interface);
-                    getStringParameter("ipversion", ipversion);
-                    getBoolParameter("autoconfig", autoconfig);
-                    getStringParameter("ipaddr", ipaddr);
-                    getStringParameter("netmask", netmask);
-                    getStringParameter("gateway", gateway);
-                    getStringParameter("primarydns", primarydns);
-                    getStringParameter("secondarydns", secondarydns);
-
-                    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-                    strncpy(iarmData.interface, interface.c_str(), 16);
-                    strncpy(iarmData.ipversion, ipversion.c_str(), 16);
-                    iarmData.autoconfig = autoconfig;
-                    strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
-                    strncpy(iarmData.netmask, netmask.c_str(), 16);
-                    strncpy(iarmData.gateway, gateway.c_str(), 16);
-                    strncpy(iarmData.primarydns, primarydns.c_str(), 16);
-                    strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
-                    iarmData.isSupported = true;
-
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *)&iarmData, sizeof(iarmData)))
-                    {
-                        response["supported"] = iarmData.isSupported;
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        response["supported"] = iarmData.isSupported;
-                        returnResponse(false);
-                    }
+                    response["supported"] = iarmData.isSupported;
+                    result = true;
                 }
-            }
-            else
-            {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                else
+                    response["supported"] = iarmData.isSupported;
             }
 
-            returnResponse(false);
+            returnResponse(result)
         }
 
         uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
         {
-            LOGWARN ("Entering %s \n", __FUNCTION__);
-            if (m_apiVersionNumber >= 1)
+            bool result = false;
+
+            if (parameters.HasLabel("interface"))
             {
-                if (parameters.HasLabel("interface"))
+                string interface = "";
+                getStringParameter("interface", interface);
+
+                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+                strncpy(iarmData.interface, interface.c_str(), 16);
+                iarmData.isSupported = true;
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
                 {
-                    std::string interface = "";
-                    getStringParameter("interface", interface);
-
-                    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-                    strncpy(iarmData.interface, interface.c_str(), 16);
-                    iarmData.isSupported = true;
-
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
-                    {
-                        response["interface"] = string(iarmData.interface);
-                        response["ipversion"] = string(iarmData.ipversion);
-                        response["autoconfig"] = iarmData.autoconfig;
-                        response["ipaddr"] = string(iarmData.ipaddress);
-                        response["netmask"] = string(iarmData.netmask);
-                        response["gateway"] = string(iarmData.gateway);
-                        response["primarydns"] = string(iarmData.primarydns);
-                        response["secondarydns"] = string(iarmData.secondarydns);
-                        returnResponse(true);
-                    }
-                    else
-                    {
-                        returnResponse(false);
-                    }
+                    response["interface"] = string(iarmData.interface);
+                    response["ipversion"] = string(iarmData.ipversion);
+                    response["autoconfig"] = iarmData.autoconfig;
+                    response["ipaddr"] = string(iarmData.ipaddress);
+                    response["netmask"] = string(iarmData.netmask);
+                    response["gateway"] = string(iarmData.gateway);
+                    response["primarydns"] = string(iarmData.primarydns);
+                    response["secondarydns"] = string(iarmData.secondarydns);
+                    result = true;
                 }
+            }
+
+            returnResponse(result)
+        }
+
+        uint32_t Network::isConnectedToInternet (const JsonObject &parameters, JsonObject &response)
+        {
+            bool result = false;
+            bool isconnected = false;
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
+            {
+                LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
+                response["connectedToInternet"] = isconnected;
+                result = true;
             }
             else
             {
-                LOGWARN ("This version of Network Software is not supporting this API..\n");
+                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet);
             }
+            returnResponse(result);
+        }
 
-            returnResponse(false);
+        uint32_t Network::setConnectivityTestEndpoints (const JsonObject &parameters, JsonObject &response)
+        {
+            bool result = false;
+            JsonArray endpoints = parameters["endpoints"].Array();
+            if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
+            {
+                LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
+                returnResponse(result);
+            }
+            IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t iarmData;
+            JsonArray::Iterator index(endpoints.Elements());
+            iarmData.size = 0;
+            while (index.Next() == true)
+            {
+                if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                {
+                    strncpy(iarmData.endpoints[iarmData.size], index.Current().String().c_str(), MAX_ENDPOINT_SIZE);
+                    iarmData.size++;
+                }
+                else
+                {
+                    LOGWARN("Unexpected variant type");
+                    returnResponse(result);
+                }
+            }
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints, (void*) &iarmData, sizeof(iarmData)))
+            {
+                result = true;
+            }
+            else
+            {
+                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints);
+            }
+            returnResponse(result);
         }
 
         /*
@@ -753,7 +707,7 @@ namespace WPEFramework
                 LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
                 return;
             }
-            if (data == NULL || len == 0)
+            if (data == nullptr || len == 0)
             {
                 LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
                 return;
@@ -819,19 +773,87 @@ namespace WPEFramework
 
         bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
-            IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
+            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
+            string res = Utils::cRunScript(script1).substr();
+            LOGWARN("script1 '%s' result: '%s'", script1, res.c_str());
+
+            bool result = false;
+
+            if (res == "hybrid")
             {
-                LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
-                interface = defaultRoute.interface;
-                gateway = defaultRoute.gateway;
-                return !interface.empty();
+                LOGINFO("Identified as hybrid device type");
+
+                const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
+
+                string res = Utils::cRunScript(script2).substr();
+                LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
+
+                size_t pos = res.find("via");
+                if (pos != string::npos)
+                {
+                    gateway = res.substr(pos + 3);
+                    pos = gateway.find("dev");
+                    gateway = pos != string::npos ? gateway.substr(0, pos) : "";
+                }
+
+                pos = res.find("dev");
+                if (pos != string::npos)
+                {
+                    interface = res.substr(pos + 3);
+                    pos = interface.find("metric");
+                    interface = pos != string::npos ? interface.substr(0, pos) : "";
+                }
+
+                if (interface.length() == 0)
+                {
+                    const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
+                    string res = Utils::cRunScript(script3).substr();
+                    LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
+
+                    pos = res.find(" ");
+                    if (pos != string::npos)
+                    {
+                        gateway = res.substr(pos + 3);
+                        Utils::String::trim(gateway);
+                        pos = gateway.find(" ");
+                        gateway = pos != string::npos ? gateway.substr(0, pos) : "";
+                    }
+
+                    pos = res.find_last_of(" ");
+                    if (pos != string::npos)
+                        interface = res.substr(pos);
+                }
+
+                Utils::String::trim(gateway);
+                Utils::String::trim(interface);
+
+                if (interface.length() > 0)
+                    result = true;
             }
             else
             {
-                LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
-                return false;
+                LOGINFO("Identified as mediaclient device type");
+
+                IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface
+                        , (void*)&defaultRoute, sizeof(defaultRoute)))
+                {
+                    LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME
+                            , IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                    interface = defaultRoute.interface;
+                    gateway = defaultRoute.gateway;
+                    result = true;
+                }
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
             }
+
+            if (interface.length() == 0)
+                LOGWARN("Unable to detect default network interface");
+            else
+                LOGWARN("Evaluated default network interface: '%s' and gateway: '%s'", interface.c_str(), gateway.c_str());
+
+            return result;
         }
 
     } // namespace Plugin

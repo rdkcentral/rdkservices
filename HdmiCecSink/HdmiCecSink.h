@@ -34,10 +34,10 @@
 #include "Module.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
-
+#include "tptimer.h"
 #include <thread>
 #include <mutex>
-
+#include <condition_variable>
 
 namespace WPEFramework {
 
@@ -75,12 +75,14 @@ namespace WPEFramework {
 	        void process (const SetStreamPath &msg, const Header &header);
 	        void process (const GetMenuLanguage &msg, const Header &header);
 	        void process (const ReportPhysicalAddress &msg, const Header &header);
-            void process (const DeviceVendorID &msg, const Header &header);
+                void process (const DeviceVendorID &msg, const Header &header);
 	        void process (const GiveDevicePowerStatus &msg, const Header &header);
 	        void process (const ReportPowerStatus &msg, const Header &header);
 	        void process (const FeatureAbort &msg, const Header &header);
 	        void process (const Abort &msg, const Header &header);
 	        void process (const Polling &msg, const Header &header);
+                void process (const InitiateArc &msg, const Header &header);
+                void process (const TerminateArc &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -230,7 +232,223 @@ namespace WPEFramework {
 				m_lastPowerUpdateTime = std::chrono::system_clock::now();
 			}
 		};
+
+		class DeviceNode {
+			public:
+			uint8_t m_childsLogicalAddr[LogicalAddress::UNREGISTERED];
+
+			DeviceNode() {
+				int i;
+				for (i; i < LogicalAddress::UNREGISTERED; i++ )
+				{
+					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
+				}
+			}
+			
+		} ;
 		
+		class HdmiPortMap {
+			public:
+			uint8_t m_portID;
+			bool m_isConnected;
+			LogicalAddress m_logicalAddr;
+			PhysicalAddress m_physicalAddr;
+			DeviceNode m_deviceChain[3];
+			
+			HdmiPortMap(uint8_t portID) : m_portID(portID), 	    m_physicalAddr(portID+1,0,0,0),m_logicalAddr(LogicalAddress::UNREGISTERED)
+			{
+				m_isConnected = false;
+			}
+
+			void update(bool isConnected)
+			{
+				m_isConnected = isConnected;
+			}
+
+			void update( const LogicalAddress &addr )
+			{
+				m_logicalAddr = addr;
+			}
+
+			void addChild( const LogicalAddress &logical_addr, const PhysicalAddress &physical_addr )
+			{
+				LOGINFO(" logicalAddr = %d, phisicalAddr = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
+				
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED &&
+						m_logicalAddr.toInt() != logical_addr.toInt() )
+				{
+					LOGINFO(" update own logicalAddr = %d, new devcie logicalAddress", m_logicalAddr.toInt(), logical_addr.toInt() );
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1] = logical_addr.toInt();
+						}
+						else if ( physical_addr.getByteValue(2) != 0 )
+						{
+							m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1] = logical_addr.toInt();
+						}
+						else if ( physical_addr.getByteValue(1) != 0 )
+						{
+							m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1] = logical_addr.toInt();
+						}
+					}
+				}
+				else if ( physical_addr == m_physicalAddr )
+				{
+					update(logical_addr);
+					LOGINFO(" update own logicalAddr = %d", m_logicalAddr.toInt());
+				}
+			}
+
+			void removeChild(    PhysicalAddress &physical_addr )
+			{
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED )
+				{
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1] = LogicalAddress::UNREGISTERED;
+						}
+						else if ( physical_addr.getByteValue(2) != 0 )
+						{
+							m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1] = LogicalAddress::UNREGISTERED;
+						}
+						else if ( physical_addr.getByteValue(1) != 0 )
+						{
+							m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1] = LogicalAddress::UNREGISTERED;
+						}
+					}
+				}
+			}
+
+			void getRoute(    PhysicalAddress &physical_addr, std::vector<uint8_t> &   route )
+			{
+				LOGINFO(" logicalAddr = %d, phsical = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
+				
+				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED )
+				{
+					LOGINFO(" search for logicalAddr = %d", m_logicalAddr.toInt());
+					/* check matching with this port's physical address */
+					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
+							physical_addr.getByteValue(1) != 0 )
+					{
+						if ( physical_addr.getByteValue(3) != 0 )
+						{
+							route.push_back(m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1]);
+						}
+						
+						if ( physical_addr.getByteValue(2) != 0 )
+						{
+							route.push_back(m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1]);
+						}
+						
+						if ( physical_addr.getByteValue(1) != 0 )
+						{
+							route.push_back(m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1]);
+						}
+
+						route.push_back(m_logicalAddr.toInt());
+					}
+					else
+					{
+						route.push_back(m_logicalAddr.toInt());
+						LOGINFO("logicalAddr = %d, physical = %s", m_logicalAddr.toInt(), m_physicalAddr.toString().c_str());	
+					}
+				}
+			}
+		};
+
+       class binary_semaphore {
+
+     public:
+
+    explicit binary_semaphore(int init_count = count_max)
+
+      : count_(init_count) {}
+
+
+
+    // P-operation / acquire
+
+    void wait()
+
+    {
+
+        std::unique_lock<std::mutex> lk(m_);
+
+        cv_.wait(lk, [=]{ return 0 < count_; });
+
+        --count_;
+
+    }
+
+    bool try_wait()
+
+    {
+
+        std::lock_guard<std::mutex> lk(m_);
+
+        if (0 < count_) {
+
+            --count_;
+
+            return true;
+
+        } else {
+
+            return false;
+
+        }
+
+    }
+
+    // V-operation / release
+
+    void signal()
+
+    {
+
+        std::lock_guard<std::mutex> lk(m_);
+
+        if (count_ < count_max) {
+
+            ++count_;
+
+            cv_.notify_one();
+
+        }
+
+    }
+
+
+
+    // Lockable requirements
+
+    void acquire() { wait(); }
+
+    bool try_lock() { return try_wait(); }
+
+    void release() { signal(); }
+
+
+
+private:
+
+    static const int count_max = 1;
+
+    int count_;
+
+    std::mutex m_;
+
+    std::condition_variable cv_;
+
+};
 		// This is a server for a JSONRPC communication channel. 
 		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
 		// By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
@@ -256,20 +474,44 @@ namespace WPEFramework {
 			POLL_THREAD_STATE_UPDATE,
 			POLL_THREAD_STATE_EXIT,
 		};
+                enum {
+                        ARC_STATE_REQUEST_ARC_INITIATION,
+		        ARC_STATE_ARC_INITIATED,
+		        ARC_STATE_REQUEST_ARC_TERMINATION,
+		        ARC_STATE_ARC_TERMINATED,
+			ARC_STATE_ARC_EXIT
+		     };
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
+			std::vector<HdmiPortMap> hdmiInputs;
 			int m_currentActiveSource;
 			void updateInActiveSource(const int logical_address, const InActiveSource &source );
 			void updateActiveSource(const int logical_address, const ActiveSource &source );
 			void updateTextViewOn(const int logicalAddress);
 			void updateImageViewOn(const int logicalAddress);
+			void updateDeviceChain(const LogicalAddress &logicalAddress, const PhysicalAddress &phy_addr);
+			void getActiveRoute(const LogicalAddress &logicalAddress, std::vector<uint8_t> &route);
 			void removeDevice(const int logicalAddress);
 			void addDevice(const int logicalAddress);
 			void printDeviceList();
-			void setActivePath();
+			void setStreamPath( const PhysicalAddress &physical_addr);
+			void setRoutingChange(const std::string &from, const std::string &to);
+			void setCurrentLanguage(const Language &lang);
+			void sendMenuLanguage();
+			int findLogicalAddress( const PhysicalAddress &physical_addr);
+			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
+			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
+			void sendStandbyMessage();
+			void setActiveSource(bool isResponse);
+			void requestActiveSource();
+                        void startArc();
+                        void stopArc();
+                        void Process_InitiateArc();
+                        void Process_TerminateArc();
+                        void updateArcState();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -283,10 +525,16 @@ namespace WPEFramework {
             uint32_t getOSDNameWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t printDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t setActivePathWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t getDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t printDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setActivePathWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setRoutingChangeWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
 			
             //End methods
             std::string logicalAddressDeviceType;
@@ -294,6 +542,7 @@ namespace WPEFramework {
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
 			bool m_isHdmiInConnected;
+			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
 			int m_logicalAddressAllocated;
 			std::thread m_pollThread;
@@ -301,6 +550,14 @@ namespace WPEFramework {
 			uint32_t m_pollNextState;
 			uint32_t m_sleepTime;
             std::mutex m_pollMutex;
+            /* ARC related */
+            std::thread m_arcRoutingThread;
+	    uint32_t m_currentArcRoutingState;
+	    std::mutex m_arcRoutingStateMutex;
+	    binary_semaphore m_semSignaltoArcRoutingThread;
+            bool m_arcstarting;
+            TpTimer m_arcStartStopTimer;
+
             Connection *smConnection;
 			std::vector<uint8_t> m_connectedDevices;
             HdmiCecSinkProcessor *msgProcessor;
@@ -324,6 +581,7 @@ namespace WPEFramework {
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int connectStatus);
 			void onPowerStateON();
+			void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);
@@ -336,6 +594,17 @@ namespace WPEFramework {
             void getPhysicalAddress();
             void getLogicalAddress();
             void cecAddressesChanged(int changeStatus);
+            
+            // Arc functions
+    
+            static void  threadArcRouting();
+            void requestArcInitiation();
+            void requestArcTermination();
+            void Send_Request_Arc_Initiation_Message();
+            void Send_Report_Arc_Initiated_Message();
+            void Send_Request_Arc_Termination_Message();
+            void Send_Report_Arc_Terminated_Message();
+            void arcStartStopTimerFunction();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

@@ -33,6 +33,8 @@
 typedef std::vector<unsigned char>  byte_vector_t;
 typedef std::vector<int>            int_vector_t;
 
+#define RAMS_USE_FORCE_DOWNLOAD     1
+
 struct controller_info {
     ctrlm_network_id_t          network_id;
     ctrlm_controller_id_t       controller_id;

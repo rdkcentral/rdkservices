@@ -96,6 +96,7 @@ namespace WPEFramework {
             uint32_t setEventResponseWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getMediaTrackInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getStatusSupportWrapper(const JsonObject& parameters, JsonObject& response);
             // Registered methods end
 
         private: /*internal methods*/
@@ -145,6 +146,7 @@ namespace WPEFramework {
             static const string METHOD_GET_DEVICE_INFO;
             static const string METHOD_GET_AUDIO_INFO;
             static const string METHOD_GET_API_VERSION_NUMBER;
+            static const string METHOD_GET_STATUS_SUPPORT;
             static const string EVT_STATUS_CHANGED;
             static const string EVT_PAIRING_REQUEST;
             static const string EVT_REQUEST_FAILED;

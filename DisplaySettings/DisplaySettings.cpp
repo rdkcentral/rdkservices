@@ -178,6 +178,8 @@ namespace WPEFramework {
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
+            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
         }
 
         DisplaySettings::~DisplaySettings()
@@ -564,7 +566,11 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedAudioModes(const JsonObject& parameters, JsonObject& response)
         {   //sample response: {"success":true,"supportedAudioModes":["STEREO","PASSTHRU","AUTO (Dolby Digital 5.1)"]}
             LOGINFOMETHOD();
-            string audioPort = parameters["audioPort"].String();
+
+            string audioPort;
+            if (parameters.HasLabel("audioPort"))
+                getStringParameter("audioPort", audioPort);
+
             vector<string> supportedAudioModes;
             try
             {
@@ -1105,6 +1111,69 @@ namespace WPEFramework {
             for (uint32_t i = 0; i < hdrCapabilities.Length(); i++)
             {
                LOGINFO("capabilities: %s", hdrCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+        uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"AudioCapabilities":["ATMOS","DOLBY DIGITAL","DOLBYDIGITAL PLUS","MS12"]}
+            LOGINFOMETHOD();
+
+            JsonArray audioCapabilities;
+            int capabilities = dsAUDIOSUPPORT_NONE;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getAudioCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)audioCapabilities.Add("none");
+            if(capabilities & dsAUDIOSUPPORT_ATMOS)audioCapabilities.Add("ATMOS");
+            if(capabilities & dsAUDIOSUPPORT_DD)audioCapabilities.Add("DOLBY DIGITAL");
+            if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
+            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audio Decode");
+            if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
+            if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
+
+            response["AudioCapabilities"] = audioCapabilities;
+            for (uint32_t i = 0; i < audioCapabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+
+        uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"MS12Capabilities":["Dolby Volume","Inteligent Equalizer","Dialogue Enhancer"]}
+            LOGINFOMETHOD();
+
+            JsonArray ms12Capabilities;
+            int capabilities = dsMS12SUPPORT_NONE;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getMS12Capabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)ms12Capabilities.Add("none");
+            if(capabilities & dsMS12SUPPORT_DolbyVolume)ms12Capabilities.Add("Dolby Volume");
+            if(capabilities & dsMS12SUPPORT_InteligentEqualizer)ms12Capabilities.Add("Inteligent Equalizer");
+            if(capabilities & dsMS12SUPPORT_DialogueEnhancer)ms12Capabilities.Add("Dialogue Enhancer");
+
+            response["MS12Capabilities"] = ms12Capabilities;
+            for (uint32_t i = 0; i < ms12Capabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
             }
             returnResponse(true);
         }
@@ -1699,14 +1768,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setCompression (compresionLevel);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sCompresionLevel);
+                LOG_DEVICE_EXCEPTION2(audioPort, sCompresionLevel);
                 success = false;
             }
             returnResponse(success);
@@ -1717,16 +1787,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int compressionlevel = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 compressionlevel = aPort.getCompression();
                 response["compressionlevel"] = compressionlevel;
                                response["enable"] = (compressionlevel ? true : false);
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 response["compressionlevel"] = 0;
                                response["enable"] = false;
                 success = false;
@@ -1739,35 +1811,29 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "dolbyVolumeMode");
 
-                       string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
+            string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
-            int iDolbyVolumeMode = 0;
 
             try
             {
-                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
+                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
             }
             catch (const std::exception &err)
             {
                LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
                returnResponse(false);
             }
-           if (0 == iDolbyVolumeMode) {
-                dolbyVolumeMode = false;
-            } else {
-                dolbyVolumeMode = true;
-            }
-
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setDolbyVolumeMode (dolbyVolumeMode);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sDolbyVolumeMode);
+                LOG_DEVICE_EXCEPTION2(audioPort, sDolbyVolumeMode);
                 success = false;
             }
             returnResponse(success);
@@ -1777,14 +1843,16 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
                        bool success = true;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 response["dolbyVolumeMode"] = aPort.getDolbyVolumeMode();
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
             returnResponse(success);
@@ -1805,14 +1873,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setDialogEnhancement (enhancerlevel);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sEnhancerlevel);
+                LOG_DEVICE_EXCEPTION2(audioPort, sEnhancerlevel);
                 success = false;
             }
             returnResponse(success);
@@ -1823,16 +1892,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int enhancerlevel = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 enhancerlevel = aPort.getDialogEnhancement();
                 response["enable"] = (enhancerlevel ? true : false);
                 response["enhancerlevel"] = enhancerlevel;
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(string(audioPort));
                 response["enable"] = false;
                 response["enhancerlevel"] = 0;
                 success = false;
@@ -1855,14 +1926,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setIntelligentEqualizerMode (intelligentEqualizerMode);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sIntelligentEqualizerMode);
+                LOG_DEVICE_EXCEPTION2(audioPort, sIntelligentEqualizerMode);
                 success = false;
             }
             returnResponse(success);
@@ -1873,16 +1945,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int intelligentEqualizerMode = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 intelligentEqualizerMode = aPort.getIntelligentEqualizerMode ();
                 response["enable"] = (intelligentEqualizerMode ? true : false);
                 response["mode"] = intelligentEqualizerMode;
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 response["enable"] = false;
                 response["mode"] = 0;
                 success = false;
