@@ -138,6 +138,9 @@ namespace WPEFramework
         , m_discoveryTimer(this)
         {
             LOGINFO();
+
+            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
+
             Bluetooth::_instance = this;
             registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
             registerMethod(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
@@ -156,13 +159,14 @@ namespace WPEFramework
             registerMethod(METHOD_SET_DISCOVERABLE, &Bluetooth::setDiscoverableWrapper, this);
             registerMethod(METHOD_GET_NAME, &Bluetooth::getNameWrapper, this);
             registerMethod(METHOD_SET_NAME, &Bluetooth::setNameWrapper, this);
-            registerMethod(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this);
-            registerMethod(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this);
             registerMethod(METHOD_SET_AUDIO_PLAYBACK_COMMAND, &Bluetooth::sendAudioPlaybackCommandWrapper, this);
             registerMethod(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
             registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
+
+            systemVersion_2.Register<JsonObject, JsonObject>(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this);
+            systemVersion_2.Register<JsonObject, JsonObject>(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this);
 
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             rc = BTRMGR_Init();
@@ -178,6 +182,15 @@ namespace WPEFramework
         Bluetooth::~Bluetooth()
         {
             LOGINFO();
+
+            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
+            if (systemVersion_2) {
+                systemVersion_2->Unregister(METHOD_SET_PROPERTIES);
+                systemVersion_2->Unregister(METHOD_GET_PROPERTIES);
+            }
+            else
+                LOGERR("Failed to get handler for version 2");
+
             Bluetooth::_instance = nullptr;
 
             if (m_executionThread.joinable())
