@@ -200,6 +200,12 @@ namespace WPEFramework
             patternUpdateTimer.Revoke(m_updateTimer);
 
             DeinitializeIARM();
+
+            Core::JSONRPC::Handler* version2 = JSONRPC::GetHandler(2);
+            if (version2)
+            {
+                version2->Unregister(METHOD_FP_SET_POWER_STATUS);
+            }
         }
 
         const void FrontPanel::InitializeIARM()
