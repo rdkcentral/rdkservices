@@ -26,15 +26,15 @@ namespace Plugin {
             }
             ~Config() = default;
 
+            Core::JSON::ArrayType<Core::JSON::EnumType<Exchange::IDeviceCapabilities::AudioOutput>> Audio;
+            Core::JSON::ArrayType<Core::JSON::EnumType<Exchange::IDeviceCapabilities::VideoOutput>> Video;
+            Core::JSON::ArrayType<Core::JSON::EnumType<Exchange::IDeviceCapabilities::OutputResolution>> Resolution;
+            Core::JSON::Boolean HdrSupport;
+            Core::JSON::Boolean AtmosSupport;
+
         private:
             Config(const Config&) = delete;
             Config& operator=(const Config&) = delete;
-
-            Core::JSON::ArrayType<Core::JSON::EnumType<IDeviceCapabilities::AudioOutput>> Audio;
-            Core::JSON::ArrayType<Core::JSON::EnumType<IDeviceCapabilities::VideoOutput>> Video;
-            Core::JSON::ArrayType<Core::JSON::EnumType<IDeviceCapabilities::OutputResolution>> Resolution;
-            Core::JSON::Boolean HdrSupport;
-            Core::JSON::Boolean AtmosSupport;
 
         }; // CONFIG
 
@@ -43,7 +43,10 @@ namespace Plugin {
         DeviceInfoImplementation& operator=(const DeviceInfoImplementation&) = delete;
         DeviceInfoImplementation()
             : _config()
+            , _supportsHdr(false)
+            , _supportsAtmos(false)
             , _audio()
+            , _video()
             , _resolution()
         {
         }
@@ -55,14 +58,16 @@ namespace Plugin {
 
         uint32_t Configure(const PluginHost::IShell* service) override;
 
-        uint32_t SupportedResolutions(IOutputResolutionIterator*& res) const override;
         uint32_t SupportedAudioOutputs(IAudioOutputIterator*& res) const override;
         uint32_t SupportedVideoOutputs(IVideoOutputIterator*& res) const override;
+        uint32_t SupportedResolutions(IOutputResolutionIterator*& res) const override;
         uint32_t SupportsHDR(bool& supportsHDR) const override;
         uint32_t SupportsAtmos(bool& supportsAtmos) const override;
 
     private:
         Config _config;
+        bool _supportsHdr;
+        bool _supportsAtmos;
         std::list<IDeviceCapabilities::AudioOutput> _audio;
         std::list<IDeviceCapabilities::VideoOutput> _video;
         std::list<IDeviceCapabilities::OutputResolution> _resolution;
