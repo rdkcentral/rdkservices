@@ -43,6 +43,7 @@
 #define METHOD_FP_SET_LED "setLED"
 #define METHOD_FP_SET_BLINK "setBlink"
 #define METHOD_FP_SET_24_HOUR_CLOCK "set24HourClock"
+#define METHOD_FP_SET_POWER_STATUS "setPowerStatus"
 #define METHOD_FP_IS_24_HOUR_CLOCK "is24HourClock"
 #define METHOD_FP_SET_CLOCKTESTPATTERN "setClockTestPattern"
 
@@ -173,6 +174,9 @@ namespace WPEFramework
             registerMethod(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             registerMethod(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
 
+            Core::JSONRPC::Handler& version2 = JSONRPC::CreateHandler({ 2 }, *this);
+            version2.Register<JsonObject, JsonObject>(_T(METHOD_FP_SET_POWER_STATUS), &FrontPanel::setPowerStatusWrapper, this);
+
             InitializeIARM();
 
             CFrontPanel::instance()->start();
@@ -192,6 +196,12 @@ namespace WPEFramework
             patternUpdateTimer.Revoke(m_updateTimer);
 
             DeinitializeIARM();
+
+            Core::JSONRPC::Handler* version2 = JSONRPC::GetHandler(2);
+            if (version2)
+            {
+                version2->Unregister(METHOD_FP_SET_POWER_STATUS);
+            }
         }
 
         const void FrontPanel::InitializeIARM()
@@ -710,6 +720,17 @@ namespace WPEFramework
         }
 
         /**
+         * @brief Sets power status.
+         *
+         * @param[in] power status.
+         * @ingroup SERVMGR_FRONTPANEL_API
+         */
+        void FrontPanel::setPowerStatus(bool status)
+        {
+            CFrontPanel::instance()->setPowerStatus(status);
+        }
+
+        /**
          * @brief Get the 24 hour clock format.
          *
          * @return true if 24 hour clock format is used.
@@ -844,6 +865,19 @@ namespace WPEFramework
                 bool is24Hour = false;
                 getBoolParameter("is24Hour", is24Hour );
                 success = set24HourClock(is24Hour);
+            }
+            returnResponse(success);
+        }
+
+        uint32_t FrontPanel::setPowerStatusWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            bool success = false;
+            if (parameters.HasLabel("power"))
+            {
+                bool status = false;
+                getBoolParameter("power", status);
+                setPowerStatus(status);
+                success = true;
             }
             returnResponse(success);
         }
