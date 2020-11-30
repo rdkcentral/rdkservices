@@ -19,7 +19,7 @@ namespace Plugin {
                 , AtmosSupport(false)
             {
                 Add(_T("audio"), &Audio);
-                Add(_T("video"), &Audio);
+                Add(_T("video"), &Video);
                 Add(_T("resolution"), &Resolution);
                 Add(_T("supports_hdr"), &HdrSupport);
                 Add(_T("supports_atmos"), &AtmosSupport);

@@ -49,7 +49,6 @@ namespace Plugin
 
     uint32_t DeviceInfoImplementation::Configure(const PluginHost::IShell* service)
     {
-        TRACE_L1(_T("CHODZI"));
         ASSERT(service != nullptr);
 
         _config.FromString(service->ConfigLine());
@@ -59,31 +58,25 @@ namespace Plugin
 
         AudioJsonArray::Iterator audioIterator(_config.Audio.Elements());
         while (audioIterator.Next()) {
-            TRACE_L1(_T("%d"), audioIterator.Current().Value());
             _audio.push_back(audioIterator.Current().Value());
         }
 
         VideoJsonArray::Iterator videoIterator(_config.Video.Elements());
         while (videoIterator.Next()) {
-            TRACE_L1(_T("%d"), videoIterator.Current().Value());
             _video.push_back(videoIterator.Current().Value());
         }
 
         ResolutionJsonArray::Iterator resolutionIterator(_config.Resolution.Elements());
         while (resolutionIterator.Next()) {
-            TRACE_L1(_T("%d"), resolutionIterator.Current().Value());
             _resolution.push_back(resolutionIterator.Current().Value());
         }
-
-        TRACE_L1(_T("PARAMS"));
-        TRACE_L1("HDR: %d", _supportsHdr);
-        TRACE_L1("Atmos: %d", _supportsAtmos);
     }
 
     uint32_t DeviceInfoImplementation::SupportedAudioOutputs(IAudioOutputIterator * &res) const {
         res = Core::Service<AudioIteratorImplementation>::Create<Exchange::IDeviceCapabilities::IAudioOutputIterator>(_audio);
         return (res != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
     }
+
     uint32_t DeviceInfoImplementation::SupportedVideoOutputs(IVideoOutputIterator * &res) const {
         res = Core::Service<VideoIteratorImplementation>::Create<Exchange::IDeviceCapabilities::IVideoOutputIterator>(_video);
         return (res != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
@@ -97,6 +90,7 @@ namespace Plugin
     uint32_t DeviceInfoImplementation::SupportsHDR(bool& supportsHDR) const {
         supportsHDR = _supportsHdr;
     }
+    
     uint32_t DeviceInfoImplementation::SupportsAtmos(bool& supportsAtmos) const {
         supportsAtmos = _supportsAtmos;
     }
