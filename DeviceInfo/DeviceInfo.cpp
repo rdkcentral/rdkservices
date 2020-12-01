@@ -33,7 +33,7 @@ namespace Plugin {
         Exchange::IDeviceCapabilities::IOutputResolutionIterator* resolutionIterator = nullptr;
         Exchange::IDeviceCapabilities::OutputResolution resolution;
 
-        if (_implementation->SupportedResolutions(resolutionIterator) == Core::ERROR_NONE && resolutionIterator != nullptr) {
+        if (_implementation->Resolutions(resolutionIterator) == Core::ERROR_NONE && resolutionIterator != nullptr) {
             while (resolutionIterator->Next(resolution)) {
                 TRACE_L1("Resolution: %d", resolution);
             }
@@ -42,7 +42,7 @@ namespace Plugin {
         Exchange::IDeviceCapabilities::IAudioOutputIterator* audioIterator = nullptr;
         Exchange::IDeviceCapabilities::AudioOutput audio;
 
-        if (_implementation->SupportedAudioOutputs(audioIterator) == Core::ERROR_NONE && audioIterator != nullptr) {
+        if (_implementation->AudioOutputs(audioIterator) == Core::ERROR_NONE && audioIterator != nullptr) {
             while (audioIterator->Next(audio)) {
                 TRACE_L1("Audio: %d", audio);
             }
@@ -51,18 +51,25 @@ namespace Plugin {
         Exchange::IDeviceCapabilities::IAudioOutputIterator* videoIterator = nullptr;
         Exchange::IDeviceCapabilities::AudioOutput video;
 
-        if (_implementation->SupportedAudioOutputs(videoIterator) == Core::ERROR_NONE && videoIterator != nullptr) {
+        if (_implementation->AudioOutputs(videoIterator) == Core::ERROR_NONE && videoIterator != nullptr) {
             while (videoIterator->Next(video)) {
                 TRACE_L1("Video: %d", video);
             }
         }
         bool supportsAtmos = false;
         bool supportsHdr = false;
-        _implementation->SupportsAtmos(supportsAtmos);
-        _implementation->SupportsHDR(supportsHdr);
+        bool supportsCec = false;
+        _implementation->Atmos(supportsAtmos);
+        _implementation->HDR(supportsHdr);
+        _implementation->CEC(supportsCec);
 
         TRACE_L1("Supports Atmos: %s", supportsAtmos ? "true" : "false");
         TRACE_L1("Supports HDR: %s", supportsHdr ? "true" : "false");
+        TRACE_L1("Supports CEC: %s", supportsCec ? "true" : "false");
+
+        Exchange::IDeviceCapabilities::CopyProtection hdcp;
+        _implementation->HDCP(hdcp);
+        TRACE_L1("HDCP: %d", hdcp);
     }
 
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
