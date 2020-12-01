@@ -409,10 +409,7 @@ namespace WPEFramework
         uint32_t Network::getNamedEndpoints(const JsonObject& parameters, JsonObject& response)
         {
             JsonArray namedEndpoints;
-            JsonObject endpoint;
-
-            endpoint["endpoint"] = "CMTS";
-            namedEndpoints.Add(endpoint);
+            namedEndpoints.Add("CMTS");
 
             response["endpoints"] = namedEndpoints;
             returnResponse(true)
