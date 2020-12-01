@@ -77,6 +77,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getSta
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -265,6 +266,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -1847,7 +1849,15 @@ namespace WPEFramework {
                     joParams.Set("newcallsign",callsign.c_str());
                     JsonObject joResult;
                     // setting wait Time to 2 seconds
-                    uint32_t status = getThunderControllerClient()->Invoke(2000, "clone", joParams, joResult);
+                    uint32_t status = getThunderControllerClient()->Invoke(3500, "clone", joParams, joResult);
+
+                    std::cout << "clone status: " << status << std::endl;
+                    if (status > 0)
+                    {
+                        std::cout << "trying status one more time...\n";
+                        status = getThunderControllerClient()->Invoke(3500, "clone", joParams, joResult);
+                        std::cout << "clone status: " << status << std::endl;
+                    }
 
                     string strParams;
                     string strResult;
@@ -1862,7 +1872,15 @@ namespace WPEFramework {
                 uint32_t status = 0;
                 string method = "configuration@" + callsign;
                 Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(2000, method.c_str(), configString);
+                status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(3500, method.c_str(), configString);
+
+                std::cout << "config status: " << status << std::endl;
+                if (status > 0)
+                {
+                    std::cout << "trying status one more time...\n";
+                    status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(3500, method.c_str(), configString);
+                    std::cout << "config status: " << status << std::endl;
+                }
 
                 JsonObject configSet;
                 configSet.FromString(configString.Value());
@@ -1888,14 +1906,30 @@ namespace WPEFramework {
                     }
                 }
 
-                status = getThunderControllerClient()->Set<JsonObject>(2000, method.c_str(), configSet);
+                status = getThunderControllerClient()->Set<JsonObject>(3500, method.c_str(), configSet);
+
+                std::cout << "set status: " << status << std::endl;
+                if (status > 0)
+                {
+                    std::cout << "trying status one more time...\n";
+                    status = getThunderControllerClient()->Set<JsonObject>(3500, method.c_str(), configSet);
+                    std::cout << "set status: " << status << std::endl;
+                }
 
                 if (launchType == RDKShellLaunchType::UNKNOWN)
                 {
                     status = 0;
                     string statusMethod = "status@"+callsign;
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> serviceResults;
-                    status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, statusMethod.c_str(),serviceResults);
+                    status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(3500, statusMethod.c_str(),serviceResults);
+
+                    std::cout << "get status: " << status << std::endl;
+                    if (status > 0)
+                    {
+                        std::cout << "trying status one more time...\n";
+                        status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(3500, statusMethod.c_str(),serviceResults);
+                        std::cout << "get status: " << status << std::endl;
+                    }
 
                     if (status == 0 && serviceResults.Length() > 0)
                     {
@@ -1908,7 +1942,15 @@ namespace WPEFramework {
                             JsonObject activateParams;
                             activateParams.Set("callsign",callsign.c_str());
                             JsonObject activateResult;
-                            status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                            status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+
+                            std::cout << "activate 1 status: " << status << std::endl;
+                            if (status > 0)
+                            {
+                                std::cout << "trying status one more time...\n";
+                                status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+                                std::cout << "activate 1 status: " << status << std::endl;
+                            }
                         }
                     }
                     else
@@ -1917,7 +1959,14 @@ namespace WPEFramework {
                         JsonObject activateParams;
                         activateParams.Set("callsign",callsign.c_str());
                         JsonObject activateResult;
-                        status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                        status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+                        std::cout << "activate 2 status: " << status << std::endl;
+                        if (status > 0)
+                        {
+                            std::cout << "trying status one more time...\n";
+                            status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+                            std::cout << "activate 2 status: " << status << std::endl;
+                        }
                     }
                 }
                 else
@@ -1925,7 +1974,15 @@ namespace WPEFramework {
                     JsonObject activateParams;
                     activateParams.Set("callsign",callsign.c_str());
                     JsonObject activateResult;
-                    status = getThunderControllerClient()->Invoke(2000, "activate", activateParams, joResult);
+                    status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+
+                    std::cout << "activate 3 status: " << status << std::endl;
+                    if (status > 0)
+                    {
+                        std::cout << "trying status one more time...\n";
+                        status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, joResult);
+                        std::cout << "activate 3 status: " << status << std::endl;
+                    }
                 }
 
                 if (status > 0)
@@ -2600,6 +2657,55 @@ namespace WPEFramework {
               }
             }
             returnResponse(result);
+        }
+
+        uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool ret = true;
+            JsonObject stateRequest, stateResponse;
+            uint32_t result = getState(stateRequest, stateResponse);
+            const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+            for (int i=0; i<stateList.Length(); i++)
+            {
+                const JsonObject& stateInfo = stateList[i].Object();
+                if (stateInfo.HasLabel("callsign"))
+                {
+                   JsonObject destroyRequest, destroyResponse;
+                   destroyRequest["callsign"] = stateInfo["callsign"].String();
+                   std::cout << "destroying " << stateInfo["callsign"].String().c_str() << std::endl;
+                   result = destroyWrapper(destroyRequest, destroyResponse);
+                }
+            }
+            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
+            if (NULL != factoryAppUrl)
+            {
+                JsonObject launchRequest, launchResponse;
+                launchRequest["callsign"] = "factoryapp";
+                launchRequest["type"] = "LightningApp";
+                launchRequest["uri"] = std::string(factoryAppUrl);
+                launchRequest["focused"] = true;
+                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
+                result = launchWrapper(launchRequest, launchResponse);
+                bool launchFactoryResult = launchResponse.HasLabel("success")?launchResponse["success"].Boolean():false;
+                if (true == launchFactoryResult)
+                {
+                    std::cout << "Launching factory application succeeded " << std::endl;
+                }
+                else
+                {
+                    std::cout << "Launching factory application failed " << std::endl;
+                    response["message"] = "launch factory app failed";
+                    ret = false;
+                }
+            }
+            else
+            {
+                std::cout << "factory app url is empty " << std::endl;
+                response["message"] = "factory application url is empty";
+                ret = false;
+            }
+            returnResponse(ret);
         }
 
         // Registered methods begin
