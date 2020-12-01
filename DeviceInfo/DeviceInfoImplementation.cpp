@@ -3,19 +3,23 @@
 namespace WPEFramework {
     
 ENUM_CONVERSION_BEGIN(Exchange::IDeviceCapabilities::AudioOutput)
-    { Exchange::IDeviceCapabilities::AudioOutput::ANALOG, _TXT("analog") },
-    { Exchange::IDeviceCapabilities::AudioOutput::DIGITAL_COAX, _TXT("digital_coax") },
-    { Exchange::IDeviceCapabilities::AudioOutput::HDMI_DOLBY, _TXT("hdmi_dolby") },
-    { Exchange::IDeviceCapabilities::AudioOutput::HDMI_PCM, _TXT("hdmi_pcm") },
-    { Exchange::IDeviceCapabilities::AudioOutput::TOSLINK, _TXT("toslink") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_OTHER, _TXT("other") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_ANALOG, _TXT("analog") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_DISPLAYPORT, _TXT("displayport") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_HDMI, _TXT("hdmi") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_RF_MODULATOR, _TXT("rf_modulator") },
+    { Exchange::IDeviceCapabilities::AudioOutput::AUDIO_SPDIF, _TXT("spdif") },
 ENUM_CONVERSION_END(Exchange::IDeviceCapabilities::AudioOutput)
 
 ENUM_CONVERSION_BEGIN(Exchange::IDeviceCapabilities::VideoOutput)
-    { Exchange::IDeviceCapabilities::VideoOutput::COMPOSITE, _TXT("composite") },
-    { Exchange::IDeviceCapabilities::VideoOutput::HDMI_14, _TXT("hdmi_14") },
-    { Exchange::IDeviceCapabilities::VideoOutput::HDMI_20, _TXT("hdmi_20") },
-    { Exchange::IDeviceCapabilities::VideoOutput::HDMI_21, _TXT("hdmi_21") },
-    { Exchange::IDeviceCapabilities::VideoOutput::SCART_RGB, _TXT("scart_rgb") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_COMPONENT, _TXT("component") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_COMPOSITE, _TXT("composite") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_DISPLAYPORT, _TXT("displayport") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_HDMI, _TXT("hdmi") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_OTHER, _TXT("other") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_RF_MODULATOR, _TXT("rf_modulator") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_SCART_RGB, _TXT("scart_rgb") },
+    { Exchange::IDeviceCapabilities::VideoOutput::VIDEO_SVIDEO, _TXT("svideo") },
 ENUM_CONVERSION_END(Exchange::IDeviceCapabilities::VideoOutput)
 
 ENUM_CONVERSION_BEGIN(Exchange::IDeviceCapabilities::OutputResolution)
@@ -32,6 +36,14 @@ ENUM_CONVERSION_BEGIN(Exchange::IDeviceCapabilities::OutputResolution)
     { Exchange::IDeviceCapabilities::OutputResolution::RESOLUTION_720P, _TXT("720p") },
     { Exchange::IDeviceCapabilities::OutputResolution::RESOLUTION_UNKNOWN, _TXT("unknown") },
 ENUM_CONVERSION_END(Exchange::IDeviceCapabilities::OutputResolution)
+
+ENUM_CONVERSION_BEGIN(Exchange::IDeviceCapabilities::CopyProtection)
+    { Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE, _TXT("unavailable") },
+    { Exchange::IDeviceCapabilities::CopyProtection::HDCP_14, _TXT("hdcp_14") },
+    { Exchange::IDeviceCapabilities::CopyProtection::HDCP_20, _TXT("hdcp_20") },
+    { Exchange::IDeviceCapabilities::CopyProtection::HDCP_21, _TXT("hdcp_21") },
+    { Exchange::IDeviceCapabilities::CopyProtection::HDCP_22, _TXT("hdcp_22") },
+ENUM_CONVERSION_END(Exchange::IDeviceCapabilities::CopyProtection)
 
 
 namespace Plugin
@@ -53,8 +65,10 @@ namespace Plugin
 
         _config.FromString(service->ConfigLine());
 
-        _supportsHdr = _config.HdrSupport.Value();
-        _supportsAtmos = _config.AtmosSupport.Value();
+        _supportsHdr = _config.Hdr.Value();
+        _supportsAtmos = _config.Atmos.Value();
+        _supportsCEC = _config.Cec.Value();
+        _supportedHDCP = _config.Hdcp.Value();
 
         AudioJsonArray::Iterator audioIterator(_config.Audio.Elements());
         while (audioIterator.Next()) {
@@ -72,27 +86,36 @@ namespace Plugin
         }
     }
 
-    uint32_t DeviceInfoImplementation::SupportedAudioOutputs(IAudioOutputIterator * &res) const {
+    uint32_t DeviceInfoImplementation::AudioOutputs(IAudioOutputIterator * &res) const {
         res = Core::Service<AudioIteratorImplementation>::Create<Exchange::IDeviceCapabilities::IAudioOutputIterator>(_audio);
         return (res != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
     }
 
-    uint32_t DeviceInfoImplementation::SupportedVideoOutputs(IVideoOutputIterator * &res) const {
+    uint32_t DeviceInfoImplementation::VideoOutputs(IVideoOutputIterator * &res) const {
         res = Core::Service<VideoIteratorImplementation>::Create<Exchange::IDeviceCapabilities::IVideoOutputIterator>(_video);
         return (res != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
     }
 
-    uint32_t DeviceInfoImplementation::SupportedResolutions(IOutputResolutionIterator * &res) const {
+    uint32_t DeviceInfoImplementation::Resolutions(IOutputResolutionIterator * &res) const {
         res = Core::Service<ResolutionIteratorImplementation>::Create<Exchange::IDeviceCapabilities::IOutputResolutionIterator>(_resolution);
         return (res != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
     }
 
-    uint32_t DeviceInfoImplementation::SupportsHDR(bool& supportsHDR) const {
+    uint32_t DeviceInfoImplementation::HDR(bool& supportsHDR) const {
         supportsHDR = _supportsHdr;
     }
     
-    uint32_t DeviceInfoImplementation::SupportsAtmos(bool& supportsAtmos) const {
+    uint32_t DeviceInfoImplementation::Atmos(bool& supportsAtmos) const {
         supportsAtmos = _supportsAtmos;
+    }
+
+    uint32_t DeviceInfoImplementation::CEC(bool& supportsCEC) const {
+        supportsCEC = _supportsCEC;
+        return Core::ERROR_NONE;
+    }
+    uint32_t DeviceInfoImplementation::HDCP(CopyProtection& supportedHDCP) const {     
+        supportedHDCP = _supportedHDCP;
+        return Core::ERROR_NONE;
     }
 }
 }
