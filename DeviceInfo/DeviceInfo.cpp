@@ -48,10 +48,10 @@ namespace Plugin {
             }
         }
 
-        Exchange::IDeviceCapabilities::IAudioOutputIterator* videoIterator = nullptr;
-        Exchange::IDeviceCapabilities::AudioOutput video;
+        Exchange::IDeviceCapabilities::IVideoOutputIterator* videoIterator = nullptr;
+        Exchange::IDeviceCapabilities::VideoOutput video;
 
-        if (_implementation->AudioOutputs(videoIterator) == Core::ERROR_NONE && videoIterator != nullptr) {
+        if (_implementation->VideoOutputs(videoIterator) == Core::ERROR_NONE && videoIterator != nullptr) {
             while (videoIterator->Next(video)) {
                 TRACE_L1("Video: %d", video);
             }
