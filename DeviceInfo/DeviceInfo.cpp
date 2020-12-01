@@ -226,5 +226,32 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
+    void DeviceInfo::StbCapabilitiesInfo(JsonData::DeviceInfo::StbcapabilitiesData& response) const
+    {
+        ASSERT(_implementation != nullptr);
+
+        bool supportsHdr = false;
+        if (_implementation->HDR(supportsHdr) == Core::ERROR_NONE) {
+            response.Hdr = supportsHdr;
+        }
+
+        bool supportsAtmos = false;
+        if (_implementation->Atmos(supportsAtmos) == Core::ERROR_NONE) {
+            response.Atmos = supportsAtmos;
+        }
+
+        bool supportsCec = false;
+        if (_implementation->CEC(supportsCec) == Core::ERROR_NONE) {
+            response.Cec = supportsCec;
+        }
+
+        /*
+        Exchange::IDeviceCapabilities::CopyProtection hdcp;
+        if (_implementation->HDCP(hdcp) == Core::ERROR_NONE) {
+            response.Hdcp = static_cast<JsonData::DeviceInfo::StbcapabilitiesData::Copy_protectionType>(hdcp);
+        }
+        */
+    }
+
 } // namespace Plugin
 } // namespace WPEFramework

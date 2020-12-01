@@ -81,8 +81,6 @@ namespace Plugin {
             , _implementation(nullptr)
             , _connectionId(0)
         {
-            TRACE_L1(_T("TREJS2"));
-
             RegisterAll();
         }
 
@@ -117,10 +115,12 @@ namespace Plugin {
         uint32_t get_systeminfo(JsonData::DeviceInfo::SysteminfoData& response) const;
         uint32_t get_addresses(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response) const;
         uint32_t get_socketinfo(JsonData::DeviceInfo::SocketinfoData& response) const;
+        uint32_t get_stbcapabilities(JsonData::DeviceInfo::StbcapabilitiesData& response) const;
 
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
+        void StbCapabilitiesInfo(JsonData::DeviceInfo::StbcapabilitiesData& response) const;
         string GetDeviceId() const;
 
     private:

@@ -33,6 +33,7 @@ namespace Plugin {
         Property<SysteminfoData>(_T("systeminfo"), &DeviceInfo::get_systeminfo, nullptr, this);
         Property<Core::JSON::ArrayType<AddressesData>>(_T("addresses"), &DeviceInfo::get_addresses, nullptr, this);
         Property<SocketinfoData>(_T("socketinfo"), &DeviceInfo::get_socketinfo, nullptr, this);
+        Property<StbcapabilitiesData>(_T("stbcapabilities"), &DeviceInfo::get_stbcapabilities, nullptr, this);
     }
 
     void DeviceInfo::UnregisterAll()
@@ -40,6 +41,7 @@ namespace Plugin {
         Unregister(_T("socketinfo"));
         Unregister(_T("addresses"));
         Unregister(_T("systeminfo"));
+        Unregister(_T("stbcapabilities"));
     }
 
     // API implementation
@@ -72,7 +74,14 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
+    // Property: stbcapabilities - Capabilities of the STB
+    // Return codes:
+    //  - ERROR_NONE: Success
+    uint32_t DeviceInfo::get_stbcapabilities(StbcapabilitiesData& response) const
+    {
+        StbCapabilitiesInfo(response);
+        return Core::ERROR_NONE;
+    }
+
 } // namespace Plugin
-
 }
-
