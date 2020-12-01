@@ -77,6 +77,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getSta
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -265,6 +266,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -2650,6 +2652,55 @@ namespace WPEFramework {
               }
             }
             returnResponse(result);
+        }
+
+        uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool ret = true;
+            JsonObject stateRequest, stateResponse;
+            uint32_t result = getState(stateRequest, stateResponse);
+            const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+            for (int i=0; i<stateList.Length(); i++)
+            {
+                const JsonObject& stateInfo = stateList[i].Object();
+                if (stateInfo.HasLabel("callsign"))
+                {
+                   JsonObject destroyRequest, destroyResponse;
+                   destroyRequest["callsign"] = stateInfo["callsign"].String();
+                   std::cout << "destroying " << stateInfo["callsign"].String().c_str() << std::endl;
+                   result = destroyWrapper(destroyRequest, destroyResponse);
+                }
+            }
+            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
+            if (NULL != factoryAppUrl)
+            {
+                JsonObject launchRequest, launchResponse;
+                launchRequest["callsign"] = "factoryapp";
+                launchRequest["type"] = "LightningApp";
+                launchRequest["uri"] = std::string(factoryAppUrl);
+                launchRequest["focused"] = true;
+                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
+                result = launchWrapper(launchRequest, launchResponse);
+                bool launchFactoryResult = launchResponse.HasLabel("success")?launchResponse["success"].Boolean():false;
+                if (true == launchFactoryResult)
+                {
+                    std::cout << "Launching factory application succeeded " << std::endl;
+                }
+                else
+                {
+                    std::cout << "Launching factory application failed " << std::endl;
+                    response["message"] = "launch factory app failed";
+                    ret = false;
+                }
+            }
+            else
+            {
+                std::cout << "factory app url is empty " << std::endl;
+                response["message"] = "factory application url is empty";
+                ret = false;
+            }
+            returnResponse(ret);
         }
 
         // Registered methods begin
