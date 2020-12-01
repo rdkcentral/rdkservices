@@ -1888,7 +1888,7 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "suspended";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
                             
                             std::cout << "setting the state to suspended\n";
                             if (launchType == RDKShellLaunchType::UNKNOWN)
@@ -1901,7 +1901,7 @@ namespace WPEFramework {
                         {
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "resumed";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
                             if (launchType == RDKShellLaunchType::UNKNOWN)
                             {
                                 launchType = RDKShellLaunchType::RESUME;
@@ -1927,7 +1927,7 @@ namespace WPEFramework {
                     {
                         WPEFramework::Core::JSON::String urlString;
                         urlString = uri;
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
                         if (status > 0)
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
@@ -1989,7 +1989,7 @@ namespace WPEFramework {
                 WPEFramework::Core::JSON::String stateString;
                 stateString = "suspended";
                 const string callsignWithVersion = callsign + ".1";
-                uint32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                uint32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                 if (status > 0)
                 {
@@ -2026,7 +2026,7 @@ namespace WPEFramework {
                 joParams.Set("callsign",callsign.c_str());
                 JsonObject joResult;
                 // setting wait Time to 2 seconds
-                uint32_t status = getThunderControllerClient()->Invoke(2000, "deactivate", joParams, joResult);
+                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
                 if (status > 0)
                 {
                     std::cout << "failed to destroy " << callsign << ".  status: " << status << std::endl;
@@ -2051,7 +2051,7 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
+            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             JsonArray availableTypes;
             for (uint16_t i = 0; i < joResult.Length(); i++)
@@ -2083,7 +2083,7 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
+            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
 
             JsonArray stateArray;
@@ -2107,12 +2107,12 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             if (stateStatus == 0)
                             {
                                 WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "url",urlString);
+                                uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
 
                                 JsonObject typeObject;
                                 typeObject["callsign"] = callsign;
@@ -2163,7 +2163,7 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
+            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
                     std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
@@ -2195,7 +2195,7 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(2000, "state", stateString);
+                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             if (stateStatus == 0)
                             {
