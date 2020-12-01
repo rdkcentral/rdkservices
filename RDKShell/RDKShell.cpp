@@ -506,16 +506,21 @@ namespace WPEFramework {
               if (actionObject.HasLabel("invoke"))
               {
                 std::string invoke = actionObject["invoke"].String();
-                JsonObject joParams;
-                joParams["params"] = JsonObject();
+                std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
+                uint32_t status = 0;
                 if (actionObject.HasLabel("params"))
                 {
-                  joParams["params"] = actionObject["params"].Object();
+                  // setting wait Time to 2 seconds
+                  status = getThunderControllerClient()->Invoke(2000, invoke.c_str(), actionObject["params"], joResult);
                 }
-                std::cout << "invoking method " << invoke.c_str() << std::endl;
-                // setting wait Time to 2 seconds
-                uint32_t status = getThunderControllerClient()->Invoke(2000, invoke.c_str(), joParams, joResult);
+                else
+                {
+                  JsonObject joParams;
+                  joParams["params"] = JsonObject();
+                  // setting wait Time to 2 seconds
+                  status = getThunderControllerClient()->Invoke(2000, invoke.c_str(), joParams, joResult);
+                }
                 if (status > 0)
                 {
                     std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
