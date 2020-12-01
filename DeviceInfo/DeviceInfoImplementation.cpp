@@ -103,10 +103,12 @@ namespace Plugin
 
     uint32_t DeviceInfoImplementation::HDR(bool& supportsHDR) const {
         supportsHDR = _supportsHdr;
+        return Core::ERROR_NONE;
     }
     
     uint32_t DeviceInfoImplementation::Atmos(bool& supportsAtmos) const {
         supportsAtmos = _supportsAtmos;
+        return Core::ERROR_NONE;
     }
 
     uint32_t DeviceInfoImplementation::CEC(bool& supportsCEC) const {
