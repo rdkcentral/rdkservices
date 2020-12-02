@@ -94,6 +94,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
+            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -165,6 +166,7 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
