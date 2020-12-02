@@ -28,7 +28,6 @@ namespace WPEFramework {
             static const string METHOD_CREATE_LINK;
             static const string METHOD_CLEAR_LINK;
             //events
-            static const string EVT_ON_USB_MOUNT_CHANGED;
             //other
             static const string USB_MOUNT_PATH;
             static const string LINK_PATH;

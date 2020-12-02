@@ -11,7 +11,6 @@ const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess"
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
-const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
 const string WPEFramework::Plugin::UsbAccess::USB_MOUNT_PATH = "/run/media/sda"; // platco
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/opt/www/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
