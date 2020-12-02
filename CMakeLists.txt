@@ -16,6 +16,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.3)
+project(RDKServices)
 
 find_package(WPEFramework)
 
@@ -285,6 +286,10 @@ endif()
 
 if(PLUGIN_PERSISTENT_STORE)
     add_subdirectory(PersistentStore)
+endif()
+
+if(PLUGIN_WEBBRIDGE)
+    add_subdirectory(WebBridge)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

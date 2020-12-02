@@ -1,0 +1,5 @@
+{
+ "locator":"libWPEFrameworkWebBridge.so",
+ "classname":"WebBridge",
+ "autostart":true
+}
