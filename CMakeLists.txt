@@ -283,6 +283,10 @@ if(PLUGIN_OCICONTAINER)
     add_subdirectory(OCIContainer)
 endif()
 
+if(PLUGIN_USBACCESS)
+    add_subdirectory(UsbAccess)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
