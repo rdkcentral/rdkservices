@@ -1,6 +1,3 @@
-
-const WebSocket = require('ws');
-
 const client = new WebSocket("ws://localhost:10001/jsonrpc", "json");
 client.onopen = function(e) {
   console.log("client connected");

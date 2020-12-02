@@ -1,5 +1,3 @@
-const WebSocket = require("ws")
-
 const request_state = {
   PENDING: 'pending'
 };
@@ -222,6 +220,3 @@ class ServiceManager {
     return self._json_rpc_client.sendRequest("Controller.1.clone", params, service_name);
   }
 }
-
-exports.Service = Service
-exports.ServiceManager = ServiceManager

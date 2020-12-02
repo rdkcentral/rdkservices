@@ -1,6 +1,5 @@
-const Thunder = require("./WebBridgeSDK.js")
 
-class CalculatorService extends Thunder.Service {
+class CalculatorService extends Service {
   constructor() {
     super("org.rdk.Calculator");
     this.registerMethod('add', 1, this.add.bind(this));
@@ -24,7 +23,7 @@ class CalculatorService extends Thunder.Service {
   }
 }
 
-const service_manager = new Thunder.ServiceManager()
+const service_manager = new ServiceManager()
 service_manager.open({"host":"127.0.0.1", "port":10001})
   .then(() => {
     service_manager.registerService(new CalculatorService())
