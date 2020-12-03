@@ -23,6 +23,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         DisplaySettings.cpp
         Module.cpp
+	../helpers/tptimer.cpp
         ../helpers/utils.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
