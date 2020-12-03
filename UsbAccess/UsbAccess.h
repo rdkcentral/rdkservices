@@ -30,8 +30,8 @@ namespace WPEFramework {
             //events
             //other
             static const string USB_MOUNT_PATH;
-            static const string LINK_PATH;
             static const string LINK_URL_HTTP;
+            static const string LIGHTTPD_CONF_PATH;
 
         private/*registered methods (wrappers)*/:
 
@@ -43,6 +43,8 @@ namespace WPEFramework {
         private/*internal methods*/:
             UsbAccess(const UsbAccess&) = delete;
             UsbAccess& operator=(const UsbAccess&) = delete;
+
+            string getLinkPath() const;
         };
     } // namespace Plugin
 } // namespace WPEFramework
