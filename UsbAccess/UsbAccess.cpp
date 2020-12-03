@@ -12,8 +12,8 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileLis
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
 const string WPEFramework::Plugin::UsbAccess::USB_MOUNT_PATH = "/run/media/sda"; // platco
-const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/opt/www/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
+const string WPEFramework::Plugin::UsbAccess::LIGHTTPD_CONF_PATH = "/etc/lighttpd/lighttpd.conf";
 
 using namespace std;
 
@@ -126,11 +126,12 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             bool success = false;
-            int rc = symlink(USB_MOUNT_PATH.c_str(), LINK_PATH.c_str());
+            string linkPath = getLinkPath();
+            int rc = symlink(USB_MOUNT_PATH.c_str(), linkPath.c_str());
 
             if (0 == rc)
             {
-                LOGINFO("symlink %s created", LINK_PATH.c_str());
+                LOGINFO("symlink %s created", linkPath.c_str());
                 response["baseURL"] = LINK_URL_HTTP;
                 success = true;
             }
@@ -148,11 +149,12 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             bool success = false;
-            int rc = remove(LINK_PATH.c_str());
+            string linkPath = getLinkPath();
+            int rc = remove(linkPath.c_str());
 
             if (0 == rc)
             {
-                LOGINFO("symlink %s removed", LINK_PATH.c_str());
+                LOGINFO("symlink %s removed", linkPath.c_str());
                 success = true;
             }
             else
@@ -162,6 +164,60 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+        }
+
+        string UsbAccess::getLinkPath() const
+        {
+            static string path;
+
+            static bool initedOnce = false;
+            if (!initedOnce)
+            {
+                FILE* f = fopen(LIGHTTPD_CONF_PATH.c_str(), "r");
+                if (f != nullptr)
+                {
+                    std::vector<char> buf;
+                    buf.resize(1024);
+
+                    while (fgets(buf.data(), buf.size(), f))
+                    {
+                        if (strstr(buf.data(), "server.document-root") == buf.data())
+                        {
+                            std::string s(buf.data());
+
+                            size_t begin = s.find_first_of('"');
+                            size_t end = std::string::npos;
+                            if (std::string::npos != begin)
+                                end = s.find_first_of('"', begin + 2);
+
+                            if (std::string::npos != begin && std::string::npos != end)
+                            {
+                                path = s.substr(begin + 1, end - begin - 1);
+                                break;
+                            }
+                            else
+                                LOGERR("Failed to parse line: ", s.c_str());
+                        }
+                    }
+                    fclose(f);
+
+                    if (path.empty())
+                        LOGERR("Failed to parse conf %s", LIGHTTPD_CONF_PATH.c_str());
+                    else
+                    {
+                        if (path[path.size() - 1] != '/')
+                            path += "/";
+                        path += "usbdrive";
+                        LOGINFO("Link path is: %s", path.c_str());
+                    }
+                }
+                else
+                    LOGERR("Failed to open conf %s:%s", LIGHTTPD_CONF_PATH.c_str(), strerror(errno));
+
+                initedOnce = true;
+            }
+
+            return path;
         }
     } // namespace Plugin
 } // namespace WPEFramework
