@@ -78,6 +78,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -190,7 +192,7 @@ namespace WPEFramework {
                     {
                         std::string clientidentifier = serviceConfig["clientidentifier"].String();
                         gRdkShellMutex.lock();
-                        RdkShell::CompositorController::kill(clientidentifier);
+                        RdkShell::CompositorController::kill(service->Callsign());
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
@@ -268,6 +270,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -2663,7 +2667,105 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            uint32_t result;
+            killAllApps();
+            JsonObject destroyRequest, destroyResponse;
+            destroyRequest["callsign"] = "ResidentApp";
+            result = destroyWrapper(destroyRequest, destroyResponse);
+            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
+            if (NULL != factoryAppUrl)
+            {
+                JsonObject launchRequest;
+                launchRequest["callsign"] = "factoryapp";
+                launchRequest["type"] = "LightningApp";
+                launchRequest["uri"] = std::string(factoryAppUrl);
+                launchRequest["focused"] = true;
+                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
+                result = launchWrapper(launchRequest, response);
+                bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;
+                if (true == launchFactoryResult)
+                {
+                    std::cout << "Launching factory application succeeded " << std::endl;
+                }
+                else
+                {
+                    std::cout << "Launching factory application failed " << std::endl;
+                }
+                return result;
+            }
+            else
+            {
+                std::cout << "factory app url is empty " << std::endl;
+                response["message"] = " factory app url is empty";
+                returnResponse(false);
+            }
+        }
+
+        uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            killAllApps();
             bool ret = true;
+            std::string callsign("ResidentApp");
+            JsonObject activateParams;
+            activateParams.Set("callsign",callsign.c_str());
+            JsonObject activateResult;
+            int32_t status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+
+            std::cout << "activate resident app status: " << status << std::endl;
+            if (status > 0)
+            {
+                std::cout << "trying status one more time...\n";
+                status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+                std::cout << "activate resident app status: " << status << std::endl;
+                if (status > 0)
+                {
+                    response["message"] = "resident app launch failed";
+                    ret = false;
+                }
+                else
+                {
+                    ret = true;
+                }
+            }
+            returnResponse(ret);
+        }
+
+        uint32_t RDKShell::toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            std::string callsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            for (auto pluginName : gActivePlugins)
+            {
+                if (pluginName == callsign)
+                {
+                    std::cout << "factory app is already running" << std::endl;
+                    isFactoryAppRunning = true;
+                    break;
+                }
+            }
+            if (isFactoryAppRunning)
+            {
+                launchResidentAppWrapper(parameters, response);
+            }
+            else
+            {
+                launchFactoryAppWrapper(parameters, response);
+            }
+        }
+        // Registered methods begin
+
+        // Events begin
+        void RDKShell::notify(const std::string& event, const JsonObject& parameters)
+        {
+            sendNotify(event.c_str(), parameters);
+        }
+      // Events end
+
+        void RDKShell::killAllApps()
+        {
+            bool ret = false;
             JsonObject stateRequest, stateResponse;
             uint32_t result = getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
@@ -2674,49 +2776,10 @@ namespace WPEFramework {
                 {
                    JsonObject destroyRequest, destroyResponse;
                    destroyRequest["callsign"] = stateInfo["callsign"].String();
-                   std::cout << "destroying " << stateInfo["callsign"].String().c_str() << std::endl;
                    result = destroyWrapper(destroyRequest, destroyResponse);
                 }
             }
-            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
-            {
-                JsonObject launchRequest, launchResponse;
-                launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "LightningApp";
-                launchRequest["uri"] = std::string(factoryAppUrl);
-                launchRequest["focused"] = true;
-                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
-                result = launchWrapper(launchRequest, launchResponse);
-                bool launchFactoryResult = launchResponse.HasLabel("success")?launchResponse["success"].Boolean():false;
-                if (true == launchFactoryResult)
-                {
-                    std::cout << "Launching factory application succeeded " << std::endl;
-                }
-                else
-                {
-                    std::cout << "Launching factory application failed " << std::endl;
-                    response["message"] = "launch factory app failed";
-                    ret = false;
-                }
-            }
-            else
-            {
-                std::cout << "factory app url is empty " << std::endl;
-                response["message"] = "factory application url is empty";
-                ret = false;
-            }
-            returnResponse(ret);
         }
-
-        // Registered methods begin
-
-        // Events begin
-        void RDKShell::notify(const std::string& event, const JsonObject& parameters)
-        {
-            sendNotify(event.c_str(), parameters);
-        }
-      // Events end
 
         // Internal methods begin
         bool RDKShell::moveToFront(const string& client)
