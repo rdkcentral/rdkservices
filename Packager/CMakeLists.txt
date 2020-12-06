@@ -134,32 +134,13 @@ else (BUILD_WITH_PACKAGER_EX)
 
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-    find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
-    find_library(LIBUUID_LIBRARY libuuid.so)
-    include_directories(${LIBUUID_INCLUDE_DIR})
-
-    find_package(${NAMESPACE}Plugins REQUIRED)
-    find_package(libprovision QUIET)
-    find_package(LibOPKG REQUIRED)
-    find_package(GLIB REQUIRED)
-
     find_package(CURL)
     find_package(CompileSettingsDebug CONFIG REQUIRED)
-
-    # enabling the secure extension requires a license: https://www.hwaci.com/cgi-bin/see-step1
-    if (USE_SQLITE_SEE)
-        find_package(SqliteSee REQUIRED)
-    else()
-        find_package(Sqlite REQUIRED)
-    endif()
-
 
     add_library(${MODULE_NAME} SHARED
         Module.cpp
         Packager.cpp
-        PackagerImplementation.cpp
-        PackagerExUtils.cpp
-        PackagerExImplementation.cpp)
+        PackagerImplementation.cpp)
 
     if (CURL_FOUND)
         include_directories(${CURL_INCLUDE_DIRS})
