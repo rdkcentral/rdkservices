@@ -507,6 +507,18 @@ namespace WPEFramework {
               if (actionObject.HasLabel("invoke"))
               {
                 std::string invoke = actionObject["invoke"].String();
+                size_t lastPositionOfDot = invoke.find_last_of(".");
+                if (lastPositionOfDot != -1)
+                {
+                    std::string callsign = invoke.substr(0, lastPositionOfDot);
+                    std::cout << "callsign will be " << callsign << std::endl;
+                    //get callsign
+                    JsonObject activateParams;
+                    activateParams.Set("callsign",callsign.c_str());
+                    JsonObject activateResult;
+                    int32_t activateStatus = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+                }
+
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
                 uint32_t status = 0;
