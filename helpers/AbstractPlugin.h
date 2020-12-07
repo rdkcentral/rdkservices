@@ -19,7 +19,7 @@
 
 #pragma once
 
-//#include "Module.h"
+#include <unordered_map>
 
 namespace WPEFramework {
 
@@ -54,17 +54,56 @@ namespace WPEFramework {
             //End methods
 
         protected:
+
+            //registerMethod to register a method in all versions
             template <typename METHOD, typename REALOBJECT>
             void registerMethod(const string& methodName, const METHOD& method, REALOBJECT* objectPtr)
             {
-                Register(methodName, method, objectPtr);
-                m_registeredMethods.push_back(methodName);
+                for(uint8_t ver = 1; ver <= m_currVersion; ver++)  
+                {
+                    auto handler = m_versionHandlers.find(ver);
+                    if(handler != m_versionHandlers.end())
+                        handler->second->Register<WPEFramework::Core::JSON::VariantContainer, WPEFramework::Core::JSON::VariantContainer, METHOD, REALOBJECT>(methodName, method, objectPtr);
+                }
+            }
+
+            //registerMethod to register a method in specific versions
+            template <typename METHOD, typename REALOBJECT>
+            void registerMethod(const string& methodName, const METHOD& method, REALOBJECT* objectPtr, const std::vector<uint8_t> versions)
+            {
+                for(auto ver : versions)
+                {
+                    auto handler = m_versionHandlers.find(ver);
+                    if(handler != m_versionHandlers.end())
+                        handler->second->Register<WPEFramework::Core::JSON::VariantContainer, WPEFramework::Core::JSON::VariantContainer, METHOD, REALOBJECT>(methodName, method, objectPtr);
+                } 
             }
 
         public:
-            AbstractPlugin() : PluginHost::JSONRPC()
+            AbstractPlugin() : PluginHost::JSONRPC(), m_currVersion(1)
             {
                 LOGINFO();
+
+                // For default constructor assume that only version 1 is supported.
+                // Also version 1 handler would always be the current object.
+                m_versionHandlers[1] = GetHandler(1);
+
+                registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
+            }
+
+            AbstractPlugin(const uint8_t currVersion) : PluginHost::JSONRPC(), m_currVersion(currVersion)
+            {
+                LOGINFO();
+
+                // Create handlers for all the versions upto m_currVersion
+                m_versionHandlers[1] = GetHandler(1);
+                for(uint8_t i = 2; i <= m_currVersion; i++)
+                {
+                    std::vector<uint8_t> vec;
+                    vec.push_back(i);
+                    CreateHandler(vec);
+                    m_versionHandlers[i] = GetHandler(i);
+                }
 
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
             }
@@ -72,8 +111,6 @@ namespace WPEFramework {
             virtual ~AbstractPlugin()
             {
                 LOGINFO();
-
-                for (auto& i : m_registeredMethods) { Unregister(i); }
             }
 
             //Build QueryInterface implementation, specifying all possible interfaces to be returned.
@@ -101,7 +138,8 @@ namespace WPEFramework {
                 return(string());
             }
         private:
-            std::vector<std::string> m_registeredMethods;
+            std::unordered_map<uint8_t, WPEFramework::Core::JSONRPC::Handler*> m_versionHandlers;
+            uint8_t m_currVersion; // current supported version
         };
 	} // namespace Plugin
 } // namespace WPEFramework
