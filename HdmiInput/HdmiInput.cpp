@@ -34,6 +34,7 @@
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
+#define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 
@@ -58,7 +59,7 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
-
+            registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
         }
 
         HdmiInput::~HdmiInput()
@@ -135,6 +136,82 @@ namespace WPEFramework
             }
             returnResponse(success);
 
+        }
+
+        uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO();
+
+            bool result = true;
+            if (!parameters.HasLabel("x") && !parameters.HasLabel("y"))
+            {
+                result = false;
+                response["message"] = "please specif coordinates (x,y)";
+            }
+
+            if (!parameters.HasLabel("w") && !parameters.HasLabel("h"))
+            {
+                result = false;
+                response["message"] = "please specify window width and height (w,h)";
+            }
+
+            if (result)
+            {
+                int x = 0;
+                int y = 0;
+                int w = 0;
+                int h = 0;
+
+                try
+		{
+		       if (parameters.HasLabel("x"))
+                       {
+                           x = std::stoi(parameters["x"].String());
+                       }
+                       if (parameters.HasLabel("y"))
+                       {
+                           y = std::stoi(parameters["y"].String());
+                       }
+                       if (parameters.HasLabel("w"))
+                       {
+                           w = std::stoi(parameters["w"].String());
+                       }
+                       if (parameters.HasLabel("h"))
+                       {
+                           h = std::stoi(parameters["h"].String());
+                       }
+		}
+                catch (...) {
+		    LOGWARN("Invalid Arguments");
+		    response["message"] = "Invalid Arguments";
+		    returnResponse(false);
+                }
+
+                result = setVideoRectangle(x, y, w, h);
+                if (false == result) {
+                  LOGWARN("HdmiInputService::setVideoRectangle Failed");
+                  response["message"] = "failed to set scale";
+                }
+            }
+
+            returnResponse(result);
+
+        }
+
+        bool HdmiInput::setVideoRectangle(int x, int y, int width, int height)
+        {
+            bool ret = true;
+
+            try
+            {
+                device::HdmiInput::getInstance().scaleVideo(x, y, width, height);
+            }
+            catch (const device::Exception& err)
+            {
+                ret = false;
+            }
+
+            return ret;
         }
 
         uint32_t HdmiInput::getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
