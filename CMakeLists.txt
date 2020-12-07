@@ -283,6 +283,10 @@ if(PLUGIN_OCICONTAINER)
     add_subdirectory(OCIContainer)
 endif()
 
+if(PLUGIN_WEBBRIDGE)
+    add_subdirectory(WebBridge)
+endif()
+
 if(PLUGIN_USBACCESS)
     add_subdirectory(UsbAccess)
 endif()
