@@ -41,6 +41,8 @@
 #include "dsDisplay.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
 
+#include "tr181api.h"
+
 #include "tracing/Logging.h"
 #include <syscall.h>
 #include "utils.h"
@@ -60,6 +62,13 @@ using namespace std;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
+
+#define DISPLAYSETTINGS_RFC_CALLERID        "displaysettings"
+#define DISPLAYSETTINGS_AUDIOPORT_HDMI_ENABLED_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.HDMI.Enabled"
+#define DISPLAYSETTINGS_AUDIOPORT_SPDIF_ENABLED_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.SPDIF.Enabled"
+#define DISPLAYSETTINGS_AUDIOPORT_SPEAKER_ENABLED_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.SPEAKER.Enabled"
+#define DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.HDMI_ARC.Enabled"
+
 
 #ifdef USE_IARM
 namespace
@@ -215,6 +224,118 @@ namespace WPEFramework {
             activatePlugin(HDMICECSINK_CALLSIGN);
             LOGINFO("Starting the timer");
             m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
+
+            TR181_ParamData_t param;
+            memset(&param, 0, sizeof(param));
+
+	    tr181ErrorCode_t err = tr181Success;
+            uint32_t ret = Core::ERROR_NONE;
+
+            memset(&param, 0, sizeof(param));
+            err = getLocalParam(DISPLAYSETTINGS_RFC_CALLERID, DISPLAYSETTINGS_AUDIOPORT_HDMI_ENABLED_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                JsonObject aPortHdmiEnableResult;
+                JsonObject aPortHdmiEnableParam;
+
+                aPortHdmiEnableParam.Set(_T("audioPort"),"HDMI0");
+                LOGINFO("getLocalParam for %s is %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ENABLED_RFC_PARAM, param.value);
+                if(!std::string(param.value).compare("true")) {
+                   aPortHdmiEnableParam.Set(_T("enable"),true);
+                }
+                else {
+                    aPortHdmiEnableParam.Set(_T("enable"),false);
+                }
+
+                ret = setEnableAudioPort (aPortHdmiEnableParam, aPortHdmiEnableResult);
+
+                if(ret != Core::ERROR_NONE) {
+                    LOGWARN("Audio Port : [HDMI0] enable: %s failed ! error code%d\n", param.value, ret);
+                }
+                else {
+                    LOGINFO("Audio Port : [HDMI0] initialized successfully, enable: %s\n", param.value);
+                }
+            }
+            else
+            {
+                LOGWARN("getLocalParam for %s Failed : %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ENABLED_RFC_PARAM, getTR181ErrorString(err));
+            }
+
+            err = getLocalParam(DISPLAYSETTINGS_RFC_CALLERID, DISPLAYSETTINGS_AUDIOPORT_SPDIF_ENABLED_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                JsonObject aPortSpdifEnableResult;
+                JsonObject aPortSpdifEnableParam;
+
+                aPortSpdifEnableParam.Set(_T("audioPort"),"SPDIF0");
+                LOGINFO("getLocalParam for %s is %s\n", DISPLAYSETTINGS_AUDIOPORT_SPDIF_ENABLED_RFC_PARAM, param.value);
+                if(!std::string(param.value).compare("true")) {
+                   aPortSpdifEnableParam.Set(_T("enable"),true);
+                }
+                else {
+                    aPortSpdifEnableParam.Set(_T("enable"),false);
+                }
+
+                ret = setEnableAudioPort (aPortSpdifEnableParam, aPortSpdifEnableResult);
+
+                if(ret != Core::ERROR_NONE) {
+                    LOGWARN("Audio Port : [SPDIF0] enable: %s failed ! error code%d\n", param.value, ret);
+                }
+                else {
+                    LOGINFO("Audio Port : [SPDIF0] initialized successfully, enable: %s\n", param.value);
+                }
+            }
+            else
+            {
+                LOGWARN("getLocalParam for %s Failed : %s\n", DISPLAYSETTINGS_AUDIOPORT_SPDIF_ENABLED_RFC_PARAM, getTR181ErrorString(err));
+            }
+
+            err = getLocalParam(DISPLAYSETTINGS_RFC_CALLERID, DISPLAYSETTINGS_AUDIOPORT_SPEAKER_ENABLED_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                JsonObject aPortSpeakerEnableResult;
+                JsonObject aPortSpeakerEnableParam;
+
+                aPortSpeakerEnableParam.Set(_T("audioPort"),"SPEAKER0");
+                LOGINFO("getLocalParam for %s is %s\n", DISPLAYSETTINGS_AUDIOPORT_SPEAKER_ENABLED_RFC_PARAM, param.value);
+                if(!std::string(param.value).compare("true")) {
+                   aPortSpeakerEnableParam.Set(_T("enable"),true);
+                }
+                else {
+                    aPortSpeakerEnableParam.Set(_T("enable"),false);
+                }
+
+                ret = setEnableAudioPort (aPortSpeakerEnableParam, aPortSpeakerEnableResult);
+
+                if(ret != Core::ERROR_NONE) {
+                    LOGWARN("Audio Port : [SPEAKER0] enable: %s failed ! error code%d\n", param.value, ret);
+                }
+                else {
+                    LOGINFO("Audio Port : [SPEAKER0] initialized successfully, enable: %d\n", param.value);
+                }
+            }
+            else
+            {
+                LOGWARN("getLocalParam for %s Failed : %s\n", DISPLAYSETTINGS_AUDIOPORT_SPEAKER_ENABLED_RFC_PARAM, getTR181ErrorString(err));
+            }
+
+            err = getLocalParam(DISPLAYSETTINGS_RFC_CALLERID, DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                LOGINFO("getLocalParam for %s is %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, param.value);
+
+//Set audio port config. ARC will be set up by onTimer()		
+                if(!std::string(param.value).compare("true")) {
+		    m_audioOutputPortConfig["HDMI_ARC"] = true;
+                }
+                else {
+                    m_audioOutputPortConfig["HDMI_ARC"] = false;
+                }
+            }
+            else
+            {
+                LOGWARN("getLocalParam for %s Failed : %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, getTR181ErrorString(err));
+            }
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -452,21 +573,11 @@ namespace WPEFramework {
                                         aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
                                     }
                                     else if(types & dsAUDIOARCSUPPORT_ARC)  {
-                                        if (DisplaySettings::_instance->getActivatedPluginReady(HDMICECSINK_CALLSIGN)) {
-                                            auto hdmiCecSinkPlugin = DisplaySettings::_instance->getHdmiCecSinkPlugin();
-                                            if (!hdmiCecSinkPlugin) {
-                                                LOGERR("dsHdmiEventHandler failed: HdmiCecSink Initialisation failed\n");
-                                            }
-                                            else {
-                                                JsonObject hdmiCecSinkResult;
-                                                JsonObject param;
-
-                                                param["enabled"] = true;
-                                                hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
-                                                if (!hdmiCecSinkResult["success"].Boolean()){
-                                                    LOGERR("dsHdmiEventHandler failed: Request ARC Initialisation failed\n");
-                                                }
-                                           }
+                                        if (!DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(true)) {
+                                            LOGERR("dsHdmiEventHandler: setUpHdmiCecSinkArcRouting failed !!!\n");;
+                                        }
+                                        else {
+                                            LOGINFO("dsHdmiEventHandler: setUpHdmiCecSinkArcRouting successful");
                                         }
                                     }
                                     else {
@@ -2353,6 +2464,43 @@ namespace WPEFramework {
         }
 
 
+        bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
+        {
+            LOGINFO();
+            bool success = true;
+
+            if (getActivatedPluginReady(HDMICECSINK_CALLSIGN)) {
+                auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
+                if (!hdmiCecSinkPlugin) {
+                    LOGERR("HdmiCecSink Initialisation failed\n");
+                }
+                else {
+                    JsonObject hdmiCecSinkResult;
+                    JsonObject param;
+
+                    if(arcEnable) {
+                        param["enabled"] = true;
+                    }else {
+                        param["enabled"] = false;
+                    }
+
+                    LOGINFO("ARC Routing - %d \n", arcEnable);
+                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+			success = false;
+                        LOGERR("HdmiCecSink Plugin returned error\n");
+                    }
+                }
+            }
+	    else {
+		success = false;
+                LOGERR("HdmiCecSink plugin not ready\n");
+            }
+
+            return success;
+	}
+
+
         uint32_t DisplaySettings::setEnableAudioPort (const JsonObject& parameters, JsonObject& response)
         {   //TODO: Handle other audio ports. Currently only supports HDMI ARC/eARC
             LOGINFOMETHOD();
@@ -2375,15 +2523,15 @@ namespace WPEFramework {
             {
                 if(!audioPort.compare("HDMI0")) {
 		    success = false;
-		    LOGERR("setEnableAudioPort failed: Not supported for Port : %s\n",C_STR(audioPort));
+		    LOGERR("failed: Not supported for Port : %s\n",C_STR(audioPort));
                 }
                 else if (!audioPort.compare("SPDIF0")){
 	            success = false;
-		    LOGERR("setEnableAudioPort failed: Not supported for Port : %s\n",C_STR(audioPort));
+		    LOGERR("failed: Not supported for Port : %s\n",C_STR(audioPort));
                 }
                 else if (!audioPort.compare("SPEAKER0")){
 		    success = false;
-		    LOGERR("setEnableAudioPort failed: %s by default enabled\n",C_STR(audioPort));
+		    LOGERR("failed: %s by default enabled\n",C_STR(audioPort));
                 }
                 else if (!audioPort.compare("HDMI_ARC0")){
 		    int types = dsAUDIOARCSUPPORT_NONE;
@@ -2397,47 +2545,39 @@ namespace WPEFramework {
 		    aPort.getSupportedARCTypes(&types);
 		    if(types & dsAUDIOARCSUPPORT_eARC) {
 			if(pEnable) {
-      			    LOGINFO("setEnableAudioPort: Enable eARC !!!");
+      			    LOGINFO("Enable eARC !!!");
 	                    aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
 			}
 			else{
-                            LOGINFO("setEnableAudioPort: Disable eARC !!!");
+                            LOGINFO("Disable eARC !!!");
                             aPort.enableARC(dsAUDIOARCSUPPORT_eARC, false);
 		        }
 	            }
 		    else if(types & dsAUDIOARCSUPPORT_ARC) {
-                        if (getActivatedPluginReady(HDMICECSINK_CALLSIGN)) {
-                            auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
-                            if (!hdmiCecSinkPlugin) {
-                                LOGERR("setEnableAudioPort failed: HdmiCecSink Initialisation failed\n");
-                            }
-                            else {
-                                JsonObject hdmiCecSinkResult;
-                                JsonObject param;
-
-                                if(pEnable) {
-                                    param["enabled"] = true;
-				}else {
-                                    param["enabled"] = false;
-			        }
-
-				LOGINFO("setEnableAudioPort: setupARCRouting - %d \n", pEnable);
-                                hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
-                                if (!hdmiCecSinkResult["success"].Boolean()) {
-                                    LOGERR("setEnableAudioPort failed: setupARCRouting failed !!!\n");;
-                                }
-                            }
+                        if (!setUpHdmiCecSinkArcRouting (pEnable)) {
+                            LOGERR("setUpHdmiCecSinkArcRouting failed !!!\n");;
 		        }
+			else {
+			    LOGINFO("setUpHdmiCecSinkArcRouting successful");
+			}
 	            }
 		    else {
                         LOGWARN("Connected device doesn't have ARC/eARC capability \n");
 	            }
 
 		    m_audioOutputPortConfig["HDMI_ARC"] = pEnable;
+		    string value = pEnable ? "true" : "false";
+                    tr181ErrorCode_t err = setLocalParam(DISPLAYSETTINGS_RFC_CALLERID, DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, value.c_str());
+                    if ( err != tr181Success ) {
+                       LOGWARN("setLocalParam for %s Failed : %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, getTR181ErrorString(err));
+                    }
+                    else {
+                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", DISPLAYSETTINGS_AUDIOPORT_HDMI_ARC_ENABLED_RFC_PARAM, value.c_str());
+                    }
                 }
                 else {
 	            success = false;
-                    LOGERR("setEnableAudioPort failed: Invalid Param\n");
+                    LOGERR("failed: Invalid Param\n");
                 }
 
             }
@@ -2636,8 +2776,8 @@ namespace WPEFramework {
         // 4.
         void DisplaySettings::onTimer()
         {
-            std::lock_guard<std::mutex> guard(m_callMutex);
             LOGINFO();
+	    m_callMutex.lock();
             bool pluginActivated = isPluginActivated(HDMICECSINK_CALLSIGN);
             if(!m_subscribed) {
                 if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE))
@@ -2648,6 +2788,34 @@ namespace WPEFramework {
                         LOGINFO("Timer stopped.");
                     }
                     LOGINFO("Subscription completed.");
+		    sleep(WARMING_UP_TIME_IN_SECONDS);
+
+                    JsonObject aPortArcEnableResult;
+                    JsonObject aPortArcEnableParam;
+		    JsonObject aPortConfig;
+
+                    aPortArcEnableParam.Set(_T("audioPort"),"HDMI_ARC0");
+		    aPortConfig = getAudioOutputPortConfig();
+                    bool arcEnable = false;
+		    uint32_t ret = Core::ERROR_NONE;
+
+		    if (aPortConfig.HasLabel("HDMI_ARC")) {
+                        try {
+                                arcEnable = aPortConfig["HDMI_ARC"].Boolean();
+                        }catch (...) {
+                                LOGERR("HDMI_ARC status read error");
+                        }
+                    }
+
+                    aPortArcEnableParam.Set(_T("enable"),arcEnable);
+                    ret = setEnableAudioPort (aPortArcEnableParam, aPortArcEnableResult);
+                    if(ret != Core::ERROR_NONE) {
+                        LOGWARN("Audio Port : [HDMI_ARC0] enable: %d failed ! error code%d\n", arcEnable, ret);
+                    }
+                    else {
+                        LOGINFO("Audio Port : [HDMI_ARC0] initialized successfully, enable: %d\n", arcEnable);
+                    }
+
                 } else {
                     LOGERR("Could not subscribe this time, one more attempt in %d msec. Plugin is %s", RECONNECTION_TIME_IN_MILLISECONDS, pluginActivated ? "ACTIVE" : "BLOCKED");
                     if (!pluginActivated)
@@ -2662,6 +2830,7 @@ namespace WPEFramework {
                     m_timer.stop();
                 }
             }
+	    m_callMutex.unlock();
         }
          // Event management end
 
@@ -2879,12 +3048,18 @@ namespace WPEFramework {
 
         bool DisplaySettings::checkPortName(std::string& name) const
         {
-            if (Utils::String::stringContains(name,"HDMI"))
-                name = "HDMI0";
+            if (Utils::String::stringContains(name,"HDMI")) {
+		if(Utils::String::stringContains(name,"HDMI_ARC"))
+                    name = "HDMI_ARC0";
+		else
+		    name = "HDMI0";
+            }
             else if (Utils::String::stringContains(name,"SPDIF"))
                 name = "SPDIF0";
             else if (Utils::String::stringContains(name,"IDLR"))
                 name = "IDLR0";
+            else if (Utils::String::stringContains(name,"SPEAKER"))
+                name = "SPEAKER0";
             else if (!name.empty()) // Empty is allowed
                 return false;
 

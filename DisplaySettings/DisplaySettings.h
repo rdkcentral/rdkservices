@@ -149,6 +149,7 @@ namespace WPEFramework {
             bool isPluginActivated(const char* callSign);
             bool getActivatedPluginReady(const char* callSign);
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
+	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    void onTimer();
 
 	    TpTimer m_timer;
