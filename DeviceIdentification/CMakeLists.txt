@@ -45,9 +45,22 @@ elseif (NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-    target_sources(${MODULE_NAME} 
-        PRIVATE 
-            Implementation/Nexus/Nexus.cpp)
+    if (DEVICEIDENTIFICATION_IMPLEMENTATION_PATH)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                ${DEVICEIDENTIFICATION_IMPLEMENTATION_PATH}/Nexus.cpp)
+    else()
+        include(GetExternalCode)
+        set(DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION "master" CACHE STRING "DeviceIdentification implementation version")
+        GetExternalCode(
+            GIT_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification"
+            GIT_TAG ${DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION}
+            SOURCE_DIR "Implementation/Nexus"
+        )
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                Implementation/Nexus/Nexus.cpp)
+    endif()
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
@@ -59,6 +72,10 @@ elseif (BUILD_AMLOGIC)
     target_sources(${MODULE_NAME}
         PRIVATE
             Implementation/Amlogic/Amlogic.cpp)
+elseif (BUILD_REALTEK)
+	target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Realtek/Realtek.cpp)
 else ()
     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
 endif()
