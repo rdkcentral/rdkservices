@@ -134,7 +134,6 @@ else (BUILD_WITH_PACKAGER_EX)
 
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-    find_package(CURL)
     find_package(CompileSettingsDebug CONFIG REQUIRED)
 
     add_library(${MODULE_NAME} SHARED
@@ -142,21 +141,10 @@ else (BUILD_WITH_PACKAGER_EX)
         Packager.cpp
         PackagerImplementation.cpp)
 
-    if (CURL_FOUND)
-        include_directories(${CURL_INCLUDE_DIRS})
-        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
-    else (CURL_FOUND)
-        message ("Curl/libcurl required.")
-    endif (CURL_FOUND)
-
     add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
-    link_directories(${SQLITE_LIBRARY_DIRS})
-
 
     target_include_directories(${MODULE_NAME} PRIVATE ../helpers
-            ${SQLITE_INCLUDE_DIRS}
-            ${PLABELS_INCLUDE_DIRS}
-            ${GLIB_INCLUDE_DIRS})
+            ${PLABELS_INCLUDE_DIRS})
 
     if (libprovision_FOUND)
         target_link_libraries(${MODULE_NAME}
@@ -164,11 +152,7 @@ else (BUILD_WITH_PACKAGER_EX)
                 CompileSettingsDebug::CompileSettingsDebug
                 ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 LibOPKG::LibOPKG
-                ${LIBUUID_LIBRARY}
-                ${SQLITE_LIBRARIES}
-                ${GLIB_LIBRARIES}
                 libprovision::libprovision
-
                 )
     else (libprovision_FOUND)
         target_include_directories(${MODULE_NAME}
@@ -181,9 +165,6 @@ else (BUILD_WITH_PACKAGER_EX)
                 CompileSettingsDebug::CompileSettingsDebug
                 ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 ${LIBOPKG_LIBRARIES}
-                ${LIBUUID_LIBRARY}
-                ${SQLITE_LIBRARIES}
-                ${GLIB_LIBRARIES}
                 )
     endif (libprovision_FOUND)
 
