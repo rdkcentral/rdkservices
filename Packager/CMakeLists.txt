@@ -141,8 +141,6 @@ else (BUILD_WITH_PACKAGER_EX)
         Packager.cpp
         PackagerImplementation.cpp)
 
-    add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
-
     target_include_directories(${MODULE_NAME} PRIVATE ../helpers
             ${PLABELS_INCLUDE_DIRS})
 
