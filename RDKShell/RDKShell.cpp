@@ -796,8 +796,19 @@ namespace WPEFramework {
             {
                 //optional param?
                 const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
-
-                const uint32_t keyCode = parameters["keyCode"].Number();
+                uint32_t keyCode = parameters["keyCode"].Number();
+        
+                // check for * parameter
+                JsonValue keyCodeValue = parameters["keyCode"];
+                printf("[%d] \n", keyCodeValue.Content());fflush(stdout);
+                if (keyCodeValue.Content() == JsonValue::type::STRING)
+                {
+                    std::string keyCodeStringValue = parameters["keyCode"].String();
+                    if (keyCodeStringValue.compare("*") == 0)
+                    {
+                        keyCode = 255;        
+                    }
+                }
                 string client;
                 if (parameters.HasLabel("client"))
                 {
