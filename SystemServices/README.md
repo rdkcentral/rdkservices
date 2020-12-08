@@ -225,6 +225,31 @@
     Initiates a firmware update. This method has no affect if update is not available. The State Observer Method/Event may be used to listen to firmware update events.  
   _**Request payload:**_ `{"params":{}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
+  - **setNetworkStandbyMode**
+
+    TBD.  
+  _**Request payload:**_ `{"params":{}}`  
+  _**Response payload:**_ `{"result":{"success":<bool>}}`
+  - **getNetworkStandbyMode**
+
+    TBD.  
+  _**Request payload:**_ `{"params":{}}`  
+  _**Response payload:**_ `{"result":{"success":<bool>}}`
+  - **getPowerStateIsManagedByDevice**
+
+    Returns false if the following environment variable is set and has a value of 1: RDK_NO_ACTION_ON_POWER_KEY=1. Otherwise, this API will return true.  
+  _**Request payload:**_ `{"params":{}}`  
+  _**Response payload:**_ `{"result":{"success":<bool>,"powerStateManagedByDevice":<bool>}}`
+  - **getTimeZones**
+
+    Reads data available from /usr/share/zoneinfo/ and returns it in a json format.  
+  _**Request payload:**_ `{"params":{}}`  
+  _**Response payload:**_ `{"result":{"zoneinfo":{<Zone>:{<Time Zones>}}}}`
+  - **uploadLogs**
+
+    Uploads the logs to the specified URL or the default url if none were provided. returns success=true for Platco and Llama. Returns success=false, reason=unsupported for other platforms and does not upload logs.  
+  _**Request payload:**_ `"params":{"url":"<URL>"}`  
+  _**Response payload:**_ `{"result":{"success":<bool>}}`
 ## System Thunder Plugin Events
   - **onFirmwareUpdateInfoReceived**
 
@@ -323,4 +348,9 @@ Method | Request Payload | Response Payload
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
 | setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
 | updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+| setNetworkStandbyMode | {"jsonrpc":"2.0","id":"46","method":"org.rdk.System.1.setNetworkStandbyMode","params":{}} | TBD |  
+| getNetworkStandbyMode | {"jsonrpc":"2.0","id":"43","method":"org.rdk.System.1.getNetworkStandbyMode","params":{}} | TBD |  
+| getPowerStateIsManagedByDevice | {"jsonrpc":"2.0","id":"44","method":"org.rdk.System.1.getPowerStateIsManagedByDevice","params":{}} | TBD |  
+| getTimeZones | {"jsonrpc":"2.0","id":"45","method":"org.rdk.System.2.getTimeZones","params":{}} | {"jsonrpc":"2.0","id":1,"result":{"zoneinfo":{"America":{"Anchorage":"","Chicago":"","Denver":"","Edmonton":"","Halifax":"","Los_Angeles":"","New_York":"","Phoenix":"","Regina":"","St_Johns":"","Toronto":"","Vancouver":"","Winnipeg":""},"Europe":{"London":"","Moscow":"","Paris":""},"Pacific":{"Honolulu":""},"US":{"Alaska":"","Aleutian":"","Arizona":"","Central":"","East-Indiana":"","Eastern":"","Hawaii":"","Indiana-Starke":"","Michigan":"","Mountain":"","Pacific":"","Samoa":""}}}} |  
+| uploadLogs | {"jsonrpc":"2.0","id":"47","method":"org.rdk.System.2.uploadLogs","params":{"url":"http://192.168.18.102:3000/Logs.tgz"}} | {"jsonrpc":"2.0","id":47,"result":{"success":true}} |  
 </details>
