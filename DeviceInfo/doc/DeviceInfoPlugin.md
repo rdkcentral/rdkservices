@@ -73,20 +73,91 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *DeviceInfo*) |
 | classname | string | Class name: *DeviceInfo* |
 | locator | string | Library name: *libWPEFrameworkDeviceInfo.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| hdr | boolean | Does the device support HDR (true or false) |
+| atmos | boolean | Does the device support Dolby Atmos (true or false) |
+| cec | boolean | Does the device support HDMI CEC (true or false) |
+| hdcp | string | HDCP version supported by the device (unavailable, hdcp_14, hdcp_20, hdcp_21, hdcp_22) |
+| audio | array | Supported audio outputs |
+| audio[#] | string | Audio output (other, rf_modulator, analog, spdif, hdmi, displayport) |
+| video | array | Supported video outputs |
+| video[#] | string | Video output (other, rf_modulator, composite, svideo, component, scart_rgb, hdmi, displayport) |
+| resolution | array | Supported output resolutions |
+| resolution[#] | string | Output resolution (unknown, 480i, 480p, 576i, 576p, 720p, 1080i, 1080p, 2160p30, 2160p60, 4320p30, 4320p60) |
 
 <a name="head.Properties"></a>
 # Properties
 
-The following properties are provided by the DeviceInfo plugin:
+The following properties are provided by the DeviceInfo interface:
 
 DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
+| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | Capabilities of the STB |
 | [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
 | [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
 | [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
+
+
+<a name="property.stbcapabilities"></a>
+## *stbcapabilities <sup>property</sup>*
+
+Provides access to the capabilities of the STB.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | Capabilities of the STB |
+| (property).hdr | boolean | Is HDR supported by this device |
+| (property).atmos | boolean | Is Atmos supported by this device |
+| (property).cec | boolean | Is CEC supported by this device |
+| (property).hdcp | string | HDCP support (must be one of the following: *unavailable*, *hdcp_14*, *hdcp_20*, *hdcp_21*, *hdcp_22*) |
+| (property).audio_outputs | array | Audio Output support |
+| (property).audio_outputs[#] | string | Audio output supported by the STB (must be one of the following: *other*, *rf_modulator*, *analog*, *spdif*, *hdmi*, *displayport*) |
+| (property).video_outputs | array | Video Output support |
+| (property).video_outputs[#] | string | Video output supported by the STB (must be one of the following: *other*, *rf_modulator*, *composite*, *svideo*, *component*, *scart_rgb*, *hdmi*, *displayport*) |
+| (property).output_resolutions | array | Supported resolutions |
+| (property).output_resolutions[#] | string | Resolution supported by the STB (must be one of the following: *unknown*, *480i*, *480p*, *576i*, *576p*, *720p*, *1080i*, *1080p*, *2160p30*, *2160p60*, *4320p30*, *4320p60*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "DeviceInfo.1.stbcapabilities"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "hdr": false,
+        "atmos": false,
+        "cec": true,
+        "hdcp": "hdcp_20",
+        "audio_outputs": [
+            "analog"
+        ],
+        "video_outputs": [
+            "displayport"
+        ],
+        "output_resolutions": [
+            "1080p"
+        ]
+    }
+}
+```
 
 <a name="property.systeminfo"></a>
 ## *systeminfo <sup>property</sup>*

@@ -8,6 +8,60 @@
     "description": "The DeviceInfo plugin allows retrieving of various device-related information.",
     "version": "1.0"
   },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "hdr": {
+        "type": "boolean",
+        "description": "Does the device support HDR (true or false)"
+      },
+      "atmos": {
+        "type": "boolean",
+        "description": "Does the device support Dolby Atmos (true or false)"
+      },
+      "cec": {
+        "type": "boolean",
+        "description": "Does the device support HDMI CEC (true or false)"
+      },
+      "hdcp": {
+        "type": "string",
+        "description": "HDCP version supported by the device (unavailable, hdcp_14, hdcp_20, hdcp_21, hdcp_22)"
+      },
+      "audio": {
+        "type": "array",
+        "description": "Supported audio outputs",
+        "items": {
+          "type": "string",
+          "description": "Audio output (other, rf_modulator, analog, spdif, hdmi, displayport)"
+        }
+      },
+      "video": {
+        "type": "array",
+        "description": "Supported video outputs",
+        "items": {
+          "type": "string",
+          "description": "Video output (other, rf_modulator, composite, svideo, component, scart_rgb, hdmi, displayport)"
+        }
+      },
+      "resolution": {
+        "type": "array",
+        "description": "Supported output resolutions",
+        "items": {
+          "type": "string",
+          "description": "Output resolution (unknown, 480i, 480p, 576i, 576p, 720p, 1080i, 1080p, 2160p30, 2160p60, 4320p30, 4320p60)"
+        }
+      }
+    },
+    "required": [
+      "hdr",
+      "atmos",
+      "cec",
+      "hdcp",
+      "audio",
+      "video",
+      "resolution"
+    ]
+  },
   "interface": {
     "$ref": "{interfacedir}/DeviceInfo.json#"
   }
