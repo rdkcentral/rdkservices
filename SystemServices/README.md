@@ -227,14 +227,14 @@
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **setNetworkStandbyMode**
 
-    TBD.  
-  _**Request payload:**_ `{"params":{}}`  
+    Sets the Network standby mode. Network Standby is a feature that allows to let device resume from DEEP SLEEP or Suspend To RAM (STR) to ON power state. This is performed by leaving LAN/WiFi modules active while the rest of the device is in DEEP SLEEP power state.  
+  _**Request payload:**_ `{"params":{"nwStandby":<bool>}}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
   - **getNetworkStandbyMode**
 
-    TBD.  
+    Checks for network standby.  
   _**Request payload:**_ `{"params":{}}`  
-  _**Response payload:**_ `{"result":{"success":<bool>}}`
+  _**Response payload:**_ `{"result":{"success":<bool>,"nwStandby":<bool>}}`
   - **getPowerStateIsManagedByDevice**
 
     Returns false if the following environment variable is set and has a value of 1: RDK_NO_ACTION_ON_POWER_KEY=1. Otherwise, this API will return true.  
@@ -348,9 +348,9 @@ Method | Request Payload | Response Payload
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
 | setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
 | updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
-| setNetworkStandbyMode | {"jsonrpc":"2.0","id":"46","method":"org.rdk.System.1.setNetworkStandbyMode","params":{}} | TBD |  
-| getNetworkStandbyMode | {"jsonrpc":"2.0","id":"43","method":"org.rdk.System.1.getNetworkStandbyMode","params":{}} | TBD |  
-| getPowerStateIsManagedByDevice | {"jsonrpc":"2.0","id":"44","method":"org.rdk.System.1.getPowerStateIsManagedByDevice","params":{}} | TBD |  
-| getTimeZones | {"jsonrpc":"2.0","id":"45","method":"org.rdk.System.2.getTimeZones","params":{}} | {"jsonrpc":"2.0","id":1,"result":{"zoneinfo":{"America":{"Anchorage":"","Chicago":"","Denver":"","Edmonton":"","Halifax":"","Los_Angeles":"","New_York":"","Phoenix":"","Regina":"","St_Johns":"","Toronto":"","Vancouver":"","Winnipeg":""},"Europe":{"London":"","Moscow":"","Paris":""},"Pacific":{"Honolulu":""},"US":{"Alaska":"","Aleutian":"","Arizona":"","Central":"","East-Indiana":"","Eastern":"","Hawaii":"","Indiana-Starke":"","Michigan":"","Mountain":"","Pacific":"","Samoa":""}}}} |  
+| setNetworkStandbyMode | {"jsonrpc":"2.0","id":"46","method":"org.rdk.System.1.setNetworkStandbyMode","params":{"nwStandby":true}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+| getNetworkStandbyMode | {"jsonrpc":"2.0","id":"43","method":"org.rdk.System.1.getNetworkStandbyMode","params":{}} | {"jsonrpc":"2.0","id":43,"result":{"nwStandby":true,"success":true}} |  
+| getPowerStateIsManagedByDevice | {"jsonrpc":"2.0","id":"44","method":"org.rdk.System.1.getPowerStateIsManagedByDevice","params":{}} | {"jsonrpc":"2.0","id":44,"result":{"powerStateManagedByDevice":true,"success":true}} |  
+| getTimeZones | {"jsonrpc":"2.0","id":"45","method":"org.rdk.System.2.getTimeZones","params":{}} | {"jsonrpc":"2.0","id":45,"result":{"zoneinfo":{"Pacific":{"Honolulu":"Tue Dec  8 04:04:12 2020 HST"},"Europe":{"Moscow":"Tue Dec  8 17:04:12 2020 MSK","London":"Tue Dec  8 14:04:12 2020 GMT","Paris":"Tue Dec  8 15:04:12 2020 CET"},"America":{"Halifax":"Tue Dec  8 10:04:12 2020 AST","St_Johns":"Tue Dec  8 10:34:13 2020 NST","Chicago":"Tue Dec  8 08:04:13 2020 CST","Toronto":"Tue Dec  8 09:04:13 2020 EST","Phoenix":"Tue Dec  8 07:04:13 2020 MST","Vancouver":"Tue Dec  8 06:04:13 2020 PST","New_York":"Tue Dec  8 09:04:13 2020 EST","Winnipeg":"Tue Dec  8 08:04:13 2020 CST","Los_Angeles":"Tue Dec  8 06:04:13 2020 PST","Denver":"Tue Dec  8 07:04:13 2020 MST","Anchorage":"Tue Dec  8 05:04:14 2020 AKST","Regina":"Tue Dec  8 08:04:14 2020 CST","Edmonton":"Tue Dec  8 07:04:14 2020 MST"},"US":{"Alaska":"Tue Dec  8 05:04:14 2020 AKST","Michigan":"Tue Dec  8 09:04:14 2020 EST","Central":"Tue Dec  8 08:04:14 2020 CST","Pacific":"Tue Dec  8 06:04:14 2020 PST","Indiana-Starke":"Tue Dec  8 08:04:14 2020 CST","Mountain":"Tue Dec  8 07:04:15 2020 MST","Eastern":"Tue Dec  8 09:04:15 2020 EST","Arizona":"Tue Dec  8 07:04:15 2020 MST","Hawaii":"Tue Dec  8 04:04:15 2020 HST","East-Indiana":"Tue Dec  8 09:04:15 2020 EST","Aleutian":"Tue Dec  8 04:04:15 2020 HST","Samoa":"Tue Dec  8 03:04:15 2020 SST"}}}} |  
 | uploadLogs | {"jsonrpc":"2.0","id":"47","method":"org.rdk.System.2.uploadLogs","params":{"url":"http://192.168.18.102:3000/Logs.tgz"}} | {"jsonrpc":"2.0","id":47,"result":{"success":true}} |  
 </details>
