@@ -26,52 +26,6 @@ namespace Plugin {
 
     static Core::ProxyPoolType<Web::JSONBodyType<DeviceInfo::Data>> jsonResponseFactory(4);
 
-    void DeviceInfo::TestImplementation()
-    {
-        TRACE_L1("IMPLEMENTATION TEST");
-
-        Exchange::IDeviceCapabilities::IOutputResolutionIterator* resolutionIterator = nullptr;
-        Exchange::IDeviceCapabilities::OutputResolution resolution;
-
-        if (_implementation->Resolutions(resolutionIterator) == Core::ERROR_NONE && resolutionIterator != nullptr) {
-            while (resolutionIterator->Next(resolution)) {
-                TRACE_L1("Resolution: %d", resolution);
-            }
-        }
-
-        Exchange::IDeviceCapabilities::IAudioOutputIterator* audioIterator = nullptr;
-        Exchange::IDeviceCapabilities::AudioOutput audio;
-
-        if (_implementation->AudioOutputs(audioIterator) == Core::ERROR_NONE && audioIterator != nullptr) {
-            while (audioIterator->Next(audio)) {
-                TRACE_L1("Audio: %d", audio);
-            }
-        }
-
-        Exchange::IDeviceCapabilities::IVideoOutputIterator* videoIterator = nullptr;
-        Exchange::IDeviceCapabilities::VideoOutput video;
-
-        if (_implementation->VideoOutputs(videoIterator) == Core::ERROR_NONE && videoIterator != nullptr) {
-            while (videoIterator->Next(video)) {
-                TRACE_L1("Video: %d", video);
-            }
-        }
-        bool supportsAtmos = false;
-        bool supportsHdr = false;
-        bool supportsCec = false;
-        _implementation->Atmos(supportsAtmos);
-        _implementation->HDR(supportsHdr);
-        _implementation->CEC(supportsCec);
-
-        TRACE_L1("Supports Atmos: %s", supportsAtmos ? "true" : "false");
-        TRACE_L1("Supports HDR: %s", supportsHdr ? "true" : "false");
-        TRACE_L1("Supports CEC: %s", supportsCec ? "true" : "false");
-
-        Exchange::IDeviceCapabilities::CopyProtection hdcp;
-        _implementation->HDCP(hdcp);
-        TRACE_L1("HDCP: %d", hdcp);
-    }
-
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
     {
         TRACE_L1(_T("Init method"));
@@ -99,7 +53,6 @@ namespace Plugin {
 
         ASSERT(_subSystem != nullptr);
 
-        TestImplementation();
         // On success return empty, to indicate there is no error text.
         return (_subSystem != nullptr) ? EMPTY_STRING : _T("Could not retrieve System Information.");
     }

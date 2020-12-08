@@ -132,7 +132,6 @@ namespace Plugin {
         Exchange::IDeviceCapabilities* _implementation;
         uint32_t _connectionId;
 
-        void TestImplementation();
     };
 
 } // namespace Plugin
