@@ -143,6 +143,9 @@ namespace WPEFramework {
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
 
+        std::mutex gLaunchMutex;
+        int32_t gLaunchCount = 0;
+
         static std::thread shellThread;
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
