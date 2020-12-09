@@ -245,6 +245,7 @@ namespace WPEFramework {
                 virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
+                virtual void onPowerKey();
 
               private:
                   RDKShell& mShell;
