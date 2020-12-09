@@ -1723,6 +1723,31 @@ namespace WPEFramework {
 
             if (result)
             {
+                bool launchInProgress = false;
+                int32_t currentLaunchCount = 0;
+                gLaunchMutex.lock();
+                if (gLaunchCount > 0)
+                {
+                    launchInProgress = true;
+                }
+                else
+                {
+                    gLaunchCount++;
+                }
+                currentLaunchCount = gLaunchCount;
+                gLaunchMutex.unlock();
+                std::cout << "the current launch count is " << currentLaunchCount << std::endl;
+                if (launchInProgress)
+                {
+                    const string appCallsign = parameters["callsign"].String();
+                    std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
+                    response["message"] = "failed to launch application.  another launch is in progress";
+                    returnResponse(false);
+                }
+            }
+
+            if (result)
+            {
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
@@ -1852,6 +1877,16 @@ namespace WPEFramework {
                     }
                     std::cout << "number of types found: " << foundTypes.size() << std::endl;
                     response["message"] = "failed to launch application.  type not found";
+                    int32_t newLaunchCount = 0;
+                    gLaunchMutex.lock();
+                    gLaunchCount--;
+                    if (gLaunchCount < 0)
+                    {
+                        gLaunchCount = 0;
+                    }
+                    newLaunchCount = gLaunchCount;
+                    gLaunchMutex.unlock();
+                    std::cout << "new launch count loc1: " << newLaunchCount << std::endl;
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -2148,6 +2183,19 @@ namespace WPEFramework {
             if (!result) 
             {
                 response["message"] = "failed to launch application";
+            }
+            else
+            {
+                int32_t newLaunchCountValue = 0;
+                gLaunchMutex.lock();
+                gLaunchCount--;
+                if (gLaunchCount < 0)
+                {
+                    gLaunchCount = 0;
+                }
+                newLaunchCountValue = gLaunchCount;
+                gLaunchMutex.unlock();
+                std::cout << "new launch count loc2: " << newLaunchCountValue << std::endl;
             }
             returnResponse(result);
         }
