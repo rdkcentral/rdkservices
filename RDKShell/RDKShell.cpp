@@ -145,6 +145,9 @@ namespace WPEFramework {
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
 
+        std::mutex gLaunchMutex;
+        int32_t gLaunchCount = 0;
+
         static std::thread shellThread;
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
@@ -511,6 +514,18 @@ namespace WPEFramework {
               if (actionObject.HasLabel("invoke"))
               {
                 std::string invoke = actionObject["invoke"].String();
+                size_t lastPositionOfDot = invoke.find_last_of(".");
+                if (lastPositionOfDot != -1)
+                {
+                    std::string callsign = invoke.substr(0, lastPositionOfDot);
+                    std::cout << "callsign will be " << callsign << std::endl;
+                    //get callsign
+                    JsonObject activateParams;
+                    activateParams.Set("callsign",callsign.c_str());
+                    JsonObject activateResult;
+                    int32_t activateStatus = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+                }
+
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
                 uint32_t status = 0;
@@ -537,6 +552,51 @@ namespace WPEFramework {
               std::cout << "error in parsing action for easter egg " << std::endl;
             }
           }
+        }
+
+        void RDKShell::RdkShellListener::onPowerKey()
+        {
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            joGetParams["params"] = JsonObject();
+            std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
+            uint32_t status = getThunderControllerClient()->Invoke(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+
+            std::cout << "get power state status: " << status << std::endl;
+
+            if (status > 0)
+            {
+                std::cout << "error getting the power state\n";
+                return;
+            }
+
+            if (!joGetResult.HasLabel("powerState"))
+            {
+                std::cout << "the power state was not returned\n";
+                return;
+            }
+
+            const std::string currentPowerState = joGetResult["powerState"].String();
+            std::cout << "the current power state is " << currentPowerState << std::endl;
+            std::string newPowerState = "ON";
+            if (currentPowerState == "ON")
+            {
+                newPowerState = "STANDBY";
+            }
+
+            JsonObject joSetParams;
+            JsonObject joSetResult;
+            joSetParams.Set("powerState",newPowerState.c_str());
+            joSetParams.Set("standbyReason","power button pressed");
+            std::string setPowerStateInvoke = "org.rdk.System.1.setPowerState";
+
+            std::cout << "attempting to set the power state to " << newPowerState << std::endl;
+            status = getThunderControllerClient()->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
+            std::cout << "get power state status: " << status << std::endl;
+            if (status > 0)
+            {
+                std::cout << "error setting the power state\n";
+            }
         }
 
         // Registered methods (wrappers) begin
@@ -1715,6 +1775,31 @@ namespace WPEFramework {
 
             if (result)
             {
+                bool launchInProgress = false;
+                int32_t currentLaunchCount = 0;
+                gLaunchMutex.lock();
+                if (gLaunchCount > 0)
+                {
+                    launchInProgress = true;
+                }
+                else
+                {
+                    gLaunchCount++;
+                }
+                currentLaunchCount = gLaunchCount;
+                gLaunchMutex.unlock();
+                std::cout << "the current launch count is " << currentLaunchCount << std::endl;
+                if (launchInProgress)
+                {
+                    const string appCallsign = parameters["callsign"].String();
+                    std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
+                    response["message"] = "failed to launch application.  another launch is in progress";
+                    returnResponse(false);
+                }
+            }
+
+            if (result)
+            {
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
@@ -1844,6 +1929,16 @@ namespace WPEFramework {
                     }
                     std::cout << "number of types found: " << foundTypes.size() << std::endl;
                     response["message"] = "failed to launch application.  type not found";
+                    int32_t newLaunchCount = 0;
+                    gLaunchMutex.lock();
+                    gLaunchCount--;
+                    if (gLaunchCount < 0)
+                    {
+                        gLaunchCount = 0;
+                    }
+                    newLaunchCount = gLaunchCount;
+                    gLaunchMutex.unlock();
+                    std::cout << "new launch count loc1: " << newLaunchCount << std::endl;
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -2140,6 +2235,19 @@ namespace WPEFramework {
             if (!result) 
             {
                 response["message"] = "failed to launch application";
+            }
+            else
+            {
+                int32_t newLaunchCountValue = 0;
+                gLaunchMutex.lock();
+                gLaunchCount--;
+                if (gLaunchCount < 0)
+                {
+                    gLaunchCount = 0;
+                }
+                newLaunchCountValue = gLaunchCount;
+                gLaunchMutex.unlock();
+                std::cout << "new launch count loc2: " << newLaunchCountValue << std::endl;
             }
             returnResponse(result);
         }
