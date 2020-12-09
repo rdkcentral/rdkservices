@@ -550,6 +550,51 @@ namespace WPEFramework {
           }
         }
 
+        void RDKShell::RdkShellListener::onPowerKey()
+        {
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            joGetParams["params"] = JsonObject();
+            std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
+            uint32_t status = getThunderControllerClient()->Invoke(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+
+            std::cout << "get power state status: " << status << std::endl;
+
+            if (status > 0)
+            {
+                std::cout << "error getting the power state\n";
+                return;
+            }
+
+            if (!joGetResult.HasLabel("powerState"))
+            {
+                std::cout << "the power state was not returned\n";
+                return;
+            }
+
+            const std::string currentPowerState = joGetResult["powerState"].String();
+            std::cout << "the current power state is " << currentPowerState << std::endl;
+            std::string newPowerState = "ON";
+            if (currentPowerState == "ON")
+            {
+                newPowerState = "STANDBY";
+            }
+
+            JsonObject joSetParams;
+            JsonObject joSetResult;
+            joSetParams.Set("powerState",newPowerState.c_str());
+            joSetParams.Set("standbyReason","power button pressed");
+            std::string setPowerStateInvoke = "org.rdk.System.1.setPowerState";
+
+            std::cout << "attempting to set the power state to " << newPowerState << std::endl;
+            status = getThunderControllerClient()->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
+            std::cout << "get power state status: " << status << std::endl;
+            if (status > 0)
+            {
+                std::cout << "error setting the power state\n";
+            }
+        }
+
         // Registered methods (wrappers) begin
         uint32_t RDKShell::moveToFrontWrapper(const JsonObject& parameters, JsonObject& response)
         {
