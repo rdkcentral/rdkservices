@@ -78,6 +78,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
 
@@ -273,6 +274,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
         }
@@ -2775,6 +2777,44 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+
+            if (parameters.HasLabel("startup"))
+            {
+                bool startup = parameters["startup"].Boolean();
+                if (startup)
+                {
+                    JsonObject joAgingParams;
+                    JsonObject joAgingResult;
+                    joAgingParams.Set("namespace","FactoryTest");
+                    joAgingParams.Set("key","AgingState");
+                    std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+                    std::cout << "attempting to check aging flag \n";
+                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                    std::cout << "get status: " << status << std::endl;
+
+                    if (status > 0)
+                    {
+                        response["message"] = " unable to check aging flag";
+                        returnResponse(false);
+                    }
+
+                    if (!joAgingResult.HasLabel("value"))
+                    {
+                        response["message"] = " aging value not found";
+                        returnResponse(false);
+                    }
+
+                    const std::string valueString = joAgingResult["value"].String();
+                    if (valueString != "true")
+                    {
+                        std::cout << "aging value is " << valueString << std::endl;
+                        response["message"] = " aging is not set for startup";
+                        returnResponse(false);
+                    }
+                }
+            }
+
             uint32_t result;
             killAllApps();
             JsonObject destroyRequest, destroyResponse;
@@ -2807,6 +2847,43 @@ namespace WPEFramework {
                 response["message"] = " factory app url is empty";
                 returnResponse(false);
             }
+        }
+
+        uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            JsonObject joToFacParams;
+            JsonObject joToFacResult;
+            joToFacParams.Set("namespace","FactoryTest");
+            joToFacParams.Set("key","ToFacFlag");
+            std::string toFacGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+            std::cout << "attempting to check flag \n";
+            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
+            std::cout << "get status: " << status << std::endl;
+
+            if (status > 0)
+            {
+                response["message"] = " unable to check toFac flag";
+                returnResponse(false);
+            }
+
+            if (!joToFacResult.HasLabel("value"))
+            {
+                response["message"] = " toFac value not found";
+                returnResponse(false);
+            }
+
+            const std::string valueString = joToFacResult["value"].String();
+            if (valueString != "M" && valueString != "m")
+            {
+                std::cout << "toFac value is " << valueString << std::endl;
+                response["message"] = " toFac not in the correct mode";
+                returnResponse(false);
+            }
+
+            return launchFactoryAppWrapper(parameters, response);
         }
 
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
