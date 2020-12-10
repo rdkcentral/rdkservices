@@ -31,6 +31,8 @@
 
 #define MAX_STRING_LENGTH 2048
 
+#define SERVER_DETAILS  "127.0.0.1:9998"
+
 using namespace WPEFramework;
 using namespace std;
 
@@ -247,6 +249,55 @@ bool Utils::SecurityToken::isThunderSecurityConfigured()
         }
     }
     return configured;
+}
+
+// Thunder plugins communication
+std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > Utils::getThunderControllerClient(std::string callsign)
+{
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+    return thunderClient;
+}
+
+void Utils::activatePlugin(const char* callSign)
+{
+    JsonObject joParams;
+    joParams.Set("callsign",callSign);
+    JsonObject joResult;
+
+    if(!isPluginActivated(callSign))
+    {
+        LOGINFO("Activating %s", callSign);
+        uint32_t status = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(2000, "activate", joParams, joResult);
+        string strParams;
+        string strResult;
+        joParams.ToString(strParams);
+        joResult.ToString(strResult);
+        LOGINFO("Called method %s, with params %s, status: %d, result: %s"
+                , "activate"
+                , C_STR(strParams)
+                , status
+                , C_STR(strResult));
+        if (status == Core::ERROR_NONE)
+        {
+            LOGINFO("%s Plugin activation status ret: %d ", callSign, status);
+        }
+    }
+}
+
+bool Utils::isPluginActivated(const char* callSign)
+{
+    string method = "status@" + string(callSign);
+    Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+    getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
+    LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
+    bool pluginActivated = joResult[0].JSONState == PluginHost::IShell::ACTIVATED;
+    if(!pluginActivated){
+        LOGWARN("Plugin %s is not active", callSign);
+    } else {
+        LOGINFO("Plugin %s is active ", callSign);
+    }
+    return pluginActivated;
 }
 
 bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
