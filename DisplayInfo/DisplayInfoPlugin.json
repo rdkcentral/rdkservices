@@ -9,6 +9,6 @@
     "version": "1.0"
   },
   "interface": {
-    "$ref": "{interfacedir}/DisplayInfo.json#"
+    "$cppref": "{cppinterfacedir}/IDisplayInfo.h"
   }
 }

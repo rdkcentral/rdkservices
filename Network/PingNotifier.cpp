@@ -58,7 +58,7 @@ namespace WPEFramework
                 return pingResult;
             }
 
-            if (!_getDefaultInterface(interface, gateway))
+            if (!_getDefaultInterface(interface, gateway) || interface.empty())
             {
                 LOGERR("%s: Could not get default interface", __FUNCTION__);
                 pingResult["success"] = false;
@@ -69,12 +69,12 @@ namespace WPEFramework
             char cmd [1000] = {0x0};
             if (NetUtils::isIPV6(endPoint))
             {
-                snprintf(cmd, sizeof(cmd), "ping6 -I %s -c %d -W 5 %s 2>&1",
+                snprintf(cmd, sizeof(cmd), "ping6 -I %s -c %d -W 5 '%s' 2>&1",
                         interface.c_str(), packets, endPoint.c_str());
             }
             else
             {
-                snprintf(cmd, sizeof(cmd), "ping -c %d -W 5 %s 2>&1",
+                snprintf(cmd, sizeof(cmd), "ping -c %d -W 5 '%s' 2>&1",
                         packets, endPoint.c_str());
             }
 
@@ -195,9 +195,9 @@ namespace WPEFramework
 
             if (endpointName == "CMTS")
             {
+                std::string interface;
                 std::string gateway = "";
-                string interface;
-                if (_getDefaultInterface(interface, gateway))
+                if (_getDefaultInterface(interface, gateway) && !gateway.empty())
                 {
                     returnResult = _doPing(gateway, packets);
                 }
