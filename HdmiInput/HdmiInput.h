@@ -70,6 +70,12 @@ namespace WPEFramework {
             void hdmiInputHotplug( int input , int connect);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+	    void hdmiInputSignalChange( int port , int signalStatus);
+            static void dsHdmiSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+            void hdmiInputStatusChange( int port , bool isPresented);
+	    static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
         public:
             HdmiInput();
             virtual ~HdmiInput();
