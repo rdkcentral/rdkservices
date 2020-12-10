@@ -27,6 +27,7 @@
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
+#define MAX_IP_FAMILY_SIZE 10
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -37,6 +38,7 @@
 #define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
 #define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -59,6 +61,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     char interfaceCount;
     bool isInterfaceEnabled;
     bool persist;
+    char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
 typedef struct {
@@ -150,6 +153,8 @@ namespace WPEFramework
 
             Register("setIPSettings", &Network::setIPSettings, this);
             Register("getIPSettings", &Network::getIPSettings, this);
+
+            Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -257,8 +262,12 @@ namespace WPEFramework
                     for (int i = 0; i < list.size; i++)
                     {
                         JsonObject interface;
-
-                        interface["interface"] = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+                        std::string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
+#ifdef NET_DEFINED_INTERFACES_ONLY
+                        if (iface == "")
+                            continue;					// Skip unrecognised interfaces...
+#endif
+                        interface["interface"] = iface;
                         interface["macAddress"] = string(list.interfaces[i].mac);
                         interface["enabled"] = ((list.interfaces[i].flags & IFF_UP) != 0);
                         interface["connected"] = ((list.interfaces[i].flags & IFF_RUNNING) != 0);
@@ -285,17 +294,12 @@ namespace WPEFramework
             LOGWARN ("Entering %s \n", __FUNCTION__);
             if (m_apiVersionNumber >= 1)
             {
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface, (void*)&param, sizeof(param)))
+                std::string interface;
+                std::string gateway;
+                if (_getDefaultInterface(interface, gateway))
                 {
-                    LOGINFO("%s :: Interface = %s \n",__FUNCTION__,param.activeIface);
-                    std::string interface = param.activeIface;
-                    response["interface"] = interface;
+                    response["interface"] = m_netUtils.getInterfaceDescription(interface);
                     returnResponse(true);
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getActiveInterface);
                 }
             }
             else
@@ -358,6 +362,33 @@ namespace WPEFramework
             returnResponse(true);
         }
 
+        uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
+        {
+            if (parameters.HasLabel("family"))
+            {
+                IARM_Result_t ret = IARM_RESULT_SUCCESS;
+                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                memset(&param, 0, sizeof(param));
+           
+                std::string ipfamily("");
+                getStringParameter("family", ipfamily);
+                strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
+                ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param));
+                if (ret != IARM_RESULT_SUCCESS )
+                {
+                    LOGWARN ("Query to get IPaddress by Family Failed..\n");
+                    response["ip"] = "";
+                    returnResponse(false);
+                }
+            response["ip"] = std::string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN-1);
+            returnResponse(true);
+          }
+          else
+          {
+                LOGWARN ("Required Family Attribute is not provided.\n");
+          }
+          returnResponse(false);
+       }
         uint32_t Network::isInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
             LOGWARN ("Entering %s \n", __FUNCTION__);
@@ -714,8 +745,14 @@ namespace WPEFramework
         {
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
-            params["ip6Address"] = ipv6Addr;
-            params["ip4Address"] = ipv4Addr;
+            if (ipv6Addr != "")
+            {
+                params["ip6Address"] = ipv6Addr;
+            }
+            if (ipv4Addr != "")
+            {
+                params["ip4Address"] = ipv4Addr;
+            }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
         }
@@ -754,22 +791,44 @@ namespace WPEFramework
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
+#ifdef NET_DEFINED_INTERFACES_ONLY
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
+#endif
                 onInterfaceEnabledStatusChanged(e->interface, e->status);
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
+#ifdef NET_DEFINED_INTERFACES_ONLY
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
+#endif
                 onInterfaceConnectionStatusChanged(e->interface, e->status);
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
             {
                 IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
+#ifdef NET_DEFINED_INTERFACES_ONLY
+                if (m_netUtils.getInterfaceDescription(e->interface) == "")
+                    break;
+#endif
                 if (e->is_ipv6)
-                    onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
+                {
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
+                    if (!m_netUtils.isIPV6LinkLocal(e->ip_address))
+#endif
+                        onInterfaceIPAddressChanged(e->interface, e->ip_address, "", e->acquired);
+                }
                 else
-                    onInterfaceIPAddressChanged(e->interface, "", e->ip_address, e->acquired);
+                {
+#ifdef NET_NO_LINK_LOCAL_ANNOUNCE
+                    if (!m_netUtils.isIPV4LinkLocal(e->ip_address))
+#endif
+                        onInterfaceIPAddressChanged(e->interface, "", e->ip_address, e->acquired);
+                }
                 break;
             }
             case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
@@ -790,10 +849,10 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
             {
-                LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                LOGINFO ("Call to %s for %s returned interface = %s, gateway = %s\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
                 interface = defaultRoute.interface;
                 gateway = defaultRoute.gateway;
-                return !interface.empty();
+                return true;
             }
             else
             {

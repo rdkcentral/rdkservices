@@ -38,7 +38,7 @@ add_definitions (-DHAS_API_DOWNLOADS)
     add_definitions (-DENABLE_GET_SET_APIVERSION)
     add_definitions (-DUSE_UPNP_DISCOVERY)
     add_definitions (-DUSE_TR_69)
-    add_definitions (-DHAS_STATE_OBSERVER)
+    add_definitions (-DDPLUGIN_STATEOBSERVER)
 
 # Enabling image caching for all broadcom devices
 add_definitions (-DHAS_API_DEVICEPROVISIONING)
