@@ -23,12 +23,12 @@ WebKitBrowser plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the WebKitBrowser plugin. It includes detailed specification of its configuration, methods and properties provided, as well as notifications sent.
+This document describes purpose and functionality of the WebKitBrowser plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -75,7 +75,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *WebKitBrowser*) |
 | classname | string | Class name: *WebKitBrowser* |
 | locator | string | Library name: *libWPEFrameworkWebKitBrowser.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 | configuration | object | <sup>*(optional)*</sup>  |
 | configuration?.useragent | string | <sup>*(optional)*</sup> The UserAgent used during communication with the web server |
 | configuration?.url | string | <sup>*(optional)*</sup> The URL that is loaded upon starting the browser |
@@ -97,7 +97,7 @@ The table below lists configuration options of the plugin.
 | configuration?.whitelist?.domain[#] | string | <sup>*(optional)*</sup> Domain allowed to access from origin |
 | configuration?.whitelist?.subdomain | string | <sup>*(optional)*</sup> whether it is also OK to access subdomains of domains listed in domain |
 | configuration?.localstorageenabled | boolean | <sup>*(optional)*</sup> Controls the local storage availability |
-| configuration?.logtosystemconsoleenabled | boolean | <sup>*(optional)*</sup> Enable page loging to system console (stderr) |
+| configuration?.logtosystemconsoleenabled | boolean | <sup>*(optional)*</sup> Enable page logging to system console (stderr) |
 | configuration?.watchdogchecktimeoutinseconds | number | <sup>*(optional)*</sup> How often to check main event loop for responsiveness (0 - disable) |
 | configuration?.watchdoghangthresholdtinseconds | number | <sup>*(optional)*</sup> The amount of time to give a process to recover before declaring a hang state |
 | configuration?.loadblankpageonsuspendenabled | boolean | <sup>*(optional)*</sup> Load 'about:blank' before suspending the page |
@@ -119,6 +119,7 @@ Browser interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [delete](#method.delete) | Removes contents of a directory from the persistent storage |
+
 
 <a name="method.bridgereply"></a>
 ## *bridgereply <sup>method</sup>*
@@ -149,6 +150,7 @@ A response for legacy $badger.
     "params": ""
 }
 ```
+
 #### Response
 
 ```json
@@ -158,6 +160,7 @@ A response for legacy $badger.
     "result": null
 }
 ```
+
 <a name="method.bridgeevent"></a>
 ## *bridgeevent <sup>method</sup>*
 
@@ -187,6 +190,7 @@ Send legacy $badger event.
     "params": ""
 }
 ```
+
 #### Response
 
 ```json
@@ -196,6 +200,7 @@ Send legacy $badger event.
     "result": null
 }
 ```
+
 <a name="method.delete"></a>
 ## *delete <sup>method</sup>*
 
@@ -238,6 +243,7 @@ Use this method to recursively delete contents of a directory
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -247,6 +253,7 @@ Use this method to recursively delete contents of a directory
     "result": null
 }
 ```
+
 <a name="head.Properties"></a>
 # Properties
 
@@ -276,6 +283,7 @@ StateControl interface properties:
 | :-------- | :-------- |
 | [state](#property.state) | Running state of the service |
 
+
 <a name="property.useragent"></a>
 ## *useragent <sup>property</sup>*
 
@@ -298,6 +306,7 @@ Provides access to the userAgent string used by browser.
     "method": "WebKitBrowser.1.useragent"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -307,6 +316,7 @@ Provides access to the userAgent string used by browser.
     "result": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WP"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -317,6 +327,7 @@ Provides access to the userAgent string used by browser.
     "params": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WP"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -326,6 +337,7 @@ Provides access to the userAgent string used by browser.
     "result": "null"
 }
 ```
+
 <a name="property.httpcookieacceptpolicy"></a>
 ## *httpcookieacceptpolicy <sup>property</sup>*
 
@@ -354,6 +366,7 @@ Provides access to the HTTP cookies accept policy.
     "method": "WebKitBrowser.1.httpcookieacceptpolicy"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -363,6 +376,7 @@ Provides access to the HTTP cookies accept policy.
     "result": "always"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -373,6 +387,7 @@ Provides access to the HTTP cookies accept policy.
     "params": "always"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -382,6 +397,7 @@ Provides access to the HTTP cookies accept policy.
     "result": "null"
 }
 ```
+
 <a name="property.localstorageenabled"></a>
 ## *localstorageenabled <sup>property</sup>*
 
@@ -404,6 +420,7 @@ Provides access to the controls the local storage availability.
     "method": "WebKitBrowser.1.localstorageenabled"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -413,6 +430,7 @@ Provides access to the controls the local storage availability.
     "result": false
 }
 ```
+
 #### Set Request
 
 ```json
@@ -423,6 +441,7 @@ Provides access to the controls the local storage availability.
     "params": false
 }
 ```
+
 #### Set Response
 
 ```json
@@ -432,6 +451,7 @@ Provides access to the controls the local storage availability.
     "result": "null"
 }
 ```
+
 <a name="property.languages"></a>
 ## *languages <sup>property</sup>*
 
@@ -455,6 +475,7 @@ Provides access to the user preferred languages.
     "method": "WebKitBrowser.1.languages"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -466,6 +487,7 @@ Provides access to the user preferred languages.
     ]
 }
 ```
+
 #### Set Request
 
 ```json
@@ -478,6 +500,7 @@ Provides access to the user preferred languages.
     ]
 }
 ```
+
 #### Set Response
 
 ```json
@@ -487,6 +510,7 @@ Provides access to the user preferred languages.
     "result": "null"
 }
 ```
+
 <a name="property.headers"></a>
 ## *headers <sup>property</sup>*
 
@@ -512,6 +536,7 @@ Provides access to the headers to send on all requests that the browser makes.
     "method": "WebKitBrowser.1.headers"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -526,6 +551,7 @@ Provides access to the headers to send on all requests that the browser makes.
     ]
 }
 ```
+
 #### Set Request
 
 ```json
@@ -541,6 +567,7 @@ Provides access to the headers to send on all requests that the browser makes.
     ]
 }
 ```
+
 #### Set Response
 
 ```json
@@ -550,6 +577,7 @@ Provides access to the headers to send on all requests that the browser makes.
     "result": "null"
 }
 ```
+
 <a name="property.url"></a>
 ## *url <sup>property</sup>*
 
@@ -580,6 +608,7 @@ Also see: [urlchange](#event.urlchange)
     "method": "WebKitBrowser.1.url"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -589,6 +618,7 @@ Also see: [urlchange](#event.urlchange)
     "result": "https://www.google.com"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -599,6 +629,7 @@ Also see: [urlchange](#event.urlchange)
     "params": "https://www.google.com"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -608,6 +639,7 @@ Also see: [urlchange](#event.urlchange)
     "result": "null"
 }
 ```
+
 <a name="property.visibility"></a>
 ## *visibility <sup>property</sup>*
 
@@ -638,6 +670,7 @@ Also see: [visibilitychange](#event.visibilitychange)
     "method": "WebKitBrowser.1.visibility"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -647,6 +680,7 @@ Also see: [visibilitychange](#event.visibilitychange)
     "result": "visible"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -657,6 +691,7 @@ Also see: [visibilitychange](#event.visibilitychange)
     "params": "visible"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -666,6 +701,7 @@ Also see: [visibilitychange](#event.visibilitychange)
     "result": "null"
 }
 ```
+
 <a name="property.fps"></a>
 ## *fps <sup>property</sup>*
 
@@ -690,6 +726,7 @@ Provides access to the current number of frames per second the browser is render
     "method": "WebKitBrowser.1.fps"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -699,6 +736,7 @@ Provides access to the current number of frames per second the browser is render
     "result": 30
 }
 ```
+
 <a name="property.state"></a>
 ## *state <sup>property</sup>*
 
@@ -723,6 +761,7 @@ Also see: [statechange](#event.statechange)
     "method": "WebKitBrowser.1.state"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -732,6 +771,7 @@ Also see: [statechange](#event.statechange)
     "result": "resumed"
 }
 ```
+
 #### Set Request
 
 ```json
@@ -742,6 +782,7 @@ Also see: [statechange](#event.statechange)
     "params": "resumed"
 }
 ```
+
 #### Set Response
 
 ```json
@@ -751,10 +792,11 @@ Also see: [statechange](#event.statechange)
     "result": "null"
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers.Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the WebKitBrowser plugin:
 
@@ -779,6 +821,7 @@ StateControl interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [statechange](#event.statechange) | Signals a state change of the service |
+
 
 <a name="event.loadfinished"></a>
 ## *loadfinished <sup>event</sup>*
@@ -805,6 +848,7 @@ Initial HTML document has been completely loaded and parsed.
     }
 }
 ```
+
 <a name="event.loadfailed"></a>
 ## *loadfailed <sup>event</sup>*
 
@@ -828,6 +872,7 @@ Browser failed to load page.
     }
 }
 ```
+
 <a name="event.bridgequery"></a>
 ## *bridgequery <sup>event</sup>*
 
@@ -848,6 +893,7 @@ A Base64 encoded JSON message from legacy $badger bridge.
     "params": ""
 }
 ```
+
 <a name="event.urlchange"></a>
 ## *urlchange <sup>event</sup>*
 
@@ -873,6 +919,7 @@ Signals a URL change in the browser.
     }
 }
 ```
+
 <a name="event.visibilitychange"></a>
 ## *visibilitychange <sup>event</sup>*
 
@@ -896,6 +943,7 @@ Signals a visibility change of the browser.
     }
 }
 ```
+
 <a name="event.pageclosure"></a>
 ## *pageclosure <sup>event</sup>*
 
@@ -913,6 +961,7 @@ This event carries no parameters.
     "method": "client.events.1.pageclosure"
 }
 ```
+
 <a name="event.statechange"></a>
 ## *statechange <sup>event</sup>*
 
@@ -936,3 +985,4 @@ Signals a state change of the service.
     }
 }
 ```
+

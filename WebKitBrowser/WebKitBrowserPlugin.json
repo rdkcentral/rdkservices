@@ -100,7 +100,7 @@
           },
           "logtosystemconsoleenabled": {
             "type": "boolean",
-            "summary": "Enable page loging to system console (stderr)"
+            "summary": "Enable page logging to system console (stderr)"
           },
           "watchdogchecktimeoutinseconds": {
             "type": "number",
@@ -113,7 +113,7 @@
           "loadblankpageonsuspendenabled": {
             "type": "boolean",
             "summary": "Load 'about:blank' before suspending the page"
-          }
+          } 
         }
       }
     },
