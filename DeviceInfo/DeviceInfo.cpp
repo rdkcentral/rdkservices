@@ -28,8 +28,6 @@ namespace Plugin {
 
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
     {
-        TRACE_L1(_T("Init method"));
-
         ASSERT(_service == nullptr);
         ASSERT(_subSystem == nullptr);
         ASSERT(_implementation == nullptr);
