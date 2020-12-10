@@ -28,6 +28,8 @@
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
 #define MAX_IP_FAMILY_SIZE 10
+#define MAX_ENDPOINTS 5
+#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -39,6 +41,8 @@
 #define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
+#define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
+#define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -75,6 +79,12 @@ typedef struct {
     char secondarydns[16];
     bool isSupported;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
+
+typedef struct
+{
+    unsigned char size;
+    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
+} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
 
 typedef struct {
     char name[16];
@@ -155,6 +165,8 @@ namespace WPEFramework
             Register("getIPSettings", &Network::getIPSettings, this);
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
+            Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
+            Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -179,6 +191,8 @@ namespace WPEFramework
             Unregister("pingNamedEndpoint");
             Unregister("setIPSettings");
             Unregister("getIPSettings");
+            Unregister("isConnectedToInternet");
+            Unregister("setConnectivityTestEndpoints");
 
             m_apiVersionNumber = 0;
             Network::_instance = NULL;
@@ -719,6 +733,60 @@ namespace WPEFramework
             }
 
             returnResponse(false);
+        }
+
+        uint32_t Network::isConnectedToInternet (const JsonObject &parameters, JsonObject &response)
+        {
+            bool result = false;
+            bool isconnected = false;
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
+            {
+                LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
+                response["connectedToInternet"] = isconnected;
+                result = true;
+            }
+            else
+            {
+                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet);
+            }
+            returnResponse(result);
+        }
+
+        uint32_t Network::setConnectivityTestEndpoints (const JsonObject &parameters, JsonObject &response)
+        {
+            bool result = false;
+            JsonArray endpoints = parameters["endpoints"].Array();
+            if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
+            {
+                LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
+                returnResponse(result);
+            }
+            IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t iarmData;
+            JsonArray::Iterator index(endpoints.Elements());
+            iarmData.size = 0;
+            while (index.Next() == true)
+            {
+                if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                {
+                    strncpy(iarmData.endpoints[iarmData.size], index.Current().String().c_str(), MAX_ENDPOINT_SIZE);
+                    iarmData.size++;
+                }
+                else
+                {
+                    LOGWARN("Unexpected variant type");
+                    returnResponse(result);
+                }
+            }
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints, (void*) &iarmData, sizeof(iarmData)))
+            {
+                result = true;
+            }
+            else
+            {
+                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints);
+            }
+            returnResponse(result);
         }
 
         /*
