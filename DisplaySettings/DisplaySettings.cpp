@@ -1699,14 +1699,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setCompression (compresionLevel);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sCompresionLevel);
+                LOG_DEVICE_EXCEPTION2(audioPort, sCompresionLevel);
                 success = false;
             }
             returnResponse(success);
@@ -1717,16 +1718,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int compressionlevel = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 compressionlevel = aPort.getCompression();
                 response["compressionlevel"] = compressionlevel;
                                response["enable"] = (compressionlevel ? true : false);
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 response["compressionlevel"] = 0;
                                response["enable"] = false;
                 success = false;
@@ -1739,35 +1742,29 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "dolbyVolumeMode");
 
-                       string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
+            string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
-            int iDolbyVolumeMode = 0;
 
             try
             {
-                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
+                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
             }
             catch (const std::exception &err)
             {
                LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
                returnResponse(false);
             }
-           if (0 == iDolbyVolumeMode) {
-                dolbyVolumeMode = false;
-            } else {
-                dolbyVolumeMode = true;
-            }
-
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setDolbyVolumeMode (dolbyVolumeMode);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sDolbyVolumeMode);
+                LOG_DEVICE_EXCEPTION2(audioPort, sDolbyVolumeMode);
                 success = false;
             }
             returnResponse(success);
@@ -1777,14 +1774,16 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
                        bool success = true;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 response["dolbyVolumeMode"] = aPort.getDolbyVolumeMode();
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
             returnResponse(success);
@@ -1805,14 +1804,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setDialogEnhancement (enhancerlevel);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sEnhancerlevel);
+                LOG_DEVICE_EXCEPTION2(audioPort, sEnhancerlevel);
                 success = false;
             }
             returnResponse(success);
@@ -1823,16 +1823,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int enhancerlevel = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 enhancerlevel = aPort.getDialogEnhancement();
                 response["enable"] = (enhancerlevel ? true : false);
                 response["enhancerlevel"] = enhancerlevel;
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(string(audioPort));
                 response["enable"] = false;
                 response["enhancerlevel"] = 0;
                 success = false;
@@ -1855,14 +1857,15 @@ namespace WPEFramework {
             }
 
             bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 aPort.setIntelligentEqualizerMode (intelligentEqualizerMode);
             }
             catch (const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sIntelligentEqualizerMode);
+                LOG_DEVICE_EXCEPTION2(audioPort, sIntelligentEqualizerMode);
                 success = false;
             }
             returnResponse(success);
@@ -1873,16 +1876,18 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
                        int intelligentEqualizerMode = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 intelligentEqualizerMode = aPort.getIntelligentEqualizerMode ();
                 response["enable"] = (intelligentEqualizerMode ? true : false);
                 response["mode"] = intelligentEqualizerMode;
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 response["enable"] = false;
                 response["mode"] = 0;
                 success = false;
