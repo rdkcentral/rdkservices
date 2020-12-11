@@ -78,7 +78,7 @@ namespace {
                 , Architecture(other.Architecture)
                 , Version(other.Version)
 
-#ifdef #ifdef INCLUDE_PACKAGER_EX
+#ifdef INCLUDE_PACKAGER_EX
                 , Task(other.Task)
 
                 , PkgId(other.PkgId)
