@@ -20,6 +20,11 @@ set(MODULE_NAME WPEFramework${PLUGIN_NAME})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(libprovision QUIET)
+find_package(LibOPKG REQUIRED)
+find_package(GLIB REQUIRED)
+
 option(BUILD_WITH_PACKAGER_EX "BUILD_WITH_PACKAGER_EX" OFF)
 
 ######################################################################################################
@@ -37,11 +42,6 @@ if (BUILD_WITH_PACKAGER_EX)
     find_path(LIBUUID_INCLUDE_DIR uuid.h PATH_SUFFIXES uuid)
     find_library(LIBUUID_LIBRARY libuuid.so)
     include_directories(${LIBUUID_INCLUDE_DIR})
-
-    find_package(${NAMESPACE}Plugins REQUIRED)
-    find_package(libprovision QUIET)
-    find_package(LibOPKG REQUIRED)
-    find_package(GLIB REQUIRED)
 
     find_package(CURL)
     find_package(CompileSettingsDebug CONFIG REQUIRED)
