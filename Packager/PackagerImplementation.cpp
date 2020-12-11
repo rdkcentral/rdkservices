@@ -19,6 +19,12 @@
  
 #include "PackagerImplementation.h"
 
+#ifdef INCLUDE_PACKAGER_EX
+
+  #include "PackagerExUtils.h"
+
+#endif
+
 #if defined (DO_NOT_USE_DEPRECATED_API)
 #include <opkg_cmd.h>
 #else
@@ -118,6 +124,14 @@ namespace Plugin {
     PackagerImplementation::~PackagerImplementation()
     {
         FreeOPKG();
+
+#ifdef INCLUDE_PACKAGER_EX
+
+  #ifdef USE_THREAD_POOL
+      PackagerExUtils::klllThreadQ(this);
+  #endif
+#endif
+        TermPackageDB();
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
@@ -297,6 +311,21 @@ namespace Plugin {
         }
         _adminLock.Unlock();
     }
+
+#ifdef INCLUDE_PACKAGER_EX
+
+    void PackagerImplementation::NotifyIntallStep(Exchange::IPackager::state status, uint32_t task /*= 0*/, string id /* = "" */, int32_t code /*= 0*/)
+    {
+        _adminLock.Lock();
+        _isSyncing = false;
+        for (auto* notification : _notifications)
+        {
+            notification->IntallStep(status, task, id, code);
+        }
+        _adminLock.Unlock();
+    }
+#endif
+
 
     bool PackagerImplementation::InitOPKG()
     {

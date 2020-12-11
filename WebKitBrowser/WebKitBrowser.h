@@ -23,13 +23,19 @@
 #include "Module.h"
 #include <interfaces/IBrowser.h>
 
-#include "./interfaces/IWebKitBrowser.h"
 #include <interfaces/IMemory.h>
 #include <interfaces/json/JsonData_Browser.h>
+//#include <interfaces/json/JsonData_WebBrowser.h>
+#include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
-#include "./interfaces/json/JsonData_WebKitBrowser.h"
 
 namespace WPEFramework {
+
+namespace WebKitBrowser {
+    // An implementation file needs to implement this method to return an operational browser, wherever that would be :-)
+    Exchange::IMemory* MemoryObserver(const RPC::IRemoteConnection* connection);
+}
+
 namespace Plugin {
 
     class WebKitBrowser : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
@@ -39,7 +45,7 @@ namespace Plugin {
 
         class Notification : public RPC::IRemoteConnection::INotification,
                              public PluginHost::IStateControl::INotification,
-                             public Exchange::IWebKitBrowser::INotification {
+                             public Exchange::IWebBrowser::INotification {
         private:
             Notification() = delete;
             Notification(const Notification&) = delete;
@@ -51,49 +57,49 @@ namespace Plugin {
             {
                 ASSERT(parent != nullptr);
             }
-            virtual ~Notification()
+            ~Notification() override
             {
             }
 
         public:
-            virtual void LoadFinished(const string& URL, int32_t code) final
+            void LoadFinished(const string& URL, int32_t code) override
             {
                 _parent.LoadFinished(URL, code);
             }
-            virtual void LoadFailed(const string& URL) final
+            void LoadFailed(const string& URL) override
             {
                 _parent.LoadFailed(URL);
             }
-            virtual void URLChange(const string& URL, bool loaded) final
+            void URLChange(const string& URL, bool loaded) override
             {
                 _parent.URLChange(URL, loaded);
             }
-            virtual void VisibilityChange(const bool hidden) final
+            void VisibilityChange(const bool hidden) override
             {
                 _parent.VisibilityChange(hidden);
             }
-            virtual void PageClosure() final
+            void PageClosure() override
             {
                 _parent.PageClosure();
             }
-            virtual void BridgeQuery(const string& message) final
+            void BridgeQuery(const string& message) override
             {
                 _parent.BridgeQuery(message);
             }
-            virtual void StateChange(const PluginHost::IStateControl::state state) final
+            void StateChange(const PluginHost::IStateControl::state state) override
             {
                 _parent.StateChange(state);
             }
-            virtual void Activated(RPC::IRemoteConnection* /* connection */) final
+            void Activated(RPC::IRemoteConnection* /* connection */) override
             {
             }
-            virtual void Deactivated(RPC::IRemoteConnection* connection) final
+            void Deactivated(RPC::IRemoteConnection* connection) override
             {
                 _parent.Deactivated(connection);
             }
 
             BEGIN_INTERFACE_MAP(Notification)
-            INTERFACE_ENTRY(Exchange::IWebKitBrowser::INotification)
+            INTERFACE_ENTRY(Exchange::IWebBrowser::INotification)
             INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
             END_INTERFACE_MAP
@@ -115,11 +121,13 @@ namespace Plugin {
                 , FPS()
                 , Suspended(false)
                 , Hidden(false)
+                , Path()
             {
                 Add(_T("url"), &URL);
                 Add(_T("fps"), &FPS);
                 Add(_T("suspended"), &Suspended);
                 Add(_T("hidden"), &Hidden);
+                Add(_T("path"), &Path);
             }
             ~Data()
             {
@@ -130,6 +138,7 @@ namespace Plugin {
             Core::JSON::DecUInt32 FPS;
             Core::JSON::Boolean Suspended;
             Core::JSON::Boolean Hidden;
+            Core::JSON::String Path;
         };
 
     public:
@@ -143,9 +152,8 @@ namespace Plugin {
         {
         }
 
-        virtual ~WebKitBrowser()
+        ~WebKitBrowser() override
         {
-            UnregisterAll();
             TRACE_L1("Destructor WebKitBrowser.%d", __LINE__);
         }
 
@@ -168,7 +176,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(PluginHost::IStateControl, _browser)
         INTERFACE_AGGREGATE(Exchange::IBrowser, _browser)
-        INTERFACE_AGGREGATE(Exchange::IWebKitBrowser, _browser)
+        INTERFACE_AGGREGATE(Exchange::IWebBrowser, _browser)
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
         END_INTERFACE_MAP
 
@@ -182,22 +190,22 @@ namespace Plugin {
         // If there is an error, return a string describing the issue why the initialisation failed.
         // The Service object is *NOT* reference counted, lifetime ends if the plugin is deactivated.
         // The lifetime of the Service object is guaranteed till the deinitialize method is called.
-        virtual const string Initialize(PluginHost::IShell* service);
+        const string Initialize(PluginHost::IShell* service) override;
 
         // The plugin is unloaded from WPEFramework. This is call allows the module to notify clients
         // or to persist information if needed. After this call the plugin will unlink from the service path
         // and be deactivated. The Service object is the same as passed in during the Initialize.
         // After theis call, the lifetime of the Service object ends.
-        virtual void Deinitialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service) override;
 
         // Returns an interface to a JSON struct that can be used to return specific metadata information with respect
         // to this plugin. This Metadata can be used by the MetData plugin to publish this information to the ouside world.
-        virtual string Information() const;
+        string Information() const override;
 
         //  IWeb methods
         // -------------------------------------------------------------------------------------------------------
-        virtual void Inbound(Web::Request& request);
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request);
+        void Inbound(Web::Request& request) override;
+        Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
         void Deactivated(RPC::IRemoteConnection* connection);
@@ -219,6 +227,8 @@ namespace Plugin {
         uint32_t get_fps(Core::JSON::DecUInt32& response) const; // Browser
         uint32_t get_state(Core::JSON::EnumType<JsonData::StateControl::StateType>& response) const; // StateControl
         uint32_t set_state(const Core::JSON::EnumType<JsonData::StateControl::StateType>& param); // StateControl
+        uint32_t endpoint_delete(const JsonData::Browser::DeleteParamsData& params);
+        uint32_t delete_dir(const string& path);
         void event_urlchange(const string& url, const bool& loaded); // Browser
         void event_visibilitychange(const bool& hidden); // Browser
         void event_pageclosure(); // Browser
@@ -245,10 +255,11 @@ namespace Plugin {
         uint8_t _skipURL;
         uint32_t _connectionId;
         PluginHost::IShell* _service;
-        Exchange::IWebKitBrowser* _browser;
+        Exchange::IWebBrowser* _browser;
         Exchange::IMemory* _memory;
         Core::Sink<Notification> _notification;
         Core::ProxyPoolType<Web::JSONBodyType<WebKitBrowser::Data>> _jsonBodyDataFactory;
+        string _persistentStoragePath;
     };
 }
 }

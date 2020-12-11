@@ -1247,6 +1247,10 @@ namespace WPEFramework {
             IARM_Result_t                       res;
             unsigned char flags = (unsigned char)(bDownload ? XRC_RIB_IRRFSTATUS_DOWNLOAD_IRDB_BIT : XRC_RIB_IRRFSTATUS_DONT_DOWNLOAD_IRDB_BIT);
 
+#ifdef RAMS_USE_FORCE_DOWNLOAD
+            if (bDownload) flags |= XRC_RIB_IRRFSTATUS_FORCE_IRDB_BIT;  // Set force download
+#endif
+
             if (deviceID < 1)
             {
                 LOGERR("Bad deviceID: %d! Unable to change flags!", deviceID);

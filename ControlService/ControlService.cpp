@@ -1240,7 +1240,16 @@ namespace WPEFramework {
             keypressInfo["remoteId"]           = JsonValue((int)lastKeyInfo.controller_id);
             keypressInfo["timestamp"]          = JsonValue((long long)lastKeyInfo.timestamp);   // This timestamp is already in milliseconds
             keypressInfo["sourceName"]         = std::string(lastKeyInfo.source_name);
-            keypressInfo["sourceType"]         = JsonValue((int)lastKeyInfo.source_type);
+
+            if (lastKeyInfo.source_type == IARM_BUS_IRMGR_KEYSRC_RF)
+            {
+                keypressInfo["sourceType"]     = std::string("RF");
+            }
+            else
+            {
+                keypressInfo["sourceType"]     = std::string("IR");
+            }
+
             keypressInfo["sourceKeyCode"]      = JsonValue((int)lastKeyInfo.source_key_code);
             keypressInfo["bIsScreenBindMode"]  = JsonValue((bool)lastKeyInfo.is_screen_bind_mode);
             keypressInfo["remoteKeypadConfig"] = JsonValue((int)lastKeyInfo.remote_keypad_config);
@@ -2017,7 +2026,7 @@ namespace WPEFramework {
             remoteInfo["numVoicePacketsSentPreviousDay"]  = JsonValue((int)ctrlStatus.status.voice_packets_sent_yesterday);
             remoteInfo["numVoicePacketsSentCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packets_sent_today);
             remoteInfo["numVoicePacketsLostPreviousDay"]  = JsonValue((int)ctrlStatus.status.voice_packets_lost_yesterday);
-            remoteInfo["numVoicePacketsLostCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packet_loss_average_today);
+            remoteInfo["numVoicePacketsLostCurrentDay"]   = JsonValue((int)ctrlStatus.status.voice_packets_lost_today);
             remoteInfo["aveVoicePacketLossPreviousDay"]   = JsonValue(std::to_string(ctrlStatus.status.voice_packet_loss_average_yesterday));   // TODO: Fix problem with FP parameters
             remoteInfo["aveVoicePacketLossCurrentDay"]    = JsonValue(std::to_string(ctrlStatus.status.voice_packet_loss_average_today));       // TODO: Fix problem with FP parameters
             remoteInfo["numVoiceCmdsHighLossPreviousDay"] = JsonValue((int)ctrlStatus.status.utterances_exceeding_packet_loss_threshold_yesterday);

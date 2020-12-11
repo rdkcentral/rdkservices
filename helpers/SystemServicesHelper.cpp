@@ -23,6 +23,7 @@
 #include <map>
 #include <sys/stat.h>
 #include <algorithm>
+#include <curl/curl.h>
 
 #include "utils.h"
 #include "SystemServicesHelper.h"
@@ -33,6 +34,7 @@ using namespace std;
 std::map<int, std::string> ErrCodeMap = {
     {SysSrv_OK, "Processed Successfully"},
     {SysSrv_MethodNotFound, "Method not found"},
+    {SysSrv_MissingKeyValues, "Missing required key/value(s)"},
     {SysSrv_UnSupportedFormat, "Unsupported or malformed format"},
     {SysSrv_FileNotPresent, "Expected file not found"},
     {SysSrv_FileAccessFailed, "File access failed"},
@@ -41,7 +43,8 @@ std::map<int, std::string> ErrCodeMap = {
     {SysSrv_SupportNotAvailable, "Support not available/enabled"},
     {SysSrv_LibcurlError, "LIbCurl service error"},
     {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"},
-    {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"}
+    {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"},
+    {SysSrv_KeyNotFound, "Key not found"}
 };
 
 std::string getErrorDescription(int errCode)
@@ -162,16 +165,17 @@ namespace WPEFramework {
             return rtrim(ltrim(s));
         }
 
-        string getModel()
+        string getDeviceDetails(const string& name)
         {
-            const char * pipeName = "PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read";
+            string pipeNameStr = "PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read " + name;
+            const char * pipeName = pipeNameStr.c_str();
             FILE* pipe = popen(pipeName, "r");
             LOGWARN("%s: opened pipe for command '%s', with result %s : %s\n",
                     __FUNCTION__ , pipeName, pipe ? "sucess" : "failure", strerror(errno));
             if (!pipe) {
                 LOGERR("%s: SERVICEMANAGER_FILE_ERROR: Can't open pipe for command '%s' for read mode: %s\n"
                         , __FUNCTION__, pipeName, strerror(errno));
-                return "ERROR";
+                return "";
             }
 
             char buffer[128] = {'\0'};
@@ -184,11 +188,21 @@ namespace WPEFramework {
             }
             pclose(pipe);
 
-            string tri = caseInsensitive(result);
-            string ret = tri.c_str();
-            ret = trim(ret);
+            string ret = trim(result);
             LOGWARN("%s: ret=%s\n", __FUNCTION__, ret.c_str());
             return ret;
+        }
+
+        string getModel()
+        {
+            string result = getDeviceDetails("model");
+            if (result.empty())
+            {
+                result = getDeviceDetails("model_number");
+                if (result.empty())
+                    result = "ERROR";
+            }
+            return result;
         }
 
         string convertCase(string str)
@@ -458,6 +472,18 @@ std::string url_encode(std::string urlIn)
         curl_easy_cleanup(c_url);
     }
     return retval;
+}
+
+std::string urlEncodeField(CURL *curl_handle, std::string &data)
+{
+    std::string encString = "";
+
+    if (curl_handle) {
+        char* encoded = curl_easy_escape(curl_handle, data.c_str(), data.length());
+        encString = encoded;
+        curl_free(encoded);
+    }
+    return encString;
 }
 
 /**

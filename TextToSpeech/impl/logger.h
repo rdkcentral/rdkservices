@@ -46,13 +46,12 @@ enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_
  */
 void logger_init();
 
-
 #define TTS_assert(expr) do { \
-                              if ( __builtin_expect(expr, true) ) \
-                                {} \
-                              else \
-                                TTSLOG_ERROR("%s", #expr); \
-                            } while (0)
+      if ( __builtin_expect(expr, true) ) \
+        {} \
+      else \
+        TTSLOG_ERROR("%s", #expr); \
+    } while (0)
 
 /**
  * @brief Log a message

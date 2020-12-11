@@ -75,6 +75,14 @@ namespace WPEFramework {
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
             //End methods
+            uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
@@ -102,6 +110,8 @@ namespace WPEFramework {
             uint32_t setVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
