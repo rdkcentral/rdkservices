@@ -257,7 +257,7 @@ endif()
         add_subdirectory(DeepLink)
     endif()
 
-    if(HAS_API_XCASTSERVICE)
+    if(PLUGIN_XCAST)
         add_subdirectory(XCast)
     endif()
 
