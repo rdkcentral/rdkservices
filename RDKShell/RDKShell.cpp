@@ -1931,16 +1931,10 @@ namespace WPEFramework {
                     }
                     std::cout << "number of types found: " << foundTypes.size() << std::endl;
                     response["message"] = "failed to launch application.  type not found";
-                    int32_t newLaunchCount = 0;
                     gLaunchMutex.lock();
-                    gLaunchCount--;
-                    if (gLaunchCount < 0)
-                    {
-                        gLaunchCount = 0;
-                    }
-                    newLaunchCount = gLaunchCount;
+                    gLaunchCount = 0;
                     gLaunchMutex.unlock();
-                    std::cout << "new launch count loc1: " << newLaunchCount << std::endl;
+                    std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -2238,19 +2232,11 @@ namespace WPEFramework {
             {
                 response["message"] = "failed to launch application";
             }
-            else
-            {
-                int32_t newLaunchCountValue = 0;
-                gLaunchMutex.lock();
-                gLaunchCount--;
-                if (gLaunchCount < 0)
-                {
-                    gLaunchCount = 0;
-                }
-                newLaunchCountValue = gLaunchCount;
-                gLaunchMutex.unlock();
-                std::cout << "new launch count loc2: " << newLaunchCountValue << std::endl;
-            }
+            gLaunchMutex.lock();
+            gLaunchCount = 0;
+            gLaunchMutex.unlock();
+            std::cout << "new launch count at loc2 is 0\n";
+
             returnResponse(result);
         }
 
