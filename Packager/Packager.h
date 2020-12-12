@@ -66,12 +66,14 @@ namespace {
                 Add(_T("architecture"), &Architecture);
                 Add(_T("version"), &Version);
 
+#ifdef INCLUDE_PACKAGER_EX
                 Add(_T("task"), &Task);
                 Add(_T("pkgId"), &PkgId);
                 Add(_T("type"), &Type);
                 Add(_T("url"), &Url);
                 Add(_T("token"), &Token);
                 Add(_T("listener"), &Listener);
+#endif
             }
             Params(const Params& other)
                 : Package(other.Package)
@@ -354,11 +356,11 @@ namespace {
         Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
-        class Notification : public RPC::IRemoteConnection::INotification,
+        class Notification : public RPC::IRemoteConnection::INotification
 
 #ifdef INCLUDE_PACKAGER_EX
-                             public PluginHost::IStateControl::INotification,
-                             public Exchange::IPackager::INotification
+                           , public PluginHost::IStateControl::INotification
+                           , public Exchange::IPackager::INotification
 #endif
 
         {
