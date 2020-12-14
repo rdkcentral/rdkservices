@@ -423,7 +423,7 @@ void TTSSpeaker::createPipeline() {
     if(m_pcmAudioEnabled) {
         //Add raw audio caps
         audiocaps = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "S16LE", "rate", G_TYPE_INT, 22050,
-                                "channels", G_TYPE_INT, 1, NULL);
+                                "channels", G_TYPE_INT, 1, "layout", G_TYPE_STRING, "interleaved", NULL);
         if(audiocaps == NULL) {
             m_pcmAudioEnabled = false;
             TTSLOG_ERROR("Unable to add audio caps for PCM audio.");

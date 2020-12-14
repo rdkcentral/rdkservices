@@ -66,6 +66,9 @@ using namespace std;
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
+#define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
+#define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
+
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 #define DEFAULT_STB_LOGS_UPLOAD_URL "https://stbrtl.stb.r53.xcal.tv"
@@ -248,11 +251,9 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-            : AbstractPlugin()
+            : AbstractPlugin(2)
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
-            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
-
             SystemServices::_instance = this;
 
             //Initialise timer with interval and callback function.
@@ -358,26 +359,18 @@ namespace WPEFramework {
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
 
-            systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
+            // version 2 APIs
+            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
 #ifdef ENABLE_DEEP_SLEEP
-	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
-            systemVersion_2.Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            registerMethod("fwPendingReboot", &SystemServices::fwPendingReboot, this, {2});
+            registerMethod("fwDelayReboot", &SystemServices::fwDelayReboot, this, {2});
         }
 
         SystemServices::~SystemServices()
         {
-            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
-            if (systemVersion_2) {
-                systemVersion_2->Unregister("getTimeZones");
-#ifdef ENABLE_DEEP_SLEEP
-		systemVersion_2->Unregister("getWakeupReason");
-#endif
-                systemVersion_2->Unregister("uploadLogs");
-	     }
-            else
-                LOGERR("Failed to get handler for version 2");
-
             SystemServices::_instance = nullptr;
         }
 
@@ -518,6 +511,115 @@ namespace WPEFramework {
             }
             returnResponse(result);
         }//end of requestSystemReboot
+
+        /*
+         * @brief This function delays the reboot in seconds.
+         * This will internally sets the tr181 fwDelayReboot parameter.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.fwDelayReboot",
+         *                  "params":{"fwDelayReboot": int seconds}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::fwDelayReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            uint32_t delay_in_sec = 0;
+
+            if ( parameters.HasLabel("fwDelayReboot") ){
+                /* get the value */
+                delay_in_sec = static_cast<unsigned int>(parameters["fwDelayReboot"].Number());
+
+                /* we can delay with max 24 Hrs = 86400 sec */
+                if (delay_in_sec > 0 && delay_in_sec <= MAX_REBOOT_DELAY ){
+
+                    const char* set_rfc_val=(parameters["fwDelayReboot"].String()).c_str();
+
+                    LOGINFO("set_rfc_value %s\n",set_rfc_val);
+
+                    /*set tr181Set command from here*/
+                    WDMP_STATUS status = setRFCParameter("thunderapi",
+                            TR181_FW_DELAY_REBOOT, set_rfc_val, WDMP_INT);
+                    if ( WDMP_SUCCESS == status ){
+                        result=true;
+                        LOGINFO("Success Setting the fwDelayReboot value\n");
+                    }
+                    else {
+                        LOGINFO("Failed Setting the fwDelayReboot value %s\n",getRFCErrorString(status));
+                    }
+                }
+                else {
+                    /* we didnt get a valid Auto Reboot delay */
+                    LOGERR("Invalid FwDelayReboot Value Max.Value is 86400 sec\n");
+                }
+            }
+            else {
+                /* havent got the correct label */
+                LOGERR("fwDelayReboot Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues,response);
+            }
+            returnResponse(result);
+        }
+
+        /*
+         * @brief This function notifies about pending Reboot.
+         * This will internally set 120 sec and trigger event to application.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.fwPendingReboot",
+         *                  "params":{}}
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"fwPendingReboot":"Notified","success":true}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::fwPendingReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            int seconds = 120; /* 2 Minutes to Reboot */
+
+            /* trigger event saying we are in Maintenance Window */
+
+            /* check if we have valid instance */
+            if ( _instance ){
+                /* clear any older values, Reset the fwDelayReboot = 0 */
+                LOGINFO("Reset Older FwDelayReboot to 0, if any\n");
+
+                WDMP_STATUS status = setRFCParameter("thunderapi",
+                        TR181_FW_DELAY_REBOOT,"0", WDMP_INT);
+
+                /* call the event handler if reset SUCCESS */
+                if ( WDMP_SUCCESS == status ){
+                    /* trigger event saying we are in Maintenance Window */
+                    _instance->onFwPendingReboot(seconds);
+                    result=true;
+                }
+                else {
+                    LOGINFO("Failed to reset FwDelayReboot due to %s\n",getRFCErrorString(status));
+                }
+            }
+            else {
+                LOGERR("_instance in fwPendingReboot is NULL.\n");
+            }
+
+            /* tell the caller we notified */
+            if ( result ){
+                response["fwPendingReboot"]= "Notified";
+            }
+            returnResponse(result);
+        }
+
+        /*
+         * @brief : send event when system is in maintenance window
+         * @param1[in]  : int seconds
+         */
+
+        void SystemServices::onFwPendingReboot(int seconds)
+        {
+            JsonObject params;
+            params["fwpendingreboot"] = seconds;
+            LOGINFO("Notifying FwPendingReboot received \n");
+            sendNotify(EVT_ONFWPENDINGREBOOT, params);
+        }
 
         /***
          * @brief : send notification when system power state is changed

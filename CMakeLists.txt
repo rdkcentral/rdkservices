@@ -287,6 +287,10 @@ if(PLUGIN_PERSISTENT_STORE)
     add_subdirectory(PersistentStore)
 endif()
 
+if(PLUGIN_WEBBRIDGE)
+    add_subdirectory(WebBridge)
+endif()
+
 if(PLUGIN_USBACCESS)
     add_subdirectory(UsbAccess)
 endif()
