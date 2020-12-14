@@ -2813,7 +2813,7 @@ namespace WPEFramework {
             {
                 JsonObject launchRequest;
                 launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "LightningApp";
+                launchRequest["type"] = "ResidentApp";
                 launchRequest["uri"] = std::string(factoryAppUrl);
                 launchRequest["focused"] = true;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
