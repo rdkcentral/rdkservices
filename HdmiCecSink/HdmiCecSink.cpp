@@ -2283,9 +2283,6 @@ namespace WPEFramework
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
 
-				if (m_pollThread.joinable())
-				m_pollThread.join();
-
 				m_pollThread = std::thread(threadRun);
             }
  
@@ -2314,6 +2311,18 @@ namespace WPEFramework
 
             if (smConnection != NULL)
             {
+		LOGWARN("Stop Thread %p", smConnection );
+		m_pollThreadState = POLL_THREAD_STATE_EXIT;
+
+
+		if (m_pollThread.joinable())
+		{
+			LOGWARN("Join Thread %p", smConnection );
+			m_pollThread.join();
+		}
+
+		LOGWARN("Deleted Thread %p", smConnection );
+
                 smConnection->close();
                 delete smConnection;
                 smConnection = NULL;
