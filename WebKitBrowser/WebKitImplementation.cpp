@@ -723,6 +723,9 @@ static GSourceFuncs _handlerIntervention =
             , _configurationCompleted(false)
             , _webProcessCheckInProgress(false)
             , _unresponsiveReplyNum(0)
+            , _frameCount(0)
+            , _lastDumpTime(g_get_monotonic_time())
+
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -1632,9 +1635,15 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
         }
 
-        void SetFPS(const uint32_t fps)
+        void SetFPS()
         {
-            _fps = fps;
+            ++_frameCount;
+            gint64 time = g_get_monotonic_time();
+            if (time - _lastDumpTime >= G_USEC_PER_SEC) {
+                _fps = _frameCount * G_USEC_PER_SEC * 1.0 / (time - _lastDumpTime);
+                _frameCount = 0;
+                _lastDumpTime = time;
+            }
         }
 
         string GetConfig(const string& key) const
@@ -1948,17 +1957,8 @@ static GSourceFuncs _handlerIntervention =
             unsigned frameDisplayedCallbackID = 0;
             if (_config.FPS.Value() == true) {
                 frameDisplayedCallbackID = webkit_web_view_add_frame_displayed_callback(_view, [](WebKitWebView*, gpointer userData) {
-                    static unsigned s_frameCount = 0;
-                    static gint64 lastDumpTime = g_get_monotonic_time();
-
-                    ++s_frameCount;
-                    gint64 time = g_get_monotonic_time();
-                    if (time - lastDumpTime >= G_USEC_PER_SEC) {
-                        auto* browser = static_cast<WebKitImplementation*>(userData);
-                        browser->SetFPS(s_frameCount * G_USEC_PER_SEC * 1.0 / (time - lastDumpTime));
-                        s_frameCount = 0;
-                        lastDumpTime = time;
-                    }
+                    auto* browser = static_cast<WebKitImplementation*>(userData);
+                    browser->SetFPS();
                 }, this, nullptr);
             }
 
@@ -2247,7 +2247,7 @@ static GSourceFuncs _handlerIntervention =
                 return;
 
             // How many unresponsive replies to ignore before declaring WebProcess hang state
-            static const uint32_t kWebProcessUnresponsiveReplyDefaultLimit =
+            const uint32_t kWebProcessUnresponsiveReplyDefaultLimit =
                 _config.WatchDogHangThresholdInSeconds.Value() / _config.WatchDogCheckTimeoutInSeconds.Value();
 
             if (!_webProcessCheckInProgress)
@@ -2342,6 +2342,8 @@ static GSourceFuncs _handlerIntervention =
         Core::StateTrigger<bool> _configurationCompleted;
         bool _webProcessCheckInProgress;
         uint32_t _unresponsiveReplyNum;
+        unsigned _frameCount;
+        gint64 _lastDumpTime;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
@@ -2351,7 +2353,7 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void onDidReceiveSynchronousMessageFromInjectedBundle(WKContextRef context, WKStringRef messageName,
         WKTypeRef messageBodyObj, WKTypeRef* returnData, const void* clientInfo)
     {
-        static int configLen = strlen(Tags::Config);
+        int configLen = strlen(Tags::Config);
         const WebKitImplementation* browser = static_cast<const WebKitImplementation*>(clientInfo);
 
         string name = WKStringToString(messageName);
@@ -2463,17 +2465,7 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void onFrameDisplayed(WKViewRef view, const void* clientInfo)
     {
         WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
-
-        static unsigned s_frameCount = 0;
-        static gint64 lastDumpTime = g_get_monotonic_time();
-
-        ++s_frameCount;
-        gint64 time = g_get_monotonic_time();
-        if (time - lastDumpTime >= G_USEC_PER_SEC) {
-            browser->SetFPS(s_frameCount * G_USEC_PER_SEC * 1.0 / (time - lastDumpTime));
-            s_frameCount = 0;
-            lastDumpTime = time;
-        }
+        browser->SetFPS();
     }
 
     /* static */ void didRequestAutomationSession(WKContextRef context, WKStringRef sessionID, const void* clientInfo)
