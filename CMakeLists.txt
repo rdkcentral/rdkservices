@@ -179,6 +179,10 @@ if(PLUGIN_HDMIINPUT)
     add_subdirectory(HdmiInput)
 endif()
 
+if(PLUGIN_COMPOSITEINPUT)
+	add_subdirectory(CompositeInput)
+endif()
+
 if(PLUGIN_TIMER)
     add_subdirectory(Timer)
 endif()
