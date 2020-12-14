@@ -2364,9 +2364,7 @@ namespace WPEFramework
 			m_pollThread.join();
 		}
 
-		LOGWARN("Delete Thread %p", smConnection );
-		delete m_pollThread;
-		m_pollThread = NULL;
+		LOGWARN("Deleted Thread %p", smConnection );
 
                 smConnection->close();
                 delete smConnection;
