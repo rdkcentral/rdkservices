@@ -319,6 +319,8 @@ namespace WPEFramework {
                 }
               }
             }
+#else
+            mEnableUserInactivityNotification = true;
 #endif
 
             service->Register(mClientsMonitor);
