@@ -248,11 +248,9 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-            : AbstractPlugin()
+            : AbstractPlugin(2)
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
-            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
-
             SystemServices::_instance = this;
 
             //Initialise timer with interval and callback function.
@@ -358,26 +356,16 @@ namespace WPEFramework {
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
 
-            systemVersion_2.Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
+            // version 2 APIs
+            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
 #ifdef ENABLE_DEEP_SLEEP
-	    systemVersion_2.Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
-            systemVersion_2.Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
         }
 
         SystemServices::~SystemServices()
         {
-            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
-            if (systemVersion_2) {
-                systemVersion_2->Unregister("getTimeZones");
-#ifdef ENABLE_DEEP_SLEEP
-		systemVersion_2->Unregister("getWakeupReason");
-#endif
-                systemVersion_2->Unregister("uploadLogs");
-	     }
-            else
-                LOGERR("Failed to get handler for version 2");
-
             SystemServices::_instance = nullptr;
         }
 

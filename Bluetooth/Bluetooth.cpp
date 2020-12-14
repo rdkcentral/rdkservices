@@ -32,7 +32,7 @@
 // For example, the exposed "startScan" method is mapped to "startScanWrapper()" and that one calls to "startDeviceDiscovery()" internally,
 // which finally calls to "BTRMGR_StartDeviceDiscovery()" in Bluetooth Manager.
 
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 1;  // corresponds to org.rdk.Bluetooth_5
+const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 2;  // corresponds to org.rdk.Bluetooth_5
 const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -132,14 +132,12 @@ namespace WPEFramework
         }
 
         Bluetooth::Bluetooth()
-        : AbstractPlugin()
+        : AbstractPlugin(Bluetooth::API_VERSION_NUMBER_MAJOR) // pass the current supported version
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         , m_discoveryRunning(false)
         , m_discoveryTimer(this)
         {
             LOGINFO();
-
-            Core::JSONRPC::Handler& systemVersion_2 = JSONRPC::CreateHandler({ 2 }, *this);
 
             Bluetooth::_instance = this;
             registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
@@ -165,8 +163,9 @@ namespace WPEFramework
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
 
-            systemVersion_2.Register<JsonObject, JsonObject>(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this);
-            systemVersion_2.Register<JsonObject, JsonObject>(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this);
+            //version 2 APIs
+            registerMethod(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this, {2});
+            registerMethod(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this, {2});
 
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             rc = BTRMGR_Init();
@@ -182,14 +181,6 @@ namespace WPEFramework
         Bluetooth::~Bluetooth()
         {
             LOGINFO();
-
-            Core::JSONRPC::Handler* systemVersion_2 = JSONRPC::GetHandler(2);
-            if (systemVersion_2) {
-                systemVersion_2->Unregister(METHOD_SET_PROPERTIES);
-                systemVersion_2->Unregister(METHOD_GET_PROPERTIES);
-            }
-            else
-                LOGERR("Failed to get handler for version 2");
 
             Bluetooth::_instance = nullptr;
 
