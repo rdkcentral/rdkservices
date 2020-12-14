@@ -18,6 +18,8 @@
 #
 # features
 #
+option(PLUGIN_SYSTEMSERVICES "Include SystemServices plugin" ON)
+
 #add_definitions (-DENABLE_MEMORYINFO_SERVICE)
 
 add_definitions (-DPLUGIN_WAREHOUSE)
@@ -248,6 +250,11 @@ if(BUILD_ENABLE_CEF)
     message("Building with CEF")
     add_definitions (-DBUILD_ENABLE_CEF)
     add_definitions (-DUSE_CEF)
+endif()
+
+if(BUILD_ENABLE_SYSTEM_UPLOAD_LOGS)
+    message("Building with System Service uploadLogs")
+    add_definitions (-DENABLE_SYSTEM_UPLOAD_LOGS)
 endif()
 
 if(BUILD_BROADCOM)

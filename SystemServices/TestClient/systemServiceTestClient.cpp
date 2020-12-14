@@ -110,6 +110,11 @@ typedef enum SME_t {
 	SME_setTemperatureThresholds,
 	SME_setTimeZoneDST,
 	SME_updateFirmware,
+	SME_setNetworkStandbyMode,
+	SME_getNetworkStandbyMode,
+	SME_getPowerStateIsManagedByDevice,
+	SME_getTimeZones,
+	SME_uploadLogs,
 	SME_MAX,
 };
 
@@ -159,6 +164,11 @@ std::map<SME_t, std::string> SMName = {
 	{SME_setTemperatureThresholds, "setTemperatureThresholds"},
 	{SME_setTimeZoneDST, "setTimeZoneDST"},
 	{SME_updateFirmware, "updateFirmware"},
+	{SME_setNetworkStandbyMode, "setNetworkStandbyMode"},
+	{SME_getNetworkStandbyMode, "getNetworkStandbyMode"},
+	{SME_getPowerStateIsManagedByDevice, "getPowerStateIsManagedByDevice"},
+	{SME_getTimeZones, "getTimeZones"},
+	{SME_uploadLogs, "uploadLogs"},
 	{SME_MAX, "MAX"},
 };
 
@@ -860,6 +870,153 @@ void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	}
 }
 
+void setPreferredStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result, standbyMode;
+
+    printf("\nInput 'standbyMode' :");
+    std::cin >> standbyMode;
+
+    parameters["standbyMode"] = standbyMode;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void setTemperatureThresholds(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response, thresholds;
+    std::string result, WARN, MAX;
+
+    printf("\nInput 'WARN' level :");
+    std::cin >> WARN;
+    printf("\nInput 'MAX' level :");
+    std::cin >> MAX;
+
+    thresholds["WARN"] = WARN;
+    thresholds["MAX"] = MAX;
+    parameters["thresholds"] = thresholds;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void setTimeZoneDST(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result, timeZone;
+
+    printf("\nInput 'timeZone' :");
+    std::cin >> timeZone;
+
+    parameters["timeZone"] = timeZone;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void updateFirmware(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void setNetworkStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result;
+    bool nwStandby;
+
+    printf("\nInput 'nwStandby' :");
+    std::cin >> nwStandby;
+
+    parameters["nwStandby"] = nwStandby;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void getNetworkStandbyMode(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void getPowerStateIsManagedByDevice(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void getTimeZones(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
+void uploadLogs(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
+{
+    printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
+
+    JsonObject parameters, response;
+    std::string result, url;
+
+    printf("\nInput 'url' :");
+    std::cin >> url;
+
+    parameters["url"] = url;
+
+    if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
+        response.ToString(result);
+        printf("\nResponse: '%s'\n", result.c_str());
+    }
+}
+
 /******************************** End : Handle Selection *******************************/
 
 void showUsage(char *pName)
@@ -959,6 +1116,11 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 			case SME_setTemperatureThresholds: setTemperatureThresholds(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_setTimeZoneDST: setTimeZoneDST(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_updateFirmware: updateFirmware(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_setNetworkStandbyMode: setNetworkStandbyMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getNetworkStandbyMode: getNetworkStandbyMode(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getPowerStateIsManagedByDevice: getPowerStateIsManagedByDevice(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_getTimeZones: getTimeZones(getMethodName((SME_t)retStatus), remoteObject); break;
+			case SME_uploadLogs: uploadLogs(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_MAX:
 			default:
 				break;
