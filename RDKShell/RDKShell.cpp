@@ -2804,10 +2804,6 @@ namespace WPEFramework {
             }
 
             uint32_t result;
-            killAllApps();
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(destroyRequest, destroyResponse);
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
@@ -2826,8 +2822,9 @@ namespace WPEFramework {
                 else
                 {
                     std::cout << "Launching factory application failed " << std::endl;
+                    response["message"] = " Launching factory application failed";
+                    returnResponse(false);
                 }
-                return result;
             }
             else
             {
@@ -2835,6 +2832,28 @@ namespace WPEFramework {
                 response["message"] = " factory app url is empty";
                 returnResponse(false);
             }
+            bool ret = false;
+            JsonObject stateRequest, stateResponse;
+            result = getState(stateRequest, stateResponse);
+            const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+            for (int i=0; i<stateList.Length(); i++)
+            {
+                const JsonObject& stateInfo = stateList[i].Object();
+                if (stateInfo.HasLabel("callsign"))
+                {
+                   std::string appCallSign = stateInfo["callsign"].String();
+                   if (appCallSign != "factoryapp")
+                   {
+                       JsonObject destroyRequest, destroyResponse;
+                       destroyRequest["callsign"] = stateInfo["callsign"].String();
+                       result = destroyWrapper(destroyRequest, destroyResponse);
+                   }
+                }
+            }
+            JsonObject raDestroyRequest, raDestroyResponse;
+            raDestroyRequest["callsign"] = "ResidentApp";
+            result = destroyWrapper(raDestroyRequest, raDestroyResponse);
+            returnResponse(true);
         }
 
         uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
