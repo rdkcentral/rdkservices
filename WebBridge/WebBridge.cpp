@@ -24,8 +24,6 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(WebBridge, 1, 0);
 
-    static Core::ProxyPoolType<Core::JSONRPC::Message> jsonMessageFactory(4);
-
     class EXTERNAL Registration : public Core::JSON::Container {
     private:
         Registration(const Registration&) = delete;
@@ -109,7 +107,7 @@ namespace Plugin {
         string method;
         Registration info;
 
-        Core::ProxyType<Core::JSONRPC::Message> message(jsonMessageFactory.Element());
+        Core::ProxyType<Core::JSONRPC::Message> message(PluginHost::IFactories::Instance().JSONRPC());
         string designator(inbound.Designator.Value());
 
         if (inbound.Id.IsSet() == true) {
@@ -187,7 +185,7 @@ namespace Plugin {
     // -------------------------------------------------------------------------------------------------------
     Core::ProxyType<Core::JSON::IElement> WebBridge::Inbound(const string& /* identifier */) /* override */{
         // There is a message coming in over the JSON WebSocket path!, give it storage space..
-        return (Core::ProxyType<Core::JSON::IElement>(jsonMessageFactory.Element()));
+        return Core::ProxyType<Core::JSON::IElement>(PluginHost::IFactories::Instance().JSONRPC());
     }
 
     Core::ProxyType<Core::JSON::IElement> WebBridge::Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) /* override */ {
@@ -212,7 +210,7 @@ namespace Plugin {
 
                     if (index != _observers.end()) {
                         for (const Observer& entry : index->second) {
-                            Core::ProxyType<Core::JSONRPC::Message> outbound(jsonMessageFactory.Element());
+                            Core::ProxyType<Core::JSONRPC::Message> outbound(PluginHost::IFactories::Instance().JSONRPC());
                             outbound->Designator = (entry.Designator().empty() == false ? entry.Designator() + '.' + eventName : eventName);
                             outbound->Parameters = message->Parameters.Value();
 
@@ -263,7 +261,7 @@ namespace Plugin {
         while (index != _pendingRequests.end()) {
             if (now >= index->second.Issued()) {
                 // Send and Error to the requester..
-                Core::ProxyType<Core::JSONRPC::Message> message(jsonMessageFactory.Element());
+                Core::ProxyType<Core::JSONRPC::Message> message(PluginHost::IFactories::Instance().JSONRPC());
                 message->Error.SetError(Core::ERROR_TIMEDOUT);
                 message->Error.Text = _T("There is no response form the server within time!!!");
                 message->Id = index->second.SequenceId();

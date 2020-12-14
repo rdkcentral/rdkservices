@@ -176,13 +176,18 @@ class ServiceManager {
 
       let req = null;
       try {
+        console.log("<<< " + e.data);
         req = JSON.parse(e.data);
         res.id = req.id;
         service.service._callMethodByName(req.method, req.params).then(value => {
           res.result = value;
           self._sendResponse(service.websocket, res);
         }).catch(ex => {
-          res.error = ex;
+          // TODO: check ex to see if there's a message and/or code. we'll prefer
+          // that over our own.
+          res.error = {};
+          res.error.message = "" + ex;
+          res.error.code = -32000;
           try {
             self._sendResponse(service.websocket, res);
           }
@@ -207,7 +212,7 @@ class ServiceManager {
 
   _sendResponse(soc, res) {
     const json_text = JSON.stringify(res);
-    console.log("<<<" + json_text);
+    console.log(">>> " + json_text);
     soc.send(json_text);
   }
 
