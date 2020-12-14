@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkEasterEgg.so",
+ "classname":"EasterEgg",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.EasterEgg",
+ "autostart":true
+}

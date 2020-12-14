@@ -265,6 +265,7 @@ endif()
 
 if(PLUGIN_RDKSHELL)
     add_subdirectory(RDKShell)
+    add_subdirectory(EasterEgg)
 endif()
 
 if(PLUGIN_WEBKITBROWSER)
