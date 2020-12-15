@@ -23,10 +23,12 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+#include "rfcapi.h"
 
 // IARM
+#ifdef USE_IARM
 #include "rdk/iarmbus/libIARM.h"
-
+#endif
 // std
 #include <string>
 
@@ -276,7 +278,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#ifdef USE_IARM
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -285,7 +287,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
-
+#endif
     /***
      * @brief	: Execute shell script and get response
      * @param1[in]	: script to be executed with args
@@ -307,4 +309,16 @@ namespace Utils
      * @return		: true if file exists and modifies 'age' seconds ago.
      */
     bool isFileExistsAndOlderThen(const char *pFileName, long age = -1);
+
+    struct SecurityToken
+    {
+        static void getSecurityToken(std::string& token);
+        static bool isThunderSecurityConfigured();
+
+    private:
+        static std::string m_sToken;
+        static bool m_sThunderSecurityChecked;
+    };
+
+    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }
