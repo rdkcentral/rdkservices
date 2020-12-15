@@ -1,3 +1,4 @@
+
 const request_state = {
   PENDING: 'pending'
 };
@@ -176,13 +177,16 @@ class ServiceManager {
 
       let req = null;
       try {
+        console.log("<<< " + e.data);
         req = JSON.parse(e.data);
         res.id = req.id;
         service.service._callMethodByName(req.method, req.params).then(value => {
           res.result = value;
           self._sendResponse(service.websocket, res);
         }).catch(ex => {
-          res.error = ex;
+          res.error = {};
+          res.error.message = "" + ex;
+          res.error.code = -32000;
           try {
             self._sendResponse(service.websocket, res);
           }
@@ -207,16 +211,19 @@ class ServiceManager {
 
   _sendResponse(soc, res) {
     const json_text = JSON.stringify(res);
-    console.log("<<<" + json_text);
+    console.log(">>> " + json_text);
     soc.send(json_text);
   }
 
   _controllerCloneService(service_name) {
     const self = this;
     const params = {
-      callsign: "WebBridge",
+      callsign: "org.rdk.WebBridge",
       newcallsign: service_name
     };
     return self._json_rpc_client.sendRequest("Controller.1.clone", params, service_name);
   }
 }
+
+// exports.Service = Service
+// exports.ServiceManager = ServiceManager
