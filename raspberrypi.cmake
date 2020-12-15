@@ -69,5 +69,9 @@ if (BUILD_DBUS)
     option(IARM_USE_DBUS "IARM_USE_DBUS" ON)
 endif()
 
+if (BUILD_ENABLE_THERMAL_PROTECTION)
+   add_definitions (-DENABLE_THERMAL_PROTECTION)
+endif()
+
 
 
