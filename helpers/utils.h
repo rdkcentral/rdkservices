@@ -180,6 +180,8 @@ namespace Utils
         static bool init();
         static bool isConnected() { return m_connected; }
 
+        static const char* NAME;
+
     private:
         static bool m_connected;
     };
