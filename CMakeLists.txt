@@ -24,8 +24,6 @@ find_package(WPEFramework)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
 option(COMCAST_CONFIG "Comcast services configuration" ON)
-option(PLUGIN_DEVICEINFO "Include DeviceInfo plugin" ON)
-
 if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
