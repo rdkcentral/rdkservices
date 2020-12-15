@@ -283,10 +283,7 @@ void Utils::activatePlugin(const char* callSign)
                 , C_STR(strResult));
         if (status == Core::ERROR_NONE)
         {
-            time_t endTime = time(NULL) + WARMING_UP_TIME_IN_SECONDS;
-            LOGINFO("%s Plugin should be ready in about %d seconds", callSign, WARMING_UP_TIME_IN_SECONDS);
-            m_activationTime = endTime;
-
+            LOGINFO("%s Plugin activation status ret: %d ", callSign, status);
         }
     }
 }
@@ -302,32 +299,8 @@ bool Utils::isPluginActivated(const char* callSign)
         LOGWARN("Plugin %s is not active", callSign);
     } else {
         LOGINFO("Plugin %s is active ", callSign);
-        m_activationTime = time(NULL);
     }
     return pluginActivated;
-}
-
-bool Utils::getActivatedPluginReady(const char* callSign)
-{
-    bool res = false;
-
-    if (isPluginActivated(callSign))
-    {
-        time_t endTime = m_activationTime;
-        time_t nowTime = time(NULL);
-        time_t diffTime = endTime - nowTime;
-
-        if (diffTime > 0) {
-            LOGINFO("Waiting about %ld second(s) for %s to warm up ", diffTime, callSign);
-            sleep(diffTime);
-            res = true;
-        } else {
-            res = true;
-        }
-    } else {
-        LOGERR("Plugin %s has not been activated yet. Call activatePlugin() first!", callSign);
-    }
-    return  res;
 }
 
 bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)

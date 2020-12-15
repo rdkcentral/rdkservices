@@ -2468,7 +2468,7 @@ namespace WPEFramework {
             LOGINFO();
             bool success = true;
 
-            if (Utils::getActivatedPluginReady(HDMICECSINK_CALLSIGN)) {
+            if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
                 auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
                 if (!hdmiCecSinkPlugin) {
                     LOGERR("HdmiCecSink Initialisation failed\n");
