@@ -340,13 +340,9 @@ namespace Utils
     // Thunder Plugin Communication
     std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
 
-    static time_t m_activationTime;
-
     void activatePlugin(const char* callSign);
 
     bool isPluginActivated(const char* callSign);
-
-    bool getActivatedPluginReady(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }
