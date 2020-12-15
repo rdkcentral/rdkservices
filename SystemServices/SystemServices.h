@@ -195,8 +195,8 @@ namespace WPEFramework {
                 uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
                 uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
-                void getZoneInfoZDump(std::string file, std::string &zoneInfo);
-                void processTimeZones(std::string dir, JsonObject& out);
+                bool getZoneInfoZDump(std::string file, std::string &zoneInfo);
+                bool processTimeZones(std::string dir, JsonObject& out);
                 uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
 
                 uint32_t getCoreTemperature(const JsonObject& parameters, JsonObject& response);
