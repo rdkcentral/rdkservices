@@ -218,7 +218,7 @@ class ServiceManager {
   _controllerCloneService(service_name) {
     const self = this;
     const params = {
-      callsign: "WebBridge",
+      callsign: "org.rdk.WebBridge",
       newcallsign: service_name
     };
     return self._json_rpc_client.sendRequest("Controller.1.clone", params, service_name);
