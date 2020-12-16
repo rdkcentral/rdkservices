@@ -21,47 +21,54 @@
 #define _TTS_ERRORS_H_
 
 #include "utils.h"
+#include "logger.h"
 
 namespace TTS {
 
-enum SpeechState {
-    SPEECH_PENDING = 0,
-    SPEECH_IN_PROGRESS,
-    SPEECH_PAUSED,
-    SPEECH_NOT_FOUND
-};
+    enum SpeechState {
+        SPEECH_PENDING = 0,
+        SPEECH_IN_PROGRESS,
+        SPEECH_PAUSED,
+        SPEECH_NOT_FOUND
+    };
 
-enum ExtendedEvents {
-    EXT_EVENT_WILL_SPEAK        = 1 << 0,
-    EXT_EVENT_PAUSED            = 1 << 1,
-    EXT_EVENT_RESUMED           = 1 << 2,
-    EXT_EVENT_CANCELLED         = 1 << 3,
-    EXT_EVENT_INTERRUPTED       = 1 << 4,
-    EXT_EVENT_NETWORK_ERROR     = 1 << 5,
-    EXT_EVENT_PLAYBACK_ERROR    = 1 << 6,
-    EXT_EVENT_ALL               = 0xFFFF
-};
+    enum ExtendedEvents {
+        EXT_EVENT_WILL_SPEAK        = 1 << 0,
+        EXT_EVENT_PAUSED            = 1 << 1,
+        EXT_EVENT_RESUMED           = 1 << 2,
+        EXT_EVENT_CANCELLED         = 1 << 3,
+        EXT_EVENT_INTERRUPTED       = 1 << 4,
+        EXT_EVENT_NETWORK_ERROR     = 1 << 5,
+        EXT_EVENT_PLAYBACK_ERROR    = 1 << 6,
+        EXT_EVENT_ALL               = 0xFFFF
+    };
 
-enum TTS_Error {
-    TTS_OK = 0,
-    TTS_FAIL,
-    TTS_NOT_ENABLED,
-    TTS_INVALID_CONFIGURATION
-};
+    enum TTS_Error {
+        TTS_OK = 0,
+        TTS_FAIL,
+        TTS_NOT_ENABLED,
+        TTS_INVALID_CONFIGURATION
+    };
+} // namespace TTS
+
+namespace WPEFramework {
+namespace Plugin {
+    void logResponse(TTS::TTS_Error X, JsonObject& response);
+} //namespace WPEFramework
+} //namespace Plugin
 
 #define CHECK_TTS_MANAGER_RETURN_ON_FAIL() do {\
-    if(!m_ttsManager) { \
+    if(!_ttsManager) { \
         LOGERR("Invalid TTSManager instance"); \
         logResponse(TTS::TTS_NOT_ENABLED,response); \
         returnResponse(false); \
     } } while(0)
-
-}
 
 #define CHECK_TTS_PARAMETER_RETURN_ON_FAIL(param) do {\
     if(!parameters.HasLabel(param)) { \
         LOGERR("Parameter \"%s\" is not found", param); \
         returnResponse(false); \
     } } while(0)
+
 
 #endif
