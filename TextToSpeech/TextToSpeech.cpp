@@ -17,306 +17,97 @@
  * limitations under the License.
  */
 
-/**
- * @file TextToSpeech.cpp
- * @brief Thunder Plugin based Implementation for TTS service API's (RDK-27957).
- */
-
-/**
-  @mainpage Text To Speech (TTS)
-
-  <b>TextToSpeech</b> TTS Thunder Service provides APIs for the arbitrators
-  * (ex: Native application such as Cobalt) to use TTS resource.
-  */
-
 #include "TextToSpeech.h"
-#include <iostream>
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
-
 #define API_VERSION_NUMBER 1
 
-namespace WPEFramework
-{
-    namespace Plugin
+namespace WPEFramework {
+namespace Plugin {
+
+    /*
+     *Register TextToSpeech module as wpeframework plugin
+     **/
+    SERVICE_REGISTRATION(TextToSpeech, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
+
+    const string TextToSpeech::Initialize(PluginHost::IShell* service)
     {
-        /*
-         *Register TextToSpeech module as wpeframework plugin
-         **/
-        SERVICE_REGISTRATION(TextToSpeech, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
+        ASSERT(_service == nullptr);
 
-        /**
-         * @brief class varibales to handle TTS Engine communication.
-         */
+        _connectionId = 0;
+        _service = service;
+        _skipURL = static_cast<uint8_t>(_service->WebPrefix().length());
 
-        TTS::TTSManager* TextToSpeech::m_ttsManager = NULL;
-        TTSEventCallback* TextToSpeech::m_eventCallback = NULL;
-        TextToSpeech::TextToSpeech()
-                : AbstractPlugin()
-                , m_apiVersionNumber(API_VERSION_NUMBER)
-        {
-            LOGINFO();
+        _service->Register(&_notification);
 
-            registerMethod("enabletts", &TextToSpeech::enabletts, this);
-            registerMethod("listvoices", &TextToSpeech::listvoices, this);
-            registerMethod("setttsconfiguration", &TextToSpeech::setttsconfiguration, this);
-            registerMethod("getttsconfiguration", &TextToSpeech::getttsconfiguration, this);
-            registerMethod("isttsenabled", &TextToSpeech::isttsenabled, this);
-            registerMethod("speak", &TextToSpeech::speak, this);
-            registerMethod("cancel", &TextToSpeech::cancel, this);
-            registerMethod("pause", &TextToSpeech::pause, this);
-            registerMethod("resume", &TextToSpeech::resume, this);
-            registerMethod("isspeaking", &TextToSpeech::isspeaking, this);
-            registerMethod("getspeechstate", &TextToSpeech::getspeechstate, this);
-            registerMethod("getapiversion", &TextToSpeech::getapiversion, this);
+        _tts = _service->Root<Exchange::ITextToSpeech>(_connectionId, 5000, _T("TextToSpeechImplementation"));
 
-            if(!m_eventCallback)
-                m_eventCallback = new TTSEventCallback(this);
+        std::string message;
+        if(_tts != nullptr) {
+            ASSERT(_connectionId != 0);
 
-            if(!m_ttsManager)
-                m_ttsManager = TTS::TTSManager::create(m_eventCallback);
+            _tts->Configure(_service);
+            _tts->Register(&_notification);
+            RegisterAll();
+        } else {
+            message = _T("TextToSpeech could not be instantiated.");
+            _service->Unregister(&_notification);
+            _service = nullptr;
         }
 
-        TextToSpeech::~TextToSpeech()
-        {
-            LOGINFO();
+        return message;
+    }
 
-            if(m_ttsManager) {
-                delete m_ttsManager;
-                m_ttsManager = NULL;
+    void TextToSpeech::Deinitialize(PluginHost::IShell* service)
+    {
+        ASSERT(_service == service);
+        ASSERT(_tts != nullptr);
+
+        if (!_tts)
+            return;
+
+        _tts->Unregister(&_notification);
+        _service->Unregister(&_notification);
+
+        if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+            ASSERT(_connectionId != 0);
+            TRACE_L1("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
+
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+
+            // The process can disappear in the meantime...
+            if (connection != nullptr) {
+                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                connection->Terminate();
+                connection->Release();
             }
-
-            if(m_eventCallback) {
-                delete m_eventCallback;
-                m_eventCallback = NULL;
-            }
         }
 
-        uint32_t nextSpeechId() {
-            static uint32_t counter = 0;
+        // Deinitialize what we initialized..
+        _service = nullptr;
+        _tts = nullptr;
+    }
 
-            if(counter >= 0xFFFFFFFF)
-                counter = 0;
+    TextToSpeech::TextToSpeech()
+            : AbstractPlugin()
+            , _apiVersionNumber(API_VERSION_NUMBER)
+            , _notification(this)
+    {
+    }
 
-            return ++counter;
+    TextToSpeech::~TextToSpeech()
+    {
+    }
+
+    void TextToSpeech::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        if (connection->Id() == _connectionId) {
+            ASSERT(_service != nullptr);
+            TTSLOG_WARNING("TextToSpeech::Deactivated - %p", this);
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
         }
+    }
 
-        uint32_t TextToSpeech::enabletts(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("enabletts");
-
-            auto status = m_ttsManager->enableTTS(parameters["enabletts"].Boolean());
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::listvoices(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("language");
-
-            std::vector<std::string> voice;
-            auto status = m_ttsManager->listVoices(parameters["language"].String(), voice);
-            if(status == TTS::TTS_OK)
-                setResponseArray(response, "voices", voice);
-
-            logResponse(status,response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::setttsconfiguration(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-
-            if(parameters.HasLabel("ttsendpoint"))
-                m_config.ttsEndPoint = parameters["ttsendpoint"].String();
-
-            if(parameters.HasLabel("ttsendpointsecured"))
-                m_config.ttsEndPointSecured = parameters["ttsendpointsecured"].String();
-
-            if(parameters.HasLabel("language"))
-                m_config.language = parameters["language"].String();
-
-            if(parameters.HasLabel("voice"))
-                m_config.voice = parameters["voice"].String();
-
-            if(parameters.HasLabel("volume"))
-                m_config.volume = stod(parameters["volume"].String());
-
-            if(parameters.HasLabel("rate")) {
-                int rate=0;
-                getNumberParameter("rate", rate);
-                m_config.rate = static_cast<uint8_t>(rate);
-            }
-
-            auto status = m_ttsManager->setConfiguration(m_config);
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::getttsconfiguration(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-
-            TTS::Configuration ttsConfig;
-            auto status = m_ttsManager->getConfiguration(ttsConfig);
-            if(status == TTS::TTS_OK) {
-                response["ttsendpoint"]         = ttsConfig.ttsEndPoint;
-                response["ttsendpointsecured"]  = ttsConfig.ttsEndPointSecured;
-                response["language"]            = ttsConfig.language;
-                response["voice"]               = ttsConfig.voice;
-                response["rate"]                = (int) ttsConfig.rate;
-                response["volume"]              = std::to_string(ttsConfig.volume);
-            }
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::isttsenabled(const JsonObject& parameters ,JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-
-            response["isenabled"] = JsonValue((bool)m_ttsManager->isTTSEnabled());
-
-            logResponse(TTS::TTS_OK,response);
-            returnResponse(true);
-        }
-
-        uint32_t TextToSpeech::speak(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("text");
-
-            uint32_t speechId = nextSpeechId();
-            auto status = m_ttsManager->speak(speechId, parameters["text"].String());
-            if(status == TTS::TTS_OK)
-                response["speechid"] = (int) speechId;
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::cancel(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
-
-            auto status = m_ttsManager->shut(parameters["speechid"].Number());
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-
-        uint32_t TextToSpeech::pause(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
-
-            auto status = m_ttsManager->pause(parameters["speechid"].Number());
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::resume(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
-
-            auto status = m_ttsManager->resume(parameters["speechid"].Number());
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::isspeaking(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
-
-            bool speaking = false;
-            auto status = m_ttsManager->isSpeaking(parameters["speechid"].Number(), speaking);
-            response["speaking"] = speaking;
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::getspeechstate(const JsonObject& parameters, JsonObject& response)
-        {
-            std::lock_guard<std::mutex> guard(m_mutex);
-
-            LOGINFO();
-            CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
-
-            TTS::SpeechState state;
-            auto status = m_ttsManager->getSpeechState(parameters["speechid"].Number(), state);
-            if(status == TTS::TTS_OK)
-                response["speechstate"] = (int) state;
-
-            logResponse(status, response);
-            returnResponse(status == TTS::TTS_OK);
-        }
-
-        uint32_t TextToSpeech::getapiversion(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFO();
-            UNUSED(parameters);
-
-            response["version"] = m_apiVersionNumber;
-
-            returnResponse(true);
-        }
-
-        void TextToSpeech::setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items)
-        {
-            JsonArray arr;
-            for(auto& i : items) arr.Add(JsonValue(i));
-
-            response[key] = arr;
-        }
-
-        void TextToSpeech::notifyClient(string eventname, JsonObject& params)
-        {
-            sendNotify(eventname.c_str(), params);
-        }
-
-    } // namespace Plugin
+} // namespace Plugin
 } // namespace WPEFramework
