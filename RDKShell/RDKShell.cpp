@@ -2052,24 +2052,14 @@ namespace WPEFramework {
                             JsonObject activateParams;
                             activateParams.Set("callsign",callsign.c_str());
                             Core::ProxyType<Core::JSONRPC::Message> activateResponse;
-                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                             std::cout << "activate 1 status: " << status << std::endl;
                             if (status > 0)
                             {
                                 std::cout << "trying status one more time...\n";
-                                status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                                status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                                 std::cout << "activate 1 status: " << status << std::endl;
-                            }
-                            if (activateResponse && activateResponse->Error.IsSet())
-                            {
-                                gLaunchMutex.lock();
-                                gLaunchCount = 0;
-                                gLaunchMutex.unlock();
-                                std::cout << "new launch count loc 1a: 0\n";
-                                std::cout << "failed to activate application";
-                                response["message"] = "failed to activate application";
-                                returnResponse(false);
                             }
                         }
                     }
@@ -2079,23 +2069,13 @@ namespace WPEFramework {
                         JsonObject activateParams;
                         activateParams.Set("callsign",callsign.c_str());
                         Core::ProxyType<Core::JSONRPC::Message> activateResponse;
-                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 2 status: " << status << std::endl;
                         if (status > 0)
                         {
                             std::cout << "trying status one more time...\n";
-                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                             std::cout << "activate 2 status: " << status << std::endl;
-                        }
-                        if (activateResponse && activateResponse->Error.IsSet())
-                        {
-                            gLaunchMutex.lock();
-                            gLaunchCount = 0;
-                            gLaunchMutex.unlock();
-                            std::cout << "new launch count loc 1b: 0\n";
-                            std::cout << "failed to activate application";
-                            response["message"] = "failed to activate application";
-                            returnResponse(false);
                         }
                     }
                 }
@@ -2104,24 +2084,14 @@ namespace WPEFramework {
                     JsonObject activateParams;
                     activateParams.Set("callsign",callsign.c_str());
                     Core::ProxyType<Core::JSONRPC::Message> activateResponse;
-                    status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                    status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                     std::cout << "activate 3 status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResponse);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 3 status: " << status << std::endl;
-                    }
-                    if (activateResponse && activateResponse->Error.IsSet())
-                    {
-                        gLaunchMutex.lock();
-                        gLaunchCount = 0;
-                        gLaunchMutex.unlock();
-                        std::cout << "new launch count loc 1c: 0\n";
-                        std::cout << "failed to activate application";
-                        response["message"] = "failed to activate application";
-                        returnResponse(false);
                     }
                 }
 
