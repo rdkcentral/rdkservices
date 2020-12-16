@@ -21,7 +21,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_RDKSHELL_AUTOSTART true CACHE STRING "Automatically start RDKShell plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(IARMBus)
+find_package(IARMBus REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
