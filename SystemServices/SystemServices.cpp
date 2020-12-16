@@ -1925,7 +1925,7 @@ namespace WPEFramework {
             returnResponse(resp);
         }
 
-        void SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+        bool SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
         {
             std::string cmd = "zdump ";
             cmd += file;
@@ -1936,7 +1936,7 @@ namespace WPEFramework {
             {
                 LOGERR("failed to start %s: %s", cmd, strerror(errno));
                 zoneInfo = "";
-                return;
+                return false;
 
             }
 
@@ -1955,11 +1955,15 @@ namespace WPEFramework {
             {    
                 zoneInfo = "";
                 LOGERR("%s failed with code %d", cmd.c_str(), err);
+                return false;
             }
+
+            return true;
         }
 
-        void SystemServices::processTimeZones(std::string dir, JsonObject& out)
+        bool SystemServices::processTimeZones(std::string dir, JsonObject& out)
         {
+            bool ret = true;
             DIR *d = opendir(dir.c_str());
 
             struct dirent *de;
@@ -1983,7 +1987,9 @@ namespace WPEFramework {
                 if (S_ISDIR(deStat.st_mode))
                 {
                     JsonObject dirObject;
-                    processTimeZones(fullName, dirObject);
+                    if (!processTimeZones(fullName, dirObject)) 
+                        ret = false;
+
                     out[de->d_name] = dirObject;
                 }
                 else
@@ -1991,13 +1997,17 @@ namespace WPEFramework {
                     if (0 == access(fullName.c_str(), R_OK))
                     {
                         std::string zoneInfo;
-                        getZoneInfoZDump(fullName, zoneInfo);
+                        if (!getZoneInfoZDump(fullName, zoneInfo)) 
+                            ret = false;
+
                         out[de->d_name] = zoneInfo;
                     }
                     else
                         LOGWARN("no access to %s", fullName.c_str());
                 }
             }
+
+            return ret;
         }
 
         uint32_t SystemServices::getTimeZones(const JsonObject& parameters, JsonObject& response)
@@ -2005,11 +2015,10 @@ namespace WPEFramework {
             LOGINFO("called");
 
             JsonObject dirObject;
-            processTimeZones(ZONEINFO_DIR, dirObject);
-
+            bool resp = processTimeZones(ZONEINFO_DIR, dirObject);
             response["zoneinfo"] = dirObject;
 
-            return Core::ERROR_NONE;
+            returnResponse(resp);
         }
 
         /***
