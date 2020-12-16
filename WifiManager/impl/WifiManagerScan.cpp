@@ -253,7 +253,7 @@ void WifiManagerScan::iarmEventHandler(char const* owner, IARM_EventId_t eventId
         LOGINFO("Event IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs[Incr] received. '%s'", eventData->data.wifiSSIDList.ssid_list);
 
         // The returned SSIDs are in a JSON document
-        std::string const serialized(eventData->data.wifiSSIDList.ssid_list, MAX_SSIDLIST_BUF);
+        std::string const serialized(eventData->data.wifiSSIDList.ssid_list);
         JsonObject eventDocument;
         WPEC::OptionalType<WPEJ::Error> error;
         if (!WPEJ::IElement::FromString(serialized, eventDocument, error)) {
