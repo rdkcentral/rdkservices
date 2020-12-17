@@ -1,0 +1,414 @@
+<html>
+
+<head>
+	<style>
+		input[type=button]:focus {
+			border: 1.2px solid rgb(216, 32, 32);
+			color: white;
+		}
+
+		select:focus {
+			border: 1.2px solid rgb(216, 32, 32);
+			color: white;
+		}
+
+
+		#vidWindow {
+			height: 100%;
+			width: 100%;
+			position: absolute;
+			bottom: 0;
+			left: 0;
+		}
+
+		#seekBar {
+			width: 397px;
+			height: 25px;
+			text-align: center;
+		}
+
+		#seekBarOuter {
+			display: inline-block;
+			width: 398px;
+			height: 25px;
+			background-color: rgba(0, 0, 0, 0.4);
+			outline: thin solid #00448A;
+		}
+
+		#content {
+			height: 250px;
+			position: fixed;
+			z-index: 1;
+			bottom: 0;
+			width: 100%;
+		}
+	</style>
+
+	<script src="thunderJS.js"></script>
+
+	<script>
+		//TODO:
+		// - add selectable list of streams, instead of single URL text (same as in UVE)
+		// - refactor keydown handler to support Remote keys
+		// - add some kind of README with instructions how to run it
+		// - RPI: figure out missing env to enable keyboard focus on rdkbrowser.sh
+
+		function log(text) {
+			console.log(text);
+			var consoleArea = document.getElementById("console");
+			consoleArea.value += text + "\n";
+			consoleArea.scrollTop = consoleArea.scrollHeight;
+		}
+		function clearConsole() {
+			document.getElementById("console").value = "";
+		}
+
+		function clog(text) {
+			clearConsole();
+			console.log(text);
+			document.getElementById("console").value += text + "\n";
+		}
+
+		// Convert seconds to hours
+		function convertSStoHr(videoTime) {
+			var hhTime = Math.floor(videoTime / 3600);
+			var mmTime = Math.floor((videoTime - (hhTime * 3600)) / 60);
+			var ssTime = videoTime - (hhTime * 3600) - (mmTime * 60);
+			ssTime = Math.round(ssTime);
+
+			var timeFormat = (hhTime < 10 ? "0" + hhTime : hhTime);
+			timeFormat += ":" + (mmTime < 10 ? "0" + mmTime : mmTime);
+			timeFormat += ":" + (ssTime < 10 ? "0" + ssTime : ssTime);
+
+			return timeFormat;
+		};
+
+		var tc;//Thunder Client object
+		var listenerOnPlaybackStarted;
+		var listenerOnPlaybackStateChanged;
+		var listenerOnPlaybackProgressUpdate;
+		var listenerOnBufferingChanged;
+		var listenerOnPlaybackSpeedChanged;
+		var listenerOnPlaybackFailed;
+
+		function Connect() {
+			var config = {
+				host: '127.0.0.1', // ipAddr of device running Thunder
+
+				port: 9998,
+				default: 1, // versioning
+				// If Security Agent enabled: generate on STB via /usr/bin/WPEFrameworkSecurityUtility 
+				token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.zrOGr8LOHB0MCGGQQFncIBTDapoM2Szk4-a5ohIOS9"
+			};
+
+			log("Thunder Configuration: " + JSON.stringify(config));
+			tc = ThunderJS(config);
+		}
+		function Activate(callsign) {
+			tc.call("Controller", "activate", { "callsign": callsign }).then(result => {
+				log(callsign + " activated");
+			}).catch(err => {
+				log(callsign + " activation error");
+			});
+		}
+
+		function registerOnPlaybackStarted() {
+			listenerOnPlaybackStarted = tc.on("org.rdk.FireboltMediaPlayer", 'playbackStarted', (notification) => {
+				log('Received playbackStarted Event ' + JSON.stringify(notification))
+			});
+		}
+
+		function registerOnPlaybackStateChanged() {
+			listenerOnPlaybackStateChanged = tc.on("org.rdk.FireboltMediaPlayer", 'playbackStateChanged', (notification) => {
+				log('Received playbackStateChanged Event ' + JSON.stringify(notification))
+				if (notification.main.state === 8)//Playing
+				{
+					document.getElementById("playPause").value = "Pause";
+				}
+				else //other - not playing
+				{
+					document.getElementById("playPause").value = "Play";
+				}
+			});
+		}
+
+		function registerOnPlaybackProgressUpdate() {
+			listenerOnPlaybackProgressUpdate = tc.on("org.rdk.FireboltMediaPlayer", 'playbackProgressUpdate', (notification) => {
+				log('Received playbackProgressUpdate Event ' + JSON.stringify(notification))
+				var duration = notification.main.durationMiliseconds;
+				var position = notification.main.positionMiliseconds;
+				var seekBarValue = (position / duration) * 100;
+				var seekBar = document.getElementById("seekBar");
+				if (isFinite(seekBarValue)) {
+					seekBar.value = seekBarValue;
+					seekBar.style.width = seekBarValue + "%";
+					seekBar.style.backgroundColor = "red";
+				}
+				document.getElementById("totalDuration").innerHTML = convertSStoHr(duration / 1000.0);
+				document.getElementById("currentDuration").innerHTML = convertSStoHr(position / 1000.0);
+			});
+		}
+
+		function registerOnBufferingChanged() {
+			listenerOnBufferingChanged = tc.on("org.rdk.FireboltMediaPlayer", 'bufferingChanged', (notification) => {
+				log('Received bufferingChanged Event ' + JSON.stringify(notification))
+			});
+		}
+
+		function registerOnPlaybackSpeedChanged() {
+			listenerOnPlaybackSpeedChanged = tc.on("org.rdk.FireboltMediaPlayer", 'playbackSpeedChanged', (notification) => {
+				log('Received playbackSpeedChanged Event ' + JSON.stringify(notification))
+			});
+		}
+
+		function registerOnPlaybackFailed() {
+			listenerOnPlaybackFailed = tc.on("org.rdk.FireboltMediaPlayer", 'playbackFailed', (notification) => {
+				log('Received playbackFailed Event ' + JSON.stringify(notification))
+			});
+		}
+
+
+
+
+		function fullscreen(enable) {
+			var videoWindowElement = document.getElementById("vidWindow");
+			if (enable) {
+				SetRectangle(0.0, 0.0, 1.0, 1.0);
+			}
+			else {
+				SetRectangle(0.6, 0.0, 0.4, 0.4);
+			}
+		}
+
+
+		function SetRectangle(pctx, pcty, pctw, pcth) {
+			var graphics_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+			var graphics_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+			console.log("window width=" + graphics_width + ", height=" + graphics_height);
+
+			var x = Math.floor(pctx * graphics_width);
+			var w = Math.floor(pctw * graphics_width);
+			var y = Math.floor(pcty * graphics_height);
+			var h = Math.floor(pcth * graphics_height);
+
+			var videoWindowElement = document.getElementById("vidWindow");
+			videoWindowElement.style['height'] = h;
+			videoWindowElement.style['width'] = w;
+			videoWindowElement.style['top'] = y;
+			videoWindowElement.style['left'] = x;
+
+			console.log("holepunch: x=" + x + ",y=" + y + ",w=" + w + ",h=" + h);
+
+			var param = '{"id":"MainPlayer","x":' + x + ',"y":' + y + ',"w":' + w + ',"h":' + h + ',"meta":{"mResWidth":' + graphics_width + ',"mResHeight":' + graphics_height + '}}';
+			console.log("rectangle: " + param);
+			//tc.call("org.rdk.MediaPlayer", "setVideoRectangle", param );
+
+			/*
+			{ // hack - use coordinates in 1280x720 space, rather than graphics resolution
+				graphics_width = 1280;
+				graphics_height = 720;
+				x = Math.floor(pctx*graphics_width);
+				w = Math.floor(pctw*graphics_width);
+				y = Math.floor(pcty*graphics_height);
+				h = Math.floor(pcth*graphics_height);
+				console.log( "rectangle: x=" + x + ",y=" + y + ",w="+ w + ",h=" + h);
+			}
+			 */
+		}
+
+		window.onload = function () {
+
+			//window.resizeBy(1280,720);
+
+			CollectButtons();
+			Connect();
+			Activate('org.rdk.FireboltMediaPlayer');
+			registerOnPlaybackStarted();
+			registerOnPlaybackStateChanged();
+			registerOnPlaybackProgressUpdate();
+			registerOnBufferingChanged();
+			registerOnPlaybackSpeedChanged();
+			registerOnPlaybackFailed();
+		}
+
+		var focusIndex;
+		var navElements;
+		var bFullScreen = false;
+
+		function Blur() {
+			navElements[focusIndex].blur();
+		}
+		function Focus() {
+			navElements[focusIndex].focus();
+		}
+		function CollectButtons() {
+			navElements = document.querySelectorAll("select,input");//document.getElementsByTagName("select");
+			focusIndex = 0;
+			Focus();
+		}
+		//ch down 34
+		// ch up 33
+		// vol down - 174, up - 175
+		//playpause - 179
+		//red - 69
+		//green - 8
+		// yellow - 77
+		// 0 - 48, 1 - 49 , 2 - 50 , 8 - 56 9 - 57
+		// red big record - 118
+		// search 114
+		// info 120
+		//? 113
+		//volume - 173
+		window.onkeydown = function (elt) {
+			var keyCode = elt.keyCode || elt.which;
+			//setGuideText('keyCode:' + keyCode);
+			switch (keyCode) {
+				case 65:
+				case 118: // big red record button
+					{
+						if (bFullScreen) {
+							bFullScreen = false;
+						}
+						else {
+							bFullScreen = true;
+						}
+						// todo: replace with use of SetRectangle helper function
+						fullscreen(bFullScreen);
+					}
+					break;
+				case 37: // left
+					if (focusIndex > 0) {
+						Blur();
+						focusIndex--;
+						Focus();
+					}
+					break;
+
+				case 39: // right
+					if (focusIndex < navElements.length - 1) {
+						Blur();
+						focusIndex++;
+						Focus();
+					}
+					break;
+
+				//down - 174, up - 175
+
+				case 40: // down
+					break;
+
+				case 38: // up
+					break;
+
+				//case 33: // ch up
+				case 175: // volume up
+					//channelUp(true);
+					break;
+
+				//case 34: // ch down
+				case 174: // volume down
+					//channelDown(true);
+					break;
+
+				case 13: // return
+				case 32: // space
+					if (focusIndex == 0) {
+						//playChannel(true);
+					}
+					break;
+			}
+		}
+		function playerLoad(url) {
+			log("playerLoad with url " + url);
+			tc.call("org.rdk.FireboltMediaPlayer", "create", { "id": "main" }).then(result => {
+				log("Instance created");
+				tc.call("org.rdk.FireboltMediaPlayer", "load", { "id": "main", "url": url });
+			}).catch(err => {
+				log("Instance create error: " + err);
+			});
+		}
+
+		function playerStop() {
+			log("playerStop");
+			tc.call("org.rdk.FireboltMediaPlayer", "stop", { "id": "main" });
+		}
+
+		function playerPlay() {
+			log("playerPlay");
+			tc.call("org.rdk.FireboltMediaPlayer", "play", { "id": "main" });
+		}
+
+		function playerPause() {
+			log("playerPause");
+			tc.call("org.rdk.FireboltMediaPlayer", "pause", { "id": "main" });
+		}
+
+		function playerSeekTo(pos) {
+			log("playerSeekTo");
+			tc.call("org.rdk.FireboltMediaPlayer", "seekTo", { "id": "main", "positionSec": pos });
+		}
+
+		function load() {
+			var uri = document.getElementById("url").value;
+			playerLoad(uri);
+		}
+
+		function playPause() {
+			var playPauseValue = document.getElementById("playPause").value;
+			if (playPauseValue === "Play") {
+				playerPlay();
+			}
+			else {
+				playerPause();
+			}
+		}
+
+		function jump() {
+			var pos = Number(document.getElementById("jumpPosition").value);
+			if (!isNaN(pos)) {
+				playerSeekTo(pos);
+				document.getElementById("jumpPosition").value = "";
+			}
+		}
+
+		function stop() {
+			playerStop();
+		}
+
+	</script>
+</head>
+
+<body bgcolor="#000000" text="#FFFFFF" topmargin="50" leftmargin="50" bottommargin="50" rightmargin="50">
+	<div id="videoContainer">
+		<video id="vidWindow">
+			<source src="dummy.mp4"> <!-- hole punching, currently not supported -->
+		</video>
+	</div>
+
+	<div id=content>
+		<div id="videoUrl" style="width:80%">
+			<input type="text" id="url" style="width:60%" value="https://cpetestutility.stb.r53.xcal.tv/VideoTestStream/main.m3u8">
+			<input type="button" id="load" value="Load" onclick="load();" />
+		</div>
+		<br />
+		<div id="control" style="width:80%">
+			<input type="button" id="playPause" value="Play" onclick="playPause();" />
+			<nobr id="currentDuration">00:00:00</nobr>
+			<div id="seekBarOuter">
+				<div id="seekBar"></div>
+			</div>
+			<nobr id="totalDuration">00:00:00</nobr>
+			<input type="text" id="jumpPosition" placeholder=" position(sec)" />
+			<input type="button" id="jump" value="Jump" onclick="jump();" />
+			<input type="button" id="stop" value="Stop" onclick="stop();" />
+
+			<input type="button" id="full" value="Full" onclick="SetRectangle(0,0,1,1);" />
+		</div>
+		<br />
+		<textarea rows="5" cols="120" id="console" style="border:solid 1px orange; width:80%; background-color: rgba(255, 255, 255, 0.8)"></textarea>
+		<br />
+	</div>
+
+</body>
+
+</html>
