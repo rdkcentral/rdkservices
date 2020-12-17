@@ -2051,7 +2051,6 @@ namespace WPEFramework {
                             launchType = RDKShellLaunchType::ACTIVATE;
                             JsonObject activateParams;
                             activateParams.Set("callsign",callsign.c_str());
-                            Core::ProxyType<Core::JSONRPC::Message> activateResponse;
                             status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                             std::cout << "activate 1 status: " << status << std::endl;
@@ -2068,7 +2067,6 @@ namespace WPEFramework {
                         launchType = RDKShellLaunchType::ACTIVATE;
                         JsonObject activateParams;
                         activateParams.Set("callsign",callsign.c_str());
-                        Core::ProxyType<Core::JSONRPC::Message> activateResponse;
                         status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 2 status: " << status << std::endl;
                         if (status > 0)
@@ -2083,7 +2081,6 @@ namespace WPEFramework {
                 {
                     JsonObject activateParams;
                     activateParams.Set("callsign",callsign.c_str());
-                    Core::ProxyType<Core::JSONRPC::Message> activateResponse;
                     status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                     std::cout << "activate 3 status: " << status << std::endl;
