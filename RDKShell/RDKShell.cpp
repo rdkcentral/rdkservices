@@ -110,6 +110,7 @@ vector<std::string> gActivePlugins;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
+#define RDKSHELL_POWER_TIME_WAIT 3
 
 enum RDKShellLaunchType
 {
@@ -519,6 +520,7 @@ namespace WPEFramework {
               {
                 std::string invoke = actionObject["invoke"].String();
                 size_t lastPositionOfDot = invoke.find_last_of(".");
+                auto thunderController = getThunderControllerClient();
                 if (lastPositionOfDot != -1)
                 {
                     std::string callsign = invoke.substr(0, lastPositionOfDot);
@@ -527,7 +529,7 @@ namespace WPEFramework {
                     JsonObject activateParams;
                     activateParams.Set("callsign",callsign.c_str());
                     JsonObject activateResult;
-                    int32_t activateStatus = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+                    int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
                 }
 
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
@@ -536,14 +538,14 @@ namespace WPEFramework {
                 if (actionObject.HasLabel("params"))
                 {
                   // setting wait Time to 2 seconds
-                  status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
                 }
                 else
                 {
                   JsonObject joParams;
                   joParams["params"] = JsonObject();
                   // setting wait Time to 2 seconds
-                  status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
                 }
                 if (status > 0)
                 {
@@ -560,11 +562,20 @@ namespace WPEFramework {
 
         void RDKShell::RdkShellListener::onPowerKey()
         {
+            static double lastPowerKeyTime = 0;
+            double currentTime = RdkShell::seconds();
+            double powerKeyTime = currentTime - lastPowerKeyTime;
+            if (powerKeyTime < RDKSHELL_POWER_TIME_WAIT)
+            {
+                std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
+            }
+            lastPowerKeyTime = currentTime;
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
             std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
-            uint32_t status = getThunderControllerClient()->Invoke(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Invoke(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
 
             std::cout << "get power state status: " << status << std::endl;
 
@@ -595,7 +606,7 @@ namespace WPEFramework {
             std::string setPowerStateInvoke = "org.rdk.System.1.setPowerState";
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
-            status = getThunderControllerClient()->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
+            status = thunderController->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
             std::cout << "get power state status: " << status << std::endl;
             if (status > 0)
             {
@@ -1893,16 +1904,17 @@ namespace WPEFramework {
                     originalPluginFound = true;
                   }
                 }
+                auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
-                    uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+                    uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
 
                     std::cout << "status status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+                        status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
                         std::cout << "status status: " << status << std::endl;
                     }
 
@@ -1947,13 +1959,13 @@ namespace WPEFramework {
                     joParams.Set("newcallsign",callsign.c_str());
                     JsonObject joResult;
                     // setting wait Time to 2 seconds
-                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
 
                     std::cout << "clone status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
                         std::cout << "clone status: " << status << std::endl;
                     }
 
@@ -1970,13 +1982,13 @@ namespace WPEFramework {
                 uint32_t status = 0;
                 string method = "configuration@" + callsign;
                 Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
 
                 std::cout << "config status: " << status << std::endl;
                 if (status > 0)
                 {
                     std::cout << "trying status one more time...\n";
-                    status = getThunderControllerClient()->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                    status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
                     std::cout << "config status: " << status << std::endl;
                 }
 
@@ -2004,13 +2016,13 @@ namespace WPEFramework {
                     }
                 }
 
-                status = getThunderControllerClient()->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+                status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
 
                 std::cout << "set status: " << status << std::endl;
                 if (status > 0)
                 {
                     std::cout << "trying status one more time...\n";
-                    status = getThunderControllerClient()->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+                    status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
                     std::cout << "set status: " << status << std::endl;
                 }
 
@@ -2019,13 +2031,13 @@ namespace WPEFramework {
                     status = 0;
                     string statusMethod = "status@"+callsign;
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> serviceResults;
-                    status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
+                    status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
 
                     std::cout << "get status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
+                        status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
                         std::cout << "get status: " << status << std::endl;
                     }
 
@@ -2039,14 +2051,13 @@ namespace WPEFramework {
                             launchType = RDKShellLaunchType::ACTIVATE;
                             JsonObject activateParams;
                             activateParams.Set("callsign",callsign.c_str());
-                            JsonObject activateResult;
-                            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                             std::cout << "activate 1 status: " << status << std::endl;
                             if (status > 0)
                             {
                                 std::cout << "trying status one more time...\n";
-                                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                                status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                                 std::cout << "activate 1 status: " << status << std::endl;
                             }
                         }
@@ -2056,13 +2067,12 @@ namespace WPEFramework {
                         launchType = RDKShellLaunchType::ACTIVATE;
                         JsonObject activateParams;
                         activateParams.Set("callsign",callsign.c_str());
-                        JsonObject activateResult;
-                        status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 2 status: " << status << std::endl;
                         if (status > 0)
                         {
                             std::cout << "trying status one more time...\n";
-                            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                             std::cout << "activate 2 status: " << status << std::endl;
                         }
                     }
@@ -2071,14 +2081,13 @@ namespace WPEFramework {
                 {
                     JsonObject activateParams;
                     activateParams.Set("callsign",callsign.c_str());
-                    JsonObject activateResult;
-                    status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                    status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                     std::cout << "activate 3 status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 3 status: " << status << std::endl;
                     }
                 }
@@ -2295,8 +2304,8 @@ namespace WPEFramework {
                 JsonObject joParams;
                 joParams.Set("callsign",callsign.c_str());
                 JsonObject joResult;
-                // setting wait Time to 2 seconds
-                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
+                auto thunderController = getThunderControllerClient();
+                uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
                 if (status > 0)
                 {
                     std::cout << "failed to destroy " << callsign << ".  status: " << status << std::endl;
@@ -2578,7 +2587,8 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             JsonArray availableTypes;
             for (uint16_t i = 0; i < joResult.Length(); i++)
@@ -2610,7 +2620,8 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
 
             JsonArray stateArray;
@@ -2634,12 +2645,13 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             if (stateStatus == 0)
                             {
                                 WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
 
                                 JsonObject typeObject;
                                 typeObject["callsign"] = callsign;
@@ -2690,7 +2702,8 @@ namespace WPEFramework {
 
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
                     std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
@@ -2778,7 +2791,8 @@ namespace WPEFramework {
                     std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
 
                     std::cout << "attempting to check aging flag \n";
-                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                    auto thunderController = getThunderControllerClient();
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
                     std::cout << "get status: " << status << std::endl;
 
                     if (status > 0)
@@ -2867,7 +2881,8 @@ namespace WPEFramework {
             std::string toFacGetInvoke = "org.rdk.PersistentStore.1.getValue";
 
             std::cout << "attempting to check flag \n";
-            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
             std::cout << "get status: " << status << std::endl;
 
             if (status > 0)
@@ -2902,13 +2917,14 @@ namespace WPEFramework {
             JsonObject activateParams;
             activateParams.Set("callsign",callsign.c_str());
             JsonObject activateResult;
-            int32_t status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+            auto thunderController = getThunderControllerClient();
+            int32_t status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
 
             std::cout << "activate resident app status: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "trying status one more time...\n";
-                status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
+                status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
                 std::cout << "activate resident app status: " << status << std::endl;
                 if (status > 0)
                 {
