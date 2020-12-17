@@ -2791,8 +2791,7 @@ namespace WPEFramework {
                     std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
 
                     std::cout << "attempting to check aging flag \n";
-                    auto thunderController = getThunderControllerClient();
-                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
                     std::cout << "get status: " << status << std::endl;
 
                     if (status > 0)
@@ -2818,12 +2817,16 @@ namespace WPEFramework {
             }
 
             uint32_t result;
+            killAllApps();
+            JsonObject destroyRequest, destroyResponse;
+            destroyRequest["callsign"] = "ResidentApp";
+            result = destroyWrapper(destroyRequest, destroyResponse);
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
                 JsonObject launchRequest;
                 launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "ResidentApp";
+                launchRequest["type"] = "LightningApp";
                 launchRequest["uri"] = std::string(factoryAppUrl);
                 launchRequest["focused"] = true;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
@@ -2836,9 +2839,10 @@ namespace WPEFramework {
                 else
                 {
                     std::cout << "Launching factory application failed " << std::endl;
-                    response["message"] = " Launching factory application failed";
+                    response["message"] = " launching factory application failed ";
                     returnResponse(false);
                 }
+                returnResponse(true);
             }
             else
             {
@@ -2846,28 +2850,6 @@ namespace WPEFramework {
                 response["message"] = " factory app url is empty";
                 returnResponse(false);
             }
-            bool ret = false;
-            JsonObject stateRequest, stateResponse;
-            result = getState(stateRequest, stateResponse);
-            const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
-            for (int i=0; i<stateList.Length(); i++)
-            {
-                const JsonObject& stateInfo = stateList[i].Object();
-                if (stateInfo.HasLabel("callsign"))
-                {
-                   std::string appCallSign = stateInfo["callsign"].String();
-                   if (appCallSign != "factoryapp")
-                   {
-                       JsonObject destroyRequest, destroyResponse;
-                       destroyRequest["callsign"] = stateInfo["callsign"].String();
-                       result = destroyWrapper(destroyRequest, destroyResponse);
-                   }
-                }
-            }
-            JsonObject raDestroyRequest, raDestroyResponse;
-            raDestroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(raDestroyRequest, raDestroyResponse);
-            returnResponse(true);
         }
 
         uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
