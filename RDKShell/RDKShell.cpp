@@ -110,7 +110,7 @@ vector<std::string> gActivePlugins;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 2
+#define RDKSHELL_POWER_TIME_WAIT 3
 
 enum RDKShellLaunchType
 {
@@ -379,10 +379,10 @@ namespace WPEFramework {
             return(string("{\"service\": \"") + SERVICE_NAME + string("\"}"));
         }
 
-        std::unique_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
         {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            std::unique_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient(new WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>(callsign.c_str(), ""));
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
             return thunderClient;
         }
 
