@@ -214,7 +214,16 @@ namespace WPEFramework
                 err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
             }
 
-            bool ok = err == IARM_RESULT_SUCCESS;
+            bool ok = true;
+
+            // If SuppressReboot is false ie device is rebooted, IARMBus daemon will also be stopped.
+            // So cannot rely on return value from IARM_Bus_Call above.
+            // Hence checking for status only when SuppressReboot is true.
+            if(suppressReboot)
+            {
+                ok = (err == IARM_RESULT_SUCCESS);
+            }
+            
             JsonObject params;
 
             params[PARAM_SUCCESS] = ok;
