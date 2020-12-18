@@ -111,6 +111,7 @@ vector<std::string> gActivePlugins;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
+#define RDKSHELL_POWER_TIME_WAIT 2
 
 enum RDKShellLaunchType
 {
@@ -316,6 +317,8 @@ namespace WPEFramework {
                 }
               }
             }
+#else
+            mEnableUserInactivityNotification = true;
 #endif
 
             service->Register(mClientsMonitor);
@@ -555,6 +558,15 @@ namespace WPEFramework {
 
         void RDKShell::RdkShellListener::onPowerKey()
         {
+            static double lastPowerKeyTime = 0;
+            double currentTime = RdkShell::seconds();
+            double powerKeyTime = currentTime - lastPowerKeyTime;
+            if (powerKeyTime < RDKSHELL_POWER_TIME_WAIT)
+            {
+                std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
+            }
+            lastPowerKeyTime = currentTime;
+
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
