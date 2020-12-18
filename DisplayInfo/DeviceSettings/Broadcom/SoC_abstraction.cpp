@@ -46,7 +46,7 @@ using namespace WPEFramework;
  */
 void sanitizeLine(string& line)
 {
-    for(int i = 0; i < line.size(); i++)
+    for(unsigned int i = 0; i < line.size(); i++)
     {
         while(line[i] == ' ' && line[i+1] == ' ')
         {
@@ -161,7 +161,7 @@ uint64_t SoC_GetTotalGpuRam()
     }
     catch(...)
     {
-        LOGERR("Unable to process Total Gpu ram", value.c_str());
+        LOGERR("Unable to process Total Gpu ram");
     }
     return ret;
 }
@@ -180,7 +180,7 @@ uint64_t SoC_GetFreeGpuRam()
     }
     catch(...)
     {
-        LOGERR("Unable to process Free Gpu ram", value.c_str());
+        LOGERR("Unable to process Free Gpu ram");
     }
 
     ret = (100 - usedPercentage) * 0.01 * SoC_GetTotalGpuRam();

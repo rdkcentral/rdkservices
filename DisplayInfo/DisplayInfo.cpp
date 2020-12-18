@@ -58,6 +58,19 @@ namespace Plugin {
                     Exchange::JGraphicsProperties::Register(*this, _graphicsProperties);
                     Exchange::JConnectionProperties::Register(*this, _connectionProperties);
                     Exchange::JHDRProperties::Register(*this, _hdrProperties);
+
+                    // The code execution should proceed regardless of the _displayProperties
+                    // value, as it is not a essential.
+                    // The relevant JSONRPC endpoints will return ERROR_UNAVAILABLE,
+                    // if it hasn't been initialized.
+                    _displayProperties = _connectionProperties->QueryInterface<Exchange::IDisplayProperties>();
+                    if (_displayProperties == nullptr) {
+                        SYSLOG(Logging::Startup, (_T("Display Properties service is unavailable.")));
+                    }
+                    else
+                    {
+                        Exchange::JDisplayProperties::Register(*this, _displayProperties);
+                    }
                 }
             }
         }
@@ -73,6 +86,7 @@ namespace Plugin {
     {
         ASSERT(_connectionProperties != nullptr);
 
+        Exchange::JGraphicsProperties::Unregister(*this);
         Exchange::JHDRProperties::Unregister(*this);
         Exchange::JConnectionProperties::Unregister(*this);
 
@@ -94,6 +108,14 @@ namespace Plugin {
             _hdrProperties->Release();
             _hdrProperties = nullptr;
         }
+
+        if (_displayProperties != nullptr)
+        {
+            _displayProperties->Release();
+            Exchange::JDisplayProperties::Unregister(*this);
+            _displayProperties = nullptr;
+        }
+
         _connectionId = 0;
     }
 

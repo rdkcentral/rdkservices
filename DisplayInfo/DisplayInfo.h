@@ -24,6 +24,7 @@
 #include <interfaces/json/JGraphicsProperties.h>
 #include <interfaces/json/JConnectionProperties.h>
 #include <interfaces/json/JHDRProperties.h>
+#include <interfaces/json/JDisplayProperties.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -85,6 +86,7 @@ namespace Plugin {
             , _graphicsProperties(nullptr)
             , _connectionProperties(nullptr)
             , _hdrProperties(nullptr)
+            , _displayProperties(nullptr)
             , _notification(this)
         {
         }
@@ -99,6 +101,7 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IGraphicsProperties, _graphicsProperties)
         INTERFACE_AGGREGATE(Exchange::IConnectionProperties, _connectionProperties)
         INTERFACE_AGGREGATE(Exchange::IHDRProperties, _hdrProperties)
+        INTERFACE_AGGREGATE(Exchange::IDisplayProperties, _displayProperties)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP
 
@@ -124,6 +127,7 @@ namespace Plugin {
         Exchange::IGraphicsProperties* _graphicsProperties;
         Exchange::IConnectionProperties* _connectionProperties;
         Exchange::IHDRProperties* _hdrProperties;
+        Exchange::IDisplayProperties* _displayProperties;
         Core::Sink<Notification> _notification;
     };
 

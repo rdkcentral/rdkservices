@@ -32,6 +32,7 @@
 #include "audioOutputPortType.hpp"
 #include "audioOutputPortConfig.hpp"
 #include "manager.hpp"
+#include "edid-parser.hpp"
 #include "utils.h"
 
 #include "libIBus.h"
@@ -47,9 +48,11 @@ namespace Plugin {
 class DisplayInfoImplementation :
     public Exchange::IGraphicsProperties,
     public Exchange::IConnectionProperties,
-    public Exchange::IHDRProperties  {
+    public Exchange::IHDRProperties,
+    public Exchange::IDisplayProperties  {
 private:
     using HdrteratorImplementation = RPC::IteratorType<Exchange::IHDRProperties::IHDRIterator>;
+    using ColorimetryIteratorImplementation = RPC::IteratorType<Exchange::IDisplayProperties::IColorimetryIterator>;
 public:
     DisplayInfoImplementation()
     {
@@ -65,7 +68,6 @@ public:
             //TODO: this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
-            UpdateFrameRate(_frameRate);
         }
         catch(...)
         {
@@ -139,7 +141,7 @@ public:
     static void ResolutionChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
         LOGINFO();
-        IConnectionProperties::INotification::Source eventtype;
+        IConnectionProperties::INotification::Source eventtype = IConnectionProperties::INotification::Source::PRE_RESOLUTION_CHANGE;
         if (strcmp(owner, IARM_BUS_DSMGR_NAME) == 0)
         {
             switch (eventId) {
@@ -163,10 +165,6 @@ public:
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
-        if(eventtype == IConnectionProperties::INotification::Source::POST_RESOLUTION_CHANGE) {
-            UpdateFrameRate(_frameRate);
-        }
-
         while(index != _observers.end()) {
             (*index)->Updated(eventtype);
             index++;
@@ -225,8 +223,33 @@ public:
     uint32_t VerticalFreq(uint32_t& value) const override
     {
         LOGINFO();
-        value = _frameRate;
-        return (Core::ERROR_NONE);
+        vector<uint8_t> edidVec;
+        uint32_t ret = GetEdidBytes(edidVec);
+        if (ret == Core::ERROR_NONE)
+        {
+            uint32_t edidLen = edidVec.size();
+            unsigned char* edidbytes = new unsigned char [edidLen];
+            std::copy(edidVec.begin(), edidVec.end(), edidbytes);
+            if (edid_parser::EDID_Verify(edidbytes, edidLen) == edid_parser::EDID_STATUS_OK)
+            {
+                edid_parser::edid_data_t data_ptr;
+                edid_parser::EDID_Parse(edidbytes, edidLen, &data_ptr);
+                value = data_ptr.res.refresh;
+                LOGINFO("Vertical frequency = %d", value);
+            }
+            else
+            {
+                LOGERR("EDID Verification failed");
+                ret = Core::ERROR_GENERAL;
+            }
+            delete edidbytes;
+        }
+        else
+        {
+            LOGERR("HDMI not connected");
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
     }
 
     uint32_t HDCPProtection(HDCPProtectionType& value) const override //get
@@ -298,66 +321,51 @@ public:
     uint32_t WidthInCentimeters(uint8_t& width /* @out */) const override
     {
         LOGINFO();
-        try
+        int ret = Core::ERROR_NONE;
+        vector<uint8_t> edidVec;
+        ret = GetEdidBytes(edidVec);
+        if (Core::ERROR_NONE == ret)
         {
-            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
-            if (vPort.isDisplayConnected())
+            if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
             {
-                std::vector<uint8_t> edidVec;
-
-                vPort.getDisplay().getEDIDBytes(edidVec);
-
-                if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
-                {
-                    width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
-                    TRACE(Trace::Information, (_T("Width in cm = %d"), width));
-                }
-                else
-                {
-                    LOGWARN("Failed to get Display Size!\n");
-                }
+                width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
+                TRACE(Trace::Information, (_T("Width in cm = %d"), width));
+            }
+            else
+            {
+                LOGWARN("Failed to get Display Size!\n");
+                ret = Core::ERROR_GENERAL;
             }
         }
-        catch (const device::Exception& err)
-        {
-           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
-        }
-        return (Core::ERROR_NONE);
+        return ret;
     }
 
     uint32_t HeightInCentimeters(uint8_t& height /* @out */) const override
     {
         LOGINFO();
-        try
+        int ret = Core::ERROR_NONE;
+        vector<uint8_t> edidVec;
+        ret = GetEdidBytes(edidVec);
+        if (Core::ERROR_NONE == ret)
         {
-            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
-            if (vPort.isDisplayConnected())
+            if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
             {
-                std::vector<uint8_t> edidVec;
-
-                vPort.getDisplay().getEDIDBytes(edidVec);
-
-                if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
-                {
-                    height = edidVec[EDID_MAX_VERTICAL_SIZE];
-                    TRACE(Trace::Information, (_T("Height in cm = %d"), height));
-                }
-                else
-                {
-                    LOGWARN("Failed to get Display Size!\n");
-                }
+                height = edidVec[EDID_MAX_VERTICAL_SIZE];
+                TRACE(Trace::Information, (_T("Height in cm = %d"), height));
+            }
+            else
+            {
+                LOGWARN("Failed to get Display Size!\n");
+                ret = Core::ERROR_GENERAL;
             }
         }
-        catch (const device::Exception& err)
-        {
-            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
-        }
-        return (Core::ERROR_NONE);
+        return ret;
     }
 
     uint32_t EDID (uint16_t& length /* @inout */, uint8_t data[] /* @out @length:length */) const override
     {
         LOGINFO();
+        int ret = Core::ERROR_NONE;
         vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
         try
         {
@@ -371,11 +379,13 @@ public:
             else
             {
                 LOGWARN("failure: HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
             LOG_DEVICE_EXCEPTION0();
+            ret = Core::ERROR_GENERAL;
         }
         //convert to base64
         uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
@@ -396,7 +406,7 @@ public:
             data[i] = edidVec[i];
         }
         length = i;
-        return (Core::ERROR_NONE);
+        return ret;
 
     }
 
@@ -422,6 +432,240 @@ public:
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
         return (Core::ERROR_NONE);
+    }
+
+    uint32_t ColorSpace(ColourSpaceType& cs /* @out */) const override
+    {
+        LOGINFO();
+        int ret = Core::ERROR_NONE;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                int _cs = vPort.getColorSpace();
+                LOGINFO("colour space = %d", _cs);
+                switch(_cs)
+                {
+                    case dsDISPLAY_COLORSPACE_RGB:
+                        cs = FORMAT_RGB_444; break;
+                    case dsDISPLAY_COLORSPACE_YCbCr444:
+                        cs = FORMAT_YCBCR_444; break;
+                    case dsDISPLAY_COLORSPACE_YCbCr422:
+                        cs = FORMAT_YCBCR_422; break;
+                    case dsDISPLAY_COLORSPACE_YCbCr420:
+                        cs = FORMAT_YCBCR_420; break;
+                    case dsDISPLAY_COLORSPACE_AUTO:
+                        cs = FORMAT_OTHER;break;
+                    case dsDISPLAY_COLORSPACE_UNKNOWN:
+                    default:
+                        cs = FORMAT_UNKNOWN;
+                }
+            }
+            else
+            {
+                LOGERR("HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
+    }
+
+    uint32_t FrameRate(FrameRateType& rate /* @out */) const override
+    {
+        LOGINFO();
+        rate = FRAMERATE_UNKNOWN;
+        uint32_t ret =  (Core::ERROR_NONE);
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            device::VideoResolution resolution = vPort.getResolution();
+            device::PixelResolution pr = resolution.getPixelResolution();
+            device::FrameRate fr = resolution.getFrameRate();
+            if (fr == device::FrameRate::k24 ) {
+                rate = FRAMERATE_24;
+            } else if(fr == device::FrameRate::k25) {
+                rate = FRAMERATE_25;
+            } else if(fr == device::FrameRate::k30) {
+                rate = FRAMERATE_30;
+            } else if(fr == device::FrameRate::k60) {
+                rate = FRAMERATE_60;
+            } else if(fr == device::FrameRate::k23dot98) {
+                rate = FRAMERATE_23_976;
+            } else if(fr == device::FrameRate::k29dot97) {
+                rate = FRAMERATE_29_97;
+            } else if(fr == device::FrameRate::k50) {
+                rate = FRAMERATE_50;
+            } else if(fr == device::FrameRate::k59dot94) {
+                rate = FRAMERATE_59_94;
+            } else {
+                rate = FRAMERATE_UNKNOWN;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           ret = Core::ERROR_GENERAL;
+        }
+        return ret;
+    }
+
+    uint32_t ColourDepth(ColourDepthType& colour /* @out */) const override
+    {
+        LOGINFO();
+        int ret = Core::ERROR_NONE;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                int _colour = vPort.getColorDepth();
+                LOGINFO("colour depth = %d", _colour);
+                switch(_colour)
+                {
+                    case 8:
+                        colour = COLORDEPTH_8_BIT;  break;
+                    case 10:
+                        colour = COLORDEPTH_10_BIT; break;
+                    case 12:
+                        colour = COLORDEPTH_12_BIT; break;
+                    case 0:
+                    default:
+                        colour = COLORDEPTH_UNKNOWN;
+                }
+            }
+            else
+            {
+                LOGERR("HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
+    }
+
+    uint32_t QuantizationRange(QuantizationRangeType& qr /* @out */) const override
+    {
+        LOGINFO();
+        int ret = Core::ERROR_NONE;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                int _qr = vPort.getQuantizationRange();
+                LOGINFO("quantization range = %d", _qr);
+                switch (_qr)
+                {
+                    case dsDISPLAY_QUANTIZATIONRANGE_LIMITED:
+                        qr = QUANTIZATIONRANGE_LIMITED; break;
+                    case dsDISPLAY_QUANTIZATIONRANGE_FULL:
+                        qr = QUANTIZATIONRANGE_FULL; break;
+                    case dsDISPLAY_QUANTIZATIONRANGE_UNKNOWN:
+                    default:
+                        qr = QUANTIZATIONRANGE_UNKNOWN;
+                }
+            }
+            else
+            {
+                LOGERR("HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
+    }
+
+    uint32_t Colorimetry(IColorimetryIterator*& colorimetry /* @out */) const override
+    {
+        LOGINFO();
+        std::list<Exchange::IDisplayProperties::ColorimetryType> colorimetryCaps;
+        vector<uint8_t> edidVec;
+        uint32_t ret = GetEdidBytes(edidVec);
+        if (ret == Core::ERROR_NONE)
+        {
+            uint32_t edidLen = edidVec.size();
+            unsigned char* edidbytes = new unsigned char [edidLen];
+            std::copy(edidVec.begin(), edidVec.end(), edidbytes);
+            if (edid_parser::EDID_Verify(edidbytes, edidLen) == edid_parser::EDID_STATUS_OK)
+            {
+                edid_parser::edid_data_t data_ptr;
+                edid_parser::EDID_Parse(edidbytes, edidLen, &data_ptr);
+                uint32_t colorimetry_info = data_ptr.colorimetry_info;
+                LOGINFO("colorimetry = %d", colorimetry_info);
+                if (!colorimetry_info) colorimetryCaps.push_back(COLORIMETRY_UNKNOWN);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_XVYCC601) colorimetryCaps.push_back(COLORIMETRY_XVYCC601);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_XVYCC709) colorimetryCaps.push_back(COLORIMETRY_XVYCC709);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_SYCC601) colorimetryCaps.push_back(COLORIMETRY_SYCC601);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_ADOBEYCC601) colorimetryCaps.push_back(COLORIMETRY_OPYCC601);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_ADOBERGB) colorimetryCaps.push_back(COLORIMETRY_OPRGB);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_BT2020CL || colorimetry_info & edid_parser::COLORIMETRY_INFO_BT2020NCL) colorimetryCaps.push_back(COLORIMETRY_BT2020YCCBCBRC);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_BT2020RGB) colorimetryCaps.push_back(COLORIMETRY_BT2020RGB_YCBCR);
+                if (colorimetry_info & edid_parser::COLORIMETRY_INFO_DCI_P3) colorimetryCaps.push_back(COLORIMETRY_OTHER);
+            }
+            else
+            {
+                LOGERR("EDID Verification failed");
+                ret = Core::ERROR_GENERAL;
+            }
+            delete edidbytes;
+        }
+        else
+        {
+            LOGERR("HDMI not connected");
+            ret = Core::ERROR_GENERAL;
+        }
+        colorimetry = Core::Service<ColorimetryIteratorImplementation>::Create<Exchange::IDisplayProperties::IColorimetryIterator>(colorimetryCaps);
+        return (colorimetry != nullptr && ret == Core::ERROR_NONE ? Core::ERROR_NONE : Core::ERROR_GENERAL);
+    }
+
+    uint32_t EOTF(EotfType& eotf /* @out */) const override
+    {
+        LOGINFO();
+        int ret = Core::ERROR_NONE;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                int _eotf = vPort.getVideoEOTF();
+                LOGINFO("videoEOTF = %d", _eotf);
+                switch (_eotf)
+                {
+                    /* bt1886 = sdr; smpte2084 = hdr10; bt2100 = HLG*/
+                    case dsHDRSTANDARD_HDR10:
+                        eotf = EOTF_SMPTE_ST_2084; break;
+                    case dsHDRSTANDARD_HLG:
+                        eotf = EOTF_BT2100; break;
+                    default:
+                        eotf = EOTF_UNKNOWN;
+                }
+            }
+            else
+            {
+                LOGERR("HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
     }
 
     // @property
@@ -493,7 +737,6 @@ public:
     uint32_t HDRSetting(HDRType& type /* @out */) const override
     {
         LOGINFO();
-        LOGINFO();
         type = IHDRProperties::HDRType::HDR_OFF;
         bool isHdr = false;
         try
@@ -522,53 +765,37 @@ public:
         INTERFACE_ENTRY(Exchange::IGraphicsProperties)
         INTERFACE_ENTRY(Exchange::IConnectionProperties)
         INTERFACE_ENTRY(Exchange::IHDRProperties)
+        INTERFACE_ENTRY(Exchange::IDisplayProperties)
     END_INTERFACE_MAP
-
-private:
-    uint32_t UpdateFrameRate(uint32_t &rate)
-    {
-        rate = 0;
-        uint32_t ret =  (Core::ERROR_NONE);
-        try
-        {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
-            device::VideoResolution resolution = vPort.getResolution();
-            device::PixelResolution pr = resolution.getPixelResolution();
-            device::FrameRate fr = resolution.getFrameRate();
-            if (fr == device::FrameRate::k24 ) {
-                rate = 24;
-            } else if(fr == device::FrameRate::k25) {
-                rate = 25;
-            } else if(fr == device::FrameRate::k30) {
-                rate = 30;
-            } else if(fr == device::FrameRate::k60) {
-                rate = 60;
-            } else if(fr == device::FrameRate::k23dot98) {
-                rate = 23;
-            } else if(fr == device::FrameRate::k29dot97) {
-                rate = 29;
-            } else if(fr == device::FrameRate::k50) {
-                rate = 50;
-            } else if(fr == device::FrameRate::k59dot94) {
-                rate = 59;
-            } else {
-                ret = Core::ERROR_GENERAL;
-            }
-
-        }
-        catch (const device::Exception& err)
-        {
-           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
-           ret = Core::ERROR_GENERAL;
-        }
-
-        return ret;
-    }
 
 private:
     std::list<IConnectionProperties::INotification*> _observers;
     mutable Core::CriticalSection _adminLock;
-    uint32_t _frameRate;
+
+private:
+    uint32_t GetEdidBytes(vector<uint8_t> &edid) const
+    {
+        uint32_t ret = Core::ERROR_NONE;
+        try
+        {
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            if (vPort.isDisplayConnected())
+            {
+                vPort.getDisplay().getEDIDBytes(edid);
+            }
+            else
+            {
+                LOGERR("HDMI0 not connected!");
+                ret = Core::ERROR_GENERAL;
+            }
+        }
+        catch (const device::Exception& err)
+        {
+            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            ret = Core::ERROR_GENERAL;
+        }
+        return ret;
+    }
 
 public:
     static DisplayInfoImplementation* _instance;
