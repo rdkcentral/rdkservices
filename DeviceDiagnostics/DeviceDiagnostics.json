@@ -1,0 +1,83 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "DeviceDiagnostics API", 
+        "class": "DeviceDiagnostics", 
+        "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
+    },
+    "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getConfiguration": {
+            "summary": "Gets the values associated with the corresponding property names",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "names": {
+                        "description": "String array of property names",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "Device.X_CISCO_COM_LED.RedPwm"
+                        }
+                    }
+                },
+                "required": [
+                    "names"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "paramList": {
+                        "description": "An array of JSON objects with the specified properties and their values",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "summary": "The property name",
+                                    "type":"string",
+                                    "example": "Device.X_CISCO_COM_LED.RedPwm"
+                                },
+                                "value": {
+                                    "summary": "The property value",
+                                    "type":"string",
+                                    "example": "123"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "value"
+                            ]                        
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "paramList",
+                    "success"
+                ]
+            }
+        }
+    }
+}

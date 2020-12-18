@@ -1,0 +1,130 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "ContinueWatching API", 
+        "class": "ContinueWatching", 
+        "description": "Initial version of the `ContinueWatching` API."
+    },
+    "definitions":{
+        "applicationName": {
+            "summary":"The application name",
+            "type": "string",
+            "example": "netflix"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getApplicationToken":{
+            "summary": "Retrieves the tokens for a particular application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    }
+                },
+                "required": [
+                    "applicationName"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "application_token":{
+                        "summary":"A string [] containing tokens. If no tokens are set for the application, then an empty array returns.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "ABC": {
+                                    "summary": "A token value",
+                                    "type": "string",
+                                    "example": "xyz"
+                                },
+                                "DEF": {
+                                    "summary": "A token value",
+                                    "type": "string",
+                                    "example": "uvw"
+                                }
+                            }
+                        }
+                    },                    
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                }, 
+                "required": [
+                    "application_token",
+                    "success"
+                ] 
+            }
+        },
+        "deleteApplicationToken":{
+            "summary": "Deletes the stored tokens for a particular application",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    }
+                },
+                "required": [
+                    "applicationName"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setApplicationToken":{
+            "summary": "Sets the given tokens for an application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "application_token": {
+                        "description": "Any number of tokens to be set",
+                        "type": "object",
+                        "properties": {
+                            "ABC": {
+                                "summary": "A token value",
+                                "type": "string",
+                                "example": "xyz"
+                            },
+                            "DEF": {
+                                "summary": "A token value",
+                                "type": "string",
+                                "example": "uvw"
+                            }
+                        }
+                    }   
+                },
+                "required": [
+                    "applicationName",
+                    "application_token"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    }
+}

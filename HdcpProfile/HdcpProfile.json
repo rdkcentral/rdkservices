@@ -1,0 +1,132 @@
+{
+    "$schema": "../../../Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "HdcpProfile API", 
+        "class": "HdcpProfile", 
+        "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events."
+    },
+    "definitions": {
+        "supportedHDCPVersion": {
+            "description": "Supported HDCP protocol version by the host device.",
+            "type": "string",
+            "example": "2.2"
+        },
+        "HDCPStatus":{
+            "description": "Contains HDCP-related data as separate properties",
+            "type": "object",
+            "properties": {
+                "isConnected": {
+                    "description": "Indicates whether a display is connected.",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isHDCPCompliant": {
+                    "description": "Indicates whether the display is HDCP compliant.",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isHDCPEnabled": {
+                    "description": "Indicates whether content is protected.",
+                    "type": "boolean",
+                    "example": "false"
+                },
+                "supportedHDCPVersion": {
+                    "$ref": "#/definitions/supportedHDCPVersion"
+                },
+                "receiverHDCPVersion": {
+                    "description": "Supported HDCP protocol version by the receiver device (display)",
+                    "type": "string",
+                    "example": "1.4"
+                },
+                "currentHDCPVersion": {
+                    "description": "Currently used HDCP protocol version",
+                    "type": "string",
+                    "example": "1.4"
+                }
+            },
+            "required":[
+                "isConnected",
+                "isHDCPCompliant",
+                "isHDCPEnabled",
+                "supportedHDCPVersion",
+                "receiverHDCPVersion",
+                "currentHDCPVersion"
+            ]
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getHDCPStatus": {
+            "summary": "Returns HDCP-related data",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "HDCPStatus":{
+                        "$ref": "#/definitions/HDCPStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                }, 
+                "required": [
+                    "HDCPStatus",
+                    "success"
+                ]               
+            }
+        },
+        "getSettopHDCPSupport": {
+            "summary": "Returns which version of HDCP is supported by the STB",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "supportedHDCPVersion":{
+                        "$ref": "#/definitions/supportedHDCPVersion"
+                    },
+                    "isHDCPSupported": {
+                        "description": "Indicates whether HDCP is supported by the STB",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "supportedHDCPVersion",
+                    "isHDCPSupported",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onDisplayConnectionChanged":{
+            "summary":"Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotPlug` event",
+            "params":{
+                "type":"object",
+                "properties": {
+                    "HDCPStatus":{
+                        "$ref": "#/definitions/HDCPStatus"
+                    } 
+                }
+            }
+        }
+    }
+}
+

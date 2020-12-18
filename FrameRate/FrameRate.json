@@ -1,0 +1,87 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "FrameRate API", 
+        "class": "DFrameRate", 
+        "description": "The `FrameRate` plugin allows you to collect FPS data."
+    },
+    "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "setCollectionFrequency": {
+            "summary": "Sets the amount of milliseconds per collection interval. The default frequency if no frequency is specified is 10000 milliseconds.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "frequency":{
+                        "description": "The collection interval in milliseconds",
+                        "type":"integer",
+                        "example": 1000 
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startFpsCollection":{
+            "summary": "Starts the FPS collection",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopFpsCollection":{
+            "summary": "Stops the FPS collection",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events":{
+        "onFpsEvent":{
+            "summary": "Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "average": {
+                        "description": "The average FPS",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "min": {
+                        "description": "The minimum FPS",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "max": {
+                        "description": "The maximum FPS",
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "average",
+                    "min",
+                    "max"
+                ]    
+            }
+        }
+    }
+}
