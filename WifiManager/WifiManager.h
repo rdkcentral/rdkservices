@@ -28,6 +28,8 @@
 #include "impl/WifiManagerSignalThreshold.h"
 #include "impl/WifiManagerScan.h"
 #include "impl/WifiManagerEvents.h"
+#include "utils.h"
+#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
@@ -44,12 +46,15 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class WifiManager : public WifiManagerInterface, public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class WifiManager : public WifiManagerInterface, public AbstractPlugin {
         public:
             WifiManager();
             virtual ~WifiManager();
             WifiManager(const WifiManager&) = delete;
             WifiManager& operator=(const WifiManager&) = delete;
+
+            static const short API_VERSION_NUMBER_MAJOR;
+            static const short API_VERSION_NUMBER_MINOR;
 
             //Begin methods
             virtual uint32_t getQuirks(const JsonObject& parameters, JsonObject& response) const override;
@@ -69,6 +74,7 @@ namespace WPEFramework {
             virtual uint32_t isPaired(const JsonObject& parameters, JsonObject& response) const override;
             virtual uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
+            virtual uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response) override;
             //End methods
 
             //Begin events
