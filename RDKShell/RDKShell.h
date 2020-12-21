@@ -115,6 +115,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
+            void notify(const std::string& event, const JsonObject& parameters);
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -286,5 +287,20 @@ namespace WPEFramework {
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
         };
+
+        class PluginStateChangeData
+        {
+           public:
+                PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, std::shared_ptr<RDKShell> rdkshell);
+                void onStateChangeEvent(const JsonObject& params);
+                void enableLaunch(bool enable);
+
+           private:
+                std::string mCallSign;
+                std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mPluginConnection;
+                std::shared_ptr<RDKShell> mRDKShell;
+                bool mLaunchEnabled;
+        };
+
     } // namespace Plugin
 } // namespace WPEFramework
