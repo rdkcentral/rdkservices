@@ -114,6 +114,7 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
+        std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -186,6 +187,11 @@ namespace WPEFramework {
                         RdkShell::CompositorController::kill(clientidentifier);
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
+                        std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                        if (pluginStateChangeEntry != gPluginsEventListener.end())
+                        {
+                            gPluginsEventListener.erase(pluginStateChangeEntry);
+                        }
                     }
                 }
             }
@@ -1819,6 +1825,7 @@ namespace WPEFramework {
                     }
                 }
 
+                bool deferLaunch = false;
                 if (status > 0)
                 {
                     result = false;
@@ -1881,6 +1888,22 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
+
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
+                    if (pluginStateChangeEntry == gPluginsEventListener.end())
+                    {
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion);
+                        PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, std::shared_ptr<RDKShell>(this));
+                        gPluginsEventListener[callsign] = data;
+                        remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
+                    }
+                    else
+                    {
+                        PluginStateChangeData* data = pluginStateChangeEntry->second;    
+                        data->enableLaunch(true);
+                        deferLaunch = true;
+                    }
+
                     if (setSuspendResumeStateOnLaunch)
                     {
                         if (suspend)
@@ -1960,7 +1983,14 @@ namespace WPEFramework {
                             launchTypeString = "unknown";
                             break;
                     }
-                    onLaunched(callsign, launchTypeString);
+                    if (setSuspendResumeStateOnLaunch && deferLaunch && ((launchType == SUSPEND) || (launchType == RESUME)))
+                    {
+                        std::cout << "deferring application launch " << callsign << std::endl;
+                    }
+                    else
+                    {
+                        onLaunched(callsign, launchTypeString);
+                    }
                     response["launchType"] = launchTypeString;
                 }
                 
@@ -2756,6 +2786,44 @@ namespace WPEFramework {
             return true;
         }
 
+        PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, std::shared_ptr<RDKShell> rdkshell)
+        {
+            mCallSign = callsign;
+            mRDKShell = rdkshell;
+            mPluginConnection = pluginConnection;
+            mLaunchEnabled = false;
+        }
+
+        PluginStateChangeData::~PluginStateChangeData()
+        {
+            mPluginConnection = nullptr;
+            mRDKShell = nullptr;        
+        }
+
+        void PluginStateChangeData::enableLaunch(bool enable)
+        {
+            mLaunchEnabled = enable;
+        }
+
+        void PluginStateChangeData::onStateChangeEvent(const JsonObject& params)
+        {
+            bool isSuspended = params["suspended"].Boolean();
+            if (mLaunchEnabled)
+            {
+               JsonObject params;
+               params["client"] = mCallSign;
+               params["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell->notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               mLaunchEnabled = false;
+            }
+
+            if (isSuspended)
+            {
+                JsonObject params;
+                params["client"] = mCallSign;
+                mRDKShell->notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+            }
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework

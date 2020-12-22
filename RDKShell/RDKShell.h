@@ -108,6 +108,8 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
 
+            void notify(const std::string& event, const JsonObject& parameters);
+
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -154,7 +156,6 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
-            void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -266,6 +267,21 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+        };
+
+        class PluginStateChangeData
+        {
+           public:
+                PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, std::shared_ptr<RDKShell> rdkshell);
+                ~PluginStateChangeData();
+                void onStateChangeEvent(const JsonObject& params);
+                void enableLaunch(bool enable);
+
+           private:
+                std::string mCallSign;
+                std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mPluginConnection;
+                std::shared_ptr<RDKShell> mRDKShell;
+                bool mLaunchEnabled;
         };
     } // namespace Plugin
 } // namespace WPEFramework
