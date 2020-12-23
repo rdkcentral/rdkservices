@@ -115,6 +115,8 @@ namespace WPEFramework {
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
+            void InitAudioPorts();
             //End methods
 
             //Begin events
@@ -123,6 +125,7 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
+            void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
             //End events
