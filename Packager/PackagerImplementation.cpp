@@ -128,10 +128,11 @@ namespace Plugin {
 #ifdef INCLUDE_PACKAGER_EX
 
   #ifdef USE_THREAD_POOL
-      PackagerExUtils::klllThreadQ(this);
+        PackagerExUtils::klllThreadQ(this);
   #endif
-#endif
         TermPackageDB();
+#endif
+
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
