@@ -688,7 +688,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             LOGWARN("SystemService updatingFirmware\n");
-            string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
+            string command("/lib/rdk/deviceInitiatedFWDnld.sh 3 1 >> /opt/logs/swupdate.log &");
             Utils::cRunScript(command.c_str());
             returnResponse(true);
         }
