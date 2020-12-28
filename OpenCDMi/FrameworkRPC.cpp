@@ -1274,7 +1274,9 @@ namespace Plugin {
 
                 if (index == _systemToFactory.end()) {
                     result = false;
-                } else {
+                }
+#ifdef ENABLE_BLACKLIST_MEDIATYPE_CODEC
+                else {
                     if (contentType.empty() == false && _systemBlacklistedMediaTypeRegexps.empty() == false && _systemBlacklistedCodecRegexps.empty() == false) {
                         std::string mimeType;
                         std::vector<std::string> codecs;
@@ -1308,6 +1310,7 @@ namespace Plugin {
                         }
                     }
                 }
+#endif
             }
 
             TRACE(Trace::Information, ("IsTypeSupported(%s,%s) => %s", keySystem.c_str(), contentType.c_str(), result ? _T("True") : _T("False")));
