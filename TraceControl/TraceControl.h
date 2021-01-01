@@ -152,7 +152,7 @@ namespace Plugin {
                 {
                     return (_connection != nullptr ? _connection->Id() : 0);
                 }
-                void Relinguish()
+                void Relinquish()
                 {
                     if (_connection != nullptr) {
                         if (_iterator != nullptr) {
@@ -505,7 +505,6 @@ namespace Plugin {
                                 }
                             }
                         }
-
                         index++;
                     }
 
@@ -644,7 +643,7 @@ namespace Plugin {
                 std::map<const uint32_t, Source*>::iterator index(_buffers.begin());
 
                 while (index != _buffers.end()) {
-                    index->second->Relinguish();
+                    index->second->Relinquish();
                     index++;
                 }
 
