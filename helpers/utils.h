@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+#include "rfcapi.h"
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
@@ -307,4 +308,16 @@ namespace Utils
      * @return		: true if file exists and modifies 'age' seconds ago.
      */
     bool isFileExistsAndOlderThen(const char *pFileName, long age = -1);
+
+    struct SecurityToken
+    {
+        static void getSecurityToken(std::string& token);
+        static bool isThunderSecurityConfigured();
+
+    private:
+        static std::string m_sToken;
+        static bool m_sThunderSecurityChecked;
+    };
+
+    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }
