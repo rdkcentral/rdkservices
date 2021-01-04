@@ -138,10 +138,7 @@ namespace Plugin {
                 {
                     if (_connection != nullptr) {
                         TRACE_L1("Destructing TraceControl::Source (%d)", _connection->Id());
-                        if (_iterator != nullptr) {
-                            _iterator->Release();
-                            _iterator = nullptr;
-                        }
+                        Relinquish();
                         _connection->Release();
                         _connection = nullptr;
                     }
