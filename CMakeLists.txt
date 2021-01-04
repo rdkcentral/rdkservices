@@ -179,6 +179,10 @@ if(PLUGIN_HDMIINPUT)
     add_subdirectory(HdmiInput)
 endif()
 
+if(PLUGIN_COMPOSITEINPUT)
+	add_subdirectory(CompositeInput)
+endif()
+
 if(PLUGIN_TIMER)
     add_subdirectory(Timer)
 endif()
@@ -285,6 +289,14 @@ endif()
 
 if(PLUGIN_PERSISTENT_STORE)
     add_subdirectory(PersistentStore)
+endif()
+
+if(PLUGIN_WEBBRIDGE)
+    add_subdirectory(WebBridge)
+endif()
+
+if(PLUGIN_USBACCESS)
+    add_subdirectory(UsbAccess)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

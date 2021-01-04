@@ -32,7 +32,7 @@
 // For example, the exposed "startScan" method is mapped to "startScanWrapper()" and that one calls to "startDeviceDiscovery()" internally,
 // which finally calls to "BTRMGR_StartDeviceDiscovery()" in Bluetooth Manager.
 
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 1;  // corresponds to org.rdk.Bluetooth_5
+const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 2;  // corresponds to org.rdk.Bluetooth_5
 const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -51,6 +51,8 @@ const string WPEFramework::Plugin::Bluetooth::METHOD_DISABLE = "disable";
 const string WPEFramework::Plugin::Bluetooth::METHOD_SET_DISCOVERABLE = "setDiscoverable";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_NAME = "getName";
 const string WPEFramework::Plugin::Bluetooth::METHOD_SET_NAME = "setName";
+const string WPEFramework::Plugin::Bluetooth::METHOD_SET_PROPERTIES = "setProperties";
+const string WPEFramework::Plugin::Bluetooth::METHOD_GET_PROPERTIES = "getProperties";
 const string WPEFramework::Plugin::Bluetooth::METHOD_SET_AUDIO_PLAYBACK_COMMAND = "sendAudioPlaybackCommand";
 const string WPEFramework::Plugin::Bluetooth::METHOD_SET_EVENT_RESPONSE = "respondToEvent";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_DEVICE_INFO = "getDeviceInfo";
@@ -66,6 +68,7 @@ const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_REQUEST = "onPlayback
 
 const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_STARTED = "onPlaybackChange"; // action: started
 const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_PAUSED = "onPlaybackChange";  // action: paused
+const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_RESUMED = "onPlaybackChange"; // action: resumed
 const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_STOPPED = "onPlaybackChange"; // action: stopped
 const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_ENDED = "onPlaybackChange";   // action: paused
 
@@ -129,12 +132,13 @@ namespace WPEFramework
         }
 
         Bluetooth::Bluetooth()
-        : AbstractPlugin()
+        : AbstractPlugin(Bluetooth::API_VERSION_NUMBER_MAJOR) // pass the current supported version
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         , m_discoveryRunning(false)
         , m_discoveryTimer(this)
         {
             LOGINFO();
+
             Bluetooth::_instance = this;
             registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
             registerMethod(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
@@ -159,11 +163,16 @@ namespace WPEFramework
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
 
-            BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
-            rc = BTRMGR_Init();
+            //version 2 APIs
+            registerMethod(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this, {2});
+            registerMethod(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this, {2});
+
+            Utils::IARM::init();
+
+            BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
-                LOGWARN("Failed to init BTRMgr...!");
+                LOGWARN("Failed to Register BTRMgr...!");
             }
             else {
                 BTRMGR_RegisterEventCallback(bluetoothSrv_EventCallback);
@@ -173,7 +182,14 @@ namespace WPEFramework
         Bluetooth::~Bluetooth()
         {
             LOGINFO();
+
             Bluetooth::_instance = nullptr;
+
+            BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
+            if (BTRMGR_RESULT_SUCCESS != rc)
+            {
+                LOGWARN("Failed to UnRegister BTRMgr...!");
+            }
 
             if (m_executionThread.joinable())
                 m_executionThread.join();
@@ -556,44 +572,61 @@ namespace WPEFramework
             return BTRMGR_RESULT_SUCCESS == rc;
         }
 
-        // Sets adapter name. No support for "power" yet
         bool Bluetooth::setBluetoothProperties(const JsonObject& parameters)
         {
-            BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
+            BTRMGR_Result_t rc = BTRMGR_RESULT_GENERIC_FAILURE;
+
+            if (parameters.HasLabel("power")) {
+                string power;
+                getStringParameter("power", power);
+                LOGWARN ("Power received as %s", C_STR(power));
+                if (power == "OFF") {
+                    rc = BTRMGR_SetAdapterPowerStatus (0, 0 /* FALSE */);
+                }
+                else if (power == "ON") {
+                    rc = BTRMGR_SetAdapterPowerStatus (0, 1 /* TRUE */);
+                }
+            }
+
             if (parameters.HasLabel("name")) {
                 string name;
                 getStringParameter("name", name);
                 LOGWARN ("Name received as %s", C_STR(name));
                 rc = BTRMGR_SetAdapterName (0, C_STR(name));
-                if (BTRMGR_RESULT_SUCCESS != rc)
-                {
-                    LOGERR("Failed to set Name in setBluetoothProperties");
-                }
-                else {
-                    LOGINFO ("Successfully done setBluetoothProperties");
-                }
             }
+
+            if (BTRMGR_RESULT_SUCCESS != rc)
+                LOGERR("Failed to set in setBluetoothProperties");
+            else
+                LOGINFO ("Successfully done setBluetoothProperties");
+
             return BTRMGR_RESULT_SUCCESS == rc;
         }
 
-        // Gets adapter name. No support for "power" yet
-        bool Bluetooth::getBluetoothProperties( JsonObject* rp)
+        bool Bluetooth::getBluetoothProperties(JsonObject* rp, const string& property)
         {
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             JsonObject response; // responding with a single object
 
-            char adapterName[BTRMGR_NAME_LEN_MAX];
-            rc = BTRMGR_GetAdapterName (0, &adapterName[0]);
-            if (BTRMGR_RESULT_SUCCESS != rc)
-            {
-                LOGERR("Failed to get Name in getBluetoothProperties");
+            if (Utils::String::stringContains(property, "name")) {
+                char pNameOfAdapter[BTRMGR_NAME_LEN_MAX] = {'\0'};
+                rc = BTRMGR_GetAdapterName(0, pNameOfAdapter);
+                if (BTRMGR_RESULT_SUCCESS == rc) {
+                    response["name"] = string(pNameOfAdapter);
+                    LOGWARN ("Name set as %s", pNameOfAdapter);
+                } else
+                    LOGERR("Failed to get device Name");
             }
-            else {
-                LOGINFO ("Successfully done getBluetoothProperties");
+            else if (Utils::String::stringContains(property, "power")) {
+                unsigned char power_status = 0;
+                rc = BTRMGR_GetAdapterPowerStatus(0, &power_status);
+                if (BTRMGR_RESULT_SUCCESS == rc) {
+                    response["power"] = string(power_status ? "ON" : "OFF");
+                    LOGWARN ("Power set as %d", (int)power_status);
+                } else
+                    LOGERR("Failed to get device Power");
             }
 
-            response["name"] = string(adapterName);
-            LOGWARN ("Name set as %s", adapterName);
             if (rp) {
                 *rp = response;
             }
@@ -988,6 +1021,15 @@ namespace WPEFramework
                     break;
 
                 case BTRMGR_EVENT_MEDIA_TRACK_PLAYING:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(EVT_PLAYBACK_RESUMED));
+                    params["action"]   = std::string("resumed");
+                    params["deviceID"] = std::to_string(eventMsg.m_mediaInfo.m_deviceHandle);
+                    params["position"] = std::to_string(eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition);
+                    params["Duration"] = std::to_string(eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration);
+
+                    eventId = EVT_PLAYBACK_RESUMED;
+                    break;
+
                 case BTRMGR_EVENT_MEDIA_TRACK_POSITION:
                     LOGINFO ("Received Playback Position Event from BTRMgr");
                     params["deviceID"] = std::to_string(eventMsg.m_mediaInfo.m_deviceHandle);
@@ -1398,6 +1440,30 @@ namespace WPEFramework
         uint32_t Bluetooth::setNameWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFO();
+            bool successFlag;
+            successFlag = setBluetoothProperties(parameters);
+            returnResponse(successFlag);
+        }
+
+        uint32_t Bluetooth::getPropertiesWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool successFlag;
+            string property;
+            if (parameters.HasLabel("property")) {
+                getStringParameter("property", property);
+                successFlag = getBluetoothProperties(&response, property);
+            } else {
+                LOGERR("Please specify 'property' parameter");
+                response["error"] = "Please specify 'property' parameter";
+                successFlag = false;
+            }
+            returnResponse(successFlag);
+        }
+
+        uint32_t Bluetooth::setPropertiesWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
             bool successFlag;
             successFlag = setBluetoothProperties(parameters);
             returnResponse(successFlag);

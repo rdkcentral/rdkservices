@@ -41,6 +41,7 @@
 #include "sysMgr.h"
 #include "cSettings.h"
 #include "cTimer.h"
+#include "rfcapi.h"
 
 /* System Services Triggered Events. */
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
@@ -51,6 +52,7 @@
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONFWPENDINGREBOOT             "onFwPendingReboot" /* Auto Reboot notifier */
 
 namespace WPEFramework {
     namespace Plugin {
@@ -139,6 +141,7 @@ namespace WPEFramework {
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
+                void onFwPendingReboot( int seconds ); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -192,8 +195,8 @@ namespace WPEFramework {
                 uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
                 uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
-                void getZoneInfoZDump(std::string file, std::string &zoneInfo);
-                void processTimeZones(std::string dir, JsonObject& out);
+                bool getZoneInfoZDump(std::string file, std::string &zoneInfo);
+                bool processTimeZones(std::string dir, JsonObject& out);
                 uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
 
                 uint32_t getCoreTemperature(const JsonObject& parameters, JsonObject& response);
@@ -212,6 +215,8 @@ namespace WPEFramework {
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+                uint32_t fwPendingReboot (const JsonObject& parameters, JsonObject& response);
+                uint32_t fwDelayReboot (const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

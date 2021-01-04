@@ -94,6 +94,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
+            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
+            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
+            static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
+            static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -165,6 +169,10 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -209,6 +217,7 @@ namespace WPEFramework {
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
+            void killAllApps();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -243,6 +252,7 @@ namespace WPEFramework {
                 virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
+                virtual void onPowerKey();
 
               private:
                   RDKShell& mShell;

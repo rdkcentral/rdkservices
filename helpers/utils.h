@@ -23,6 +23,8 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+#include <plugins/plugins.h>
+#include <tracing/tracing.h>
 #include "rfcapi.h"
 
 // IARM
@@ -182,6 +184,8 @@ namespace Utils
         static bool init();
         static bool isConnected() { return m_connected; }
 
+        static const char* NAME;
+
     private:
         static bool m_connected;
     };
@@ -332,6 +336,13 @@ namespace Utils
         static std::string m_sToken;
         static bool m_sThunderSecurityChecked;
     };
+
+    // Thunder Plugin Communication
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
+
+    void activatePlugin(const char* callSign);
+
+    bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }

@@ -171,6 +171,8 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: TextViewOn\n");
+			 HdmiCecSink::_instance->addDevice(header.from.toInt());
+			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
        {
@@ -1507,7 +1509,7 @@ namespace WPEFramework
 			}
 		}
 
-		void HdmiCecSink::updateActiveSource(const int logical_address, const ActiveSource &source )
+	void HdmiCecSink::updateActiveSource(const int logical_address, const ActiveSource &source )
        	{
        		JsonObject params;
 			if(!HdmiCecSink::_instance)
@@ -1528,13 +1530,22 @@ namespace WPEFramework
 				_instance->deviceList[logical_address].m_isActiveSource = true;
 				_instance->deviceList[logical_address].update(source.physicalAddress);
 				_instance->m_currentActiveSource = logical_address;
+
+				if (_instance->deviceList[logical_address].m_isDevicePresent &&
+									_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
+				{
+					sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
+					wakeupFromStandby();
+				}
+
 				params["logicalAddress"] = JsonValue(logical_address);
 				params["phsicalAddress"] = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
 				sendNotify(eventString[HDMICECSINK_EVENT_ACTIVE_SOURCE_CHANGE], params);
 			}
        	}
 
-		void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
+
+	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
         {
         	int i;
 
@@ -2315,9 +2326,6 @@ namespace WPEFramework
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
 
-				if (m_pollThread.joinable())
-				m_pollThread.join();
-
 				m_pollThread = std::thread(threadRun);
             }
  
@@ -2346,6 +2354,18 @@ namespace WPEFramework
 
             if (smConnection != NULL)
             {
+		LOGWARN("Stop Thread %p", smConnection );
+		m_pollThreadState = POLL_THREAD_STATE_EXIT;
+
+
+		if (m_pollThread.joinable())
+		{
+			LOGWARN("Join Thread %p", smConnection );
+			m_pollThread.join();
+		}
+
+		LOGWARN("Deleted Thread %p", smConnection );
+
                 smConnection->close();
                 delete smConnection;
                 smConnection = NULL;

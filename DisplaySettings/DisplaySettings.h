@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include "tptimer.h"
 #include "AbstractPlugin.h"
 #include "libIBus.h"
 #include "irMgr.h"
@@ -54,6 +56,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t getConnectedVideoDisplays(const JsonObject& parameters, JsonObject& response);
             uint32_t getConnectedAudioPorts(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setEnableAudioPort (const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedResolutions(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedVideoDisplays(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedTvResolutions(const JsonObject& parameters, JsonObject& response);
@@ -112,6 +115,8 @@ namespace WPEFramework {
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
+            void InitAudioPorts();
             //End methods
 
             //Begin events
@@ -120,6 +125,9 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
+            void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
+	    void onARCInitiationEventHandler(const JsonObject& parameters);
+            void onARCTerminationEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
@@ -136,6 +144,19 @@ namespace WPEFramework {
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;
+
+	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getHdmiCecSinkPlugin();
+	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > m_client;
+	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
+	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
+	    void onTimer();
+
+	    TpTimer m_timer;
+            bool m_subscribed;
+            std::mutex m_callMutex;
+	    JsonObject m_audioOutputPortConfig;
+            JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
+
         public:
             static DisplaySettings* _instance;
 

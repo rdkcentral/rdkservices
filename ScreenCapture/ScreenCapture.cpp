@@ -421,6 +421,18 @@ namespace WPEFramework
             if(buffer) {
                 LOGINFO("fbGetFramebuffer=ok"); 
 
+                for(unsigned int n = 0; n < h; n++)
+                {
+                    for(unsigned int i = 0; i < w; i++)
+                    {
+                        unsigned char *color = buffer + n * s + i * 4;
+
+                        unsigned char blue = color[0];
+                        color[0] =  color[2];
+                        color[2] = blue;
+                    }
+                }
+
                 if(!saveToPng(buffer, w, h, png_out_data))
                 {
                     LOGERR("could not convert Nexus screenshot to png");
