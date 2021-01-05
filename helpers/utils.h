@@ -23,6 +23,9 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+#include <plugins/plugins.h>
+#include <tracing/tracing.h>
+#include "rfcapi.h"
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
@@ -307,4 +310,23 @@ namespace Utils
      * @return		: true if file exists and modifies 'age' seconds ago.
      */
     bool isFileExistsAndOlderThen(const char *pFileName, long age = -1);
+
+    struct SecurityToken
+    {
+        static void getSecurityToken(std::string& token);
+        static bool isThunderSecurityConfigured();
+
+    private:
+        static std::string m_sToken;
+        static bool m_sThunderSecurityChecked;
+    };
+
+    // Thunder Plugin Communication
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
+
+    void activatePlugin(const char* callSign);
+
+    bool isPluginActivated(const char* callSign);
+
+    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }

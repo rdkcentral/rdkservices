@@ -210,9 +210,13 @@ namespace WPEFramework {
         // Thunder plugins communication
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > AVInput::getThunderControllerClient()
         {
+            string token;
+            Utils::SecurityToken::getSecurityToken(token);
+            string query = "token=" + token;
+
             // making function local static to be thread safe
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >("", "");
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >("", "", false, query);
             return thunderClient;
         }
 
@@ -259,7 +263,7 @@ namespace WPEFramework {
             {
                 if (p != m_activatedPlugins.end())
                 {
-                    LOGWARN("Previoulsly active plugin %s appers to be deactivated, removing from the list", callSign);
+                    LOGWARN("Previously active plugin %s appers to be deactivated, removing from the list", callSign);
                     m_activatedPlugins.erase(p);
                 }
             } else {

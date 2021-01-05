@@ -189,6 +189,10 @@ namespace WPEFramework {
                 uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
                 uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
+                bool getZoneInfoZDump(std::string file, std::string &zoneInfo);
+                bool processTimeZones(std::string dir, JsonObject& out);
+                uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
+
                 uint32_t getCoreTemperature(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreviousRebootInfo(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastDeepSleepReason(const JsonObject& parameters, JsonObject& response);
@@ -204,6 +208,7 @@ namespace WPEFramework {
                 uint32_t enableXREConnectionRetention(const JsonObject& parameters, JsonObject& response);
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
+                uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
