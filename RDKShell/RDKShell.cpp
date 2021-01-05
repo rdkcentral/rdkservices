@@ -3406,7 +3406,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             try
             {
-              CompositorController::setInactivityInterval((double)interval));
+              CompositorController::setInactivityInterval((double)interval);
             }
             catch (...) 
             {
