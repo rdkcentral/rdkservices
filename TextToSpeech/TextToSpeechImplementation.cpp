@@ -63,12 +63,6 @@ namespace Plugin {
         JsonObject config;
         config.FromString(service->ConfigLine());
 
-        // if(config.HasLabel("root")) {
-        //     JsonObject root = config["root"].Object();
-        //     if(root.HasLabel("outofprocess") && root["outofprocess"].Boolean())
-        //         prctl(PR_SET_NAME, "TextToSpeech", 0, 0, 0);
-        // }
-
         TTS::TTSConfiguration *ttsConfig = _ttsManager->configuration();
         ttsConfig->setEndPoint(GET_STR(config, "endpoint", ""));
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
@@ -101,6 +95,8 @@ namespace Plugin {
             TTSLOG_INFO("%s : %s", it->first.c_str(), it->second.c_str());
             ++it;
         }
+
+        return 0;
     }
 
     void TextToSpeechImplementation::Register(Exchange::ITextToSpeech::INotification* sink)
