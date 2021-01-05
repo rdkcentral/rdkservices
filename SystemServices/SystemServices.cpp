@@ -348,6 +348,7 @@ namespace WPEFramework {
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
+            registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
         }
 
 
@@ -2665,6 +2666,20 @@ namespace WPEFramework {
             response["receiverVersion"] = getClientVersionString();
             response["stbTimestamp"]    = getStbTimestampString();
             status = true;
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To retrieve is power state is managed by device
+         * @param1[in] : {"params":{}}
+         * @aparm2[in] : {"result":{"powerStateManagedByDevice":"<bool>",
+         *      "success":<bool>}}
+         */
+        uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
+        {
+            bool status = true;
+            bool isPowerStateManagedByDevice = true;
+            response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
             returnResponse(status);
         }
 
