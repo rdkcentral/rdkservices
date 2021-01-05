@@ -202,8 +202,14 @@ namespace WPEFramework {
                         std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                         if (pluginStateChangeEntry != gPluginsEventListener.end())
                         {
+                            PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                            if (nullptr != stateChangeData)
+                            {
+                                delete stateChangeData;
+                            }
+                            pluginStateChangeEntry->second = nullptr;
                             gPluginsEventListener.erase(pluginStateChangeEntry);
-                        }
+                        }                
                     }
                     
                     std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
