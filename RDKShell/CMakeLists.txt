@@ -17,6 +17,7 @@
 
 set(PLUGIN_NAME RDKShell)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(PLUGIN_RDKSHELL_AUTOSTART true CACHE STRING "Automatically start RDKShell plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
