@@ -458,7 +458,7 @@ void TTSSpeaker::createPipeline() {
 
     gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
     gst_element_link (m_source, decodebin);
-    gst_element_link_many (convert, resample, capsfilter, m_audioVolume, m_audioSink, NULL);
+    gst_element_link_many (convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
     g_signal_connect (decodebin, "pad-added", G_CALLBACK (cb_new_pad), convert);
 #endif
 
