@@ -607,7 +607,7 @@ namespace Plugin {
                             _measurement.Operational(operational);
                             if (operational == false) {
                                 status |= NOT_OPERATIONAL;
-                                TRACE_L1("Status not operational. %d", __LINE__);
+                                TRACE(Trace::Error, (_T("Status not operational. %d"), __LINE__));
                             }
                             _operationalSlots = _operationalInterval;
                         }
@@ -616,7 +616,7 @@ namespace Plugin {
 
                             if ((_memoryThreshold != 0) && (_measurement.Resident().Last() > _memoryThreshold)) {
                                 status |= EXCEEDED_MEMORY;
-                                TRACE_L1("Status MetaData Exceeded. %d", __LINE__);
+                                TRACE(Trace::Error, (_T("Status MetaData Exceeded. %d"), __LINE__));
                             }
                             _memorySlots = _memoryInterval;
                         }
