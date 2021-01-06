@@ -62,6 +62,10 @@ if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()
 
+if(PLUGIN_MAINTENANCEMANAGER)
+    add_subdirectory(MaintenanceManager)
+endif()
+
 if(PLUGIN_HOMENETWORKING)
     add_subdirectory(HomeNetworking)
 endif()
