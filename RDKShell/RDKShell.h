@@ -94,6 +94,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
+            static const string RDKSHELL_METHOD_SHOW_WATERMARK;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
@@ -171,6 +172,7 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
@@ -218,6 +220,7 @@ namespace WPEFramework {
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
+            bool showWatermark(const bool enable);
             void killAllApps();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
