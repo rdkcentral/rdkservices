@@ -110,6 +110,7 @@ bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 vector<std::string> gActivePlugins;
+static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -324,6 +325,7 @@ namespace WPEFramework {
             mEnableUserInactivityNotification = true;
 #endif
 
+            Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
             service->Register(mClientsMonitor);
 
             static PluginHost::IShell* pluginService = nullptr;
@@ -386,21 +388,24 @@ namespace WPEFramework {
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
         {
+            string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             return thunderClient;
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
         {
+            string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "");
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "", false, query);
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
         {
+            string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "");
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "", false, query);
         }
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
@@ -542,14 +547,18 @@ namespace WPEFramework {
                 if (actionObject.HasLabel("params"))
                 {
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                  gRdkShellMutex.lock();
                 }
                 else
                 {
                   JsonObject joParams;
                   joParams["params"] = JsonObject();
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                  gRdkShellMutex.lock();
                 }
                 if (status > 0)
                 {
@@ -2744,15 +2753,22 @@ namespace WPEFramework {
             }
             if (result)
             {
-              bool enable = parameters["enable"].Boolean();
+              std::map<std::string, RdkShellData> configuration;
+              configuration["enable"] = parameters["enable"].Boolean();
+
               if (parameters.HasLabel("interval"))
               {
-                RdkShell::setMemoryMonitor(enable, std::stod(parameters["interval"].String()));
+                configuration["interval"] = std::stod(parameters["interval"].String());
               }
-              else
+              if (parameters.HasLabel("lowRam"))
               {
-                RdkShell::setMemoryMonitor(enable, 5); //default to 5 second interval
+                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
               }
+              if (parameters.HasLabel("criticallyLowRam"))
+              {
+                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
+              }
+              RdkShell::setMemoryMonitor(configuration);
             }
             returnResponse(result);
         }
@@ -3477,23 +3493,18 @@ namespace WPEFramework {
         bool RDKShell::pluginMemoryUsage(const string callsign, JsonArray& memoryInfo)
         {
             JsonObject memoryDetails;
-            PluginHost::IShell* plugin(mCurrentService->QueryInterfaceByCallsign<PluginHost::IShell>(callsign.c_str()));
+            Exchange::IMemory* pluginMemoryInterface(mCurrentService->QueryInterfaceByCallsign<Exchange::IMemory>(callsign.c_str()));
             memoryDetails["callsign"] = callsign;
             memoryDetails["ram"] = -1;
-            if (nullptr != plugin)
+            if (nullptr != pluginMemoryInterface)
             {
-                Exchange::IMemory* memory = plugin->QueryInterface<Exchange::IMemory>();
-
-                if (memory != nullptr)
-                {
-                    memoryDetails["ram"] = memory->Resident()/1024;
-                }
-                else
-                {
-                    std::cout << "Memory information not available for " << callsign << std::endl;
-                }
-                memoryInfo.Add(memoryDetails);
+                memoryDetails["ram"] = pluginMemoryInterface->Resident()/1024;
             }
+            else
+            {
+                std::cout << "Memory information not available for " << callsign << std::endl;
+            }
+            memoryInfo.Add(memoryDetails);
             return true;
         }
 
