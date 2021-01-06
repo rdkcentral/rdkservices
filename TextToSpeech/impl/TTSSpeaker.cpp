@@ -121,7 +121,7 @@ bool TTSConfiguration::isValid() {
 #if defined(PLATFORM_REALTEK)
 static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data)
 {
-    gchar *name, *element_name, other_name;
+    gchar *name, *element_name, *other_name;
     GstElement *other = (GstElement *)data;
     name = gst_pad_get_name (pad);
     element_name = gst_element_get_name(element);
