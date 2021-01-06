@@ -433,7 +433,11 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
+#if defined(PLATFORM_REALTEK)
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+#else
     g_object_set(G_OBJECT(m_audioSink), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+#endif
 
     // Add elements to pipeline and link
     bool result = TRUE;
