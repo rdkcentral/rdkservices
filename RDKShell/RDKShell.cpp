@@ -2895,6 +2895,22 @@ namespace WPEFramework {
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            std::string factoryAppCallsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            for (auto pluginName : gActivePlugins)
+            {
+                if (pluginName == factoryAppCallsign)
+                {
+                    std::cout << "factory app is running" << std::endl;
+                    isFactoryAppRunning = true;
+                    break;
+                }
+            }
+            if (!isFactoryAppRunning)
+            {
+                std::cout << "nothing to do since factory app is not running\n";
+                returnResponse(true);
+            }
             killAllApps();
             bool ret = true;
             std::string callsign("ResidentApp");
