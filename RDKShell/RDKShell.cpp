@@ -581,14 +581,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
-                lastPowerKeyTime = currentTime;
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
-                lastPowerKeyTime = currentTime;
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -613,7 +613,7 @@ namespace WPEFramework {
             {
                 std::cout << "error setting the power state\n";
             }
-            lastPowerKeyTime = currentTime;
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
