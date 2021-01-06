@@ -77,19 +77,28 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_HOLE_PUNCH;
             static const string RDKSHELL_METHOD_GET_LOG_LEVEL;
             static const string RDKSHELL_METHOD_SET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_HIDE_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
+            static const string RDKSHELL_METHOD_LAUNCH_APP;
             static const string RDKSHELL_METHOD_SUSPEND;
+            static const string RDKSHELL_METHOD_SUSPEND_APP;
+            static const string RDKSHELL_METHOD_RESUME_APP;
             static const string RDKSHELL_METHOD_DESTROY;
             static const string RDKSHELL_METHOD_GET_AVAILABLE_TYPES;
             static const string RDKSHELL_METHOD_GET_STATE;
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
+            static const string RDKSHELL_METHOD_SHOW_WATERMARK;
+            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
+            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
+            static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
+            static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -100,6 +109,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_FIRST_FRAME;
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
+            static const string RDKSHELL_EVENT_ON_APP_ACTIVATED;
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
@@ -107,6 +117,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
+            static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
         private/*registered methods (wrappers)*/:
 
@@ -141,6 +152,7 @@ namespace WPEFramework {
             uint32_t setHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
@@ -149,11 +161,20 @@ namespace WPEFramework {
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t destroyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t destroyApplicationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getState(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -174,6 +195,8 @@ namespace WPEFramework {
             bool generateKey(const string& client, const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
+            bool setMimeType(const string& client, const string& mimeType);
+            bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
@@ -196,8 +219,12 @@ namespace WPEFramework {
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
+            bool showWatermark(const bool enable);
+            void killAllApps();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
         private/*classes */:
 
@@ -221,11 +248,14 @@ namespace WPEFramework {
                 virtual void onApplicationFirstFrame(const std::string& client);
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
+                virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
                 virtual void onDeviceLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
                 virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
                 virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
+                virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
+                virtual void onPowerKey();
 
               private:
                   RDKShell& mShell;
