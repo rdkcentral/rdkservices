@@ -138,10 +138,8 @@ namespace Plugin {
                 {
                     if (_connection != nullptr) {
                         TRACE(Trace::Information, (_T("Destructing TraceControl::Source (%d)"), _connection->Id()));
-                        if (_iterator != nullptr) {
-                            _iterator->Release();
-                            _iterator = nullptr;
-                        }
+
+                        Relinquish();
                         _connection->Release();
                         _connection = nullptr;
                     }
@@ -152,7 +150,7 @@ namespace Plugin {
                 {
                     return (_connection != nullptr ? _connection->Id() : 0);
                 }
-                void Relinguish()
+                void Relinquish()
                 {
                     if (_connection != nullptr) {
                         if (_iterator != nullptr) {
@@ -505,7 +503,6 @@ namespace Plugin {
                                 }
                             }
                         }
-
                         index++;
                     }
 
@@ -645,7 +642,7 @@ namespace Plugin {
                 std::map<const uint32_t, Source*>::iterator index(_buffers.begin());
 
                 while (index != _buffers.end()) {
-                    index->second->Relinguish();
+                    index->second->Relinquish();
                     index++;
                 }
 
