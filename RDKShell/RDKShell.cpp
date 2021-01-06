@@ -110,7 +110,7 @@ vector<std::string> gActivePlugins;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 3
+#define RDKSHELL_POWER_TIME_WAIT 2.5
 
 enum RDKShellLaunchType
 {
@@ -569,7 +569,6 @@ namespace WPEFramework {
             {
                 std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
             }
-            lastPowerKeyTime = currentTime;
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
@@ -582,12 +581,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -607,11 +608,12 @@ namespace WPEFramework {
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
             status = thunderController->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
-            std::cout << "get power state status: " << status << std::endl;
+            std::cout << "get power state status second: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "error setting the power state\n";
             }
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
