@@ -121,15 +121,18 @@ bool TTSConfiguration::isValid() {
 #if defined(PLATFORM_REALTEK)
 static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data)
 {
-    gchar *name;
+    gchar *name, *element_name, other_name;
     GstElement *other = (GstElement *)data;
     name = gst_pad_get_name (pad);
-    TTSLOG_INFO ("[cb] A new pad %s was created for %s\n", name, gst_element_get_name(element));
+    element_name = gst_element_get_name(element);
+    other_name = gst_element_get_name(other);
+    TTSLOG_INFO ("[cb] A new pad %s was created for %s\n", name, element_name);
     g_free (name);
     TTSLOG_INFO ("element %s will be linked to %s\n",
-            gst_element_get_name(element),
-            gst_element_get_name(other));
-
+            element_name,
+            other_name);
+    g_free (element_name);
+    g_free (other_name);
     if(!gst_element_link(element, other))
         TTSLOG_ERROR("[cb] failed to link elements..");
     else
