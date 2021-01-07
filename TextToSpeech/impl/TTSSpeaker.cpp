@@ -152,9 +152,7 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
-#if defined(PLATFORM_REALTEK)
     m_audioVolume(NULL),
-#endif
     main_loop(NULL),
     main_context(NULL),
     main_loop_thread(NULL),
@@ -392,12 +390,14 @@ void TTSSpeaker::createPipeline() {
 #if defined(PLATFORM_BROADCOM)
     GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_AMLOGIC)
     GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
     GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
+    m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_REALTEK)
     GstElement *decodebin = NULL;
     GstElement *convert = NULL;
@@ -433,11 +433,7 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
-#if defined(PLATFORM_REALTEK)
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
-#else
-    g_object_set(G_OBJECT(m_audioSink), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
-#endif
 
     // Add elements to pipeline and link
     bool result = TRUE;
@@ -696,7 +692,6 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
 }
 
 void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
-    GstElement *audioSink = m_audioSink;
     m_isEOS = false;
     m_duration = 0;
 
@@ -704,10 +699,7 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         m_currentSpeech = &data;
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
-#if defined(PLATFORM_REALTEK)
-        audioSink = m_audioVolume;
-#endif
-        g_object_set(G_OBJECT(audioSink), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        g_object_set(G_OBJECT(m_audioSink), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
 
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
