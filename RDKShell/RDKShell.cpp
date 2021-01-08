@@ -1801,7 +1801,7 @@ namespace WPEFramework {
                 response["message"] = "please specify callsign";
             }
 
-            if (result)
+            /*if (result)
             {
                 bool launchInProgress = false;
                 int32_t currentLaunchCount = 0;
@@ -1824,7 +1824,7 @@ namespace WPEFramework {
                     response["message"] = "failed to launch application.  another launch is in progress";
                     returnResponse(false);
                 }
-            }
+            }*/
 
             if (result)
             {
