@@ -460,6 +460,7 @@ static GSourceFuncs _handlerIntervention =
                 , CookieStorage()
                 , LocalStorage()
                 , LocalStorageEnabled(false)
+                , LocalStorageSize()
                 , Secure(false)
                 , InjectedBundle()
                 , Transparent(false)
@@ -502,6 +503,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("cookiestorage"), &CookieStorage);
                 Add(_T("localstorage"), &LocalStorage);
                 Add(_T("localstorageenabled"), &LocalStorageEnabled);
+                Add(_T("localstoragesize"), &LocalStorageSize);
                 Add(_T("secure"), &Secure);
                 Add(_T("injectedbundle"), &InjectedBundle);
                 Add(_T("transparent"), &Transparent);
@@ -551,6 +553,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String CookieStorage;
             Core::JSON::String LocalStorage;
             Core::JSON::Boolean LocalStorageEnabled;
+            Core::JSON::DecUInt16 LocalStorageSize;
             Core::JSON::Boolean Secure;
             Core::JSON::String InjectedBundle;
             Core::JSON::Boolean Transparent;
@@ -1630,6 +1633,12 @@ static GSourceFuncs _handlerIntervention =
             auto storageDirectory = WKStringCreateWithUTF8CString(wpeStoragePath);
             g_free(wpeStoragePath);
             WKContextConfigurationSetLocalStorageDirectory(contextConfiguration, storageDirectory);
+
+            if (_config.LocalStorageSize.IsSet() == true && _config.LocalStorageSize.Value() != 0) {
+                uint32_t gLocalStorageDatabaseQuotaInBytes = _config.LocalStorageSize.Value() * 1024;
+                TRACE(Trace::Information, (_T("Configured LocalStorage Quota  %u bytes"), gLocalStorageDatabaseQuotaInBytes));
+                WKContextConfigurationSetLocalStorageQuota(contextConfiguration, gLocalStorageDatabaseQuotaInBytes);
+            }
 
             gchar* wpeDiskCachePath;
             if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false)

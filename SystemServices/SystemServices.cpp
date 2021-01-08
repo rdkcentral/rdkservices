@@ -62,6 +62,8 @@ using namespace std;
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
+#define ZONEINFO_DIR "/usr/share/zoneinfo"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -240,7 +242,7 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-            : AbstractPlugin()
+            : AbstractPlugin(2)
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
@@ -348,6 +350,10 @@ namespace WPEFramework {
             registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
+            registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+
+            // version 2 APIs
+            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
         }
 
 
@@ -1725,6 +1731,102 @@ namespace WPEFramework {
             returnResponse(resp);
         }
 
+        bool SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+        {
+            std::string cmd = "zdump ";
+            cmd += file;
+
+            FILE *p = popen(cmd.c_str(), "r");
+
+            if(!p)
+            {
+                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                zoneInfo = "";
+                return false;
+
+            }
+
+            char buf[1024];
+            while(fgets(buf, sizeof(buf), p) != NULL)
+                zoneInfo += buf;
+
+            int err = pclose(p);
+            if (0 == err)
+            {
+                zoneInfo.erase(0, zoneInfo.find_first_of(" \t")); // Skip filename
+                zoneInfo.erase(0, zoneInfo.find_first_not_of(" \n\r\t")); // Trim whitespaces
+                zoneInfo.erase(zoneInfo.find_last_not_of(" \n\r\t") + 1);
+            }
+            else
+            {    
+                zoneInfo = "";
+                LOGERR("%s failed with code %d", cmd.c_str(), err);
+                return false;
+            }
+
+            return true;
+        }
+
+        bool SystemServices::processTimeZones(std::string dir, JsonObject& out)
+        {
+            bool ret = true;
+            DIR *d = opendir(dir.c_str());
+
+            struct dirent *de;
+
+            while ((de = readdir(d)))
+            {
+                if (0 == de->d_name[0] || 0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
+                    continue;
+
+                std::string fullName = dir;
+                fullName += "/";
+                fullName += de->d_name;
+
+                struct stat deStat;
+                if (stat(fullName.c_str(), &deStat))
+                {
+                    LOGERR("stat() failed: %s", strerror(errno));
+                    continue;
+                }
+
+                if (S_ISDIR(deStat.st_mode))
+                {
+                    JsonObject dirObject;
+                    if (!processTimeZones(fullName, dirObject)) 
+                        ret = false;
+
+                    out[de->d_name] = dirObject;
+                }
+                else
+                {
+                    if (0 == access(fullName.c_str(), R_OK))
+                    {
+                        std::string zoneInfo;
+                        if (!getZoneInfoZDump(fullName, zoneInfo)) 
+                            ret = false;
+
+                        out[de->d_name] = zoneInfo;
+                    }
+                    else
+                        LOGWARN("no access to %s", fullName.c_str());
+                }
+            }
+
+            return ret;
+        }
+
+        uint32_t SystemServices::getTimeZones(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO("called");
+
+            JsonObject dirObject;
+            bool resp = processTimeZones(ZONEINFO_DIR, dirObject);
+            response["zoneinfo"] = dirObject;
+
+            returnResponse(resp);
+        }
+
         /***
          * @brief : To fetch core temperature
          * @param1[in]	: {"params":{}}
@@ -2665,6 +2767,20 @@ namespace WPEFramework {
             response["receiverVersion"] = getClientVersionString();
             response["stbTimestamp"]    = getStbTimestampString();
             status = true;
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To retrieve is power state is managed by device
+         * @param1[in] : {"params":{}}
+         * @aparm2[in] : {"result":{"powerStateManagedByDevice":"<bool>",
+         *      "success":<bool>}}
+         */
+        uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
+        {
+            bool status = true;
+            bool isPowerStateManagedByDevice = true;
+            response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
             returnResponse(status);
         }
 
