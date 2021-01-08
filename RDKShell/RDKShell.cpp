@@ -111,7 +111,7 @@ static std::string sToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 3
+#define RDKSHELL_POWER_TIME_WAIT 2.5
 
 enum RDKShellLaunchType
 {
@@ -577,7 +577,6 @@ namespace WPEFramework {
             {
                 std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
             }
-            lastPowerKeyTime = currentTime;
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
@@ -590,12 +589,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -615,11 +616,12 @@ namespace WPEFramework {
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
             status = thunderController->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
-            std::cout << "get power state status: " << status << std::endl;
+            std::cout << "get power state status second: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "error setting the power state\n";
             }
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
@@ -2901,7 +2903,33 @@ namespace WPEFramework {
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            std::string factoryAppCallsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            for (auto pluginName : gActivePlugins)
+            {
+                if (pluginName == factoryAppCallsign)
+                {
+                    std::cout << "factory app is running" << std::endl;
+                    isFactoryAppRunning = true;
+                    break;
+                }
+            }
+            if (!isFactoryAppRunning)
+            {
+                std::cout << "nothing to do since factory app is not running\n";
+                returnResponse(true);
+            }
             killAllApps();
+
+            std::cout << "attempting to stop hdmi input...\n";
+            JsonObject joStopHdmiParams;
+            JsonObject joStopHdmiResult;
+            std::string stopHdmiInvoke = "org.rdk.HdmiInput.1.stopHdmiInput";
+
+            std::cout << "attempting to stop hdmi input \n";
+            uint32_t stopHdmiStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, stopHdmiInvoke.c_str(), joStopHdmiParams, joStopHdmiResult);
+            std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
+
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
