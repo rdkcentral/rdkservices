@@ -44,7 +44,9 @@ std::map<int, std::string> ErrCodeMap = {
     {SysSrv_LibcurlError, "LIbCurl service error"},
     {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"},
     {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"},
-    {SysSrv_KeyNotFound, "Key not found"}
+    {SysSrv_KeyNotFound, "Key not found"},
+    {SysSrv_TimeZoneRemountFailed, "/etc/localtime remount failed"},
+    {SysSrv_WrongParameter, "Wrong parameter"}
 };
 
 std::string getErrorDescription(int errCode)
