@@ -1342,7 +1342,6 @@ namespace WPEFramework {
 
                 result = setVisibility(client, visible);
 
-                gPluginDataMutex.lock();
                 std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
                 if (pluginsEntry != gActivePluginsData.end())
                 {
@@ -1359,7 +1358,6 @@ namespace WPEFramework {
                         }
                     }
                 }
-                gPluginDataMutex.unlock();
 
 
                 // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
