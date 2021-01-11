@@ -294,5 +294,10 @@ namespace WPEFramework {
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
         };
+
+        struct PluginData
+        {
+          std::string mClassName;
+        };
     } // namespace Plugin
 } // namespace WPEFramework
