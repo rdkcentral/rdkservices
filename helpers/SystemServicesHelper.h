@@ -32,6 +32,7 @@
 #include "utils.h"
 
 /* Status-keeper files */
+
 #if defined (PLATFORM_BROADCOM) || defined (PLATFORM_BROADCOM_REF) || defined (PLATFORM_REALTEK)
 #define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/secure/reboot/reboot.info"
 #define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/secure/reboot/previousreboot.info"
@@ -91,7 +92,9 @@ enum SysSrv_ErrorCode {
     SysSrv_LibcurlError,
     SysSrv_DynamicMemoryAllocationFailed,
     SysSrv_ManufacturerDataReadFailed,
-    SysSrv_KeyNotFound
+    SysSrv_KeyNotFound,
+    SysSrv_TimeZoneRemountFailed,
+    SysSrv_WrongParameter,
 };
 
 enum FirmwareUpdateState {
