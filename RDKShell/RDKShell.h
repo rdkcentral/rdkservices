@@ -98,6 +98,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
+            static const string RDKSHELL_METHOD_SET_TOPMOST;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -173,6 +174,7 @@ namespace WPEFramework {
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
             void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
@@ -218,6 +220,7 @@ namespace WPEFramework {
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             void killAllApps();
+            bool setTopmost(const string& callsign, const bool topmost);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
