@@ -43,6 +43,7 @@
 #define METHOD_FP_SET_LED "setLED"
 #define METHOD_FP_SET_BLINK "setBlink"
 #define METHOD_FP_SET_24_HOUR_CLOCK "set24HourClock"
+#define METHOD_FP_SET_POWER_STATUS "setPowerStatus"
 #define METHOD_FP_IS_24_HOUR_CLOCK "is24HourClock"
 #define METHOD_FP_SET_CLOCKTESTPATTERN "setClockTestPattern"
 
@@ -156,7 +157,7 @@ namespace WPEFramework
         int FrontPanel::m_LedDisplayPatternUpdateTimerInterval = DEFAULT_TEXT_PATTERN_UPDATE_INTERVAL;
 
         FrontPanel::FrontPanel()
-        : AbstractPlugin()
+        : AbstractPlugin(2)
         , m_updateTimer(this)
         {
             LOGINFO();
@@ -176,6 +177,8 @@ namespace WPEFramework
             registerMethod(METHOD_FP_SET_24_HOUR_CLOCK, &FrontPanel::set24HourClockWrapper, this);
             registerMethod(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             registerMethod(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
+
+            registerMethod(METHOD_FP_SET_POWER_STATUS, &FrontPanel::setPowerStatusWrapper, this, {2});
 
             InitializeIARM();
 
@@ -701,6 +704,17 @@ namespace WPEFramework
         }
 
         /**
+         * @brief Sets power status.
+         *
+         * @param[in] power status.
+         * @ingroup SERVMGR_FRONTPANEL_API
+         */
+        void FrontPanel::setPowerStatus(bool status)
+        {
+            CFrontPanel::instance()->setPowerStatus(status);
+        }
+
+        /**
          * @brief Get the 24 hour clock format.
          *
          * @return true if 24 hour clock format is used.
@@ -832,6 +846,19 @@ namespace WPEFramework
                 bool is24Hour = false;
                 getBoolParameter("is24Hour", is24Hour );
                 set24HourClock(is24Hour);
+                success = true;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t FrontPanel::setPowerStatusWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            bool success = false;
+            if (parameters.HasLabel("power"))
+            {
+                bool status = false;
+                getBoolParameter("power", status);
+                setPowerStatus(status);
                 success = true;
             }
             returnResponse(success);

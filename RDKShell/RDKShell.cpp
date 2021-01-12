@@ -77,6 +77,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getSta
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_WATERMARK = "showWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
@@ -105,6 +106,7 @@ using namespace RdkShell;
 using namespace Utils;
 extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
+bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 vector<std::string> gActivePlugins;
@@ -112,7 +114,7 @@ static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 2
+#define RDKSHELL_POWER_TIME_WAIT 2.5
 
 enum RDKShellLaunchType
 {
@@ -273,6 +275,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_WATERMARK, &RDKShell::showWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
@@ -301,12 +304,13 @@ namespace WPEFramework {
             CompositorController::setEventListener(mEventListener);
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
-            bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
             {
               mEnableUserInactivityNotification = true;
-              ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
-              if (true == ret && param.type == WDMP_STRING)
+              enableInactivityReporting(true);
+              ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
+              if (true == ret)
               {
                 try
                 {
@@ -348,6 +352,11 @@ namespace WPEFramework {
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
                     receivedResolutionRequest = false;
+                  }
+                  if (receivedShowWatermarkRequest)
+                  {
+                    CompositorController::showWatermark();
+                    receivedShowWatermarkRequest = false;
                   }
                   RdkShell::draw();
                   RdkShell::update();
@@ -574,8 +583,6 @@ namespace WPEFramework {
             {
                 std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
             }
-            lastPowerKeyTime = currentTime;
-
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
@@ -587,12 +594,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -612,11 +621,12 @@ namespace WPEFramework {
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
             status = getThunderControllerClient()->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
-            std::cout << "get power state status: " << status << std::endl;
+            std::cout << "get power state status second: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "error setting the power state\n";
             }
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
@@ -1724,7 +1734,7 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string interval = parameters["interval"].String();
+                const unsigned int interval = parameters["interval"].Number();
 
                 result = setInactivityInterval(interval);
                 // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
@@ -1940,7 +1950,9 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
+                    gRdkShellMutex.lock();
                     RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
+                    gRdkShellMutex.unlock();
                 }
 
                 WPEFramework::Core::JSON::String configString;
@@ -2579,6 +2591,23 @@ namespace WPEFramework {
             }
             response["types"] = availableTypes;
 
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::showWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool displayWatermark = true;
+            if (parameters.HasLabel("show"))
+            {
+                displayWatermark  = parameters["show"].Boolean();
+            }
+            result = showWatermark(displayWatermark);
+            if (!result)
+            {
+                response["message"] = "failed to perform show watermark";
+            }
             returnResponse(result);
         }
 
@@ -3416,12 +3445,12 @@ namespace WPEFramework {
             return true;
         }
 
-        bool RDKShell::setInactivityInterval(const string interval)
+        bool RDKShell::setInactivityInterval(const uint32_t interval)
         {
             gRdkShellMutex.lock();
             try
             {
-              CompositorController::setInactivityInterval(std::stod(interval));
+              CompositorController::setInactivityInterval((double)interval);
             }
             catch (...) 
             {
@@ -3481,6 +3510,22 @@ namespace WPEFramework {
             }
             memoryInfo.Add(memoryDetails);
             return true;
+        }
+
+        bool RDKShell::showWatermark(const bool enable)
+        {
+            bool ret = true;
+            gRdkShellMutex.lock();
+            if (enable)
+            {
+                receivedShowWatermarkRequest = true;
+            }
+            else
+            {
+                ret = CompositorController::hideWatermark();
+            }
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end
