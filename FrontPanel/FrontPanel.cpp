@@ -157,7 +157,7 @@ namespace WPEFramework
         int FrontPanel::m_LedDisplayPatternUpdateTimerInterval = DEFAULT_TEXT_PATTERN_UPDATE_INTERVAL;
 
         FrontPanel::FrontPanel()
-        : AbstractPlugin()
+        : AbstractPlugin(2)
         , m_updateTimer(this)
         {
             LOGINFO();
@@ -178,8 +178,7 @@ namespace WPEFramework
             registerMethod(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             registerMethod(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
 
-            Core::JSONRPC::Handler& version2 = JSONRPC::CreateHandler({ 2 }, *this);
-            version2.Register<JsonObject, JsonObject>(_T(METHOD_FP_SET_POWER_STATUS), &FrontPanel::setPowerStatusWrapper, this);
+            registerMethod(METHOD_FP_SET_POWER_STATUS, &FrontPanel::setPowerStatusWrapper, this, {2});
 
             InitializeIARM();
 
@@ -200,12 +199,6 @@ namespace WPEFramework
             patternUpdateTimer.Revoke(m_updateTimer);
 
             DeinitializeIARM();
-
-            Core::JSONRPC::Handler* version2 = JSONRPC::GetHandler(2);
-            if (version2)
-            {
-                version2->Unregister(METHOD_FP_SET_POWER_STATUS);
-            }
         }
 
         const void FrontPanel::InitializeIARM()
