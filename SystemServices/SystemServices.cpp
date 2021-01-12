@@ -1691,6 +1691,7 @@ namespace WPEFramework {
                             int status = system(cmd.c_str());
                             if (0 != status) {
                                 LOGERR("Failed to remount /etc/localtime: %d", status);
+                                populateResponseWithError(SysSrv_TimeZoneRemountFailed, response);
                                 resp = false;
                             }
 
@@ -1702,6 +1703,7 @@ namespace WPEFramework {
 
                     } else {
                         LOGERR("Wrong time zone value: %s", timeZone.c_str());
+                        populateResponseWithError(SysSrv_WrongParameter, response);
                     }
 
 				}
