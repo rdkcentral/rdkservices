@@ -3550,23 +3550,18 @@ namespace WPEFramework {
         bool RDKShell::pluginMemoryUsage(const string callsign, JsonArray& memoryInfo)
         {
             JsonObject memoryDetails;
-            PluginHost::IShell* plugin(mCurrentService->QueryInterfaceByCallsign<PluginHost::IShell>(callsign.c_str()));
+            Exchange::IMemory* pluginMemoryInterface(mCurrentService->QueryInterfaceByCallsign<Exchange::IMemory>(callsign.c_str()));
             memoryDetails["callsign"] = callsign;
             memoryDetails["ram"] = -1;
-            if (nullptr != plugin)
+            if (nullptr != pluginMemoryInterface)
             {
-                Exchange::IMemory* memory = plugin->QueryInterface<Exchange::IMemory>();
-
-                if (memory != nullptr)
-                {
-                    memoryDetails["ram"] = memory->Resident()/1024;
-                }
-                else
-                {
-                    std::cout << "Memory information not available for " << callsign << std::endl;
-                }
-                memoryInfo.Add(memoryDetails);
+                memoryDetails["ram"] = pluginMemoryInterface->Resident()/1024;
             }
+            else
+            {
+                std::cout << "Memory information not available for " << callsign << std::endl;
+            }
+            memoryInfo.Add(memoryDetails);
             return true;
         }
 
