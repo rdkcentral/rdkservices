@@ -1673,45 +1673,24 @@ namespace WPEFramework {
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				} else {
-                    std::string tzFile = "/usr/share/zoneinfo/";
-                    tzFile += timeZone;
-                    if (0 == access(tzFile.c_str(), F_OK)) {
-                        if (!dirExists(dir)) {
-                            std::string command = "mkdir -p " + dir + " \0";
-                            Utils::cRunScript(command.c_str());
-                        } else {
-                            //Do nothing//
-                        }
+					if (!dirExists(dir)) {
+						std::string command = "mkdir -p " + dir + " \0";
+						Utils::cRunScript(command.c_str());
+					} else {
+						//Do nothing//
+					}
 
-                        outfile.open(TZ_FILE,ios::out);
-                        if (outfile) {
-                            outfile << timeZone;
-                            outfile.close();
-                            LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
-                            resp = true;
-
-                            std::string cmd = "umount /etc/localtime ; ";
-                            cmd += "mount -o bind ";
-                            cmd += tzFile;
-                            cmd += " /etc/localtime";
-                            int status = system(cmd.c_str());
-                            if (0 != status) {
-                                LOGERR("Failed to remount /etc/localtime: %d", status);
-                                populateResponseWithError(SysSrv_TimeZoneRemountFailed, response);
-                                resp = false;
-                            }
-
-                        } else {
-                            LOGERR("Unable to open %s file.\n", TZ_FILE);
-                            populateResponseWithError(SysSrv_FileAccessFailed, response);
-                            resp = false;
-                        }
-
-                    } else {
-                        LOGERR("Wrong time zone value: %s", timeZone.c_str());
-                        populateResponseWithError(SysSrv_WrongParameter, response);
-                    }
-
+					outfile.open(TZ_FILE,ios::out);
+					if (outfile) {
+						outfile << timeZone;
+						outfile.close();
+						LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
+						resp = true;
+					} else {
+						LOGERR("Unable to open %s file.\n", TZ_FILE);
+						populateResponseWithError(SysSrv_FileAccessFailed, response);
+						resp = false;
+					}
 				}
 			} catch (...) {
 				LOGERR("catch block : parameters[\"timeZone\"]...");
