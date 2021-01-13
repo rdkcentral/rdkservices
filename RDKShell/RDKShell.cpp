@@ -546,14 +546,18 @@ namespace WPEFramework {
                 if (actionObject.HasLabel("params"))
                 {
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                  gRdkShellMutex.lock();
                 }
                 else
                 {
                   JsonObject joParams;
                   joParams["params"] = JsonObject();
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                  gRdkShellMutex.lock();
                 }
                 if (status > 0)
                 {
