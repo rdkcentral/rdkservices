@@ -130,14 +130,14 @@ namespace Plugin {
                     , _state(EMPTY)
                 {
                     if (_connection != nullptr) {
-                        TRACE_L1("Constructing TraceControl::Source (%d)", connection->Id());
+                        TRACE(Trace::Information, (_T("Constructing TraceControl::Source (%d)"), connection->Id()));
                         _connection->AddRef();
                     }
                 }
                 ~Source()
                 {
                     if (_connection != nullptr) {
-                        TRACE_L1("Destructing TraceControl::Source (%d)", _connection->Id());
+                        TRACE(Trace::Information, (_T("Destructing TraceControl::Source (%d)"), _connection->Id()));
                         if (_iterator != nullptr) {
                             _iterator->Release();
                             _iterator = nullptr;
@@ -217,7 +217,7 @@ namespace Plugin {
 
                         if (length < 2) {
                             // Didn't even get enough data to read entry size. This is impossible, fallback to failure.
-                            TRACE_L1("Inconsistent trace dump. Need to flush. %d", length);
+                            TRACE(Trace::Error, (_T("Inconsistent trace dump. Need to flush. %d"), length));
                             _state = FAILURE;
                         } else {
                             // TODO: This is platform dependend, needs to ba agnostic to the platform.
@@ -565,6 +565,7 @@ namespace Plugin {
             {
                 ASSERT(_refcount == 0);
                 ASSERT(_buffers.size() == 0);
+                _traceControl.Relinquish();
                 Wait(Thread::BLOCKED | Thread::STOPPED | Thread::STOPPING, Core::infinite);
             }
 
