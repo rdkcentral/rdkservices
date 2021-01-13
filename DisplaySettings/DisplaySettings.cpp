@@ -63,6 +63,9 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+#define TV_ZOOM_SETTINGS_FILE "/opt/persistent/tvZoomSettings.json"
+#endif
 
 #ifdef USE_IARM
 namespace
@@ -200,6 +203,15 @@ namespace WPEFramework {
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+        tvZoomSettings.push_back("TV AUTO");
+        tvZoomSettings.push_back("TV DIRECT");
+        tvZoomSettings.push_back("TV NORMAL");
+        tvZoomSettings.push_back("TV 16X9 STRETCH");
+        tvZoomSettings.push_back("TV LETTERBOX");
+        tvZoomSettings.push_back("TV ZOOM");
+#endif
         }
 
         DisplaySettings::~DisplaySettings()
@@ -813,6 +825,36 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            string zoomSetting = "TV AUTO";
+            Core::File settingsFile;
+            settingsFile = TV_ZOOM_SETTINGS_FILE;
+            if (settingsFile.Open())
+            {
+                JsonObject settingsJson;
+                if (settingsJson.IElement::FromFile(settingsFile))
+                {
+                    std::string settingsValue = settingsJson["zoomSetting"].String();
+                    if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), settingsValue) != tvZoomSettings.end())
+                    {
+                        zoomSetting = settingsValue;
+                    }
+                    else
+                    {
+                        LOGERR("Couldn't parse tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                    }
+                }
+                else
+                {
+                    LOGERR("Couldn't read tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                }
+                settingsFile.Close();
+            }
+            else
+            {
+                LOGWARN("Couldn't open tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+            }
+#else
             string zoomSetting = "unknown";
             try
             {
@@ -827,6 +869,7 @@ namespace WPEFramework {
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
+#endif
             response["zoomSetting"] = zoomSetting;
             returnResponse(true);
         }
@@ -839,6 +882,37 @@ namespace WPEFramework {
             string zoomSetting = parameters["zoomSetting"].String();
 
             bool success = true;
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
+            {
+                Core::File settingsFile;
+                settingsFile = TV_ZOOM_SETTINGS_FILE;
+                if (!settingsFile.Open(false))
+                {
+                    LOGWARN("Couldn't open tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                    if (!settingsFile.Create())
+                    {
+                        LOGERR("Couldn't create tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                        success = false;
+                    }
+                }
+
+                if (settingsFile.IsOpen())
+                {
+                    if (!parameters.IElement::ToFile(settingsFile))
+                    {
+                        LOGERR("Couldn't save tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                        success = false;
+                    }
+                    settingsFile.Close();
+                }
+            }
+            else
+            {
+                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
+                success = false;
+            }
+#else
             try
             {
 #ifdef USE_IARM
@@ -853,6 +927,7 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION1(zoomSetting);
                 success = false;
             }
+#endif
             returnResponse(success);
         }
 
