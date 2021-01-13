@@ -565,6 +565,7 @@ namespace Plugin {
             {
                 ASSERT(_refcount == 0);
                 ASSERT(_buffers.size() == 0);
+                _traceControl.Relinquish();
                 Wait(Thread::BLOCKED | Thread::STOPPED | Thread::STOPPING, Core::infinite);
             }
 
