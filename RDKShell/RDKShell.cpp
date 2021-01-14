@@ -1167,7 +1167,18 @@ namespace WPEFramework {
                 {
                     displayName = parameters["displayName"].String();
                 }
-                result = createDisplay(client, displayName);
+                uint32_t displayWidth = 0;
+                if (parameters.HasLabel("displayWidth"))
+                {
+                    displayWidth = parameters["displayWidth"].Number();
+                }
+                uint32_t displayHeight = 0;
+                if (parameters.HasLabel("displayHeight"))
+                {
+                    displayHeight = parameters["displayHeight"].Number();
+                }
+
+                result = createDisplay(client, displayName, displayWidth, displayHeight);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -3227,11 +3238,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::createDisplay(const string& client, const string& displayName)
+        bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight)
         {
             bool ret = false;
             gRdkShellMutex.lock();
-            ret = CompositorController::createDisplay(client, displayName);
+            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
