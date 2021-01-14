@@ -29,9 +29,8 @@ namespace WPEFramework {
             static const string METHOD_CLEAR_LINK;
             //events
             //other
-            static const string USB_MOUNT_PATH;
             static const string LINK_URL_HTTP;
-            static const string LIGHTTPD_CONF_PATH;
+            static const string LINK_PATH;
 
         private/*registered methods (wrappers)*/:
 
@@ -44,7 +43,12 @@ namespace WPEFramework {
             UsbAccess(const UsbAccess&) = delete;
             UsbAccess& operator=(const UsbAccess&) = delete;
 
-            string getLinkPath() const;
+            typedef string FileType;
+            typedef std::pair<string,FileType> PathInfo;
+            typedef std::list<PathInfo> FileList;
+
+            bool getFileList(const string& dir, FileList& files) const;
+            bool getMountPath(string& dir) const;
         };
     } // namespace Plugin
 } // namespace WPEFramework
