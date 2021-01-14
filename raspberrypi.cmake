@@ -15,6 +15,7 @@
 message("Building for raspberrypi...")
 
 add_definitions (-DUSE_SOUND_PLAYER)
+add_definitions (-DPLATFORM_BROADCOM_REF)
 
 
 #DeadCodeStrip(DCS)...forRNG150sizereduction
