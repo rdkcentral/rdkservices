@@ -79,13 +79,6 @@ elseif (BCM_HOST_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             BCM_HOST::BCM_HOST)
-elseif (BUILD_AMLOGIC)
-    target_sources(${MODULE_NAME}
-        PRIVATE
-            Amlogic/PlatformImplementation.cpp)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-         drm)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
@@ -100,6 +93,12 @@ elseif (BUILD_REALTEK)
         PRIVATE
             DeviceSettings/Realtek/SoC_abstraction.cpp
             DeviceSettings/Realtek/kms.c
+    )
+elseif (BUILD_AMLOGIC)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+	DeviceSettings/Amlogic/SoC_abstraction.cpp
+	DeviceSettings/Amlogic/kms.c
     )
 endif ()
 
