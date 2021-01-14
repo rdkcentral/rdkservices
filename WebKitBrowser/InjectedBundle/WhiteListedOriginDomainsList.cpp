@@ -19,8 +19,10 @@
  
 #include "WhiteListedOriginDomainsList.h"
 
+#ifndef WEBKIT_GLIB_API
 #include "Utils.h"
 #include "Tags.h"
+#endif
 
 using std::unique_ptr;
 using std::vector;
@@ -91,8 +93,12 @@ namespace WebKit {
     }
 
     // Gets white list from WPEFramework via synchronous message.
-    /* static */ unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::RequestFromWPEFramework()
+    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::RequestFromWPEFramework(const char* whitelist)
     {
+#ifdef WEBKIT_GLIB_API
+        unique_ptr<WhiteListedOriginDomainsList> whiteList(new WhiteListedOriginDomainsList());
+        ParseWhiteList(whitelist, whiteList->_whiteMap);
+#else
         string messageName(string(Tags::Config) + "Whitelist");
         std::string utf8MessageName = Core::ToString(messageName.c_str());
 
@@ -113,6 +119,7 @@ namespace WebKit {
         WKRelease(messageBody);
         WKRelease(jsMessageName);
 
+#endif
         return whiteList;
     }
 
@@ -123,6 +130,19 @@ namespace WebKit {
 
         while (index != _whiteMap.end()) {
 
+#ifdef WEBKIT_GLIB_API
+            WebKitSecurityOrigin* origin = webkit_security_origin_new_for_uri(index->first.c_str());
+
+            for (const Domain& domainIndex : index->second) {
+
+                WebKitSecurityOrigin* domain = webkit_security_origin_new_for_uri(domainIndex.second.c_str());
+                webkit_web_extension_add_origin_access_whitelist_entry(bundle,
+                        origin, webkit_security_origin_get_protocol(domain),
+                        webkit_security_origin_get_host(domain), domainIndex.first);
+                webkit_security_origin_unref(domain);
+            }
+            webkit_security_origin_unref(origin);
+#else
             WKStringRef wkOrigin = WKStringCreateWithUTF8CString(index->first.c_str());
 
             for (const Domain& domain : index->second) {
@@ -143,6 +163,7 @@ namespace WebKit {
             }
 
             WKRelease(wkOrigin);
+#endif
             index++;
         }
     }

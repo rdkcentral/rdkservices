@@ -22,7 +22,12 @@
 
 #include "Module.h"
 
+#ifdef WEBKIT_GLIB_API
+#include <wpe/webkit-web-extension.h>
+typedef WebKitWebExtension* WKBundleRef;
+#else
 #include <WPE/WebKit.h>
+#endif
 
 #include <vector>
 
@@ -40,7 +45,7 @@ namespace WebKit {
         typedef std::map<string, Domains> WhiteMap;
 
     public:
-        static std::unique_ptr<WhiteListedOriginDomainsList> RequestFromWPEFramework();
+        static std::unique_ptr<WhiteListedOriginDomainsList> RequestFromWPEFramework(const char* whitelist = nullptr);
         ~WhiteListedOriginDomainsList()
         {
         }
