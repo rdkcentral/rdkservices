@@ -1240,7 +1240,16 @@ namespace WPEFramework {
             keypressInfo["remoteId"]           = JsonValue((int)lastKeyInfo.controller_id);
             keypressInfo["timestamp"]          = JsonValue((long long)lastKeyInfo.timestamp);   // This timestamp is already in milliseconds
             keypressInfo["sourceName"]         = std::string(lastKeyInfo.source_name);
-            keypressInfo["sourceType"]         = JsonValue((int)lastKeyInfo.source_type);
+
+            if (lastKeyInfo.source_type == IARM_BUS_IRMGR_KEYSRC_RF)
+            {
+                keypressInfo["sourceType"]     = std::string("RF");
+            }
+            else
+            {
+                keypressInfo["sourceType"]     = std::string("IR");
+            }
+
             keypressInfo["sourceKeyCode"]      = JsonValue((int)lastKeyInfo.source_key_code);
             keypressInfo["bIsScreenBindMode"]  = JsonValue((bool)lastKeyInfo.is_screen_bind_mode);
             keypressInfo["remoteKeypadConfig"] = JsonValue((int)lastKeyInfo.remote_keypad_config);
