@@ -2846,6 +2846,16 @@ namespace WPEFramework {
                     response["message"] = " launching factory application failed ";
                     returnResponse(false);
                 }
+                JsonObject joFactoryModeParams;
+                JsonObject joFactoryModeResult;
+                joFactoryModeParams.Set("namespace","FactoryTest");
+                joFactoryModeParams.Set("key","FactoryMode");
+                joFactoryModeParams.Set("value","true");
+                std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                std::cout << "attempting to set factory mode flag \n";
+                uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                std::cout << "set status: " << setStatus << std::endl;
                 returnResponse(true);
             }
             else
@@ -2965,6 +2975,16 @@ namespace WPEFramework {
                     ret = true;
                 }
             }
+            JsonObject joFactoryModeParams;
+            JsonObject joFactoryModeResult;
+            joFactoryModeParams.Set("namespace","FactoryTest");
+            joFactoryModeParams.Set("key","FactoryMode");
+            joFactoryModeParams.Set("value","false");
+            std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+            std::cout << "attempting to set factory mode flag \n";
+            uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+            std::cout << "set status: " << setStatus << std::endl;
             returnResponse(ret);
         }
 
