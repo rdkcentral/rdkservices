@@ -28,7 +28,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 find_package(PkgConfig)
-pkg_check_modules(PC_WPE_BACKEND QUIET wpe-0.2)
+pkg_search_module(PC_WPE_BACKEND REQUIRED wpe-0.2 wpe-1.0)
 
 find_path(WPE_BACKEND_INCLUDE_DIRS
     NAMES wpe/wpe.h
@@ -36,7 +36,7 @@ find_path(WPE_BACKEND_INCLUDE_DIRS
 )
 
 find_library(WPE_BACKEND_LIBRARIES
-    NAMES wpe-0.2
+    NAMES wpe-0.2 wpe-1.0
     HINTS ${PC_WPE_BACKEND_LIBDIR} ${PC_WPE_BACKEND_LIBRARY_DIRS}
 )
 

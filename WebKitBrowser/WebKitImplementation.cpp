@@ -452,6 +452,7 @@ static GSourceFuncs _handlerIntervention =
                 , Cursor(false)
                 , Touch(false)
                 , MSEBuffers()
+                , ThunderDecryptorPreference()
                 , MemoryProfile()
                 , MemoryPressure()
                 , MediaContentTypesRequiringHardwareSupport()
@@ -501,6 +502,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
                 Add(_T("msebuffers"), &MSEBuffers);
+                Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
                 Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
@@ -557,6 +559,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
             Core::JSON::String MSEBuffers;
+            Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
             Core::JSON::String MemoryPressure;
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
@@ -1512,6 +1515,9 @@ static GSourceFuncs _handlerIntervention =
             if (_config.Touch.Value() == true)
                 Core::SystemInfo::SetEnvironment(_T("WPE_BCMRPI_TOUCH"), _T("1"), !environmentOverride);
 
+            // Rank Thunder Decryptor higher than ClearKey one
+            if (_config.ThunderDecryptorPreference.Value() == true)
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_GST_EME_RANK_PRIORITY"), _T("Thunder"), !environmentOverride);
 
             // WPE allows the LLINT to be used if true
             if (_config.JavaScript.UseLLInt.Value() == false) {
