@@ -46,6 +46,9 @@ namespace WPEFramework
 
         FrameRate::FrameRate()
         : AbstractPlugin()
+          , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
+          , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
+          , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
         {
             LOGINFO();
             FrameRate::_instance = this;

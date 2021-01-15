@@ -25,6 +25,8 @@
 #include <WPE/WebKit/WKBundleFrame.h>
 #include <WPE/WebKit/WKURL.h>
 
+#include <interfaces/json/JsonData_WebKitBrowser.h>
+
 #include <core/JSON.h>
 
 #include "Utils.h"
@@ -41,35 +43,8 @@ static PageHeaders s_pageHeaders;
 
 bool ParseHeaders(const string& json, Headers& out)
 {
-    struct HeadersData : public Core::JSON::Container
-    {
-        HeadersData()
-            : Core::JSON::Container()
-        {
-            Init();
-        }
-
-        HeadersData(const HeadersData& other)
-            : Core::JSON::Container()
-            , Name(other.Name)
-            , Value(other.Value)
-        {
-            Init();
-        }
-
-        Core::JSON::String Name;
-        Core::JSON::String Value;
-
-    private:
-        void Init()
-        {
-            Add(_T("name"), &Name);
-            Add(_T("value"), &Value);
-        }
-    };
-
     Core::OptionalType<Core::JSON::Error> error;
-    Core::JSON::ArrayType<HeadersData> array;
+    Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData> array;
     if (array.FromString(json, error)) {
         for (auto it = array.Elements(); it.Next();) {
             if (!it.IsValid())
