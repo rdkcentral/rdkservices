@@ -26,6 +26,7 @@
 #ifdef WEBKIT_GLIB_API
 
 #include <wpe/webkit-web-extension.h>
+#include "../BrowserConsoleLog.h"
 
 using namespace WPEFramework;
 
@@ -121,12 +122,17 @@ public:
 
         const char *uid;
         const char *whitelist;
-        g_variant_get((GVariant*) userData, "(&sm&s)", &uid, &whitelist);
+        gboolean logToSystemConsoleEnabled;
+        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &logToSystemConsoleEnabled);
 
         _scriptWorld = webkit_script_world_new_with_name(uid);
 
         g_signal_connect(_scriptWorld, "window-object-cleared",
                 G_CALLBACK(windowObjectClearedCallback), nullptr);
+
+        if (logToSystemConsoleEnabled == TRUE) {
+            g_signal_connect(bundle, "page-created", G_CALLBACK(pageCreatedCallback), this);
+        }
 
         if (whitelist != nullptr) {
             _whiteListedOriginDomainPairs =
@@ -196,6 +202,18 @@ private:
         g_object_unref(result);
 
         g_object_unref(jsContext);
+    }
+    static void pageCreatedCallback(WebKitWebExtension*, WebKitWebPage* page, PluginHost* host)
+    {
+        g_signal_connect(page, "console-message-sent",
+                G_CALLBACK(consoleMessageSentCallback), nullptr);
+    }
+    static void consoleMessageSentCallback(WebKitWebPage* page, WebKitConsoleMessage* message)
+    {
+        string messageString = Core::ToString(webkit_console_message_get_text(message));
+        uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
+
+        TRACE_GLOBAL(BrowserConsoleLog, (messageString, line, 0));
     }
 
     WKBundleRef _bundle;
