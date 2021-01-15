@@ -17,6 +17,8 @@
 * limitations under the License.
 **/
 
+#include <string>
+
 #include "HdcpProfile.h"
 
 #include "videoOutputPort.hpp"
@@ -41,11 +43,13 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(HdcpProfile, 1, 0);
+        static const char* getHdcpReasonStr (int eHDCPEnabledStatus);
 
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
         HdcpProfile::HdcpProfile()
         : AbstractPlugin()
+        , m_apiVersionNumber(1)
         {
             LOGINFO();
             HdcpProfile::_instance = this;
@@ -55,6 +59,10 @@ namespace WPEFramework
 
             registerMethod(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
             registerMethod(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
+
+            Register("setApiVersionNumber", &HdcpProfile::setApiVersionNumberWrapper, this);
+            Register("getApiVersionNumber", &HdcpProfile::getApiVersionNumberWrapper, this);
+            m_apiVersionNumber = 1;
         }
 
         HdcpProfile::~HdcpProfile()
@@ -137,6 +145,7 @@ namespace WPEFramework
             bool isConnected     = false;
             bool isHDCPCompliant = false;
             bool isHDCPEnabled   = true;
+            int eHDCPEnabledStatus   = dsHDCP_STATUS_UNPOWERED;
             dsHdcpProtocolVersion_t hdcpProtocol = dsHDCP_VERSION_MAX;
             dsHdcpProtocolVersion_t hdcpReceiverProtocol = dsHDCP_VERSION_MAX;
             dsHdcpProtocolVersion_t hdcpCurrentProtocol = dsHDCP_VERSION_MAX;
@@ -146,9 +155,10 @@ namespace WPEFramework
                 device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                 isConnected        = vPort.isDisplayConnected();
                 hdcpProtocol       = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
+                eHDCPEnabledStatus = vPort.getHDCPStatus();
                 if(isConnected)
                 {
-                    isHDCPCompliant    = (vPort.getHDCPStatus() == dsHDCP_STATUS_AUTHENTICATED);
+                    isHDCPCompliant    = (eHDCPEnabledStatus == dsHDCP_STATUS_AUTHENTICATED);
                     isHDCPEnabled      = vPort.isContentProtected();
                     hdcpReceiverProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPReceiverProtocol();
                     hdcpCurrentProtocol  = (dsHdcpProtocolVersion_t)vPort.getHDCPCurrentProtocol();
@@ -167,6 +177,11 @@ namespace WPEFramework
             hdcpStatus["isConnected"] = isConnected;
             hdcpStatus["isHDCPCompliant"] = isHDCPCompliant;
             hdcpStatus["isHDCPEnabled"] = isHDCPEnabled;
+            if (1 < m_apiVersionNumber) {
+                LOGINFO ("HdcpProfile::getHDCPStatus: %s: eHDCPEnabledStatus: %s\r\n", __FUNCTION__, 
+                            getHdcpReasonStr(eHDCPEnabledStatus));
+                hdcpStatus["hdcpReason"] = eHDCPEnabledStatus;
+            }
             if(hdcpProtocol == dsHDCP_VERSION_2X)
             {
                 hdcpStatus["supportedHDCPVersion"] = "2.2";
@@ -261,6 +276,72 @@ namespace WPEFramework
 
             }
         }
+
+        //Begin methods
+
+        /**
+         * @brief This function is the wrapper  used to get the version number of the state observer
+         *  Plugin.
+         *
+         * param[out] The API Version Number.
+         *
+         * @return Core::ERROR_NONE
+         */
+        uint32_t HdcpProfile::getApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            response["version"] = m_apiVersionNumber;
+            returnResponse(true);
+        }
+
+        /**
+         * @brief This function is the wrapper  used to get the version number of the state observer
+         *  Plugin.
+         *
+         * @param[in]  Api version number
+         *
+         * @return Core::ERROR_NONE
+         */
+        uint32_t HdcpProfile::setApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            if (parameters.HasLabel("version"))
+            {
+                getNumberParameter("version", m_apiVersionNumber);
+                returnResponse(true);
+            }
+
+            returnResponse(false);
+        }
+
+        static const char* getHdcpReasonStr (int eHDCPEnabledStatus) {
+            string sHDCPEnabledStatusReason ("UNPOWERED");
+            switch (eHDCPEnabledStatus) {
+                case dsHDCP_STATUS_UNPOWERED:
+                    sHDCPEnabledStatusReason = "UNPOWERED";
+                    break;
+                case dsHDCP_STATUS_UNAUTHENTICATED:
+                    sHDCPEnabledStatusReason = "UNAUTHENTICATED";
+                    break;
+                case dsHDCP_STATUS_INPROGRESS:
+                    sHDCPEnabledStatusReason = "INPROGRESS";
+                    break;
+                case dsHDCP_STATUS_AUTHENTICATIONFAILURE:
+                    sHDCPEnabledStatusReason = "AUTHENTICATIONFAILURE";
+                    break;
+                case dsHDCP_STATUS_AUTHENTICATED:
+                    sHDCPEnabledStatusReason = "AUTHENTICATED";
+                    break;
+                case dsHDCP_STATUS_PORTDISABLED:
+                    sHDCPEnabledStatusReason = "PORTDISABLED";
+                    break;
+                default:
+                    LOGWARN ("HdcpProfile::getHDCPStatus: %s: eHDCPEnabledStatus: undefined\r\n", __FUNCTION__);
+                    break;
+            }
+            return sHDCPEnabledStatusReason.c_str();
+        }
+
+        //End methods
+
 
     } // namespace Plugin
 } // namespace WPEFramework
