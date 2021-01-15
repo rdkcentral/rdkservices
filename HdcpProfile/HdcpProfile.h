@@ -54,7 +54,8 @@ namespace WPEFramework {
             //Begin methods
             uint32_t getHDCPStatusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopHDCPSupportWrapper(const JsonObject& parameters, JsonObject& response);
-
+            uint32_t setApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getApiVersionNumberWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             JsonObject getHDCPStatus();
@@ -70,6 +71,9 @@ namespace WPEFramework {
             void terminate();
 
             static HdcpProfile* _instance;
+        private:
+            uint32_t m_apiVersionNumber;
+
         };
 	} // namespace Plugin
 } // namespace WPEFramework
