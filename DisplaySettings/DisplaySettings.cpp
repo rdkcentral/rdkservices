@@ -198,6 +198,7 @@ namespace WPEFramework {
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
 
+	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
         }
 
@@ -2558,8 +2559,19 @@ namespace WPEFramework {
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                bool isEnabled = aPort.isEnabled();
+		bool isEnabled =  false;
+		//Devicesettings returns exact HDMI ARC audio routing enable status
+		//From thunder plugin's perspective HDMI ARC status must be the last user set value
+		// even if ARC device is not connected. Audio routing will automatically start when the device is connected.
+		if(!audioPort.compare("HDMI_ARC0")) {
+                    JsonObject aPortConfig;
+                    aPortConfig = getAudioOutputPortConfig();
+		    isEnabled = aPortConfig["HDMI_ARC"].Boolean();
+	        }
+		else {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    isEnabled = aPort.isEnabled();
+		}
                 response["enable"] = isEnabled;
                 LOGWARN ("Thunder sending response to get state enable for audioPort %s is: %s", audioPort.c_str(), (isEnabled?("TRUE"):("FALSE"))); 
             }
