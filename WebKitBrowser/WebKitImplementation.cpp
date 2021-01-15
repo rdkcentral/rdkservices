@@ -1828,10 +1828,10 @@ static GSourceFuncs _handlerIntervention =
         {
             switch (reason) {
             case WEBKIT_WEB_PROCESS_CRASHED:
-                SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess crashed: exiting ...")));
+                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed: exiting ...")));
                 break;
             case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
-                SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
+                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
                 break;
             }
             exit(1);
@@ -2289,7 +2289,7 @@ static GSourceFuncs _handlerIntervention =
 
                 if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
                 {
-                    SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
                 }
             }
             else if (_unresponsiveReplyNum == (2 * kWebProcessUnresponsiveReplyDefaultLimit))
@@ -2525,7 +2525,7 @@ static GSourceFuncs _handlerIntervention =
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)
     {
-        SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
+        SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
         exit(1);
     }
 #endif // !WEBKIT_GLIB_API
