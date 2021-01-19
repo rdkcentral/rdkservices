@@ -107,10 +107,11 @@ bool receivedResolutionRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 vector<std::string> gActivePlugins;
+static std::string sToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 3
+#define RDKSHELL_POWER_TIME_WAIT 2.5
 
 enum RDKShellLaunchType
 {
@@ -363,6 +364,7 @@ namespace WPEFramework {
             });
 
             service->Register(mClientsMonitor);
+            Utils::SecurityToken::getSecurityToken(sToken);
             return "";
         }
 
@@ -381,21 +383,27 @@ namespace WPEFramework {
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
         {
+            string query = "token=" + sToken;
+
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "",false, query);
             return thunderClient;
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
         {
+            string query = "token=" + sToken;
+
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "");
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "", false, query);
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
         {
+            string query = "token=" + sToken;
+
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "");
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "", false, query);
         }
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
@@ -538,14 +546,18 @@ namespace WPEFramework {
                 if (actionObject.HasLabel("params"))
                 {
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                  gRdkShellMutex.lock();
                 }
                 else
                 {
                   JsonObject joParams;
                   joParams["params"] = JsonObject();
                   // setting wait Time to 2 seconds
+                  gRdkShellMutex.unlock();
                   status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                  gRdkShellMutex.lock();
                 }
                 if (status > 0)
                 {
@@ -569,7 +581,6 @@ namespace WPEFramework {
             {
                 std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
             }
-            lastPowerKeyTime = currentTime;
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
@@ -582,12 +593,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -607,11 +620,12 @@ namespace WPEFramework {
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
             status = thunderController->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
-            std::cout << "get power state status: " << status << std::endl;
+            std::cout << "get power state status second: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "error setting the power state\n";
             }
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
@@ -2006,7 +2020,7 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
-                if (!type.empty() && type == "Netflix")
+                if (!newPluginFound && !type.empty() && type == "Netflix")
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
                     configSet["launchtosuspend"] = suspend;
@@ -2765,15 +2779,22 @@ namespace WPEFramework {
             }
             if (result)
             {
-              bool enable = parameters["enable"].Boolean();
+              std::map<std::string, RdkShellData> configuration;
+              configuration["enable"] = parameters["enable"].Boolean();
+            
               if (parameters.HasLabel("interval"))
               {
-                RdkShell::setMemoryMonitor(enable, std::stod(parameters["interval"].String()));
+                configuration["interval"] = std::stod(parameters["interval"].String());
               }
-              else
+              if (parameters.HasLabel("lowRam"))
               {
-                RdkShell::setMemoryMonitor(enable, 5); //default to 5 second interval
+                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
               }
+              if (parameters.HasLabel("criticallyLowRam"))
+              {
+                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
+              }
+              RdkShell::setMemoryMonitor(configuration);
             }
             returnResponse(result);
         }
@@ -2845,6 +2866,16 @@ namespace WPEFramework {
                     response["message"] = " launching factory application failed ";
                     returnResponse(false);
                 }
+                JsonObject joFactoryModeParams;
+                JsonObject joFactoryModeResult;
+                joFactoryModeParams.Set("namespace","FactoryTest");
+                joFactoryModeParams.Set("key","FactoryMode");
+                joFactoryModeParams.Set("value","true");
+                std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                std::cout << "attempting to set factory mode flag \n";
+                uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                std::cout << "set status: " << setStatus << std::endl;
                 returnResponse(true);
             }
             else
@@ -2896,7 +2927,33 @@ namespace WPEFramework {
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            std::string factoryAppCallsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            for (auto pluginName : gActivePlugins)
+            {
+                if (pluginName == factoryAppCallsign)
+                {
+                    std::cout << "factory app is running" << std::endl;
+                    isFactoryAppRunning = true;
+                    break;
+                }
+            }
+            if (!isFactoryAppRunning)
+            {
+                std::cout << "nothing to do since factory app is not running\n";
+                returnResponse(true);
+            }
             killAllApps();
+
+            std::cout << "attempting to stop hdmi input...\n";
+            JsonObject joStopHdmiParams;
+            JsonObject joStopHdmiResult;
+            std::string stopHdmiInvoke = "org.rdk.HdmiInput.1.stopHdmiInput";
+
+            std::cout << "attempting to stop hdmi input \n";
+            uint32_t stopHdmiStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, stopHdmiInvoke.c_str(), joStopHdmiParams, joStopHdmiResult);
+            std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
+
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
@@ -2921,6 +2978,16 @@ namespace WPEFramework {
                     ret = true;
                 }
             }
+            JsonObject joFactoryModeParams;
+            JsonObject joFactoryModeResult;
+            joFactoryModeParams.Set("namespace","FactoryTest");
+            joFactoryModeParams.Set("key","FactoryMode");
+            joFactoryModeParams.Set("value","false");
+            std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+            std::cout << "attempting to set factory mode flag \n";
+            uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+            std::cout << "set status: " << setStatus << std::endl;
             returnResponse(ret);
         }
 
@@ -3553,23 +3620,18 @@ namespace WPEFramework {
         bool RDKShell::pluginMemoryUsage(const string callsign, JsonArray& memoryInfo)
         {
             JsonObject memoryDetails;
-            PluginHost::IShell* plugin(mCurrentService->QueryInterfaceByCallsign<PluginHost::IShell>(callsign.c_str()));
+            Exchange::IMemory* pluginMemoryInterface(mCurrentService->QueryInterfaceByCallsign<Exchange::IMemory>(callsign.c_str()));
             memoryDetails["callsign"] = callsign;
             memoryDetails["ram"] = -1;
-            if (nullptr != plugin)
+            if (nullptr != pluginMemoryInterface)
             {
-                Exchange::IMemory* memory = plugin->QueryInterface<Exchange::IMemory>();
-
-                if (memory != nullptr)
-                {
-                    memoryDetails["ram"] = memory->Resident()/1024;
-                }
-                else
-                {
-                    std::cout << "Memory information not available for " << callsign << std::endl;
-                }
-                memoryInfo.Add(memoryDetails);
+                memoryDetails["ram"] = pluginMemoryInterface->Resident()/1024;
             }
+            else
+            {
+                std::cout << "Memory information not available for " << callsign << std::endl;
+            }
+            memoryInfo.Add(memoryDetails);
             return true;
         }
 
