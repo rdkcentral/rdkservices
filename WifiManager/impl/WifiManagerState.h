@@ -34,6 +34,7 @@ namespace WPEFramework {
             uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) const;
             uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response) const;
             uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
         };
     }
 }
