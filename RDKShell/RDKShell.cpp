@@ -114,7 +114,11 @@ static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
+
 #define RDKSHELL_POWER_TIME_WAIT 2.5
+#define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
+
+static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 
 enum RDKShellLaunchType
 {
@@ -371,6 +375,11 @@ namespace WPEFramework {
             });
 
             service->Register(mClientsMonitor);
+            char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
+            if (NULL != thunderAccessValue)
+            {
+                gThunderAccessValue = thunderAccessValue;
+            }
             return "";
         }
 
@@ -390,7 +399,7 @@ namespace WPEFramework {
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             return thunderClient;
         }
@@ -398,14 +407,14 @@ namespace WPEFramework {
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "", false, query);
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "", false, query);
         }
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
