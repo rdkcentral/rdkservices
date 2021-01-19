@@ -77,6 +77,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getSta
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_WATERMARK = "showWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
@@ -105,6 +106,7 @@ using namespace RdkShell;
 using namespace Utils;
 extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
+bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 vector<std::string> gActivePlugins;
@@ -112,7 +114,7 @@ static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
-#define RDKSHELL_POWER_TIME_WAIT 2
+#define RDKSHELL_POWER_TIME_WAIT 2.5
 
 enum RDKShellLaunchType
 {
@@ -273,6 +275,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_WATERMARK, &RDKShell::showWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
@@ -301,12 +304,13 @@ namespace WPEFramework {
             CompositorController::setEventListener(mEventListener);
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
-            bool ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
             {
               mEnableUserInactivityNotification = true;
-              ret = getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
-              if (true == ret && param.type == WDMP_STRING)
+              enableInactivityReporting(true);
+              ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
+              if (true == ret)
               {
                 try
                 {
@@ -348,6 +352,11 @@ namespace WPEFramework {
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
                     receivedResolutionRequest = false;
+                  }
+                  if (receivedShowWatermarkRequest)
+                  {
+                    CompositorController::showWatermark();
+                    receivedShowWatermarkRequest = false;
                   }
                   RdkShell::draw();
                   RdkShell::update();
@@ -574,8 +583,6 @@ namespace WPEFramework {
             {
                 std::cout << "power key pressed too fast, ignoring " << powerKeyTime << std::endl;
             }
-            lastPowerKeyTime = currentTime;
-
             JsonObject joGetParams;
             JsonObject joGetResult;
             joGetParams["params"] = JsonObject();
@@ -587,12 +594,14 @@ namespace WPEFramework {
             if (status > 0)
             {
                 std::cout << "error getting the power state\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
             if (!joGetResult.HasLabel("powerState"))
             {
                 std::cout << "the power state was not returned\n";
+                lastPowerKeyTime = RdkShell::seconds();
                 return;
             }
 
@@ -612,11 +621,12 @@ namespace WPEFramework {
 
             std::cout << "attempting to set the power state to " << newPowerState << std::endl;
             status = getThunderControllerClient()->Invoke(5000, setPowerStateInvoke.c_str(), joSetParams, joSetResult);
-            std::cout << "get power state status: " << status << std::endl;
+            std::cout << "get power state status second: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "error setting the power state\n";
             }
+            lastPowerKeyTime = RdkShell::seconds();
         }
 
         // Registered methods (wrappers) begin
@@ -881,7 +891,17 @@ namespace WPEFramework {
                 //optional param?
                 const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
 
-                const uint32_t keyCode = parameters["keyCode"].Number();
+                uint32_t keyCode = parameters["keyCode"].Number();
+                // check for * parameter
+                JsonValue keyCodeValue = parameters["keyCode"];
+                if (keyCodeValue.Content() == JsonValue::type::STRING)
+                {
+                    std::string keyCodeStringValue = parameters["keyCode"].String();
+                    if (keyCodeStringValue.compare("*") == 0)
+                    {
+                        keyCode = 255;
+                    }
+                }
                 string client;
                 if (parameters.HasLabel("client"))
                 {
@@ -1157,7 +1177,18 @@ namespace WPEFramework {
                 {
                     displayName = parameters["displayName"].String();
                 }
-                result = createDisplay(client, displayName);
+                uint32_t displayWidth = 0;
+                if (parameters.HasLabel("displayWidth"))
+                {
+                    displayWidth = parameters["displayWidth"].Number();
+                }
+                uint32_t displayHeight = 0;
+                if (parameters.HasLabel("displayHeight"))
+                {
+                    displayHeight = parameters["displayHeight"].Number();
+                }
+
+                result = createDisplay(client, displayName, displayWidth, displayHeight);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -1724,7 +1755,7 @@ namespace WPEFramework {
             }
             if (result)
             {
-                const string interval = parameters["interval"].String();
+                const unsigned int interval = parameters["interval"].Number();
 
                 result = setInactivityInterval(interval);
                 // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
@@ -1940,7 +1971,9 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
+                    gRdkShellMutex.lock();
                     RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
+                    gRdkShellMutex.unlock();
                 }
 
                 WPEFramework::Core::JSON::String configString;
@@ -2582,6 +2615,23 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::showWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool displayWatermark = true;
+            if (parameters.HasLabel("show"))
+            {
+                displayWatermark  = parameters["show"].Boolean();
+            }
+            result = showWatermark(displayWatermark);
+            if (!result)
+            {
+                response["message"] = "failed to perform show watermark";
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -3048,19 +3098,45 @@ namespace WPEFramework {
         bool RDKShell::addKeyListeners(const string& client, const JsonArray& keys)
         {
             gRdkShellMutex.lock();
+
+            bool result = true;
+
             for (int i=0; i<keys.Length(); i++) {
+
+                result = false;
                 const JsonObject& keyInfo = keys[i].Object();
-                if (keyInfo.HasLabel("keyCode"))
+
+                if (keyInfo.HasLabel("keyCode") && keyInfo.HasLabel("nativeKeyCode"))
                 {
-                    std::string keystring = keyInfo["keyCode"].String();
+                    std::cout << "ERROR: keyCode and nativeKeyCode can't be set both at the same time" << std::endl;
+                }
+                else if (keyInfo.HasLabel("keyCode") || keyInfo.HasLabel("nativeKeyCode"))
+                {
                     uint32_t keyCode = 0;
-                    if (keystring.compare("*") == 0)
+
+                    if (keyInfo.HasLabel("keyCode"))
                     {
-                      keyCode = ANY_KEY;
+                        std::string keystring = keyInfo["keyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["keyCode"].Number();
+                        }
                     }
                     else
                     {
-                      keyCode = keyInfo["keyCode"].Number();
+                        std::string keystring = keyInfo["nativeKeyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                            keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                            keyCode = keyInfo["nativeKeyCode"].Number();
+                        }
                     }
                     const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
                     uint32_t flags = 0;
@@ -3078,40 +3154,100 @@ namespace WPEFramework {
                         bool propagate = keyInfo["propagate"].Boolean();
                         properties["propagate"] = propagate;
                     }
-                    CompositorController::addKeyListener(client, keyCode, flags, properties);
+
+                    if (keyInfo.HasLabel("keyCode"))
+                    {
+                        result = CompositorController::addKeyListener(client, keyCode, flags, properties);
+                    }
+                    else
+                    {
+                        result = CompositorController::addNativeKeyListener(client, keyCode, flags, properties);
+                    }
+                }
+                else
+                {
+                    std::cout << "ERROR: Neither keyCode nor nativeKeyCode provided" << std::endl;
+                }
+
+                if (result == false)
+                {
+                    break;
                 }
             }
             gRdkShellMutex.unlock();
-            return true;
+            return result;
         }
 
         bool RDKShell::removeKeyListeners(const string& client, const JsonArray& keys)
         {
             gRdkShellMutex.lock();
+
+            bool result = true;
+
             for (int i=0; i<keys.Length(); i++) {
+
+                result = false;
                 const JsonObject& keyInfo = keys[i].Object();
-                if (keyInfo.HasLabel("keyCode"))
+
+                if (keyInfo.HasLabel("keyCode") && keyInfo.HasLabel("nativeKeyCode"))
                 {
-                    std::string keystring = keyInfo["keyCode"].String();
+                    std::cout << "ERROR: keyCode and nativeKeyCode can't be set both at the same time" << std::endl;
+                }
+                else if (keyInfo.HasLabel("keyCode") || keyInfo.HasLabel("nativeKeyCode"))
+                {
                     uint32_t keyCode = 0;
-                    if (keystring.compare("*") == 0)
+                    if (keyInfo.HasLabel("keyCode"))
                     {
-                      keyCode = ANY_KEY;
+                        std::string keystring = keyInfo["keyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["keyCode"].Number();
+                        }
                     }
                     else
                     {
-                      keyCode = keyInfo["keyCode"].Number();
+                        std::string keystring = keyInfo["nativeKeyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["nativeKeyCode"].Number();
+                        }
                     }
+
                     const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
                     uint32_t flags = 0;
                     for (int i=0; i<modifiers.Length(); i++) {
                       flags |= getKeyFlag(modifiers[i].String());
                     }
-                    CompositorController::removeKeyListener(client, keyCode, flags);
+
+                    if (keyInfo.HasLabel("keyCode"))
+                    {
+                        result = CompositorController::removeKeyListener(client, keyCode, flags);
+                    }
+                    else
+                    {
+                        result = CompositorController::removeNativeKeyListener(client, keyCode, flags);
+                    }
+                }
+                else
+                {
+                    std::cout << "ERROR: Neither keyCode nor nativeKeyCode provided" << std::endl;
+                }
+
+                if (result == false)
+                {
+                    break;
                 }
             }
             gRdkShellMutex.unlock();
-            return true;
+            return result;
         }
 
         bool RDKShell::injectKey(const uint32_t& keyCode, const JsonArray& modifiers)
@@ -3198,11 +3334,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::createDisplay(const string& client, const string& displayName)
+        bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight)
         {
             bool ret = false;
             gRdkShellMutex.lock();
-            ret = CompositorController::createDisplay(client, displayName);
+            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
@@ -3416,12 +3552,12 @@ namespace WPEFramework {
             return true;
         }
 
-        bool RDKShell::setInactivityInterval(const string interval)
+        bool RDKShell::setInactivityInterval(const uint32_t interval)
         {
             gRdkShellMutex.lock();
             try
             {
-              CompositorController::setInactivityInterval(std::stod(interval));
+              CompositorController::setInactivityInterval((double)interval);
             }
             catch (...) 
             {
@@ -3481,6 +3617,22 @@ namespace WPEFramework {
             }
             memoryInfo.Add(memoryDetails);
             return true;
+        }
+
+        bool RDKShell::showWatermark(const bool enable)
+        {
+            bool ret = true;
+            gRdkShellMutex.lock();
+            if (enable)
+            {
+                receivedShowWatermarkRequest = true;
+            }
+            else
+            {
+                ret = CompositorController::hideWatermark();
+            }
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end

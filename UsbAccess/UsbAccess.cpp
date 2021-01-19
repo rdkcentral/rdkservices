@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <mntent.h>
 
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
@@ -11,9 +12,9 @@ const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess"
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
-const string WPEFramework::Plugin::UsbAccess::USB_MOUNT_PATH = "/run/media/sda"; // platco
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
-const string WPEFramework::Plugin::UsbAccess::LIGHTTPD_CONF_PATH = "/etc/lighttpd/lighttpd.conf";
+const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
+
 
 using namespace std;
 
@@ -63,58 +64,62 @@ namespace WPEFramework {
 
             bool success = false;
 
-            string dir = USB_MOUNT_PATH;
-            if (parameters.HasLabel("path"))
+            string dir;
+            if (!getMountPath(dir))
             {
-                string path = parameters["path"].String();
-                if (!path.empty())
-                {
-                    if (path[0] != '/')
-                        dir += "/";
-                    dir += path;
-                }
-            }
-
-            struct stat statbuf;
-            if (stat(dir.c_str(), &statbuf) != 0)
-            {
-                LOGERR("path '%s' not found", dir.c_str());
+                LOGERR("mount path not found");
                 response["error"] = "not found";
-            }
-            else if (!S_ISDIR(statbuf.st_mode))
-            {
-                LOGERR("path '%s' isn't dir", dir.c_str());
-                response["error"] = "isn't dir";
             }
             else
             {
-                LOGINFO("path '%s' found and is dir", dir.c_str());
-
-                DIR* dirp = opendir(dir.c_str());
-                if (dirp == nullptr)
+                if (parameters.HasLabel("path"))
                 {
-                    LOGERR("could not open");
-                    response["error"] = "could not open";
+                    string path = parameters["path"].String();
+                    if (!path.empty())
+                    {
+                        if (path[0] != '/')
+                            dir += "/";
+                        dir += path;
+                    }
+                }
+
+                struct stat statbuf;
+                if (stat(dir.c_str(), &statbuf) != 0)
+                {
+                    LOGERR("path '%s' not found", dir.c_str());
+                    response["error"] = "not found";
+                }
+                else if (!S_ISDIR(statbuf.st_mode))
+                {
+                    LOGERR("path '%s' isn't dir", dir.c_str());
+                    response["error"] = "isn't dir";
                 }
                 else
                 {
-                    JsonArray contents;
-                    struct dirent * dp;
-                    while ((dp = readdir(dirp)) != nullptr)
+                    LOGINFO("path '%s' found and is dir", dir.c_str());
+
+                    FileList files;
+                    if (!getFileList(dir, files))
                     {
-                        const char* name = dp->d_name;
-                        const char* t = dp->d_type == DT_DIR ? "d" : "f";
-
-                        LOGINFO("%s : %s", name, t);
-
-                        JsonObject ent;
-                        ent["name"] = name;
-                        ent["t"] = t;
-                        contents.Add(ent);
+                        LOGERR("could not open");
+                        response["error"] = "could not open";
                     }
-                    closedir(dirp);
-                    response["contents"] = contents;
-                    success = true;
+                    else
+                    {
+                        JsonArray contents;
+                        for (auto it = files.begin(); it != files.end(); it++)
+                        {
+                            LOGINFO("%s : %s", it->first.c_str(), it->second.c_str());
+
+                            JsonObject ent;
+                            ent["name"] = it->first.c_str();
+                            ent["t"] = it->second.c_str();
+                            contents.Add(ent);
+                        }
+
+                        response["contents"] = contents;
+                        success = true;
+                    }
                 }
             }
 
@@ -126,19 +131,38 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             bool success = false;
-            string linkPath = getLinkPath();
-            int rc = symlink(USB_MOUNT_PATH.c_str(), linkPath.c_str());
 
-            if (0 == rc)
+            string linkPath = LINK_PATH;
+            struct stat statbuf;
+            int rc = stat(linkPath.c_str(), &statbuf);
+            if (rc == 0)
             {
-                LOGINFO("symlink %s created", linkPath.c_str());
-                response["baseURL"] = LINK_URL_HTTP;
-                success = true;
+                LOGERR("file exists");
+                response["error"] = "file exists";
             }
             else
             {
-                LOGERR("error %d", rc);
-                response["error"] = "could not create symlink";
+                string dir;
+                if (!getMountPath(dir))
+                {
+                    LOGERR("mount path not found");
+                    response["error"] = "not found";
+                }
+                else
+                {
+                    rc = symlink(dir.c_str(), linkPath.c_str());
+                    if (0 == rc)
+                    {
+                        LOGINFO("symlink %s created", linkPath.c_str());
+                        response["baseURL"] = LINK_URL_HTTP;
+                        success = true;
+                    }
+                    else
+                    {
+                        LOGERR("error %d", rc);
+                        response["error"] = "could not create symlink";
+                    }
+                }
             }
 
             returnResponse(success);
@@ -149,9 +173,9 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             bool success = false;
-            string linkPath = getLinkPath();
-            int rc = remove(linkPath.c_str());
 
+            string linkPath = LINK_PATH;
+            int rc = remove(linkPath.c_str());
             if (0 == rc)
             {
                 LOGINFO("symlink %s removed", linkPath.c_str());
@@ -166,58 +190,131 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
-        string UsbAccess::getLinkPath() const
+        bool UsbAccess::getFileList(const string& dir, FileList& files) const
         {
-            static string path;
+            bool success = false;
 
-            static bool initedOnce = false;
-            if (!initedOnce)
+            files.clear();
+
+            DIR* dirp = opendir(dir.c_str());
+            if (dirp != nullptr)
             {
-                FILE* f = fopen(LIGHTTPD_CONF_PATH.c_str(), "r");
-                if (f != nullptr)
+                struct dirent * dp;
+                while ((dp = readdir(dirp)) != nullptr)
                 {
-                    std::vector<char> buf;
-                    buf.resize(1024);
-
-                    while (fgets(buf.data(), buf.size(), f))
-                    {
-                        if (strstr(buf.data(), "server.document-root") == buf.data())
-                        {
-                            std::string s(buf.data());
-
-                            size_t begin = s.find_first_of('"');
-                            size_t end = std::string::npos;
-                            if (std::string::npos != begin)
-                                end = s.find_first_of('"', begin + 2);
-
-                            if (std::string::npos != begin && std::string::npos != end)
-                            {
-                                path = s.substr(begin + 1, end - begin - 1);
-                                break;
-                            }
-                            else
-                                LOGERR("Failed to parse line: ", s.c_str());
-                        }
-                    }
-                    fclose(f);
-
-                    if (path.empty())
-                        LOGERR("Failed to parse conf %s", LIGHTTPD_CONF_PATH.c_str());
-                    else
-                    {
-                        if (path[path.size() - 1] != '/')
-                            path += "/";
-                        path += "usbdrive";
-                        LOGINFO("Link path is: %s", path.c_str());
-                    }
+                    files.emplace_back(dp->d_name, dp->d_type == DT_DIR ? "d" : "f");
                 }
-                else
-                    LOGERR("Failed to open conf %s:%s", LIGHTTPD_CONF_PATH.c_str(), strerror(errno));
+                closedir(dirp);
 
-                initedOnce = true;
+                success = true;
             }
 
-            return path;
+            return success;
+        }
+
+        bool UsbAccess::getMountPath(string& dir) const
+        {
+            // get the mount path of the first available partition of the first available USB device
+
+            bool success = false;
+
+            dir.clear();
+            string path = "/sys/block/";
+
+            // 1. get the first available USB device
+            list<string> usbDevices;
+
+            DIR* dirp = opendir(path.c_str());
+            if (dirp != nullptr)
+            {
+                struct dirent* dp;
+                while ((dp = readdir(dirp)) != nullptr)
+                {
+                    if (string(dp->d_name).rfind("sd", 0) == 0)
+                        usbDevices.emplace_back(dp->d_name);
+                }
+                closedir(dirp);
+            }
+
+            usbDevices.sort();
+            string usbDevice;
+
+            for (auto it = usbDevices.begin(); it != usbDevices.end(); it++)
+            {
+                string rPath = path + *it + "/removable";
+                FILE* aFile = fopen(rPath.c_str(), "r");
+                if (aFile != nullptr)
+                {
+                    char isRemovable;
+                    if ((fread(&isRemovable, 1, 1, aFile) == 1) && (isRemovable == '1'))
+                    {
+                        usbDevice = *it;
+                        break;
+                    }
+                    fclose(aFile);
+                }
+            }
+
+            // 2. get the first available partition
+            list<string> partitions;
+
+            if (!usbDevice.empty())
+            {
+                LOGINFO("usb device: %s", usbDevice.c_str());
+
+                path += usbDevice;
+                dirp = opendir(path.c_str());
+                if (dirp != nullptr)
+                {
+                    struct dirent* dp;
+                    while ((dp = readdir(dirp)) != nullptr)
+                    {
+                        if (dp->d_type == DT_DIR && string(dp->d_name).rfind(usbDevice.c_str(), 0) == 0)
+                            partitions.emplace_back(dp->d_name);
+                    }
+                    closedir(dirp);
+                }
+            }
+
+            partitions.sort();
+            string partition = partitions.empty() ? usbDevice : partitions.front();
+
+            // 3. get the mount path
+            if (!partition.empty())
+            {
+                LOGINFO("usb device partition: %s", partition.c_str());
+
+                path = "/dev/" + partition;
+
+                struct mntent* ent;
+                FILE* aFile = setmntent("/proc/mounts", "r");
+                if (aFile != nullptr)
+                {
+                    while (nullptr != (ent = getmntent(aFile)))
+                    {
+                        if (string(ent->mnt_fsname) == path)
+                        {
+                            dir = ent->mnt_dir;
+                            break;
+                        }
+                    }
+                    endmntent(aFile);
+                }
+            }
+
+            // 4. ensure folder exists
+            if (!dir.empty())
+            {
+                LOGINFO("usb device partition mount: %s", dir.c_str());
+
+                struct stat statbuf;
+                if (stat(dir.c_str(), &statbuf) == 0)
+                {
+                    success = true;
+                }
+            }
+
+            return success;
         }
     } // namespace Plugin
 } // namespace WPEFramework

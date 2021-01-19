@@ -17,11 +17,14 @@
 * limitations under the License.
 **/
 
+#include <string>
+
 #include "HdcpProfile.h"
 
 #include "videoOutputPort.hpp"
 #include "videoOutputPortConfig.hpp"
 #include "dsMgr.h"
+#include "manager.hpp"
 
 #include "utils.h"
 
@@ -40,6 +43,7 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(HdcpProfile, 1, 0);
+        static const char* getHdcpReasonStr (int eHDCPEnabledStatus);
 
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
@@ -50,6 +54,7 @@ namespace WPEFramework
             HdcpProfile::_instance = this;
 
             InitializeIARM();
+            device::Manager::Initialize();
 
             registerMethod(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
             registerMethod(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
@@ -59,7 +64,7 @@ namespace WPEFramework
         {
             LOGINFO();
             HdcpProfile::_instance = nullptr;
-
+            device::Manager::DeInitialize();
             DeinitializeIARM();
         }
 
@@ -135,6 +140,7 @@ namespace WPEFramework
             bool isConnected     = false;
             bool isHDCPCompliant = false;
             bool isHDCPEnabled   = true;
+            int eHDCPEnabledStatus   = dsHDCP_STATUS_UNPOWERED;
             dsHdcpProtocolVersion_t hdcpProtocol = dsHDCP_VERSION_MAX;
             dsHdcpProtocolVersion_t hdcpReceiverProtocol = dsHDCP_VERSION_MAX;
             dsHdcpProtocolVersion_t hdcpCurrentProtocol = dsHDCP_VERSION_MAX;
@@ -144,9 +150,10 @@ namespace WPEFramework
                 device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                 isConnected        = vPort.isDisplayConnected();
                 hdcpProtocol       = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
+                eHDCPEnabledStatus = vPort.getHDCPStatus();
                 if(isConnected)
                 {
-                    isHDCPCompliant    = (vPort.getHDCPStatus() == dsHDCP_STATUS_AUTHENTICATED);
+                    isHDCPCompliant    = (eHDCPEnabledStatus == dsHDCP_STATUS_AUTHENTICATED);
                     isHDCPEnabled      = vPort.isContentProtected();
                     hdcpReceiverProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPReceiverProtocol();
                     hdcpCurrentProtocol  = (dsHdcpProtocolVersion_t)vPort.getHDCPCurrentProtocol();
@@ -165,6 +172,8 @@ namespace WPEFramework
             hdcpStatus["isConnected"] = isConnected;
             hdcpStatus["isHDCPCompliant"] = isHDCPCompliant;
             hdcpStatus["isHDCPEnabled"] = isHDCPEnabled;
+            hdcpStatus["hdcpReason"] = eHDCPEnabledStatus;
+
             if(hdcpProtocol == dsHDCP_VERSION_2X)
             {
                 hdcpStatus["supportedHDCPVersion"] = "2.2";
@@ -220,6 +229,7 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::supportedHDCPVersion: %s", trigger, status["supportedHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::receiverHDCPVersion: %s", trigger, status["receiverHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::currentHDCPVersion %s", trigger, status["currentHDCPVersion"].String().c_str());
+            LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, getHdcpReasonStr(atoi(status["hdcpReason"].String().c_str())));
         }
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
@@ -259,6 +269,39 @@ namespace WPEFramework
 
             }
         }
+
+        //Begin methods
+
+        static const char* getHdcpReasonStr (int eHDCPEnabledStatus) {
+            string sHDCPEnabledStatusReason ("UNPOWERED");
+            switch (eHDCPEnabledStatus) {
+                case dsHDCP_STATUS_UNPOWERED:
+                    sHDCPEnabledStatusReason = "UNPOWERED";
+                    break;
+                case dsHDCP_STATUS_UNAUTHENTICATED:
+                    sHDCPEnabledStatusReason = "UNAUTHENTICATED";
+                    break;
+                case dsHDCP_STATUS_INPROGRESS:
+                    sHDCPEnabledStatusReason = "INPROGRESS";
+                    break;
+                case dsHDCP_STATUS_AUTHENTICATIONFAILURE:
+                    sHDCPEnabledStatusReason = "AUTHENTICATIONFAILURE";
+                    break;
+                case dsHDCP_STATUS_AUTHENTICATED:
+                    sHDCPEnabledStatusReason = "AUTHENTICATED";
+                    break;
+                case dsHDCP_STATUS_PORTDISABLED:
+                    sHDCPEnabledStatusReason = "PORTDISABLED";
+                    break;
+                default:
+                    LOGWARN ("HdcpProfile::getHDCPStatus: %s: eHDCPEnabledStatus: undefined\r\n", __FUNCTION__);
+                    break;
+            }
+            return sHDCPEnabledStatusReason.c_str();
+        }
+
+        //End methods
+
 
     } // namespace Plugin
 } // namespace WPEFramework
