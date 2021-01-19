@@ -452,6 +452,7 @@ static GSourceFuncs _handlerIntervention =
                 , Cursor(false)
                 , Touch(false)
                 , MSEBuffers()
+                , ThunderDecryptorPreference()
                 , MemoryProfile()
                 , MemoryPressure()
                 , MediaContentTypesRequiringHardwareSupport()
@@ -501,6 +502,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
                 Add(_T("msebuffers"), &MSEBuffers);
+                Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
                 Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
@@ -557,6 +559,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
             Core::JSON::String MSEBuffers;
+            Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
             Core::JSON::String MemoryPressure;
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
@@ -723,6 +726,8 @@ static GSourceFuncs _handlerIntervention =
             , _configurationCompleted(false)
             , _webProcessCheckInProgress(false)
             , _unresponsiveReplyNum(0)
+            , _frameCount(0)
+            , _lastDumpTime(g_get_monotonic_time())
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -1510,6 +1515,9 @@ static GSourceFuncs _handlerIntervention =
             if (_config.Touch.Value() == true)
                 Core::SystemInfo::SetEnvironment(_T("WPE_BCMRPI_TOUCH"), _T("1"), !environmentOverride);
 
+            // Rank Thunder Decryptor higher than ClearKey one
+            if (_config.ThunderDecryptorPreference.Value() == true)
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_GST_EME_RANK_PRIORITY"), _T("Thunder"), !environmentOverride);
 
             // WPE allows the LLINT to be used if true
             if (_config.JavaScript.UseLLInt.Value() == false) {
@@ -1629,9 +1637,15 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
         }
 
-        void SetFPS(const uint32_t fps)
+        void SetFPS()
         {
-            _fps = fps;
+            ++_frameCount;
+            gint64 time = g_get_monotonic_time();
+            if (time - _lastDumpTime >= G_USEC_PER_SEC) {
+                _fps = _frameCount * G_USEC_PER_SEC * 1.0 / (time - _lastDumpTime);
+                _frameCount = 0;
+                _lastDumpTime = time;
+            }
         }
 
         string GetConfig(const string& key) const
@@ -1774,7 +1788,7 @@ static GSourceFuncs _handlerIntervention =
         {
             webkit_web_context_set_web_extensions_directory(context, browser->_dataPath.c_str());
             // FIX it
-            GVariant* data = g_variant_new("(sms)", std::to_string(browser->_guid).c_str(), !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr);
+            GVariant* data = g_variant_new("(smsb)", std::to_string(browser->_guid).c_str(), !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, browser->_config.LogToSystemConsoleEnabled.Value());
             webkit_web_context_set_web_extensions_initialization_user_data(context, data);
         }
         static void wpeNotifyWPEFrameworkMessageReceivedCallback(WebKitUserContentManager*, WebKitJavascriptResult* message, WebKitImplementation* browser)
@@ -1945,17 +1959,8 @@ static GSourceFuncs _handlerIntervention =
             unsigned frameDisplayedCallbackID = 0;
             if (_config.FPS.Value() == true) {
                 frameDisplayedCallbackID = webkit_web_view_add_frame_displayed_callback(_view, [](WebKitWebView*, gpointer userData) {
-                    static unsigned s_frameCount = 0;
-                    static gint64 lastDumpTime = g_get_monotonic_time();
-
-                    ++s_frameCount;
-                    gint64 time = g_get_monotonic_time();
-                    if (time - lastDumpTime >= G_USEC_PER_SEC) {
-                        auto* browser = static_cast<WebKitImplementation*>(userData);
-                        browser->SetFPS(s_frameCount * G_USEC_PER_SEC * 1.0 / (time - lastDumpTime));
-                        s_frameCount = 0;
-                        lastDumpTime = time;
-                    }
+                    auto* browser = static_cast<WebKitImplementation*>(userData);
+                    browser->SetFPS();
                 }, this, nullptr);
             }
 
@@ -2250,7 +2255,7 @@ static GSourceFuncs _handlerIntervention =
                 return;
 
             // How many unresponsive replies to ignore before declaring WebProcess hang state
-            static const uint32_t kWebProcessUnresponsiveReplyDefaultLimit =
+            const uint32_t kWebProcessUnresponsiveReplyDefaultLimit =
                 _config.WatchDogHangThresholdInSeconds.Value() / _config.WatchDogCheckTimeoutInSeconds.Value();
 
             if (!_webProcessCheckInProgress)
@@ -2345,6 +2350,8 @@ static GSourceFuncs _handlerIntervention =
         Core::StateTrigger<bool> _configurationCompleted;
         bool _webProcessCheckInProgress;
         uint32_t _unresponsiveReplyNum;
+        unsigned _frameCount;
+        gint64 _lastDumpTime;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
@@ -2354,7 +2361,7 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void onDidReceiveSynchronousMessageFromInjectedBundle(WKContextRef context, WKStringRef messageName,
         WKTypeRef messageBodyObj, WKTypeRef* returnData, const void* clientInfo)
     {
-        static int configLen = strlen(Tags::Config);
+        int configLen = strlen(Tags::Config);
         const WebKitImplementation* browser = static_cast<const WebKitImplementation*>(clientInfo);
 
         string name = WKStringToString(messageName);
@@ -2466,17 +2473,7 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void onFrameDisplayed(WKViewRef view, const void* clientInfo)
     {
         WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
-
-        static unsigned s_frameCount = 0;
-        static gint64 lastDumpTime = g_get_monotonic_time();
-
-        ++s_frameCount;
-        gint64 time = g_get_monotonic_time();
-        if (time - lastDumpTime >= G_USEC_PER_SEC) {
-            browser->SetFPS(s_frameCount * G_USEC_PER_SEC * 1.0 / (time - lastDumpTime));
-            s_frameCount = 0;
-            lastDumpTime = time;
-        }
+        browser->SetFPS();
     }
 
     /* static */ void didRequestAutomationSession(WKContextRef context, WKStringRef sessionID, const void* clientInfo)
