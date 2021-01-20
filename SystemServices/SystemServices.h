@@ -99,7 +99,7 @@ namespace WPEFramework {
                 static const string MODEL_NAME;
                 static const string HARDWARE_ID;
 
-                enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION };
+                enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
 
                 // We do not allow this plugin to be copied !!
                 SystemServices(const SystemServices&) = delete;
