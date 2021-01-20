@@ -1003,11 +1003,18 @@ namespace WPEFramework {
                 params["rebootImmediately"] = xconfResponse["rebootImmediately"];
             }
 
-            if(httpStatus == 404)
+            if(httpStatus == 0)
+            {
+                // Empty /opt/swupdate.conf
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::EMPTY_SW_UPDATE_CONF);
+                params["success"] = true;
+            }
+            else if(httpStatus == 404)
             {
                 // if XCONF server returns 404 there is no FW available to download
                 params["updateAvailable"] = false;
-                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::NO_FW_VERSION);
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::FW_MATCH_CURRENT_VER);
                 params["success"] = true;
             }
             else
@@ -1091,9 +1098,10 @@ namespace WPEFramework {
                 if(bFileExists && xconfOverride.empty())
                 {
                     // empty /opt/swupdate.conf. Don't initiate FW download
+                    LOGWARN("Empty /opt/swupdate.conf. Skipping FW upgrade check with xconf");
                     if (_instance) {
                         _instance->reportFirmwareUpdateInfoReceived("",
-                        404, true, "", response);
+                        0, true, "", response);
                     }
                     return;
                 }
