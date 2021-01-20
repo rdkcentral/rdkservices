@@ -1035,20 +1035,22 @@ namespace WPEFramework {
             params["status"] = httpStatus;
             params["responseString"] = responseString.c_str();
 
-            int updateAvailableEnum = 0;
+            bool updateAvailable = false;
+            UpdateAvailableEnum updateAvailableEnum;
             if (firmwareUpdateVersion.length() > 0) {
                 params["firmwareUpdateVersion"] = firmwareUpdateVersion.c_str();
                 if (firmwareUpdateVersion.compare(firmwareVersion)) {
-                    updateAvailableEnum = 0;
+                    updateAvailable = true;
+                    updateAvailableEnum = UpdateAvailableEnumTrue;
                 } else {
-                    updateAvailableEnum = 1;
+                    updateAvailableEnum = UpdateAvailableEnumFalseCurrentVersion;
                 }
             } else {
                 params["firmwareUpdateVersion"] = "";
-                updateAvailableEnum = 2;
+                updateAvailableEnum = UpdateAvailableEnumFalseXCONFError;
             }
-            params["updateAvailable"] = !updateAvailableEnum ;
-            params["updateAvailableEnum"] = updateAvailableEnum;
+            params["updateAvailable"] = updateAvailable;
+            params["updateAvailableEnum"] = (int)updateAvailableEnum;
             params["success"] = success;
 
             string jsonLog;
@@ -1203,15 +1205,23 @@ namespace WPEFramework {
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            string callGUID;
+            if (Utils::fileExists(SWUPDATE_CONF_FILE)) {
+                LOGINFO("%s exists, event is fired immediately", SWUPDATE_CONF_FILE);
 
-                callGUID = parameters["GUID"].String();
-            LOGINFO("GUID = %s\n", callGUID.c_str());
+                JsonObject params;
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = (int)UpdateAvailableEnumFalseConfiguredNotToUpdate;
+                // In this case, the XCONF response will not be included in the event.
+                sendNotify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
+
+            } else {
                 if (m_getFirmwareInfoThread.joinable()) {
                     m_getFirmwareInfoThread.join();
                 }
                 m_getFirmwareInfoThread = std::thread(firmwareUpdateInfoReceived);
-                response["asyncResponse"] = true;
+            }
+
+            response["asyncResponse"] = true;
             returnResponse(true);
         } // get FirmwareUpdateInfo
 
@@ -1741,46 +1751,57 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStatus = false;
-            FirmwareUpdateState fwUpdateState = FirmwareUpdateStateUninitialized;
+            FirmwareUpdateState retState = FirmwareUpdateStateUninitialized;
             std::vector<string> lines;
-            if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-                returnResponse(retStatus);
-            }
-            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
-                for (std::vector<std::string>::const_iterator i = lines.begin();
-                        i != lines.end(); ++i) {
-                    std::string line = *i;
-                    std::size_t found = line.find("FwUpdateState|");
-                    std::string delimiter = "|";
-                    size_t pos = 0;
-                    std::string token;
-                    if (std::string::npos != found) {
-                        while ((pos = line.find(delimiter)) != std::string::npos) {
-                            token = line.substr(0, pos);
-                            line.erase(0, pos + delimiter.length());
-                        }
-                        line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
-
-                        if (!strcmp(line.c_str(), "Requesting")) {
-                            fwUpdateState = FirmwareUpdateStateRequesting;
-                        } else if (!strcmp(line.c_str(), "Downloading")) {
-                            fwUpdateState = FirmwareUpdateStateDownloading;
-                        } else if (!strcmp(line.c_str(), "Failed")) {
-                            fwUpdateState = FirmwareUpdateStateFailed;
-                        } else if (!strcmp(line.c_str(), "Download complete")) {
-                            fwUpdateState = FirmwareUpdateStateDownloadComplete;
-                        } else if (!strcmp(line.c_str(), "Validation complete")) {
-                            fwUpdateState = FirmwareUpdateStateValidationComplete;
-                        } else if (!strcmp(line.c_str(), "Preparing to reboot")) {
-                            fwUpdateState = FirmwareUpdateStatePreparingReboot;
-                        }
-                    }
-                }
-                response["firmwareUpdateState"] = (int)fwUpdateState;
+            if (Utils::fileExists(SWUPDATE_CONF_FILE)) {
+                LOGINFO("%s exists", SWUPDATE_CONF_FILE);
+                response["firmwareUpdateState"] = (int)FirmwareUpdateStateUninitialized;
                 retStatus = true;
+
+            } else if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
+                LOGERR("Could not find file %s", FWDNLDSTATUS_FILE_NAME);
+                populateResponseWithError(SysSrv_FileNotPresent, response);
+
+            } else if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
+                std::string fwUpdateState;
+                std::string failureReason;
+                for (auto i = lines.begin(); i != lines.end(); ++i) {
+                    std::smatch m;
+                    if (std::regex_match(*i, m, std::regex("^FwUpdateState|(.*)$")))
+                        fwUpdateState = m.str(1);
+                    else if (std::regex_match(*i, m, std::regex("^FailureReason|(.*)$")))
+                        failureReason = m.str(1);
+                }
+
+                LOGINFO("Lines read:%d. FwUpdateState|%s, FailureReason|%s",
+                        (int)lines.size(), fwUpdateState.c_str(), failureReason.c_str());
+
+                if (failureReason == "Versions Match" ||
+                    failureReason == "Cloud FW Version is empty" ||
+                    failureReason == "Cloud FW Version is invalid" ||
+                    failureReason == "Invalid Request" ||
+                    failureReason == "Network Communication Error"
+                        ) {
+                    retState = FirmwareUpdateStateUninitialized;
+                } else if (fwUpdateState == "Requesting") {
+                    retState = FirmwareUpdateStateRequesting;
+                } else if (fwUpdateState == "Downloading") {
+                    retState = FirmwareUpdateStateDownloading;
+                } else if (fwUpdateState == "Failed") {
+                    retState = FirmwareUpdateStateFailed;
+                } else if (fwUpdateState == "Download complete") {
+                    retState = FirmwareUpdateStateDownloadComplete;
+                } else if (fwUpdateState == "Validation complete") {
+                    retState = FirmwareUpdateStateValidationComplete;
+                } else if (fwUpdateState == "Preparing to reboot") {
+                    retState = FirmwareUpdateStatePreparingReboot;
+                }
+
+                response["firmwareUpdateState"] = (int)retState;
+                retStatus = true;
+
             } else {
-                LOGERR("Could not read file %s\n", FWDNLDSTATUS_FILE_NAME);
+                LOGERR("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             }
             returnResponse(retStatus);

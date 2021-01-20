@@ -63,6 +63,7 @@
 #define XCONF_OVERRIDE_FILE						"/opt/swupdate.conf"
 #define	URL_XCONF								"http://xconf.xcal.tv/xconf/swu/stb"
 #define TZ_FILE									"/opt/persistent/timeZoneDST"
+#define SWUPDATE_CONF_FILE                      "/opt/swupdate.conf"
 
 #define MODE_TIMER_UPDATE_INTERVAL	1000
 #define CURL_BUFFER_SIZE	(64 * 1024) /* 256kB */
@@ -103,6 +104,13 @@ enum FirmwareUpdateState {
     FirmwareUpdateStateDownloadComplete,
     FirmwareUpdateStateValidationComplete,
     FirmwareUpdateStatePreparingReboot,
+};
+
+enum UpdateAvailableEnum {
+    UpdateAvailableEnumTrue = 0,
+    UpdateAvailableEnumFalseCurrentVersion,
+    UpdateAvailableEnumFalseXCONFError,
+    UpdateAvailableEnumFalseConfiguredNotToUpdate,
 };
 
 const string GZ_STATUS = "/opt/gzenabled";
