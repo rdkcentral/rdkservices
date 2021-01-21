@@ -402,7 +402,7 @@ string getXconfOverrideUrl(bool& bFileExists)
         if (lines.size()) {
             for (int i = 0; i < (int)lines.size(); ++i) {
                 string line = lines.at(i);
-                if (!line.rfind("#", 0)) {
+                if (!line.empty() && (line[0] != '#')) {
                     xconfUrl = line;
                 }
             }
