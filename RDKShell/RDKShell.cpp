@@ -106,7 +106,6 @@ extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
-vector<std::string> gActivePlugins;
 static std::string sToken;
 
 #define ANY_KEY 65536
@@ -124,6 +123,10 @@ enum RDKShellLaunchType
 
 namespace WPEFramework {
     namespace Plugin {
+
+        vector<std::string> gActivePlugins;
+
+        std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -147,6 +150,7 @@ namespace WPEFramework {
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
+        std::mutex gPluginDataMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
@@ -173,7 +177,9 @@ namespace WPEFramework {
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
+                       gPluginDataMutex.lock();
                        gActivePlugins.push_back(service->Callsign());
+                       gPluginDataMutex.unlock();
                    }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
@@ -203,6 +209,7 @@ namespace WPEFramework {
                         gRdkShellMutex.unlock();
                     }
                     
+                    gPluginDataMutex.lock();
                     std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
                     for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
                     {
@@ -216,6 +223,18 @@ namespace WPEFramework {
                     {
                       gActivePlugins.erase(pluginToRemove);
                     }
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                    if (pluginStateChangeEntry != gPluginsEventListener.end())
+                    {
+                        PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                        if (nullptr != stateChangeData)
+                        {
+                            delete stateChangeData;
+                        }
+                        pluginStateChangeEntry->second = nullptr;
+                        gPluginsEventListener.erase(pluginStateChangeEntry);
+                    }
+                    gPluginDataMutex.unlock();
                 }
             }
         }
@@ -2106,6 +2125,7 @@ namespace WPEFramework {
                     }
                 }
 
+                bool deferLaunch = false;
                 if (status > 0)
                 {
                     result = false;
@@ -2168,6 +2188,24 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
+
+                    gPluginDataMutex.lock();
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
+                    if (pluginStateChangeEntry == gPluginsEventListener.end())
+                    {
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion);
+                        PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, this);
+                        gPluginsEventListener[callsign] = data;
+                        remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
+                    }
+                    else
+                    {
+                        PluginStateChangeData* data = pluginStateChangeEntry->second;    
+                        data->enableLaunch(true);
+                        deferLaunch = true;
+                    }
+                    gPluginDataMutex.unlock();
+ 
                     if (setSuspendResumeStateOnLaunch)
                     {
                         if (suspend)
@@ -2248,7 +2286,17 @@ namespace WPEFramework {
                             break;
                     }
                     std::cout << "Application:" << callsign << " took " << (RdkShell::seconds() - launchStartTime)*1000 << " milliseconds to launch " << std::endl;
-                    onLaunched(callsign, launchTypeString);
+                    gLaunchMutex.lock();
+                    gLaunchCount = 0;
+                    gLaunchMutex.unlock();
+                    if (setSuspendResumeStateOnLaunch && deferLaunch && ((launchType == SUSPEND) || (launchType == RESUME)))
+                    {
+                        std::cout << "deferring application launch " << std::endl;
+                    }
+                    else
+                    {
+                        onLaunched(callsign, launchTypeString);
+                    }
                     response["launchType"] = launchTypeString;
                 }
                 
@@ -2886,7 +2934,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+            
             JsonObject joToFacParams;
             JsonObject joToFacResult;
             joToFacParams.Set("namespace","FactoryTest");
@@ -2918,6 +2966,26 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
+            std::string callsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            gPluginDataMutex.lock();
+            for (auto pluginName : gActivePlugins)
+            {
+                if (pluginName == callsign)
+                {
+                    std::cout << "factory app is already running" << std::endl;
+                    isFactoryAppRunning = true;
+                    break;
+                }
+            }
+            gPluginDataMutex.unlock();
+            if (isFactoryAppRunning)
+            {
+                std::cout << "factory app is arleady running, do nothing";
+                response["message"] = " factory mode already running";
+                returnResponse(false);
+            }
+
             return launchFactoryAppWrapper(parameters, response);
         }
 
@@ -2926,6 +2994,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             std::string factoryAppCallsign("factoryapp");
             bool isFactoryAppRunning = false;
+            gPluginDataMutex.lock();
             for (auto pluginName : gActivePlugins)
             {
                 if (pluginName == factoryAppCallsign)
@@ -2935,6 +3004,7 @@ namespace WPEFramework {
                     break;
                 }
             }
+            gPluginDataMutex.unlock();
             if (!isFactoryAppRunning)
             {
                 std::cout << "nothing to do since factory app is not running\n";
@@ -2993,6 +3063,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
+            gPluginDataMutex.lock();
             for (auto pluginName : gActivePlugins)
             {
                 if (pluginName == callsign)
@@ -3002,6 +3073,7 @@ namespace WPEFramework {
                     break;
                 }
             }
+            gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
             {
                 launchResidentAppWrapper(parameters, response);
@@ -3630,6 +3702,43 @@ namespace WPEFramework {
             }
             memoryInfo.Add(memoryDetails);
             return true;
+        }
+
+
+        PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell):mCallSign(callsign), mRDKShell(*rdkshell)
+        {
+            mPluginConnection = pluginConnection;
+            mLaunchEnabled = false;
+        }
+
+        PluginStateChangeData::~PluginStateChangeData()
+        {
+            mPluginConnection = nullptr;
+        }
+
+        void PluginStateChangeData::enableLaunch(bool enable)
+        {
+            mLaunchEnabled = enable;
+        }
+
+        void PluginStateChangeData::onStateChangeEvent(const JsonObject& params)
+        {
+            bool isSuspended = params["suspended"].Boolean();
+            if (mLaunchEnabled)
+            {
+               JsonObject params;
+               params["client"] = mCallSign;
+               params["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               mLaunchEnabled = false;
+            }
+
+            if (isSuspended)
+            {
+                JsonObject params;
+                params["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+            }
         }
 
         // Internal methods end
