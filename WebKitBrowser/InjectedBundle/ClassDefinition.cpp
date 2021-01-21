@@ -50,12 +50,12 @@ namespace JavaScript {
         if (index != _classes.end()) {
             result = &(index->second);
         } else {
-            TRACE_L1("Before Classdefinition ingest: %s", className.c_str());
+            TRACE_GLOBAL(Trace::Information, (_T("Before Classdefinition ingest: %s"), className.c_str()));
             std::pair<ClassMap::iterator, bool> entry(_classes.emplace(
                 std::piecewise_construct,
                 std::forward_as_tuple(className),
                 std::forward_as_tuple(className)));
-            TRACE_L1("After Classdefinition ingest - 3: %s", className.c_str());
+            TRACE_GLOBAL(Trace::Information, (_T("After Classdefinition ingest - 3: %s"), className.c_str()));
 
             result = &(entry.first->second);
         }
