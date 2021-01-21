@@ -729,7 +729,7 @@ static GSourceFuncs _handlerIntervention =
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
-                TRACE_L1("Could not register @exit handler. Error: %d.", errno);
+                TRACE(Trace::Information, (_T("Could not register @exit handler. Error: %d."), errno));
                 exit(EXIT_FAILURE);
             }
 
@@ -746,7 +746,7 @@ static GSourceFuncs _handlerIntervention =
                 g_main_loop_quit(_loop);
 
             if (Wait(Core::Thread::STOPPED | Core::Thread::BLOCKED, 6000) == false)
-                TRACE_L1("Bailed out before the end of the WPE main app was reached. %d", 6000);
+                TRACE(Trace::Information, (_T("Bailed out before the end of the WPE main app was reached. %d"), 6000));
 
             implementation = nullptr;
         }
@@ -1027,7 +1027,7 @@ static GSourceFuncs _handlerIntervention =
                     delete static_cast<SetHTTPCookieAcceptPolicyData*>(customdata);
                 });
 
-           return Core::ERROR_NONE;
+            return Core::ERROR_NONE;
         }
 
         uint32_t BridgeReply(const string& payload) override
@@ -1188,7 +1188,7 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
 
-            TRACE_L1("Registered a sink on the browser %p", sink);
+            TRACE(Trace::Information, (_T("Registered a sink on the browser %p"), sink));
         }
         void Unregister(PluginHost::IStateControl::INotification* sink)
         {
@@ -1202,7 +1202,7 @@ static GSourceFuncs _handlerIntervention =
             if (index != _stateControlClients.end()) {
                 (*index)->Release();
                 _stateControlClients.erase(index);
-                TRACE_L1("Unregistered a sink on the browser %p", sink);
+                TRACE(Trace::Information, (_T("Unregistered a sink on the browser %p"), sink));
             }
 
             _adminLock.Unlock();
@@ -1240,7 +1240,7 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
 
-            TRACE_L1("Registered a sink on the browser %p", sink);
+            TRACE(Trace::Information, (_T("Registered a sink on the browser %p"), sink));
         }
 
         void Unregister(Exchange::IWebBrowser::INotification* sink) override
@@ -1255,7 +1255,7 @@ static GSourceFuncs _handlerIntervention =
             if (index != _notificationClients.end()) {
                 (*index)->Release();
                 _notificationClients.erase(index);
-                TRACE_L1("Unregistered a sink on the browser %p", sink);
+                TRACE(Trace::Information, (_T("Unregistered a sink on the browser %p"), sink));
             }
 
             _adminLock.Unlock();
@@ -1272,7 +1272,7 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
 
-            TRACE_L1("Registered a sink on the browser %p", sink);
+            TRACE(Trace::Information, (_T("Registered a sink on the browser %p"), sink));
         }
 
         void Unregister(Exchange::IBrowser::INotification* sink) override
@@ -1287,7 +1287,7 @@ static GSourceFuncs _handlerIntervention =
             if (index != _notificationBrowserClients.end()) {
                 (*index)->Release();
                 _notificationBrowserClients.erase(index);
-                TRACE_L1("Unregistered a sink on the browser %p", sink);
+                TRACE(Trace::Information, (_T("Unregistered a sink on the browser %p"), sink));
             }
 
             _adminLock.Unlock();
@@ -1317,7 +1317,8 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
         }
 #ifdef WEBKIT_GLIB_API
-        void OnLoadFinished() {
+        void OnLoadFinished()
+        {
             string URL = Core::ToString(webkit_web_view_get_uri(_view));
             OnLoadFinished(URL);
         }
@@ -1690,7 +1691,7 @@ static GSourceFuncs _handlerIntervention =
                         WKViewSetViewState(object->_view, (object->_state == PluginHost::IStateControl::RESUMED ? kWKViewStateIsInWindow : 0));
 #endif
                         object->Hidden(true);
-                        TRACE_L1("Internal Hide Notification took %d mS.", static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time));
+                        TRACE_GLOBAL(Trace::Information, (_T("Internal Hide Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
                         return FALSE;
                     },
@@ -1712,7 +1713,7 @@ static GSourceFuncs _handlerIntervention =
 #endif
                         object->Hidden(false);
 
-                        TRACE_L1("Internal Show Notification took %d mS.", static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time));
+                        TRACE_GLOBAL(Trace::Information, (_T("Internal Show Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
                         return FALSE;
                     },
@@ -1743,7 +1744,7 @@ static GSourceFuncs _handlerIntervention =
 #endif
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
 
-                        TRACE_L1("Internal Suspend Notification took %d mS.", static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time));
+                        TRACE_GLOBAL(Trace::Information, (_T("Internal Suspend Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
                         return FALSE;
                     },
@@ -1768,7 +1769,7 @@ static GSourceFuncs _handlerIntervention =
 #endif
                         object->OnStateChange(PluginHost::IStateControl::RESUMED);
 
-                        TRACE_L1("Internal Resume Notification took %d mS.", static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time));
+                        TRACE_GLOBAL(Trace::Information, (_T("Internal Resume Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
                         return FALSE;
                     },
@@ -1819,10 +1820,10 @@ static GSourceFuncs _handlerIntervention =
         {
             switch (reason) {
             case WEBKIT_WEB_PROCESS_CRASHED:
-                SYSLOG(Trace::Fatal, ("CRASH: WebProcess crashed: exiting ..."));
+                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed: exiting ...")));
                 break;
             case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
-                SYSLOG(Trace::Fatal, ("CRASH: WebProcess terminated due to memory limit: exiting ..."));
+                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
                 break;
             }
             exit(1);
@@ -1880,7 +1881,7 @@ static GSourceFuncs _handlerIntervention =
                 if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false)
                     wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
                 else
-                    wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);            
+                    wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
 
                 auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, nullptr);
@@ -2271,14 +2272,14 @@ static GSourceFuncs _handlerIntervention =
 
             if (isWebProcessResponsive)
             {
-                SYSLOG(Trace::Information, ("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n",
+                SYSLOG(Logging::Notification, (_T("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n"),
                                             _unresponsiveReplyNum, webprocessPID, activeURL.c_str()));
                 _unresponsiveReplyNum = 0;
             }
             else
             {
                 ++_unresponsiveReplyNum;
-                SYSLOG(Trace::Information, ("WebProcess is unresponsive, pid=%u, reply num=%d(max=%d), url=%s\n",
+                SYSLOG(Logging::Notification, (_T("WebProcess is unresponsive, pid=%u, reply num=%d(max=%d), url=%s\n"),
                                             webprocessPID, _unresponsiveReplyNum, kWebProcessUnresponsiveReplyDefaultLimit,
                                             activeURL.c_str()));
             }
@@ -2289,7 +2290,7 @@ static GSourceFuncs _handlerIntervention =
 
                 if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
                 {
-                    SYSLOG(Trace::Error, ("tgkill failed, signal=%d process=%u errno=%d (%s)", SIGFPE, webprocessPID, errno, strerror(errno)));
+                    SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
                 }
             }
             else if (_unresponsiveReplyNum == (2 * kWebProcessUnresponsiveReplyDefaultLimit))
@@ -2305,7 +2306,7 @@ static GSourceFuncs _handlerIntervention =
             {
                 std::string activeURL = GetPageActiveURL(page);
                 pid_t webprocessPID = WKPageGetProcessIdentifier(page);
-                SYSLOG(Trace::Information, ("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n",
+                SYSLOG(Logging::Notification, (_T("WebProcess recovered after %d unresponsive replies, pid=%u, url=%s\n"),
                                             self._unresponsiveReplyNum, webprocessPID, activeURL.c_str()));
                 self._unresponsiveReplyNum = 0;
             }
@@ -2533,7 +2534,7 @@ static GSourceFuncs _handlerIntervention =
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)
     {
-        SYSLOG(Trace::Fatal, ("CRASH: WebProcess crashed, exiting..."));
+        SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
         exit(1);
     }
 #endif // !WEBKIT_GLIB_API
@@ -2671,7 +2672,6 @@ namespace WebKitBrowser {
                 }
             }
 
-            // TRACE_L1("requiredProcess = %X, IsStarting = %s, main.IsActive = %s", requiredProcesses, IsStarting() ? _T("true") : _T("false"), _main.IsActive() ? _T("true") : _T("false"));
             return (((requiredProcesses == 0) || (true == IsStarting())) && (true == _main.IsActive()));
         }
 
