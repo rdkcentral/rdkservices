@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkCompositeInput.so",
+ "classname":"CompositeInput",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.CompositeInput",
+ "autostart":false
+}
