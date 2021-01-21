@@ -20,12 +20,12 @@ OCDM plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the OCDM plugin. It includes detailed specification of its configuration and properties provided.
+This document describes purpose and functionality of the OCDM plugin. It includes detailed specification about its configuration and properties provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -65,7 +65,18 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *OCDM*) |
 | classname | string | Class name: *OCDM* |
 | locator | string | Library name: *libWPEFrameworkOCDM.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object | <sup>*(optional)*</sup>  |
+| configuration?.location | string | <sup>*(optional)*</sup> Location |
+| configuration?.connector | string | <sup>*(optional)*</sup> Connector |
+| configuration?.sharepath | string | <sup>*(optional)*</sup> Sharepath |
+| configuration?.sharesize | string | <sup>*(optional)*</sup> Sharesize |
+| configuration?.systems | array | <sup>*(optional)*</sup> List of key systems |
+| configuration?.systems[#] | object | <sup>*(optional)*</sup> System properties |
+| configuration?.systems[#]?.name | string | <sup>*(optional)*</sup> Name |
+| configuration?.systems[#]?.designators | array | <sup>*(optional)*</sup>  |
+| configuration?.systems[#]?.designators[#] | object | <sup>*(optional)*</sup> designator |
+| configuration?.systems[#]?.designators[#].name | string |  |
 
 <a name="head.Properties"></a>
 # Properties
@@ -78,6 +89,7 @@ OCDM interface properties:
 | :-------- | :-------- |
 | [drms](#property.drms) <sup>RO</sup> | Supported DRM systems |
 | [keysystems](#property.keysystems) <sup>RO</sup> | DRM key systems |
+
 
 <a name="property.drms"></a>
 ## *drms <sup>property</sup>*
@@ -107,6 +119,7 @@ Provides access to the supported DRM systems.
     "method": "OCDM.1.drms"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -123,6 +136,7 @@ Provides access to the supported DRM systems.
     ]
 }
 ```
+
 <a name="property.keysystems"></a>
 ## *keysystems <sup>property</sup>*
 
@@ -156,6 +170,7 @@ Provides access to the DRM key systems.
     "method": "OCDM.1.keysystems@PlayReady"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -167,3 +182,4 @@ Provides access to the DRM key systems.
     ]
 }
 ```
+
