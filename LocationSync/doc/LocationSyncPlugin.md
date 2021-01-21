@@ -23,12 +23,12 @@ LocationSync plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the LocationSync plugin. It includes detailed specification of its configuration, methods and properties provided, as well as notifications sent.
+This document describes purpose and functionality of the LocationSync plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -75,7 +75,11 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *LocationSync*) |
 | classname | string | Class name: *LocationSync* |
 | locator | string | Library name: *libWPELocationSync.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object | <sup>*(optional)*</sup>  |
+| configuration?.interval | number | <sup>*(optional)*</sup> Maximum time duration between each request to the Location Server (default: 10) |
+| configuration?.retries | number | <sup>*(optional)*</sup> Maximum number of request reties to the Location Server (default:20) |
+| configuration?.source | string | <sup>*(optional)*</sup> URI of the Location Server (default:"http://jsonip.metrological.com/?maf=true") |
 
 <a name="head.Methods"></a>
 # Methods
@@ -87,6 +91,7 @@ LocationSync interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [sync](#method.sync) | Synchronizes the location |
+
 
 <a name="method.sync"></a>
 ## *sync <sup>method</sup>*
@@ -123,6 +128,7 @@ This method takes no parameters.
     "method": "LocationSync.1.sync"
 }
 ```
+
 #### Response
 
 ```json
@@ -132,6 +138,7 @@ This method takes no parameters.
     "result": null
 }
 ```
+
 <a name="head.Properties"></a>
 # Properties
 
@@ -142,6 +149,7 @@ LocationSync interface properties:
 | Property | Description |
 | :-------- | :-------- |
 | [location](#property.location) <sup>RO</sup> | Location information |
+
 
 <a name="property.location"></a>
 ## *location <sup>property</sup>*
@@ -172,6 +180,7 @@ Provides access to the location information.
     "method": "LocationSync.1.location"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -187,10 +196,11 @@ Provides access to the location information.
     }
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the plugin, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the LocationSync plugin:
 
@@ -199,6 +209,7 @@ LocationSync interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [locationchange](#event.locationchange) | Signals a location change |
+
 
 <a name="event.locationchange"></a>
 ## *locationchange <sup>event</sup>*
@@ -217,3 +228,4 @@ This event carries no parameters.
     "method": "client.events.1.locationchange"
 }
 ```
+
