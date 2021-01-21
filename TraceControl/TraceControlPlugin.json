@@ -8,6 +8,45 @@
     "description": "The Trace Control plugin provides ability to disable/enable trace output an set its verbosity level.",
     "version": "1.0"
   },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "console": {
+            "type": "boolean",
+            "description": "Enable console."
+          },
+          "syslog": {
+            "type": "boolean",
+            "description": "Enable SysLog."
+          },
+          "abbreviated": {
+            "type": "boolean",
+            "description": "Enable abbreviated logging."
+          },
+          "remotes": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "port" : {
+                "type": "number",
+                "size": "16",
+                "description": "Port."
+              },
+              "bindig" : {
+                "type": "bindig",
+                "size": "string",
+                "description": "Binding."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "interface": {
     "$ref": "{interfacedir}/TraceControl.json#"
   }

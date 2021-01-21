@@ -72,6 +72,8 @@ using namespace std;
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
+#define STATUS_CODE_NO_SWUPDATE_CONF 460 
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -1034,22 +1036,49 @@ namespace WPEFramework {
             JsonObject params;
             params["status"] = httpStatus;
             params["responseString"] = responseString.c_str();
+            params["rebootImmediately"] = false;
 
-            int updateAvailableEnum = 0;
-            if (firmwareUpdateVersion.length() > 0) {
-                params["firmwareUpdateVersion"] = firmwareUpdateVersion.c_str();
-                if (firmwareUpdateVersion.compare(firmwareVersion)) {
-                    updateAvailableEnum = 0;
-                } else {
-                    updateAvailableEnum = 1;
-                }
-            } else {
-                params["firmwareUpdateVersion"] = "";
-                updateAvailableEnum = 2;
+            JsonObject xconfResponse;
+            if(!responseString.empty() && xconfResponse.FromString(responseString))
+            {
+                params["rebootImmediately"] = xconfResponse["rebootImmediately"];
             }
-            params["updateAvailable"] = !updateAvailableEnum ;
-            params["updateAvailableEnum"] = updateAvailableEnum;
-            params["success"] = success;
+
+            if(httpStatus == STATUS_CODE_NO_SWUPDATE_CONF)
+            {
+                // Empty /opt/swupdate.conf
+                params["status"] = 0;
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::EMPTY_SW_UPDATE_CONF);
+                params["success"] = true;
+            }
+            else if(httpStatus == 404)
+            {
+                // if XCONF server returns 404 there is no FW available to download
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::FW_MATCH_CURRENT_VER);
+                params["success"] = true;
+            }
+            else
+            {
+                FWUpdateAvailableEnum updateAvailableEnum = FWUpdateAvailableEnum::NO_FW_VERSION;
+                bool bUpdateAvailable = false;
+                if (firmwareUpdateVersion.length() > 0) {
+                    params["firmwareUpdateVersion"] = firmwareUpdateVersion.c_str();
+                    if (firmwareUpdateVersion.compare(firmwareVersion)) {
+                        updateAvailableEnum = FWUpdateAvailableEnum::FW_UPDATE_AVAILABLE;
+                        bUpdateAvailable = true;
+                    } else {
+                        updateAvailableEnum = FWUpdateAvailableEnum::FW_MATCH_CURRENT_VER;
+                    }
+                } else {
+                    params["firmwareUpdateVersion"] = "";
+                    updateAvailableEnum = FWUpdateAvailableEnum::NO_FW_VERSION;
+                }
+                params["updateAvailable"] = bUpdateAvailable ;
+                params["updateAvailableEnum"] = static_cast<int>(updateAvailableEnum);
+                params["success"] = success;
+            }
 
             string jsonLog;
             params.ToString(jsonLog);
@@ -1103,7 +1132,22 @@ namespace WPEFramework {
             string match = "http://";
             std::vector<std::pair<std::string, std::string>> fields;
 
-            string xconfOverride = getXconfOverrideUrl();
+            bool bFileExists = false;
+            string xconfOverride; 
+            if(env != "PROD")
+            {
+                xconfOverride = getXconfOverrideUrl(bFileExists);
+                if(bFileExists && xconfOverride.empty())
+                {
+                    // empty /opt/swupdate.conf. Don't initiate FW download
+                    LOGWARN("Empty /opt/swupdate.conf. Skipping FW upgrade check with xconf");
+                    if (_instance) {
+                        _instance->reportFirmwareUpdateInfoReceived("",
+                        STATUS_CODE_NO_SWUPDATE_CONF, true, "", response);
+                    }
+                    return;
+                }
+            }
             string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
             size_t start_pos = fullCommand.find(match);
             if (std::string::npos != start_pos) {
@@ -3013,9 +3057,19 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
         {
-            bool status = true;
+            bool status = false;
             bool isPowerStateManagedByDevice = true;
+            char *env_var= getenv("RDK_NO_ACTION_ON_POWER_KEY");
+            if (env_var)
+            {
+                int isPowerStateManagedByDeviceValue = atoi(env_var);
+                if (1 == isPowerStateManagedByDeviceValue)
+                {
+                    isPowerStateManagedByDevice = false;
+                }
+            }
             response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
+            status = true;
             returnResponse(status);
         }
 
