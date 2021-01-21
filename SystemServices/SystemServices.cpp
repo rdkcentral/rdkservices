@@ -73,6 +73,8 @@ using namespace std;
 
 #define DEFAULT_STB_LOGS_UPLOAD_URL "https://stbrtl.stb.r53.xcal.tv"
 
+#define STATUS_CODE_NO_SWUPDATE_CONF 460 
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -1003,9 +1005,10 @@ namespace WPEFramework {
                 params["rebootImmediately"] = xconfResponse["rebootImmediately"];
             }
 
-            if(httpStatus == 0)
+            if(httpStatus == STATUS_CODE_NO_SWUPDATE_CONF)
             {
                 // Empty /opt/swupdate.conf
+                params["status"] = 0;
                 params["updateAvailable"] = false;
                 params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::EMPTY_SW_UPDATE_CONF);
                 params["success"] = true;
@@ -1101,7 +1104,7 @@ namespace WPEFramework {
                     LOGWARN("Empty /opt/swupdate.conf. Skipping FW upgrade check with xconf");
                     if (_instance) {
                         _instance->reportFirmwareUpdateInfoReceived("",
-                        0, true, "", response);
+                        STATUS_CODE_NO_SWUPDATE_CONF, true, "", response);
                     }
                     return;
                 }
