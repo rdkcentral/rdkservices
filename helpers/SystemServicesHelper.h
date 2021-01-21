@@ -223,9 +223,10 @@ bool findCaseInsensitive(std::string data, std::string toSearch, size_t pos = 0)
 
 /***
  * @brief	: To retrieve Xconf version of URL to override
+ * @param1[out]	: bFileExists - Returns true if /opt/swupdate.conf is present
  * @return	: string
  */
-string getXconfOverrideUrl(void);
+string getXconfOverrideUrl(bool& bFileExists);
 
 /***
  * @brief	: To retrieve TimeZone
