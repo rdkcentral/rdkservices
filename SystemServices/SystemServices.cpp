@@ -331,6 +331,7 @@ namespace WPEFramework {
             registerMethod("getMacAddresses",&SystemServices::getMacAddresses, this);
             registerMethod("setTimeZoneDST", &SystemServices::setTimeZoneDST, this);
             registerMethod("getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
+            registerMethod("setTimeFromUser", &SystemServices::setTimeFromUser, this);
             registerMethod("getCoreTemperature", &SystemServices::getCoreTemperature,
                     this);
             registerMethod("getCachedValue", &SystemServices::getCachedValue, this);
@@ -1856,7 +1857,7 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
+            unsigned int i, listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
@@ -2010,6 +2011,38 @@ namespace WPEFramework {
             returnResponse(resp);
         }
 
+        /***
+         * @brief : Thunder API to Set System Time
+         * @param1[in]	: {"params":{"timestamp": "<string>"}}
+         * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return		: Core::<StatusCode>
+         */
+        uint32_t SystemServices::setTimeFromUser(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("timestamp"))
+            {
+                result = false;
+                response["message"] = "Missing timestamp parameter, please specify it (use ISO 8601)";
+            }
+
+            if (result)
+            {
+                const string timestamp = parameters["timestamp"].String();
+                Core::Time newTime(0);
+                newTime.FromISO8601(timestamp);
+                if (!newTime.IsValid()) {
+                    result = false;
+                    response["message"] = "timestamp not recoginized. Please use ISO 8601 format";
+                } else {
+                    Core::SystemInfo::Instance().SetTime(newTime);
+                    LOGINFO("The user has set a new time: %s", timestamp.c_str());
+                }
+            }
+            returnResponse(result);
+        }
+
         bool SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
         {
             std::string cmd = "zdump ";
@@ -2019,7 +2052,7 @@ namespace WPEFramework {
 
             if(!p)
             {
-                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                LOGERR("failed to start %s: %s", cmd.c_str(), strerror(errno));
                 zoneInfo = "";
                 return false;
 

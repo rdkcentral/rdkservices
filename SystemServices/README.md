@@ -321,6 +321,7 @@ Method | Request Payload | Response Payload
 | setPowerState | {"jsonrpc":"2.0","id":"38","method":"org.rdk.System.1.setPowerState","params":{"powerState":"ON", "standbyReason":"APIUnitTest"}} | {"jsonrpc":"2.0","id":38,"result":{"success":true}} |  
 | setPreferredStandbyMode | {"jsonrpc":"2.0","id":"39","method":"org.rdk.System.1.setPreferredStandbyMode","params":{"standbyMode":"DEEP_SLEEP"}} | {"jsonrpc":"2.0","id":39,"result":{"success":true}} |  
 | setTemperatureThresholds | {"jsonrpc":"2.0","id":"40","method":"org.rdk.System.1.setTemperatureThresholds","params":{"thresholds":{"WARN":"50.000000","MAX":"80.000000"}}} | {"jsonrpc":"2.0","id":40,"result":{"success":true}} |  
-| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |  
-| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |  
+| setTimeZoneDST | {"jsonrpc":"2.0","id":"41","method":"org.rdk.System.1.setTimeZoneDST","params":{"timeZone":"UTC-5"}} | {"jsonrpc":"2.0","id":41,"result":{"success":true}} |
+| updateFirmware | {"jsonrpc":"2.0","id":"42","method":"org.rdk.System.1.updateFirmware","params":{}} | {"jsonrpc":"2.0","id":42,"result":{"success":true}} |
+| setTimeFromUser| {"jsonrpc":"2.0","id":"43","method":"org.rdk.System.1.setTimeFromUser","params":{"timestamp": "1994-11-06T08:49:37"}} |{"jsonrpc":"2.0","id":43,"result":{"success":true}} |
 </details>
