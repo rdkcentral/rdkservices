@@ -223,7 +223,7 @@ namespace WPEFramework {
             bool autoPlay = true;
             if(parameters.HasLabel(keyAutoPlay))
             {
-                autoPlay = parameters[keyUrl].Boolean();
+                autoPlay = parameters[keyAutoPlay].Boolean();
             }
 
             returnResponse(_mediaStreams[id]->Stream()->Load(url, autoPlay) == Core::ERROR_NONE);
