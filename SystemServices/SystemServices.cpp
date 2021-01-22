@@ -2871,9 +2871,9 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool enabled = false;
-		bool result = false;
+		bool result = true;
 
-		result = isGzEnabledHelper(enabled);
+		isGzEnabledHelper(enabled);
 		response["enabled"] = enabled;
 		returnResponse(result);
         } //end of isGZEnbaled
