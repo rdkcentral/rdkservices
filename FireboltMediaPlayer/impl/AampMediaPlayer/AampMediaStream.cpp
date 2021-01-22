@@ -55,34 +55,37 @@ namespace WPEFramework {
         AampMediaStream::~AampMediaStream()
         {
             _adminLock.Lock();
-            if(_aampPlayer)
+            if(!_aampPlayer)
             {
-                _aampPlayer->Stop();
+                return;
             }
-            _adminLock.Unlock();
 
+            if (_notification != nullptr) {
+                _notification->Release();
+                _notification = nullptr;
+            }
+
+            _adminLock.Unlock();
+            _aampPlayer->Stop();
             Block();
+            _adminLock.Lock();
+
             if(_aampGstPlayerMainLoop)
             {
                 g_main_loop_quit(_aampGstPlayerMainLoop);
             }
 
+            _adminLock.Unlock();
             Wait(Thread::BLOCKED | Thread::STOPPED, Core::infinite);
 
             _adminLock.Lock();
-
-            if(_aampPlayer)
-            {
-                _aampPlayer->RegisterEvents(nullptr);
-                delete _aampPlayer;
-                _aampPlayer = nullptr;
-            }
-
-            if(_aampEventListener)
-            {
-                delete _aampEventListener;
-                _aampEventListener = nullptr;
-            }
+            _aampPlayer->Stop();
+            _aampPlayer->RegisterEvents(nullptr);
+            delete _aampEventListener;
+            _aampEventListener = nullptr;
+            delete _aampPlayer;
+            _aampPlayer = nullptr;
+            _adminLock.Unlock();
         }
 
         uint32_t AampMediaStream::Load(const string& url, bool autoPlay)
