@@ -2876,7 +2876,7 @@ namespace WPEFramework {
             if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
             {
                 std::string eventName("onSystemPowerStateChanged");
-                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(2000, _T(eventName), &RDKShell::pluginEventHandler, this);
+                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
                 if (status == 0)
                 {
                     std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
