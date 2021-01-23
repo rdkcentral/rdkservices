@@ -296,7 +296,7 @@ namespace Plugin {
     void PackagerImplementation::NotifyStateChange()
     {
         _adminLock.Lock();
-        TRACE_L1("State for %s changed to %d (%d %%, %d)", _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode());
+        TRACE(Trace::Information, (_T("State for %s changed to %d (%d %%, %d)"), _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode()));
         for (auto* notification : _notifications) {
             notification->StateChange(_inProgress.Package, _inProgress.Install);
         }
@@ -372,7 +372,7 @@ namespace Plugin {
             if (opkg_update_package_lists(nullptr, nullptr) != 0)
 #endif
             {
-                TRACE_L1("Failed to set up local repo. Installing might not work");
+                TRACE(Trace::Error, (_T("Failed to set up local repo. Installing might not work")));
                 result = Core::ERROR_GENERAL;
             }
             NotifyRepoSynced(result);
