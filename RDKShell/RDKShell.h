@@ -178,8 +178,7 @@ namespace WPEFramework {
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
-            void notify(const std::string& event, const JsonObject& parameters);
-
+            
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
             RDKShell& operator=(const RDKShell&) = delete;
