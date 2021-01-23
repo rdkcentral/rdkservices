@@ -37,7 +37,7 @@ if(PC_WPE_WEBKIT_FOUND)
         endif()
     endif()
 else()
-    pkg_check_modules(PC_WPE_WEBKIT wpe-webkit-deprecated-0.1)
+    pkg_search_module(PC_WPE_WEBKIT wpe-webkit-deprecated-0.1 wpe-webkit-1.0)
     if(NOT PC_WPE_WEBKIT_FOUND)
         set(WPE_WEBKIT_FOUND_TEXT "Not found")
     endif()
@@ -47,9 +47,12 @@ if(PC_WPE_WEBKIT_FOUND)
     if("${PC_WPE_WEBKIT_VERSION}" STREQUAL "0.0.20170728")
         set(WPE_WEBKIT_DEPRECATED_API TRUE)
     endif()
+    if("${PC_WPE_WEBKIT_VERSION}" VERSION_GREATER "2.28")
+        set(WEBKIT_GLIB_API TRUE)
+    endif()
     find_path(
         WPE_WEBKIT_INCLUDE_DIRS
-        NAMES WPE/WebKit.h
+        NAMES WPE/WebKit.h wpe/webkit.h
         HINTS ${PC_WPE_WEBKIT_INCLUDEDIR} ${PC_WPE_WEBKIT_INCLUDE_DIRS})
 
     set(WPE_WEBKIT_LIBRARIES )

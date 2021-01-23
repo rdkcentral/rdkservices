@@ -57,10 +57,22 @@
 #include "mfrMgr.h"
 #endif
 
+#ifdef ENABLE_DEEP_SLEEP
+#include "deepSleepMgr.h"
+#endif
+
 using namespace std;
 
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
+
+#define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
+#define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
+#define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+
+#define ZONEINFO_DIR "/usr/share/zoneinfo"
+
+#define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
 /**
  * @struct firmwareUpdate
@@ -240,7 +252,7 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-            : AbstractPlugin()
+            : AbstractPlugin(2)
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
@@ -349,6 +361,15 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+
+            // version 2 APIs
+            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
+            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
+            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
+            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
+#ifdef ENABLE_DEEP_SLEEP
+	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
+#endif
         }
 
 
@@ -494,6 +515,152 @@ namespace WPEFramework {
             }
             returnResponse(result);
         }//end of requestSystemReboot
+
+        /*
+         * @brief This function delays the reboot in seconds.
+         * This will internally sets the tr181 fwDelayReboot parameter.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareRebootDelay",
+         *                  "params":{"delaySeconds": int seconds}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareRebootDelay(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            uint32_t delay_in_sec = 0;
+
+            if ( parameters.HasLabel("delaySeconds") ){
+                /* get the value */
+                delay_in_sec = static_cast<unsigned int>(parameters["delaySeconds"].Number());
+
+                /* we can delay with max 24 Hrs = 86400 sec */
+                if (delay_in_sec > 0 && delay_in_sec <= MAX_REBOOT_DELAY ){
+
+                    const char * set_rfc_val=(parameters["delaySeconds"].String()).c_str();
+
+                    LOGINFO("set_rfc_value %s\n",set_rfc_val);
+
+                    /*set tr181Set command from here*/
+                    WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                            TR181_FW_DELAY_REBOOT, set_rfc_val, WDMP_INT);
+                    if ( WDMP_SUCCESS == status ){
+                        result=true;
+                        LOGINFO("Success Setting setFirmwareRebootDelay value\n");
+                    }
+                    else {
+                        LOGINFO("Failed Setting setFirmwareRebootDelay value %s\n",getRFCErrorString(status));
+                    }
+                }
+                else {
+                    /* we didnt get a valid Auto Reboot delay */
+                    LOGERR("Invalid setFirmwareRebootDelay Value Max.Value is 86400 sec\n");
+                }
+            }
+            else {
+                /* havent got the correct label */
+                LOGERR("setFirmwareRebootDelay Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues,response);
+            }
+            returnResponse(result);
+        }
+
+        /*
+         * @brief This function Enable/Disable the AutReboot Feature.
+         * This will internally sets the tr181 AutoReboot.Enable to True/False.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareAutoReboot",
+         *                  "params":{"enable": bool }}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareAutoReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            bool enableFwAutoreboot = false;
+
+           if ( parameters.HasLabel("enable") ){
+               /* get the value */
+               enableFwAutoreboot = (parameters["enable"].Boolean());
+               LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
+
+               const char *set_rfc_val = (parameters["enable"].String().c_str());
+
+               /* set tr181Set command from here */
+               WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                       TR181_AUTOREBOOT_ENABLE,set_rfc_val,WDMP_BOOLEAN);
+               if ( WDMP_SUCCESS == status ){
+                   result=true;
+                   LOGINFO("Success Setting the setFirmwareAutoReboot value\n");
+               }
+               else {
+                   LOGINFO("Failed Setting the setFirmwareAutoReboot value %s\n",getRFCErrorString(status));
+               }
+           }
+           else {
+               /* havent got the correct label */
+               LOGERR("setFirmwareAutoReboot Missing Key Values\n");
+               populateResponseWithError(SysSrv_MissingKeyValues,response);
+           }
+           returnResponse(result);
+        }
+
+        /*
+         * @brief This function notifies about pending Reboot.
+         * This will internally set 120 sec and trigger event to application.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.fireFirmwarePendingReboot",
+         *                  "params":{}}
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":true}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::fireFirmwarePendingReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            int seconds = 120; /* 2 Minutes to Reboot */
+
+            /* trigger event saying we are in Maintenance Window */
+
+            /* check if we have valid instance */
+            if ( _instance ){
+                /* clear any older values, Reset the fwDelayReboot = 0 */
+                LOGINFO("Reset Older FwDelayReboot to 0, if any\n");
+
+                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                        TR181_FW_DELAY_REBOOT,"0", WDMP_INT);
+
+                /* call the event handler if reset SUCCESS */
+                if ( WDMP_SUCCESS == status ){
+                    /* trigger event saying we are in Maintenance Window */
+                    _instance->onFirmwarePendingReboot(seconds);
+                    result=true;
+                }
+                else {
+                    LOGINFO("Failed to reset FwDelayReboot due to %s\n",getRFCErrorString(status));
+                }
+            }
+            else {
+                LOGERR("_instance in fireFirmwarePendingReboot is NULL.\n");
+            }
+
+            returnResponse(result);
+        }
+
+        /*
+         * @brief : send event when system is in maintenance window
+         * @param1[in]  : int seconds
+         */
+
+        void SystemServices::onFirmwarePendingReboot(int seconds)
+        {
+            JsonObject params;
+            params["fireFirmwarePendingReboot"] = seconds;
+            LOGINFO("Notifying onFirmwarePendingReboot received \n");
+            sendNotify(EVT_ONFWPENDINGREBOOT, params);
+        }
 
         /***
          * @brief : send notification when system power state is changed
@@ -869,22 +1036,49 @@ namespace WPEFramework {
             JsonObject params;
             params["status"] = httpStatus;
             params["responseString"] = responseString.c_str();
+            params["rebootImmediately"] = false;
 
-            int updateAvailableEnum = 0;
-            if (firmwareUpdateVersion.length() > 0) {
-                params["firmwareUpdateVersion"] = firmwareUpdateVersion.c_str();
-                if (firmwareUpdateVersion.compare(firmwareVersion)) {
-                    updateAvailableEnum = 0;
-                } else {
-                    updateAvailableEnum = 1;
-                }
-            } else {
-                params["firmwareUpdateVersion"] = "";
-                updateAvailableEnum = 2;
+            JsonObject xconfResponse;
+            if(!responseString.empty() && xconfResponse.FromString(responseString))
+            {
+                params["rebootImmediately"] = xconfResponse["rebootImmediately"];
             }
-            params["updateAvailable"] = !updateAvailableEnum ;
-            params["updateAvailableEnum"] = updateAvailableEnum;
-            params["success"] = success;
+
+            if(httpStatus == STATUS_CODE_NO_SWUPDATE_CONF)
+            {
+                // Empty /opt/swupdate.conf
+                params["status"] = 0;
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::EMPTY_SW_UPDATE_CONF);
+                params["success"] = true;
+            }
+            else if(httpStatus == 404)
+            {
+                // if XCONF server returns 404 there is no FW available to download
+                params["updateAvailable"] = false;
+                params["updateAvailableEnum"] = static_cast<int>(FWUpdateAvailableEnum::FW_MATCH_CURRENT_VER);
+                params["success"] = true;
+            }
+            else
+            {
+                FWUpdateAvailableEnum updateAvailableEnum = FWUpdateAvailableEnum::NO_FW_VERSION;
+                bool bUpdateAvailable = false;
+                if (firmwareUpdateVersion.length() > 0) {
+                    params["firmwareUpdateVersion"] = firmwareUpdateVersion.c_str();
+                    if (firmwareUpdateVersion.compare(firmwareVersion)) {
+                        updateAvailableEnum = FWUpdateAvailableEnum::FW_UPDATE_AVAILABLE;
+                        bUpdateAvailable = true;
+                    } else {
+                        updateAvailableEnum = FWUpdateAvailableEnum::FW_MATCH_CURRENT_VER;
+                    }
+                } else {
+                    params["firmwareUpdateVersion"] = "";
+                    updateAvailableEnum = FWUpdateAvailableEnum::NO_FW_VERSION;
+                }
+                params["updateAvailable"] = bUpdateAvailable ;
+                params["updateAvailableEnum"] = static_cast<int>(updateAvailableEnum);
+                params["success"] = success;
+            }
 
             string jsonLog;
             params.ToString(jsonLog);
@@ -938,7 +1132,22 @@ namespace WPEFramework {
             string match = "http://";
             std::vector<std::pair<std::string, std::string>> fields;
 
-            string xconfOverride = getXconfOverrideUrl();
+            bool bFileExists = false;
+            string xconfOverride; 
+            if(env != "PROD")
+            {
+                xconfOverride = getXconfOverrideUrl(bFileExists);
+                if(bFileExists && xconfOverride.empty())
+                {
+                    // empty /opt/swupdate.conf. Don't initiate FW download
+                    LOGWARN("Empty /opt/swupdate.conf. Skipping FW upgrade check with xconf");
+                    if (_instance) {
+                        _instance->reportFirmwareUpdateInfoReceived("",
+                        STATUS_CODE_NO_SWUPDATE_CONF, true, "", response);
+                    }
+                    return;
+                }
+            }
             string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
             size_t start_pos = fullCommand.find(match);
             if (std::string::npos != start_pos) {
@@ -1197,6 +1406,81 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
+
+#ifdef ENABLE_DEEP_SLEEP
+        /***
+         * @brief Returns the deepsleep wakeup reason.
+	 * Possible values are "WAKEUP_REASON_IR", "WAKEUP_REASON_RCU_BT"
+	 * "WAKEUP_REASON_RCU_RF4CE", WAKEUP_REASON_GPIO", "WAKEUP_REASON_LAN",
+	 * "WAKEUP_REASON_WLAN", "WAKEUP_REASON_TIMER", "WAKEUP_REASON_FRONT_PANEL",
+	 * "WAKEUP_REASON_WATCHDOG", "WAKEUP_REASON_SOFTWARE_RESET", "WAKEUP_REASON_THERMAL_RESET",
+	 * "WAKEUP_REASON_WARM_RESET", "WAKEUP_REASON_COLDBOOT", "WAKEUP_REASON_STR_AUTH_FAILURE",
+	 * "WAKEUP_REASON_CEC", "WAKEUP_REASON_PRESENCE", "WAKEUP_REASON_VOICE", "WAKEUP_REASON_UNKNOWN"
+         *
+         * @param1[in]  : {"params":{"appName":"abc"}}
+         * @param2[out] : {"result":{"wakeupReason":<string>","success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getWakeupReason(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool status = false;
+	    DeepSleep_WakeupReason_t param;
+	    std::string wakeupReason = "WAKEUP_REASON_UNKNOWN";
+
+	    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+			IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason, (void *)&param,
+			sizeof(param));
+
+            if (IARM_RESULT_SUCCESS == res)
+            {
+                status = true;
+                if (param == DEEPSLEEP_WAKEUPREASON_IR) {
+                   wakeupReason = "WAKEUP_REASON_IR";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_RCU_BT) {
+                   wakeupReason = "WAKEUP_REASON_RCU_BT";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_RCU_RF4CE) {
+                   wakeupReason = "WAKEUP_REASON_RCU_RF4CE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_GPIO) {
+                   wakeupReason = "WAKEUP_REASON_GPIO";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_LAN) {
+                   wakeupReason = "WAKEUP_REASON_LAN";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WLAN) {
+                   wakeupReason = "WAKEUP_REASON_WLAN";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_TIMER) {
+                   wakeupReason = "WAKEUP_REASON_TIMER";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_FRONT_PANEL) {
+                   wakeupReason = "WAKEUP_REASON_FRONT_PANEL";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WATCHDOG) {
+                   wakeupReason = "WAKEUP_REASON_WATCHDOG";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_SOFTWARE_RESET) {
+                   wakeupReason = "WAKEUP_REASON_SOFTWARE_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_THERMAL_RESET) {
+                   wakeupReason = "WAKEUP_REASON_THERMAL_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_WARM_RESET) {
+                   wakeupReason = "WAKEUP_REASON_WARM_RESET";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_COLDBOOT) {
+                   wakeupReason = "WAKEUP_REASON_COLDBOOT";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_STR_AUTH_FAILURE) {
+                   wakeupReason = "WAKEUP_REASON_STR_AUTH_FAILURE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_CEC) {
+                   wakeupReason = "WAKEUP_REASON_CEC";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_PRESENCE) {
+                   wakeupReason = "WAKEUP_REASON_PRESENCE";
+                } else if (param == DEEPSLEEP_WAKEUPREASON_VOICE) {
+                   wakeupReason = "WAKEUP_REASON_VOICE";
+                }
+            }
+	    else
+	    {
+		status = false;
+	    }
+	    LOGWARN("WakeupReason : %s\n", wakeupReason.c_str());
+            response["wakeupReason"] = wakeupReason;
+
+            returnResponse(status);
+        }
+#endif
 
         /***
          * @brief Returns an array of strings containing the supported standby modes.
@@ -1723,6 +2007,102 @@ namespace WPEFramework {
                 populateResponseWithError(SysSrv_FileAccessFailed, response);
                 resp = false;
             }
+            returnResponse(resp);
+        }
+
+        bool SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+        {
+            std::string cmd = "zdump ";
+            cmd += file;
+
+            FILE *p = popen(cmd.c_str(), "r");
+
+            if(!p)
+            {
+                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                zoneInfo = "";
+                return false;
+
+            }
+
+            char buf[1024];
+            while(fgets(buf, sizeof(buf), p) != NULL)
+                zoneInfo += buf;
+
+            int err = pclose(p);
+            if (0 == err)
+            {
+                zoneInfo.erase(0, zoneInfo.find_first_of(" \t")); // Skip filename
+                zoneInfo.erase(0, zoneInfo.find_first_not_of(" \n\r\t")); // Trim whitespaces
+                zoneInfo.erase(zoneInfo.find_last_not_of(" \n\r\t") + 1);
+            }
+            else
+            {    
+                zoneInfo = "";
+                LOGERR("%s failed with code %d", cmd.c_str(), err);
+                return false;
+            }
+
+            return true;
+        }
+
+        bool SystemServices::processTimeZones(std::string dir, JsonObject& out)
+        {
+            bool ret = true;
+            DIR *d = opendir(dir.c_str());
+
+            struct dirent *de;
+
+            while ((de = readdir(d)))
+            {
+                if (0 == de->d_name[0] || 0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
+                    continue;
+
+                std::string fullName = dir;
+                fullName += "/";
+                fullName += de->d_name;
+
+                struct stat deStat;
+                if (stat(fullName.c_str(), &deStat))
+                {
+                    LOGERR("stat() failed: %s", strerror(errno));
+                    continue;
+                }
+
+                if (S_ISDIR(deStat.st_mode))
+                {
+                    JsonObject dirObject;
+                    if (!processTimeZones(fullName, dirObject)) 
+                        ret = false;
+
+                    out[de->d_name] = dirObject;
+                }
+                else
+                {
+                    if (0 == access(fullName.c_str(), R_OK))
+                    {
+                        std::string zoneInfo;
+                        if (!getZoneInfoZDump(fullName, zoneInfo)) 
+                            ret = false;
+
+                        out[de->d_name] = zoneInfo;
+                    }
+                    else
+                        LOGWARN("no access to %s", fullName.c_str());
+                }
+            }
+
+            return ret;
+        }
+
+        uint32_t SystemServices::getTimeZones(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO("called");
+
+            JsonObject dirObject;
+            bool resp = processTimeZones(ZONEINFO_DIR, dirObject);
+            response["zoneinfo"] = dirObject;
+
             returnResponse(resp);
         }
 
@@ -2491,9 +2871,9 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool enabled = false;
-		bool result = false;
+		bool result = true;
 
-		result = isGzEnabledHelper(enabled);
+		isGzEnabledHelper(enabled);
 		response["enabled"] = enabled;
 		returnResponse(result);
         } //end of isGZEnbaled
@@ -2677,9 +3057,19 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
         {
-            bool status = true;
+            bool status = false;
             bool isPowerStateManagedByDevice = true;
+            char *env_var= getenv("RDK_NO_ACTION_ON_POWER_KEY");
+            if (env_var)
+            {
+                int isPowerStateManagedByDeviceValue = atoi(env_var);
+                if (1 == isPowerStateManagedByDeviceValue)
+                {
+                    isPowerStateManagedByDevice = false;
+                }
+            }
             response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
+            status = true;
             returnResponse(status);
         }
 
@@ -2702,10 +3092,25 @@ namespace WPEFramework {
                 case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
                     {
                         IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
-                        std::string curState = (eventData->data.state.curState ==
-                                IARM_BUS_PWRMGR_POWERSTATE_ON) ? "ON" : "STANDBY";
-                        std::string newState = (eventData->data.state.newState ==
-                                IARM_BUS_PWRMGR_POWERSTATE_ON) ? "ON" : "STANDBY";
+			std::string curState,newState = "";
+
+			if(eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+				curState = "ON";
+			} else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
+				   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+				curState = "LIGHT_SLEEP";
+			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+				curState = "DEEP_SLEEP";
+			}
+
+			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+				newState = "ON";
+			} else if((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
+				  (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                                newState = "LIGHT_SLEEP";
+			} else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+                                newState = "DEEP_SLEEP";
+			}
                         LOGWARN("IARM Event triggered for PowerStateChange.\
                                 Old State %s, New State: %s\n",
                                 curState.c_str() , newState.c_str());

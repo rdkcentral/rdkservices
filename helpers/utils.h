@@ -23,6 +23,8 @@
 #include <algorithm>
 #include "tracing/Logging.h"
 #include <syscall.h>
+#include <plugins/plugins.h>
+#include <tracing/tracing.h>
 #include "rfcapi.h"
 
 // IARM
@@ -51,74 +53,77 @@
         v.emplace_back(s);
 
 #define returnResponse(success) \
-    response["success"] = success; \
-    LOGTRACEMETHODFIN(); \
-    return (Core::ERROR_NONE); 
+    { \
+        response["success"] = success; \
+        LOGTRACEMETHODFIN(); \
+        return (Core::ERROR_NONE); \
+    }
 
 #define returnIfWrongApiVersion(version)\
-    if(m_apiVersionNumber < version)\
-    {\
-        LOGWARN("method %s not supported. version required=%u actual=%u", __FUNCTION__, version, m_apiVersionNumber);\
-        returnResponse(false);\
+    if(m_apiVersionNumber < version) \
+    { \
+        LOGWARN("method %s not supported. version required=%u actual=%u", __FUNCTION__, version, m_apiVersionNumber); \
+        returnResponse(false); \
     }
 
-#define returnIfParamNotFound(param, name)\
-    if (!param.HasLabel(name))\
-    {\
-        LOGERR("No argument '%s'", name);\
-        returnResponse(false);\
+#define returnIfParamNotFound(param, name) \
+    if (!param.HasLabel(name)) \
+    { \
+        LOGERR("No argument '%s'", name); \
+        returnResponse(false); \
     }
 
-#define returnIfStringParamNotFound(param, name)\
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::STRING)\
+#define returnIfStringParamNotFound(param, name) \
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::STRING) \
     {\
-        LOGERR("No argument '%s' or it has incorrect type", name);\
-        returnResponse(false);\
+        LOGERR("No argument '%s' or it has incorrect type", name); \
+        returnResponse(false); \
     }
 
-#define returnIfBooleanParamNotFound(param, name)\
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::BOOLEAN)\
-    {\
-        LOGERR("No argument '%s' or it has incorrect type", name);\
-        returnResponse(false);\
+#define returnIfBooleanParamNotFound(param, name) \
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::BOOLEAN) \
+    { \
+        LOGERR("No argument '%s' or it has incorrect type", name); \
+        returnResponse(false); \
     }
 
-#define returnIfArrayParamNotFound(param, name)\
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::ARRAY)\
-    {\
-        LOGERR("No argument '%s' or it has incorrect type", name);\
-        returnResponse(false);\
+#define returnIfArrayParamNotFound(param, name) \
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::ARRAY) \
+    { \
+        LOGERR("No argument '%s' or it has incorrect type", name); \
+        returnResponse(false); \
     }
 
-#define returnIfNumberParamNotFound(param, name)\
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::NUMBER)\
-    {\
-        LOGERR("No argument '%s' or it has incorrect type", name);\
-        returnResponse(false);\
+#define returnIfNumberParamNotFound(param, name) \
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::NUMBER) \
+    { \
+        LOGERR("No argument '%s' or it has incorrect type", name); \
+        returnResponse(false); \
     }
 
-#define returnIfObjectParamNotFound(param, name)\
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::OBJECT)\
-    {\
-        LOGERR("No argument '%s' or it has incorrect type", name);\
-        returnResponse(false);\
+#define returnIfObjectParamNotFound(param, name) \
+    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::OBJECT) \
+    { \
+        LOGERR("No argument '%s' or it has incorrect type", name); \
+        returnResponse(false); \
     }
 
-#define sendNotify(event,params)\
-    std::string json;\
-    params.ToString(json);\
-    LOGINFO("Notify %s %s", event, json.c_str());\
-    Notify(event,params);
-
-#define getNumberParameter(paramName, param) {\
-    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
-        param = parameters[paramName].Number();\
-    else\
-        try { param = std::stoi( parameters[paramName].String()); }\
-        catch (...) { param = 0; }\
+#define sendNotify(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s %s", event, json.c_str()); \
+    Notify(event,params); \
 }
 
-#define getDefaultNumberParameter(paramName, param, default) {\
+#define getNumberParameter(paramName, param) { \
+    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+        param = parameters[paramName].Number(); \
+    else \
+        try { param = std::stoi( parameters[paramName].String()); } \
+        catch (...) { param = 0; } \
+}
+
+#define getDefaultNumberParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
         if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
             param = parameters[paramName].Number(); \
@@ -128,36 +133,48 @@
     } else param = default; \
 }
 
-#define getNumberParameterObject(parameters, paramName, param) {\
+#define getDefaultStringParameter(paramName, param, default) { \
+    if (parameters.HasLabel(paramName)) { \
+        if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
+            param = parameters[paramName].String(); \
+        else \
+            param = default; \
+    } else param = default; \
+}
+
+#define getNumberParameterObject(parameters, paramName, param) { \
     if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
-        param = parameters[paramName].Number();\
-    else\
-        try {param = std::stoi( parameters[paramName].String());}\
-        catch (...) { param = 0; }\
+        param = parameters[paramName].Number(); \
+    else \
+        try {param = std::stoi( parameters[paramName].String());} \
+        catch (...) { param = 0; } \
 }
 
-#define getBoolParameter(paramName, param) {\
+#define getBoolParameter(paramName, param) { \
     if (Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
-        param = parameters[paramName].Boolean();\
-    else\
-        param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1";\
+        param = parameters[paramName].Boolean(); \
+    else \
+        param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
 }
 
-#define getStringParameter(paramName, param) {\
+#define getStringParameter(paramName, param) { \
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
-        param = parameters[paramName].String();\
+        param = parameters[paramName].String(); \
 }
 
-#define IARM_CHECK(FUNC) \
-  if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
-    LOGINFO("IARM %s: %s", #FUNC, \
-        res == IARM_RESULT_INVALID_PARAM ? "invalid param" : ( \
-        res == IARM_RESULT_INVALID_STATE ? "invalid state" : ( \
-        res == IARM_RESULT_IPCCORE_FAIL ? "ipcore fail" : ( \
-        res == IARM_RESULT_OOM ? "oom" : "unknown")))); \
-  } else { \
-    LOGINFO("IARM %s: success", #FUNC); \
-  }
+#define IARM_CHECK(FUNC) { \
+    if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
+        LOGINFO("IARM %s: %s", #FUNC, \
+            res == IARM_RESULT_INVALID_PARAM ? "invalid param" : ( \
+            res == IARM_RESULT_INVALID_STATE ? "invalid state" : ( \
+            res == IARM_RESULT_IPCCORE_FAIL ? "ipcore fail" : ( \
+            res == IARM_RESULT_OOM ? "oom" : "unknown")))); \
+    } \
+    else \
+    { \
+        LOGINFO("IARM %s: success", #FUNC); \
+    } \
+}
 
 namespace Utils
 {
@@ -318,6 +335,13 @@ namespace Utils
         static std::string m_sToken;
         static bool m_sThunderSecurityChecked;
     };
+
+    // Thunder Plugin Communication
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
+
+    void activatePlugin(const char* callSign);
+
+    bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }
