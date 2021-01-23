@@ -21,12 +21,12 @@ SecurityAgent plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the SecurityAgent plugin. It includes detailed specification of its configuration and methods provided.
+This document describes purpose and functionality of the SecurityAgent plugin. It includes detailed specification about its configuration and methods provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -73,7 +73,10 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *SecurityAgent*) |
 | classname | string | Class name: *SecurityAgent* |
 | locator | string | Library name: *libWPEFrameworkSecurityAgent.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object | <sup>*(optional)*</sup>  |
+| configuration?.acl | string | <sup>*(optional)*</sup> ACL |
+| configuration?.connector | string | <sup>*(optional)*</sup> Connector |
 
 <a name="head.Methods"></a>
 # Methods
@@ -86,6 +89,7 @@ SecurityAgent interface methods:
 | :-------- | :-------- |
 | [createtoken](#method.createtoken) | Creates Token |
 | [validate](#method.validate) | Validates Token |
+
 
 <a name="method.createtoken"></a>
 ## *createtoken <sup>method</sup>*
@@ -134,6 +138,7 @@ Create a signed JsonWeb token from provided payload.
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -145,6 +150,7 @@ Create a signed JsonWeb token from provided payload.
     }
 }
 ```
+
 <a name="method.validate"></a>
 ## *validate <sup>method</sup>*
 
@@ -187,6 +193,7 @@ Checks whether the token is valid and properly signed.
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -198,3 +205,4 @@ Checks whether the token is valid and properly signed.
     }
 }
 ```
+

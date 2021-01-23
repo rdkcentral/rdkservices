@@ -383,22 +383,26 @@ bool findCaseInsensitive(std::string data, std::string toSearch, size_t pos)
 
 /***
  * @brief	: To retrieve Xconf version of URL to override
+ * @param1[out]	: bFileExists - Returns true if /opt/swupdate.conf is present
  * @return	: string
  */
-string getXconfOverrideUrl(void)
+string getXconfOverrideUrl(bool& bFileExists)
 {
     string xconfUrl = "";
     vector<string> lines;
+    bFileExists = false;
 
     if (!Utils::fileExists(XCONF_OVERRIDE_FILE)) {
         return xconfUrl;
     }
 
+    bFileExists = true;
+
     if (getFileContent(XCONF_OVERRIDE_FILE, lines)) {
         if (lines.size()) {
             for (int i = 0; i < (int)lines.size(); ++i) {
                 string line = lines.at(i);
-                if (!line.rfind("#", 0)) {
+                if (!line.empty() && (line[0] != '#')) {
                     xconfUrl = line;
                 }
             }

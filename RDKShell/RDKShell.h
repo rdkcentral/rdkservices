@@ -94,6 +94,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
+            static const string RDKSHELL_METHOD_SHOW_WATERMARK;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
@@ -120,6 +121,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
+            void notify(const std::string& event, const JsonObject& parameters);
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -171,14 +173,14 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
-            void notify(const std::string& event, const JsonObject& parameters);
-
+            
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
             RDKShell& operator=(const RDKShell&) = delete;
@@ -199,7 +201,7 @@ namespace WPEFramework {
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
-            bool createDisplay(const string& client, const string& displayName);
+            bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
@@ -215,12 +217,13 @@ namespace WPEFramework {
             bool removeAnimation(const string& client);
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
-            bool setInactivityInterval(const string interval);
+            bool setInactivityInterval(const uint32_t interval);
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
+            bool showWatermark(const bool enable);
             void killAllApps();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
@@ -300,5 +303,21 @@ namespace WPEFramework {
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
         };
+
+        class PluginStateChangeData
+        {
+           public:
+                PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell);
+                ~PluginStateChangeData();
+                void onStateChangeEvent(const JsonObject& params);
+                void enableLaunch(bool enable);
+
+           private:
+                std::string mCallSign;
+                std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mPluginConnection;
+                RDKShell& mRDKShell;
+                bool mLaunchEnabled;
+        };
+
     } // namespace Plugin
 } // namespace WPEFramework
