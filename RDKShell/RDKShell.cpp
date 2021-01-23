@@ -110,12 +110,15 @@ bool receivedResolutionRequest = false;
 bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
-vector<std::string> gActivePlugins;
 static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
+
 #define RDKSHELL_POWER_TIME_WAIT 2.5
+#define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
+
+static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 
 enum RDKShellLaunchType
 {
@@ -128,6 +131,10 @@ enum RDKShellLaunchType
 
 namespace WPEFramework {
     namespace Plugin {
+
+        vector<std::string> gActivePlugins;
+
+        std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -151,6 +158,7 @@ namespace WPEFramework {
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
+        std::mutex gPluginDataMutex;
 
         static std::thread shellThread;
 
@@ -174,7 +182,9 @@ namespace WPEFramework {
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
+                       gPluginDataMutex.lock();
                        gActivePlugins.push_back(service->Callsign());
+                       gPluginDataMutex.unlock();
                    }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
@@ -204,6 +214,7 @@ namespace WPEFramework {
                         gRdkShellMutex.unlock();
                     }
                     
+                    gPluginDataMutex.lock();
                     std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
                     for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
                     {
@@ -217,6 +228,18 @@ namespace WPEFramework {
                     {
                       gActivePlugins.erase(pluginToRemove);
                     }
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                    if (pluginStateChangeEntry != gPluginsEventListener.end())
+                    {
+                        PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                        if (nullptr != stateChangeData)
+                        {
+                            delete stateChangeData;
+                        }
+                        pluginStateChangeEntry->second = nullptr;
+                        gPluginsEventListener.erase(pluginStateChangeEntry);
+                    }
+                    gPluginDataMutex.unlock();
                 }
             }
         }
@@ -373,6 +396,11 @@ namespace WPEFramework {
             });
 
             service->Register(mClientsMonitor);
+            char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
+            if (NULL != thunderAccessValue)
+            {
+                gThunderAccessValue = thunderAccessValue;
+            }
             return "";
         }
 
@@ -392,7 +420,7 @@ namespace WPEFramework {
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             return thunderClient;
         }
@@ -400,14 +428,14 @@ namespace WPEFramework {
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getPackagerPlugin()
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "", false, query);
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
         {
             string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "", false, query);
         }
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
@@ -893,7 +921,17 @@ namespace WPEFramework {
                 //optional param?
                 const JsonArray modifiers = parameters.HasLabel("modifiers") ? parameters["modifiers"].Array() : JsonArray();
 
-                const uint32_t keyCode = parameters["keyCode"].Number();
+                uint32_t keyCode = parameters["keyCode"].Number();
+                // check for * parameter
+                JsonValue keyCodeValue = parameters["keyCode"];
+                if (keyCodeValue.Content() == JsonValue::type::STRING)
+                {
+                    std::string keyCodeStringValue = parameters["keyCode"].String();
+                    if (keyCodeStringValue.compare("*") == 0)
+                    {
+                        keyCode = 255;
+                    }
+                }
                 string client;
                 if (parameters.HasLabel("client"))
                 {
@@ -1169,7 +1207,18 @@ namespace WPEFramework {
                 {
                     displayName = parameters["displayName"].String();
                 }
-                result = createDisplay(client, displayName);
+                uint32_t displayWidth = 0;
+                if (parameters.HasLabel("displayWidth"))
+                {
+                    displayWidth = parameters["displayWidth"].Number();
+                }
+                uint32_t displayHeight = 0;
+                if (parameters.HasLabel("displayHeight"))
+                {
+                    displayHeight = parameters["displayHeight"].Number();
+                }
+
+                result = createDisplay(client, displayName, displayWidth, displayHeight);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -2098,6 +2147,7 @@ namespace WPEFramework {
                     }
                 }
 
+                bool deferLaunch = false;
                 if (status > 0)
                 {
                     result = false;
@@ -2160,6 +2210,24 @@ namespace WPEFramework {
                             std::cout << "unable to move behind " << behind << std::endl;
                         }
                     }
+
+                    gPluginDataMutex.lock();
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
+                    if (pluginStateChangeEntry == gPluginsEventListener.end())
+                    {
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion);
+                        PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, this);
+                        gPluginsEventListener[callsign] = data;
+                        remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
+                    }
+                    else
+                    {
+                        PluginStateChangeData* data = pluginStateChangeEntry->second;    
+                        data->enableLaunch(true);
+                        deferLaunch = true;
+                    }
+                    gPluginDataMutex.unlock();
+ 
                     if (setSuspendResumeStateOnLaunch)
                     {
                         if (suspend)
@@ -2241,7 +2309,14 @@ namespace WPEFramework {
                             break;
                     }
                     std::cout << "Application:" << callsign << " took " << (RdkShell::seconds() - launchStartTime)*1000 << " milliseconds to launch " << std::endl;
-                    onLaunched(callsign, launchTypeString);
+                    if (setSuspendResumeStateOnLaunch && deferLaunch && ((launchType == SUSPEND) || (launchType == RESUME)))
+                    {
+                        std::cout << "deferring application launch " << std::endl;
+                    }
+                    else
+                    {
+                        onLaunched(callsign, launchTypeString);
+                    }
                     response["launchType"] = launchTypeString;
                 }
                 
@@ -2943,6 +3018,7 @@ namespace WPEFramework {
 
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
+            gPluginDataMutex.lock();
             for (auto pluginName : gActivePlugins)
             {
                 if (pluginName == callsign)
@@ -2952,6 +3028,7 @@ namespace WPEFramework {
                     break;
                 }
             }
+            gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
             {
                 std::cout << "factory app is arleady running, do nothing";
@@ -2997,6 +3074,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
+            gPluginDataMutex.lock();
             for (auto pluginName : gActivePlugins)
             {
                 if (pluginName == callsign)
@@ -3006,6 +3084,7 @@ namespace WPEFramework {
                     break;
                 }
             }
+            gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
             {
                 launchResidentAppWrapper(parameters, response);
@@ -3132,19 +3211,45 @@ namespace WPEFramework {
         bool RDKShell::addKeyListeners(const string& client, const JsonArray& keys)
         {
             gRdkShellMutex.lock();
+
+            bool result = true;
+
             for (int i=0; i<keys.Length(); i++) {
+
+                result = false;
                 const JsonObject& keyInfo = keys[i].Object();
-                if (keyInfo.HasLabel("keyCode"))
+
+                if (keyInfo.HasLabel("keyCode") && keyInfo.HasLabel("nativeKeyCode"))
                 {
-                    std::string keystring = keyInfo["keyCode"].String();
+                    std::cout << "ERROR: keyCode and nativeKeyCode can't be set both at the same time" << std::endl;
+                }
+                else if (keyInfo.HasLabel("keyCode") || keyInfo.HasLabel("nativeKeyCode"))
+                {
                     uint32_t keyCode = 0;
-                    if (keystring.compare("*") == 0)
+
+                    if (keyInfo.HasLabel("keyCode"))
                     {
-                      keyCode = ANY_KEY;
+                        std::string keystring = keyInfo["keyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["keyCode"].Number();
+                        }
                     }
                     else
                     {
-                      keyCode = keyInfo["keyCode"].Number();
+                        std::string keystring = keyInfo["nativeKeyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                            keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                            keyCode = keyInfo["nativeKeyCode"].Number();
+                        }
                     }
                     const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
                     uint32_t flags = 0;
@@ -3162,40 +3267,100 @@ namespace WPEFramework {
                         bool propagate = keyInfo["propagate"].Boolean();
                         properties["propagate"] = propagate;
                     }
-                    CompositorController::addKeyListener(client, keyCode, flags, properties);
+
+                    if (keyInfo.HasLabel("keyCode"))
+                    {
+                        result = CompositorController::addKeyListener(client, keyCode, flags, properties);
+                    }
+                    else
+                    {
+                        result = CompositorController::addNativeKeyListener(client, keyCode, flags, properties);
+                    }
+                }
+                else
+                {
+                    std::cout << "ERROR: Neither keyCode nor nativeKeyCode provided" << std::endl;
+                }
+
+                if (result == false)
+                {
+                    break;
                 }
             }
             gRdkShellMutex.unlock();
-            return true;
+            return result;
         }
 
         bool RDKShell::removeKeyListeners(const string& client, const JsonArray& keys)
         {
             gRdkShellMutex.lock();
+
+            bool result = true;
+
             for (int i=0; i<keys.Length(); i++) {
+
+                result = false;
                 const JsonObject& keyInfo = keys[i].Object();
-                if (keyInfo.HasLabel("keyCode"))
+
+                if (keyInfo.HasLabel("keyCode") && keyInfo.HasLabel("nativeKeyCode"))
                 {
-                    std::string keystring = keyInfo["keyCode"].String();
+                    std::cout << "ERROR: keyCode and nativeKeyCode can't be set both at the same time" << std::endl;
+                }
+                else if (keyInfo.HasLabel("keyCode") || keyInfo.HasLabel("nativeKeyCode"))
+                {
                     uint32_t keyCode = 0;
-                    if (keystring.compare("*") == 0)
+                    if (keyInfo.HasLabel("keyCode"))
                     {
-                      keyCode = ANY_KEY;
+                        std::string keystring = keyInfo["keyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["keyCode"].Number();
+                        }
                     }
                     else
                     {
-                      keyCode = keyInfo["keyCode"].Number();
+                        std::string keystring = keyInfo["nativeKeyCode"].String();
+                        if (keystring.compare("*") == 0)
+                        {
+                          keyCode = ANY_KEY;
+                        }
+                        else
+                        {
+                          keyCode = keyInfo["nativeKeyCode"].Number();
+                        }
                     }
+
                     const JsonArray modifiers = keyInfo.HasLabel("modifiers") ? keyInfo["modifiers"].Array() : JsonArray();
                     uint32_t flags = 0;
                     for (int i=0; i<modifiers.Length(); i++) {
                       flags |= getKeyFlag(modifiers[i].String());
                     }
-                    CompositorController::removeKeyListener(client, keyCode, flags);
+
+                    if (keyInfo.HasLabel("keyCode"))
+                    {
+                        result = CompositorController::removeKeyListener(client, keyCode, flags);
+                    }
+                    else
+                    {
+                        result = CompositorController::removeNativeKeyListener(client, keyCode, flags);
+                    }
+                }
+                else
+                {
+                    std::cout << "ERROR: Neither keyCode nor nativeKeyCode provided" << std::endl;
+                }
+
+                if (result == false)
+                {
+                    break;
                 }
             }
             gRdkShellMutex.unlock();
-            return true;
+            return result;
         }
 
         bool RDKShell::injectKey(const uint32_t& keyCode, const JsonArray& modifiers)
@@ -3282,11 +3447,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::createDisplay(const string& client, const string& displayName)
+        bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight)
         {
             bool ret = false;
             gRdkShellMutex.lock();
-            ret = CompositorController::createDisplay(client, displayName);
+            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
@@ -3575,7 +3740,43 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             return ret;
         }
-      
+
+        PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell):mCallSign(callsign), mRDKShell(*rdkshell)
+        {
+            mPluginConnection = pluginConnection;
+            mLaunchEnabled = false;
+        }
+
+        PluginStateChangeData::~PluginStateChangeData()
+        {
+            mPluginConnection = nullptr;
+        }
+
+        void PluginStateChangeData::enableLaunch(bool enable)
+        {
+            mLaunchEnabled = enable;
+        }
+
+        void PluginStateChangeData::onStateChangeEvent(const JsonObject& params)
+        {
+            bool isSuspended = params["suspended"].Boolean();
+            if (mLaunchEnabled)
+            {
+               JsonObject params;
+               params["client"] = mCallSign;
+               params["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               mLaunchEnabled = false;
+            }
+
+            if (isSuspended)
+            {
+                JsonObject params;
+                params["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+            }
+        }
+
         bool RDKShell::showWatermark(const bool enable)
         {
             bool ret = true;

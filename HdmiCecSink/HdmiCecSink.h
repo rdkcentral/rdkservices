@@ -499,6 +499,8 @@ private:
 			void printDeviceList();
 			void setStreamPath( const PhysicalAddress &physical_addr);
 			void setRoutingChange(const std::string &from, const std::string &to);
+			void setCurrentLanguage(const Language &lang);
+			void sendMenuLanguage();
 			void setActiveSource(bool isResponse);
 			void requestActiveSource();
                         void startArc();
@@ -529,6 +531,7 @@ private:
 	    uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
+		
 			
             //End methods
             std::string logicalAddressDeviceType;

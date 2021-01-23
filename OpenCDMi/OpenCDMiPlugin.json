@@ -7,6 +7,60 @@
     "status": "production",
     "version": "1.0"
   },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Location."
+          },
+          "connector": {
+            "type": "string",
+            "description": "Connector."
+          },
+          "sharepath": {
+            "type": "string",
+            "description": "Sharepath."
+          },
+          "sharesize": {
+            "type": "string",
+            "description": "Sharesize."
+          },
+          "systems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "System properties.",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name"
+                },
+                "designators": {
+                  "type": "array",
+                  "items": {
+                      "type": "object",
+                      "description": "designator",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+
+                        }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "List of key systems."
+          }
+        }
+      }
+    }
+  },
   "interface": {
     "$ref": "{interfacedir}/OCDM.json#"
   }

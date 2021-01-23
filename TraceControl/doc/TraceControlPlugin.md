@@ -21,12 +21,12 @@ TraceControl plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the TraceControl plugin. It includes detailed specification of its configuration and methods provided.
+This document describes purpose and functionality of the TraceControl plugin. It includes detailed specification about its configuration and methods provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -73,7 +73,14 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *TraceControl*) |
 | classname | string | Class name: *TraceControl* |
 | locator | string | Library name: *libWPEFrameworkTraceControl.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object | <sup>*(optional)*</sup>  |
+| configuration?.console | boolean | <sup>*(optional)*</sup> Enable console |
+| configuration?.syslog | boolean | <sup>*(optional)*</sup> Enable SysLog |
+| configuration?.abbreviated | boolean | <sup>*(optional)*</sup> Enable abbreviated logging |
+| configuration?.remotes | object | <sup>*(optional)*</sup>  |
+| configuration?.remotes?.port | number | <sup>*(optional)*</sup> Port |
+| configuration?.remotes?.bindig | bindig | <sup>*(optional)*</sup> Binding |
 
 <a name="head.Methods"></a>
 # Methods
@@ -87,6 +94,7 @@ TraceControl interface methods:
 | [status](#method.status) | Retrieves general information |
 | [set](#method.set) | Sets traces |
 
+
 <a name="method.status"></a>
 ## *status <sup>method</sup>*
 
@@ -94,7 +102,7 @@ Retrieves general information.
 
 ### Description
 
-Retrieves the actual trace status information for targeted module and category, if either category nor module is given, all information is returned.
+Retrieves the actual trace status information for targeted module and category, if either category nor module is given, all information is returned. It will retrieves the details about console status and remote address(port and binding address), if these are configured.
 
 ### Parameters
 
@@ -134,6 +142,7 @@ Retrieves the actual trace status information for targeted module and category, 
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -156,6 +165,7 @@ Retrieves the actual trace status information for targeted module and category, 
     }
 }
 ```
+
 <a name="method.set"></a>
 ## *set <sup>method</sup>*
 
@@ -196,6 +206,7 @@ Disables/enables all/select category traces for particular module.
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -205,3 +216,4 @@ Disables/enables all/select category traces for particular module.
     "result": null
 }
 ```
+
