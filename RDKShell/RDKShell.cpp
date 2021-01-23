@@ -110,7 +110,6 @@ bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 bool gRdkShellSurfaceModeEnabled = false;
-vector<std::string> gActivePlugins;
 static std::string sThunderSecurityToken;
 
 #define ANY_KEY 65536
