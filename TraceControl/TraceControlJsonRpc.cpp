@@ -97,6 +97,7 @@ namespace Plugin {
                 }
             }
         }
+        _observer.Relinquish();
 
         return result;
     }
@@ -112,6 +113,7 @@ namespace Plugin {
             (params.Module.IsSet() == true ? params.Module.Value() : std::string(EMPTY_STRING)),
             (params.Category.IsSet() == true ? params.Category.Value() : std::string(EMPTY_STRING)));
 
+        _observer.Relinquish();
         return result;
     }
 } // namespace Plugin

@@ -41,6 +41,7 @@
 #include "sysMgr.h"
 #include "cSettings.h"
 #include "cTimer.h"
+#include "rfcapi.h"
 
 /* System Services Triggered Events. */
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
@@ -51,6 +52,7 @@
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 
 namespace WPEFramework {
     namespace Plugin {
@@ -97,6 +99,7 @@ namespace WPEFramework {
                 static const string MODEL_NAME;
                 static const string HARDWARE_ID;
 
+                enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
                 // We do not allow this plugin to be copied !!
                 SystemServices(const SystemServices&) = delete;
                 SystemServices& operator=(const SystemServices&) = delete;
@@ -139,6 +142,7 @@ namespace WPEFramework {
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
+                void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -179,6 +183,9 @@ namespace WPEFramework {
                 uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
+#ifdef ENABLE_DEEP_SLEEP
+		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+#endif
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
@@ -209,6 +216,9 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+                uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

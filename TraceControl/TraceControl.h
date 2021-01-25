@@ -130,18 +130,16 @@ namespace Plugin {
                     , _state(EMPTY)
                 {
                     if (_connection != nullptr) {
-                        TRACE_L1("Constructing TraceControl::Source (%d)", connection->Id());
+                        TRACE(Trace::Information, (_T("Constructing TraceControl::Source (%d)"), connection->Id()));
                         _connection->AddRef();
                     }
                 }
                 ~Source()
                 {
                     if (_connection != nullptr) {
-                        TRACE_L1("Destructing TraceControl::Source (%d)", _connection->Id());
-                        if (_iterator != nullptr) {
-                            _iterator->Release();
-                            _iterator = nullptr;
-                        }
+                        TRACE(Trace::Information, (_T("Destructing TraceControl::Source (%d)"), _connection->Id()));
+
+                        Relinquish();
                         _connection->Release();
                         _connection = nullptr;
                     }
@@ -152,7 +150,7 @@ namespace Plugin {
                 {
                     return (_connection != nullptr ? _connection->Id() : 0);
                 }
-                void Relinguish()
+                void Relinquish()
                 {
                     if (_connection != nullptr) {
                         if (_iterator != nullptr) {
@@ -217,7 +215,7 @@ namespace Plugin {
 
                         if (length < 2) {
                             // Didn't even get enough data to read entry size. This is impossible, fallback to failure.
-                            TRACE_L1("Inconsistent trace dump. Need to flush. %d", length);
+                            TRACE(Trace::Error, (_T("Inconsistent trace dump. Need to flush. %d"), length));
                             _state = FAILURE;
                         } else {
                             // TODO: This is platform dependend, needs to ba agnostic to the platform.
@@ -505,7 +503,6 @@ namespace Plugin {
                                 }
                             }
                         }
-
                         index++;
                     }
 
@@ -565,6 +562,7 @@ namespace Plugin {
             {
                 ASSERT(_refcount == 0);
                 ASSERT(_buffers.size() == 0);
+                _traceControl.Relinquish();
                 Wait(Thread::BLOCKED | Thread::STOPPED | Thread::STOPPING, Core::infinite);
             }
 
@@ -644,7 +642,7 @@ namespace Plugin {
                 std::map<const uint32_t, Source*>::iterator index(_buffers.begin());
 
                 while (index != _buffers.end()) {
-                    index->second->Relinguish();
+                    index->second->Relinquish();
                     index++;
                 }
 

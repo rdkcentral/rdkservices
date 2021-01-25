@@ -18,14 +18,29 @@
 set(PLUGIN_NAME Monitor)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_WEBKITBROWSER_MEMORYLIMIT "614400" CACHE STRING "monitor webkit memory limit")
-set(PLUGIN_YOUTUBE_MEMORYLIMIT "614400" CACHE STRING "monitor youtube memory limit")
-set(PLUGIN_COBALT_MEMORYLIMIT "614400" CACHE STRING "monitor cobalt memory limit")
-set(PLUGIN_AMAZON_MEMORYLIMIT "614400" CACHE STRING "monitor amazon  memory limit")
-set(PLUGIN_APPS_MEMORYLIMIT "614400" CACHE STRING "monitor apps memory limit")
-set(PLUGIN_UX_MEMORYLIMIT "614400" CACHE STRING "monitor ux memory limit")
-set(PLUGIN_NETFLIX_MEMORYLIMIT "614400" CACHE STRING "monitor netflix memory limit")
-set(PLUGIN_RESIDENT_APP_MEMORYLIMIT "614400" CACHE STRING "monitor resident app memory limit")
+# Plugins built from this repository that can be autmatically enabled or enabled manually when built externally
+set(PLUGIN_MONITOR_WEBKITBROWSER "${PLUGIN_WEBKITBROWSER}" CACHE BOOL "Enable monitor for the WebKitBrowser plugin")
+set(PLUGIN_MONITOR_WEBKITBROWSER_APPS "${PLUGIN_WEBKITBROWSER_APPS}" CACHE BOOL "Enable monitor for the WebKitBrowser Apps plugin")
+set(PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP "${PLUGIN_WEBKITBROWSER_RESIDENT_APP}" CACHE BOOL "Enable monitor for the WebKitBrowser Resident App plugin")
+set(PLUGIN_MONITOR_WEBKITBROWSER_UX "${PLUGIN_WEBKITBROWSER_UX}" CACHE BOOL "Enable monitor for the WebKitBrowser UX plugin")
+set(PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE "${PLUGIN_WEBKITBROWSER_YOUTUBE}" CACHE BOOL "Enable monitor for the WebKitBrowser Youtube plugin")
+set(PLUGIN_MONITOR_OPENCDMI "${PLUGIN_OPENCDMI}" CACHE BOOL "Enable monitor for the OpenCDMI plugin")
+
+# Plugins built from outside of this repository have to be enabled manually
+set(PLUGIN_MONITOR_COBALT OFF CACHE BOOL "Enable monitor for the Cobalt plugin")
+set(PLUGIN_MONITOR_NETFLIX OFF CACHE BOOL "Enable monitor for the Netflix plugin")
+set(PLUGIN_MONITOR_OUTOFPROCESS OFF CACHE BOOL "Enable monitor for the OutOfProcess plugin")
+set(PLUGIN_MONITOR_TESTUTILITY OFF CACHE BOOL "Enable monitor for the TestUtility plugin")
+
+# Options for each plugin
+set(PLUGIN_MONITOR_WEBKITBROWSER_MEMORYLIMIT "614400" CACHE STRING "monitor webkit memory limit")
+set(PLUGIN_MONITOR_YOUTUBE_MEMORYLIMIT "614400" CACHE STRING "monitor youtube memory limit")
+set(PLUGIN_MONITOR_COBALT_MEMORYLIMIT "614400" CACHE STRING "monitor cobalt memory limit")
+set(PLUGIN_MONITOR_AMAZON_MEMORYLIMIT "614400" CACHE STRING "monitor amazon  memory limit")
+set(PLUGIN_MONITOR_APPS_MEMORYLIMIT "614400" CACHE STRING "monitor apps memory limit")
+set(PLUGIN_MONITOR_UX_MEMORYLIMIT "614400" CACHE STRING "monitor ux memory limit")
+set(PLUGIN_MONITOR_NETFLIX_MEMORYLIMIT "614400" CACHE STRING "monitor netflix memory limit")
+set(PLUGIN_MONITOR_RESIDENT_APP_MEMORYLIMIT "614400" CACHE STRING "monitor resident app memory limit")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)

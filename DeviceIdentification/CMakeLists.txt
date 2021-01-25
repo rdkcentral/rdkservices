@@ -45,9 +45,23 @@ elseif (NEXUS_FOUND)
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
-    target_sources(${MODULE_NAME} 
-        PRIVATE 
-            Implementation/Nexus/Nexus.cpp)
+    if (DEVICEIDENTIFICATION_IMPLEMENTATION_PATH)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                ${DEVICEIDENTIFICATION_IMPLEMENTATION_PATH}/Nexus.cpp)
+    else()
+        include(GetExternalCode)
+        set(DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION "master" CACHE STRING "DeviceIdentification implementation version")
+        set(DEVICEIDENTIFICATION_IMPLEMENTATION_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification" CACHE STRING "DeviceIdentification implementation repository")
+        GetExternalCode(
+            GIT_REPOSITORY ${DEVICEIDENTIFICATION_IMPLEMENTATION_REPOSITORY}
+            GIT_TAG ${DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION}
+            SOURCE_DIR "Implementation/Nexus"
+        )
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                Implementation/Nexus/Nexus.cpp)
+    endif()
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
