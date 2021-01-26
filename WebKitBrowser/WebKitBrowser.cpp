@@ -79,7 +79,6 @@ namespace Plugin {
             _service = nullptr;
         } else {
             RegisterAll();
-            Exchange::JWebBrowser::Register(*this, _browser);
         }
 
         return message;
@@ -98,7 +97,6 @@ namespace Plugin {
         _service->Unregister(&_notification);
         _browser->Unregister(&_notification);
         _memory->Release();
-        Exchange::JWebBrowser::Unregister(*this);
         UnregisterAll();
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
@@ -230,7 +228,7 @@ namespace Plugin {
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true, \"httpstatus\":") + Core::NumberType<int32_t>(code).Text() + string(" }"));
         TRACE(Trace::Information, (_T("LoadFinished: %s"), message.c_str()));
         _service->Notify(message);
-        Exchange::JWebBrowser::Event::LoadFinished(*this, URL, code);
+        event_loadfinished(URL, code);
         URLChange(URL, true);
     }
 
@@ -239,7 +237,7 @@ namespace Plugin {
         string message(string("{ \"url\": \"") + URL + string("\" }"));
         TRACE(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
         _service->Notify(message);
-        Exchange::JWebBrowser::Event::LoadFailed(*this, URL);
+        event_loadfailed(URL);
     }
 
     void WebKitBrowser::URLChange(const string& URL, bool loaded)
@@ -247,7 +245,7 @@ namespace Plugin {
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\": ") + (loaded ? string("true") : string("false")) + string(" }"));
         TRACE(Trace::Information, (_T("URLChanged: %s"), message.c_str()));
         _service->Notify(message);
-        Exchange::JWebBrowser::Event::URLChange(*this, URL, loaded);
+        event_urlchange(URL, loaded);
     }
 
     void WebKitBrowser::VisibilityChange(const bool hidden)
@@ -255,20 +253,20 @@ namespace Plugin {
         TRACE(Trace::Information, (_T("VisibilityChange: { \"hidden\": \"%s\"}"), (hidden ? "true" : "false")));
         string message(string("{ \"hidden\": ") + (hidden ? _T("true") : _T("false")) + string("}"));
         _service->Notify(message);
-        Exchange::JWebBrowser::Event::VisibilityChange(*this, hidden);
+        event_visibilitychange(hidden);
     }
 
     void WebKitBrowser::PageClosure()
     {
         TRACE(Trace::Information, (_T("Closure: \"true\"")));
         _service->Notify(_T("{\"Closure\": true }"));
-        Exchange::JWebBrowser::Event::PageClosure(*this);
+        event_pageclosure();
     }
 
     void WebKitBrowser::BridgeQuery(const string& message)
     {
         TRACE(Trace::Information, (_T("BridgeQuery: %s"), message.c_str()));
-        Exchange::JWebBrowser::Event::BridgeQuery(*this, message);
+        event_bridgequery(message);
     }
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)
