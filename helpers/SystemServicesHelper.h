@@ -33,7 +33,7 @@
 
 /* Status-keeper files */
 
-#if defined (PLATFORM_BROADCOM) || defined (PLATFORM_BROADCOM_REF) || defined (PLATFORM_REALTEK)
+#if defined (PLATFORM_BROADCOM) || defined (PLATFORM_BROADCOM_REF) || defined (PLATFORM_REALTEK) || defined (PLATFORM_AMLOGIC)
 #define SYSTEM_SERVICE_REBOOT_INFO_FILE             "/opt/secure/reboot/reboot.info"
 #define SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE    "/opt/secure/reboot/previousreboot.info"
 #define SYSTEM_SERVICE_HARD_POWER_INFO_FILE         "/opt/secure/reboot/hardpower.info"
@@ -223,9 +223,10 @@ bool findCaseInsensitive(std::string data, std::string toSearch, size_t pos = 0)
 
 /***
  * @brief	: To retrieve Xconf version of URL to override
+ * @param1[out]	: bFileExists - Returns true if /opt/swupdate.conf is present
  * @return	: string
  */
-string getXconfOverrideUrl(void);
+string getXconfOverrideUrl(bool& bFileExists);
 
 /***
  * @brief	: To retrieve TimeZone

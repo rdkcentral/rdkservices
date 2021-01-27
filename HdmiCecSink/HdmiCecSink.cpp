@@ -108,6 +108,7 @@ static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defau
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
 static LogicalAddress logicalAddress = 0xF;
+static Language defaultLanguage = "eng";
 static OSDName osdName = "TV Box";
 static int32_t powerState = 1;
 
@@ -278,6 +279,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GetMenuLanguage\n");
+			 HdmiCecSink::_instance->sendMenuLanguage();  
        }
        void HdmiCecSinkProcessor::process (const ReportPhysicalAddress &msg, const Header &header)
        {
@@ -421,6 +423,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
+
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
@@ -961,7 +964,18 @@ namespace WPEFramework
 	   }
 		
 
+	   uint32_t HdmiCecSink::setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response)
+       {
+        	std::string lang;
 
+			returnIfParamNotFound(parameters, "language");
+
+			lang = parameters["language"].String();
+
+			setCurrentLanguage(Language(lang.data()));
+			sendMenuLanguage();
+			returnResponse(true);
+	   }
 	   
 
         uint32_t HdmiCecSink::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1377,7 +1391,35 @@ namespace WPEFramework
 			_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 		}
 
-		
+		void HdmiCecSink::setCurrentLanguage(const Language &lang)
+		{
+			if(!HdmiCecSink::_instance)
+				return;
+
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
+				LOGERR("Logical Address NOT Allocated");
+				return;
+			}
+
+			_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = lang;
+		}
+	
+		void HdmiCecSink::sendMenuLanguage()
+		{
+			Language lang = "NA";
+			if(!HdmiCecSink::_instance)
+				return;
+
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
+				LOGERR("Logical Address NOT Allocated");
+				return;
+			}
+
+			lang = _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage;
+
+			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(SetMenuLanguage(lang)), 5000);	
+		}
+
 		void HdmiCecSink::updateInActiveSource(const int logical_address, const InActiveSource &source )
 		{
 			JsonObject params;
@@ -1868,6 +1910,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 5000);	
