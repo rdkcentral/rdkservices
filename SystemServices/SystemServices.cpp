@@ -1240,10 +1240,12 @@ namespace WPEFramework {
             if (CURLE_OK == res) {
                 LOGINFO("curl response '%s'\n", response.c_str());
                 JsonObject httpResp;
-                httpResp.FromString(response.c_str());
-                _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
-                LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
-                _fwUpdate.success = true;
+                if(httpResp.FromString(response.c_str()) && httpResp.HasLabel("firmwareVersion"))
+                {
+                    _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
+                    LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
+                    _fwUpdate.success = true;
+                }
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
