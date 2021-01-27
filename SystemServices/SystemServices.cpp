@@ -2822,9 +2822,19 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response)
         {
-            bool status = true;
+            bool status = false;
             bool isPowerStateManagedByDevice = true;
+            char *env_var= getenv("RDK_NO_ACTION_ON_POWER_KEY");
+            if (env_var)
+            {
+                int isPowerStateManagedByDeviceValue = atoi(env_var);
+                if (1 == isPowerStateManagedByDeviceValue)
+                {
+                    isPowerStateManagedByDevice = false;
+                }
+            }
             response["powerStateManagedByDevice"] = isPowerStateManagedByDevice;
+            status = true;
             returnResponse(status);
         }
 
