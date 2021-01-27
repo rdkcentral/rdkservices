@@ -99,6 +99,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
+            static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
+            static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
 
             // events
@@ -177,6 +179,8 @@ namespace WPEFramework {
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
             
         private/*internal methods*/:
@@ -223,6 +227,8 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             void killAllApps();
+            bool enableKeyRepeats(const bool enable);
+            bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");

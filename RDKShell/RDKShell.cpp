@@ -82,6 +82,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
@@ -302,6 +304,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
         }
 
@@ -3125,6 +3129,38 @@ namespace WPEFramework {
                 launchFactoryAppWrapper(parameters, response);
             }
         }
+
+        uint32_t RDKShell::enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              bool enable = parameters["enable"].Boolean();
+              result = enableKeyRepeats(enable);
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false, enable=false;
+            result = getKeyRepeatsEnabled(enable);
+            if (false == result) {
+              response["message"] = "failed to get key repeats";
+            }
+            else {
+              response["keyRepeat"] = enable;
+            }
+            returnResponse(result);
+        }
+
         // Registered methods begin
 
         // Events begin
@@ -3761,6 +3797,25 @@ namespace WPEFramework {
             }
             memoryInfo.Add(memoryDetails);
             return true;
+        }
+
+
+        bool RDKShell::getKeyRepeatsEnabled(bool& enable)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getKeyRepeatsEnabled(enable);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::enableKeyRepeats(const bool enable)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::enableKeyRepeats(enable);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         bool RDKShell::setTopmost(const string& callsign, const bool topmost)
