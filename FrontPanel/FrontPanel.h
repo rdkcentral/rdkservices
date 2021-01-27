@@ -100,6 +100,7 @@ namespace WPEFramework {
             bool setLED(const JsonObject& properties);
             void setBlink(const JsonObject& blinkInfo);
             void set24HourClock(bool is24Hour);
+            void setPowerStatus(bool status);
             bool is24HourClock();
             void setClockTestPattern(bool show);
 
@@ -118,6 +119,7 @@ namespace WPEFramework {
             uint32_t setLEDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setBlinkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t set24HourClockWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setPowerStatusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t is24HourClockWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setClockTestPatternWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods

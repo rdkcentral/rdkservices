@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include "tptimer.h"
 #include "AbstractPlugin.h"
 #include "libIBus.h"
 #include "irMgr.h"
@@ -47,6 +49,13 @@ namespace WPEFramework {
             typedef Core::JSON::ArrayType<JString> JStringArray;
             typedef Core::JSON::Boolean JBool;
 
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            std::vector<std::string> tvZoomSettings;
+#endif
+            std::string getZoomSettingConfig();
+            bool setZoomSettingConfig(std::string zoomSetting);
+            bool setZoomSetting(std::string zoomSetting);
+
             // We do not allow this plugin to be copied !!
             DisplaySettings(const DisplaySettings&) = delete;
             DisplaySettings& operator=(const DisplaySettings&) = delete;
@@ -54,6 +63,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t getConnectedVideoDisplays(const JsonObject& parameters, JsonObject& response);
             uint32_t getConnectedAudioPorts(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setEnableAudioPort (const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedResolutions(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedVideoDisplays(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedTvResolutions(const JsonObject& parameters, JsonObject& response);
@@ -61,7 +71,7 @@ namespace WPEFramework {
             uint32_t getSupportedAudioPorts(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedAudioModes(const JsonObject& parameters, JsonObject& response);
             uint32_t getZoomSetting(const JsonObject& parameters, JsonObject& response);
-            uint32_t setZoomSetting(const JsonObject& parameters, JsonObject& response);
+            uint32_t setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
@@ -75,6 +85,14 @@ namespace WPEFramework {
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
             //End methods
+            uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDolbyVolumeMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDialogEnhancement(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
@@ -102,6 +120,8 @@ namespace WPEFramework {
             uint32_t setVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLevel(const JsonObject& parameters, JsonObject& response);
             uint32_t setDRCMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
+            void InitAudioPorts();
             //End methods
 
             //Begin events
@@ -110,6 +130,9 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
+            void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
+	    void onARCInitiationEventHandler(const JsonObject& parameters);
+            void onARCTerminationEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
@@ -126,6 +149,19 @@ namespace WPEFramework {
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;
+
+	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getHdmiCecSinkPlugin();
+	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > m_client;
+	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
+	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
+	    void onTimer();
+
+	    TpTimer m_timer;
+            bool m_subscribed;
+            std::mutex m_callMutex;
+	    JsonObject m_audioOutputPortConfig;
+            JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
+
         public:
             static DisplaySettings* _instance;
 

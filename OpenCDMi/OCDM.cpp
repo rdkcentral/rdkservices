@@ -145,11 +145,11 @@ namespace Plugin {
 
         _opencdmi->Deinitialize(service);
 
-        if (_opencdmi->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        _opencdmi->Release();
 
-            ASSERT(_connectionId != 0);
+        if (_connectionId != 0) {
 
-            TRACE_L1("OCDM Plugin is not properly destructed. %d", _connectionId);
+            TRACE(Trace::Information, (_T("OCDM Plugin is not properly destructed. %d"), _connectionId));
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
@@ -211,13 +211,13 @@ namespace Plugin {
                 RPC::IStringIterator* systems(_opencdmi->Systems());
 
                 if (systems == nullptr) {
-                    TRACE_L1("Could not load the Systems. %d", __LINE__);
+                    TRACE(Trace::Error, (_T("Could not load the Systems. %d"), __LINE__));
                 } else {
                     string element;
                     while (systems->Next(element) == true) {
                         RPC::IStringIterator* index(_opencdmi->Designators(element));
                         if (index == nullptr) {
-                            TRACE_L1("Could not load the Designators. %d", __LINE__);
+                            TRACE(Trace::Error, (_T("Could not load the Designators. %d"), __LINE__));
                         } else {
                             data->Systems.Add(Data::System(systems->Current(), index));
                             index->Release();
@@ -245,7 +245,7 @@ namespace Plugin {
                         RPC::IStringIterator* entries(_opencdmi->Designators(index.Current().Text()));
 
                         if (entries == nullptr) {
-                            TRACE_L1("Could not load the Designators. %d", __LINE__);
+                            TRACE(Trace::Error, (_T("Could not load the Designators. %d"), __LINE__));
                         } else {
                             data->Name = index.Current().Text();
                             data->Load(entries);

@@ -18,3 +18,29 @@
  */
 
 #pragma once
+
+#include "Module.h"
+#include <interfaces/IMediaPlayer.h>
+
+namespace WPEFramework {
+    namespace Plugin {
+
+        class AampMediaPlayer : public Exchange::IMediaPlayer{
+
+        public:
+            AampMediaPlayer();
+            ~AampMediaPlayer() override;
+
+            AampMediaPlayer(const AampMediaPlayer&) = delete;
+            AampMediaPlayer& operator=(const AampMediaPlayer&) = delete;
+
+            // IMediaPlayer Interfaces
+            virtual Exchange::IMediaPlayer::IMediaStream* CreateStream(const string& id) override;
+
+            BEGIN_INTERFACE_MAP(AampMediaPlayer)
+            INTERFACE_ENTRY(Exchange::IMediaPlayer)
+            END_INTERFACE_MAP
+        };
+    } //Plugin
+} //WPEFramework
+

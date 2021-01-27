@@ -291,6 +291,10 @@ if(PLUGIN_USBACCESS)
     add_subdirectory(UsbAccess)
 endif()
 
+if(PLUGIN_FIREBOLTMEDIAPLAYER)
+    add_subdirectory(FireboltMediaPlayer)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

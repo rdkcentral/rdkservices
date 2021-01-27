@@ -19,6 +19,12 @@
  
 #include "PackagerImplementation.h"
 
+#ifdef INCLUDE_PACKAGER_EX
+
+  #include "PackagerExUtils.h"
+
+#endif
+
 #if defined (DO_NOT_USE_DEPRECATED_API)
 #include <opkg_cmd.h>
 #else
@@ -118,6 +124,15 @@ namespace Plugin {
     PackagerImplementation::~PackagerImplementation()
     {
         FreeOPKG();
+
+#ifdef INCLUDE_PACKAGER_EX
+
+  #ifdef USE_THREAD_POOL
+        PackagerExUtils::klllThreadQ(this);
+  #endif
+        TermPackageDB();
+#endif
+
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
@@ -281,7 +296,7 @@ namespace Plugin {
     void PackagerImplementation::NotifyStateChange()
     {
         _adminLock.Lock();
-        TRACE_L1("State for %s changed to %d (%d %%, %d)", _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode());
+        TRACE(Trace::Information, (_T("State for %s changed to %d (%d %%, %d)"), _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode()));
         for (auto* notification : _notifications) {
             notification->StateChange(_inProgress.Package, _inProgress.Install);
         }
@@ -297,6 +312,21 @@ namespace Plugin {
         }
         _adminLock.Unlock();
     }
+
+#ifdef INCLUDE_PACKAGER_EX
+
+    void PackagerImplementation::NotifyIntallStep(Exchange::IPackager::state status, uint32_t task /*= 0*/, string id /* = "" */, int32_t code /*= 0*/)
+    {
+        _adminLock.Lock();
+        _isSyncing = false;
+        for (auto* notification : _notifications)
+        {
+            notification->IntallStep(status, task, id, code);
+        }
+        _adminLock.Unlock();
+    }
+#endif
+
 
     bool PackagerImplementation::InitOPKG()
     {
@@ -342,7 +372,7 @@ namespace Plugin {
             if (opkg_update_package_lists(nullptr, nullptr) != 0)
 #endif
             {
-                TRACE_L1("Failed to set up local repo. Installing might not work");
+                TRACE(Trace::Error, (_T("Failed to set up local repo. Installing might not work")));
                 result = Core::ERROR_GENERAL;
             }
             NotifyRepoSynced(result);

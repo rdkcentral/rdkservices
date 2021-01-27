@@ -118,6 +118,29 @@ bool TTSConfiguration::isValid() {
     return true;
 }
 
+#if defined(PLATFORM_REALTEK)
+static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data)
+{
+    gchar *name, *element_name, *other_name;
+    GstElement *other = (GstElement *)data;
+    name = gst_pad_get_name (pad);
+    element_name = gst_element_get_name(element);
+    other_name = gst_element_get_name(other);
+    TTSLOG_INFO ("[cb] A new pad %s was created for %s\n", name, element_name);
+    g_free (name);
+    TTSLOG_INFO ("element %s will be linked to %s\n",
+            element_name,
+            other_name);
+    g_free (element_name);
+    g_free (other_name);
+    if(!gst_element_link(element, other))
+        TTSLOG_ERROR("[cb] failed to link elements..");
+    else
+        TTSLOG_INFO("[cb] elements link success..");
+}
+#endif
+
+
 // --- //
 
 TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
@@ -129,9 +152,10 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
-    main_loop(NULL),
-    main_context(NULL),
-    main_loop_thread(NULL),
+    m_audioVolume(NULL),
+    m_main_loop(NULL),
+    m_main_context(NULL),
+    m_main_loop_thread(NULL),
     m_pipelineError(false),
     m_networkError(false),
     m_runThread(true),
@@ -139,15 +163,17 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_flushed(false),
     m_isEOS(false),
     m_ensurePipeline(false),
-    m_gstThread(new std::thread(GStreamerThreadFunc, this)),
     m_busWatch(0),
     m_duration(0),
     m_pipelineConstructionFailures(0),
     m_maxPipelineConstructionFailures(INT_FROM_ENV("MAX_PIPELINE_FAILURE_THRESHOLD", 1)) {
+
         setenv("GST_DEBUG", "2", 0);
-        if (!gst_is_initialized())
-            gst_init(NULL,NULL);
-        this->main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
+        setenv("GST_REGISTRY_UPDATE", "no", 0);
+        setenv("GST_REGISTRY_FORK", "no", 0);
+
+        m_main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, this);
+        m_gstThread = new std::thread(GStreamerThreadFunc, this);
 }
 
 TTSSpeaker::~TTSSpeaker() {
@@ -162,9 +188,9 @@ TTSSpeaker::~TTSSpeaker() {
         m_gstThread = NULL;
     }
 
-    if(g_main_loop_is_running(this->main_loop))
-        g_main_loop_quit(this->main_loop);
-    g_thread_join(this->main_loop_thread);
+    if(g_main_loop_is_running(m_main_loop))
+        g_main_loop_quit(m_main_loop);
+    g_thread_join(m_main_loop_thread);
 }
 
 void TTSSpeaker::ensurePipeline(bool flag) {
@@ -366,12 +392,27 @@ void TTSSpeaker::createPipeline() {
 #if defined(PLATFORM_BROADCOM)
     GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_AMLOGIC)
     GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
     GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
+    m_audioVolume = m_audioSink;
+#elif defined(PLATFORM_REALTEK)
+    GstElement *decodebin = NULL;
+    GstElement *convert = NULL;
+    GstElement *resample = NULL;
+    GstCaps *audiocaps = NULL;
+    GstElement *audiofilter = NULL;
+
+    convert = gst_element_factory_make("audioconvert", NULL);
+    resample = gst_element_factory_make("audioresample", NULL);
+    audiofilter = gst_element_factory_make("capsfilter", NULL);
+    decodebin = gst_element_factory_make("decodebin", NULL);
+    m_audioVolume = gst_element_factory_make("volume", NULL);
+    m_audioSink = gst_element_factory_make("autoaudiosink", NULL);
 #endif
 
     std::string tts_url =
@@ -394,7 +435,7 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
-    g_object_set(G_OBJECT(m_audioSink), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
 
     // Add elements to pipeline and link
     bool result = TRUE;
@@ -409,6 +450,14 @@ void TTSSpeaker::createPipeline() {
     result &= gst_element_link (decodebin, convert);
     result &= gst_element_link (convert, resample);
     result &= gst_element_link (resample, m_audioSink);
+#elif defined(PLATFORM_REALTEK)
+    audiocaps = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, "rate", G_TYPE_INT, 48000, NULL);
+    g_object_set( G_OBJECT(audiofilter),  "caps",  audiocaps, NULL );
+
+    gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
+    gst_element_link (m_source, decodebin);
+    gst_element_link_many (convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+    g_signal_connect (decodebin, "pad-added", G_CALLBACK (cb_new_pad), convert);
 #endif
 
     if(!result) {
@@ -652,8 +701,8 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         m_currentSpeech = &data;
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
-        // PCM Sink seems to be accepting volume change before PLAYING state
-        g_object_set(G_OBJECT(m_audioSink), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
@@ -668,15 +717,17 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 void TTSSpeaker::event_loop(void *data)
 {
     TTSSpeaker *speaker= (TTSSpeaker*) data;
-    speaker->main_context = g_main_context_new();
-    speaker->main_loop = g_main_loop_new(NULL, false);
-    g_main_loop_run(speaker->main_loop);
+    speaker->m_main_context = g_main_context_new();
+    speaker->m_main_loop = g_main_loop_new(NULL, false);
+    g_main_loop_run(speaker->m_main_loop);
 }
 
 void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
+    TTSLOG_INFO("Starting GStreamerThread");
     TTSSpeaker *speaker = (TTSSpeaker*) ctx;
 
-    TTSLOG_INFO("Starting GStreamerThread");
+    if(!gst_is_initialized())
+        gst_init(NULL,NULL);
 
     while(speaker && speaker->m_runThread) {
         if(speaker->needsPipelineUpdate()) {
