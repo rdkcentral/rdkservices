@@ -1409,7 +1409,7 @@ namespace WPEFramework {
                         WPEFramework::Core::JSON::String visibilityString;
                         visibilityString = visible?"visible":"hidden";
                         const string callsignWithVersion = client + ".1";
-                        int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(2000, "visibility",visibilityString);
+                        int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
                         if (status > 0)
                         {
                             std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
