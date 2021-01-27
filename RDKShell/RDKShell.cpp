@@ -135,7 +135,8 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
-        std::map<std::string, PluginData> gActivePluginsData;
+        vector<std::string> gActivePlugins;
+
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
         uint32_t getKeyFlag(std::string modifier)
@@ -184,15 +185,8 @@ namespace WPEFramework {
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
-
                        gPluginDataMutex.lock();
-                       std::string className = service->ClassName();
-                       PluginData pluginData;
-                       pluginData.mClassName = className;
-                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
-                       {
-                           gActivePluginsData[service->Callsign()] = pluginData;
-                       }
+                       gActivePlugins.push_back(service->Callsign());
                        gPluginDataMutex.unlock();
                    }
                 }
@@ -222,12 +216,20 @@ namespace WPEFramework {
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
-
+                    
                     gPluginDataMutex.lock();
-                    std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
-                    if (pluginToRemove != gActivePluginsData.end())
+                    std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
+                    for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
                     {
-                        gActivePluginsData.erase(pluginToRemove);
+                      if ((*iter) == service->Callsign())
+                      {
+                        pluginToRemove = iter;
+                        break;
+                      }
+                    }
+                    if (pluginToRemove != gActivePlugins.end())
+                    {
+                      gActivePlugins.erase(pluginToRemove);
                     }
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                     if (pluginStateChangeEntry != gPluginsEventListener.end())
@@ -319,7 +321,7 @@ namespace WPEFramework {
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
-            gActivePluginsData.clear();
+            gActivePlugins.clear();
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -1407,25 +1409,6 @@ namespace WPEFramework {
                 const bool visible  = parameters["visible"].Boolean();
 
                 result = setVisibility(client, visible);
-
-                std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
-                if (pluginsEntry != gActivePluginsData.end())
-                {
-                    PluginData& pluginData = pluginsEntry->second;
-                    if (pluginData.mClassName.compare("WebKitBrowser") == 0)
-                    {
-                        WPEFramework::Core::JSON::String visibilityString;
-                        visibilityString = visible?"visible":"hidden";
-                        const string callsignWithVersion = client + ".1";
-                        int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
-                        if (status > 0)
-                        {
-                            std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
-                        }
-                    }
-                }
-
-
                 // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
                 // Also, we might not need a "non-wrapper" method at all, nothing prevents us from implementing it right here
 
@@ -1982,22 +1965,7 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
-                for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
-                {
-                    std::string pluginName = pluginDataEntry->first; 
-                    if (pluginName == callsign)
-                    {
-                      newPluginFound = true;
-                      break;
-                    }
-                    else if (pluginName == type)
-                    {
-                      originalPluginFound = true;
-                    }
-                }
-
                 uint32_t pluginsFound = 0;
-                if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
                     uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
@@ -2027,6 +1995,7 @@ namespace WPEFramework {
                     }
                     pluginsFound = availablePluginResult.Length();
                 }
+
                 if (!newPluginFound && !originalPluginFound)
                 {
                     std::cout << "number of types found: " << pluginsFound << std::endl;
