@@ -82,6 +82,9 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -132,8 +135,7 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
-        vector<std::string> gActivePlugins;
-
+        std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
         uint32_t getKeyFlag(std::string modifier)
@@ -182,8 +184,15 @@ namespace WPEFramework {
                        RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
+
                        gPluginDataMutex.lock();
-                       gActivePlugins.push_back(service->Callsign());
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[service->Callsign()] = pluginData;
+                       }
                        gPluginDataMutex.unlock();
                    }
                 }
@@ -213,20 +222,12 @@ namespace WPEFramework {
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
-                    
+
                     gPluginDataMutex.lock();
-                    std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
-                    for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
+                    std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                    if (pluginToRemove != gActivePluginsData.end())
                     {
-                      if ((*iter) == service->Callsign())
-                      {
-                        pluginToRemove = iter;
-                        break;
-                      }
-                    }
-                    if (pluginToRemove != gActivePlugins.end())
-                    {
-                      gActivePlugins.erase(pluginToRemove);
+                        gActivePluginsData.erase(pluginToRemove);
                     }
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                     if (pluginStateChangeEntry != gPluginsEventListener.end())
@@ -304,6 +305,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -315,7 +319,7 @@ namespace WPEFramework {
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
-            gActivePlugins.clear();
+            gActivePluginsData.clear();
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -1403,6 +1407,25 @@ namespace WPEFramework {
                 const bool visible  = parameters["visible"].Boolean();
 
                 result = setVisibility(client, visible);
+
+                std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
+                if (pluginsEntry != gActivePluginsData.end())
+                {
+                    PluginData& pluginData = pluginsEntry->second;
+                    if (pluginData.mClassName.compare("WebKitBrowser") == 0)
+                    {
+                        WPEFramework::Core::JSON::String visibilityString;
+                        visibilityString = visible?"visible":"hidden";
+                        const string callsignWithVersion = client + ".1";
+                        int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
+                        if (status > 0)
+                        {
+                            std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                        }
+                    }
+                }
+
+
                 // Just realized: we need one more string& param for the the error message in case setScreenResolution() fails internally
                 // Also, we might not need a "non-wrapper" method at all, nothing prevents us from implementing it right here
 
@@ -1885,6 +1908,7 @@ namespace WPEFramework {
                 bool scaleToFit = false;
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
+                bool topmost = false;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -1938,11 +1962,42 @@ namespace WPEFramework {
                 {
                     holePunch = parameters["holePunch"].Boolean();
                 }
+                if (parameters.HasLabel("topmost"))
+                {
+                    topmost = parameters["topmost"].Boolean();
+                    if (topmost)
+                    {
+                        std::string topmostClient;
+                        gRdkShellMutex.lock();
+                        bool topmostResult =  CompositorController::getTopmost(topmostClient);
+                        gRdkShellMutex.unlock();
+                        if (!topmostClient.empty())
+                        {
+                            response["message"] = "failed to launch application.  topmost application already present";
+                            returnResponse(false);
+                        }
+                    }
+                }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
+                for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
+                {
+                    std::string pluginName = pluginDataEntry->first; 
+                    if (pluginName == callsign)
+                    {
+                      newPluginFound = true;
+                      break;
+                    }
+                    else if (pluginName == type)
+                    {
+                      originalPluginFound = true;
+                    }
+                }
+
                 uint32_t pluginsFound = 0;
+                if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
                     uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
@@ -1972,7 +2027,6 @@ namespace WPEFramework {
                     }
                     pluginsFound = availablePluginResult.Length();
                 }
-
                 if (!newPluginFound && !originalPluginFound)
                 {
                     std::cout << "number of types found: " << pluginsFound << std::endl;
@@ -2256,6 +2310,7 @@ namespace WPEFramework {
                         setFocus(callsign);
                     }
 
+                    bool setTopmostResult = setTopmost(callsign, topmost);
                     JsonObject urlResult;
                     if (!uri.empty())
                     {
@@ -2675,7 +2730,42 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
-        uint32_t RDKShell::showWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t RDKShell::setTopmostWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client or callsign";
+            }
+            if (!parameters.HasLabel("topmost"))
+            {
+                result = false;
+                response["message"] = "please specify topmost (topmost = true/false)";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                const bool topmost = parameters["topmost"].Boolean();
+
+                result = setTopmost(client, topmost);
+                if (false == result) {
+                  response["message"] = "failed to set topmost";
+                }
+            }
+            returnResponse(result);
+        }
+
+      uint32_t RDKShell::showWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool result = true;
@@ -3045,6 +3135,38 @@ namespace WPEFramework {
                 launchFactoryAppWrapper(parameters, response);
             }
         }
+
+        uint32_t RDKShell::enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              bool enable = parameters["enable"].Boolean();
+              result = enableKeyRepeats(enable);
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false, enable=false;
+            result = getKeyRepeatsEnabled(enable);
+            if (false == result) {
+              response["message"] = "failed to get key repeats";
+            }
+            else {
+              response["keyRepeat"] = enable;
+            }
+            returnResponse(result);
+        }
+
         // Registered methods begin
 
         // Events begin
@@ -3683,6 +3805,33 @@ namespace WPEFramework {
             return true;
         }
 
+
+        bool RDKShell::getKeyRepeatsEnabled(bool& enable)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getKeyRepeatsEnabled(enable);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::enableKeyRepeats(const bool enable)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::enableKeyRepeats(enable);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setTopmost(const string& callsign, const bool topmost)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setTopmost(callsign, topmost);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
 
         PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell):mCallSign(callsign), mRDKShell(*rdkshell)
         {
