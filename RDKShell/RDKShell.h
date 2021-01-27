@@ -119,6 +119,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
             void notify(const std::string& event, const JsonObject& parameters);
+            void pluginEventHandler(const JsonObject& parameters);
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
