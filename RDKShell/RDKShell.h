@@ -101,6 +101,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
+            static const string RDKSHELL_METHOD_SET_TOPMOST;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -180,6 +181,7 @@ namespace WPEFramework {
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
             
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -227,6 +229,7 @@ namespace WPEFramework {
             void killAllApps();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
+            bool setTopmost(const string& callsign, const bool topmost);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -304,6 +307,10 @@ namespace WPEFramework {
             //std::mutex m_callMutex;
         };
 
+        struct PluginData
+        {
+          std::string mClassName;
+        };
         class PluginStateChangeData
         {
            public:
