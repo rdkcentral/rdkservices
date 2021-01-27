@@ -3814,6 +3814,8 @@ namespace WPEFramework {
             bool ret = false;
             gRdkShellMutex.lock();
             ret = CompositorController::enableKeyRepeats(enable);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         bool RDKShell::setTopmost(const string& callsign, const bool topmost)
