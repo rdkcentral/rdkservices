@@ -65,9 +65,9 @@ namespace {
         _implementation->Unregister(&_notification);
 #endif
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        _implementation->Release();
 
-            ASSERT(_connectionId != 0);
+        if (_connectionId != 0) {
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 

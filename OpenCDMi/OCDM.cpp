@@ -145,9 +145,9 @@ namespace Plugin {
 
         _opencdmi->Deinitialize(service);
 
-        if (_opencdmi->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        _opencdmi->Release();
 
-            ASSERT(_connectionId != 0);
+        if (_connectionId != 0) {
 
             TRACE(Trace::Information, (_T("OCDM Plugin is not properly destructed. %d"), _connectionId));
 

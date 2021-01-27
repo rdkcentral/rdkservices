@@ -45,6 +45,10 @@
 #include "libIARM.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#include "systimerifc/itimermsg.h"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+
 #ifdef ENABLE_THERMAL_PROTECTION
 #include "thermonitor.h"
 #endif /* ENABLE_THERMAL_PROTECTION */
@@ -235,6 +239,10 @@ namespace WPEFramework {
         void _thermMgrEventsHandler(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len);
 #endif /* ENABLE_THERMAL_PROTECTION */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void _timerStatusEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static IARM_Result_t _SysModeChange(void *arg);
@@ -302,6 +310,9 @@ namespace WPEFramework {
             registerMethod("setPowerState", &SystemServices::setDevicePowerState,
                     this);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+            registerMethod("getTimeStatus", &SystemServices::getSystemTimeStatus,this);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
             registerMethod("setGzEnabled", &SystemServices::setGZEnabled, this);
             registerMethod("isGzEnabled", &SystemServices::isGZEnabled, this);
             registerMethod("hasRebootBeenRequested",
@@ -410,6 +421,9 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSTIME_MGR_NAME, cTIMER_STATUS_UPDATE, _timerStatusEventHandler));
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
             }
         }
 
@@ -1935,6 +1949,18 @@ namespace WPEFramework {
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void SystemServices::onTimeStatusChanged(string timequality,string timesource, string utctime)
+        {
+            JsonObject params;
+            params["TimeQuality"] = timequality;
+            params["TimeSrc"] = timesource;
+            params["Time"] = utctime;
+            LOGWARN("TimeQuality = %s TimeSrc = %s Time = %s\n",timequality.c_str(),timesource.c_str(),utctime.c_str());
+            sendNotify(EVT_ONTIMESTATUSCHANGED, params);
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+
         /***
          * @brief : To set the Time to TZ_FILE.
          * @param1[in]	: {"params":{"timeZone":"<string>"}}
@@ -2743,6 +2769,24 @@ namespace WPEFramework {
             returnResponse(( E_OK == retVal)? true: false);
         }//end of getStateInfo
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        uint32_t SystemServices::getSystemTimeStatus(const JsonObject& parameters,
+                JsonObject& response)
+        {
+           IARM_Result_t ret = IARM_RESULT_SUCCESS;
+           TimerMsg param;
+           ret = IARM_Bus_Call(IARM_BUS_SYSTIME_MGR_NAME, TIMER_STATUS_MSG, (void*)&param, sizeof(param));
+           if (ret != IARM_RESULT_SUCCESS ) {
+              LOGWARN ("Query to get Timer Status Failed..\n");
+              returnResponse(false);
+           }
+           
+           response["TimeQuality"] = std::string(param.message,cTIMER_STATUS_MESSAGE_LENGTH);
+           response["TimeSrc"] = std::string(param.timerSrc,cTIMER_STATUS_MESSAGE_LENGTH);
+           response["Time"] = std::string(param.currentTime,cTIMER_STATUS_MESSAGE_LENGTH);
+           returnResponse(true);
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
         /***
          * @brief : To retrieve Device Power State.
@@ -3183,6 +3227,25 @@ namespace WPEFramework {
             }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void _timerStatusEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+        {
+            if ((!strcmp(IARM_BUS_SYSTIME_MGR_NAME, owner)) && (0 == eventId)) {
+                    LOGWARN("IARM_BUS_SYSTIME_MGR_NAME event received\n");
+                    TimerMsg* pMsg = (TimerMsg*)data;
+                    string timequality = std::string(pMsg->message,cTIMER_STATUS_MESSAGE_LENGTH);
+                    string timersrc = std::string(pMsg->timerSrc,cTIMER_STATUS_MESSAGE_LENGTH);
+                    string timerStr = std::string(pMsg->currentTime,cTIMER_STATUS_MESSAGE_LENGTH);
+
+                if (SystemServices::_instance) {
+                    SystemServices::_instance->onTimeStatusChanged(timequality,timersrc,timerStr);
+                } else {
+                    LOGERR("SystemServices::_instance is NULL.\n");
+                }
+            }
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
          * @brief : To handle the event of Thermal Level change. THe event is registered
