@@ -3074,6 +3074,10 @@ namespace WPEFramework {
                 }
             }
             killAllApps();
+            //try to kill factoryapp once more if kill apps missed killing due to timeout
+            JsonObject destroyRequest, destroyResponse;
+            destroyRequest["callsign"] = "factoryapp";
+            uint32_t result = destroyWrapper(destroyRequest, destroyResponse);
 
             std::cout << "attempting to stop hdmi input...\n";
             JsonObject joStopHdmiParams;
