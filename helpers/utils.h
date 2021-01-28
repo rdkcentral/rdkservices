@@ -391,6 +391,7 @@ namespace Utils
             WPEFramework::Trace::Format(message, format, parameters);
             va_end(parameters);
 
+            // get rid of const for t2_event_s
             char* error = strdup(message.c_str());
             t2_event_s("THUNDER_ERROR", error);
             if (error)
