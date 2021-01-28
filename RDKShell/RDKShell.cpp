@@ -135,8 +135,7 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
-        vector<std::string> gActivePlugins;
-
+        std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
         uint32_t getKeyFlag(std::string modifier)
@@ -186,7 +185,13 @@ namespace WPEFramework {
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
-                       gActivePlugins.push_back(service->Callsign());
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[service->Callsign()] = pluginData;
+                       }
                        gPluginDataMutex.unlock();
                    }
                 }
@@ -218,18 +223,10 @@ namespace WPEFramework {
                     }
                     
                     gPluginDataMutex.lock();
-                    std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
-                    for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
+                    std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                    if (pluginToRemove != gActivePluginsData.end())
                     {
-                      if ((*iter) == service->Callsign())
-                      {
-                        pluginToRemove = iter;
-                        break;
-                      }
-                    }
-                    if (pluginToRemove != gActivePlugins.end())
-                    {
-                      gActivePlugins.erase(pluginToRemove);
+                        gActivePluginsData.erase(pluginToRemove);
                     }
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                     if (pluginStateChangeEntry != gPluginsEventListener.end())
@@ -321,7 +318,7 @@ namespace WPEFramework {
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
-            gActivePlugins.clear();
+            gActivePluginsData.clear();
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -1965,7 +1962,21 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
+                for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
+                {
+                    std::string pluginName = pluginDataEntry->first; 
+                    if (pluginName == callsign)
+                    {
+                      newPluginFound = true;
+                      break;
+                    }
+                    else if (pluginName == type)
+                    {
+                      originalPluginFound = true;
+                    }
+                }
                 uint32_t pluginsFound = 0;
+                if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
                     uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
@@ -2920,7 +2931,6 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
             if (parameters.HasLabel("startup"))
             {
                 bool startup = parameters["startup"].Boolean();
@@ -3029,14 +3039,11 @@ namespace WPEFramework {
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
-            for (auto pluginName : gActivePlugins)
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
+            if (pluginsEntry != gActivePluginsData.end())
             {
-                if (pluginName == callsign)
-                {
-                    std::cout << "factory app is already running" << std::endl;
-                    isFactoryAppRunning = true;
-                    break;
-                }
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
             }
             gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
@@ -3085,14 +3092,11 @@ namespace WPEFramework {
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
-            for (auto pluginName : gActivePlugins)
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
+            if (pluginsEntry != gActivePluginsData.end())
             {
-                if (pluginName == callsign)
-                {
-                    std::cout << "factory app is already running" << std::endl;
-                    isFactoryAppRunning = true;
-                    break;
-                }
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
             }
             gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
@@ -3564,6 +3568,25 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
+            gPluginDataMutex.lock();
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
+            if (pluginsEntry != gActivePluginsData.end())
+            {
+                PluginData& pluginData = pluginsEntry->second;
+                if (pluginData.mClassName.compare("WebKitBrowser") == 0)
+                {
+                    WPEFramework::Core::JSON::String visibilityString;
+                    visibilityString = visible?"visible":"hidden";
+                    const string callsignWithVersion = client + ".1";
+                    int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
+                    if (status > 0)
+                    {
+                        std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                    }
+                }
+            }
+            gPluginDataMutex.unlock();
+
             return ret;
         }
 
