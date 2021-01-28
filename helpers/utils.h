@@ -28,7 +28,9 @@
 #include "rfcapi.h"
 
 // telemetry
+#ifdef ENABLE_TELEMETRY_LOGGING
 #include <telemetry_busmessage_sender.h>
+#endif
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
