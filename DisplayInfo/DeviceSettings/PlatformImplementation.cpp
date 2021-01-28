@@ -18,7 +18,10 @@
  */
 #include "../Module.h"
 #include "../DisplayInfoTracing.h"
+
+#ifndef GRAPHICS_APIS_IMPLEMENTED_IN_DS_HAL
 #include "SoC_abstraction.h"
+#endif
 
 #include <interfaces/IDisplayInfo.h>
 
@@ -90,14 +93,40 @@ public:
     uint32_t TotalGpuRam(uint64_t& total) const override
     {
         LOGINFO();
-        total = SoC_GetTotalGpuRam(); // TODO: Implement using DeviceSettings
-        return (Core::ERROR_NONE);
+        uint32_t ret = Core::ERROR_NONE;
+#ifdef GRAPHICS_APIS_IMPLEMENTED_IN_DS_HAL
+        try
+        {
+            total = device::Host::getInstance().getTotalSystemGraphicsMemory();
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+            ret = Core::ERROR_GENERAL;
+        }
+#else
+        total = SoC_GetTotalGpuRam();
+#endif
+        return (ret);
     }
     uint32_t FreeGpuRam(uint64_t& free ) const override
     {
         LOGINFO();
-        free = SoC_GetFreeGpuRam(); // TODO: Implement using DeviceSettings
-        return (Core::ERROR_NONE);
+        uint32_t ret = Core::ERROR_NONE;
+#ifdef GRAPHICS_APIS_IMPLEMENTED_IN_DS_HAL
+        try
+        {
+            free = device::Host::getInstance().getFreeSystemGraphicsMemory();
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+            ret = Core::ERROR_GENERAL;
+        }
+#else
+        free = SoC_GetFreeGpuRam();
+#endif
+        return (ret);
     }
 
     // Connection Properties interface
@@ -213,13 +242,43 @@ public:
     uint32_t Width(uint32_t& value) const override
     {
         LOGINFO();
+        uint32_t ret = Core::ERROR_NONE;
+#ifdef GRAPHICS_APIS_IMPLEMENTED_IN_DS_HAL
+        uint32_t height, width;
+        try
+        {
+            device::Host::getInstance().getSystemGraphicsResolution(height, width);
+            value = width;
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+            ret = Core::ERROR_GENERAL;
+        }
+#else
         value = SoC_GetGraphicsWidth();
-        return (Core::ERROR_NONE);
+#endif
+        return (ret);
     }
     uint32_t Height(uint32_t& value) const override
     {
         LOGINFO();
+        uint32_t ret = Core::ERROR_NONE;
+#ifdef GRAPHICS_APIS_IMPLEMENTED_IN_DS_HAL
+        uint32_t height, width;
+        try
+        {
+            device::Host::getInstance().getSystemGraphicsResolution(height, width);
+            value = height;
+        }
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+            ret = Core::ERROR_GENERAL;
+        }
+#else
         value = SoC_GetGraphicsHeight();
+#endif
         return (Core::ERROR_NONE);
     }
     uint32_t VerticalFreq(uint32_t& value) const override
