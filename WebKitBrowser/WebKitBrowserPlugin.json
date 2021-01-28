@@ -100,7 +100,7 @@
           },
           "logtosystemconsoleenabled": {
             "type": "boolean",
-            "summary": "Enable page logging to system console (stderr)"
+            "summary": "Enable page loging to system console (stderr)"
           },
           "watchdogchecktimeoutinseconds": {
             "type": "number",
@@ -124,6 +124,6 @@
     ]
   },
   "interface": {
-    "$cppref": "{cppinterfacedir}/IBrowser.h"
+    "$ref": "{interfacedir}/WebKitBrowser.json#"
   }
 }

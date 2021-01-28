@@ -1217,6 +1217,7 @@ namespace WPEFramework {
             //sample this thunder plugin    : {"EDID":"AP///////wBSYgYCAQEBAQEXAQOAoFp4CvCdo1VJmyYPR0ovzgCBgIvAAQEBAQEBAQEBAQEBAjqAGHE4LUBYLEUAQIRjAAAeZiFQsFEAGzBAcDYAQIRjAAAeAAAA/ABUT1NISUJBLVRWCiAgAAAA/QAXSw9EDwAKICAgICAgAbECAytxSpABAgMEBQYHICImCQcHEQcYgwEAAGwDDAAQADgtwBUVHx/jBQMBAR2AGHEcFiBYLCUAQIRjAACeAR0AclHQHiBuKFUAQIRjAAAejArQiiDgLRAQPpYAsIRDAAAYjAqgFFHwFgAmfEMAsIRDAACYAAAAAAAAAAAAAAAA9w"}
             LOGINFOMETHOD();
 
+            bool success = true;
             vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
             try
             {
@@ -1226,32 +1227,37 @@ namespace WPEFramework {
                 {
                     vPort.getDisplay().getEDIDBytes(edidVec2);
                     edidVec = edidVec2;//edidVec must be "unknown" unless we successfully get to this line
+
+                    //convert to base64
+                    uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
+                    if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
+                        LOGERR("Size too large to use ToString base64 wpe api");
+                    string edidbase64;
+                    // Align input string size to multiple of 3
+                    int paddingSize = 0;
+                    for (; paddingSize < (3-size%3);paddingSize++)
+                    {
+                        edidVec.push_back(0x00);
+                    }
+                    size += paddingSize;
+
+                    Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
+                    response["EDID"] = edidbase64;
+
                 }
                 else
                 {
                     LOGWARN("failure: HDMI0 not connected!");
+                    success = false;
                 }
             }
             catch (const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                success = false;
             }
-            //convert to base64
-            uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
-            if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
-                LOGERR("Size too large to use ToString base64 wpe api");
-            string edidbase64;
-            // Align input string size to multiple of 3
-            int paddingSize = 0;
-            for (; paddingSize < (3-size%3);paddingSize++)
-            {
-                edidVec.push_back(0x00);
-            }
-            size += paddingSize;
 
-            Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
-            response["EDID"] = edidbase64;
-            returnResponse(true);
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::readHostEDID(const JsonObject& parameters, JsonObject& response)
