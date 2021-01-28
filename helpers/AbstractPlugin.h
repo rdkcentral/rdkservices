@@ -97,10 +97,6 @@ namespace WPEFramework {
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
 
                 Utils::Telemetry::init();
-                LOGINFO("Telemetry initialized 1");
-                LOGERR("Telemetry initialized 2");
-                LOGERR("Telemetry initialized with parameter %d", 3);
-                LOGT2("Telemetry initialized 4");
             }
 
             AbstractPlugin(const uint8_t currVersion) : PluginHost::JSONRPC(), m_currVersion(currVersion)
@@ -120,10 +116,6 @@ namespace WPEFramework {
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
 
                 Utils::Telemetry::init();
-                LOGINFO("Telemetry initialized 1");
-                LOGERR("Telemetry initialized 2");
-                LOGERR("Telemetry initialized with parameter %d", 3);
-                LOGT2("Telemetry initialized 4");
             }
 
             virtual ~AbstractPlugin()
