@@ -63,6 +63,7 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+#define ZOOM_SETTINGS_FILE "/opt/persistent/rdkservices/zoomSettings.json"
 
 #ifdef USE_IARM
 namespace
@@ -145,7 +146,7 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
+            registerMethod("setZoomSetting", &DisplaySettings::setZoomSettingWrapper, this);
             registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
@@ -197,6 +198,15 @@ namespace WPEFramework {
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
 
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            tvZoomSettings.push_back("TV AUTO");
+            tvZoomSettings.push_back("TV DIRECT");
+            tvZoomSettings.push_back("TV NORMAL");
+            tvZoomSettings.push_back("TV 16X9 STRETCH");
+            tvZoomSettings.push_back("TV LETTERBOX");
+            tvZoomSettings.push_back("TV ZOOM");
+#endif
         }
 
         DisplaySettings::~DisplaySettings()
@@ -282,6 +292,11 @@ namespace WPEFramework {
             m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
 
             InitAudioPorts();
+
+            if (!setZoomSetting(getZoomSettingConfig()))
+            {
+                LOGERR("Couldn't restore zoom settings");
+            }
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -743,7 +758,7 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedAudioModes(const JsonObject& parameters, JsonObject& response)
         {   //sample response: {"success":true,"supportedAudioModes":["STEREO","PASSTHRU","AUTO (Dolby Digital 5.1)"]}
             LOGINFOMETHOD();
-            string audioPort = parameters["audioPort"].String();
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "";
             vector<string> supportedAudioModes;
             try
             {
@@ -810,6 +825,9 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            string zoomSetting = getZoomSettingConfig();
+#else
             string zoomSetting = "unknown";
             try
             {
@@ -824,18 +842,66 @@ namespace WPEFramework {
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
+#endif
             response["zoomSetting"] = zoomSetting;
             returnResponse(true);
         }
 
-        uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
+        std::string DisplaySettings::getZoomSettingConfig()
+        {
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            string zoomSetting = "TV AUTO";
+#else
+            string zoomSetting = "FULL";
+#endif
+            Core::File settingsFile;
+            settingsFile = ZOOM_SETTINGS_FILE;
+            if (settingsFile.Open())
+            {
+                JsonObject settingsJson;
+                if (settingsJson.IElement::FromFile(settingsFile))
+                {
+                    zoomSetting = settingsJson["zoomSetting"].String();
+                }
+                else
+                {
+                    LOGERR("Couldn't read zoom settings file %s", ZOOM_SETTINGS_FILE);
+                }
+                settingsFile.Close();
+            }
+            else
+            {
+                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
+            }
+
+            return zoomSetting;
+        }
+
+
+        uint32_t DisplaySettings::setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
             returnIfParamNotFound(parameters, "zoomSetting");
             string zoomSetting = parameters["zoomSetting"].String();
 
+            returnResponse(setZoomSetting(zoomSetting));
+        }
+
+        bool DisplaySettings::setZoomSetting(std::string zoomSetting)
+        {
             bool success = true;
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
+            {
+                success = setZoomSettingConfig(zoomSetting);
+            }
+            else
+            {
+                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
+                success = false;
+            }
+#else
             try
             {
 #ifdef USE_IARM
@@ -844,13 +910,45 @@ namespace WPEFramework {
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
+                success = setZoomSettingConfig(zoomSetting);
             }
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(zoomSetting);
                 success = false;
             }
-            returnResponse(success);
+#endif
+            return success;
+        }
+
+        bool DisplaySettings::setZoomSettingConfig(std::string zoomSetting)
+        {
+            bool success = true;
+            Core::File settingsFile;
+            settingsFile = ZOOM_SETTINGS_FILE;
+            if (!settingsFile.Open(false))
+            {
+                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
+                if (!settingsFile.Create())
+                {
+                    LOGERR("Couldn't create zoom settings file %s", ZOOM_SETTINGS_FILE);
+                    success = false;
+                }
+            }
+
+            if (settingsFile.IsOpen())
+            {
+                JsonObject settingsJson;
+                settingsJson["zoomSetting"] = zoomSetting;
+                if (!settingsJson.IElement::ToFile(settingsFile))
+                {
+                    LOGERR("Couldn't save zoom settings file %s", ZOOM_SETTINGS_FILE);
+                    success = false;
+                }
+                settingsFile.Close();
+            }
+
+            return success;
         }
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
@@ -1119,6 +1217,7 @@ namespace WPEFramework {
             //sample this thunder plugin    : {"EDID":"AP///////wBSYgYCAQEBAQEXAQOAoFp4CvCdo1VJmyYPR0ovzgCBgIvAAQEBAQEBAQEBAQEBAjqAGHE4LUBYLEUAQIRjAAAeZiFQsFEAGzBAcDYAQIRjAAAeAAAA/ABUT1NISUJBLVRWCiAgAAAA/QAXSw9EDwAKICAgICAgAbECAytxSpABAgMEBQYHICImCQcHEQcYgwEAAGwDDAAQADgtwBUVHx/jBQMBAR2AGHEcFiBYLCUAQIRjAACeAR0AclHQHiBuKFUAQIRjAAAejArQiiDgLRAQPpYAsIRDAAAYjAqgFFHwFgAmfEMAsIRDAACYAAAAAAAAAAAAAAAA9w"}
             LOGINFOMETHOD();
 
+            bool success = true;
             vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
             try
             {
@@ -1128,32 +1227,37 @@ namespace WPEFramework {
                 {
                     vPort.getDisplay().getEDIDBytes(edidVec2);
                     edidVec = edidVec2;//edidVec must be "unknown" unless we successfully get to this line
+
+                    //convert to base64
+                    uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
+                    if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
+                        LOGERR("Size too large to use ToString base64 wpe api");
+                    string edidbase64;
+                    // Align input string size to multiple of 3
+                    int paddingSize = 0;
+                    for (; paddingSize < (3-size%3);paddingSize++)
+                    {
+                        edidVec.push_back(0x00);
+                    }
+                    size += paddingSize;
+
+                    Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
+                    response["EDID"] = edidbase64;
+
                 }
                 else
                 {
                     LOGWARN("failure: HDMI0 not connected!");
+                    success = false;
                 }
             }
             catch (const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                success = false;
             }
-            //convert to base64
-            uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
-            if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
-                LOGERR("Size too large to use ToString base64 wpe api");
-            string edidbase64;
-            // Align input string size to multiple of 3
-            int paddingSize = 0;
-            for (; paddingSize < (3-size%3);paddingSize++)
-            {
-                edidVec.push_back(0x00);
-            }
-            size += paddingSize;
 
-            Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
-            response["EDID"] = edidbase64;
-            returnResponse(true);
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::readHostEDID(const JsonObject& parameters, JsonObject& response)
