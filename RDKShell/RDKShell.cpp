@@ -114,6 +114,8 @@ unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 bool gRdkShellSurfaceModeEnabled = false;
 static std::string sThunderSecurityToken;
+std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gSystemServiceConnection;
+bool gSystemServiceEventsSubscribed = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -122,6 +124,7 @@ static std::string sThunderSecurityToken;
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
+#define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 
 enum RDKShellLaunchType
 {
@@ -199,6 +202,12 @@ namespace WPEFramework {
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
                     }*/
+                }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
+                {
+                   std::string serviceCallsign = service->Callsign();
+                   serviceCallsign.append(".1");
+                   gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -444,6 +453,23 @@ namespace WPEFramework {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.OCIContainer.1", "", false, query);
         }
+
+        void RDKShell::pluginEventHandler(const JsonObject& parameters)
+        {
+            std::string message;
+            parameters.ToString(message);
+            if (parameters.HasLabel("powerState"))
+            {
+                std::string powerState = parameters["powerState"].String();
+                if ((powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
+                {
+                    std::cout << "Received power state change to sleep " << std::endl;
+                    JsonObject request, response;
+                    uint32_t status = launchResidentAppWrapper(request, response);
+                }
+            }
+        }
+
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
           std::cout << "RDKShell onApplicationLaunched event received ..." << client << std::endl;
@@ -2920,7 +2946,16 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
+            {
+                std::string eventName("onSystemPowerStateChanged");
+                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                    gSystemServiceEventsSubscribed = true;
+                }
+            }
             if (parameters.HasLabel("startup"))
             {
                 bool startup = parameters["startup"].Boolean();
@@ -3053,6 +3088,11 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             killAllApps();
+            //try to kill factoryapp once more if kill apps missed killing due to timeout
+            JsonObject destroyRequest, destroyResponse;
+            destroyRequest["callsign"] = "factoryapp";
+            uint32_t result = destroyWrapper(destroyRequest, destroyResponse);
+
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
