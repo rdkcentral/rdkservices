@@ -386,6 +386,12 @@ namespace WPEFramework {
 
         SystemServices::~SystemServices()
         {
+            if (thread_getMacAddresses.joinable())
+                thread_getMacAddresses.join();
+
+            if( m_getFirmwareInfoThread.joinable())
+                m_getFirmwareInfoThread.join();
+                
             SystemServices::_instance = nullptr;
         }
 
