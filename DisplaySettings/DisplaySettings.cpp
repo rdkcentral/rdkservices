@@ -566,7 +566,7 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedAudioModes(const JsonObject& parameters, JsonObject& response)
         {   //sample response: {"success":true,"supportedAudioModes":["STEREO","PASSTHRU","AUTO (Dolby Digital 5.1)"]}
             LOGINFOMETHOD();
-            string audioPort = parameters["audioPort"].String();
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "";
             vector<string> supportedAudioModes;
             try
             {
