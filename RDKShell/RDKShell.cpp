@@ -2940,6 +2940,34 @@ namespace WPEFramework {
                 std::cout << "nothing to do since factory app is not running\n";
                 returnResponse(true);
             }
+            else
+            {
+                JsonObject joAgingParams;
+                JsonObject joAgingResult;
+                joAgingParams.Set("namespace","FactoryTest");
+                joAgingParams.Set("key","AgingState");
+                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+                std::cout << "attempting to check aging flag \n";
+                uint32_t agingStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                std::cout << "aging get status: " << agingStatus << std::endl;
+
+                if (agingStatus == 0 && joAgingResult.HasLabel("value"))
+                {
+                    const std::string valueString = joAgingResult["value"].String();
+                    std::cout << "aging value is " << valueString << std::endl;
+                    if (valueString == "true")
+                    {
+                        std::cout << "do not exit the factory app\n";
+                        response["message"] = " aging is true, do not exit the factory app";
+                        returnResponse(false);
+                    }
+                }
+                else
+                {
+                    std::cout << "aging value is not set\n";
+                }
+            }
             killAllApps();
 
             std::cout << "attempting to stop hdmi input...\n";
