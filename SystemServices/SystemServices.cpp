@@ -1066,10 +1066,12 @@ namespace WPEFramework {
             if (CURLE_OK == res) {
                 LOGINFO("curl response '%s'\n", response.c_str());
                 JsonObject httpResp;
-                httpResp.FromString(response.c_str());
-                _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
-                LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
-                _fwUpdate.success = true;
+                if(httpResp.FromString(response.c_str()) && httpResp.HasLabel("firmwareVersion"))
+                {
+                    _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
+                    LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
+                    _fwUpdate.success = true;
+                }
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
@@ -2636,9 +2638,9 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool enabled = false;
-		bool result = false;
+		bool result = true;
 
-		result = isGzEnabledHelper(enabled);
+		isGzEnabledHelper(enabled);
 		response["enabled"] = enabled;
 		returnResponse(result);
         } //end of isGZEnbaled
