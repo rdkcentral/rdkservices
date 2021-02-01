@@ -182,7 +182,16 @@ namespace WPEFramework
 
         uint32_t WifiManager::connect(const JsonObject &parameters, JsonObject &response)
         {
-            LOGINFOMETHOD();
+            if (params.HasLabel("passphrase"))
+            {
+                params["passphrase"] = "<passphrase>";
+
+                std::string json;
+                params.ToString(json);
+                LOGINFO( "params=%s", json.c_str() );
+            }
+            else
+                LOGINFOMETHOD();
 
             uint32_t result = wifiConnect.connect(parameters, response);
 

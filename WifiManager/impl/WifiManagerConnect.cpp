@@ -29,7 +29,16 @@ using namespace WPEFramework::Plugin;
 
 uint32_t WifiManagerConnect::connect(const JsonObject &parameters, JsonObject &response)
 {
-    LOGINFOMETHOD();
+    if (params.HasLabel("passphrase"))
+    {
+        params["passphrase"] = "<passphrase>";
+
+        std::string json;
+        params.ToString(json);
+        LOGINFO( "params=%s", json.c_str() );
+    }
+    else
+        LOGINFOMETHOD();
 
     string ssid;
     string passphrase;
