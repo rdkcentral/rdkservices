@@ -103,6 +103,7 @@ enum FirmwareUpdateState {
     FirmwareUpdateStateDownloadComplete,
     FirmwareUpdateStateValidationComplete,
     FirmwareUpdateStatePreparingReboot,
+    FirmwareUpdateStateNoUpgradeNeeded
 };
 
 const string GZ_STATUS = "/opt/gzenabled";
