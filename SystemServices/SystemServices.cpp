@@ -40,6 +40,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -70,8 +71,6 @@ using namespace std;
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
-
-#define DEFAULT_STB_LOGS_UPLOAD_URL "https://stbrtl.stb.r53.xcal.tv"
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
@@ -3239,15 +3238,6 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
-        static size_t uploadLogs_CURL_readCallback(void *ptr, size_t size, size_t nmemb, void *stream)
-        {
-            FILE *fd = (FILE *)stream;
-            size_t retcode = fread(ptr, size, nmemb, fd);
-            // curl_off_t nread = (curl_off_t)retcode;
-            // LOGINFO("Read %" CURL_FORMAT_CURL_OFF_T " bytes from file", nread);
-            return retcode;
-        }
-
         /***
          * @brief : upload STB logs to the specified URL.
          * @param1[in] : url::String
@@ -3261,76 +3251,11 @@ namespace WPEFramework {
 #ifdef ENABLE_SYSTEM_UPLOAD_LOGS
             string url;
             getStringParameter("url", url);
-            if (url.empty())
-                url = DEFAULT_STB_LOGS_UPLOAD_URL;
-            if (url.find('\'') != string::npos)
-                response["error"] = "bad url";
+            auto err = UploadLogs::upload(url);
+            if (err != UploadLogs::OK)
+                response["error"] = UploadLogs::errToText(err);
             else
-            {
-                string mac = collectDeviceInfo("eth_mac");
-                removeCharsFromString(mac, "\n\r:");
-                if (mac.empty())
-                    response["error"] = "get mac fail";
-                else
-                {
-                    string dt = currentDateTimeUtc("+%m-%d-%y-%I-%M%p");
-
-                    string logFile = "/tmp/" + convertCase(mac) + "_Logs_" + dt + ".tgz";
-                    LOGINFO("filename %s", logFile.c_str());
-
-                    string cmd = "nice -n 19 tar -C /opt/logs -zcvf " + logFile + " ./";
-                    Utils::cRunScript(cmd.c_str());
-
-                    if (!Utils::fileExists(logFile.c_str()))
-                        response["error"] = "prepare log fail";
-                    else
-                    {
-                        CURL *curl;
-                        CURLcode res;
-                        FILE *fd;
-                        struct stat file_info;
-                        long http_code = 0;
-
-                        stat(logFile.c_str(), &file_info);
-                        fd = fopen(logFile.c_str(), "rb");
-                        curl = curl_easy_init();
-                        if (curl)
-                        {
-                            curl_easy_setopt(curl, CURLOPT_READFUNCTION, uploadLogs_CURL_readCallback);
-                            curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-                            curl_easy_setopt(curl, CURLOPT_PUT, 1L);
-                            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-                            curl_easy_setopt(curl, CURLOPT_READDATA, fd);
-                            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
-                            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-                            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
-
-                            res = curl_easy_perform(curl);
-                            if (res != CURLE_OK)
-                                LOGERR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
-
-                            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-                            LOGINFO("curl response code %ld", http_code);
-
-                            curl_easy_cleanup(curl);
-                        }
-                        fclose(fd);
-
-                        int removeStatus = remove(logFile.c_str());
-                        LOGERR("remove %s exit code %d", logFile.c_str(), removeStatus);
-
-                        if (res != CURLE_OK || http_code != 200)
-                            response["error"] = "upload fail";
-                        else
-                        {
-                            if (removeStatus != 0)
-                                response["error"] = "cleanup fail";
-                            else
-                                success = true;
-                        }
-                    }
-                }
-            }
+                success = true;
 #else
             response["error"] = "unsupported";
 #endif
