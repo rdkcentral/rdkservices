@@ -85,6 +85,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_RESOLUTION = "getVirtualResolution";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION = "setVirtualResolution";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -316,6 +320,10 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_RESOLUTION, &RDKShell::getVirtualResolutionWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -1517,7 +1525,6 @@ namespace WPEFramework {
         uint32_t RDKShell::getScaleWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            UNUSED(parameters);
             bool result = true;
             if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
             {
@@ -3148,6 +3155,45 @@ namespace WPEFramework {
             {
                 launchFactoryAppWrapper(parameters, response);
             }
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                uint32_t width = 0;
+                uint32_t height = 0;
+                if (!getVirtualResolution(client, width, height))
+                {
+                    response["message"] = "failed to get virtual resolution";
+                    result = false;
+                }
+                else
+                {
+                    response["width"] = width;
+                    response["height"] = height;
+                    result = true;
+                }
+            }
+
+            returnResponse(result);
         }
 
         uint32_t RDKShell::enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response)
@@ -3181,14 +3227,126 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
-        // Registered methods begin
+        uint32_t RDKShell::setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                uint32_t width = 0;
+                uint32_t height = 0;
+                getVirtualResolution(client, width, height);
+
+                if (parameters.HasLabel("width"))
+                {
+                    width = parameters["width"].Number();
+                }
+                if (parameters.HasLabel("height"))
+                {
+                    height = parameters["height"].Number();
+                }
+
+                result = setVirtualResolution(client, width, height);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                if (!parameters.HasLabel("enable"))
+                {
+                    response["message"] = "please specify enable parameter";
+                    result = false;
+                }
+                else
+                {
+                    bool enable = parameters["enable"].Boolean();
+                    result = enableVirtualDisplay(client, enable);
+                }
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                bool enabled = false;
+                if (!getVirtualDisplayEnabled(client, enabled))
+                {
+                    response["message"] = "failed to call getVirtualDisplayEnabled";
+                    result = false;
+                }
+                else
+                {
+                    response["enabled"] = enabled;
+                    result = true;
+                }
+            }
+
+            returnResponse(result);
+        }
+        // Registered methods end
 
         // Events begin
         void RDKShell::notify(const std::string& event, const JsonObject& parameters)
         {
             sendNotify(event.c_str(), parameters);
         }
-      // Events end
+        // Events end
 
         void RDKShell::killAllApps()
         {
@@ -3862,6 +4020,42 @@ namespace WPEFramework {
             bool ret = false;
             gRdkShellMutex.lock();
             ret = CompositorController::setTopmost(callsign, topmost);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getVirtualResolution(client, virtualWidth, virtualHeight);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setVirtualResolution(client, virtualWidth, virtualHeight);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::enableVirtualDisplay(const std::string& client, const bool enable)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::enableVirtualDisplay(client, enable);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::getVirtualDisplayEnabled(const std::string& client, bool &enabled)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::getVirtualDisplayEnabled(client, enabled);
             gRdkShellMutex.unlock();
             return ret;
         }

@@ -102,6 +102,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
+            static const string RDKSHELL_METHOD_GET_VIRTUAL_RESOLUTION;
+            static const string RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION;
+            static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
+            static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -183,7 +187,11 @@ namespace WPEFramework {
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
-            
+            uint32_t getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
             RDKShell& operator=(const RDKShell&) = delete;
@@ -231,6 +239,10 @@ namespace WPEFramework {
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost);
+            bool getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight);
+            bool setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight);
+            bool enableVirtualDisplay(const std::string& client, const bool enable);
+            bool getVirtualDisplayEnabled(const std::string& client, bool &enabled);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
