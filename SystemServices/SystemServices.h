@@ -231,6 +231,7 @@ namespace WPEFramework {
                 uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+                uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
