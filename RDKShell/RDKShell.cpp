@@ -3796,8 +3796,6 @@ namespace WPEFramework {
             return true;
         }
 
-<<<<<<< HEAD
-
         PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell):mCallSign(callsign), mRDKShell(*rdkshell)
         {
             mPluginConnection = pluginConnection;
