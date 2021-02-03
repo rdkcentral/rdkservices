@@ -40,6 +40,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -3371,6 +3372,31 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
+        }
+
+        /***
+         * @brief : upload STB logs to the specified URL.
+         * @param1[in] : url::String
+         */
+        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = false;
+
+#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
+            string url;
+            getStringParameter("url", url);
+            auto err = UploadLogs::upload(url);
+            if (err != UploadLogs::OK)
+                response["error"] = UploadLogs::errToText(err);
+            else
+                success = true;
+#else
+            response["error"] = "unsupported";
+#endif
+
+            returnResponse(success);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
