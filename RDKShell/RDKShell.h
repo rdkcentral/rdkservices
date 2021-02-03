@@ -95,6 +95,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
             static const string RDKSHELL_METHOD_SHOW_WATERMARK;
+            static const string RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE;
+            static const string RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
@@ -175,6 +177,8 @@ namespace WPEFramework {
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
@@ -226,6 +230,7 @@ namespace WPEFramework {
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
+            bool showFullScreenImage(std::string& path);
             void killAllApps();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
