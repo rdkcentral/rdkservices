@@ -1079,6 +1079,11 @@ namespace WPEFramework {
                     LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
                     _fwUpdate.success = true;
                 }
+                else
+                {
+                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
+                    response = "";
+                }
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
