@@ -301,6 +301,11 @@ namespace WPEFramework {
             //std::mutex m_callMutex;
         };
 
+        struct PluginData
+        {
+          std::string mClassName;
+        };
+
         class PluginStateChangeData
         {
            public:
