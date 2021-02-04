@@ -22,6 +22,8 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <sstream>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
@@ -77,6 +79,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getSta
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_WATERMARK = "showWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
@@ -104,6 +107,7 @@ using namespace std;
 using namespace RdkShell;
 extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
+bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 static std::string sToken;
@@ -127,7 +131,14 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
-        vector<std::string> gActivePlugins;
+        std::map<std::string, PluginData> gActivePluginsData;
+
+        struct RDKShellStartupConfig
+        {
+            std::string rfc;
+            std::string thunderApi;
+            JsonObject params;
+        };
 
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
@@ -181,7 +192,13 @@ namespace WPEFramework {
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
-                       gActivePlugins.push_back(service->Callsign());
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[service->Callsign()] = pluginData;
+                       }
                        gPluginDataMutex.unlock();
                    }
                 }
@@ -219,18 +236,10 @@ namespace WPEFramework {
                     }
                     
                     gPluginDataMutex.lock();
-                    std::vector<std::string>::iterator pluginToRemove = gActivePlugins.end();
-                    for (std::vector<std::string>::iterator iter = gActivePlugins.begin() ; iter != gActivePlugins.end(); ++iter)
+                    std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                    if (pluginToRemove != gActivePluginsData.end())
                     {
-                      if ((*iter) == service->Callsign())
-                      {
-                        pluginToRemove = iter;
-                        break;
-                      }
-                    }
-                    if (pluginToRemove != gActivePlugins.end())
-                    {
-                      gActivePlugins.erase(pluginToRemove);
+                        gActivePluginsData.erase(pluginToRemove);
                     }
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                     if (pluginStateChangeEntry != gPluginsEventListener.end())
@@ -303,6 +312,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_MEMORY, &RDKShell::getSystemMemoryWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_WATERMARK, &RDKShell::showWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
@@ -318,7 +328,7 @@ namespace WPEFramework {
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
-            gActivePlugins.clear();
+            gActivePluginsData.clear();
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -379,6 +389,11 @@ namespace WPEFramework {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
                     receivedResolutionRequest = false;
                   }
+                  if (receivedShowWatermarkRequest)
+                  {
+                    CompositorController::showWatermark();
+                    receivedShowWatermarkRequest = false;
+                  }
                   RdkShell::draw();
                   RdkShell::update();
                   gRdkShellMutex.unlock();
@@ -393,7 +408,149 @@ namespace WPEFramework {
 
             service->Register(mClientsMonitor);
             Utils::SecurityToken::getSecurityToken(sToken);
+
+            loadStartupConfig();
+            invokeStartupThunderApis();
             return "";
+        }
+
+        void RDKShell::loadStartupConfig()
+        {
+#ifdef RFC_ENABLED
+            const char* startupConfigFileName = getenv("RDKSHELL_STARTUP_CONFIG");
+            if (startupConfigFileName)
+            {
+                std::ifstream startupConfigFile;
+                try
+                {
+                    startupConfigFile.open(startupConfigFileName, std::ifstream::binary);
+                }
+                catch (...)
+                {
+                    std::cout << "RDKShell startup config file read error : [unable to open/read file (" <<  startupConfigFileName << ")]\n";
+                    return;
+                }
+                std::stringstream strStream;
+                strStream << startupConfigFile.rdbuf();
+                JsonObject startupConfigData;
+                try
+                {
+                    startupConfigData = strStream.str();
+                }
+                catch(...)
+                {
+                    std::cout << "RDKShell startup config file read error : [json format is incorrect (" <<  startupConfigFileName << ")]\n";
+                    startupConfigFile.close();
+                    return;
+                }
+                startupConfigFile.close();
+                
+                if (startupConfigData.HasLabel("rdkshellStartup") && (startupConfigData["rdkshellStartup"].Content() == JsonValue::type::ARRAY))
+                {
+                    const JsonArray& jsonValue = startupConfigData["rdkshellStartup"].Array();
+      
+                    for (int k = 0; k < jsonValue.Length(); k++)
+                    {
+                        std::string name("");
+                        uint32_t timeout = 0;
+                        std::string actionJson("");
+      
+                        if (!(jsonValue[k].Content() == JsonValue::type::OBJECT))
+                        {
+                            std::cout << "one of rdkshell startup config entry is of wrong format" << std::endl;
+                            continue;
+                        }
+                        const JsonObject& configEntry = jsonValue[k].Object();
+      
+                        //check for entry validity
+                        if (!(configEntry.HasLabel("RFC") && configEntry.HasLabel("thunderApi")))
+                        {
+                            std::cout << "one of rdkshell startup config entry is of wrong format or not having RFC/thunderApi parameter" << std::endl;
+                            continue;
+                        }
+      
+                        //populate rfc entry
+                        const JsonValue& rfcValue = configEntry["RFC"];
+                        if (!(rfcValue.Content() == JsonValue::type::STRING))
+                        {
+                            std::cout << "rfc type is non-string type and so ignoring entry" << std::endl;
+                            continue;
+                        }
+                        std::string rfc = rfcValue.String();
+
+                        //populate thunder api entry
+                        const JsonValue& thunderApiValue = configEntry["thunderApi"];
+                        if (!(thunderApiValue.Content() == JsonValue::type::STRING))
+                        {
+                            std::cout << "thunder api type is non-string type and so ignoring entry" << std::endl;
+                            continue;
+                        }
+                        std::string thunderApi = thunderApiValue.String();
+
+                        //populate params
+                        JsonObject params;
+                        if (configEntry.HasLabel("params"))
+                        {
+                            const JsonValue& paramsValue = configEntry["params"];
+                            if (!(paramsValue.Content() == JsonValue::type::OBJECT))
+                            {
+                                std::cout << "one of rdkshell config entry has non-object type params" << std::endl;
+                                continue;
+                            }
+                            params =  paramsValue.Object();
+                        }
+                        RDKShellStartupConfig config; 
+                        config.rfc = rfc;
+                        config.thunderApi = thunderApi;
+                        config.params = params;
+                        gStartupConfigs.push_back(config);
+                    }
+                }
+                else
+                {
+                    std::cout << "Ignored file read due to rdkshellStartup entry is not present";
+                }
+            }
+            else
+            {
+              std::cout << "Ignored file read due to rdkshell staup config environment variable not set\n";
+            }
+#else
+            std::cout << "rfc is not enabled and not loading startup configs " << std::endl;
+#endif
+        }
+
+        void RDKShell::invokeStartupThunderApis()
+        {
+#ifdef RFC_ENABLED
+            for (std::vector<RDKShellStartupConfig>::iterator iter = gStartupConfigs.begin() ; iter != gStartupConfigs.end(); iter++)
+            {
+                std::string rfc = iter->rfc;
+                std::string thunderApi = iter->thunderApi;
+                JsonObject& apiParams = iter->params;
+
+                RFC_ParamData_t rfcParam;
+                bool ret = Utils::getRFCConfig((char*)rfc.c_str(), rfcParam);
+                if (true == ret && rfcParam.type == WDMP_BOOLEAN && (strncasecmp(rfcParam.value,"true",4) == 0))
+                {
+                    std::cout << "invoking thunder api " << thunderApi << std::endl;
+                    uint32_t status = 0;
+                    JsonObject joResult;
+                    status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, thunderApi.c_str(), apiParams, joResult);
+                    if (status > 0)
+                    {
+                        std::cout << "invoking thunder api " << thunderApi << " failed - " << status << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << "rfc " << rfc << " not enabled/non-boolean type " << std::endl;
+                }
+            }
+#else
+            std::cout << "rfc is not enabled and not invoking thunder apis " << std::endl;
+#endif
+            gStartupConfigs.clear();
         }
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
@@ -1951,17 +2108,18 @@ namespace WPEFramework {
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
                 std::vector<std::string> foundTypes;
-                for (auto pluginName : gActivePlugins)
+                for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
                 {
-                  if (pluginName == callsign)
-                  {
-                    newPluginFound = true;
-                    break;
-                  }
-                  else if (pluginName == type)
-                  {
-                    originalPluginFound = true;
-                  }
+                    std::string pluginName = pluginDataEntry->first; 
+                    if (pluginName == callsign)
+                    {
+                      newPluginFound = true;
+                      break;
+                    }
+                    else if (pluginName == type)
+                    {
+                      originalPluginFound = true;
+                    }
                 }
                 auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
@@ -2703,6 +2861,23 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::showWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool displayWatermark = true;
+            if (parameters.HasLabel("show"))
+            {
+                displayWatermark  = parameters["show"].Boolean();
+            }
+            result = showWatermark(displayWatermark);
+            if (!result)
+            {
+                response["message"] = "failed to perform show watermark";
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -3006,14 +3181,11 @@ namespace WPEFramework {
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
-            for (auto pluginName : gActivePlugins)
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
+            if (pluginsEntry != gActivePluginsData.end())
             {
-                if (pluginName == callsign)
-                {
-                    std::cout << "factory app is already running" << std::endl;
-                    isFactoryAppRunning = true;
-                    break;
-                }
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
             }
             gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
@@ -3032,14 +3204,11 @@ namespace WPEFramework {
             std::string factoryAppCallsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
-            for (auto pluginName : gActivePlugins)
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(factoryAppCallsign);
+            if (pluginsEntry != gActivePluginsData.end())
             {
-                if (pluginName == factoryAppCallsign)
-                {
-                    std::cout << "factory app is running" << std::endl;
-                    isFactoryAppRunning = true;
-                    break;
-                }
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
             }
             gPluginDataMutex.unlock();
             if (!isFactoryAppRunning)
@@ -3133,14 +3302,11 @@ namespace WPEFramework {
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
-            for (auto pluginName : gActivePlugins)
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
+            if (pluginsEntry != gActivePluginsData.end())
             {
-                if (pluginName == callsign)
-                {
-                    std::cout << "factory app is already running" << std::endl;
-                    isFactoryAppRunning = true;
-                    break;
-                }
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
             }
             gPluginDataMutex.unlock();
             if (isFactoryAppRunning)
@@ -3575,6 +3741,25 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
+            gPluginDataMutex.lock();
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
+            if (pluginsEntry != gActivePluginsData.end())
+            {
+                PluginData& pluginData = pluginsEntry->second;
+                if (pluginData.mClassName.compare("WebKitBrowser") == 0)
+                {
+                    WPEFramework::Core::JSON::String visibilityString;
+                    visibilityString = visible?"visible":"hidden";
+                    const string callsignWithVersion = client + ".1";
+                    int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
+                    if (status > 0)
+                    {
+                        std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                    }
+                }
+            }
+            gPluginDataMutex.unlock();
+
             return ret;
         }
 
@@ -3773,7 +3958,6 @@ namespace WPEFramework {
             return true;
         }
 
-
         PluginStateChangeData::PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell):mCallSign(callsign), mRDKShell(*rdkshell)
         {
             mPluginConnection = pluginConnection;
@@ -3808,6 +3992,22 @@ namespace WPEFramework {
                 params["client"] = mCallSign;
                 mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
             }
+        }
+
+        bool RDKShell::showWatermark(const bool enable)
+        {
+            bool ret = true;
+            gRdkShellMutex.lock();
+            if (enable)
+            {
+                receivedShowWatermarkRequest = true;
+            }
+            else
+            {
+                ret = CompositorController::hideWatermark();
+            }
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end
