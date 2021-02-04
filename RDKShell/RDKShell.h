@@ -123,6 +123,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
             void notify(const std::string& event, const JsonObject& parameters);
+            void pluginEventHandler(const JsonObject& parameters);
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -307,6 +308,11 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+        };
+
+        struct PluginData
+        {
+          std::string mClassName;
         };
 
         class PluginStateChangeData
