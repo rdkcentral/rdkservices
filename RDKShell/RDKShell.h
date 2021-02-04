@@ -231,6 +231,8 @@ namespace WPEFramework {
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost);
+            void loadStartupConfig();
+            void invokeStartupThunderApis();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
