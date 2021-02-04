@@ -382,6 +382,7 @@ namespace WPEFramework {
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
         }
 
 
