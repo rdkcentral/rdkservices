@@ -80,6 +80,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_WATERMARK = "showWatermark";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE = "showFullScreenImage";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE = "hideFullScreenImage";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
@@ -111,6 +113,8 @@ using namespace RdkShell;
 using namespace Utils;
 extern int gCurrentFramerate;
 bool receivedResolutionRequest = false;
+bool receivedFullScreenImageRequest= false;
+std::string fullScreenImagePath;
 bool receivedShowWatermarkRequest = false;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
@@ -318,6 +322,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO, &RDKShell::getSystemResourceInfoWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_MEMORY_MONITOR, &RDKShell::setMemoryMonitorWrapper, this);
             registerMethod(RDKSHELL_METHOD_SHOW_WATERMARK, &RDKShell::showWatermarkWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE, &RDKShell::showFullScreenImageWrapper, this);
+            registerMethod(RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE, &RDKShell::hideFullScreenImageWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
@@ -398,6 +404,12 @@ namespace WPEFramework {
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
                     receivedResolutionRequest = false;
+                  }
+                  if (receivedFullScreenImageRequest)
+                  {
+                    CompositorController::showFullScreenImage(fullScreenImagePath);
+                    fullScreenImagePath = "";
+                    receivedFullScreenImageRequest = false;
                   }
                   if (receivedShowWatermarkRequest)
                   {
@@ -2938,6 +2950,39 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("path"))
+            {
+                result = false;
+                response["message"] = "please specify path";
+            }
+            if (result)
+            {
+                std::string path = parameters["path"].String();
+                result = showFullScreenImage(path);
+                if (!result)
+                {
+                    response["message"] = "failed to perform showw fullscreen";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::hideFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            gRdkShellMutex.lock();
+            result = CompositorController::hideFullScreenImage();
+            gRdkShellMutex.unlock();
+
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -4068,6 +4113,15 @@ namespace WPEFramework {
             return ret;
         }
 
+        bool RDKShell::showFullScreenImage(std::string& path)
+        {
+            bool ret = true;
+            gRdkShellMutex.lock();
+            fullScreenImagePath = path;
+            receivedFullScreenImageRequest = true;
+            gRdkShellMutex.unlock();
+            return ret;
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
