@@ -2191,7 +2191,9 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
+                    gRdkShellMutex.lock();
                     RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
+                    gRdkShellMutex.unlock();
                 }
 
                 WPEFramework::Core::JSON::String configString;
