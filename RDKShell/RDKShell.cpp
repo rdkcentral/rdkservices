@@ -1255,7 +1255,25 @@ namespace WPEFramework {
                     displayHeight = parameters["displayHeight"].Number();
                 }
 
-                result = createDisplay(client, displayName, displayWidth, displayHeight);
+                bool virtualDisplay = false;
+                if (parameters.HasLabel("virtualDisplay"))
+                {
+                    virtualDisplay = parameters["virtualDisplay"].Boolean();
+                }
+
+                uint32_t virtualWidth = 0;
+                if (parameters.HasLabel("virtualWidth"))
+                {
+                    virtualWidth = parameters["virtualWidth"].Number();
+                }
+                uint32_t virtualHeight = 0;
+                if (parameters.HasLabel("virtualHeight"))
+                {
+                    virtualHeight = parameters["virtualHeight"].Number();
+                }
+
+                result = createDisplay(client, displayName, displayWidth, displayHeight,
+                    virtualDisplay, virtualWidth, virtualHeight);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -3692,11 +3710,13 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight)
+        bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight,
+            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
             gRdkShellMutex.lock();
-            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight);
+            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
+                virtualDisplay, virtualWidth, virtualHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;

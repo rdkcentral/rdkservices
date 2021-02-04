@@ -212,7 +212,8 @@ namespace WPEFramework {
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
-            bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0);
+            bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0,
+                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
