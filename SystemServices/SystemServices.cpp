@@ -40,6 +40,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -381,11 +382,19 @@ namespace WPEFramework {
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
         }
 
 
         SystemServices::~SystemServices()
         {
+            if (thread_getMacAddresses.joinable())
+                thread_getMacAddresses.join();
+
+            if( m_getFirmwareInfoThread.joinable())
+                m_getFirmwareInfoThread.join();
+                
             SystemServices::_instance = nullptr;
         }
 
@@ -1834,6 +1843,8 @@ namespace WPEFramework {
                             fwUpdateState = FirmwareUpdateStateValidationComplete;
                         } else if (!strcmp(line.c_str(), "Preparing to reboot")) {
                             fwUpdateState = FirmwareUpdateStatePreparingReboot;
+                        } else if (!strcmp(line.c_str(), "No upgrade needed")) {
+                            fwUpdateState = FirmwareUpdateStateNoUpgradeNeeded;
                         }
                     }
                 }
@@ -3363,6 +3374,61 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
+        }
+
+        /***
+         * @brief : upload STB logs to the specified URL.
+         * @param1[in] : url::String
+         */
+        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = false;
+
+#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
+            string url;
+            getStringParameter("url", url);
+            auto err = UploadLogs::upload(url);
+            if (err != UploadLogs::OK)
+                response["error"] = UploadLogs::errToText(err);
+            else
+                success = true;
+#else
+            response["error"] = "unsupported";
+#endif
+
+            returnResponse(success);
+        }
+
+        uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
+        {
+            bool retStatus = true;
+            FwFailReason failReason = FwFailReasonNone;
+
+            std::vector<string> lines;
+            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
+                std::string str;
+                for (auto i = lines.begin(); i != lines.end(); ++i) {
+                    std::smatch m;
+                    if (std::regex_match(*i, m, std::regex("^FailureReason\\|(.*)$"))) {
+                        str = m.str(1);
+                    }
+                }
+
+                LOGINFO("Lines read:%d. FailureReason|%s", (int) lines.size(), C_STR(str));
+
+                auto it = FwFailReasonFromText.find(str);
+                if (it != FwFailReasonFromText.end())
+                    failReason = it->second;
+                else
+                    LOGWARN("Unrecognised FailureReason!");
+            } else {
+                LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
+            }
+
+            response["failReason"] = FwFailReasonToText.at(failReason);
+            returnResponse(retStatus);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
