@@ -22,6 +22,8 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <sstream>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
@@ -130,6 +132,13 @@ namespace WPEFramework {
     namespace Plugin {
 
         vector<std::string> gActivePlugins;
+
+        struct RDKShellStartupConfig
+        {
+            std::string rfc;
+            std::string thunderApi;
+            JsonObject params;
+        };
 
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
 
@@ -401,7 +410,149 @@ namespace WPEFramework {
 
             service->Register(mClientsMonitor);
             Utils::SecurityToken::getSecurityToken(sToken);
+
+            loadStartupConfig();
+            invokeStartupThunderApis();
             return "";
+        }
+
+        void RDKShell::loadStartupConfig()
+        {
+#ifdef RFC_ENABLED
+            const char* startupConfigFileName = getenv("RDKSHELL_STARTUP_CONFIG");
+            if (startupConfigFileName)
+            {
+                std::ifstream startupConfigFile;
+                try
+                {
+                    startupConfigFile.open(startupConfigFileName, std::ifstream::binary);
+                }
+                catch (...)
+                {
+                    std::cout << "RDKShell startup config file read error : [unable to open/read file (" <<  startupConfigFileName << ")]\n";
+                    return;
+                }
+                std::stringstream strStream;
+                strStream << startupConfigFile.rdbuf();
+                JsonObject startupConfigData;
+                try
+                {
+                    startupConfigData = strStream.str();
+                }
+                catch(...)
+                {
+                    std::cout << "RDKShell startup config file read error : [json format is incorrect (" <<  startupConfigFileName << ")]\n";
+                    startupConfigFile.close();
+                    return;
+                }
+                startupConfigFile.close();
+                
+                if (startupConfigData.HasLabel("rdkshellStartup") && (startupConfigData["rdkshellStartup"].Content() == JsonValue::type::ARRAY))
+                {
+                    const JsonArray& jsonValue = startupConfigData["rdkshellStartup"].Array();
+      
+                    for (int k = 0; k < jsonValue.Length(); k++)
+                    {
+                        std::string name("");
+                        uint32_t timeout = 0;
+                        std::string actionJson("");
+      
+                        if (!(jsonValue[k].Content() == JsonValue::type::OBJECT))
+                        {
+                            std::cout << "one of rdkshell startup config entry is of wrong format" << std::endl;
+                            continue;
+                        }
+                        const JsonObject& configEntry = jsonValue[k].Object();
+      
+                        //check for entry validity
+                        if (!(configEntry.HasLabel("RFC") && configEntry.HasLabel("thunderApi")))
+                        {
+                            std::cout << "one of rdkshell startup config entry is of wrong format or not having RFC/thunderApi parameter" << std::endl;
+                            continue;
+                        }
+      
+                        //populate rfc entry
+                        const JsonValue& rfcValue = configEntry["RFC"];
+                        if (!(rfcValue.Content() == JsonValue::type::STRING))
+                        {
+                            std::cout << "rfc type is non-string type and so ignoring entry" << std::endl;
+                            continue;
+                        }
+                        std::string rfc = rfcValue.String();
+
+                        //populate thunder api entry
+                        const JsonValue& thunderApiValue = configEntry["thunderApi"];
+                        if (!(thunderApiValue.Content() == JsonValue::type::STRING))
+                        {
+                            std::cout << "thunder api type is non-string type and so ignoring entry" << std::endl;
+                            continue;
+                        }
+                        std::string thunderApi = thunderApiValue.String();
+
+                        //populate params
+                        JsonObject params;
+                        if (configEntry.HasLabel("params"))
+                        {
+                            const JsonValue& paramsValue = configEntry["params"];
+                            if (!(paramsValue.Content() == JsonValue::type::OBJECT))
+                            {
+                                std::cout << "one of rdkshell config entry has non-object type params" << std::endl;
+                                continue;
+                            }
+                            params =  paramsValue.Object();
+                        }
+                        RDKShellStartupConfig config; 
+                        config.rfc = rfc;
+                        config.thunderApi = thunderApi;
+                        config.params = params;
+                        gStartupConfigs.push_back(config);
+                    }
+                }
+                else
+                {
+                    std::cout << "Ignored file read due to rdkshellStartup entry is not present";
+                }
+            }
+            else
+            {
+              std::cout << "Ignored file read due to rdkshell staup config environment variable not set\n";
+            }
+#else
+            std::cout << "rfc is not enabled and not loading startup configs " << std::endl;
+#endif
+        }
+
+        void RDKShell::invokeStartupThunderApis()
+        {
+#ifdef RFC_ENABLED
+            for (std::vector<RDKShellStartupConfig>::iterator iter = gStartupConfigs.begin() ; iter != gStartupConfigs.end(); iter++)
+            {
+                std::string rfc = iter->rfc;
+                std::string thunderApi = iter->thunderApi;
+                JsonObject& apiParams = iter->params;
+
+                RFC_ParamData_t rfcParam;
+                bool ret = Utils::getRFCConfig((char*)rfc.c_str(), rfcParam);
+                if (true == ret && rfcParam.type == WDMP_BOOLEAN && (strncasecmp(rfcParam.value,"true",4) == 0))
+                {
+                    std::cout << "invoking thunder api " << thunderApi << std::endl;
+                    uint32_t status = 0;
+                    JsonObject joResult;
+                    status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, thunderApi.c_str(), apiParams, joResult);
+                    if (status > 0)
+                    {
+                        std::cout << "invoking thunder api " << thunderApi << " failed - " << status << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << "rfc " << rfc << " not enabled/non-boolean type " << std::endl;
+                }
+            }
+#else
+            std::cout << "rfc is not enabled and not invoking thunder apis " << std::endl;
+#endif
+            gStartupConfigs.clear();
         }
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
