@@ -60,7 +60,8 @@ namespace {
 
 WifiManagerSignalThreshold::WifiManagerSignalThreshold(WifiManagerInterface &wifiManager):
     changeEnabled(false),
-    wifiManager(wifiManager)
+    wifiManager(wifiManager),
+    running(false)
 {
 }
 
@@ -101,10 +102,37 @@ uint32_t WifiManagerSignalThreshold::isSignalThresholdChangeEnabled(const JsonOb
 
 void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enabled, int interval)
 {
+    LOGINFO("setSignalThresholdChangeEnabled: enabled %s, interval %d", enabled ? "true":"false", interval);
+
     stopThread();
 
     changeEnabled = enabled;
-    if(changeEnabled) {
+    JsonObject parameters, response;
+    WifiState state;
+
+    uint32_t result = wifiManager.getCurrentState(parameters, response);
+    if (result != 0)
+    {
+        LOGINFO("wifiManager.getCurrentState result = %d", result);
+        return;
+    }
+    else if (response.HasLabel("state"))
+    {
+        int64_t number;
+        getNumberParameter("state", number);
+        state = (WifiState) number;
+        LOGINFO("wifi state = %d", state);
+    }
+    else
+    {
+        LOGINFO("no state attribute");
+        return;
+    }
+
+    if(changeEnabled)
+    {
+        if (state == WifiState::CONNECTED)
+            running = true;
         startThread(interval);
     }
 }
@@ -118,14 +146,22 @@ void WifiManagerSignalThreshold::loop(int interval)
 {
     std::unique_lock<std::mutex> lk(cv_mutex);
     while(changeEnabled) {
-        LOGINFO("WifiManagerSignalThreashold::loop");
 
         float signalStrength;
         std::string strength;
-        getSignalData(wifiManager, signalStrength, strength);
+        std::string lastStrength = "";
+        if (running)
+        {
+            LOGINFO("WifiManagerSignalThreashold::loop");
+            getSignalData(wifiManager, signalStrength, strength);
 
-        wifiManager.onWifiSignalThresholdChanged(signalStrength, strength);
 
+            if (strength != lastStrength)
+            {
+                wifiManager.onWifiSignalThresholdChanged(signalStrength, strength);
+                lastStrength = strength;
+            }
+        }
         cv.wait_for(lk, std::chrono::milliseconds(interval), [this](){ return changeEnabled == false; });
     }
 }
@@ -137,6 +173,14 @@ void WifiManagerSignalThreshold::stopThread()
     if(thread.joinable()) {
         thread.join();
     }
+    running = false ;
+}
+
+
+void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enable)
+{
+    LOGINFO("setSignalThresholdChangeEnabled: enable %s", enable ? "true":"false");
+    running = enable;
 }
 
 void WifiManagerSignalThreshold::startThread(int interval)
