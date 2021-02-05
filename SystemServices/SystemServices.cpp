@@ -382,6 +382,8 @@ namespace WPEFramework {
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
         }
 
 
@@ -3397,6 +3399,36 @@ namespace WPEFramework {
 #endif
 
             returnResponse(success);
+        }
+
+        uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
+        {
+            bool retStatus = true;
+            FwFailReason failReason = FwFailReasonNone;
+
+            std::vector<string> lines;
+            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
+                std::string str;
+                for (auto i = lines.begin(); i != lines.end(); ++i) {
+                    std::smatch m;
+                    if (std::regex_match(*i, m, std::regex("^FailureReason\\|(.*)$"))) {
+                        str = m.str(1);
+                    }
+                }
+
+                LOGINFO("Lines read:%d. FailureReason|%s", (int) lines.size(), C_STR(str));
+
+                auto it = FwFailReasonFromText.find(str);
+                if (it != FwFailReasonFromText.end())
+                    failReason = it->second;
+                else
+                    LOGWARN("Unrecognised FailureReason!");
+            } else {
+                LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
+            }
+
+            response["failReason"] = FwFailReasonToText.at(failReason);
+            returnResponse(retStatus);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
