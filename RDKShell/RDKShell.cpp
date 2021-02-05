@@ -141,7 +141,8 @@ namespace WPEFramework {
         };
 
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
-
+        std::vector<RDKShellStartupConfig> gStartupConfigs;
+        
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
