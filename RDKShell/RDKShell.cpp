@@ -603,7 +603,7 @@ namespace WPEFramework {
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
                     JsonObject request, response;
-                    uint32_t status = launchResidentAppWrapper(request, response);
+                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                 }
             }
         }
