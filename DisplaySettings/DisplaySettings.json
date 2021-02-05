@@ -4,7 +4,8 @@
     "info": {
         "title": "DisplaySettings API", 
         "class": "DisplaySettings", 
-        "description": "The `DisplaySetting` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more."},
+        "description": "The `DisplaySetting` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more."
+    },
     "definitions": {
         "audioDelay": {
             "summary": "Delay (in ms) on the selected audio port",
@@ -22,7 +23,7 @@
             "example": "HDMI0"
         },
         "audioPort1": {
-            "description": "audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified.",
+            "summary": "audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified.",
             "type": "string",
             "example": "SPEAKER0"
         },
@@ -181,7 +182,7 @@
                 "type":"object",
                 "properties": {
                     "HdcpRepeater": {
-                        "description": "`true` if the device is an HDCP repeater otherwise `false`",
+                        "summary": "`true` if the device is an HDCP repeater otherwise `false`",
                         "type":"boolean",
                         "example":true
                     },
@@ -241,7 +242,7 @@
                 "type":"object",
                 "properties": {
                     "activeInput": {
-                        "description": "Determines whether selected input is active or not",
+                        "summary": "Determines whether selected input is active or not",
                         "type": "boolean",
                         "example": true
                     },
@@ -330,7 +331,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if Bass Enhancer is enabled, otherwise `false`",
+                        "summary": "`true` if Bass Enhancer is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
@@ -354,7 +355,7 @@
                 "type":"object",
                 "properties": {
                     "connectedAudioPorts": {
-                        "description": "A string [] of connected audio port names",
+                        "summary": "A string [] of connected audio port names",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -395,22 +396,22 @@
                 "type":"object",
                 "properties": {
                     "colorSpace": {
-                        "description": "The color space. Possible values: `0` (dsDISPLAY_COLORSPACE_UNKNOWN), `1` (sDISPLAY_COLORSPACE_RGB, `2` (dsDISPLAY_COLORSPACE_YCbCr422), `3` (dsDISPLAY_COLORSPACE_YCbCr444), `4` (dsDISPLAY_COLORSPACE_YCbCr420), `5` (dsDISPLAY_COLORSPACE_AUTO).",
+                        "summary": "The color space. Possible values: `0` (dsDISPLAY_COLORSPACE_UNKNOWN), `1` (sDISPLAY_COLORSPACE_RGB, `2` (dsDISPLAY_COLORSPACE_YCbCr422), `3` (dsDISPLAY_COLORSPACE_YCbCr444), `4` (dsDISPLAY_COLORSPACE_YCbCr420), `5` (dsDISPLAY_COLORSPACE_AUTO).",
                         "type": "integer",
                         "example": 5
                     },
                     "colorDepth": {
-                        "description": "The color depth. The value that is returned from `dsGetCurrentOutputSettings`",
+                        "summary": "The color depth. The value that is returned from `dsGetCurrentOutputSettings`",
                         "type": "integer",
                         "example": 0 
                     },
                     "matrixCoefficients": {
-                        "description": "matrix coefficients. Possible values: `0` (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), `1` (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), `2` (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), `3` (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), `4` (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), `5` (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), `6` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), `7` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL)",
+                        "summary": "matrix coefficients. Possible values: `0` (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), `1` (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), `2` (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), `3` (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), `4` (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), `5` (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), `6` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), `7` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL)",
                         "type": "integer",
                         "example": 0
                     },
                     "videoEOTF": {
-                        "description": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid)",
+                        "summary": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid)",
                         "type": "integer",
                         "example": 0
                     },
@@ -462,7 +463,7 @@
                 "type":"object",
                 "properties": {
                     "defaultResolution": {
-                        "description": "Default resolution supported by the HDMI0 video output port",
+                        "summary": "Default resolution supported by the HDMI0 video output port",
                         "type":"string",
                         "example":"720p"
                     },
@@ -482,7 +483,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if Dialog Enhancer Mode is enabled, otherwise `false`",
+                        "summary": "`true` if Dialog Enhancer Mode is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": false
                     },
@@ -535,7 +536,7 @@
                 "type":"object",
                 "properties": {
                     "DRCMode": {
-                        "description": "The DRC Mode value: either `line` or `RF`",
+                        "summary": "The DRC Mode value: either `line` or `RF`",
                         "type": "string",
                         "example": "line"
                     },
@@ -584,12 +585,12 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if intelligent Equalizer Mode is enabled, otherwise `false`",
+                        "summary": "`true` if intelligent Equalizer Mode is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
                     "mode": {
-                        "description": "Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error)",
+                        "summary": "Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error)",
                         "type": "integer",
                         "example": 2
                     },
@@ -639,7 +640,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if audio compression is enabled, otherwise `false`",
+                        "summary": "`true` if audio compression is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
@@ -714,7 +715,7 @@
                 "type":"object",
                 "properties": {
                     "atmos_capability": {
-                        "description": "ATMOS Capability (`1` = open, `2` = rich, `3` = focused or `0` in case of error)",
+                        "summary": "ATMOS Capability (`1` = open, `2` = rich, `3` = focused or `0` in case of error)",
                         "type": "integer",
                         "example": "2"
                     },
@@ -774,7 +775,7 @@
                 "type":"object",
                 "properties": {
                     "supportedAudioModes": {
-                        "description": "A string [] of supported audio modes",
+                        "summary": "A string [] of supported audio modes",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -797,7 +798,7 @@
                 "type":"object",
                 "properties": {
                     "supportedAudioPorts": {
-                        "description": "A string [] of supported audio ports",
+                        "summary": "A string [] of supported audio ports",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -831,7 +832,7 @@
                 "type":"object",
                 "properties": {
                     "supportedResolutions":{
-                        "description": "A string array of supported resolutions on the selected video display port",
+                        "summary": "A string array of supported resolutions on the selected video display port",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -854,7 +855,7 @@
                 "type":"object",
                 "properties": {
                     "supportedSettopResolutions": {
-                        "description": "A string array of supported STB resolutions",
+                        "summary": "A string array of supported STB resolutions",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -888,7 +889,7 @@
                 "type":"object",
                 "properties": {
                     "supportedTvResolutions": {
-                        "description": "A string [] of supported TV resolutions",
+                        "summary": "A string [] of supported TV resolutions",
                         "type": "array",
                         "items" : {
                             "type": "string",
@@ -911,7 +912,7 @@
                 "type":"object",
                 "properties": {
                     "supportedVideoDisplays": {
-                        "description": "a string [] of supported video display ports",
+                        "summary": "a string [] of supported video display ports",
                         "type":"array",
                         "items": {
                             "type": "string",
@@ -945,7 +946,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if Surround Virtualizer is enabled, otherwise `false`",
+                        "summary": "`true` if Surround Virtualizer is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
@@ -969,7 +970,7 @@
                 "type":"object",
                 "properties": {
                     "capabilities": {
-                        "description": "The OR-ed value of supported HDR standards by the TV",
+                        "summary": "The OR-ed value of supported HDR standards by the TV",
                         "type":"integer",
                         "example": 3
                     },
@@ -1022,12 +1023,12 @@
                 "type":"object",
                 "properties": {
                     "VideoPortStatusInStandby": {
-                        "description": "video port status (enabled/disabled) in standby mode",
+                        "summary": "video port status (enabled/disabled) in standby mode",
                         "type": "boolean",
                         "example": true
                     },
                     "error_message": {
-                        "description": "Error message in case of failure",
+                        "summary": "Error message in case of failure",
                         "type": "string",
                         "example": "internal error"
                     },
@@ -1088,7 +1089,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "`true` if Volume Leveller is enabled, otherwise `false`",
+                        "summary": "`true` if Volume Leveller is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
@@ -1166,7 +1167,7 @@
                 "type":"object",
                 "properties": {
                     "enable": {
-                        "description": "enable or disable ATMOS audio output mode",
+                        "summary": "enable or disable ATMOS audio output mode",
                         "type": "boolean",
                         "example": true
                     }
@@ -1305,7 +1306,7 @@
                         "$ref": "#/definitions/audioPort1"
                     },
                     "DRCMode": {
-                        "description": "Value of 0 or 1, where 0 is Line mode and 1 is RF mode",
+                        "summary": "Value of 0 or 1, where 0 is Line mode and 1 is RF mode",
                         "type": "integer",
                         "example": 1
                     }
@@ -1344,7 +1345,7 @@
                 "type":"object",
                 "properties": {
                     "intelligentEqualizerMode": {
-                        "description": "Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error)",
+                        "summary": "Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error)",
                         "type": "integer",
                         "example": 2
                     }
@@ -1420,12 +1421,12 @@
                 "type":"object",
                 "properties": {
                     "scartParameter": {
-                        "description": "SCART parameter name",
+                        "summary": "SCART parameter name",
                         "type": "string",
                         "example": "aspect_ratio"
                     },
                     "scartParameterData": {
-                        "description": "SCART parameter data",
+                        "summary": "SCART parameter data",
                         "type": "string",
                         "example": "4x3"
                     }
@@ -1451,7 +1452,7 @@
                         "$ref": "#/definitions/soundMode"
                     },
                     "persist": {
-                        "description": "persists the sound mode",
+                        "summary": "persists the sound mode",
                         "type": "boolean",
                         "example": true
                     }
@@ -1495,7 +1496,7 @@
                         "$ref": "#/definitions/portName"
                     },
                     "enabled": {
-                        "description": "Enable video port status to be used in standby mode",
+                        "summary": "Enable video port status to be used in standby mode",
                         "type": "boolean",
                         "example": true
                     }
@@ -1509,7 +1510,7 @@
                 "type":"object",
                 "properties": {
                     "error_message": {
-                        "description": "Error message in case of failure",
+                        "summary": "Error message in case of failure",
                         "type":"string",
                         "example":"internal error"
                     },

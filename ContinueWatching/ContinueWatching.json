@@ -101,7 +101,7 @@
                         "$ref": "#/definitions/applicationName"
                     },
                     "application_token": {
-                        "description": "Any number of tokens to be set",
+                        "summary": "Any number of tokens to be set",
                         "type": "object",
                         "properties": {
                             "ABC": {

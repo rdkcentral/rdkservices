@@ -58,7 +58,7 @@
                 "type": "object",
                 "properties": {
                     "config": {
-                        "description": "An array of configuration objects for each application to be monitored",
+                        "summary": "An array of configuration objects for each application to be monitored",
                         "type": "array",
                         "items": {
                             "type":"object",
@@ -91,12 +91,12 @@
                         }
                     },
                     "memoryIntervalSeconds": {
-                        "description": "The memory check interval in seconds",
+                        "summary": "The memory check interval in seconds",
                         "type": "string",
                         "example": "0.02"
                     },
                     "CPU check interval":{
-                        "description": "The CPU check interval in seconds",
+                        "summary": "The CPU check interval in seconds",
                         "type": "string",
                         "example": "0.02"
                     }
@@ -117,7 +117,7 @@
         "disableMonitoring":{
             "summary": "Disables monitoring for all applications",
             "params": {
-                "description": "An empty parameter object",
+                "summary": "An empty parameter object",
                 "type": "object",
                 "properties": {}
             },
@@ -142,7 +142,7 @@
                 "type":"object",
                 "properties": {
                     "applicationMemory": {
-                        "description": "The amount of memory used by this application",
+                        "summary": "The amount of memory used by this application",
                         "type":"object",
                         "properties": {
                             "appPid": {
@@ -174,7 +174,7 @@
         "getAllMemoryUsage": {
             "summary": "Returns memory usage for all monitoring-enabled applications",
             "params": {
-                "description": "An empty param object",
+                "summary": "An empty param object",
                 "type": "object",
                 "properties": {}
             },
@@ -182,12 +182,12 @@
                 "type":"object",
                 "properties": {
                     "freeMemoryMB": {
-                        "description": "The amount of free memory available",
+                        "summary": "The amount of free memory available",
                         "type":"integer",
                         "example": 100
                     },
                     "applicationMemory": {
-                        "description": "An array of monitoring-enabled applications and their respective memory usage",
+                        "summary": "An array of monitoring-enabled applications and their respective memory usage",
                         "type":"array",
                         "items": {
                             "type": "object",

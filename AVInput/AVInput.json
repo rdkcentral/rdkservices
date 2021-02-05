@@ -28,7 +28,7 @@
         "numberOfInputs" : {
             "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
             "params": {
-                "description": "An empty parameter object",
+                "summary": "An empty parameter object",
                 "type": "object",
                 "properties": {}
             },
@@ -36,7 +36,7 @@
                 "type":"object",
                 "properties": {
                     "numberOfInputs" : {
-                        "description": "The number of inputs that are available for selection",
+                        "summary": "The number of inputs that are available for selection",
                         "type":"number",
                         "example": 1
                     },
@@ -53,7 +53,7 @@
         "currentVideoMode": {
             "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.",
             "params": {
-                "description": "An empty parameter object",
+                "summary": "An empty parameter object",
                 "type": "object",
                 "properties": {}
             },
@@ -61,7 +61,7 @@
                 "type":"object",
                 "properties": {
                     "currentVideoMode" : {
-                        "description": "The current video mode",
+                        "summary": "The current video mode",
                         "type":"string",
                         "example": "Unknown"
                     },
@@ -79,7 +79,7 @@
         "contentProtected": {
             "summary": "Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.",
             "params": {
-                "description": "An empty parameter object",
+                "summary": "An empty parameter object",
                 "type": "object",
                 "properties": {}
             },
@@ -87,7 +87,7 @@
                 "type":"object",
                 "properties": {
                     "isContentProtected" : {
-                        "description": "Whether the HDMI input is protected",
+                        "summary": "Whether the HDMI input is protected",
                         "type":"boolean",
                         "example": true
                     },

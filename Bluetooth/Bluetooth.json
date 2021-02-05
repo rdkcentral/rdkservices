@@ -103,7 +103,7 @@
             "example": "DISCOVERY_COMPLETED"
         },
         "discoverable":{
-            "description":"Whether the device is discoverable",
+            "summary":"Whether the device is discoverable",
             "type":"boolean",
             "example":true
         },
@@ -143,7 +143,7 @@
                 "type":"object",
                 "properties": {
                     "name": {
-                        "description": "The name of the device",
+                        "summary": "The name of the device",
                         "type":"string",
                         "example":"RDK Bluetooth Device"
                     },
@@ -163,7 +163,7 @@
                 "type":"object",
                 "properties":{
                     "name":{
-                        "description":"The name of the device",
+                        "summary":"The name of the device",
                         "type":"string",
                         "example":"RDK Bluetooth Device"
                     }
@@ -223,7 +223,7 @@
                         "example":5
                     },
                     "profile":{
-                        "description":"Comma separated list of profiles to scan.",
+                        "summary":"Comma separated list of profiles to scan.",
                         "type":"string",
                         "example":"SMARTPHONE, HEADSET"
                     }
@@ -237,7 +237,7 @@
                 "type":"object",
                 "properties": {
                     "status": {
-                        "description": "Discovery status.",
+                        "summary": "Discovery status.",
                         "type":"string",
                         "example":"AVAIlABLE"
                     },
@@ -264,7 +264,7 @@
                 "type":"object",
                 "properties": {
                     "discoveredDevices": {
-                        "description": "An array of objects where each object represents a discovered device",
+                        "summary": "An array of objects where each object represents a discovered device",
                         "type":"array",
                         "items": {
                             "type": "object",
@@ -313,7 +313,7 @@
                 "type":"object",
                 "properties": {
                     "pairedDevices": {
-                        "description": "An array of objects where each object represents a paired device",
+                        "summary": "An array of objects where each object represents a paired device",
                         "type":"array",
                         "items": {
                             "type": "object",
@@ -356,7 +356,7 @@
                 "type":"object",
                 "properties": {
                     "connectedDevices": {
-                        "description": "An array of objects where each object represents a connected device",
+                        "summary": "An array of objects where each object represents a connected device",
                         "type":"array",
                         "items": {
                             "type": "object",
@@ -513,7 +513,7 @@
                 "type":"object",
                 "properties": {
                     "deviceInfo": {
-                        "description": "An object that contains information about the device",
+                        "summary": "An object that contains information about the device",
                         "type":"object",
                         "properties": {
                             "deviceID": {
@@ -583,7 +583,7 @@
                 "type":"object",
                 "properties": {
                     "trackInfo": {
-                        "description": "An object that contains information about the currently playing audio selection",
+                        "summary": "An object that contains information about the currently playing audio selection",
                         "type":"object",
                         "properties": {
                             "album": {

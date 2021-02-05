@@ -8,7 +8,7 @@
     },
     "definitions": {
         "params":{
-            "description": "An empty `params` object",
+            "summary": "An empty `params` object",
             "type": "object",
             "properties": {}
         },

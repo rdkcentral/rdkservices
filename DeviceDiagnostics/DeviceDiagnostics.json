@@ -31,7 +31,7 @@
                 "type": "object",
                 "properties": {
                     "names": {
-                        "description": "String array of property names",
+                        "summary": "String array of property names",
                         "type": "array",
                         "items": {
                             "type":"string",
@@ -47,7 +47,7 @@
                 "type": "object",
                 "properties": {
                     "paramList": {
-                        "description": "An array of JSON objects with the specified properties and their values",
+                        "summary": "An array of JSON objects with the specified properties and their values",
                         "type":"array",
                         "items": {
                             "type": "object",

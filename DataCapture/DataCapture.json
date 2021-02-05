@@ -64,7 +64,7 @@
                 "type": "object",
                 "properties": {
                     "clipRequest": {
-                        "description": "An object that contains audio capture parameters",
+                        "summary": "An object that contains audio capture parameters",
                         "type": "object",
                         "properties": {
                             "stream": {
