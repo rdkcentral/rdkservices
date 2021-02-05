@@ -81,7 +81,7 @@ The table below lists configuration options of the plugin.
 
 The following methods are provided by the org.rdk.FrameRate plugin:
 
-DFrameRate interface methods:
+FrameRate interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
@@ -223,7 +223,7 @@ Notifications are autonomous events, triggered by the internals of the implement
 
 The following events are provided by the org.rdk.FrameRate plugin:
 
-DFrameRate interface events:
+FrameRate interface events:
 
 | Event | Description |
 | :-------- | :-------- |

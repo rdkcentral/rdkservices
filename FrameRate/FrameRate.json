@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "FrameRate API", 
-        "class": "DFrameRate", 
+        "class": "FrameRate", 
         "description": "The `FrameRate` plugin allows you to collect FPS data."
     },
     "definitions": {
@@ -31,7 +31,7 @@
                 "type":"object",
                 "properties": {
                     "frequency":{
-                        "description": "The collection interval in milliseconds",
+                        "summary": "The collection interval in milliseconds",
                         "type":"integer",
                         "example": 1000 
                     }
@@ -61,17 +61,17 @@
                 "type": "object",
                 "properties": {
                     "average": {
-                        "description": "The average FPS",
+                        "summary": "The average FPS",
                         "type": "integer",
                         "example": 0
                     },
                     "min": {
-                        "description": "The minimum FPS",
+                        "summary": "The minimum FPS",
                         "type": "integer",
                         "example": 0
                     },
                     "max": {
-                        "description": "The maximum FPS",
+                        "summary": "The maximum FPS",
                         "type": "integer",
                         "example": 0
                     }
