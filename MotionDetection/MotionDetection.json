@@ -1,0 +1,415 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "MotionDetection API", 
+        "class": "MotionDetection", 
+        "description": "The `MotionDetection` plugin allows you to control the motion sensors that are available on a set-top box."
+    },
+    "definitions": {
+        "mode":{
+            "summary": "The detection mode. Valid values are `0`: Detect no motion; or `1`: Detect motion",
+            "type": "string",
+            "enum": [0,1],
+            "example": 0
+        },
+        "index":{
+            "summary": "The name of a motion detector that is returned by the `getMotionDetectors` method.",
+            "type": "string",
+            "example": "FP_MD"
+        },
+        "sensitivities": {
+            "summary": "A string [] of sensitivity names that can be set for a motion detector. This property is only valid if the `SensitivityMode` property is set to `2`",
+            "type":"array",
+            "items": {
+                "type": "string",
+                "example": "low"
+            }
+        },
+        "min": {
+            "summary": "Minimum sensitivity (off). This property is only valid if the `SensitivityMode` property is set to `1` and is used together with the `max` and `step` properties.",
+            "type": "integer",
+            "example": 0
+        },
+        "max": {
+            "summary": "Maximum sensitivity. The detector is at the most sensitive. This property is only valid if the `SensitivityMode` property is set to `1` and is used together with the `min` and `step` properties.",
+            "type": "integer",
+            "example": 100
+        },
+        "step":{
+            "summary": "Step size of sensitivity control. For example, a detector may have a range from 0 to 100 but with a step of 20; therefore, the detector only supports the values of 0, 20, 40, 60, 80, and 100. This property is only valid if the `SensitivityMode` property is set to `1` and is used together with the `min` and `max` properties.",
+            "type": "integer",
+            "example": 20
+        },
+        "period":{
+            "summary": "The no-motion period duration in seconds. The value must be greater than 0",
+            "type": "string",
+            "example": "1800"
+        },
+        "name":{
+            "summary": "A sensitivity setting name",
+            "type": "string",
+            "example": "low"
+        },
+        "value":{
+            "summary": "A sensitivity setting value",
+            "type": "string",
+            "example": "20"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "arm":{
+            "summary": "Enables a motion detector in the mode requested. This enables a single shot event. Once an event is sent, the device is in the disarmed state. If the application wishes to receive another event, then the application must re-arm.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    },
+                    "mode":{
+                        "$ref": "#/definitions/mode"
+                    }
+                },
+                "required": [
+                    "index",
+                    "mode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "disarm": {
+            "summary": "Disables the specified motion detector.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getLastMotionEventElapsedTime": {
+            "summary": "Returns the elapsed time since the last motion event occurred for the specified motion detector.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "time": {
+                        "summary": "The elapsed time in seconds",
+                        "type": "integer",
+                        "example": 1964
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "time",
+                    "success"
+                ]
+            }
+        },
+        "getMotionDetectors":{
+            "summary": "Returns the available motion detectors and then lists information for each detector including their supported sensitivity mode.  \n  \n**Note:** The `sensitivityMode` property that is returned by this method indicates whether a number or a name controls the sensitivity of a motion detector. If `sensitivityMode` is `1`, then a set of properties (`min`, `max`, and `step`) are returned that define a valid number range to use. If `sensitivityMode` is `2`, then a `sensitivities` property is returned that contains valid names to use.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedMotionDetectors": {
+                        "summary": "Name of each motion detector which can be used as indices in other `MotionDetector` API functions.",
+                        "type":"array",
+                        "items": {
+                            "type":"string",
+                            "example": "FP_MD"
+                        }
+                    },
+                    "supportedMotionDetectorsInfo":{
+                        "summary": "a JSON object containing information about each motion detector",
+                        "type": "object",
+                        "properties": {
+                            "FP_MD": {
+                                "summary": "A motion detector index name",
+                                "type":"object",
+                                "properties":{
+                                    "description":{
+                                        "summary":"A description of the motion detector",
+                                        "type":"string",
+                                        "example": "The only motion detector"
+                                    },
+                                    "type":{
+                                        "summary": "The motion detector type. For example, PIR, Microwave, video, hybrid, etc.",
+                                        "type": "string",
+                                        "example": "PIR"
+                                    },
+                                    "distance": {
+                                        "summary": "The range, in cm, of the motion detection field",
+                                        "type":"integer",
+                                        "example": 5000
+                                    },
+                                    "angle": {
+                                        "summary": "Field of view angle",
+                                        "type":"integer",
+                                        "example": 72
+                                    },
+                                    "sensitivityMode": {
+                                        "summary": "The supported sensitivity mode. Valid values are `0`: motion sensitivity cannot be changed, `1`: motion sensitivity can be set using an integer within the range defined by the `min`, `max`, and `step` properties, `2`: motion sensitivity can be set using the names listed in the `sensitivities` property.",
+                                        "type":"integer",
+                                        "enum": [0,1,2],
+                                        "example": 2
+                                    },
+                                    "sensitivities": {
+                                        "$ref": "#/definitions/sensitivities"
+                                    }
+                                },
+                                "anyOf": [
+                                    {
+                                        "if": {
+                                            "properties": { "sensitivityMode": { "const": 2 } }
+                                        },
+                                        "then": {
+                                            "properties": { "sensitivities": { "$ref": "#/definitions/sensitivities" } }
+                                        }
+                                    },
+                                    {
+                                        "if":{
+                                            "properties": { "sensitivityMode": { "const": 1 } }
+                                        },
+                                        "then": {
+                                            "properties": { 
+                                                "min": {
+                                                    "$ref": "#/definitions/min"
+                                                },
+                                                "max": {
+                                                    "$ref": "#/definitions/max"
+                                                },
+                                                "step":{
+                                                    "$ref": "#/definitions/step"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "required": [
+                                    "description",
+                                    "type",
+                                    "distance",
+                                    "angle",
+                                    "sensitivityMode"  
+                                ]
+                            }
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedMotionDetectors",
+                    "supportedMotionDetectorsInfo",
+                    "success"
+                ]
+            }
+        },
+        "getNoMotionPeriod":{
+            "summary": "Returns the no-motion period for the specified motion detector",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "period":{
+                        "$ref": "#/definitions/period"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "period",
+                    "success"  
+                ]
+            }
+        },
+        "getSensitivity":{
+            "summary": "Returns the current sensitivity configuration for the specified motion detector. The result is either a `name` property with the sensitivity name or a `value` property with the sensitivity number. See `getMotionDetectors`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "name":{
+                        "$ref": "#/definitions/name"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"  
+                ]
+            }
+        },
+        "isarmed":{
+            "summary": "Returns whether the specified motion detector is enabled",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state":{
+                        "summary": "The motion detector is enabled (`true`) or disabled (`false`).",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"  
+                ]
+            }
+        },
+        "setNoMotionPeriod":{
+            "summary": "Sets the no-motion period, in seconds, for the specified motion detector. When a motion detector is set to detect motion, this is the period of time, in seconds, that MUST elapse with no motion before a motion event is generated. If motion is detected within this period of time, then the time is reset and the countdown begins again. When a motion detector is set to detect no motion, then this is the period of time with no motion detected that MUST elapse before a no-motion event is generated.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    },
+                    "period":{
+                        "$ref": "#/definitions/period" 
+                    }
+                },
+                "required": [
+                    "index",
+                    "period"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSensitivity":{
+            "summary": "Sets the sensitivity of the sensor for the specified motion detector. The argument required depends on the supported sensitivity mode and can be one of:  \n* `name`: Used when `sensitivityMode` is set to `2` requiring a sensitivity name.  \n* `value`: Used when the `sensitivityMode` is set to `1` requiring a sensitivity number within a valid range.  \n  \nSee `getMotionDetectors` to get the supported sensitivity mode.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    },
+                    "name":{
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "anyOf": [
+                    {
+                        "if": {
+                            "properties": { "sensitivityMode": { "const":  1 } }
+                        },
+                        "then": {
+                            "properties": { "name": { "$ref": "#/definitions/name" } }
+                        }
+                    },
+                    {
+                        "if":{
+                            "properties": { "sensitivityMode": { "const": 2 } }
+                        },
+                        "then": {
+                            "properties": { "value": { "$ref": "#/definitions/value" }
+                            }
+                        }
+                    }
+                ],                
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onMotionEvent":{
+            "summary": "Triggered when a motion detector is enabled and either motion or no motion is detected (as indicated by the mode setting)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    },
+                    "mode":{
+                        "$ref": "#/definitions/mode"
+                    }
+                },
+                "required": [
+                    "index",
+                    "mode"
+                ]
+            }
+        }
+    }
+}

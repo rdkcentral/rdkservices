@@ -1,9 +1,382 @@
 {
- "locator":"libWPEFrameworkHdmiCecSink.so",
- "classname":"HdmiCecSink",
- "precondition":[
-  "Platform"
- ],
- "callsign":"org.rdk.HdmiCecSink",
- "autostart":false
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "HdmiCecSink API", 
+        "class": "HdmiCecSink", 
+        "description": "The `HdmiCecSink` plugin allows you to manage HDMI Consumer Electronics Control (CEC) sink for connected devices."
+    },
+    "definitions": {
+        "available": {
+            "summary": "If `true`, then there is an active source available and source details are included in the result. If `false`, then there is no active source.",
+            "type":"boolean",
+            "example": true
+        },
+        "logicalAddress":{
+            "summary": "Logical address of the device",
+            "type":"integer",
+            "example": 4
+        },
+        "physicalAddress": {
+            "summary": "Physical address of the device",
+            "type":"string",
+            "example": "1.0.0.0"
+        },
+        "deviceType": {
+            "summary": "Type of the device",
+            "type":"string",
+            "example": "Playback Device"
+        },
+        "osdName":{
+            "summary": "OSD name of the device if available",
+            "type":"string",
+            "example": "Fire TV Stick"
+        },
+        "vendorID":{
+            "summary": "Vendor ID of the device",
+            "type":"string",
+            "example": "0ce7"
+        },
+        "cecVersion": {
+            "summary": "CEC version supported",
+            "type": "string",
+            "example": "Version 1.4"
+        },
+        "powerStatus": {
+            "summary": "Power status of the device",
+            "type": "string",
+            "example": "Standby"
+        },
+        "enabled": {
+            "summary": "Indicates whether HDMI-CEC sink is enabled (`true`) or disabled (`false`)",
+            "type":"boolean",
+            "example": false
+        },
+        "vendorid": {
+            "summary": "Vendor ID for this device. The ID can have a maximum of 6 characters.",
+            "type": "string",
+            "example": "0019fc"                        
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getActiveRoute": {
+            "summary": "Gets details for the current route from the source to sink devices. This API is used for debugging the route.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "available": {
+                        "$ref": "#/definitions/available"
+                    },
+                    "length": {
+                        "summary": "The number of devices in the path list",
+                        "type":"integer",
+                        "example": 1
+                    },
+                    "pathList":{
+                        "summary": "Object [] of information about each device in the active path",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "logicalAddress": {
+                                    "$ref": "#/definitions/logicalAddress"
+                                },
+                                "physicalAddress": {
+                                    "$ref": "#/definitions/physicalAddress"
+                                },
+                                "deviceType": {
+                                    "$ref": "#/definitions/deviceType"
+                                },
+                                "osdName":{
+                                    "$ref": "#/definitions/osdName"
+                                },
+                                "vendorID":{
+                                    "$ref": "#/definitions/vendorID"
+                                }
+                            },
+                            "required": [
+                                "logicalAddress",
+                                "physicalAddress",
+                                "deviceType",
+                                "osdName",
+                                "vendorID"
+                            ]
+                        }
+                    },
+                    "ActiveRoute": {
+                        "summary": "Gives the route from source to sink with the device type and OSD name as an identifier",
+                        "type":"string",
+                        "example": "Playback Device 1(Fire TV Stick)-->HDMI0"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "available",
+                    "length",
+                    "pathList",
+                    "ActiveRoute",
+                    "success"
+                ]
+            }
+        },
+        "getActiveSource": {
+            "summary": "Gets details for the current active source",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "available": {
+                        "$ref": "#/definitions/available"                        
+                    },
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "physicalAddress": {
+                        "$ref": "#/definitions/physicalAddress"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "cecVersion": {
+                        "$ref": "#/definitions/cecVersion"
+                    },
+                    "osdName":{
+                        "$ref": "#/definitions/osdName"
+                    },
+                    "vendorID":{
+                        "$ref": "#/definitions/vendorID"
+                    },
+                    "powerStatus": {
+                        "$ref": "#/definitions/powerStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "available",
+                    "logicalAddress",
+                    "physicalAddress",
+                    "deviceType",
+                    "cecVersion",
+                    "osdName",
+                    "vendorID",
+                    "powerStatus",
+                    "success"
+                ]
+            }
+        },
+        "getDeviceList":{
+            "summary": "Gets the number of connected source devices and system information for each device. The information includes device type, physical address, CEC version, vendor ID, power status and OSD name.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "numberofdevices": {
+                        "summary": "number of devices in the `devicelist` array", 
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "devicelist":{
+                        "summary": "Object [] of information about each device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "logicalAddress": {
+                                    "$ref": "#/definitions/logicalAddress"
+                                },
+                                "physicalAddress": {
+                                    "$ref": "#/definitions/physicalAddress"
+                                },
+                                "deviceType": {
+                                    "$ref": "#/definitions/deviceType"
+                                },
+                                "cecVersion": {
+                                    "$ref": "#/definitions/cecVersion"
+                                },
+                                "osdName":{
+                                    "$ref": "#/definitions/osdName"
+                                },
+                                "vendorID":{
+                                    "$ref": "#/definitions/vendorID"
+                                },
+                                "powerStatus": {
+                                    "$ref": "#/definitions/powerStatus"
+                                }
+                            },
+                            "required": [
+                                "logicalAddress",
+                                "physicalAddress",
+                                "deviceType",
+                                "cecVersion",
+                                "osdName",
+                                "vendorID",
+                                "powerStatus"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "numberofdevices",
+                    "devicelist",
+                    "success"
+                ]
+            }
+        },
+        "getEnabled":{
+            "summary": "Check whether HDMI-CEC sink is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getVendorId":{
+            "summary": "Gets the current vendor ID of this sink device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"                      
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "vendorid",
+                    "success"
+                ]
+            }
+        },
+        "requestActiveSource": {
+            "summary": "Requests for the active source in the network",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "setActivePath": {
+            "summary": "Sets the source device to active (`setStreamPath`). The source wakes from standby if it's in the standby state",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "activePath":{
+                        "summary": "Physical address of the source device",
+                        "type":"string",
+                        "example": "1.0.0.0"
+                    }
+                },
+                "required": [
+                    "activePath"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setActiveSource": {
+            "summary": "Sets the current active source as TV (physical address 0.0.0.0). This call needs to be made when the TV switches to internal tuner or any apps.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setEnabled": {
+            "summary": "Enables or disables HDMI-CEC sink",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled" 
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setRoutingChange":{
+            "summary": "Changes routing while switching between HDMI inputs and TV",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "oldPort":{
+                        "summary": "Current active port, such as `TV`, `HDMI0`, `HDMI1`, `HDMI2`",
+                        "type": "string",
+                        "example": "HDMI0"
+                    },
+                    "newPort":{
+                        "summary":"New port to switch to, such as `TV`, `HDMI0`, `HDMI1`, `HDMI2`",
+                        "type": "string",
+                        "example": "TV"
+                    }
+                },
+                "required": [
+                    "oldPort",
+                    "newPort"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVendorId":{
+            "summary": "Sets a vendor ID for the sink device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"                      
+                    }
+                },
+                "required": [
+                    "vendorid"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+
+        }
+    }
 }
