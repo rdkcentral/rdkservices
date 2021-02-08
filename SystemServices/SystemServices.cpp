@@ -1257,7 +1257,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str()));
+                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
                     response = "";
                 }
             }
