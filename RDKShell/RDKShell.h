@@ -118,6 +118,8 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
 
+            void notify(const std::string& event, const JsonObject& parameters);
+            void pluginEventHandler(const JsonObject& parameters);
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -173,7 +175,6 @@ namespace WPEFramework {
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
-            void notify(const std::string& event, const JsonObject& parameters);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
