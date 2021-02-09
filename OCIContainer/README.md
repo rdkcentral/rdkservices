@@ -112,6 +112,7 @@ Starts a new container from an existing OCI bundle.
 | bundlePath     | string | Path to the OCI bundle containing the rootfs and config to use to create the container     |
 | command        | string | Custom command to run inside the container, overriding the command in the container config |
 | westerosSocket | string | Path to a westeros socket to mount inside the container                                    |
+| envvar         | array  | Array of environment variables (`["FOO=BAR"`]) to add to the container                      |
 ---
 
 ### Response
