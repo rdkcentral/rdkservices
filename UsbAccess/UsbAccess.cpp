@@ -6,6 +6,12 @@
 #include <unistd.h>
 #include <mntent.h>
 
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "libIARM.h"
+#include "libIBus.h"
+#include "sysMgr.h"
+#endif /* USE_IARMBUS || USE_IARM_BUS */
+
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
@@ -14,12 +20,31 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
-
+const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_FIRMWARE_UPDATE = "onUSBFirmwareUpdate";
 
 using namespace std;
 
 namespace WPEFramework {
     namespace Plugin {
+
+        namespace {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void _usbFirmwareUpdateStateChanged(const char *, IARM_EventId_t eventId, void *data, size_t)
+        {
+            if (eventId != IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE) return;
+
+            IARM_Bus_SYSMgr_EventData_t *sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+            const char *status = &sysEventData->data.usbFirmwareUpdate.status[0];
+            LOGWARN("IARMEvt: IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE = '%s'\n", status);
+
+            if (UsbAccess::_instance) {
+                UsbAccess::_instance->onUSBFirmwareUpdate(status);
+            } else {
+                LOGERR("UsbAccess::_instance is NULL.\n");
+            }
+        }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+        }
 
         SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
 
@@ -44,13 +69,43 @@ namespace WPEFramework {
         const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            InitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             return "";
         }
 
         void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void UsbAccess::InitializeIARM()
+        {
+            LOGINFO();
+
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE, _usbFirmwareUpdateStateChanged));
+            }
+        }
+
+        void UsbAccess::DeinitializeIARM()
+        {
+            LOGINFO();
+
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE));
+            }
+        }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         string UsbAccess::Information() const
         {
@@ -188,6 +243,13 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+        }
+
+        void UsbAccess::onUSBFirmwareUpdate(const char *status)
+        {
+            JsonObject params;
+            params["status"] = status;
+            sendNotify(C_STR(EVT_ON_USB_FIRMWARE_UPDATE), params);
         }
 
         bool UsbAccess::getFileList(const string& dir, FileList& files) const
