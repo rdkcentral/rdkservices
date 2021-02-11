@@ -61,6 +61,8 @@ namespace WPEFramework {
             uint32_t setSensitivity(const JsonObject& parameters, JsonObject& response);
             uint32_t getSensitivity(const JsonObject& parameters, JsonObject& response);
             uint32_t getLastMotionEventElapsedTime(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMotionEventsActivePeriod(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMotionEventsActivePeriod(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:
