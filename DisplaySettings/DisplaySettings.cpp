@@ -289,7 +289,6 @@ namespace WPEFramework {
             LOGINFO("Starting the timer");
             m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
 
-            InitAudioPorts();
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -317,6 +316,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
             }
 
             try
@@ -345,6 +345,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
 
 
@@ -578,6 +579,30 @@ namespace WPEFramework {
             default:
                 //do nothing
                 break;
+            }
+        }
+
+	void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+        {
+
+            if(!DisplaySettings::_instance)
+                return;
+
+            switch (eventId) {
+                case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
+                    {
+                        IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+			LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
+                            eventData->data.state.curState, eventData->data.state.newState);
+
+                        if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                                DisplaySettings::_instance->InitAudioPorts();
+                        }
+                    }
+                    break;
+
+                default: break;
             }
         }
 
