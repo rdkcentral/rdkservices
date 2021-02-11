@@ -201,7 +201,7 @@ namespace WPEFramework {
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
             bool addAnyKeyListener(const string& client, const JsonArray& listeners);
             bool injectKey(const uint32_t& keyCode, const JsonArray& modifiers);
-            bool generateKey(const JsonArray& keyInputs);
+            bool generateKey(const string& client, const JsonArray& keyInputs);
             bool getScreenResolution(JsonObject& out);
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool setMimeType(const string& client, const string& mimeType);
