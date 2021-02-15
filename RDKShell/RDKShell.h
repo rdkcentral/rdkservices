@@ -97,10 +97,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SHOW_WATERMARK;
             static const string RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE;
             static const string RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE;
-            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
-            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
-            static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
@@ -127,6 +124,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
+            static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
@@ -184,10 +182,7 @@ namespace WPEFramework {
             uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t hideFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
