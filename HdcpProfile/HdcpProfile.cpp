@@ -274,6 +274,7 @@ namespace WPEFramework
 
         static const char* getHdcpReasonStr (int eHDCPEnabledStatus) {
             string sHDCPEnabledStatusReason ("UNPOWERED");
+            /*
             switch (eHDCPEnabledStatus) {
                 case dsHDCP_STATUS_UNPOWERED:
                     sHDCPEnabledStatusReason = "UNPOWERED";
@@ -297,6 +298,7 @@ namespace WPEFramework
                     LOGWARN ("HdcpProfile::getHDCPStatus: %s: eHDCPEnabledStatus: undefined\r\n", __FUNCTION__);
                     break;
             }
+            */
             return sHDCPEnabledStatusReason.c_str();
         }
 
