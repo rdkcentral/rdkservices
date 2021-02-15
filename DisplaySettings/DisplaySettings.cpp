@@ -1468,6 +1468,7 @@ namespace WPEFramework {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
                 if (vPort.isDisplayConnected())
                 {
+/*
                     int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
                     vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
 
@@ -1476,6 +1477,7 @@ namespace WPEFramework {
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
                     response["quantizationRange"] = quantizationRange;
+*/
                 }
                 else
                 {

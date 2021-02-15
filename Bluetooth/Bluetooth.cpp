@@ -183,8 +183,8 @@ namespace WPEFramework
         {
             LOGINFO();
 
+/*
             Bluetooth::_instance = nullptr;
-
             BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
@@ -193,6 +193,7 @@ namespace WPEFramework
 
             if (m_executionThread.joinable())
                 m_executionThread.join();
+*/
         }
 
         string Bluetooth::Information() const
