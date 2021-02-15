@@ -123,7 +123,7 @@ uint32_t WifiManagerState::getSupportedSecurityModes(const JsonObject &parameter
     security_modes["NET_WIFI_SECURITY_WPA_ENTERPRISE_AES"]   = (int)NET_WIFI_SECURITY_WPA_ENTERPRISE_AES;
     security_modes["NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP"] = (int)NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP;
     security_modes["NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES"]  = (int)NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES;
-    security_modes["NET_WIFI_SECURITY_WPA3_SAE"]             = (int)NET_WIFI_SECURITY_WPA3_SAE;
+    //security_modes["NET_WIFI_SECURITY_WPA3_SAE"]             = (int)NET_WIFI_SECURITY_WPA3_SAE;
 
     response["security_modes"] = security_modes;
 
