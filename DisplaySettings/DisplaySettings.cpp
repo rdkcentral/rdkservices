@@ -185,6 +185,11 @@ namespace WPEFramework {
             registerMethod("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
             registerMethod("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
             registerMethod("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
+            registerMethod("setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
+            registerMethod("getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
+            registerMethod("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
+            registerMethod("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
+	    registerMethod("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
 
             registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
@@ -2153,6 +2158,132 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
+
+
+        uint32_t DisplaySettings::setGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "graphicEqualizerMode");
+
+            string sGraphicEqualizerMode = parameters["graphicEqualizerMode"].String();
+                       int graphicEqualizerMode = 0;
+            try {
+                graphicEqualizerMode = stoi(sGraphicEqualizerMode);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse graphicEqualizerMode '%s'", sGraphicEqualizerMode.c_str());
+                          returnResponse(false);
+            }
+
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setGraphicEqualizerMode (graphicEqualizerMode);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, sGraphicEqualizerMode);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+                       bool success = true;
+                       int graphicEqualizerMode = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                graphicEqualizerMode = aPort.getGraphicEqualizerMode ();
+                response["enable"] = (graphicEqualizerMode ? true : false);
+                response["mode"] = graphicEqualizerMode;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["enable"] = false;
+                response["mode"] = 0;
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::setMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "ms12AudioProfile");
+            string audioProfileName = parameters["ms12AudioProfile"].String();
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setMS12AudioProfile(audioProfileName);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, audioProfileName);
+                success = false;
+            }
+
+	    returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+	    string audioProfileName;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                audioProfileName = aPort.getMS12AudioProfile();
+                response["ms12AudioProfile"] = audioProfileName;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["ms12AudioProfile"] = "None";
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response)
+        {   //sample response: {"success":true,"supportedMS12AudioProfiles":["Off","Music","Movie","Game","Voice","Night","User"]}
+            LOGINFOMETHOD();
+            vector<string> supportedProfiles;
+	    string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+		device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+		supportedProfiles = aPort.getMS12AudioProfileList();
+                for (size_t i = 0; i < supportedProfiles.size(); i++)
+                {
+		    LOGINFO("Profile[%d]:  %s\n",i,supportedProfiles.at(i).c_str());
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+            setResponseArray(response, "supportedMS12AudioProfiles", supportedProfiles);
+            returnResponse(true);
+        }
+
 
         uint32_t DisplaySettings::getAudioDelay (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
