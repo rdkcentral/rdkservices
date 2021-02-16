@@ -4306,7 +4306,6 @@ namespace WPEFramework {
         {
             if (!mEventTimerStarted)
             {
-                std::cout << "MADANA TIMED EVENT STARTED ... " << std::endl;
                 gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
                 mEventTimerStarted = true;
             }
@@ -4314,7 +4313,6 @@ namespace WPEFramework {
 
         void RDKShell::stopEventTimer()
         {
-            std::cout << "MADANA TIMED EVENT STOPPED ... " << std::endl;
             gEventTimer.Revoke(mEventTimer);
             mEventTimerStarted = false;
         }
@@ -4336,7 +4334,6 @@ namespace WPEFramework {
 
         uint64_t EventTimer::Timed(const uint64_t scheduledTime)
         {
-            std::cout << "MADANA TIMED EVENT ... " << std::endl;
             mShell->onEventTimer();
             return 0;
         }
