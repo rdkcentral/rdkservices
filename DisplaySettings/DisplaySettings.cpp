@@ -1476,7 +1476,6 @@ namespace WPEFramework {
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
                     response["quantizationRange"] = quantizationRange;
-
                 }
                 else
                 {
@@ -1489,6 +1488,7 @@ namespace WPEFramework {
                 LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
                 success = false;
             }
+
             LOGERR("\nLeaving_ DisplaySettings::%s\n", __FUNCTION__);
             returnResponse(success);
         }
