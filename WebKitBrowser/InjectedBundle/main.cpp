@@ -101,7 +101,7 @@ public:
     }
     ~PluginHost()
     {
-        TRACE_L1("Destructing injected bundle stuff!!! [%d]", __LINE__);
+        TRACE(Trace::Information, (_T("Destructing injected bundle stuff!!! [%d]"), __LINE__));
         Deinitialize();
     }
 
