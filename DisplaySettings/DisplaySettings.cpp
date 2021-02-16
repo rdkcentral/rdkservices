@@ -63,6 +63,8 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+#define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
+#define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #ifdef USE_IARM
 namespace
@@ -145,7 +147,7 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
+            registerMethod("setZoomSetting", &DisplaySettings::setZoomSettingWrapper, this);
             registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
@@ -200,6 +202,15 @@ namespace WPEFramework {
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            tvZoomSettings.push_back("TV AUTO");
+            tvZoomSettings.push_back("TV DIRECT");
+            tvZoomSettings.push_back("TV NORMAL");
+            tvZoomSettings.push_back("TV 16X9 STRETCH");
+            tvZoomSettings.push_back("TV LETTERBOX");
+            tvZoomSettings.push_back("TV ZOOM");
+#endif
         }
 
         DisplaySettings::~DisplaySettings()
@@ -285,6 +296,11 @@ namespace WPEFramework {
             m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
 
             InitAudioPorts();
+
+            if (!setZoomSetting(getZoomSettingConfig()))
+            {
+                LOGERR("Couldn't restore zoom settings");
+            }
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -813,6 +829,9 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            string zoomSetting = getZoomSettingConfig();
+#else
             string zoomSetting = "unknown";
             try
             {
@@ -827,18 +846,66 @@ namespace WPEFramework {
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
+#endif
             response["zoomSetting"] = zoomSetting;
             returnResponse(true);
         }
 
-        uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
+        std::string DisplaySettings::getZoomSettingConfig()
+        {
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            string zoomSetting = "TV AUTO";
+#else
+            string zoomSetting = "FULL";
+#endif
+            Core::File settingsFile;
+            settingsFile = ZOOM_SETTINGS_FILE;
+            if (settingsFile.Open())
+            {
+                JsonObject settingsJson;
+                if (settingsJson.IElement::FromFile(settingsFile))
+                {
+                    zoomSetting = settingsJson["zoomSetting"].String();
+                }
+                else
+                {
+                    LOGERR("Couldn't read zoom settings file %s", ZOOM_SETTINGS_FILE);
+                }
+                settingsFile.Close();
+            }
+            else
+            {
+                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
+            }
+
+            return zoomSetting;
+        }
+
+
+        uint32_t DisplaySettings::setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
             returnIfParamNotFound(parameters, "zoomSetting");
             string zoomSetting = parameters["zoomSetting"].String();
 
+            returnResponse(setZoomSetting(zoomSetting));
+        }
+
+        bool DisplaySettings::setZoomSetting(std::string zoomSetting)
+        {
             bool success = true;
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
+            {
+                success = setZoomSettingConfig(zoomSetting);
+            }
+            else
+            {
+                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
+                success = false;
+            }
+#else
             try
             {
 #ifdef USE_IARM
@@ -847,13 +914,52 @@ namespace WPEFramework {
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
+                success = setZoomSettingConfig(zoomSetting);
             }
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(zoomSetting);
                 success = false;
             }
-            returnResponse(success);
+#endif
+            return success;
+        }
+
+        bool DisplaySettings::setZoomSettingConfig(std::string zoomSetting)
+        {
+            bool success = true;
+            Core::File settingsFile;
+            settingsFile = ZOOM_SETTINGS_FILE;
+            if (!settingsFile.Open(false))
+            {
+                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
+
+                Core::Directory settingsDirectory(ZOOM_SETTINGS_DIRECTORY);
+                if (!settingsDirectory.CreatePath())
+                {
+                    LOGERR("Couldn't create zoom settings file path %s", ZOOM_SETTINGS_DIRECTORY);
+                    success = false;
+                }
+                else if (!settingsFile.Create())
+                {
+                    LOGERR("Couldn't create zoom settings file %s", ZOOM_SETTINGS_FILE);
+                    success = false;
+                }
+            }
+
+            if (settingsFile.IsOpen())
+            {
+                JsonObject settingsJson;
+                settingsJson["zoomSetting"] = zoomSetting;
+                if (!settingsJson.IElement::ToFile(settingsFile))
+                {
+                    LOGERR("Couldn't save zoom settings file %s", ZOOM_SETTINGS_FILE);
+                    success = false;
+                }
+                settingsFile.Close();
+            }
+
+            return success;
         }
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
