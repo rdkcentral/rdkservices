@@ -31,6 +31,29 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        class RDKShell;
+        class EventTimer
+        {
+            private:
+                EventTimer() = delete;
+                EventTimer& operator=(const EventTimer& RHS) = delete;
+
+            public:
+                EventTimer(RDKShell* shell): mShell(shell) {}
+                ~EventTimer() {}
+
+            public:
+                uint64_t Timed(const uint64_t scheduledTime);
+                inline bool operator==(const EventTimer& RHS) const
+                {
+                    return(mShell == RHS.mShell);
+                }
+
+
+            private:
+                RDKShell* mShell;
+        };
+
         class RDKShell :  public AbstractPlugin {
         public:
             RDKShell();
@@ -128,6 +151,10 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void startEventTimer();
+            void stopEventTimer();
+            void onEventTimer();
+
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -320,6 +347,7 @@ namespace WPEFramework {
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
+            EventTimer mEventTimer;
             //std::mutex m_callMutex;
         };
 

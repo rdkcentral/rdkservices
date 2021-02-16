@@ -158,6 +158,7 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        static Core::TimerType<EventTimer> gEventTimer(64 * 1024, "RDKShellEventTimer");
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -234,16 +235,7 @@ namespace WPEFramework {
                     std::string serviceCallsign = service->Callsign();
                     serviceCallsign.append(".1");
                     gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
-                    if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
-                    {
-                        std::string eventName("onSystemPowerStateChanged");
-                        int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, &mShell);
-                        if (status == 0)
-                        {
-                            std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
-                            gSystemServiceEventsSubscribed = true;
-                        }
-                    }
+                    mShell.startEventTimer();
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -285,7 +277,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr), mEventTimer(this)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -4308,6 +4300,40 @@ namespace WPEFramework {
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
             return ret;
+        }
+
+        void RDKShell::startEventTimer()
+        {
+            std::cout << "MADANA TIMED EVENT STARTED ... " << std::endl;
+            gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
+        }
+
+        void RDKShell::stopEventTimer()
+        {
+            std::cout << "MADANA TIMED EVENT STOPPED ... " << std::endl;
+            gEventTimer.Revoke(mEventTimer);
+        }
+
+        void RDKShell::onEventTimer()
+        {
+            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
+            {
+                std::string eventName("onSystemPowerStateChanged");
+                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                    gSystemServiceEventsSubscribed = true;
+                }
+            }
+            stopEventTimer();
+        }
+
+        uint64_t EventTimer::Timed(const uint64_t scheduledTime)
+        {
+            std::cout << "MADANA TIMED EVENT ... " << std::endl;
+            mShell->onEventTimer();
+            return 0;
         }
         // Internal methods end
     } // namespace Plugin
