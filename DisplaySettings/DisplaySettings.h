@@ -49,6 +49,13 @@ namespace WPEFramework {
             typedef Core::JSON::ArrayType<JString> JStringArray;
             typedef Core::JSON::Boolean JBool;
 
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+            std::vector<std::string> tvZoomSettings;
+#endif
+            std::string getZoomSettingConfig();
+            bool setZoomSettingConfig(std::string zoomSetting);
+            bool setZoomSetting(std::string zoomSetting);
+
             // We do not allow this plugin to be copied !!
             DisplaySettings(const DisplaySettings&) = delete;
             DisplaySettings& operator=(const DisplaySettings&) = delete;
@@ -64,7 +71,7 @@ namespace WPEFramework {
             uint32_t getSupportedAudioPorts(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedAudioModes(const JsonObject& parameters, JsonObject& response);
             uint32_t getZoomSetting(const JsonObject& parameters, JsonObject& response);
-            uint32_t setZoomSetting(const JsonObject& parameters, JsonObject& response);
+            uint32_t setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
