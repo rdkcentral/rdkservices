@@ -168,6 +168,7 @@ namespace WPEFramework
             registerMethod(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this, {2});
 
             Utils::IARM::init();
+            
             BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
@@ -183,6 +184,7 @@ namespace WPEFramework
             LOGINFO();
 
             Bluetooth::_instance = nullptr;
+            
             BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
