@@ -53,6 +53,7 @@
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
+#define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 
 #ifdef ENABLE_SYSTIMEMGR_SUPPORT
 #define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
@@ -143,6 +144,7 @@ namespace WPEFramework {
                 void onSystemPowerStateChanged(string powerState);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
+                void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
 #ifdef ENABLE_SYSTIMEMGR_SUPPORT
