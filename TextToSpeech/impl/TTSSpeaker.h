@@ -157,10 +157,6 @@ private:
     GstElement  *m_pipeline;
     GstElement  *m_source;
     GstElement  *m_audioSink;
-<<<<<<< HEAD
-    GstElement  *m_audioVolume;
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     GMainLoop   *m_main_loop;
     GMainContext *m_main_context;
     GThread     *m_main_loop_thread;

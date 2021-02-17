@@ -71,13 +71,6 @@ using namespace std;
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
-<<<<<<< HEAD
-#define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
-#define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
-#define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
-
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
@@ -379,20 +372,9 @@ namespace WPEFramework {
 
             // version 2 APIs
             registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
-<<<<<<< HEAD
-            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
-            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
-            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
-            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
-            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
-=======
-#ifdef ENABLE_DEEP_SLEEP
-	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
-#endif
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         }
 
 
@@ -1069,7 +1051,6 @@ namespace WPEFramework {
             params["status"] = httpStatus;
             params["responseString"] = responseString.c_str();
             params["rebootImmediately"] = false;
-<<<<<<< HEAD
 
             JsonObject xconfResponse;
             if(!responseString.empty() && xconfResponse.FromString(responseString))
@@ -1077,15 +1058,6 @@ namespace WPEFramework {
                 params["rebootImmediately"] = xconfResponse["rebootImmediately"];
             }
 
-=======
-
-            JsonObject xconfResponse;
-            if(!responseString.empty() && xconfResponse.FromString(responseString))
-            {
-                params["rebootImmediately"] = xconfResponse["rebootImmediately"];
-            }
-
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             if(httpStatus == STATUS_CODE_NO_SWUPDATE_CONF)
             {
                 // Empty /opt/swupdate.conf
@@ -1274,14 +1246,6 @@ namespace WPEFramework {
                     LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
                     _fwUpdate.success = true;
                 }
-<<<<<<< HEAD
-                else
-                {
-                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
-                    response = "";
-                }
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,

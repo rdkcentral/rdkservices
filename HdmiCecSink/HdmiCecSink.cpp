@@ -67,15 +67,12 @@
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARCPORT                               1
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           3000
-<<<<<<< HEAD
-=======
 
 
 enum {
 	DEVICE_POWER_STATE_ON = 0,
 	DEVICE_POWER_STATE_OFF = 1
 };
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 
 enum {
@@ -431,15 +428,9 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_SOURCE, &HdmiCecSink::getActiveSourceWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_ACTIVE_SOURCE, &HdmiCecSink::setActiveSourceWrapper, this);
 	       registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
-<<<<<<< HEAD
-		   registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
-                   registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
-=======
 		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
@@ -447,13 +438,8 @@ namespace WPEFramework
            m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
            m_semSignaltoArcRoutingThread.acquire();
            m_arcRoutingThread = std::thread(threadArcRouting);
-<<<<<<< HEAD
 
 
-=======
-
-
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
            // load persistence setting
@@ -1045,15 +1031,9 @@ namespace WPEFramework
         	std::string lang;
 
 			returnIfParamNotFound(parameters, "language");
-<<<<<<< HEAD
 
 			lang = parameters["language"].String();
 
-=======
-
-			lang = parameters["language"].String();
-
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 			setCurrentLanguage(Language(lang.data()));
 			sendMenuLanguage();
 			returnResponse(true);
@@ -2096,10 +2076,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
-<<<<<<< HEAD
-=======
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 

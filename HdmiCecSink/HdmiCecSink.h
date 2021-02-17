@@ -499,13 +499,10 @@ private:
 			void printDeviceList();
 			void setStreamPath( const PhysicalAddress &physical_addr);
 			void setRoutingChange(const std::string &from, const std::string &to);
-<<<<<<< HEAD
-=======
 			int findLogicalAddress( const PhysicalAddress &physical_addr);
 			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
 			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
 			void sendStandbyMessage();
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 			void setCurrentLanguage(const Language &lang);
 			void sendMenuLanguage();
 			void setActiveSource(bool isResponse);
@@ -528,19 +525,6 @@ private:
             uint32_t getOSDNameWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
-<<<<<<< HEAD
-	    uint32_t printDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setActivePathWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setRoutingChangeWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
-		
-=======
 			uint32_t printDeviceListWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setActivePathWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setRoutingChangeWrapper(const JsonObject& parameters, JsonObject& response);
@@ -552,7 +536,6 @@ private:
                         uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
 
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 			
             //End methods
             std::string logicalAddressDeviceType;

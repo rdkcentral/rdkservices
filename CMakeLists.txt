@@ -287,24 +287,10 @@ if(PLUGIN_OCICONTAINER)
     add_subdirectory(OCIContainer)
 endif()
 
-<<<<<<< HEAD
-if(PLUGIN_WEBBRIDGE)
-    add_subdirectory(WebBridge)
-endif()
-
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 if(PLUGIN_USBACCESS)
     add_subdirectory(UsbAccess)
 endif()
 
-<<<<<<< HEAD
-if(PLUGIN_FIREBOLTMEDIAPLAYER)
-    add_subdirectory(FireboltMediaPlayer)
-endif()
-
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

@@ -264,61 +264,6 @@ Use this method to recursively delete contents of a directory
     "result": null
 }
 ```
-<<<<<<< HEAD
-<a name="method.delete"></a>
-## *delete <sup>method</sup>*
-
-Removes contents of a directory from the persistent storage.
-
-### Description
-
-Use this method to recursively delete contents of a directory
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.path | string | Path to directory (within the persistent storage) to delete contents of |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | null | Always null |
-
-### Errors
-
-| Code | Message | Description |
-| :-------- | :-------- | :-------- |
-| 22 | ```ERROR_UNKNOWN_KEY``` | The given path was incorrect |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "WebKitBrowser.1.delete",
-    "params": {
-        "path": ".cache/wpe/disk-cache"
-    }
-}
-```
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": null
-}
-```
-=======
-
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 <a name="head.Properties"></a>
 # Properties
 

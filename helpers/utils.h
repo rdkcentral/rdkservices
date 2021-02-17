@@ -26,14 +26,6 @@
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
 #include "rfcapi.h"
-<<<<<<< HEAD
-
-// telemetry
-#ifdef ENABLE_TELEMETRY_LOGGING
-#include <telemetry_busmessage_sender.h>
-#endif
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
@@ -353,43 +345,4 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
-<<<<<<< HEAD
-
-    struct Telemetry
-    {
-        static void init()
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_init("Thunder_Plugins");
-#endif
-        };
-
-        static void sendMessage(char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s("THUNDER_MESSAGE", message);
-#endif
-        };
-
-        static void sendError(char* format, ...)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            va_list parameters;
-            va_start(parameters, format);
-            std::string message;
-            WPEFramework::Trace::Format(message, format, parameters);
-            va_end(parameters);
-
-            // get rid of const for t2_event_s
-            char* error = strdup(message.c_str());
-            t2_event_s("THUNDER_ERROR", error);
-            if (error)
-            {
-                free(error);
-            }
-#endif
-        };
-    };
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 }

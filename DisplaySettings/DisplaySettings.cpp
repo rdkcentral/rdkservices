@@ -63,11 +63,6 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
-<<<<<<< HEAD
-#define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
-#define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 #ifdef USE_IARM
 namespace
@@ -205,25 +200,11 @@ namespace WPEFramework {
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
-<<<<<<< HEAD
-
-	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
-
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-            tvZoomSettings.push_back("TV AUTO");
-            tvZoomSettings.push_back("TV DIRECT");
-            tvZoomSettings.push_back("TV NORMAL");
-            tvZoomSettings.push_back("TV 16X9 STRETCH");
-            tvZoomSettings.push_back("TV LETTERBOX");
-            tvZoomSettings.push_back("TV ZOOM");
-#endif
-=======
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         }
 
         DisplaySettings::~DisplaySettings()
@@ -310,14 +291,6 @@ namespace WPEFramework {
 
             InitAudioPorts();
 
-<<<<<<< HEAD
-            if (!setZoomSetting(getZoomSettingConfig()))
-            {
-                LOGERR("Couldn't restore zoom settings");
-            }
-
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -2119,18 +2092,6 @@ namespace WPEFramework {
 
             string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
-<<<<<<< HEAD
-
-            try
-            {
-                dolbyVolumeMode = parameters["dolbyVolumeMode"].Boolean();
-            }
-            catch (const std::exception &err)
-            {
-               LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
-               returnResponse(false);
-            }
-=======
             int iDolbyVolumeMode = 0;
 
             try
@@ -2148,7 +2109,6 @@ namespace WPEFramework {
                 dolbyVolumeMode = true;
             }
 
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2821,10 +2781,6 @@ namespace WPEFramework {
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-<<<<<<< HEAD
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                bool isEnabled = aPort.isEnabled();
-=======
 		bool isEnabled =  false;
 		//Devicesettings returns exact HDMI ARC audio routing enable status
 		//From thunder plugin's perspective HDMI ARC status must be the last user set value
@@ -2838,7 +2794,6 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     isEnabled = aPort.isEnabled();
 		}
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
                 response["enable"] = isEnabled;
                 LOGWARN ("Thunder sending response to get state enable for audioPort %s is: %s", audioPort.c_str(), (isEnabled?("TRUE"):("FALSE"))); 
             }

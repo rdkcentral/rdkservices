@@ -152,10 +152,6 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
-<<<<<<< HEAD
-    m_audioVolume(NULL),
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     m_main_loop(NULL),
     m_main_context(NULL),
     m_main_loop_thread(NULL),
@@ -496,22 +492,6 @@ void TTSSpeaker::createPipeline() {
         result = gst_element_link_many (m_source,capsfilter,m_audioSink,NULL);
     }
 #elif defined(PLATFORM_AMLOGIC)
-<<<<<<< HEAD
-    gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
-    result &= gst_element_link (m_source, parser);
-    result &= gst_element_link (parser, decodebin);
-    result &= gst_element_link (decodebin, convert);
-    result &= gst_element_link (convert, resample);
-    result &= gst_element_link (resample, m_audioSink);
-#elif defined(PLATFORM_REALTEK)
-    audiocaps = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, "rate", G_TYPE_INT, 48000, NULL);
-    g_object_set( G_OBJECT(audiofilter),  "caps",  audiocaps, NULL );
-
-    gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
-    gst_element_link (m_source, decodebin);
-    gst_element_link_many (convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
-    g_signal_connect (decodebin, "pad-added", G_CALLBACK (cb_new_pad), convert);
-=======
     if(!m_pcmAudioEnabled) {
         GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
@@ -527,7 +507,6 @@ void TTSSpeaker::createPipeline() {
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, capsfilter, convert, resample, m_audioSink, NULL);
         result = gst_element_link_many (m_source,capsfilter,convert,resample,m_audioSink,NULL);
     }
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 #endif
 
     if(!result) {

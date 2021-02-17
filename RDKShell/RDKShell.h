@@ -94,26 +94,10 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_SYSTEM_MEMORY;
             static const string RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO;
             static const string RDKSHELL_METHOD_SET_MEMORY_MONITOR;
-<<<<<<< HEAD
-            static const string RDKSHELL_METHOD_SHOW_WATERMARK;
-            static const string RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE;
-            static const string RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE;
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
-<<<<<<< HEAD
-            static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
-            static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
-            static const string RDKSHELL_METHOD_SET_TOPMOST;
-            static const string RDKSHELL_METHOD_GET_VIRTUAL_RESOLUTION;
-            static const string RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION;
-            static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
-            static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -187,26 +171,10 @@ namespace WPEFramework {
             uint32_t getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response);
-<<<<<<< HEAD
-            uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t hideFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
-<<<<<<< HEAD
-            uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -228,12 +196,7 @@ namespace WPEFramework {
             bool setScreenResolution(const unsigned int w, const unsigned int h);
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
-<<<<<<< HEAD
-            bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0,
-                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0);
-=======
             bool createDisplay(const string& client, const string& displayName);
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
@@ -255,22 +218,7 @@ namespace WPEFramework {
             void onDestroyed(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
-<<<<<<< HEAD
-            bool showWatermark(const bool enable);
-            bool showFullScreenImage(std::string& path);
             void killAllApps();
-            bool enableKeyRepeats(const bool enable);
-            bool getKeyRepeatsEnabled(bool& enable);
-            bool setTopmost(const string& callsign, const bool topmost);
-            bool getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight);
-            bool setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight);
-            bool enableVirtualDisplay(const std::string& client, const bool enable);
-            bool getVirtualDisplayEnabled(const std::string& client, bool &enabled);
-            void loadStartupConfig();
-            void invokeStartupThunderApis();
-=======
-            void killAllApps();
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -353,23 +301,5 @@ namespace WPEFramework {
           std::string mClassName;
         };
 
-<<<<<<< HEAD
-        class PluginStateChangeData
-        {
-           public:
-                PluginStateChangeData(std::string callsign, std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> pluginConnection, RDKShell* rdkshell);
-                ~PluginStateChangeData();
-                void onStateChangeEvent(const JsonObject& params);
-                void enableLaunch(bool enable);
-
-           private:
-                std::string mCallSign;
-                std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mPluginConnection;
-                RDKShell& mRDKShell;
-                bool mLaunchEnabled;
-        };
-
-=======
->>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     } // namespace Plugin
 } // namespace WPEFramework
