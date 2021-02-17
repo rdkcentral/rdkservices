@@ -1092,7 +1092,7 @@ namespace WPEFramework {
             }
 
             mappings = getFullKeyActionMapping(deviceID, keymapType);
-            response["keyMappings"] = JsonValue(mappings);
+            response["keyMappings"] = mappings;
 
             status_code = ((mappings.Length() > 0) ? STATUS_OK : STATUS_FAILURE);
 
