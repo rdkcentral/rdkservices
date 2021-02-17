@@ -63,8 +63,11 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+<<<<<<< HEAD
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 #ifdef USE_IARM
 namespace
@@ -202,6 +205,7 @@ namespace WPEFramework {
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
+<<<<<<< HEAD
 
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
 
@@ -213,6 +217,13 @@ namespace WPEFramework {
             tvZoomSettings.push_back("TV LETTERBOX");
             tvZoomSettings.push_back("TV ZOOM");
 #endif
+=======
+            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
+
+	    m_subscribed = false; //HdmiCecSink event subscription
+	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         }
 
         DisplaySettings::~DisplaySettings()
@@ -299,11 +310,14 @@ namespace WPEFramework {
 
             InitAudioPorts();
 
+<<<<<<< HEAD
             if (!setZoomSetting(getZoomSettingConfig()))
             {
                 LOGERR("Couldn't restore zoom settings");
             }
 
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -1404,6 +1418,69 @@ namespace WPEFramework {
             }
             returnResponse(true);
         }
+        uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"AudioCapabilities":["ATMOS","DOLBY DIGITAL","DOLBYDIGITAL PLUS","MS12"]}
+            LOGINFOMETHOD();
+
+            JsonArray audioCapabilities;
+            int capabilities = dsAUDIOSUPPORT_NONE;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getAudioCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)audioCapabilities.Add("none");
+            if(capabilities & dsAUDIOSUPPORT_ATMOS)audioCapabilities.Add("ATMOS");
+            if(capabilities & dsAUDIOSUPPORT_DD)audioCapabilities.Add("DOLBY DIGITAL");
+            if(capabilities & dsAUDIOSUPPORT_DDPLUS)audioCapabilities.Add("DOLBY DIGITAL PLUS");
+            if(capabilities & dsAUDIOSUPPORT_DAD)audioCapabilities.Add("Dual Audio Decode");
+            if(capabilities & dsAUDIOSUPPORT_DAPv2)audioCapabilities.Add("DAPv2");
+            if(capabilities & dsAUDIOSUPPORT_MS12)audioCapabilities.Add("MS12");
+
+            response["AudioCapabilities"] = audioCapabilities;
+            for (uint32_t i = 0; i < audioCapabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
+
+        uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"MS12Capabilities":["Dolby Volume","Inteligent Equalizer","Dialogue Enhancer"]}
+            LOGINFOMETHOD();
+
+            JsonArray ms12Capabilities;
+            int capabilities = dsMS12SUPPORT_NONE;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.getMS12Capabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if(!capabilities)ms12Capabilities.Add("none");
+            if(capabilities & dsMS12SUPPORT_DolbyVolume)ms12Capabilities.Add("Dolby Volume");
+            if(capabilities & dsMS12SUPPORT_InteligentEqualizer)ms12Capabilities.Add("Inteligent Equalizer");
+            if(capabilities & dsMS12SUPPORT_DialogueEnhancer)ms12Capabilities.Add("Dialogue Enhancer");
+
+            response["MS12Capabilities"] = ms12Capabilities;
+            for (uint32_t i = 0; i < ms12Capabilities.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
+            }
+            returnResponse(true);
+        }
 
         uint32_t DisplaySettings::setVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response)
         {
@@ -2042,6 +2119,7 @@ namespace WPEFramework {
 
             string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
             bool dolbyVolumeMode = false;
+<<<<<<< HEAD
 
             try
             {
@@ -2052,6 +2130,25 @@ namespace WPEFramework {
                LOGERR("Failed to parse dolbyVolumeMode '%s'", sDolbyVolumeMode.c_str());
                returnResponse(false);
             }
+=======
+            int iDolbyVolumeMode = 0;
+
+            try
+            {
+                iDolbyVolumeMode = stoi(sDolbyVolumeMode);
+            }
+            catch (const device::Exception& err)
+            {
+               LOG_DEVICE_EXCEPTION1(sDolbyVolumeMode); 
+               returnResponse(false);
+            }
+            if (0 == iDolbyVolumeMode) {
+                dolbyVolumeMode = false;
+            } else {
+                dolbyVolumeMode = true;
+            }
+
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2724,8 +2821,24 @@ namespace WPEFramework {
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
+<<<<<<< HEAD
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                 bool isEnabled = aPort.isEnabled();
+=======
+		bool isEnabled =  false;
+		//Devicesettings returns exact HDMI ARC audio routing enable status
+		//From thunder plugin's perspective HDMI ARC status must be the last user set value
+		// even if ARC device is not connected. Audio routing will automatically start when the device is connected.
+		if(!audioPort.compare("HDMI_ARC0")) {
+                    JsonObject aPortConfig;
+                    aPortConfig = getAudioOutputPortConfig();
+		    isEnabled = aPortConfig["HDMI_ARC"].Boolean();
+	        }
+		else {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    isEnabled = aPort.isEnabled();
+		}
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
                 response["enable"] = isEnabled;
                 LOGWARN ("Thunder sending response to get state enable for audioPort %s is: %s", audioPort.c_str(), (isEnabled?("TRUE"):("FALSE"))); 
             }

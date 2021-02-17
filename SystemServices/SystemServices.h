@@ -52,12 +52,16 @@
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+<<<<<<< HEAD
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 
 #ifdef ENABLE_SYSTIMEMGR_SUPPORT
 #define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
 #endif// ENABLE_SYSTIMEMGR_SUPPORT
+=======
+#define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 namespace WPEFramework {
     namespace Plugin {
@@ -229,11 +233,14 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+<<<<<<< HEAD
                 uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

@@ -26,11 +26,14 @@
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
 #include "rfcapi.h"
+<<<<<<< HEAD
 
 // telemetry
 #ifdef ENABLE_TELEMETRY_LOGGING
 #include <telemetry_busmessage_sender.h>
 #endif
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
@@ -350,6 +353,7 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
+<<<<<<< HEAD
 
     struct Telemetry
     {
@@ -386,4 +390,6 @@ namespace Utils
 #endif
         };
     };
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 }

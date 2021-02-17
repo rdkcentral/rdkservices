@@ -103,8 +103,13 @@ elseif (BUILD_REALTEK)
 elseif (BUILD_AMLOGIC)
     target_sources(${MODULE_NAME}
         PRIVATE
+<<<<<<< HEAD
             DeviceSettings/Amlogic/SoC_abstraction.cpp
             DeviceSettings/Amlogic/kms.c
+=======
+	DeviceSettings/Amlogic/SoC_abstraction.cpp
+	DeviceSettings/Amlogic/kms.c
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     )
 endif ()
 

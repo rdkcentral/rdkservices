@@ -20,7 +20,10 @@
 #pragma once
 
 #include <unordered_map>
+<<<<<<< HEAD
 #include "utils.h"
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
 
 namespace WPEFramework {
 
@@ -78,11 +81,14 @@ namespace WPEFramework {
                     if(handler != m_versionHandlers.end())
                         handler->second->Register<WPEFramework::Core::JSON::VariantContainer, WPEFramework::Core::JSON::VariantContainer, METHOD, REALOBJECT>(methodName, method, objectPtr);
                 } 
+<<<<<<< HEAD
             }
 
             void LOGT2(char* message)
             {
                 Utils::Telemetry::sendMessage(message);
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             }
 
         public:
@@ -114,8 +120,11 @@ namespace WPEFramework {
                 }
 
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
+<<<<<<< HEAD
 
                 Utils::Telemetry::init();
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
             }
 
             virtual ~AbstractPlugin()

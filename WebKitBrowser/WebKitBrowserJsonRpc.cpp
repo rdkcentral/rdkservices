@@ -28,6 +28,10 @@ namespace WPEFramework {
 namespace Plugin {
 
     using namespace JsonData::Browser;
+<<<<<<< HEAD
+=======
+    using namespace JsonData::WebBrowser;
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     using namespace JsonData::StateControl;
     using namespace WPEFramework::Exchange;
 
@@ -36,10 +40,8 @@ namespace Plugin {
 
     void WebKitBrowser::RegisterAll()
     {
-        Property<Core::JSON::String>(_T("url"), &WebKitBrowser::get_url, &WebKitBrowser::set_url, this); /* Browser */
-        Property<Core::JSON::EnumType<VisibilityType>>(_T("visibility"), &WebKitBrowser::get_visibility, &WebKitBrowser::set_visibility, this); /* Browser */
-        Property<Core::JSON::DecUInt32>(_T("fps"), &WebKitBrowser::get_fps, nullptr, this); /* Browser */
         Property<Core::JSON::EnumType<StateType>>(_T("state"), &WebKitBrowser::get_state, &WebKitBrowser::set_state, this); /* StateControl */
+<<<<<<< HEAD
         Property<Core::JSON::String>(_T("useragent"), &WebKitBrowser::get_useragent, &WebKitBrowser::set_useragent, this);
         Property<Core::JSON::EnumType<JsonData::WebKitBrowser::HttpcookieacceptpolicyType>>(_T("httpcookieacceptpolicy"), &WebKitBrowser::get_httpcookieacceptpolicy, &WebKitBrowser::set_httpcookieacceptpolicy, this);
         Property<Core::JSON::Boolean>(_T("localstorageenabled"), &WebKitBrowser::get_localstorageenabled, &WebKitBrowser::set_localstorageenabled, this);
@@ -47,12 +49,15 @@ namespace Plugin {
         Property<Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>>(_T("headers"), &WebKitBrowser::get_headers, &WebKitBrowser::set_headers, this);
         Register<Core::JSON::String,void>(_T("bridgereply"), &WebKitBrowser::endpoint_bridgereply, this);
         Register<Core::JSON::String,void>(_T("bridgeevent"), &WebKitBrowser::endpoint_bridgeevent, this);
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         Register<DeleteParamsData,void>(_T("delete"), &WebKitBrowser::endpoint_delete, this);
     }
 
     void WebKitBrowser::UnregisterAll()
     {
         Unregister(_T("state"));
+<<<<<<< HEAD
         Unregister(_T("fps"));
         Unregister(_T("visibility"));
         Unregister(_T("url"));
@@ -62,12 +67,15 @@ namespace Plugin {
         Unregister(_T("httpcookieacceptpolicy"));
         Unregister(_T("useragent"));
         Unregister(_T("bridgereply"));
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
         Unregister(_T("delete"));
     }
 
     // API implementation
     //
 
+<<<<<<< HEAD
     // Method: bridgereply - Send response to legacy $badger
     // Return codes:
     //  - ERROR_NONE: Success
@@ -107,11 +115,14 @@ namespace Plugin {
     }
 
     // Property: url - URL loaded in the browser
+=======
+    // Method: endpoint_delete - delete dir
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     // Return codes:
     //  - ERROR_NONE: Success
-    //  - ERROR_INCORRECT_URL: Incorrect URL given
-    uint32_t WebKitBrowser::set_url(const Core::JSON::String& param) /* Browser */
+    uint32_t WebKitBrowser::endpoint_delete(const DeleteParamsData& params)
     {
+<<<<<<< HEAD
         ASSERT(_browser != nullptr);
 
         uint32_t result = Core::ERROR_INCORRECT_URL;
@@ -170,6 +181,9 @@ namespace Plugin {
         response = fps;
 
         return Core::ERROR_NONE;
+=======
+        return DeleteDir(params.Path.Value());
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     }
 
     // Property: state - Running state of the service
@@ -219,6 +233,7 @@ namespace Plugin {
         return result;
     }
 
+<<<<<<< HEAD
     // Method: endpoint_delete - delete dir
     // Return codes:
     //  - ERROR_NONE: Success
@@ -472,6 +487,8 @@ namespace Plugin {
         Notify(_T("bridgequery"), params);
     }
 
+=======
+>>>>>>> 32c6b06f73ef2147ff9ba5f4beb1af3c0a255366
     // Event: statechange - Signals a state change of the service
     void WebKitBrowser::event_statechange(const bool& suspended) /* StateControl */
     {

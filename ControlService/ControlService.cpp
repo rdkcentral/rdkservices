@@ -1137,7 +1137,7 @@ namespace WPEFramework {
         // Begin private method implementations
         StatusCode ControlService::getAllRemoteData(JsonObject& response)
         {
-            JObjectArray    infoArray;
+            JsonArray    infoArray;
 
             // The STB data items are directly part of the response - not nested.
             if (!getRf4ceStbData(response))
@@ -1160,7 +1160,7 @@ namespace WPEFramework {
                 {
                     infoArray.Add(m_remoteInfo[i]);
                 }
-                response["remoteData"] = JsonValue(infoArray);
+                response["remoteData"] = infoArray;
             }
 
             return STATUS_OK;
