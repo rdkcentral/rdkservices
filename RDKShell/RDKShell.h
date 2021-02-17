@@ -219,6 +219,8 @@ namespace WPEFramework {
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             void killAllApps();
+            void loadStartupConfig();
+            void invokeStartupThunderApis();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
