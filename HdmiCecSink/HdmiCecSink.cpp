@@ -609,7 +609,7 @@ namespace WPEFramework
                 return;
 
             if (strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
-                if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
+                if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED && 1 == libcecInitStatus) {
                     IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
                     LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                             param->data.state.curState, param->data.state.newState);
