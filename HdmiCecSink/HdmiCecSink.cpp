@@ -55,6 +55,7 @@
 #define HDMICECSINK_METHOD_SET_MENU_LANGUAGE  	"setMenuLanguage"
 #define HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE "requestActiveSource"
 #define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
+#define HDMICECSINK_METHOD_DEBUG_ENABLE		"setDebugEnable"
 
 
 #define TEST_ADD 0
@@ -403,6 +404,7 @@ namespace WPEFramework
 		   m_isHdmiInConnected = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
+		   cecDebugEnabled = false;
 		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
 
            InitializeIARM();
@@ -423,6 +425,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
+		   registerMethod(HDMICECSINK_METHOD_DEBUG_ENABLE, &HdmiCecSink::setDebugEnableWrapper, this);
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
@@ -1033,6 +1036,33 @@ namespace WPEFramework
             
             returnResponse(true);
        }
+	
+	uint32_t HdmiCecSink::setDebugEnableWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+
+            bool enabled = false;
+
+            if (parameters.HasLabel("enabled"))
+            {
+                getBoolParameter("enabled", enabled);
+            }
+            else
+            {
+                returnResponse(false);
+            }
+            if(enabled)
+            {
+                 cecDebugEnabled = true;
+            }
+            else
+            {
+                 cecDebugEnabled = false;
+
+            }
+
+            returnResponse(true);
+        }
+
         uint32_t HdmiCecSink::getVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFO("getVendorIdWrapper  appVendorId : %s  \n",appVendorId.toString().c_str());
@@ -1898,7 +1928,8 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_POLL :
 				{
-					LOGINFO("POLL_THREAD_STATE_POLL");
+					if(_instance->cecDebugEnabled)
+					    	LOGINFO("POLL_THREAD_STATE_POLL");
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
@@ -1933,7 +1964,8 @@ namespace WPEFramework
 				
 				case POLL_THREAD_STATE_PING :
 				{
-					LOGINFO("POLL_THREAD_STATE_PING");
+					if(_instance->cecDebugEnabled)
+						LOGINFO("POLL_THREAD_STATE_PING");
 					_instance->m_pollThreadState = POLL_THREAD_STATE_INFO;
 					connected.clear();
 					disconnected.clear();
@@ -1968,7 +2000,8 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_INFO :
 				{
-					LOGINFO("POLL_THREAD_STATE_INFO");
+					if(_instance->cecDebugEnabled)
+						LOGINFO("POLL_THREAD_STATE_INFO");
 
 					if ( logicalAddressRequested == LogicalAddress::UNREGISTERED + TEST_ADD )
 					{
@@ -2012,7 +2045,8 @@ namespace WPEFramework
 				/* updating the power status and if required we can add other information later*/
 				case POLL_THREAD_STATE_UPDATE :
 				{
-					LOGINFO("POLL_THREAD_STATE_UPDATE");
+					if(_instance->cecDebugEnabled)
+						LOGINFO("POLL_THREAD_STATE_UPDATE");
 
 					for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 					{
@@ -2038,7 +2072,8 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_IDLE :
 				{
-					LOGINFO("POLL_THREAD_STATE_IDLE");
+					if(_instance->cecDebugEnabled)
+						LOGINFO("POLL_THREAD_STATE_IDLE");
 					_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 					_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 				}

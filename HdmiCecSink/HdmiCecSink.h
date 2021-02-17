@@ -531,7 +531,7 @@ private:
 	    uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
-		
+	    uint32_t setDebugEnableWrapper(const JsonObject& parameters, JsonObject& response);	
 			
             //End methods
             std::string logicalAddressDeviceType;
@@ -546,6 +546,7 @@ private:
 			uint32_t m_pollThreadState;
 			uint32_t m_pollNextState;
 			uint32_t m_sleepTime;
+			bool cecDebugEnabled;
             std::mutex m_pollMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
