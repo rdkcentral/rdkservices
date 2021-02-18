@@ -221,11 +221,11 @@ namespace Plugin {
 
             Core::IPV6AddressIterator index(interfaces.IPV6Addresses());
 
-            TRACE_L1("Checking interface: %s", interfaces.Name().c_str());
+            TRACE_GLOBAL(Trace::Information, (_T("Checking interface: %s"), interfaces.Name().c_str()));
 
             while ((result.IsValid() == false) && (index.Next() == true)) {
                 if ((index.IsValid() == true) && (index.Address().IsUnicast())) {
-                    TRACE_L1("Found IPV6 address: %s", index.Address().HostAddress().c_str());
+                    TRACE_GLOBAL(Trace::Information, (_T("Found IPV6 address: %s"), index.Address().HostAddress().c_str()));
                     result = index.Address();
                 }
             }
@@ -425,11 +425,11 @@ namespace Plugin {
                     Core::NodeId::ClearIPV6Enabled();
                 }
 
-                TRACE_L1("Network connectivity established on %s. ip: %s, tz: %s, country: %s",
+                TRACE(Trace::Information, (_T("Network connectivity established on %s. ip: %s, tz: %s, country: %s"),
                     node.Type() == Core::NodeId::TYPE_IPV4 ? _T("IPv4") : _T("IP6"),
                     _publicIPAddress.c_str(),
                     _timeZone.c_str(),
-                    _country.c_str());
+                    _country.c_str()));
 
                 TRACE(Trace::Information, (_T("LocationSync: Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
                 _callback->Dispatch();
@@ -441,7 +441,7 @@ namespace Plugin {
 
             _adminLock.Unlock();
         } else {
-            TRACE_L1("Got a response but had an empty body. %d", __LINE__);
+            TRACE(Trace::Information, (_T("Got a response but had an empty body. %d"), __LINE__));
         }
 
         // Finish the cycle..
@@ -491,7 +491,7 @@ namespace Plugin {
 
                 if (remote.IsValid() == false) {
 
-                    TRACE_L1("DNS resolving failed. Sleep for %d mS for attempt %d", _tryInterval, _retries);
+                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %d"), _tryInterval, _retries));
 
                     // Name resolving does not even work. Retry this after a few seconds, if we still can..
                     if (_retries-- == 0)
@@ -509,12 +509,12 @@ namespace Plugin {
 
                     if ((status == Core::ERROR_NONE) || (status == Core::ERROR_INPROGRESS)) {
 
-                        TRACE_L1("Sending out a network package on %s. Attempt: %d", (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries);
+                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // We need to get a response in the given time..
                         result = _tryInterval;
                     } else {
-                        TRACE_L1("Failed on network %s. Reschedule for the next attempt: %d", (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries);
+                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // Seems we could not open this connection, move on to the next attempt.
                         Close(0);
@@ -533,7 +533,7 @@ namespace Plugin {
         if (_state == FAILED) {
             Core::NodeId::ClearIPV6Enabled();
 
-            TRACE(Trace::Information, (_T("LocationSync: Network connectivity could *NOT* be established. Falling back to IPv4. %d"), __LINE__));
+            TRACE(Trace::Error, (_T("LocationSync: Network connectivity could *NOT* be established. Falling back to IPv4. %d"), __LINE__));
             _callback->Dispatch();
         }
 
@@ -555,10 +555,10 @@ namespace Plugin {
             if (FindDomain(domain) != nullptr) {
                 result = Core::ERROR_NONE;
             } else {
-                TRACE_L1("URL is not valid. %s", remoteNode.c_str());
+                TRACE_GLOBAL(Trace::Error, (_T("URL is not valid. %s"), remoteNode.c_str()));
             }
         } else {
-            TRACE_L1("Domain is not valid. %s", remoteNode.c_str());
+            TRACE_GLOBAL(Trace::Error, (_T("Domain is not valid. %s"), remoteNode.c_str()));
         }
 
         return (result);
