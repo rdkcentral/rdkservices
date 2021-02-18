@@ -147,6 +147,7 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	     static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;
 
@@ -161,6 +162,7 @@ namespace WPEFramework {
             std::mutex m_callMutex;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
+	    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
 
         public:
             static DisplaySettings* _instance;

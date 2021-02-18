@@ -289,7 +289,31 @@ namespace WPEFramework {
             LOGINFO("Starting the timer");
             m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
 
-            InitAudioPorts();
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            joGetParams["params"] = JsonObject();
+            std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
+            auto thunderController = getThunderControllerClient();
+            uint32_t status = thunderController->Invoke(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+
+	    LOGINFO("get power state status: %d\n",status);
+
+            if (status == Core::ERROR_NONE)
+            {
+		if (joGetResult.HasLabel("powerState"))
+		{
+	            const std::string currentPowerState = joGetResult["powerState"].String();
+	            LOGINFO("the current power state is %s\n",currentPowerState.c_str());
+		    if (currentPowerState == "ON")
+		    {
+			InitAudioPorts();
+		    }
+		}
+	    }
+	    else
+	    {
+		LOGINFO("error getting the power state\n");
+            }
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -317,6 +341,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
             }
 
             try
@@ -345,6 +370,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
 
 
@@ -578,6 +604,30 @@ namespace WPEFramework {
             default:
                 //do nothing
                 break;
+            }
+        }
+
+	void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+        {
+
+            if(!DisplaySettings::_instance)
+                return;
+
+            switch (eventId) {
+                case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
+                    {
+                        IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+			LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
+                            eventData->data.state.curState, eventData->data.state.newState);
+
+                        if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                                DisplaySettings::_instance->InitAudioPorts();
+                        }
+                    }
+                    break;
+
+                default: break;
             }
         }
 
@@ -2713,6 +2763,13 @@ namespace WPEFramework {
         {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.HdmiCecSink.1", "");
+        }
+
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > DisplaySettings::getThunderControllerClient(std::string callsign)
+        {
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            return thunderClient;
         }
 
         // Event management
