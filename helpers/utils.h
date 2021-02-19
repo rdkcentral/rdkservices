@@ -32,6 +32,7 @@
 
 // std
 #include <string>
+#include <thread>
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
@@ -343,4 +344,23 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
-}
+
+    //class for std::thread RAII
+    class ThreadRAII 
+    {
+        public:
+            ThreadRAII() {}
+            ThreadRAII(std::thread&& t);
+            ~ThreadRAII(); 
+            
+            //support moving
+            ThreadRAII(ThreadRAII&&) = default;
+            ThreadRAII& operator=(ThreadRAII&&) = default;
+
+            std::thread& get() { return t; }
+
+        private:
+            std::thread t;
+    };
+
+} // namespace Utils
