@@ -26,6 +26,7 @@
 #include "AbstractPlugin.h"
 #include "libIBus.h"
 #include "irMgr.h"
+#include "pwrMgr.h"
 
 namespace WPEFramework {
 
@@ -147,6 +148,7 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	     static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;
 
@@ -161,6 +163,7 @@ namespace WPEFramework {
             std::mutex m_callMutex;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
+	    static IARM_Bus_PWRMgr_PowerState_t m_powerState;
 
         public:
             static DisplaySettings* _instance;
