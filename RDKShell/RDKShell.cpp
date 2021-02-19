@@ -369,7 +369,7 @@ namespace WPEFramework {
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
-            if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+            if (true == ret && (strncasecmp(param.value,"true",4) == 0))
             {
               mEnableUserInactivityNotification = true;
               enableInactivityReporting(true);
@@ -574,7 +574,7 @@ namespace WPEFramework {
 
                 RFC_ParamData_t rfcParam;
                 bool ret = Utils::getRFCConfig((char*)rfc.c_str(), rfcParam);
-                if (true == ret && rfcParam.type == WDMP_BOOLEAN && (strncasecmp(rfcParam.value,"true",4) == 0))
+                if (true == ret && (strncasecmp(rfcParam.value,"true",4) == 0))
                 {
                     std::cout << "invoking thunder api " << thunderApi << std::endl;
                     uint32_t status = 0;
