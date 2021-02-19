@@ -31,6 +31,29 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        class RDKShell;
+        class EventTimer
+        {
+            private:
+                EventTimer() = delete;
+                EventTimer& operator=(const EventTimer& RHS) = delete;
+
+            public:
+                EventTimer(RDKShell* shell): mShell(shell) {}
+                ~EventTimer() {}
+
+            public:
+                uint64_t Timed(const uint64_t scheduledTime);
+                inline bool operator==(const EventTimer& RHS) const
+                {
+                    return(mShell == RHS.mShell);
+                }
+
+
+            private:
+                RDKShell* mShell;
+        };
+
         class RDKShell :  public AbstractPlugin {
         public:
             RDKShell();
@@ -97,10 +120,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SHOW_WATERMARK;
             static const string RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE;
             static const string RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE;
-            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP;
-            static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
-            static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
@@ -131,6 +151,10 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void startEventTimer();
+            void stopEventTimer();
+            void onEventTimer();
+
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -185,10 +209,7 @@ namespace WPEFramework {
             uint32_t showWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t hideFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
@@ -326,6 +347,8 @@ namespace WPEFramework {
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
+            EventTimer mEventTimer;
+            bool mEventTimerStarted;
             //std::mutex m_callMutex;
         };
 

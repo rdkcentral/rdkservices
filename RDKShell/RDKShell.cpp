@@ -82,10 +82,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_WATERMARK = "showWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE = "showFullScreenImage";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE = "hideFullScreenImage";
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP = "launchFactoryApp";
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
@@ -160,6 +157,8 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        static Core::TimerType<EventTimer> gEventTimer(64 * 1024, "RDKShellEventTimer");
+
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -235,6 +234,7 @@ namespace WPEFramework {
                    std::string serviceCallsign = service->Callsign();
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
+                   mShell.startEventTimer();
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -276,7 +276,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr), mEventTimer(this), mEventTimerStarted(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -333,10 +333,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SHOW_WATERMARK, &RDKShell::showWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_SHOW_FULL_SCREEN_IMAGE, &RDKShell::showFullScreenImageWrapper, this);
             registerMethod(RDKSHELL_METHOD_HIDE_FULL_SCREEN_IMAGE, &RDKShell::hideFullScreenImageWrapper, this);
-            registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP, &RDKShell::launchFactoryAppWrapper, this);
-            registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
-            registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
@@ -3230,154 +3227,6 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
-        uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
-            {
-                std::string eventName("onSystemPowerStateChanged");
-                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
-                if (status == 0)
-                {
-                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
-                    gSystemServiceEventsSubscribed = true;
-                }
-            }
-            if (parameters.HasLabel("startup"))
-            {
-                bool startup = parameters["startup"].Boolean();
-                if (startup)
-                {
-                    JsonObject joAgingParams;
-                    JsonObject joAgingResult;
-                    joAgingParams.Set("namespace","FactoryTest");
-                    joAgingParams.Set("key","AgingState");
-                    std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
-                    std::cout << "attempting to check aging flag \n";
-                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
-                    std::cout << "get status: " << status << std::endl;
-
-                    if (status > 0)
-                    {
-                        response["message"] = " unable to check aging flag";
-                        returnResponse(false);
-                    }
-
-                    if (!joAgingResult.HasLabel("value"))
-                    {
-                        response["message"] = " aging value not found";
-                        returnResponse(false);
-                    }
-
-                    const std::string valueString = joAgingResult["value"].String();
-                    if (valueString != "true")
-                    {
-                        std::cout << "aging value is " << valueString << std::endl;
-                        response["message"] = " aging is not set for startup";
-                        returnResponse(false);
-                    }
-                }
-            }
-
-            uint32_t result;
-            killAllApps();
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(destroyRequest, destroyResponse);
-            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
-            {
-                JsonObject launchRequest;
-                launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "ResidentApp";
-                launchRequest["uri"] = std::string(factoryAppUrl);
-                launchRequest["focused"] = true;
-                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
-                result = launchWrapper(launchRequest, response);
-                bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;
-                if (true == launchFactoryResult)
-                {
-                    std::cout << "Launching factory application succeeded " << std::endl;
-                }
-                else
-                {
-                    std::cout << "Launching factory application failed " << std::endl;
-                    response["message"] = " launching factory application failed ";
-                    returnResponse(false);
-                }
-                JsonObject joFactoryModeParams;
-                JsonObject joFactoryModeResult;
-                joFactoryModeParams.Set("namespace","FactoryTest");
-                joFactoryModeParams.Set("key","FactoryMode");
-                joFactoryModeParams.Set("value","true");
-                std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
-
-                std::cout << "attempting to set factory mode flag \n";
-                uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
-                std::cout << "set status: " << setStatus << std::endl;
-                returnResponse(true);
-            }
-            else
-            {
-                std::cout << "factory app url is empty " << std::endl;
-                response["message"] = " factory app url is empty";
-                returnResponse(false);
-            }
-        }
-
-        uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            std::string factoryAppCallsign("factoryapp");
-            bool isFactoryAppRunning = false;
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(factoryAppCallsign);
-            if (pluginsEntry != gActivePluginsData.end())
-            {
-                std::cout << "factory app is running" << std::endl;
-                isFactoryAppRunning = true;
-            }
-            if (isFactoryAppRunning)
-            {
-                std::cout << "nothing to do since factory app is running in shortcut check\n";
-                returnResponse(true);
-            }
-
-            JsonObject joToFacParams;
-            JsonObject joToFacResult;
-            joToFacParams.Set("namespace","FactoryTest");
-            joToFacParams.Set("key","ToFacFlag");
-            std::string toFacGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
-            std::cout << "attempting to check flag \n";
-            auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
-            std::cout << "get status: " << status << std::endl;
-
-            if (status > 0)
-            {
-                response["message"] = " unable to check toFac flag";
-                returnResponse(false);
-            }
-
-            if (!joToFacResult.HasLabel("value"))
-            {
-                response["message"] = " toFac value not found";
-                returnResponse(false);
-            }
-
-            const std::string valueString = joToFacResult["value"].String();
-            if (valueString != "M" && valueString != "m")
-            {
-                std::cout << "toFac value is " << valueString << std::endl;
-                response["message"] = " toFac not in the correct mode";
-                returnResponse(false);
-            }
-
-            return launchFactoryAppWrapper(parameters, response);
-        }
-
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -3481,27 +3330,6 @@ namespace WPEFramework {
             uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
             std::cout << "set status: " << setStatus << std::endl;
             returnResponse(ret);
-        }
-
-        uint32_t RDKShell::toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            std::string callsign("factoryapp");
-            bool isFactoryAppRunning = false;
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
-            if (pluginsEntry != gActivePluginsData.end())
-            {
-                std::cout << "factory app is already running" << std::endl;
-                isFactoryAppRunning = true;
-            }
-            if (isFactoryAppRunning)
-            {
-                launchResidentAppWrapper(parameters, response);
-            }
-            else
-            {
-                launchFactoryAppWrapper(parameters, response);
-            }
         }
 
         uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
@@ -4470,6 +4298,41 @@ namespace WPEFramework {
             return ret;
         }
 
+        void RDKShell::startEventTimer()
+        {
+            if (!mEventTimerStarted)
+            {
+                gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
+                mEventTimerStarted = true;
+            }
+        }
+
+        void RDKShell::stopEventTimer()
+        {
+            gEventTimer.Revoke(mEventTimer);
+            mEventTimerStarted = false;
+        }
+
+        void RDKShell::onEventTimer()
+        {
+            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
+            {
+                std::string eventName("onSystemPowerStateChanged");
+                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                    gSystemServiceEventsSubscribed = true;
+                }
+            }
+            stopEventTimer();
+        }
+
+        uint64_t EventTimer::Timed(const uint64_t scheduledTime)
+        {
+            mShell->onEventTimer();
+            return 0;
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
