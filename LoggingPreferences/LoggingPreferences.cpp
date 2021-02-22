@@ -47,27 +47,22 @@ namespace WPEFramework {
 
         const string LoggingPreferences::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             return "";
         }
 
         void LoggingPreferences::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void LoggingPreferences::InitializeIARM()
         {
-            LOGINFO();
-
             Utils::IARM::init();
         }
 
         void LoggingPreferences::DeinitializeIARM()
         {
-            LOGINFO();
         }
 
         //Begin methods
