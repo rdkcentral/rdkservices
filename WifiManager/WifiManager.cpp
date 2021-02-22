@@ -83,8 +83,6 @@ namespace WPEFramework
 
         const string WifiManager::Initialize(PluginHost::IShell* service)
         {
-            LOGINFO();
-
             Utils::IARM::init();
 
             if (instance != nullptr) {
@@ -103,8 +101,6 @@ namespace WPEFramework
 
         void WifiManager::Deinitialize(PluginHost::IShell* service)
         {
-            LOGINFO();
-
             wifiScan.Deinitialize(service);
 
             instance = nullptr;
@@ -112,8 +108,6 @@ namespace WPEFramework
 
         string WifiManager::Information() const
         {
-            LOGINFO();
-
             // No additional info to report.
             return string();
         }

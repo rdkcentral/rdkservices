@@ -360,8 +360,6 @@ namespace WPEFramework {
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
-            LOGINFO();
-
             std::cout << "initializing\n";
 
             mCurrentService = service;
@@ -598,8 +596,6 @@ namespace WPEFramework {
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
-            LOGINFO();
-
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
         }

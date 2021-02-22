@@ -53,7 +53,6 @@ namespace WPEFramework {
         UsbAccess::UsbAccess()
             : AbstractPlugin()
         {
-            LOGINFO();
             UsbAccess::_instance = this;
             registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
             registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
@@ -62,13 +61,11 @@ namespace WPEFramework {
 
         UsbAccess::~UsbAccess()
         {
-            LOGINFO();
             UsbAccess::_instance = nullptr;
         }
 
         const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -77,7 +74,6 @@ namespace WPEFramework {
 
         void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -86,8 +82,6 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         void UsbAccess::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -97,8 +91,6 @@ namespace WPEFramework {
 
         void UsbAccess::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
