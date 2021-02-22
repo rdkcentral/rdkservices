@@ -137,8 +137,6 @@ namespace WPEFramework
         , m_discoveryRunning(false)
         , m_discoveryTimer(this)
         {
-            LOGINFO();
-
             Bluetooth::_instance = this;
             registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
             registerMethod(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
@@ -180,8 +178,6 @@ namespace WPEFramework
 
         Bluetooth::~Bluetooth()
         {
-            LOGINFO();
-
             Bluetooth::_instance = nullptr;
         }
 
