@@ -123,6 +123,10 @@ namespace WPEFramework
 
         ActivityMonitor::~ActivityMonitor()
         {
+        }
+
+        void ActivityMonitor::Deinitialize(PluginHost::IShell* /* service */)
+        {
             ActivityMonitor::_instance = nullptr;
 
             if (m_monitor.joinable())
