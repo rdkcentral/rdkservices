@@ -282,7 +282,6 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
 
             if(m_timer.isActive()) {
@@ -308,14 +307,11 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void DisplaySettings::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -354,8 +350,6 @@ namespace WPEFramework {
 
         void DisplaySettings::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -384,7 +378,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if(DisplaySettings::_instance)
             {
                 DisplaySettings::_instance->resolutionPreChange();
@@ -393,8 +386,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             int dw = 1280;
             int dh = 720;
 
@@ -418,7 +409,6 @@ namespace WPEFramework {
 
         void DisplaySettings::DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             //TODO(MROLLINS) Receiver has this whole thing guarded by #ifndef HEADLESS_GW
             if (strcmp(owner,IARM_BUS_DSMGR_NAME) == 0)
             {
@@ -480,7 +470,6 @@ namespace WPEFramework {
 
         void DisplaySettings::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             switch (eventId)
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
@@ -2602,7 +2591,6 @@ namespace WPEFramework {
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
-            LOGINFO();
             bool success = true;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
@@ -2904,7 +2892,6 @@ namespace WPEFramework {
         // 4.
         void DisplaySettings::onTimer()
         {
-            LOGINFO();
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
@@ -3066,13 +3053,11 @@ namespace WPEFramework {
         //Begin events
         void DisplaySettings::resolutionPreChange()
         {
-            LOGINFO();
             sendNotify("resolutionPreChange", JsonObject());
         }
 
         void DisplaySettings::resolutionChanged(int width, int height)
         {
-            LOGINFO();
             vector<string> connectedDisplays;
             getConnectedVideoDisplaysHelper(connectedDisplays);
 
@@ -3127,7 +3112,6 @@ namespace WPEFramework {
         void DisplaySettings::zoomSettingUpdated(const string& zoomSetting)
         {//servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"None","success":true,"videoDisplayType":"all"}
          //servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"Full","success":true,"videoDisplayType":"all"}
-            LOGINFO();
             JsonObject params;
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
@@ -3136,7 +3120,6 @@ namespace WPEFramework {
 
         void DisplaySettings::activeInputChanged(bool activeInput)
         {
-            LOGINFO();
             JsonObject params;
             params["activeInput"] = activeInput;
             sendNotify("activeInputChanged", params);
@@ -3144,7 +3127,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
         {
-            LOGINFO();
             static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
             static int firstTime = 1;
 
@@ -3170,8 +3152,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
         {
-            LOGINFO();
-
             JsonObject params;
             string sPortName;
             string sPortStatus;
@@ -3209,7 +3189,6 @@ namespace WPEFramework {
 
         void DisplaySettings::getConnectedVideoDisplaysHelper(vector<string>& connectedDisplays)
         {
-            LOGINFO();
             try
             {
                 device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();

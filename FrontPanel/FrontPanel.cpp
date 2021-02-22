@@ -159,7 +159,6 @@ namespace WPEFramework
         : AbstractPlugin()
         , m_updateTimer(this)
         {
-            LOGINFO();
             FrontPanel::_instance = this;
 
             registerMethod(METHOD_FP_SET_BRIGHTNESS, &FrontPanel::setBrightnessWrapper, this);
@@ -186,7 +185,6 @@ namespace WPEFramework
 
         FrontPanel::~FrontPanel()
         {
-            LOGINFO();
             FrontPanel::_instance = nullptr;
 
             {
@@ -200,14 +198,11 @@ namespace WPEFramework
 
         const void FrontPanel::InitializeIARM()
         {
-            LOGINFO();
-
             Utils::IARM::init();
         }
 
         void FrontPanel::DeinitializeIARM()
         {
-            LOGINFO();
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)

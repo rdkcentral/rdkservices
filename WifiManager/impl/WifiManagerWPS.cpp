@@ -28,12 +28,10 @@ namespace WPEFramework
     {
         WifiManagerWPS::WifiManagerWPS()
         {
-            LOGINFO();
         }
 
         WifiManagerWPS::~WifiManagerWPS()
         {
-            LOGINFO();
         }
 
         uint32_t WifiManagerWPS::initiateWPSPairing(const JsonObject &parameters, JsonObject &response)
