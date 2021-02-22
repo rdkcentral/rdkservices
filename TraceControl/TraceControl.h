@@ -130,7 +130,7 @@ namespace Plugin {
                     , _state(EMPTY)
                 {
                     if (_connection != nullptr) {
-                        TRACE_L1("Constructing TraceControl::Source (%d)", connection->Id());
+                        TRACE(Trace::Information, (_T("Constructing TraceControl::Source (%d)"), connection->Id()));
                         _connection->AddRef();
                     }
                 }
@@ -215,7 +215,7 @@ namespace Plugin {
 
                         if (length < 2) {
                             // Didn't even get enough data to read entry size. This is impossible, fallback to failure.
-                            TRACE_L1("Inconsistent trace dump. Need to flush. %d", length);
+                            TRACE(Trace::Error, (_T("Inconsistent trace dump. Need to flush. %d"), length));
                             _state = FAILURE;
                         } else {
                             // TODO: This is platform dependend, needs to ba agnostic to the platform.
