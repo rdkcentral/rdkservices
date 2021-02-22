@@ -62,6 +62,10 @@ namespace WPEFramework
 
         FrameRate::~FrameRate()
         {
+        }
+
+        void FrameRate::Deinitialize(PluginHost::IShell* /* service */)
+        {
             FrameRate::_instance = nullptr;
         }
 

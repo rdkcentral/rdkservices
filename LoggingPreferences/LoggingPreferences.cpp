@@ -41,8 +41,7 @@ namespace WPEFramework {
 
         LoggingPreferences::~LoggingPreferences()
         {
-            LOGINFO("dtor");
-            LoggingPreferences::_instance = nullptr;
+            //LOGINFO("dtor");
         }
 
         const string LoggingPreferences::Initialize(PluginHost::IShell* /* service */)
@@ -54,6 +53,7 @@ namespace WPEFramework {
         void LoggingPreferences::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            LoggingPreferences::_instance = nullptr;
         }
 
         void LoggingPreferences::InitializeIARM()

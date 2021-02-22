@@ -103,6 +103,10 @@ namespace WPEFramework
 
         HdmiCec::~HdmiCec()
         {
+        }
+
+        void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
+        {
             HdmiCec::_instance = nullptr;
 
             DeinitializeIARM();

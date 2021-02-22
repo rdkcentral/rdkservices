@@ -95,8 +95,7 @@ namespace WPEFramework {
 
         ControlService::~ControlService()
         {
-            LOGINFO("dtor");
-            ControlService::_instance = nullptr;
+            //LOGINFO("dtor");
 
         }
 
@@ -110,6 +109,7 @@ namespace WPEFramework {
         void ControlService::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            ControlService::_instance = nullptr;
         }
 
         void ControlService::InitializeIARM()
