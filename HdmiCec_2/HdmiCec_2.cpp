@@ -382,15 +382,12 @@ namespace WPEFramework
 
        HdmiCec_2::~HdmiCec_2()
        {
-           LOGINFO();
            HdmiCec_2::_instance = nullptr;
            DeinitializeIARM();
        }
 
        const void HdmiCec_2::InitializeIARM()
        {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -403,8 +400,6 @@ namespace WPEFramework
 
        void HdmiCec_2::DeinitializeIARM()
        {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -417,8 +412,6 @@ namespace WPEFramework
 
        void HdmiCec_2::cecMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCec_2::_instance)
                 return;
 
@@ -450,8 +443,6 @@ namespace WPEFramework
 
        void HdmiCec_2::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCec_2::_instance)
                 return;
 
@@ -466,8 +457,6 @@ namespace WPEFramework
 
        void HdmiCec_2::pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCec_2::_instance)
                 return;
 
@@ -490,8 +479,6 @@ namespace WPEFramework
 
        void HdmiCec_2::onCECDaemonInit()
        {
-            LOGINFO();
-
             if(true == getEnabled())
             {
                 setEnabled(false);
@@ -505,8 +492,6 @@ namespace WPEFramework
 
        void HdmiCec_2::cecStatusUpdated(void *evtStatus)
        {
-            LOGINFO();
-
             IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = (IARM_Bus_CECMgr_Status_Updated_Param_t *)evtStatus;
             if(evtData)
             {
@@ -535,8 +520,6 @@ namespace WPEFramework
 
        void HdmiCec_2::onHdmiHotPlug(int connectStatus)
        {
-            LOGINFO();
-
             if (HDMI_HOT_PLUG_EVENT_CONNECTED == connectStatus)
             {
                 LOGINFO ("onHdmiHotPlug Status : %d ", connectStatus);
@@ -567,7 +550,7 @@ namespace WPEFramework
 
        uint32_t HdmiCec_2::setEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
 
             bool enabled = false;
 
@@ -591,7 +574,7 @@ namespace WPEFramework
        }
        uint32_t HdmiCec_2::setOTPEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
 
             bool enabled = false;
 
@@ -616,7 +599,7 @@ namespace WPEFramework
 
        uint32_t HdmiCec_2::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
             bool enabled = false;
 
             if (parameters.HasLabel("name"))
@@ -642,7 +625,7 @@ namespace WPEFramework
 
         uint32_t HdmiCec_2::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool enabled = false;
 

@@ -106,14 +106,12 @@ namespace WPEFramework {
 
         const string MotionDetection::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void MotionDetection::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
         }
 
         //Begin methods
@@ -412,7 +410,6 @@ namespace WPEFramework {
         //Begin events
         void MotionDetection::onMotionEvent(const string& index, const string& eventType)
         {
-            LOGINFO();
             JsonObject params;
             params["index"] = index;
             params["mode"] = eventType;

@@ -70,7 +70,6 @@ rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const 
 {
     if (numArgs == 1)
     {
-        LOGINFO ();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -92,7 +91,6 @@ rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -114,7 +112,6 @@ rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -139,7 +136,6 @@ rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const r
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -164,7 +160,6 @@ rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const 
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");

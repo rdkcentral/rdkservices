@@ -72,8 +72,6 @@ namespace WPEFramework {
 
         const string AVInput::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             if(m_timer.isActive()) {
                 m_timer.stop();
             }
@@ -86,7 +84,6 @@ namespace WPEFramework {
 
         void AVInput::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
         }
 
         string AVInput::Information() const
@@ -145,12 +142,10 @@ namespace WPEFramework {
         // Events begin
         void AVInput::onAVInputActive(JsonObject& url)
         {
-            LOGINFO();
             sendNotify(C_STR(AVINPUT_EVENT_ON_AV_INPUT_ACTIVE), url);
         }
         void AVInput::onAVInputInactive(JsonObject& url)
         {
-            LOGINFO();
             sendNotify(C_STR(AVINPUT_EVENT_ON_AV_INPUT_INACTIVE), url);
         }
         // Events end
@@ -380,7 +375,6 @@ namespace WPEFramework {
         void AVInput::onTimer()
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
-            LOGINFO();
             bool pluginActivated = isPluginActivated(SUBSCRIPTION_CALLSIGN);
             if(!m_subscribed) {
                 if (pluginActivated && subscribe(SUBSCRIPTION_CALLSIGN_VER, SUBSCRIPTION_EVENT) == Core::ERROR_NONE)

@@ -18,8 +18,6 @@ SERVICE_REGISTRATION(OCIContainer, 1, 0);
 OCIContainer::OCIContainer()
     : PluginHost::JSONRPC()
 {
-    LOGINFO();
-
     Register("listContainers", &OCIContainer::listContainers, this);
     Register("getContainerState", &OCIContainer::getContainerState, this);
     Register("getContainerInfo", &OCIContainer::getContainerInfo, this);
@@ -33,8 +31,6 @@ OCIContainer::OCIContainer()
 
 OCIContainer::~OCIContainer()
 {
-    LOGINFO();
-
     Unregister("listContainers");
     Unregister("getContainerState");
     Unregister("getContainerInfo");
@@ -48,7 +44,6 @@ OCIContainer::~OCIContainer()
 
 const string OCIContainer::Initialize(PluginHost::IShell *service)
 {
-    LOGINFO();
     mIpcService = AI_IPC::createIpcService("unix:path=/var/run/dbus/system_bus_socket", "com.sky.dobby.thunder");
 
     if (!mIpcService)
@@ -74,14 +69,11 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
 
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
-    LOGINFO();
     mDobbyProxy->unregisterListener(mEventListenerId);
 }
 
 string OCIContainer::Information() const
 {
-    LOGINFO();
-
     // No additional info to report.
     return string();
 }
