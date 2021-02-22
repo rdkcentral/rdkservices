@@ -2052,7 +2052,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_POLL :
 				{
-					LOGINFO("POLL_THREAD_STATE_POLL");
+					//LOGINFO("POLL_THREAD_STATE_POLL");
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
@@ -2095,7 +2095,7 @@ namespace WPEFramework
 				
 				case POLL_THREAD_STATE_PING :
 				{
-					LOGINFO("POLL_THREAD_STATE_PING");
+					//LOGINFO("POLL_THREAD_STATE_PING");
 					_instance->m_pollThreadState = POLL_THREAD_STATE_INFO;
 					connected.clear();
 					disconnected.clear();
@@ -2130,7 +2130,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_INFO :
 				{
-					LOGINFO("POLL_THREAD_STATE_INFO");
+					//LOGINFO("POLL_THREAD_STATE_INFO");
 
 					if ( logicalAddressRequested == LogicalAddress::UNREGISTERED + TEST_ADD )
 					{
@@ -2140,7 +2140,7 @@ namespace WPEFramework
 								_instance->deviceList[i].m_isDevicePresent &&
 								!_instance->deviceList[i].isAllUpdated() )
 							{
-								LOGINFO("POLL_THREAD_STATE_INFO -> request for %d", i);
+								//LOGINFO("POLL_THREAD_STATE_INFO -> request for %d", i);
 								logicalAddressRequested = i;
 								_instance->request(logicalAddressRequested);
 								_instance->m_sleepTime = HDMICECSINK_REQUEST_INTERVAL_TIME_MS;
@@ -2174,7 +2174,7 @@ namespace WPEFramework
 				/* updating the power status and if required we can add other information later*/
 				case POLL_THREAD_STATE_UPDATE :
 				{
-					LOGINFO("POLL_THREAD_STATE_UPDATE");
+					//LOGINFO("POLL_THREAD_STATE_UPDATE");
 
 					for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 					{
@@ -2200,7 +2200,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_IDLE :
 				{
-					LOGINFO("POLL_THREAD_STATE_IDLE");
+					//LOGINFO("POLL_THREAD_STATE_IDLE");
 					_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 					_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 				}
@@ -2209,7 +2209,7 @@ namespace WPEFramework
 				case POLL_THREAD_STATE_WAIT :
 				{
 					/* Wait for Hdmi is connected, in case it disconnected */
-					LOGINFO("19Aug2020-[01] -> POLL_THREAD_STATE_WAIT");
+					//LOGINFO("19Aug2020-[01] -> POLL_THREAD_STATE_WAIT");
 					_instance->m_sleepTime = HDMICECSINK_WAIT_FOR_HDMI_IN_MS;
 
 					if ( _instance->m_isHdmiInConnected == true )
