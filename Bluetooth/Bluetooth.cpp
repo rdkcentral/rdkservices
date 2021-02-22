@@ -170,9 +170,6 @@ namespace WPEFramework
         Bluetooth::~Bluetooth()
         {
             Bluetooth::_instance = nullptr;
-
-            if (m_executionThread.joinable())
-                m_executionThread.join();
         }
 
         string Bluetooth::Information() const
