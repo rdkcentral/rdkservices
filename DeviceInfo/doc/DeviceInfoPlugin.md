@@ -94,16 +94,16 @@ DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | Capabilities of the STB |
+| [capabilities](#property.capabilities) <sup>RO</sup> | Capabilities of the device |
 | [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
 | [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
 | [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
 
 
-<a name="property.stbcapabilities"></a>
-## *stbcapabilities <sup>property</sup>*
+<a name="property.capabilities"></a>
+## *capabilities <sup>property</sup>*
 
-Provides access to the capabilities of the STB.
+Provides access to the capabilities of the device.
 
 > This property is **read-only**.
 
@@ -111,17 +111,17 @@ Provides access to the capabilities of the STB.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | Capabilities of the STB |
+| (property) | object | Capabilities of the device |
 | (property).hdr | boolean | Is HDR supported by this device |
 | (property).atmos | boolean | Is Atmos supported by this device |
 | (property).cec | boolean | Is CEC supported by this device |
 | (property).hdcp | string | HDCP support (must be one of the following: *unavailable*, *hdcp_14*, *hdcp_20*, *hdcp_21*, *hdcp_22*) |
 | (property).audio_outputs | array | Audio Output support |
-| (property).audio_outputs[#] | string | Audio output supported by the STB (must be one of the following: *other*, *rf_modulator*, *analog*, *spdif*, *hdmi*, *displayport*) |
+| (property).audio_outputs[#] | string | Audio output supported by the device (must be one of the following: *other*, *rf_modulator*, *analog*, *spdif*, *hdmi*, *displayport*) |
 | (property).video_outputs | array | Video Output support |
-| (property).video_outputs[#] | string | Video output supported by the STB (must be one of the following: *other*, *rf_modulator*, *composite*, *svideo*, *component*, *scart_rgb*, *hdmi*, *displayport*) |
+| (property).video_outputs[#] | string | Video output supported by the device (must be one of the following: *other*, *rf_modulator*, *composite*, *svideo*, *component*, *scart_rgb*, *hdmi*, *displayport*) |
 | (property).output_resolutions | array | Supported resolutions |
-| (property).output_resolutions[#] | string | Resolution supported by the STB (must be one of the following: *unknown*, *480i*, *480p*, *576i*, *576p*, *720p*, *1080i*, *1080p*, *2160p30*, *2160p60*, *4320p30*, *4320p60*) |
+| (property).output_resolutions[#] | string | Resolution supported by the device (must be one of the following: *unknown*, *480i*, *480p*, *576i*, *576p*, *720p*, *1080i*, *1080p*, *2160p30*, *2160p60*, *4320p30*, *4320p60*) |
 
 ### Example
 
@@ -131,7 +131,7 @@ Provides access to the capabilities of the STB.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "DeviceInfo.1.stbcapabilities"
+    "method": "DeviceInfo.1.capabilities"
 }
 ```
 
