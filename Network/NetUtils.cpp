@@ -57,9 +57,9 @@ namespace WPEFramework {
         {
             string value;
 
-            if (envGetValue("WIFI_SUPPORT", value) && (value == "true") && envGetValue("WIFI_INTERFACE", value))
+            if (envGetValue("WIFI_SUPPORT", value) && (strncasecmp(value.c_str(), "true", 4)==0) && envGetValue("WIFI_INTERFACE", value))
                 interface_descriptions.insert({value, "WIFI"});
-            if (envGetValue("MOCA_SUPPORT", value) && (value == "true") && envGetValue("MOCA_INTERFACE", value))
+            if (envGetValue("MOCA_SUPPORT", value) && (strncasecmp(value.c_str(), "true", 4)==0) && envGetValue("MOCA_INTERFACE", value))
                 interface_descriptions.insert({value, "MOCA"});
             if (envGetValue("ETHERNET_INTERFACE", value))
                 interface_descriptions.insert({value, "ETHERNET"});

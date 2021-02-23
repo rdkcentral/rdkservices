@@ -1,9 +1,1082 @@
 {
- "locator":"libWPEFrameworkRDKShell.so",
- "classname":"RDKShell",
- "precondition":[
-  "Platform"
- ],
- "callsign":"org.rdk.RDKShell",
- "autostart":true
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "RDKShell API", 
+        "class": "RDKShell",
+        "description": "The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling."
+    },
+    "definitions": {
+        "keyCode":{
+            "summary":"The key code of the key to intercept",
+            "type": "number",
+            "example": 10
+        },
+        "modifiers":{
+            "summary": "A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported)",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "shift"
+            }
+        },
+        "client":{
+            "summary":"The client name",
+            "type": "string",
+            "example": "org.rdk.Netflix"
+        },
+        "clients": {
+            "summary": "A list of clients",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "org.rdk.Netflix"
+            }
+        },
+        "callsign": {
+            "summary": "The application callsign",
+            "type": "string",
+            "example": "Cobalt"
+        },
+        "x":{
+            "summary":"The x location",
+            "type": "number",
+            "example": 0
+        },
+        "y":{
+            "summary":"The y location",
+            "type": "number",
+            "example": 0
+        },
+        "w":{
+            "summary":"The width",
+            "type": "number",
+            "example": 1920
+        },
+        "h":{
+            "summary":"The height",
+            "type": "number",
+            "example": 1080
+        },
+        "sx":{
+            "summary":"The x scale factor",
+            "type": "number",
+            "example": 0.5
+        },
+        "sy":{
+            "summary":"The y scale factor",
+            "type": "number",
+            "example": 0.5
+        },
+        "opacity": {
+            "summary": "The opacity level (between 0 and 100)",
+            "type": "integer",
+            "example": 100
+        },
+        "uri":{
+            "summary": "The URI of the app",
+            "type":"string",
+            "example": "https://..."
+        },
+        "visible":{
+            "summary": "Whether the client is visible (`true`) or not (`false`)",
+            "type": "boolean",
+            "example": true
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }    
+    },
+    "methods": {
+        "addAnimation":{
+            "summary": "Performs a set of animations",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "animations": {
+                        "summary": "A list of animations to perform",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "client":{
+                                    "$ref": "#/definitions/client"
+                                },
+                                "x":{
+                                    "$ref": "#/definitions/x"
+                                },
+                                "y":{
+                                    "$ref": "#/definitions/y"
+                                },
+                                "w":{
+                                    "$ref": "#/definitions/w"
+                                },
+                                "h":{
+                                    "$ref": "#/definitions/h"
+                                },
+                                "sx":{
+                                    "$ref": "#/definitions/sx"
+                                },
+                                "sy":{
+                                    "$ref": "#/definitions/sy"
+                                },
+                                "a":{
+                                    "summary":"The alpha/opacity level to animate to (between 0 and 100)",
+                                    "type": "number",
+                                    "example": 0
+                                },
+                                "duration":{
+                                    "summary":"The duration of the animation in seconds",
+                                    "type": "number",
+                                    "example": 2
+                                },
+                                "tween":{
+                                    "summary":"the animation tween type. The default is `linear`",
+                                    "type": "string",
+                                    "enum": [
+                                        "linear",
+                                        "exp1",
+                                        "exp2",
+                                        "exp3",
+                                        "inquad",
+                                        "incubic",
+                                        "nback",
+                                        "inelastic",
+                                        "outelastic",
+                                        "outbounce"
+                                    ],
+                                    "default": "Linear",
+                                    "example": "exp1"
+                                }                                
+                            },
+                            "required": [
+                                "client"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "animations"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "addKeyIntercept":{
+            "summary": "Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "keyCode":{
+                        "$ref": "#/definitions/keyCode"
+                    },
+                    "modifiers":{
+                        "$ref": "#/definitions/modifiers"
+                    },
+                    "client":{
+                        "$ref": "#/definitions/client"
+                    }
+                },
+                "required": [
+                    "keyCode",
+                    "modifiers",
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "addKeyListener":{
+            "summary": "Adds a key listener to an application.  The keys are bubbled up based on their z-order",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client"
+                    },
+                    "keys":{
+                        "summary":"A list of keys on which to add a listener for the specified application",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "keyCode":{
+                                    "$ref": "#/definitions/keyCode"
+                                },
+                                "modifiers":{
+                                    "$ref": "#/definitions/modifiers"
+                                },
+                                "activate": {
+                                    "summary":"Activate an application on key event. The default is `false`",
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "propagate": {
+                                    "summary":"Propagate to the next application in the z-order. The default is `true`",
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "required": [
+                                "keyCode",
+                                "modifiers",
+                                "activate",
+                                "propagate"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "client",
+                    "keys"                    
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "destroy":{
+            "summary": "Destroys an application",
+            "events": ["onDestroyed"],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign": {
+                        "$ref": "#/definitions/callsign"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "enableInactivityReporting":{
+            "summary": "Enables or disables inactivity reporting and events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enable": {
+                        "summary": "Whether to enable (`true`) or disable (`false`) inactivity reporting",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "generateKey": {
+            "summary": "Triggers key events (key press and release)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "keys":{
+                        "summary":"A list of keys to simulate",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "keyCode":{
+                                    "$ref": "#/definitions/keyCode"
+                                },
+                                "modifiers":{
+                                    "$ref": "#/definitions/modifiers"
+                                },
+                                "delay": {
+                                    "summary":"The amount of time to wait (in seconds) before sending the key event",
+                                    "type": "number",
+                                    "example": 1.0
+                                },
+                                "callsign": {
+                                    "$ref": "#/definitions/callsign"
+                                }
+                            },
+                            "required": [
+                                "keyCode",
+                                "modifiers",
+                                "delay"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "keys"                    
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getAvailableTypes": {
+            "summary": "Returns the list of application types available on the firmware",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "types": {
+                        "summary": "#/definitions/interface",
+                        "type":"array",
+                        "items": {
+                            "type": "string",
+                            "example": "HtmlBrowser"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "types",
+                    "success"
+                ]
+            }
+        },
+        "getBounds": {
+            "summary": "Gets the bounds of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "x":{
+                        "$ref": "#/definitions/x"
+                    },
+                    "y":{
+                        "$ref": "#/definitions/y"
+                    },
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h"
+                ]
+            }
+        },
+        "getClients": {
+            "summary": "Gets a list of clients.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "clients",
+                    "success"
+                ]
+            }
+        },
+        "getOpacity":{
+            "summary": "Gets the opacity of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "opacity":{
+                        "$ref": "#/definitions/opacity"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "opacity",
+                    "success"
+                ]
+            }
+        },
+        "getScale":{
+            "summary": "Returns the scale of an application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "sx":{
+                        "$ref": "#/definitions/sx"
+                    },
+                    "sy":{
+                        "$ref": "#/definitions/sy"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "sx",
+                    "sy",
+                    "success"
+                ]
+            }
+        },
+        "getScreenResolution":{
+            "summary": "Gets the screen resolution",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "w",
+                    "h",
+                    "success"
+                ]
+            }
+        },
+        "getState":{
+            "summary": "Returns the state of each application",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "runtimes": {
+                        "summary": "A list of apps and their current state",
+                        "type": "array",
+                        "items": {
+                            "type":"object",
+                            "properties": {
+                                "callsign": {
+                                    "$ref": "#/definitions/callsign"
+                                },
+                                "state": {
+                                    "summary": "The runtime state of the app",
+                                    "type":"string",
+                                    "example": "suspended"
+                                },
+                                "uri":{
+                                    "$ref": "#/definitions/uri"
+                                }                                
+                            },
+                            "required": [
+                                "callsign",
+                                "state",
+                                "uri"
+                            ]
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "runtimes",
+                    "success"
+                ]
+            }
+        },
+        "getSystemResourceInfo":{
+            "summary": "Returns system resource information about each application",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "runtimes": {
+                        "summary": "A list of apps and their system resource information",
+                        "type": "array",
+                        "items": {
+                            "type":"object",
+                            "properties": {
+                                "callsign": {
+                                    "$ref": "#/definitions/callsign"
+                                },
+                                "ram": {
+                                    "summary": "The amount of memory the runtime is consuming in kb",
+                                    "type":"integer",
+                                    "example": 123
+                                },
+                                "vram":{
+                                    "summary": "The amount of graphics memory the runtime is consuming in kb (if supported)",
+                                    "type":"integer",
+                                    "example": 50
+                                }                                
+                            },
+                            "required": [
+                                "callsign",
+                                "ram",
+                                "vram"
+                            ]
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "runtimes",
+                    "success"
+                ]
+            }
+        },
+        "getVisibility":{
+            "summary": "Gets the visibility of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "visible":{
+                        "summary": "Whether the client is visible (`true`) or not (`false`)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "visible",
+                    "success"
+                ]
+            }
+        },
+        "getZOrder":{
+            "summary": "Returns an array of clients in Z order, starting with the top most application client first",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "clients",
+                    "success"
+                ]
+            }
+        },
+        "kill": {
+            "summary": "Kills the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "launch":{
+            "summary": "Launches an application",
+            "events": ["onLaunched"],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign":{
+                        "$ref": "#/definitions/callsign"
+                    },
+                    "type":{
+                        "summary": "The ID of the runtime package or the callsign of the plugin desired to be cloned",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    },
+                    "version": {
+                        "summary": "The version of the package. Defaults to the latest version",
+                        "type": "string",
+                        "example": "1.0"
+                    },
+                    "uri":{
+                        "$ref": "#/definitions/uri"
+                    },
+                    "x":{
+                        "$ref": "#/definitions/x"
+                    },
+                    "y":{
+                        "$ref": "#/definitions/y"
+                    },
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    },
+                    "suspend":{
+                        "summary": "Whether to suspend the app on launch (`true`) or not (`false`). Default is `false`",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "visible": {
+                        "summary": "Whether the app is visible on launch (`true`) or not (`false`). Default is `true`. The value will be `false` if the `suspend` argument is `true`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "focused":{
+                        "summary": "Whether the app is focused on launch (`true`) or not (`false`). Default is `true`. The app cannot be focused if the `visible` argument is set to `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "configuration":{
+                        "summary": "The plugin configuration overrides. Empty by default",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "behind":{
+                        "summary": "The client to put behind. Defaults to top of z-order",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "displayName":{
+                        "summary": "The name of the display to create",
+                        "type": "string",
+                        "example": ""
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "type",
+                    "uri"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "moveBehind":{
+            "summary": "Moves the specified client behind the specified target client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "target": {
+                        "summary": "The target in which the client moves behind",
+                        "type": "string",
+                        "example": "org.rdk.RDKBrowser2"
+                    }
+                },
+                "required": [
+                    "client",
+                    "target"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "moveToBack":{
+            "summary": "Moves the specified client to the back or bottom of the Z order",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "moveToFront": {
+            "summary": "Moves the specified client to the front or top of the Z order",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "removeKeyIntercept": {
+            "summary": "Removes a key intercept",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "keyCode":{
+                        "$ref": "#/definitions/keyCode"
+                    },
+                    "modifiers":{
+                        "$ref": "#/definitions/modifiers"
+                    },
+                    "client":{
+                        "$ref": "#/definitions/client"
+                    }
+                },
+                "required": [
+                    "keyCode",
+                    "modifiers",
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "removeKeyListener": {
+            "summary": "Removes a key listener for an application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client"
+                    },
+                    "keys":{
+                        "summary":"A list of keys for which to remove a listener for the specified application",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "keyCode":{
+                                    "$ref": "#/definitions/keyCode"
+                                },
+                                "modifiers":{
+                                    "$ref": "#/definitions/modifiers"
+                                }
+                            },
+                            "required": [
+                                "keyCode",
+                                "modifiers"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "client",
+                    "keys"                    
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "SetBounds": {
+            "summary": "Sets the bounds of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "x":{
+                        "$ref": "#/definitions/x"
+                    },
+                    "y":{
+                        "$ref": "#/definitions/y"
+                    },
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    }
+                },
+                "required": [
+                    "client",
+                    "x",
+                    "y",
+                    "w",
+                    "h"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFocus": {
+            "summary": "Sets focus to the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setInactivityInterval": {
+            "summary": "Sets the inactivity notification interval",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interval": {
+                        "summary": "The inactivity event interval in minutes",
+                        "type": "integer",
+                        "example": 15             
+                    }
+                },
+                "required": [
+                    "interval"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setOpacity":{
+            "summary": "Sets the opacity of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "opacity":{
+                        "$ref": "#/definitions/opacity"
+                    }
+                },
+                "required": [
+                    "client",
+                    "opacity"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setScale": {
+            "summary": "Scales an application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "sx":{
+                        "$ref": "#/definitions/sx"
+                    },
+                    "sy":{
+                        "$ref": "#/definitions/sy"
+                    }
+                },
+                "required": [
+                    "client",
+                    "sx",
+                    "sy"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+
+        },
+        "setScreenResolution": {
+            "summary": "Sets the screen resolution",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    }
+                },
+                "required": [
+                    "w",
+                    "h"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVisibility":{
+            "summary": "Sets the visibility of the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "visible":{
+                        "$ref": "#/definitions/visible"
+                    }
+                },
+                "required": [
+                    "client",
+                    "visible"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/visible"
+            }
+        },
+        "suspend": {
+            "summary": "Suspends an application",
+            "events": ["onSuspended"],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "$ref": "#/definitions/callsign"              
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        }
+    },
+    "events": {
+        "onDestroyed":{
+            "summary": "Triggered when a runtime is destroyed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onLaunched": {
+            "summary": "Triggered when a runtime is launched",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    },
+                    "launchType": {
+                        "summary": "The launch type of an application",
+                        "type": "string",
+                        "enum": ["create", "active", "suspend", "resume"],
+                        "example": "create"
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onSuspended": {
+            "summary": "Triggered when a runtime is suspended",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onUserInactivity": {
+            "summary": "Triggered when a device has been inactive for a period of time. This event is broadcasted at the frequency specified by `setInactivityInterval` if the device is not active. The default frequency is 15 minutes.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "minutes":{
+                        "summary": "The number of minutes that the device has been inactive",
+                        "type": "number",
+                        "example": 5
+                    }
+                },
+                "required": [
+                    "minutes"
+                ]
+            }
+        }
+    }
 }

@@ -231,12 +231,8 @@ namespace Plugin {
             } else {
                 if (index.Current().Text() == _T("Sessions")) {
 
-                    // Core::ProxyType<Web::JSONBodyType<WifiControl::NetworkList> > networks (jsonResponseFactoryNetworkList.Element());
-
-                    // virtual RPC::IStringIterator* Sessions(const string& keySystem);
                     result->ErrorCode = Web::STATUS_OK;
                     result->Message = _T("Active Sessions.");
-                    // result->Body(networks);
 
                 } else if (index.Current().Text() == _T("Designators")) {
                     if (index.Next() == true) {

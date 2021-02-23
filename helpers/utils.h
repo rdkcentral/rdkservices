@@ -32,11 +32,12 @@
 
 // std
 #include <string>
+#include <thread>
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
 
-#define LOGINFO(fmt, ...)
+#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGDBG(fmt, ...) do { fprintf(stderr, "[%d] DEBUG [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); Utils::Telemetry::sendError(fmt, ##__VA_ARGS__); } while (0)
@@ -345,4 +346,23 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
-}
+
+    //class for std::thread RAII
+    class ThreadRAII 
+    {
+        public:
+            ThreadRAII() {}
+            ThreadRAII(std::thread&& t);
+            ~ThreadRAII(); 
+            
+            //support moving
+            ThreadRAII(ThreadRAII&&) = default;
+            ThreadRAII& operator=(ThreadRAII&&) = default;
+
+            std::thread& get() { return t; }
+
+        private:
+            std::thread t;
+    };
+
+} // namespace Utils

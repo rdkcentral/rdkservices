@@ -407,6 +407,7 @@ namespace WPEFramework
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
 		   cecEnableStatus = false;
+		   m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
@@ -512,22 +513,30 @@ namespace WPEFramework
 
        HdmiCecSink::~HdmiCecSink()
        {
-           LOGINFO();
-		   
 		    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
             m_semSignaltoArcRoutingThread.release();
             LOGINFO(" ~HdmiCecSink() waiting for thread join %d",m_arcRoutingThread.joinable());
-            if (m_arcRoutingThread.joinable())
-            m_arcRoutingThread.join();
+
+			try
+			{
+				if (m_arcRoutingThread.joinable())
+            		m_arcRoutingThread.join();
+			}
+			catch(const std::system_error& e)
+			{
+				LOGERR("system_error exception in thread join %s", e.what());
+			}
+			catch(const std::exception& e)
+			{
+				LOGERR("exception in thread join %s", e.what());
+			}
            HdmiCecSink::_instance = nullptr;
            DeinitializeIARM();
        }
 
        const void HdmiCecSink::InitializeIARM()
        {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -540,8 +549,6 @@ namespace WPEFramework
 
        void HdmiCecSink::DeinitializeIARM()
        {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -554,8 +561,6 @@ namespace WPEFramework
 
        void HdmiCecSink::cecMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCecSink::_instance)
                 return;
 
@@ -587,8 +592,6 @@ namespace WPEFramework
 
        void HdmiCecSink::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCecSink::_instance)
                 return;
 
@@ -603,8 +606,6 @@ namespace WPEFramework
 
        void HdmiCecSink::pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            LOGINFO();
-
             if(!HdmiCecSink::_instance)
                 return;
 
@@ -613,6 +614,7 @@ namespace WPEFramework
                     IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
                     LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                             param->data.state.curState, param->data.state.newState);
+		           LOGWARN(" m_logicalAddressAllocated 0x%x CEC enable status %d \n",_instance->m_logicalAddressAllocated,_instance->cecEnableStatus);
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
                         powerState = DEVICE_POWER_STATE_ON; 
@@ -621,7 +623,8 @@ namespace WPEFramework
                    	{
                         powerState = DEVICE_POWER_STATE_OFF;
                    	}
-
+                        if (_instance->cecEnableStatus)
+		        {
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED )
 					{
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
@@ -636,14 +639,17 @@ namespace WPEFramework
 							HdmiCecSink::_instance->sendStandbyMessage();	
 						}
 					}
+			}
+			else
+			{
+				LOGWARN("CEC not Enabled\n");
+			}
                 }
            }
        }
 
 	  void HdmiCecSink::onPowerStateON()
        {
-            LOGINFO();
-
        		if ( powerState == DEVICE_POWER_STATE_ON )
        		{
        			/*while wakeup From Standby, Ask for Active Source*/
@@ -653,8 +659,6 @@ namespace WPEFramework
 
 	  void HdmiCecSink::sendStandbyMessage()
       {
-      		LOGINFO();
-			
       		if(!HdmiCecSink::_instance)
 				return;
 
@@ -668,8 +672,6 @@ namespace WPEFramework
 
 	   void HdmiCecSink::wakeupFromStandby()
 	   {
-		   LOGINFO();
-
 		   if ( powerState == DEVICE_POWER_STATE_OFF )
 		   {
 		   		IARM_Bus_PWRMgr_SetPowerState_Param_t param;
@@ -688,8 +690,6 @@ namespace WPEFramework
 
        void HdmiCecSink::onCECDaemonInit()
        {
-            LOGINFO();
-
             if(true == getEnabled())
             {
                 setEnabled(false);
@@ -703,8 +703,6 @@ namespace WPEFramework
 
        void HdmiCecSink::cecStatusUpdated(void *evtStatus)
        {
-            LOGINFO();
-
             IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = (IARM_Bus_CECMgr_Status_Updated_Param_t *)evtStatus;
             if(evtData)
             {
@@ -717,7 +715,6 @@ namespace WPEFramework
        {
         	bool previousHdmiState = m_isHdmiInConnected;
 			int i = 0;
-            LOGINFO();
 			LOGINFO("onHdmiHotPlug Status : %d ", connectStatus);
 
 			CheckHdmiInState();
@@ -773,7 +770,7 @@ namespace WPEFramework
        }
        uint32_t HdmiCecSink::setEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
 
             bool enabled = false;
 
@@ -837,7 +834,7 @@ namespace WPEFramework
 
        uint32_t HdmiCecSink::getDeviceListWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
 
 			response["numberofdevices"] = HdmiCecSink::_instance->m_numberOfDevices;
 			
@@ -871,7 +868,7 @@ namespace WPEFramework
 
        uint32_t HdmiCecSink::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
-            LOGINFO();
+           LOGINFOMETHOD();
             bool enabled = false;
 
             if (parameters.HasLabel("name"))
@@ -1042,7 +1039,7 @@ namespace WPEFramework
 
         uint32_t HdmiCecSink::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool enabled = false;
 
@@ -2064,7 +2061,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_POLL :
 				{
-					LOGINFO("POLL_THREAD_STATE_POLL");
+					//LOGINFO("POLL_THREAD_STATE_POLL");
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
@@ -2107,7 +2104,7 @@ namespace WPEFramework
 				
 				case POLL_THREAD_STATE_PING :
 				{
-					LOGINFO("POLL_THREAD_STATE_PING");
+					//LOGINFO("POLL_THREAD_STATE_PING");
 					_instance->m_pollThreadState = POLL_THREAD_STATE_INFO;
 					connected.clear();
 					disconnected.clear();
@@ -2142,7 +2139,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_INFO :
 				{
-					LOGINFO("POLL_THREAD_STATE_INFO");
+					//LOGINFO("POLL_THREAD_STATE_INFO");
 
 					if ( logicalAddressRequested == LogicalAddress::UNREGISTERED + TEST_ADD )
 					{
@@ -2152,7 +2149,7 @@ namespace WPEFramework
 								_instance->deviceList[i].m_isDevicePresent &&
 								!_instance->deviceList[i].isAllUpdated() )
 							{
-								LOGINFO("POLL_THREAD_STATE_INFO -> request for %d", i);
+								//LOGINFO("POLL_THREAD_STATE_INFO -> request for %d", i);
 								logicalAddressRequested = i;
 								_instance->request(logicalAddressRequested);
 								_instance->m_sleepTime = HDMICECSINK_REQUEST_INTERVAL_TIME_MS;
@@ -2186,7 +2183,7 @@ namespace WPEFramework
 				/* updating the power status and if required we can add other information later*/
 				case POLL_THREAD_STATE_UPDATE :
 				{
-					LOGINFO("POLL_THREAD_STATE_UPDATE");
+					//LOGINFO("POLL_THREAD_STATE_UPDATE");
 
 					for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 					{
@@ -2212,7 +2209,7 @@ namespace WPEFramework
 
 				case POLL_THREAD_STATE_IDLE :
 				{
-					LOGINFO("POLL_THREAD_STATE_IDLE");
+					//LOGINFO("POLL_THREAD_STATE_IDLE");
 					_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 					_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 				}
@@ -2221,7 +2218,7 @@ namespace WPEFramework
 				case POLL_THREAD_STATE_WAIT :
 				{
 					/* Wait for Hdmi is connected, in case it disconnected */
-					LOGINFO("19Aug2020-[01] -> POLL_THREAD_STATE_WAIT");
+					//LOGINFO("19Aug2020-[01] -> POLL_THREAD_STATE_WAIT");
 					_instance->m_sleepTime = HDMICECSINK_WAIT_FOR_HDMI_IN_MS;
 
 					if ( _instance->m_isHdmiInConnected == true )
@@ -2352,17 +2349,27 @@ namespace WPEFramework
             }
 
              LOGINFO(" CECDisable ARC stopped ");
-
+           cecEnableStatus = false;
             if (smConnection != NULL)
             {
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadState = POLL_THREAD_STATE_EXIT;
 
-
-		if (m_pollThread.joinable())
+		try
 		{
-			LOGWARN("Join Thread %p", smConnection );
-			m_pollThread.join();
+			if (m_pollThread.joinable())
+			{
+				LOGWARN("Join Thread %p", smConnection );
+				m_pollThread.join();
+			}
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
 		}
 
 		LOGWARN("Deleted Thread %p", smConnection );
@@ -2371,7 +2378,8 @@ namespace WPEFramework
                 delete smConnection;
                 smConnection = NULL;
             }
-            cecEnableStatus = false;
+            
+	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
             if(1 == libcecInitStatus)
             {

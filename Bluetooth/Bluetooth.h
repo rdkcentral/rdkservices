@@ -214,7 +214,7 @@ namespace WPEFramework {
             uint32_t m_apiVersionNumber;
             // Assuming that there will be only one threaded call at a time (which is the case for Bluetooth)
             // Otherwise we might need a thread for each async command for better performance
-            std::thread m_executionThread;
+            Utils::ThreadRAII m_executionThread;
             bool m_discoveryRunning;
             DiscoveryTimer m_discoveryTimer;
             friend class DiscoveryTimer;

@@ -95,7 +95,6 @@ XCast::~XCast()
 }
 const void XCast::InitializeIARM()
 {
-     LOGINFO();
      if (Utils::IARM::init())
      {
          IARM_Result_t res;
@@ -112,7 +111,6 @@ const void XCast::InitializeIARM()
 }
 void XCast::DeinitializeIARM()
 {
-     LOGINFO();
      if (Utils::IARM::isConnected())
      {
          IARM_Result_t res;
@@ -121,7 +119,6 @@ void XCast::DeinitializeIARM()
 }
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
-     LOGINFO();
      if (strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
          if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
              IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
@@ -365,7 +362,6 @@ void XCast::onXcastApplicationResumeRequest(string appName, string appID)
 
 bool XCast::checkRFCServiceStatus()
 {
-    LOGINFO();
 #ifdef RFC_ENABLED
     RFC_ParamData_t param;
     WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.Enable", &param);
@@ -386,7 +382,6 @@ bool XCast::checkRFCServiceStatus()
 }
 bool XCast::checkXcastSettingsStatus()
 {
-    LOGINFO();
     Core::File file;
     JsonObject parameters;
     bool xcastEnableStatus = false;

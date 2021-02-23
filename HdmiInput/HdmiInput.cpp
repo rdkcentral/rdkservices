@@ -51,7 +51,6 @@ namespace WPEFramework
         HdmiInput::HdmiInput()
         : AbstractPlugin()
         {
-            LOGINFO();
             HdmiInput::_instance = this;
 
             InitializeIARM();
@@ -66,7 +65,6 @@ namespace WPEFramework
 
         HdmiInput::~HdmiInput()
         {
-            LOGINFO();
             HdmiInput::_instance = nullptr;
 
             DeinitializeIARM();
@@ -74,8 +72,6 @@ namespace WPEFramework
 
         void HdmiInput::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -87,8 +83,6 @@ namespace WPEFramework
 
         void HdmiInput::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -100,7 +94,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::startHdmiInput(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
 
             string sPortId = parameters["portId"].String();
@@ -128,7 +122,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::stopHdmiInput(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool success = true;
             try
@@ -146,7 +140,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool result = true;
             if (!parameters.HasLabel("x") && !parameters.HasLabel("y"))
@@ -222,7 +216,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             response["devices"] = getHDMIInputDevices();
 
@@ -231,7 +225,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             int deviceId;
             std::string message;
@@ -255,7 +249,7 @@ namespace WPEFramework
 
         uint32_t HdmiInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             response["name"] = readEDID();
 
@@ -387,8 +381,6 @@ namespace WPEFramework
 	
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             if(!HdmiInput::_instance)
                 return;
 
@@ -405,8 +397,6 @@ namespace WPEFramework
 
         void HdmiInput::dsHdmiSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             if(!HdmiInput::_instance)
                 return;
 
@@ -424,8 +414,6 @@ namespace WPEFramework
 
         void HdmiInput::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             if(!HdmiInput::_instance)
                 return;
 

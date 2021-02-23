@@ -82,8 +82,6 @@ namespace WPEFramework {
         public:
             AbstractPlugin() : PluginHost::JSONRPC(), m_currVersion(1)
             {
-                LOGINFO();
-
                 // For default constructor assume that only version 1 is supported.
                 // Also version 1 handler would always be the current object.
                 m_versionHandlers[1] = GetHandler(1);
@@ -95,8 +93,6 @@ namespace WPEFramework {
 
             AbstractPlugin(const uint8_t currVersion) : PluginHost::JSONRPC(), m_currVersion(currVersion)
             {
-                LOGINFO();
-
                 // Create handlers for all the versions upto m_currVersion
                 m_versionHandlers[1] = GetHandler(1);
                 for(uint8_t i = 2; i <= m_currVersion; i++)
@@ -112,7 +108,6 @@ namespace WPEFramework {
 
             virtual ~AbstractPlugin()
             {
-                LOGINFO();
             }
 
             //Build QueryInterface implementation, specifying all possible interfaces to be returned.
@@ -124,14 +119,12 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service)
             {
-                LOGINFO();
                 // On success return empty, to indicate there is no error text.
                 return(string());
             }
 
             virtual void Deinitialize(PluginHost::IShell* service)
             {
-                LOGINFO();
             }
 
             virtual string Information() const

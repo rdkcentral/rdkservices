@@ -53,7 +53,6 @@ namespace WPEFramework {
 
         void CThermalMonitor::addEventObserver(WPEFramework::Plugin::SystemServices* service)
         {
-            LOGINFO();
         }
 
         void CThermalMonitor::removeEventObserver(WPEFramework::Plugin::SystemServices* service)

@@ -366,8 +366,6 @@ namespace WPEFramework {
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
-            LOGINFO();
-
             std::cout << "initializing\n";
 
             mCurrentService = service;
@@ -604,8 +602,6 @@ namespace WPEFramework {
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
-            LOGINFO();
-
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
         }
@@ -2339,11 +2335,11 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
-                if (!newPluginFound && !type.empty() && type == "Netflix")
+                if (!type.empty() && type == "Netflix")
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
                     configSet["launchtosuspend"] = suspend;
-                    if (!suspend)
+                    if (!newPluginFound && !suspend)
                     {
                         setSuspendResumeStateOnLaunch = false;
                     }
