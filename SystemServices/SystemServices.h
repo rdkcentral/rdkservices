@@ -51,6 +51,7 @@
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -137,6 +138,7 @@ namespace WPEFramework {
                 void onSystemPowerStateChanged(string powerState);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
+                void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
