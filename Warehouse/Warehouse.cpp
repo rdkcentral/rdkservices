@@ -98,9 +98,6 @@ namespace WPEFramework
         Warehouse::~Warehouse()
         {
             Warehouse::_instance = nullptr;
-
-            if (m_resetThread.joinable())
-                m_resetThread.join();
         }
 
         const string Warehouse::Initialize(PluginHost::IShell* /* service */)
@@ -265,18 +262,33 @@ namespace WPEFramework
 
         void Warehouse::resetDevice(bool suppressReboot, const string& resetType)
         {
+            JsonObject params;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 
             LOGWARN("Received request to reset device");
 
-            if (m_resetThread.joinable())
-                m_resetThread.join();
+            try
+            {
+                if (m_resetThread.get().joinable())
+                    m_resetThread.get().join();
 
-            m_resetThread = std::thread(WareHouseResetIARM, this, suppressReboot, resetType);
+                m_resetThread = Utils::ThreadRAII(std::thread(WareHouseResetIARM, this, suppressReboot, resetType));
+            }
+            catch(const std::system_error& e)
+            {
+                LOGERR("system_error exception in thread join %s", e.what());
+                params[PARAM_SUCCESS] = false;
+                params[PARAM_ERROR] = "exception in submitting request";
+                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
+            catch(const std::exception& e)
+            {
+                LOGERR("exception in thread join %s", e.what());
+                params[PARAM_SUCCESS] = false;
+                params[PARAM_ERROR] = "exception in submitting request";
+                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
 #else
-
-            JsonObject params;
-
             bool ok = false;
             params[PARAM_SUCCESS] = ok;
 
