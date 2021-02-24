@@ -4111,7 +4111,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            gPluginDataMutex.lock();
+            /*gPluginDataMutex.lock();
             std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
             if (pluginsEntry != gActivePluginsData.end())
             {
@@ -4128,7 +4128,7 @@ namespace WPEFramework {
                     }
                 }
             }
-            gPluginDataMutex.unlock();
+            gPluginDataMutex.unlock();*/
 
             return ret;
         }
