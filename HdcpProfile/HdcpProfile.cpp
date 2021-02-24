@@ -229,7 +229,7 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::supportedHDCPVersion: %s", trigger, status["supportedHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::receiverHDCPVersion: %s", trigger, status["receiverHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::currentHDCPVersion %s", trigger, status["currentHDCPVersion"].String().c_str());
-            LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, getHdcpReasonStr(atoi(status["hdcpReason"].String().c_str())));
+            LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, status["hdcpReason"].String().c_str());
         }
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
