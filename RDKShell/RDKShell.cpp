@@ -101,6 +101,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 
 using namespace std;
 using namespace RdkShell;
@@ -115,6 +116,9 @@ bool gSystemServiceEventsSubscribed = false;
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
+#define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
+
+static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 
 enum RDKShellLaunchType
@@ -383,6 +387,11 @@ namespace WPEFramework {
             service->Register(mClientsMonitor);
             loadStartupConfig();
             invokeStartupThunderApis();
+            char* willDestroyWaitTimeValue = getenv("RDKSHELL_WILLDESTROY_EVENT_WAITTIME");
+            if (NULL != willDestroyWaitTimeValue)
+            {
+                gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
+            }
             return "";
         }
 
@@ -3148,6 +3157,13 @@ namespace WPEFramework {
                     std::cout << "aging value is not set\n";
                 }
             }
+            setVisibility("factoryapp", false);
+            std::cout << "RDKShell sending onWillDestroyEvent for factoryapp" << std::endl;
+            JsonObject params;
+            params["callsign"] = "factoryapp";
+            notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+            sleep(gWillDestroyEventWaitTime);
+
             killAllApps();
             //try to kill factoryapp once more if kill apps missed killing due to timeout
             JsonObject destroyRequest, destroyResponse;
