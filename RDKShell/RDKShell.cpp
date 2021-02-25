@@ -572,7 +572,7 @@ namespace WPEFramework {
 
                 RFC_ParamData_t rfcParam;
                 bool ret = Utils::getRFCConfig((char*)rfc.c_str(), rfcParam);
-                if (true == ret && rfcParam.type == WDMP_BOOLEAN && (strncasecmp(rfcParam.value,"true",4) == 0))
+                if (true == ret && (strncasecmp(rfcParam.value,"true",4) == 0))
                 {
                     std::cout << "invoking thunder api " << thunderApi << std::endl;
                     uint32_t status = 0;
@@ -585,7 +585,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    std::cout << "rfc " << rfc << " not enabled/non-boolean type " << std::endl;
+                    std::cout << "rfc " << rfc << " not enabled " << std::endl;
                 }
             }
 #else
