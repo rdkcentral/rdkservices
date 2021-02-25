@@ -517,8 +517,20 @@ namespace WPEFramework
 
             m_semSignaltoArcRoutingThread.release();
             LOGINFO(" ~HdmiCecSink() waiting for thread join %d",m_arcRoutingThread.joinable());
-            if (m_arcRoutingThread.joinable())
-            m_arcRoutingThread.join();
+
+			try
+			{
+				if (m_arcRoutingThread.joinable())
+            		m_arcRoutingThread.join();
+			}
+			catch(const std::system_error& e)
+			{
+				LOGERR("system_error exception in thread join %s", e.what());
+			}
+			catch(const std::exception& e)
+			{
+				LOGERR("exception in thread join %s", e.what());
+			}
            HdmiCecSink::_instance = nullptr;
            DeinitializeIARM();
        }
@@ -2343,11 +2355,21 @@ namespace WPEFramework
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadState = POLL_THREAD_STATE_EXIT;
 
-
-		if (m_pollThread.joinable())
+		try
 		{
-			LOGWARN("Join Thread %p", smConnection );
-			m_pollThread.join();
+			if (m_pollThread.joinable())
+			{
+				LOGWARN("Join Thread %p", smConnection );
+				m_pollThread.join();
+			}
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
 		}
 
 		LOGWARN("Deleted Thread %p", smConnection );

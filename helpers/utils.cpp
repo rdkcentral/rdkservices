@@ -28,6 +28,7 @@
 #include "libIBus.h"
 #include <securityagent/SecurityTokenUtil.h>
 #include <curl/curl.h>
+#include <utility>
 
 #define MAX_STRING_LENGTH 2048
 
@@ -312,4 +313,28 @@ bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
 
 std::string Utils::SecurityToken::m_sToken = "";
 bool Utils::SecurityToken::m_sThunderSecurityChecked = false;
+
+
+//Thread RAII
+Utils::ThreadRAII::ThreadRAII(std::thread&& t): t(std::move(t)) {}
+
+Utils::ThreadRAII::~ThreadRAII()
+{
+    try
+    {
+        if (t.joinable()) 
+        {
+            t.join();
+        }
+    }
+    catch(const std::system_error& e)
+    {
+        LOGERR("system_error exception in thread join %s", e.what());
+    }
+    catch(const std::exception& e)
+    {
+        LOGERR("exception in thread join %s", e.what());
+    }
+}
+
 
