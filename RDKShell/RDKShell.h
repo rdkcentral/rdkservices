@@ -117,6 +117,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
+            static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
