@@ -636,9 +636,22 @@ namespace WPEFramework {
                 std::string powerState = parameters["powerState"].String();
                 if ((powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
-                    std::cout << "Received power state change to sleep " << std::endl;
-                    JsonObject request, response;
-                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                    std::cout << "Received power state change to light or deep sleep " << std::endl;
+                    std::string factoryAppCallsign("factoryapp");
+                    bool isFactoryAppRunning = false;
+                    gPluginDataMutex.lock();
+                    std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(factoryAppCallsign);
+                    if (pluginsEntry != gActivePluginsData.end())
+                    {
+                      std::cout << "factory app is already running" << std::endl;
+                      isFactoryAppRunning = true;
+                    }
+                    gPluginDataMutex.unlock();
+                    if (isFactoryAppRunning)
+                    {
+                      JsonObject request, response;
+                      int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                    }
                 }
             }
         }
