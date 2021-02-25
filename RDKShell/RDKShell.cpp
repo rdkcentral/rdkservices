@@ -3562,7 +3562,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
+            /*std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
             if (pluginsEntry != gActivePluginsData.end())
             {
                 PluginData& pluginData = pluginsEntry->second;
@@ -3577,7 +3577,7 @@ namespace WPEFramework {
                         std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
                     }
                 }
-            }
+            }*/
             return ret;
         }
 
