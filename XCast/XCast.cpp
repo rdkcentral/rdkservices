@@ -28,12 +28,6 @@
 #include "RtXcastConnector.h"
 using namespace std;
 
-#if defined(HAS_PERSISTENT_IN_HDD)
-#define XCAST_SETTING_ENABLED_FILE "/tmp/mnt/diska3/persistent/ds/xcastData"
-#else
-#define XCAST_SETTING_ENABLED_FILE "/opt/persistent/ds/xcastData"
-#endif
-#define XCAST_SETTING_ENABLED "xcastEnabled"
 // Events
 // com.comcast.xcast_1
 #define EVT_ON_LAUNCH_REQUEST         "onApplicationLaunchRequest"
@@ -46,6 +40,11 @@ using namespace std;
 #define METHOD_GET_API_VERSION_NUMBER        "getApiVersionNumber"
 #define METHOD_SET_ENABLED "setEnabled"
 #define METHOD_GET_ENABLED "getEnabled"
+#define METHOD_GET_STANDBY_BEHAVIOR "getStandbyBehavior"
+#define METHOD_SET_STANDBY_BEHAVIOR "setStandbyBehavior"
+#define METHOD_GET_FRIENDLYNAME "getFriendlyName"
+#define METHOD_SET_FRIENDLYNAME "setFriendlyName"
+
 
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
@@ -61,15 +60,17 @@ SERVICE_REGISTRATION(XCast, 1, 0);
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
 static int locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
-bool XCast::m_xcastEnableSettings = false;
+bool XCast::m_xcastEnable= false;
+string XCast::m_friendlyName = "";
+bool XCast::m_standbyBehavior = false;
+bool XCast::m_enableStatus = false;
+
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
 XCast::XCast() : AbstractPlugin()
 , m_apiVersionNumber(1)
 {
     InitializeIARM();
-    m_xcastEnableSettings = XCast::checkXcastSettingsStatus();
-    LOGINFO("XcastService::m_xcastEnableSettings :%d ",m_xcastEnableSettings);
     XCast::checkRFCServiceStatus();
     if(XCast::isCastEnabled)
     {
@@ -77,6 +78,10 @@ XCast::XCast() : AbstractPlugin()
         registerMethod(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
         registerMethod(METHOD_SET_ENABLED, &XCast::setEnabled, this);
         registerMethod(METHOD_GET_ENABLED, &XCast::getEnabled, this);
+        registerMethod(METHOD_GET_STANDBY_BEHAVIOR, &XCast::getStandbyBehavior, this);
+        registerMethod(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
+        registerMethod(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
+        registerMethod(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
         m_locateCastTimer.setSingleShot(true);
@@ -87,6 +92,13 @@ XCast::~XCast()
 {
     Unregister(METHOD_GET_API_VERSION_NUMBER);
     Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
+    Unregister(METHOD_SET_ENABLED);
+    Unregister(METHOD_GET_ENABLED);
+    Unregister(METHOD_GET_STANDBY_BEHAVIOR);
+    Unregister(METHOD_SET_STANDBY_BEHAVIOR);
+    Unregister(METHOD_GET_FRIENDLYNAME);
+    Unregister(METHOD_SET_FRIENDLYNAME);
+
     DeinitializeIARM();
     if ( m_locateCastTimer.isActive())
     {
@@ -125,10 +137,13 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
              LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                      param->data.state.curState, param->data.state.newState);
             m_powerState = param->data.state.newState;
-            if(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON && m_xcastEnableSettings)
-                _rtConnector->enableCastService(true);
-            else
-                _rtConnector->enableCastService(false);
+            if(m_standbyBehavior == true)
+            {
+                if(m_xcastEnable && ( m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON))
+                    _rtConnector->enableCastService(m_friendlyName,true);
+                else
+                    _rtConnector->enableCastService(m_friendlyName,false);
+            }
          }
     }
 }
@@ -158,6 +173,7 @@ const string XCast::Initialize(PluginHost::IShell* /* service */)
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
     if( XCast::isCastEnabled){
+        _rtConnector->enableCastService(m_friendlyName,false);
         _rtConnector->shutdown();
     }
 }
@@ -204,6 +220,7 @@ uint32_t XCast::applicationStateChanged(const JsonObject& parameters, JsonObject
        returnResponse(false);
     }
 }
+
 uint32_t XCast::setEnabled(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFO("XcastService::setEnabled ");
@@ -216,38 +233,80 @@ uint32_t XCast::setEnabled(const JsonObject& parameters, JsonObject& response)
     {
          returnResponse(false);
     }
-    //persist value
-    m_xcastEnableSettings = enabled;
-    persistEnabledSettings(enabled);
-    //apply settings
-    if (enabled && m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)
-        _rtConnector->enableCastService(true);
+    m_xcastEnable= enabled;
+    if (m_xcastEnable && ( (m_standbyBehavior == false) || ((m_standbyBehavior == true)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+        _rtConnector->enableCastService(m_friendlyName,true);
     else
-        _rtConnector->enableCastService(false);
+        _rtConnector->enableCastService(m_friendlyName,false);
     returnResponse(true);
 }
 uint32_t XCast::getEnabled(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFO("XcastService::getEnabled ");
-    response["enabled"] = m_xcastEnableSettings;
+    response["enabled"] = m_xcastEnable;
     returnResponse(true);
 }
-void XCast::persistEnabledSettings(bool enableStatus)
+
+
+uint32_t XCast::setStandbyBehavior(const JsonObject& parameters, JsonObject& response)
 {
-    Core::File file;
-    file = XCAST_SETTING_ENABLED_FILE;
-    file.Open(false);
-    if (!file.IsOpen())
-        file.Create();
-    JsonObject enableSetting;
-    enableSetting.IElement::FromFile(file);
-    file.Destroy();
-    file.Create();
-    enableSetting[XCAST_SETTING_ENABLED] = enableStatus;
-    enableSetting.IElement::ToFile(file);
-    file.Close();
-    return;
+   LOGINFO("XcastService::setStandbyBehavior");
+   std::string paramStr;
+   bool enabled = false;
+   if (parameters.HasLabel("standbybehavior"))
+   {
+       getStringParameter("standbybehavior", paramStr);
+       if(paramStr == "active")
+           enabled = true;
+   }
+   else
+   {
+       returnResponse(false);
+   }
+   m_standbyBehavior = enabled;
+   LOGINFO("XcastService::setStandbyBehavior m_standbyBehavior : %d", m_standbyBehavior);
+   returnResponse(true);
 }
+uint32_t XCast::getStandbyBehavior(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::getStandbyBehavior m_standbyBehavior :%d",m_standbyBehavior);
+    if(m_standbyBehavior)
+        response["standbybehavior"] = "active";
+    else
+        response["standbybehavior"] = "inactive";
+
+    returnResponse(true);
+}
+
+uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::setFriendlyName ");
+    std::string paramStr;
+    if (parameters.HasLabel("friendlyname"))
+    {
+         getStringParameter("friendlyname",paramStr);
+         if(paramStr.length() > 0 &&  _rtConnector)
+         {
+            m_friendlyName = paramStr;
+            LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
+            _rtConnector->updateFriendlyName(m_friendlyName);
+         }
+         else
+            returnResponse(false);
+    }
+    else
+    {
+         returnResponse(false);
+    }
+    returnResponse(true);
+}
+uint32_t XCast::getFriendlyName(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::getFriendlyNamem_friendlyName :%s ",m_friendlyName.c_str());
+    response["friendlyname"] = m_friendlyName;
+    returnResponse(true);
+}
+
 //Timer Functions
 void XCast::onLocateCastTimer()
 {
@@ -281,10 +340,10 @@ void XCast::onLocateCastTimer()
     }// err != RT_OK
     locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
-    if (m_xcastEnableSettings && m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)
-        _rtConnector->enableCastService(true);
+    if (m_xcastEnable && ( (m_standbyBehavior == false) || ((m_standbyBehavior == true)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+        _rtConnector->enableCastService(m_friendlyName,true);
     else
-        _rtConnector->enableCastService(false);
+        _rtConnector->enableCastService(m_friendlyName,false);
     
    LOGINFO("XCast::onLocateCastTimer : Timer still active ? %d ",m_locateCastTimer.isActive());
 }
@@ -373,47 +432,22 @@ bool XCast::checkRFCServiceStatus()
                 XCast::isCastEnabled = true;
         }
     }
+    wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.FriendlyNameEnable", &param);
+    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
+    {
+        if( param.type == WDMP_BOOLEAN )
+        {
+            if(strncasecmp(param.value,"true",4) == 0 )
+               XCast::m_friendlynameRfcEnabled = true;
+        }
+    }
+
     LOGINFO(" Is cast enabled ? %d , call value %d ", isCastEnabled, wdmpStatus);
 #else
     XCast::isCastEnabled = true;;
 #endif //RFC_ENABLED
     
     return XCast::isCastEnabled;
-}
-bool XCast::checkXcastSettingsStatus()
-{
-    Core::File file;
-    JsonObject parameters;
-    bool xcastEnableStatus = false;
-    file = XCAST_SETTING_ENABLED_FILE;
-    file.Open(false);
-    if (!file.IsOpen())
-    {
-        LOGINFO("XcastService::persistance file not present create with default setting true");
-        file.Create();
-        JsonObject parameters;
-        parameters[XCAST_SETTING_ENABLED] = true;
-        xcastEnableStatus = true;
-        parameters.IElement::ToFile(file);
-    }
-    else
-    {
-        parameters.IElement::FromFile(file);
-        if( parameters.HasLabel(XCAST_SETTING_ENABLED))
-        {
-            getBoolParameter(XCAST_SETTING_ENABLED, xcastEnableStatus);
-            LOGINFO("XcastService:: xcastEnableStatus  :%d",xcastEnableStatus);
-        }
-        else
-        {
-            LOGINFO("XcastService:: XCAST_SETTING_ENABLED not present create with default setting true");
-            parameters[XCAST_SETTING_ENABLED] = true;
-            xcastEnableStatus = true;
-            parameters.IElement::ToFile(file);
-        }
-    }
-    file.Close();
-    return xcastEnableStatus;
 }
 } // namespace Plugin
 } // namespace WPEFramework
