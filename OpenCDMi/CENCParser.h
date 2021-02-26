@@ -154,10 +154,10 @@ namespace Plugin {
             std::list<KeyId>::iterator index(std::find(_keyIds.begin(), _keyIds.end(), key));
 
             if (index == _keyIds.end()) {
-                TRACE_L1("Added key: %s for system: %02X\n", key.ToString().c_str(), key.Systems());
+                TRACE(Trace::Information, (_T("Added key: %s for system: %02X\n"), key.ToString().c_str(), key.Systems()));
                 _keyIds.emplace_back(key);
             } else {
-                TRACE_L1("Updated key: %s for system: %02X\n", key.ToString().c_str(), key.Systems());
+                TRACE(Trace::Information, (_T("Updated key: %s for system: %02X\n"), key.ToString().c_str(), key.Systems()));
                 index->Flag(key.Systems());
             }
         }
@@ -258,7 +258,7 @@ namespace Plugin {
                 // Check if this is a PSSH box...
                 uint32_t size = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
                 if (size == 0) {
-                    TRACE_L1("While parsing CENC, found chunk of size 0, are you sure the data is valid? %d\n", __LINE__);
+                    TRACE(Trace::Information, (_T("While parsing CENC, found chunk of size 0, are you sure the data is valid? %d\n"), __LINE__));
                     break;
                 }
 
@@ -283,11 +283,11 @@ namespace Plugin {
                         offset = length;
                     } else if (std::string(reinterpret_cast<const char*>(data), length).find(JSONKeyIds) != std::string::npos) {
                         /* keyids initdata type */
-                        TRACE_L1("Initdata contains clearkey's key ids");
+                        TRACE(Trace::Information, (_T("Initdata contains clearkey's key ids")));
 
                         ParseJSONInitData(reinterpret_cast<const char*>(data), length);
                     } else {
-                        TRACE_L1("Have no clue what this is!!! %d\n", __LINE__);
+                        TRACE(Trace::Information, (_T("Have no clue what this is!!! %d\n"), __LINE__));
                     }
                 }
                 offset += size;
@@ -304,27 +304,27 @@ namespace Plugin {
 
             if (::memcmp(&(data[4]), CommonEncryption, KeyId::Length()) == 0) {
                 psshData += 4;
-                TRACE_L1("Common detected [%d]\n", __LINE__);
+                TRACE(Trace::Information, (_T("Common detected [%d]\n"), __LINE__));
             } else if (::memcmp(&(data[4]), PlayReady, KeyId::Length()) == 0) {
                 if (stringLength <= (length - 10)) {
                     ParseXMLBox(&(psshData[10]), count);
-                    TRACE_L1("PlayReady XML detected [%d]\n", __LINE__);
+                    TRACE(Trace::Information, (_T("PlayReady XML detected [%d]\n"), __LINE__));
                     count = 0;
                 } else {
-                    TRACE_L1("PlayReady BIN detected [%d]\n", __LINE__);
+                    TRACE(Trace::Information, (_T("PlayReady BIN detected [%d]\n"), __LINE__));
                     system = PLAYREADY;
                     psshData += 4;
                 }
             } else if (::memcmp(&(data[4]), WideVine, KeyId::Length()) == 0) {
-                TRACE_L1("WideVine detected [%d]\n", __LINE__);
+                TRACE(Trace::Information, (_T("WideVine detected [%d]\n"), __LINE__));
                 system = WIDEVINE;
                 psshData += 4 + 4 /* God knows what this uint32 means, we just skip it. */;
             } else if (::memcmp(&(data[4]), ClearKey, KeyId::Length()) == 0) {
-                TRACE_L1("ClearKey detected [%d]\n", __LINE__);
+                TRACE(Trace::Information, (_T("ClearKey detected [%d]\n"), __LINE__));
                 system = CLEARKEY;
                 psshData += 4;
             } else {
-                TRACE_L1("Unknown system: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X.\n", data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
+                TRACE(Trace::Information, (_T("Unknown system: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X.\n"), data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]));
                 count = 0;
             }
 
@@ -332,7 +332,7 @@ namespace Plugin {
                 count /= KeyId::Length();
             }
 
-            TRACE_L1("Adding %d keys from PSSH box\n", count);
+            TRACE(Trace::Information, (_T("Adding %d keys from PSSH box\n"), count));
 
             while (count-- != 0) {
                 AddKeyId(KeyId(system, psshData, KeyId::Length()));
@@ -470,7 +470,7 @@ namespace Plugin {
             while(index.Next()) {
                 uint8_t keyID[KeyId::KEY_LENGTH];
                 std::string keyID64 = index.Current().Value();
-                TRACE_L1("clearkey: keyID %s, length %d", keyID64.c_str(), static_cast<int>(keyID64.length()));
+                TRACE(Trace::Information, (_T("clearkey: keyID %s, length %d"), keyID64.c_str(), static_cast<int>(keyID64.length())));
                 Core::FromString(keyID64, keyID, decodeLength);
                 AddKeyId(KeyId(system, keyID, static_cast<uint8_t>(sizeof(keyID))));
             }

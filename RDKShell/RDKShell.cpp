@@ -83,6 +83,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -101,6 +102,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 
 using namespace std;
 using namespace RdkShell;
@@ -115,6 +117,9 @@ bool gSystemServiceEventsSubscribed = false;
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
+#define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
+
+static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 
 enum RDKShellLaunchType
@@ -296,6 +301,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -383,6 +389,11 @@ namespace WPEFramework {
             service->Register(mClientsMonitor);
             loadStartupConfig();
             invokeStartupThunderApis();
+            char* willDestroyWaitTimeValue = getenv("RDKSHELL_WILLDESTROY_EVENT_WAITTIME");
+            if (NULL != willDestroyWaitTimeValue)
+            {
+                gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
+            }
             return "";
         }
 
@@ -2022,6 +2033,7 @@ namespace WPEFramework {
                 bool scaleToFit = false;
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
+                bool topmost = false;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -2074,6 +2086,22 @@ namespace WPEFramework {
                 if (parameters.HasLabel("holePunch"))
                 {
                     holePunch = parameters["holePunch"].Boolean();
+                }
+                if (parameters.HasLabel("topmost"))
+                {
+                    topmost = parameters["topmost"].Boolean();
+                    if (topmost)
+                    {
+                        std::string topmostClient;
+                        gRdkShellMutex.lock();
+                        bool topmostResult =  CompositorController::getTopmost(topmostClient);
+                        gRdkShellMutex.unlock();
+                        if (!topmostClient.empty())
+                        {
+                            response["message"] = "failed to launch application.  topmost application already present";
+                            returnResponse(false);
+                        }
+                    }
                 }
 
                 //check to see if plugin already exists
@@ -2181,11 +2209,11 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
-                if (!newPluginFound && !type.empty() && type == "Netflix")
+                if (!type.empty() && type == "Netflix")
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
                     configSet["launchtosuspend"] = suspend;
-                    if (!suspend)
+                    if (!newPluginFound && !suspend)
                     {
                         setSuspendResumeStateOnLaunch = false;
                     }
@@ -2375,6 +2403,7 @@ namespace WPEFramework {
                         std::cout << "setting the focused app to " << callsign << std::endl;
                         setFocus(callsign);
                     }
+                    bool setTopmostResult = setTopmost(callsign, topmost);
 
                     JsonObject urlResult;
                     if (!uri.empty())
@@ -2794,6 +2823,41 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::setTopmostWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client or callsign";
+            }
+            if (!parameters.HasLabel("topmost"))
+            {
+                result = false;
+                response["message"] = "please specify topmost (topmost = true/false)";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                const bool topmost = parameters["topmost"].Boolean();
+
+                result = setTopmost(client, topmost);
+                if (false == result) {
+                  response["message"] = "failed to set topmost";
+                }
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -3148,6 +3212,13 @@ namespace WPEFramework {
                     std::cout << "aging value is not set\n";
                 }
             }
+            setVisibility("factoryapp", false);
+            std::cout << "RDKShell sending onWillDestroyEvent for factoryapp" << std::endl;
+            JsonObject params;
+            params["callsign"] = "factoryapp";
+            notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+            sleep(gWillDestroyEventWaitTime);
+
             killAllApps();
             //try to kill factoryapp once more if kill apps missed killing due to timeout
             JsonObject destroyRequest, destroyResponse;
@@ -3562,7 +3633,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
+            /*std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
             if (pluginsEntry != gActivePluginsData.end())
             {
                 PluginData& pluginData = pluginsEntry->second;
@@ -3577,7 +3648,7 @@ namespace WPEFramework {
                         std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
                     }
                 }
-            }
+            }*/
             return ret;
         }
 
@@ -3791,6 +3862,15 @@ namespace WPEFramework {
                 memoryInfo.Add(memoryDetails);
             }
             return true;
+        }
+
+        bool RDKShell::setTopmost(const string& callsign, const bool topmost)
+        {
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setTopmost(callsign, topmost);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end

@@ -407,6 +407,7 @@ namespace WPEFramework
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
 		   cecEnableStatus = false;
+		   m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
@@ -613,6 +614,7 @@ namespace WPEFramework
                     IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
                     LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                             param->data.state.curState, param->data.state.newState);
+		           LOGWARN(" m_logicalAddressAllocated 0x%x CEC enable status %d \n",_instance->m_logicalAddressAllocated,_instance->cecEnableStatus);
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
                         powerState = DEVICE_POWER_STATE_ON; 
@@ -621,7 +623,8 @@ namespace WPEFramework
                    	{
                         powerState = DEVICE_POWER_STATE_OFF;
                    	}
-
+                        if (_instance->cecEnableStatus)
+		        {
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED )
 					{
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
@@ -636,6 +639,11 @@ namespace WPEFramework
 							HdmiCecSink::_instance->sendStandbyMessage();	
 						}
 					}
+			}
+			else
+			{
+				LOGWARN("CEC not Enabled\n");
+			}
                 }
            }
        }
@@ -2352,7 +2360,7 @@ namespace WPEFramework
             }
 
              LOGINFO(" CECDisable ARC stopped ");
-
+           cecEnableStatus = false;
             if (smConnection != NULL)
             {
 		LOGWARN("Stop Thread %p", smConnection );
@@ -2371,7 +2379,8 @@ namespace WPEFramework
                 delete smConnection;
                 smConnection = NULL;
             }
-            cecEnableStatus = false;
+            
+	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
             if(1 == libcecInitStatus)
             {

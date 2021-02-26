@@ -235,7 +235,7 @@ namespace WPEFramework {
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static IARM_Result_t _SysModeChange(void *arg);
-        static void _firmwareUpdateStateChanged(const char *owner,
+        static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
@@ -406,7 +406,7 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _firmwareUpdateStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
@@ -1087,6 +1087,11 @@ namespace WPEFramework {
                     LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
                     _fwUpdate.success = true;
                 }
+                else
+                {
+                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str()));
+                    response = "";
+                }
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
@@ -1705,6 +1710,16 @@ namespace WPEFramework {
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
+        }
+
+        /***
+         * @brief : sends notification when time source state has changed.
+         *
+         */
+        void SystemServices::onClockSet()
+        {
+            JsonObject params;
+            sendNotify(EVT_ON_SYSTEM_CLOCK_SET, params);
         }
 
         /***
@@ -3014,7 +3029,7 @@ namespace WPEFramework {
          * @param3[in]  : data passed from the IARMBUS event
          * @param4[in]  : len
          */
-        void _firmwareUpdateStateChanged(const char *owner, IARM_EventId_t eventId,
+        void _systemStateChanged(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
         {
             LOGINFO("len = %d\n", len);
@@ -3035,10 +3050,25 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     } break;
+
+                case IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE:
+                    {
+                        if (sysEventData->data.systemStates.state)
+                        {
+                            LOGWARN("Clock is set.");
+                            if (SystemServices::_instance) {
+                                SystemServices::_instance->onClockSet();
+                            } else {
+                                LOGERR("SystemServices::_instance is NULL.\n");
+                            }
+                        }
+                    } break;
+
                 default:
                     /* Nothing to do. */;
             }
         }
+
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
