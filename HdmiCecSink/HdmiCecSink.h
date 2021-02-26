@@ -549,6 +549,7 @@ private:
 			std::thread m_pollThread;
 			uint32_t m_pollThreadState;
 			uint32_t m_pollNextState;
+			bool m_pollThreadExit;
 			uint32_t m_sleepTime;
             std::mutex m_pollMutex;
             /* ARC related */
