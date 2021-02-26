@@ -367,19 +367,12 @@ namespace WPEFramework {
 
 
         SystemServices::~SystemServices()
-        {
-            if (thread_getMacAddresses.joinable())
-                thread_getMacAddresses.join();
-
-            if( m_getFirmwareInfoThread.joinable())
-                m_getFirmwareInfoThread.join();
-                
+        {       
             SystemServices::_instance = nullptr;
         }
 
         const string SystemServices::Initialize(PluginHost::IShell*)
         {
-            LOGINFO();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -389,7 +382,6 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
-            LOGINFO();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -398,8 +390,6 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         void SystemServices::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -414,8 +404,6 @@ namespace WPEFramework {
 
         void SystemServices::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -1085,6 +1073,11 @@ namespace WPEFramework {
                     LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
                     _fwUpdate.success = true;
                 }
+                else
+                {
+                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
+                    response = "";
+                }
             }
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
@@ -1102,16 +1095,23 @@ namespace WPEFramework {
         uint32_t SystemServices::getFirmwareUpdateInfo(const JsonObject& parameters,
                 JsonObject& response)
         {
-            string callGUID;
-
-                callGUID = parameters["GUID"].String();
+            string callGUID = parameters["GUID"].String();
             LOGINFO("GUID = %s\n", callGUID.c_str());
-                if (m_getFirmwareInfoThread.joinable()) {
-                    m_getFirmwareInfoThread.join();
+            try
+            {
+                if (m_getFirmwareInfoThread.get().joinable()) {
+                    m_getFirmwareInfoThread.get().join();
                 }
-                m_getFirmwareInfoThread = std::thread(firmwareUpdateInfoReceived);
+                m_getFirmwareInfoThread = Utils::ThreadRAII(std::thread(firmwareUpdateInfoReceived));
                 response["asyncResponse"] = true;
-            returnResponse(true);
+                returnResponse(true);
+            }
+            catch(const std::system_error& e)
+            {
+                LOGERR("exception in getFirmwareUpdateInfo %s", e.what());
+                response["asyncResponse"] = false;
+                returnResponse(false);
+            }
         } // get FirmwareUpdateInfo
 
         /***
@@ -1771,12 +1771,21 @@ namespace WPEFramework {
                 response["SysSrv_Message"] = "File: getDeviceDetails.sh";
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             } else {
-                if (thread_getMacAddresses.joinable())
-                    thread_getMacAddresses.join();
+                try
+                {
+                    if (thread_getMacAddresses.get().joinable())
+                        thread_getMacAddresses.get().join();
 
-                thread_getMacAddresses = std::thread(getMacAddressesAsync, this);
-                response["asyncResponse"] = true;
-                status = true;
+                    thread_getMacAddresses = Utils::ThreadRAII(std::thread(getMacAddressesAsync, this));
+                    response["asyncResponse"] = true;
+                    status = true;
+                }
+                catch(const std::system_error& e)
+                {
+                    LOGERR("exception in getFirmwareUpdateInfo %s", e.what());
+                    response["asyncResponse"] = false;
+                    status = false;
+                }
             }
             returnResponse(status);
         }

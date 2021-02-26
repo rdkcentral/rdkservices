@@ -92,8 +92,6 @@ namespace WPEFramework {
 
         const string PersistentStore::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             auto path = g_build_filename("opt", "persistent", nullptr);
             if (!fileExists(path))
                 g_mkdir_with_parents(path, 0745);
@@ -107,8 +105,6 @@ namespace WPEFramework {
 
         void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             term();
         }
 
@@ -515,8 +511,6 @@ namespace WPEFramework {
 
         bool PersistentStore::getNamespaces(std::vector<string>& namespaces)
         {
-            LOGINFO();
-
             bool success = false;
 
             sqlite3* &db = SQLITE;
@@ -540,8 +534,6 @@ namespace WPEFramework {
 
         bool PersistentStore::getStorageSize(std::map<string, uint64_t>& namespaceSizes)
         {
-            LOGINFO();
-
             bool success = false;
 
             sqlite3* &db = SQLITE;
@@ -569,8 +561,6 @@ namespace WPEFramework {
 
         void PersistentStore::term()
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             if (db)
@@ -581,8 +571,6 @@ namespace WPEFramework {
 
         void PersistentStore::vacuum()
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             if (db)
@@ -604,8 +592,6 @@ namespace WPEFramework {
 
         bool PersistentStore::init(const char* filename, const char* key)
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             term();

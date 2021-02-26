@@ -86,8 +86,6 @@ void tokenize(string line, vector<string>& tokens, char delim)
  */
 string parse_proc_brcm_core(string columnHeader)
 {
-    LOGINFO();
-
     ifstream procfile(PROC_BRCM_CORE_PATH);
     string line, value;
     vector<string> tokens;
@@ -126,8 +124,6 @@ string parse_proc_brcm_core(string columnHeader)
  */
 string parse_proc_brcm_display()
 {
-    LOGINFO();
-
     ifstream procfile(PROC_BRCM_DISPLAY_PATH);
     string line, value;
     vector<string> tokens;
@@ -168,8 +164,6 @@ uint64_t SoC_GetTotalGpuRam()
 
 uint64_t SoC_GetFreeGpuRam()
 {
-    LOGINFO();
-
     string value = parse_proc_brcm_core("used");
     uint64_t ret = 0;
     int usedPercentage = 0;

@@ -50,7 +50,6 @@ namespace WPEFramework
           , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
           , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
         {
-            LOGINFO();
             FrameRate::_instance = this;
 
             Register(METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
@@ -63,15 +62,14 @@ namespace WPEFramework
 
         FrameRate::~FrameRate()
         {
-            LOGINFO();
             FrameRate::_instance = nullptr;
         }
 
         uint32_t FrameRate::setCollectionFrequencyWrapper(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
-            
-            LOGINFO();
+
+            LOGINFOMETHOD();
             
             int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
             if (parameters.HasLabel("frequency"))
@@ -86,8 +84,8 @@ namespace WPEFramework
         uint32_t FrameRate::startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
-            
-            LOGINFO();
+
+            LOGINFOMETHOD();
 
             returnResponse(startFpsCollection());
         }
@@ -95,8 +93,8 @@ namespace WPEFramework
         uint32_t FrameRate::stopFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
-            
-            LOGINFO();
+
+            LOGINFOMETHOD();
 
             returnResponse(stopFpsCollection());
         }
@@ -104,8 +102,8 @@ namespace WPEFramework
         uint32_t FrameRate::updateFpsWrapper(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
-            
-            LOGINFO();
+
+            LOGINFOMETHOD();
             
             if (!parameters.HasLabel("newFpsValue"))
             {

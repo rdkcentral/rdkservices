@@ -1,8 +1,26 @@
+/**
+* If not stated otherwise in this file or this component's LICENSE
+* file the following copyright and licenses apply:
+*
+* Copyright 2021 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
+
 #include "OCIContainer.h"
 
 #include <Dobby/DobbyProxy.h>
 #include <Dobby/IpcService/IpcFactory.h>
-
 
 namespace WPEFramework
 {
@@ -18,8 +36,6 @@ SERVICE_REGISTRATION(OCIContainer, 1, 0);
 OCIContainer::OCIContainer()
     : PluginHost::JSONRPC()
 {
-    LOGINFO();
-
     Register("listContainers", &OCIContainer::listContainers, this);
     Register("getContainerState", &OCIContainer::getContainerState, this);
     Register("getContainerInfo", &OCIContainer::getContainerInfo, this);
@@ -33,8 +49,6 @@ OCIContainer::OCIContainer()
 
 OCIContainer::~OCIContainer()
 {
-    LOGINFO();
-
     Unregister("listContainers");
     Unregister("getContainerState");
     Unregister("getContainerInfo");
@@ -48,7 +62,6 @@ OCIContainer::~OCIContainer()
 
 const string OCIContainer::Initialize(PluginHost::IShell *service)
 {
-    LOGINFO();
     mIpcService = AI_IPC::createIpcService("unix:path=/var/run/dbus/system_bus_socket", "com.sky.dobby.thunder");
 
     if (!mIpcService)
@@ -66,6 +79,15 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
     // calls to the Dobby daemon
     mDobbyProxy = std::make_shared<DobbyProxy>(mIpcService, DOBBY_SERVICE, DOBBY_OBJECT);
 
+    if (mDobbyProxy->isAlive())
+    {
+        LOGINFO("Dobby Daemon is alive and connected (%s, %s)", DOBBY_SERVICE, DOBBY_OBJECT);
+    }
+    else
+    {
+        LOGWARN("Dobby daemon is not currently available");
+    }
+
     // Register a state change event listener
     mEventListenerId = mDobbyProxy->registerListener(stateListener, static_cast<const void*>(this));
 
@@ -74,14 +96,11 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
 
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
-    LOGINFO();
     mDobbyProxy->unregisterListener(mEventListenerId);
 }
 
 string OCIContainer::Information() const
 {
-    LOGINFO();
-
     // No additional info to report.
     return string();
 }
@@ -241,6 +260,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     std::string bundlePath = parameters["bundlePath"].String();
     std::string command = parameters["command"].String();
     std::string westerosSocket = parameters["westerosSocket"].String();
+    JsonArray envVars = parameters["envvar"].Array();
 
     // Can be used to pass file descriptors to container construction.
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
@@ -248,7 +268,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
 
     int descriptor;
     // If no additional arguments, start the container
-    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
+    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()) && envVars.Length() == 0)
     {
         descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList);
     }
@@ -263,7 +283,29 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
         {
             westerosSocket = "";
         }
-        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList, command, westerosSocket);
+
+        // Convert the JsonArray to a vector of strings Dobby can work with
+        std::vector<std::string> envVarVector = std::vector<std::string>();
+
+        // If no envvars, just give Dobby the empty vector
+        if (envVars.Length() > 0)
+        {
+            JsonArray::Iterator index(envVars.Elements());
+            while (index.Next())
+            {
+                if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                {
+                    //JSON::String s = index.Current().String();
+                    envVarVector.push_back(index.Current().String());
+                }
+                else
+                {
+                    LOGWARN("Unexpected variant type");
+                }
+            }
+        }
+
+        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList, command, westerosSocket, envVarVector);
     }
 
     // startContainer returns -1 on failure
@@ -298,6 +340,7 @@ uint32_t OCIContainer::startContainerFromDobbySpec(const JsonObject &parameters,
     JsonObject dobbySpec = parameters["dobbySpec"].Object();
     std::string command = parameters["command"].String();
     std::string westerosSocket = parameters["westerosSocket"].String();
+    JsonArray envVars = parameters["envvar"].Array();
 
     std::string specString;
     if (!WPEFramework::Core::JSON::IElement::ToString(dobbySpec, specString))
@@ -312,7 +355,7 @@ uint32_t OCIContainer::startContainerFromDobbySpec(const JsonObject &parameters,
 
     int descriptor;
     // If no additional arguments, start the container
-    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
+    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()) && envVars.Length() == 0)
     {
         descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList);
     }
@@ -327,7 +370,29 @@ uint32_t OCIContainer::startContainerFromDobbySpec(const JsonObject &parameters,
         {
             westerosSocket = "";
         }
-        descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList, command, westerosSocket);
+
+        // Convert the JsonArray to a vector of strings Dobby can work with
+        std::vector<std::string> envVarVector = std::vector<std::string>();
+
+        // If no envvars, just give Dobby the empty vector
+        if (envVars.Length() > 0)
+        {
+            JsonArray::Iterator index(envVars.Elements());
+            while (index.Next())
+            {
+                if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                {
+                    //JSON::String s = index.Current().String();
+                    envVarVector.push_back(index.Current().String());
+                }
+                else
+                {
+                    LOGWARN("Unexpected variant type");
+                }
+            }
+        }
+
+        descriptor = mDobbyProxy->startContainerFromSpec(id, specString, emptyList, command, westerosSocket, envVarVector);
     }
 
     // startContainer returns -1 on failure

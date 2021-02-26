@@ -85,7 +85,6 @@ namespace WPEFramework
         , m_ledInfo(this)
 #endif
         {
-            LOGINFO();
             Warehouse::_instance = this;
 
             registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
@@ -98,16 +97,11 @@ namespace WPEFramework
 
         Warehouse::~Warehouse()
         {
-            LOGINFO();
             Warehouse::_instance = nullptr;
-
-            if (m_resetThread.joinable())
-                m_resetThread.join();
         }
 
         const string Warehouse::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -115,19 +109,16 @@ namespace WPEFramework
 
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void Warehouse::InitializeIARM()
         {
-            LOGINFO();
             Utils::IARM::init();
         }
 
         void Warehouse::DeinitializeIARM()
         {
-            LOGINFO();
         }
 
         /**
@@ -271,18 +262,33 @@ namespace WPEFramework
 
         void Warehouse::resetDevice(bool suppressReboot, const string& resetType)
         {
+            JsonObject params;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 
             LOGWARN("Received request to reset device");
 
-            if (m_resetThread.joinable())
-                m_resetThread.join();
+            try
+            {
+                if (m_resetThread.get().joinable())
+                    m_resetThread.get().join();
 
-            m_resetThread = std::thread(WareHouseResetIARM, this, suppressReboot, resetType);
+                m_resetThread = Utils::ThreadRAII(std::thread(WareHouseResetIARM, this, suppressReboot, resetType));
+            }
+            catch(const std::system_error& e)
+            {
+                LOGERR("system_error exception in thread join %s", e.what());
+                params[PARAM_SUCCESS] = false;
+                params[PARAM_ERROR] = "exception in submitting request";
+                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
+            catch(const std::exception& e)
+            {
+                LOGERR("exception in thread join %s", e.what());
+                params[PARAM_SUCCESS] = false;
+                params[PARAM_ERROR] = "exception in submitting request";
+                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
 #else
-
-            JsonObject params;
-
             bool ok = false;
             params[PARAM_SUCCESS] = ok;
 
@@ -565,8 +571,6 @@ namespace WPEFramework
 
         void Warehouse::isClean(int age, JsonObject& response)
         {
-            LOGINFO();
-
             std::ifstream customDataFile(CUSTOM_DATA_FILE);
             JsonArray existedObjects;
 
@@ -757,7 +761,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::getDeviceInfoWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             getDeviceInfo(response);
 
@@ -767,7 +771,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::setFrontPanelStateWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             int state = 0;
             if (parameters.HasLabel("state"))
@@ -779,7 +783,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::internalResetWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (parameters.HasLabel("passPhrase") && parameters["passPhrase"].String() == "FOR TEST PURPOSES ONLY")
             {
@@ -796,7 +800,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::lightResetWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             lightReset(response);
             return Core::ERROR_NONE;
@@ -804,7 +808,7 @@ namespace WPEFramework
 
         uint32_t Warehouse::isCleanWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             int age;
             getDefaultNumberParameter("age", age, -1);
@@ -824,7 +828,6 @@ namespace WPEFramework
 
         uint64_t LedInfo::Timed(const uint64_t scheduledTime)
         {
-            LOGINFO();
             uint64_t result = 0;
             m_warehouse->onSetFrontPanelStateTimer();
             return(result);

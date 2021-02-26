@@ -114,7 +114,7 @@ namespace WPEFramework {
 
             void getDeviceInfo(JsonObject &params);
 
-            std::thread m_resetThread;
+            Utils::ThreadRAII m_resetThread;
 
 #ifdef HAS_FRONT_PANEL
             Core::TimerType<LedInfo> m_ledTimer;
