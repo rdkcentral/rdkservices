@@ -498,31 +498,33 @@ namespace WPEFramework
                }
             }
             
-            if (cecSettingEnabled)
-            {
-               try
-               {
-                   CECEnable();
-               }
-               catch(...)
-               {
-                   LOGWARN("Exception while enabling CEC settings .\r\n");
-               }
-            }
        }
 
        HdmiCecSink::~HdmiCecSink()
        {
-           LOGINFO();
-		   
-		    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
+	  
+	    CECDisable();
+	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
             m_semSignaltoArcRoutingThread.release();
-            LOGINFO(" ~HdmiCecSink() waiting for thread join %d",m_arcRoutingThread.joinable());
-            if (m_arcRoutingThread.joinable())
-            m_arcRoutingThread.join();
-           HdmiCecSink::_instance = nullptr;
-           DeinitializeIARM();
+
+            try
+	    {
+		if (m_arcRoutingThread.joinable())
+                	m_arcRoutingThread.join();
+	    }
+	    catch(const std::system_error& e)
+	    {
+		LOGERR("system_error exception in thread join %s", e.what());
+	    }
+	    catch(const std::exception& e)
+	    {
+		LOGERR("exception in thread join %s", e.what());
+	    }
+
+            HdmiCecSink::_instance = nullptr;
+            DeinitializeIARM();
+	    LOGWARN(" ~HdmiCecSink() Done");
        }
 
        const void HdmiCecSink::InitializeIARM()
@@ -2050,15 +2052,14 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
                 return;
 
-			LOGINFO("Entering ThreadRun = %d", _instance->m_pollThreadState);
-
+               LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d isExit %d _instance->m_pollThreadState %d  _instance->m_pollNextState %d",_instance->m_pollThreadExit,isExit,_instance->m_pollThreadState,_instance->m_pollNextState );
 			_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 
         	while(1)
         	{
 
-				if ( isExit ){
-					LOGINFO("Thread Exits");
+			       if (_instance->m_pollThreadExit || isExit ){
+					LOGWARN("Thread Exits _instance->m_pollThreadExit %d isExit %d _instance->m_pollThreadState %d  _instance->m_pollNextState %d",_instance->m_pollThreadExit,isExit,_instance->m_pollThreadState,_instance->m_pollNextState );
 					break;
 				}
 
@@ -2334,7 +2335,7 @@ namespace WPEFramework
             {
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
-
+                            m_pollThreadExit = false;
 				m_pollThread = std::thread(threadRun);
             }
  
@@ -2364,7 +2365,7 @@ namespace WPEFramework
             if (smConnection != NULL)
             {
 		LOGWARN("Stop Thread %p", smConnection );
-		m_pollThreadState = POLL_THREAD_STATE_EXIT;
+		m_pollThreadExit = true;
 
 
 		if (m_pollThread.joinable())
@@ -2395,7 +2396,7 @@ namespace WPEFramework
             }
 
             libcecInitStatus--;
-             
+            LOGWARN("CEC Disabled %d",libcecInitStatus); 
             return;
         }
 
