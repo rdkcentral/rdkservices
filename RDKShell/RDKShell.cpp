@@ -578,7 +578,7 @@ namespace WPEFramework {
 
                 RFC_ParamData_t rfcParam;
                 bool ret = Utils::getRFCConfig((char*)rfc.c_str(), rfcParam);
-                if (true == ret && rfcParam.type == WDMP_BOOLEAN && (strncasecmp(rfcParam.value,"true",4) == 0))
+                if (true == ret && (strncasecmp(rfcParam.value,"true",4) == 0))
                 {
                     std::cout << "invoking thunder api " << thunderApi << std::endl;
                     uint32_t status = 0;
@@ -591,7 +591,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    std::cout << "rfc " << rfc << " not enabled/non-boolean type " << std::endl;
+                    std::cout << "rfc " << rfc << " not enabled " << std::endl;
                 }
             }
 #else
@@ -642,9 +642,22 @@ namespace WPEFramework {
                 std::string powerState = parameters["powerState"].String();
                 if ((powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
-                    std::cout << "Received power state change to sleep " << std::endl;
-                    JsonObject request, response;
-                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                    std::cout << "Received power state change to light or deep sleep " << std::endl;
+                    std::string factoryAppCallsign("factoryapp");
+                    bool isFactoryAppRunning = false;
+                    gPluginDataMutex.lock();
+                    std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(factoryAppCallsign);
+                    if (pluginsEntry != gActivePluginsData.end())
+                    {
+                      std::cout << "factory app is already running" << std::endl;
+                      isFactoryAppRunning = true;
+                    }
+                    gPluginDataMutex.unlock();
+                    if (isFactoryAppRunning)
+                    {
+                      JsonObject request, response;
+                      int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                    }
                 }
             }
         }
@@ -4834,7 +4847,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            gPluginDataMutex.lock();
+            /*gPluginDataMutex.lock();
             std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
             if (pluginsEntry != gActivePluginsData.end())
             {
@@ -4851,7 +4864,7 @@ namespace WPEFramework {
                     }
                 }
             }
-            gPluginDataMutex.unlock();
+            gPluginDataMutex.unlock();*/
 
             return ret;
         }

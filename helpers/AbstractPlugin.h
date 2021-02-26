@@ -132,6 +132,41 @@ namespace WPEFramework {
                 // No additional info to report.
                 return(string());
             }
+
+            // Note: PluginHost::JSONRPC::Notify aren't virtual!
+            uint32_t Notify(const string& event)
+            {
+                uint32_t ret = Core::ERROR_UNKNOWN_KEY;
+
+                for (auto it = m_versionHandlers.begin(); it != m_versionHandlers.end(); ++it)
+                    if (it->second->Notify(event, Core::JSON::String()) == Core::ERROR_NONE)
+                        ret = Core::ERROR_NONE;
+
+                return ret;
+            }
+            template <typename JSONOBJECT>
+            uint32_t Notify(const string& event, const JSONOBJECT& parameters)
+            {
+                uint32_t ret = Core::ERROR_UNKNOWN_KEY;
+
+                for (auto it = m_versionHandlers.begin(); it != m_versionHandlers.end(); ++it)
+                    if (it->second->Notify(event, parameters) == Core::ERROR_NONE)
+                        ret = Core::ERROR_NONE;
+
+                return ret;
+            }
+            template <typename JSONOBJECT, typename SENDIFMETHOD>
+            uint32_t Notify(const string& event, const JSONOBJECT& parameters, SENDIFMETHOD method)
+            {
+                uint32_t ret = Core::ERROR_UNKNOWN_KEY;
+
+                for (auto it = m_versionHandlers.begin(); it != m_versionHandlers.end(); ++it)
+                    if (it->second->Notify(event, parameters, method) == Core::ERROR_NONE)
+                        ret = Core::ERROR_NONE;
+
+                return ret;
+            }
+
         private:
             std::unordered_map<uint8_t, WPEFramework::Core::JSONRPC::Handler*> m_versionHandlers;
             uint8_t m_currVersion; // current supported version
