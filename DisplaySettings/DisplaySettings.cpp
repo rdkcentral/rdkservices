@@ -248,6 +248,10 @@ namespace WPEFramework {
                         else {
                             m_audioOutputPortConfig["HDMI_ARC"] = false;
                         }
+                        //Stop timer if its already running
+                        if(m_timer.isActive()) {
+                            m_timer.stop();
+                        }
                         //Start the timer only if the device supports HDMI_ARC
                         LOGINFO("Starting the timer");
                         m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
@@ -287,9 +291,6 @@ namespace WPEFramework {
         {
             InitializeIARM();
 
-            if(m_timer.isActive()) {
-                m_timer.stop();
-            }
 
             Utils::activatePlugin(HDMICECSINK_CALLSIGN);
 
