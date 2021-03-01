@@ -207,7 +207,8 @@ int RtXcastConnector::connectToRemoteService()
     
     const char * serviceName = "com.comcast.xdialcast";
     
-    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 3000, &RtXcastConnector::remoteDisconnectCallback, m_observer);
+    LOGINFO("connectToRemoteService entry " );
+    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, NULL, &RtXcastConnector::remoteDisconnectCallback, m_observer);
     if(err == RT_OK && xdialCastObj != NULL)
     {
         rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
@@ -283,19 +284,35 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
         LOGINFO(" xdialCastObj is NULL ");
     return status;
 }//app && state not empty
-void RtXcastConnector::enableCastService(bool enableService)
+void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
 {
+    LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
     if(xdialCastObj != NULL)
     {
         rtObjectRef e = new rtMapObject;
         e.set("activation",(enableService ? "true": "false"));
-        xdialCastObj.send("onActivationChanged", e);
+        e.set("friendlyname",friendlyname.c_str());
+        int ret = xdialCastObj.send("onActivationChanged", e);
+        LOGINFO("XcastService send onActivationChanged:%d",ret);
     }
     else
         LOGINFO(" xdialCastObj is NULL ");
     
 }
 
+void RtXcastConnector::updateFriendlyName(string friendlyname)
+{
+    LOGINFO("XcastService::updateFriendlyName ARGS = %s ", friendlyname.c_str());
+    if(xdialCastObj != NULL)
+    {
+        rtObjectRef rtObj = new rtMapObject;
+        rtObj.set("friendlyname",friendlyname.c_str());
+        int ret = xdialCastObj.send("onFriendlyNameChanged", rtObj);
+        LOGINFO("XcastService send onFriendlyNameChanged ret:%d",ret);
+    }
+    else
+        LOGINFO(" xdialCastObj is NULL ");
+}
 
 RtXcastConnector * RtXcastConnector::getInstance()
 {
