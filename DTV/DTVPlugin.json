@@ -1,0 +1,33 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "DTV Plugin",
+    "callsign": "DTV",
+    "locator": "libWPEFrameworkDTV.so",
+    "status": "alpha",
+    "description": "The DTV plugin provides access to DVB services provided by a DVB stack.",
+    "version": "1.0"
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "subtitleprocessing": {
+            "type": "boolean",
+            "description": "Enable subtitle processing"
+          },
+          "teletextproessing": {
+            "type": "boolean",
+            "description": "Enable teletext processing"
+          }
+        }
+      }
+    }
+  },
+  "interface": {
+    "$ref": "{interfacedir}/DTV.json#"
+  }
+}
