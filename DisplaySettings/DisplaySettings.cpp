@@ -1894,6 +1894,9 @@ namespace WPEFramework {
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     aPort.setMuted(muted);
+                    JsonObject params;
+                    params["muteStatus"] = muted;
+                    sendNotify("muteStatusChanged", params);
                 }
                 catch (const device::Exception& err)
                 {
