@@ -74,6 +74,7 @@ XCast::XCast() : AbstractPlugin()
     XCast::checkRFCServiceStatus();
     if(XCast::isCastEnabled)
     {
+        LOGINFO("XcastService::Register methods and create onLocateCastTimer ");
         registerMethod(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
         registerMethod(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
         registerMethod(METHOD_SET_ENABLED, &XCast::setEnabled, this);
@@ -250,22 +251,22 @@ uint32_t XCast::getEnabled(const JsonObject& parameters, JsonObject& response)
 
 uint32_t XCast::setStandbyBehavior(const JsonObject& parameters, JsonObject& response)
 {
-   LOGINFO("XcastService::setStandbyBehavior");
-   std::string paramStr;
-   bool enabled = false;
-   if (parameters.HasLabel("standbybehavior"))
-   {
-       getStringParameter("standbybehavior", paramStr);
-       if(paramStr == "active")
-           enabled = true;
-   }
-   else
-   {
+    LOGINFO("XcastService::setStandbyBehavior \n ");
+    std::string paramStr;
+    bool enabled = false;
+    if (parameters.HasLabel("standbybehavior"))
+    {
+        getStringParameter("standbybehavior", paramStr);
+        if(paramStr == "active")
+            enabled = true;
+    }
+    else
+    {
        returnResponse(false);
-   }
-   m_standbyBehavior = enabled;
-   LOGINFO("XcastService::setStandbyBehavior m_standbyBehavior : %d", m_standbyBehavior);
-   returnResponse(true);
+    }
+    m_standbyBehavior = enabled;
+    LOGINFO("XcastService::setStandbyBehavior m_standbyBehavior : %d", m_standbyBehavior);
+    returnResponse(true);
 }
 uint32_t XCast::getStandbyBehavior(const JsonObject& parameters, JsonObject& response)
 {
@@ -280,12 +281,12 @@ uint32_t XCast::getStandbyBehavior(const JsonObject& parameters, JsonObject& res
 
 uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& response)
 {
-    LOGINFO("XcastService::setFriendlyName ");
+    LOGINFO("XcastService::setFriendlyName \n ");
     std::string paramStr;
     if (parameters.HasLabel("friendlyname"))
     {
          getStringParameter("friendlyname",paramStr);
-         if(paramStr.length() > 0 &&  _rtConnector)
+         if(_rtConnector)
          {
             m_friendlyName = paramStr;
             LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
@@ -311,8 +312,6 @@ uint32_t XCast::getFriendlyName(const JsonObject& parameters, JsonObject& respon
 void XCast::onLocateCastTimer()
 {
     int status = _rtConnector->connectToRemoteService();
-    
-    
     if(status != 0)
     {
         locateCastObjectRetryCount++;
@@ -430,15 +429,6 @@ bool XCast::checkRFCServiceStatus()
         {
             if(strncasecmp(param.value,"true",4) == 0 )
                 XCast::isCastEnabled = true;
-        }
-    }
-    wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.FriendlyNameEnable", &param);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        if( param.type == WDMP_BOOLEAN )
-        {
-            if(strncasecmp(param.value,"true",4) == 0 )
-               XCast::m_friendlynameRfcEnabled = true;
         }
     }
 
