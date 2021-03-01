@@ -1871,6 +1871,7 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::setMuted (const JsonObject& parameters, JsonObject& response)
         {
+                JsonObject params;
                 LOGINFOMETHOD();
                 returnIfParamNotFound(parameters, "muted");
                 string sMuted = parameters["muted"].String();
