@@ -248,7 +248,7 @@ namespace WPEFramework {
                         else {
                             m_audioOutputPortConfig["HDMI_ARC"] = false;
                         }
-                        
+
                         //Stop timer if its already running
                         if(m_timer.isActive()) {
                             m_timer.stop();
