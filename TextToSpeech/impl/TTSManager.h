@@ -96,7 +96,6 @@ private:
     TTSConfiguration m_defaultConfiguration;
     TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
-    bool m_ttsEnabled;
 };
 
 } // namespace TTS
