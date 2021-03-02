@@ -2647,6 +2647,9 @@ namespace WPEFramework {
                     if (dsERR_NONE != eRet) {
                         LOGWARN("DisplaySettings::setEnableAudioPort aPort.setEnablePort retuned %04x \n", eRet);
                         success = false;
+                    } else if (aPort.isMuted()) {
+                        LOGWARN("DisplaySettings::setEnableAudioPort aPort.isMuted()\n");
+                        aPort.setMuted(true);
                     }
                 }
                 else {
