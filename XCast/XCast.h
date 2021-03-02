@@ -55,6 +55,10 @@ private:
     uint32_t applicationStateChanged(const JsonObject& parameters, JsonObject& response);
     uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
     uint32_t getEnabled(const JsonObject& parameters, JsonObject& response);
+    uint32_t setStandbyBehavior(const JsonObject& parameters, JsonObject& response);
+    uint32_t getStandbyBehavior(const JsonObject& parameters, JsonObject& response);
+    uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
+    uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
     //End methods
     
     //Begin events
@@ -84,14 +88,16 @@ private:
      * Whether Cast service is enabled by RFC
      */
     static bool isCastEnabled;
-    static bool m_xcastEnableSettings;
+    static bool m_xcastEnable;
     static IARM_Bus_PWRMgr_PowerState_t m_powerState;
     uint32_t m_apiVersionNumber;
+    static string m_friendlyName;
+    static bool m_standbyBehavior;
+    static bool m_enableStatus;
     //Timer related variables and functions
     TpTimer m_locateCastTimer;
     const void InitializeIARM();
     void DeinitializeIARM();
-    void persistEnabledSettings(bool enableStatus);
     //Internal methods
     void onLocateCastTimer();
     
@@ -99,7 +105,6 @@ private:
      * Check whether the xdial service is allowed in this device.
      */
     static bool checkRFCServiceStatus();
-    static bool checkXcastSettingsStatus();
     static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 } // namespace Plugin

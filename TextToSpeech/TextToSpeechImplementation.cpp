@@ -82,13 +82,14 @@ namespace Plugin {
         } else {
             TTSLOG_WARNING("Doesn't find default voice configuration");
         }
-
+        ttsConfig->loadFromConfigStore();
         TTSLOG_INFO("TTSEndPoint : %s", ttsConfig->endPoint().c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig->secureEndPoint().c_str());
         TTSLOG_INFO("Language : %s", ttsConfig->language().c_str());
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig->volume());
         TTSLOG_INFO("Rate : %u", ttsConfig->rate());
+        TTSLOG_INFO("TTS is %s", ttsConfig->enabled()? "Enabled" : "Disabled");
 
         auto it = ttsConfig->m_others.begin();
         while( it != ttsConfig->m_others.end()) {
@@ -96,6 +97,7 @@ namespace Plugin {
             ++it;
         }
 
+        _ttsManager->enableTTS(ttsConfig->enabled());
         return 0;
     }
 
@@ -176,9 +178,9 @@ namespace Plugin {
         TTS::Configuration config;
         config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
         config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
-        config.language = GET_STR(parameters, "language", "en-US");
+        config.language = GET_STR(parameters, "language", "");
         config.voice = GET_STR(parameters, "voice", "");
-        config.volume = std::stod(GET_STR(parameters, "volume", "100"));
+        config.volume = std::stod(GET_STR(parameters, "volume", "0.0"));
 
         if(parameters.HasLabel("rate")) {
             int rate=0;
@@ -501,6 +503,40 @@ namespace Plugin {
                 TTSLOG_ERROR("%s api failed with unknow error code = %d", __func__, X);
                 response["TTS_Status"] = static_cast<uint32_t>(TTS::TTS_FAIL);
         }
+    }
+
+    bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig)
+    {
+        Core::File file(filename);
+        if(file.Open()) {
+            JsonObject config;
+            if(config.IElement::FromFile(file)) {
+            Core::JSON::Boolean enabled = config.Get("enabled").Boolean();
+            ttsConfig.setEnabled(enabled.Value());
+            ttsConfig.setVolume(std::stod(GET_STR(config,"volume","0.0")));
+            ttsConfig.setRate(static_cast<uint8_t>(std::stoi(GET_STR(config,"rate","0"))));
+            ttsConfig.setVoice(GET_STR(config,"voice",""));
+            ttsConfig.setLanguage(GET_STR(config,"language",""));
+            return true;
+            }
+        file.Close();
+        }
+        return false;
+    }   
+
+    bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig)
+    {
+        Core::File file(filename);
+        JsonObject config;
+        file.Create();
+        config["enabled"] = JsonValue((bool)ttsConfig.enabled());
+        config["volume"] = std::to_string(ttsConfig.volume());
+        config["rate"] = std::to_string(ttsConfig.rate());
+        config["voice"] = ttsConfig.voice();
+        config["language"] = ttsConfig.language();
+        config.IElement::ToFile(file);
+        file.Close();
+        return true;
     }
 
 } // namespace Plugin
