@@ -66,6 +66,8 @@ namespace WPEFramework {
             Register("setSensitivity", &MotionDetection::setSensitivity, this);
             Register("getSensitivity", &MotionDetection::getSensitivity, this);
             Register("getLastMotionEventElapsedTime", &MotionDetection::getLastMotionEventElapsedTime, this);
+            Register("setMotionEventsActivePeriod", &MotionDetection::setMotionEventsActivePeriod, this);
+            Register("getMotionEventsActivePeriod", &MotionDetection::getMotionEventsActivePeriod, this);
 
             MOTION_DETECTION_RegisterEventCallback(motiondetection_EventCallback);
 
@@ -87,6 +89,8 @@ namespace WPEFramework {
             Unregister("setSensitivity");
             Unregister("getSensitivity");
             Unregister("getLastMotionEventElapsedTime");
+            Unregister("setMotionEventsActivePeriod");
+            Unregister("getMotionEventsActivePeriod");
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
@@ -102,14 +106,12 @@ namespace WPEFramework {
 
         const string MotionDetection::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void MotionDetection::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
         }
 
         //Begin methods
@@ -318,12 +320,96 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
+        uint32_t MotionDetection::setMotionEventsActivePeriod(const JsonObject& parameters, JsonObject& response)
+        {
+             LOGINFOMETHOD();
+             if (parameters.HasLabel("index") && parameters.HasLabel("nowTime") && parameters.HasLabel("ranges"))
+             {
+                 MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
+                 MOTION_DETECTION_TimeRange_t timeSet;
+                 int nowTime = 0;
+                 bool parseStatus = true;
+                 string index = parameters["index"].String();
+                 JsonArray rangeList = parameters["ranges"].Array();
+                 getNumberParameterObject(parameters, "nowTime", nowTime);
+                 timeSet.m_nowTime = nowTime;
+                 timeSet.m_timeRangeArray = (MOTION_DETECTION_Time_t *)malloc(rangeList.Length() * sizeof(MOTION_DETECTION_Time_t));
+                 timeSet.m_rangeCount = rangeList.Length();
+                 for (int range = 0;  range < rangeList.Length(); range++)
+                 {
+                     JsonObject rangeObj = rangeList[range].Object();
+                     if (rangeObj.HasLabel("startTime") && rangeObj.HasLabel("endTime"))
+                     {
+                         unsigned int startTime, endTime = 0;
+                         getNumberParameterObject(rangeObj, "startTime", startTime);
+                         getNumberParameterObject(rangeObj, "endTime", endTime);
+                         timeSet.m_timeRangeArray[range].m_startTime = startTime;
+                         timeSet.m_timeRangeArray[range].m_endTime = endTime;
+                     }
+                     else
+                     {
+                         LOGINFO("Parameters missing in JSON Array");
+                         parseStatus = false;
+                         break;
+                     }
+                 }
+                 if (parseStatus == true)
+                 {
+                     rc = MOTION_DETECTION_SetActivePeriod(index.c_str(), timeSet);
+                     if (rc != MOTION_DETECTION_RESULT_SUCCESS) 
+                     {
+                         LOGERR("Failed to set Active Time..!");
+                         returnResponse(false);
+                     }
+                 }
+                 else
+                 {
+                     returnResponse(false);
+                 }
+                 free(timeSet.m_timeRangeArray);
+                 returnResponse(true);
+             }
+             else
+             {
+                 LOGINFO("Parameters missing in JSON request");
+                 returnResponse(false);
+             }
+        }
+
+
+        uint32_t MotionDetection::getMotionEventsActivePeriod(const JsonObject& parameters, JsonObject& response)
+        {
+             LOGINFOMETHOD();
+             MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
+             MOTION_DETECTION_TimeRange_t timeSet;
+             JsonArray rangeList;
+             rc = MOTION_DETECTION_GetActivePeriod(&timeSet);
+             if (rc != MOTION_DETECTION_RESULT_SUCCESS) {
+                 LOGERR("Failed to get Active Time..!");
+                 returnResponse(false);
+             }
+             if (timeSet.m_rangeCount > 0)
+             {
+                 for (int range = 0; range < timeSet.m_rangeCount; range++)
+                 {
+                     JsonObject rangeObj;
+                     rangeObj["startTime"] = std::to_string(timeSet.m_timeRangeArray[range].m_startTime);
+                     rangeObj["endTime"] = std::to_string(timeSet.m_timeRangeArray[range].m_endTime);
+                     rangeList.Add(rangeObj);
+                 }
+                 response["ranges"] = rangeList;
+             }
+             else if (timeSet.m_rangeCount == 0)
+             {
+                 response["message"] = "No Active Periods Set";
+             }
+             returnResponse(true);
+        }
         //End methods
 
         //Begin events
         void MotionDetection::onMotionEvent(const string& index, const string& eventType)
         {
-            LOGINFO();
             JsonObject params;
             params["index"] = index;
             params["mode"] = eventType;

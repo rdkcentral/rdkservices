@@ -38,8 +38,10 @@
 #include "dsError.h"
 #include "list.hpp"
 #include "libIBus.h"
+#include "libIBusDaemon.h"
 #include "dsDisplay.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
+#include "pwrMgr.h"
 
 #include "tr181api.h"
 
@@ -127,6 +129,7 @@ namespace WPEFramework {
         SERVICE_REGISTRATION(DisplaySettings, 1, 0);
 
         DisplaySettings* DisplaySettings::_instance = nullptr;
+        IARM_Bus_PWRMgr_PowerState_t DisplaySettings::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
         DisplaySettings::DisplaySettings()
             : AbstractPlugin()
@@ -198,6 +201,7 @@ namespace WPEFramework {
             registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
+            registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
@@ -244,6 +248,17 @@ namespace WPEFramework {
                         else {
                             m_audioOutputPortConfig["HDMI_ARC"] = false;
                         }
+
+                        //Stop timer if its already running
+                        if(m_timer.isActive()) {
+                            m_timer.stop();
+                        }
+
+                        Utils::activatePlugin(HDMICECSINK_CALLSIGN);
+
+                        //Start the timer only if the device supports HDMI_ARC
+                        LOGINFO("Starting the timer");
+                        m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
                     }
                     else {
                         JsonObject aPortHdmiEnableResult;
@@ -278,36 +293,32 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
 
-            if(m_timer.isActive()) {
-                m_timer.stop();
+            if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
+            {
+                InitAudioPorts();
             }
-
-            Utils::activatePlugin(HDMICECSINK_CALLSIGN);
-            LOGINFO("Starting the timer");
-            m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
-
-            InitAudioPorts();
-
+            else
+            {
+                LOGWARN("Current power state %d", m_powerState);
+            }
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void DisplaySettings::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, DisplResolutionHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS, DisplResolutionHandler) );
                 //TODO(MROLLINS) localinput.cpp has PreChange guarded with #if !defined(DISABLE_PRE_RES_CHANGE_EVENTS)
@@ -317,6 +328,14 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
+
+                res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
+                if (res == IARM_RESULT_SUCCESS)
+                {
+                    m_powerState = param.curState;
+                    LOGINFO("DisplaySettings::m_powerState:%d", m_powerState);
+                }
             }
 
             try
@@ -333,11 +352,10 @@ namespace WPEFramework {
 
         void DisplaySettings::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
+
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE) );
@@ -345,8 +363,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
-
 
             try
             {
@@ -362,7 +380,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if(DisplaySettings::_instance)
             {
                 DisplaySettings::_instance->resolutionPreChange();
@@ -371,8 +388,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             int dw = 1280;
             int dh = 720;
 
@@ -396,7 +411,6 @@ namespace WPEFramework {
 
         void DisplaySettings::DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             //TODO(MROLLINS) Receiver has this whole thing guarded by #ifndef HEADLESS_GW
             if (strcmp(owner,IARM_BUS_DSMGR_NAME) == 0)
             {
@@ -458,7 +472,6 @@ namespace WPEFramework {
 
         void DisplaySettings::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             switch (eventId)
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
@@ -1870,6 +1883,12 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(sMuted);
                         returnResponse(false);
                 }
+
+                if (false == muted && IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
+                        LOGWARN("Ignoring the setMuted(false) request based on the power state");
+                        returnResponse(false);
+                }
+
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 LOGWARN("DisplaySettings::setMuted called Audio Port :%s muted:%d\n", audioPort.c_str(), muted);
@@ -1898,6 +1917,13 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(sLevel);
                         returnResponse(false);
                 }
+
+                if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
+                        LOGWARN("Ignoring the setVolumeLevel(%s) request based on the power state", sLevel.c_str());
+                        returnResponse(false);
+                }
+
+
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 try
@@ -2567,7 +2593,6 @@ namespace WPEFramework {
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
-            LOGINFO();
             bool success = true;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
@@ -2620,6 +2645,11 @@ namespace WPEFramework {
                     returnResponse(false);
             }
 
+            if (true == pEnable && IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
+                LOGWARN("Ignoring the setEnableAudioPort(true) request based on the power state");
+                returnResponse(false);
+            }
+
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2633,6 +2663,9 @@ namespace WPEFramework {
                     if (dsERR_NONE != eRet) {
                         LOGWARN("DisplaySettings::setEnableAudioPort aPort.setEnablePort retuned %04x \n", eRet);
                         success = false;
+                    } else if (aPort.isMuted()) {
+                        LOGWARN("DisplaySettings::setEnableAudioPort aPort.isMuted()\n");
+                        aPort.setMuted(true);
                     }
                 }
                 else {
@@ -2713,6 +2746,55 @@ namespace WPEFramework {
         {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.HdmiCecSink.1", "");
+        }
+
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> DisplaySettings::getSystemPlugin()
+        {
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.System.1", "");
+        }
+
+        IARM_Bus_PWRMgr_PowerState_t DisplaySettings::getSystemPowerState()
+        {
+            IARM_Result_t res;
+            IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+
+            res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
+            if (res == IARM_RESULT_SUCCESS)
+            {
+                m_powerState = param.curState;
+                LOGWARN("DisplaySettings::m_powerState: %d", m_powerState);
+            }
+            else
+            {
+                LOGWARN("GetPowerState failed");
+            }
+
+            return m_powerState;
+        }
+
+        void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!DisplaySettings::_instance)
+                 return;
+            if (strcmp(owner, IARM_BUS_PWRMGR_NAME) != 0)
+                 return;
+
+            switch (eventId) {
+            case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
+            {
+                IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+                LOGWARN("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d --> %d\r",
+                             eventData->data.state.curState, eventData->data.state.newState);
+                m_powerState = eventData->data.state.newState;
+                if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                    DisplaySettings::_instance->InitAudioPorts();
+                }
+            }
+            break;
+
+            default: break;
+            }
         }
 
         // Event management
@@ -2815,7 +2897,6 @@ namespace WPEFramework {
         // 4.
         void DisplaySettings::onTimer()
         {
-            LOGINFO();
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
@@ -2902,6 +2983,31 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+        uint32_t DisplaySettings::isConnectedDeviceRepeater (const JsonObject& parameters, JsonObject& response) 
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            bool success = true;
+            bool isConnectedDeviceRepeater = false;
+            try
+            {
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                if (vPort.isDisplayConnected()) {
+                    isConnectedDeviceRepeater = vPort.getDisplay().isConnectedDeviceRepeater();
+                }
+                else {
+                    LOGERR("isConnectedDeviceRepeater failure: HDMI0 not connected!\n");
+                    success = false;
+                }
+                response["HdcpRepeater"] = isConnectedDeviceRepeater;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                success = false;
+            }
+            returnResponse(success);
+        }
+
         uint32_t DisplaySettings::getDefaultResolution (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
@@ -2952,13 +3058,11 @@ namespace WPEFramework {
         //Begin events
         void DisplaySettings::resolutionPreChange()
         {
-            LOGINFO();
             sendNotify("resolutionPreChange", JsonObject());
         }
 
         void DisplaySettings::resolutionChanged(int width, int height)
         {
-            LOGINFO();
             vector<string> connectedDisplays;
             getConnectedVideoDisplaysHelper(connectedDisplays);
 
@@ -3013,7 +3117,6 @@ namespace WPEFramework {
         void DisplaySettings::zoomSettingUpdated(const string& zoomSetting)
         {//servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"None","success":true,"videoDisplayType":"all"}
          //servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"Full","success":true,"videoDisplayType":"all"}
-            LOGINFO();
             JsonObject params;
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
@@ -3022,7 +3125,6 @@ namespace WPEFramework {
 
         void DisplaySettings::activeInputChanged(bool activeInput)
         {
-            LOGINFO();
             JsonObject params;
             params["activeInput"] = activeInput;
             sendNotify("activeInputChanged", params);
@@ -3030,7 +3132,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
         {
-            LOGINFO();
             static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
             static int firstTime = 1;
 
@@ -3056,8 +3157,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
         {
-            LOGINFO();
-
             JsonObject params;
             string sPortName;
             string sPortStatus;
@@ -3095,7 +3194,6 @@ namespace WPEFramework {
 
         void DisplaySettings::getConnectedVideoDisplaysHelper(vector<string>& connectedDisplays)
         {
-            LOGINFO();
             try
             {
                 device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();

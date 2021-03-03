@@ -24,6 +24,15 @@
 #include <regex>
 
 #define INT_FROM_ENV(env, default_value) ((getenv(env) ? atoi(getenv(env)) : 0) > 0 ? atoi(getenv(env)) : default_value)
+#define TTS_CONFIGURATION_STORE "/opt/persistent/ttssetting.ini"
+#define UPDATE_AND_RETURN(o, n) if(o != n) { o = n; return true; }
+
+namespace WPEFramework {
+namespace Plugin {
+bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+}//namespace Plugin
+}//namespace WPEFramework
 
 namespace TTS {
 
@@ -36,54 +45,88 @@ TTSConfiguration::TTSConfiguration() :
     m_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
+    m_enabled(false),
     m_preemptiveSpeaking(true) { }
 
 TTSConfiguration::~TTSConfiguration() {}
 
-void TTSConfiguration::setEndPoint(const std::string endpoint) {
+bool TTSConfiguration::setEndPoint(const std::string endpoint) {
     if(!endpoint.empty())
-        m_ttsEndPoint = endpoint;
+    {
+        UPDATE_AND_RETURN(m_ttsEndPoint, endpoint);
+    }
     else
         TTSLOG_VERBOSE("Invalid TTSEndPoint input \"%s\"", endpoint.c_str());
+    return false;
 }
 
-void TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
+bool TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
     if(!endpoint.empty())
-        m_ttsEndPointSecured = endpoint;
+    {
+        UPDATE_AND_RETURN(m_ttsEndPointSecured, endpoint);
+    }
     else
         TTSLOG_VERBOSE("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
+    return false;
 }
 
-void TTSConfiguration::setLanguage(const std::string language) {
+bool TTSConfiguration::setLanguage(const std::string language) {
     if(!language.empty())
-        m_language = language;
+    {
+        UPDATE_AND_RETURN(m_language, language);
+    }
     else
         TTSLOG_VERBOSE("Empty Language input");
+    return false;
 }
 
-void TTSConfiguration::setVoice(const std::string voice) {
+bool TTSConfiguration::setVoice(const std::string voice) {
     if(!voice.empty())
-        m_voice = voice;
+    {
+        UPDATE_AND_RETURN(m_voice, voice);  
+    }
     else
         TTSLOG_VERBOSE("Empty Voice input");
+    return false;
 }
 
-void TTSConfiguration::setVolume(const double volume) {
+bool TTSConfiguration::setVolume(const double volume) {
     if(volume >= 1 && volume <= 100)
-        m_volume = volume;
+    {
+        UPDATE_AND_RETURN(m_volume, volume);    
+    }
     else
         TTSLOG_VERBOSE("Invalid Volume input \"%lf\"", volume);
+    return false;
 }
 
-void TTSConfiguration::setRate(const uint8_t rate) {
+bool TTSConfiguration::setRate(const uint8_t rate) {
     if(rate >= 1 && rate <= 100)
-        m_rate = rate;
+    {
+        UPDATE_AND_RETURN(m_rate, rate);    
+    }
     else
         TTSLOG_VERBOSE("Invalid Rate input \"%u\"", rate);
+    return false;
+}
+
+bool TTSConfiguration::setEnabled(const bool enabled) {
+    UPDATE_AND_RETURN(m_enabled, enabled);
+    return false;
 }
 
 void TTSConfiguration::setPreemptiveSpeak(const bool preemptive) {
     m_preemptiveSpeaking = preemptive;
+}
+
+bool TTSConfiguration::loadFromConfigStore()
+{
+    return WPEFramework::Plugin::_readFromFile(TTS_CONFIGURATION_STORE, *this);
+}
+
+bool TTSConfiguration::updateConfigStore()
+{
+    return WPEFramework::Plugin::_writeToFile(TTS_CONFIGURATION_STORE, *this);
 }
 
 const std::string TTSConfiguration::voice() {
@@ -100,13 +143,15 @@ const std::string TTSConfiguration::voice() {
     }
 }
 
-void TTSConfiguration::updateWith(TTSConfiguration &nConfig) {
+bool TTSConfiguration::updateWith(TTSConfiguration &nConfig) {
+    bool updated = false;
     setEndPoint(nConfig.m_ttsEndPoint);
     setSecureEndPoint(nConfig.m_ttsEndPointSecured);
-    setLanguage(nConfig.m_language);
-    setVoice(nConfig.m_voice);
-    setVolume(nConfig.m_volume);
-    setRate(nConfig.m_rate);
+    updated |= setLanguage(nConfig.m_language);
+    updated |= setVoice(nConfig.m_voice);
+    updated |= setVolume(nConfig.m_volume);
+    updated |= setRate(nConfig.m_rate);
+    return updated;
 }
 
 bool TTSConfiguration::isValid() {
