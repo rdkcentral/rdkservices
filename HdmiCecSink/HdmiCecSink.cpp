@@ -2367,11 +2367,21 @@ namespace WPEFramework
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadExit = true;
 
-
-		if (m_pollThread.joinable())
+		try
 		{
-			LOGWARN("Join Thread %p", smConnection );
-			m_pollThread.join();
+			if (m_pollThread.joinable())
+			{
+				LOGWARN("Join Thread %p", smConnection );
+				m_pollThread.join();
+			}
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
 		}
 
 		LOGWARN("Deleted Thread %p", smConnection );
