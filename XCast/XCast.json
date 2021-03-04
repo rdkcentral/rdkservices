@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkXCast.so",
+ "classname":"XCast",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.Xcast",
+ "autostart":false
+}
