@@ -271,6 +271,7 @@ namespace WPEFramework {
                         PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
                         if (nullptr != stateChangeData)
                         {
+                            stateChangeData->resetConnection();
                             delete stateChangeData;
                         }
                         pluginStateChangeEntry->second = nullptr;
@@ -5154,6 +5155,11 @@ namespace WPEFramework {
         void PluginStateChangeData::enableLaunch(bool enable)
         {
             mLaunchEnabled = enable;
+        }
+
+        void PluginStateChangeData::resetConnection()
+        {
+            mPluginConnection = nullptr;
         }
 
         void PluginStateChangeData::onStateChangeEvent(const JsonObject& params)

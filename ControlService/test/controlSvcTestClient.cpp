@@ -54,7 +54,7 @@ void showMenu()
     std::cout<<"8.startPairingMode\n";
     std::cout<<"9.endPairingMode\n";
     std::cout<<"10.canFindMyRemote\n";
-    std::cout<<"11.findMyRemote\n";
+    std::cout<<"11.findLastUsedRemote\n";
     std::cout<<"12.checkRf4ceChipConnectivity\n";
     std::cout<<"\nEnter your choice: ";
 }
@@ -774,22 +774,18 @@ int main(int argc, char** argv)
                                     std::cout<<"\nEnter a 'timeout period' [5 - 30] : ";
                                     std::cin>> timeOutPeriod;
                                     bNeedExtraLineRead = true;
-
-                                    std::cout<<"\nEnter 'bOnlyLastUsed' integer [true(1), false(0)] : ";
-                                    std::cin>> bOnlyLastUsed;
                                 }
 
                                 params["timeOutPeriod"] = timeOutPeriod;
-                                params["bOnlyLastUsed"] = (bOnlyLastUsed==1 ? true : false);
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
-                                                    _T("findMyRemote"), params, result);
+                                                    _T("findLastUsedRemote"), params, result);
                                 std::cout<<"ControlService Invoke ret : "<< ret <<"\n";
                                 result.ToString(res);
                                 if (result["success"].Boolean()) {
-                                    std::cout<<"ControlService findMyRemote call - Success!\n";
+                                    std::cout<<"ControlService findLastUsedRemote call - Success!\n";
                                 } else {
-                                    std::cout<<"ControlService findMyRemote call - failed!\n";
+                                    std::cout<<"ControlService findLastUsedRemote call - failed!\n";
                                 }
                                 std::cout<<"result : "<<res<<"\n";
                             }
