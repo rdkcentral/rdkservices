@@ -790,7 +790,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "HDMI"))
+                if (audioPort.empty() || (Utils::String::stringContains(audioPort, "HDMI") && !Utils::String::stringContains(audioPort, "HDMI_ARC0")))
                 {
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                     int surroundMode = vPort.getDisplay().getSurroundMode();
@@ -813,7 +813,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF"))
+                if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF") || Utils::String::stringContains(audioPort, "HDMI_ARC0"))
                 {
                     if (HAL_hasSurround) {
                         supportedAudioModes.emplace_back("Surround");
