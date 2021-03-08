@@ -25,6 +25,7 @@
 
 #include "Module.h"
 #include "CENCParser.h"
+#include "CapsParser.h"
 
 // Get in the definitions required for access to the sepcific
 // DRM engines.
@@ -287,14 +288,16 @@ namespace Plugin {
                     DataExchange& operator=(const DataExchange&) = delete;
 
                 public:
-                    DataExchange(CDMi::IMediaKeySession* mediaKeys, const string& name, const uint32_t defaultSize)
+                    DataExchange(CDMi::IMediaKeySession* mediaKeys, const string& name, const uint32_t defaultSize, CDMi::ICapsParser* parser)
                         : Exchange::DataExchange(name, defaultSize)
                         , Core::Thread(Core::Thread::DefaultStackSize(), _T("DRMSessionThread"))
                         , _mediaKeys(mediaKeys)
                         , _mediaKeysExt(dynamic_cast<CDMi::IMediaKeySessionExt*>(mediaKeys))
                         , _sessionKey(nullptr)
                         , _sessionKeyLength(0)
+                        , _parser(parser)
                     {
+                        ASSERT(parser != nullptr);
                         Core::Thread::Run();
                         TRACE(Trace::Information, (_T("Constructing buffer server side: %p - %s"), this, name.c_str()));
                     }
@@ -339,6 +342,9 @@ namespace Plugin {
                                 uint8_t type = 0;
                                 MediaProperties(height, width, type);
                                 const MediaStreamProperties streamProperties(height, width, static_cast<CDMi::MediaType>(type));
+
+                                _parser->Parse(StreamInfo(), StreamInfoLength());
+                                _mediaKeys->SetCapsParser(_parser);
 
                                 int cr = _mediaKeys->Decrypt(
                                         payloadBuffer,
@@ -386,6 +392,7 @@ namespace Plugin {
                     CDMi::IMediaKeySessionExt* _mediaKeysExt;
                     uint8_t* _sessionKey;
                     uint32_t _sessionKeyLength;
+                    CDMi::ICapsParser* _parser;
                 };
 
                 // IMediaKeys defines the MediaKeys interface.
@@ -512,6 +519,7 @@ namespace Plugin {
                     , _sink(this, callback)
                     , _buffer(nullptr)
                     , _cencData(*sessionData)
+                    , _parser()
                 {
                     ASSERT(parent != nullptr);
                     ASSERT(sessionData != nullptr);
@@ -548,6 +556,8 @@ namespace Plugin {
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                     _mediaKeySession->Run(&_sink);
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
+
+                    _mediaKeySession->SetCapsParser(&_parser);
                 }
                 #ifdef __WINDOWS__
                 #pragma warning(default : 4355)
@@ -555,6 +565,7 @@ namespace Plugin {
 
                 virtual ~SessionImplementation()
                 {
+                    _mediaKeySession->SetCapsParser(nullptr);
 
                     TRACE(Trace::Information, (_T("Destructing the Session Server side: %p"), this));
                     // this needs to be done in a thread safe way. Leave it up to
@@ -604,7 +615,7 @@ namespace Plugin {
 
                         if (_parent._administrator.AquireBuffer(bufferID) == true)
                         {
-                            _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize());
+                            _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize(), &_parser);
                             _adminLock.Unlock();
                             
                             ASSERT(_buffer != nullptr);
@@ -681,7 +692,12 @@ namespace Plugin {
                     _mediaKeySession->ResetOutputProtection();
                 }
 
-                void Revoke(Exchange::ISession::ICallback* callback) override
+                virtual void SetParameter(const std::string& name, const std::string& value) override {
+                    TRACE(Trace::Information, (_T("SetParameter! %p"), this));
+                    _mediaKeySession->SetParameter(name, value);
+                }
+
+                virtual void Revoke(Exchange::ISession::ICallback* callback) override
                 {
                     _sink.Revoke(callback);
                 }
@@ -745,6 +761,7 @@ namespace Plugin {
                 Core::Sink<Sink> _sink;
                 DataExchange* _buffer;
                 CommonEncryptionData _cencData;
+                CapsParser _parser;
             };
 
         public:
