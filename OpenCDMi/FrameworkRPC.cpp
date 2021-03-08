@@ -25,6 +25,7 @@
 
 #include "Module.h"
 #include "CENCParser.h"
+#include "CapsParser.h"
 
 // Get in the definitions required for access to the sepcific
 // DRM engines.
@@ -249,14 +250,16 @@ namespace Plugin {
                     DataExchange& operator=(const DataExchange&) = delete;
 
                 public:
-                    DataExchange(CDMi::IMediaKeySession* mediaKeys, const string& name, const uint32_t defaultSize)
+                    DataExchange(CDMi::IMediaKeySession* mediaKeys, const string& name, const uint32_t defaultSize, CDMi::ICapsParser* parser)
                         : ::OCDM::DataExchange(name, defaultSize)
                         , Core::Thread(Core::Thread::DefaultStackSize(), _T("DRMSessionThread"))
                         , _mediaKeys(mediaKeys)
                         , _mediaKeysExt(dynamic_cast<CDMi::IMediaKeySessionExt*>(mediaKeys))
                         , _sessionKey(nullptr)
                         , _sessionKeyLength(0)
+                        , _parser(parser)
                     {
+                        ASSERT(parser != nullptr);
                         Core::Thread::Run();
                         TRACE(Trace::Information, (_T("Constructing buffer server side: %p - %s"), this, name.c_str()));
                     }
@@ -289,6 +292,9 @@ namespace Plugin {
                                 uint8_t keyIdLength = 0;
                                 const uint8_t* keyIdData = KeyId(keyIdLength);
 
+                                _parser->Parse(StreamInfo(), StreamInfoLength());
+                                _mediaKeys->SetCapsParser(_parser);
+
                                 int cr = _mediaKeys->Decrypt(
                                     _sessionKey,
                                     _sessionKeyLength,
@@ -303,6 +309,7 @@ namespace Plugin {
                                     keyIdLength,
                                     keyIdData,
                                     InitWithLast15());
+
                                 if ((cr == 0) && (clearContentSize != 0)) {
                                     if (clearContentSize != BytesWritten()) {
 				      if (++clearContentInfoTraceCount < 3) TRACE(Trace::Information, (_T("Returned clear sample size (%d) differs from encrypted buffer size (%d)"), clearContentSize, BytesWritten()));
@@ -336,6 +343,7 @@ namespace Plugin {
                     CDMi::IMediaKeySessionExt* _mediaKeysExt;
                     uint8_t* _sessionKey;
                     uint32_t _sessionKeyLength;
+                    CDMi::ICapsParser* _parser;
                 };
 
                 // IMediaKeys defines the MediaKeys interface.
@@ -462,6 +470,7 @@ namespace Plugin {
                     , _sink(this, callback)
                     , _buffer(nullptr)
                     , _cencData(*sessionData)
+                    , _parser()
                 {
                     ASSERT(parent != nullptr);
                     ASSERT(sessionData != nullptr);
@@ -498,6 +507,8 @@ namespace Plugin {
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                     _mediaKeySession->Run(&_sink);
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
+
+                    _mediaKeySession->SetCapsParser(&_parser);
                 }
                 #ifdef __WINDOWS__
                 #pragma warning(default : 4355)
@@ -505,6 +516,7 @@ namespace Plugin {
 
                 virtual ~SessionImplementation()
                 {
+                    _mediaKeySession->SetCapsParser(nullptr);
 
                     TRACE(Trace::Information, (_T("Destructing the Session Server side: %p"), this));
                     // this needs to be done in a thread safe way. Leave it up to
@@ -554,7 +566,7 @@ namespace Plugin {
 
                         if (_parent._administrator.AquireBuffer(bufferID) == true)
                         {
-                            _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize());
+                            _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize(), &_parser);
                             _adminLock.Unlock();
                             TRACE(Trace::Information, ("Server::Session::CreateSessionBuffer(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), BufferId().c_str(), this));
                         } else {
@@ -623,6 +635,11 @@ namespace Plugin {
                     _mediaKeySession->ResetOutputProtection();
                 }
 
+                virtual void SetParameter(const std::string& name, const std::string& value) override {
+                    TRACE(Trace::Information, (_T("SetParameter! %p"), this));
+                    _mediaKeySession->SetParameter(name, value);
+                }
+
                 virtual void Revoke(OCDM::ISession::ICallback* callback) override
                 {
                     _sink.Revoke(callback);
@@ -674,7 +691,6 @@ namespace Plugin {
                 END_INTERFACE_MAP
 
             private:
-            private:
                 AccessorOCDM& _parent;
                 mutable Core::CriticalSection _adminLock;
                 mutable uint32_t _refCount;
@@ -685,6 +701,7 @@ namespace Plugin {
                 Core::Sink<Sink> _sink;
                 DataExchange* _buffer;
                 CommonEncryptionData _cencData;
+                CapsParser _parser;
             };
 
         public:
