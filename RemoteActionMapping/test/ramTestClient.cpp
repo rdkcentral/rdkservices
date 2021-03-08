@@ -696,7 +696,7 @@ int main(int argc, char** argv)
                                             tvIRKeyCode.Add(JsonValue(currentTVIRData[i][j]));
                                         }
                                     }
-                                    keyMap["tvIRKeyCode"] = JsonValue(tvIRKeyCode);
+                                    keyMap["tvIRKeyCode"] = tvIRKeyCode;
 
                                     if ((currentAVRIRData != NULL) && (currentAVRIRData[i].size() > 1))
                                     {
@@ -705,11 +705,11 @@ int main(int argc, char** argv)
                                             avrIRKeyCode.Add(JsonValue(currentAVRIRData[i][j]));
                                         }
                                     }
-                                    keyMap["avrIRKeyCode"] = JsonValue(avrIRKeyCode);
+                                    keyMap["avrIRKeyCode"] = avrIRKeyCode;
 
                                     array.Add(keyMap);
                                 }
-                                params["keyActionMapping"] = JsonValue(array);
+                                params["keyActionMapping"] = array;
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                                     _T("setKeyActionMapping"), params, result);
