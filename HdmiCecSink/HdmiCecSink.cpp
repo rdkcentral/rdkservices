@@ -828,9 +828,9 @@ namespace WPEFramework
        {
            LOGINFOMETHOD();
 
-			response["numberofdevices"] = HdmiCecSink::_instance->m_numberOfDevices;
 			
 			JsonArray deviceList;
+                        int numOfDevice = 0;
 			
 			for (unsigned int n = 0; n < LogicalAddress::UNREGISTERED; n++)
 			{
@@ -847,10 +847,21 @@ namespace WPEFramework
 					device["osdName"] = HdmiCecSink::_instance->deviceList[n].m_osdName.toString().c_str();
 					device["vendorID"] = HdmiCecSink::_instance->deviceList[n].m_vendorID.toString().c_str();
 					device["powerStatus"] = HdmiCecSink::_instance->deviceList[n].m_powerStatus.toString().c_str();
+                                        int hdmiPortNumber = -1;
+                                        for (int i=0; i < m_numofHdmiInput; i++)
+                                        {
+                                             if(hdmiInputs[i].m_isConnected  && hdmiInputs[i].m_logicalAddr.toInt() == HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt())
+                                             {
+                                                 hdmiPortNumber = hdmiInputs[i].m_portID;
+                                             }
+                                        }
+                                        device["portNumber"] = hdmiPortNumber;
 			
 					deviceList.Add(device);
+                                        numOfDevice++;
 				}
 			}
+			response["numberofdevices"] = numOfDevice;
 
 			response["deviceList"] = deviceList;
 
