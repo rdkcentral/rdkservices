@@ -251,11 +251,11 @@ namespace Plugin {
                         , _sessionKeyLength(0)
                     {
                         Core::Thread::Run();
-                        TRACE_L1("Constructing buffer server side: %p - %s", this, name.c_str());
+                        TRACE(Trace::Information, (_T("Constructing buffer server side: %p - %s"), this, name.c_str()));
                     }
                     ~DataExchange()
                     {
-                        TRACE_L1("Destructing buffer server side: %p - %s", this, ::OCDM::DataExchange::Name().c_str());
+                        TRACE(Trace::Information, (_T("Destructing buffer server side: %p - %s"), this, ::OCDM::DataExchange::Name().c_str()));
                         // Make sure the thread reaches a HALT.. We are done.
                         Core::Thread::Stop();
 
@@ -296,7 +296,7 @@ namespace Plugin {
                                     InitWithLast15());
                                 if ((cr == 0) && (clearContentSize != 0)) {
                                     if (clearContentSize != BytesWritten()) {
-                                        TRACE_L1("Returned clear sample size (%d) differs from encrypted buffer size (%d)", clearContentSize, BytesWritten());
+                                        TRACE(Trace::Information, (_T("Returned clear sample size (%d) differs from encrypted buffer size (%d)"), clearContentSize, BytesWritten()));
                                         Size(clearContentSize);
                                     }
 
@@ -413,7 +413,7 @@ namespace Plugin {
                             _callback->Release();
                             _callback = nullptr;
                         } else {
-                            TRACE_L1("Additional request for Revoking the callback!! %p", callback);
+                            TRACE(Trace::Information, (_T("Additional request for Revoking the callback!! %p"), callback));
                         }
                     }
 
@@ -453,7 +453,7 @@ namespace Plugin {
 
                     _mediaKeySession->Run(&_sink);
                     TRACE(Trace::Information, ("Server::Session::Session(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
-                    TRACE_L1("Constructed the Session Server side: %p", this);
+                    TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                 }
 
                 SessionImplementation(
@@ -479,9 +479,9 @@ namespace Plugin {
                     // This constructor can only be used for extended OCDM sessions.
                     ASSERT(_mediaKeySessionExt != nullptr);
 
-                    TRACE_L1("Constructed the Session Server side: %p", this);
+                    TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                     _mediaKeySession->Run(&_sink);
-                    TRACE_L1("Constructed the Session Server side: %p", this);
+                    TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                 }
                 #ifdef __WINDOWS__
                 #pragma warning(default : 4355)
@@ -490,7 +490,7 @@ namespace Plugin {
                 virtual ~SessionImplementation()
                 {
 
-                    TRACE_L1("Destructing the Session Server side: %p", this);
+                    TRACE(Trace::Information, (_T("Destructing the Session Server side: %p"), this));
                     // this needs to be done in a thread safe way. Leave it up to
                     // the parent to lock handing out new entries before we clear.
                     _parent.Remove(this, _keySystem, _mediaKeySession);
@@ -498,7 +498,7 @@ namespace Plugin {
                     delete _buffer;
 
                     TRACE(Trace::Information, ("Server::Session::~Session(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
-                    TRACE_L1("Destructed the Session Server side: %p", this);
+                    TRACE(Trace::Information, (_T("Destructed the Session Server side: %p"), this));
                 }
 
             public:
@@ -603,7 +603,7 @@ namespace Plugin {
                 }
 
                 virtual void ResetOutputProtection() override {
-                    TRACE_L1("ResetOutputProtection! %p", this);
+                    TRACE(Trace::Information, (_T("ResetOutputProtection! %p"), this));
                     _mediaKeySession->ResetOutputProtection();
                 }
 
@@ -678,7 +678,7 @@ namespace Plugin {
             }
             virtual ~AccessorOCDM()
             {
-                TRACE_L1("Released the AccessorOCDM server side [%d]", __LINE__);
+                TRACE(Trace::Information, (_T("Released the AccessorOCDM server side [%d]"), __LINE__));
             }
 
         public:
@@ -765,7 +765,7 @@ namespace Plugin {
                  }
 
                  if (session == nullptr) {
-                     TRACE_L1("Could not create a DRM session! [%d]", __LINE__);
+                     TRACE(Trace::Error, (_T("Could not create a DRM session! [%d]"), __LINE__));
                  }
 
                  return (session != nullptr ? ::OCDM::OCDM_RESULT::OCDM_SUCCESS : ::OCDM::OCDM_RESULT::OCDM_S_FALSE);
@@ -785,7 +785,7 @@ namespace Plugin {
                     TRACE(Trace::Information, ("Set ServerCertificate()"));
                     result = static_cast<::OCDM::OCDM_RESULT>(system->SetServerCertificate(serverCertificate, serverCertificateLength));
                 } else {
-                    TRACE_L1("Could not set the Server Certificates for system: %s", keySystem.c_str());
+                    TRACE(Trace::Error, (_T("Could not set the Server Certificates for system: %s"), keySystem.c_str()));
                 }
                 return result;
             }
@@ -964,7 +964,7 @@ namespace Plugin {
                     if (system != nullptr) {
                         system->DestroyMediaKeySession(mediaKeySession);
                     } else {
-                        TRACE_L1("No system to handle session = %p\n", session);
+                        TRACE(Trace::Warning, (_T("No system to handle session = %p\n"), session));
                     }
                 }
 
@@ -1081,7 +1081,7 @@ namespace Plugin {
             , _systemToFactory()
             , _systemLibraries()
         {
-            TRACE_L1("Constructing OCDMImplementation Service: %p", this);
+            TRACE(Trace::Information, (_T("Constructing OCDMImplementation Service: %p"), this));
         }
         virtual ~OCDMImplementation()
         {
@@ -1095,7 +1095,7 @@ namespace Plugin {
 
             _systemLibraries.clear();
 
-            TRACE_L1("Destructed OCDMImplementation Service: %p", this);
+            TRACE(Trace::Information, (_T("Destructed OCDMImplementation Service: %p"), this));
         }
 
     public:
@@ -1221,7 +1221,7 @@ namespace Plugin {
                 std::list<CDMi::ISystemFactory*>::iterator index(std::find(deinitialized.begin(), deinitialized.end(), factory->second.Factory));
 
                 if(index == deinitialized.end()){ 
-                    TRACE_L1("Deinitializing factory(%p) for key system %s", factory->second.Factory, factory->second.Factory->KeySystem());
+                    TRACE(Trace::Information, (_T("Deinitializing factory(%p) for key system %s"), factory->second.Factory, factory->second.Factory->KeySystem()));
                     factory->second.Factory->Deinitialize(service);
                     deinitialized.push_back(factory->second.Factory);
                 }
@@ -1275,7 +1275,7 @@ namespace Plugin {
                 if (index == _systemToFactory.end()) {
                     result = false;
                 } else {
-                    if (contentType.empty() == false) {
+                    if (contentType.empty() == false && _systemBlacklistedMediaTypeRegexps.empty() == false && _systemBlacklistedCodecRegexps.empty() == false) {
                         std::string mimeType;
                         std::vector<std::string> codecs;
                         ParseContentType(contentType, mimeType, codecs);

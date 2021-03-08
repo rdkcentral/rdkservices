@@ -23,6 +23,7 @@
 #include <map>
 #include <sys/stat.h>
 #include <algorithm>
+#include <curl/curl.h>
 
 #include "utils.h"
 #include "SystemServicesHelper.h"
@@ -33,6 +34,7 @@ using namespace std;
 std::map<int, std::string> ErrCodeMap = {
     {SysSrv_OK, "Processed Successfully"},
     {SysSrv_MethodNotFound, "Method not found"},
+    {SysSrv_MissingKeyValues, "Missing required key/value(s)"},
     {SysSrv_UnSupportedFormat, "Unsupported or malformed format"},
     {SysSrv_FileNotPresent, "Expected file not found"},
     {SysSrv_FileAccessFailed, "File access failed"},
@@ -41,7 +43,8 @@ std::map<int, std::string> ErrCodeMap = {
     {SysSrv_SupportNotAvailable, "Support not available/enabled"},
     {SysSrv_LibcurlError, "LIbCurl service error"},
     {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"},
-    {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"}
+    {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"},
+    {SysSrv_KeyNotFound, "Key not found"}
 };
 
 std::string getErrorDescription(int errCode)
@@ -369,22 +372,26 @@ bool findCaseInsensitive(std::string data, std::string toSearch, size_t pos)
 
 /***
  * @brief	: To retrieve Xconf version of URL to override
+ * @param1[out]	: bFileExists - Returns true if /opt/swupdate.conf is present
  * @return	: string
  */
-string getXconfOverrideUrl(void)
+string getXconfOverrideUrl(bool& bFileExists)
 {
     string xconfUrl = "";
     vector<string> lines;
+    bFileExists = false;
 
     if (!Utils::fileExists(XCONF_OVERRIDE_FILE)) {
         return xconfUrl;
     }
 
+    bFileExists = true;
+
     if (getFileContent(XCONF_OVERRIDE_FILE, lines)) {
         if (lines.size()) {
             for (int i = 0; i < (int)lines.size(); ++i) {
                 string line = lines.at(i);
-                if (!line.rfind("#", 0)) {
+                if (!line.empty() && (line[0] != '#')) {
                     xconfUrl = line;
                 }
             }
@@ -458,6 +465,18 @@ std::string url_encode(std::string urlIn)
         curl_easy_cleanup(c_url);
     }
     return retval;
+}
+
+std::string urlEncodeField(CURL *curl_handle, std::string &data)
+{
+    std::string encString = "";
+
+    if (curl_handle) {
+        char* encoded = curl_easy_escape(curl_handle, data.c_str(), data.length());
+        encString = encoded;
+        curl_free(encoded);
+    }
+    return encString;
 }
 
 /**

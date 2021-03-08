@@ -34,8 +34,11 @@
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
+#define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
+#define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
+#define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 
 namespace WPEFramework
 {
@@ -58,7 +61,7 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
-
+            registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
         }
 
         HdmiInput::~HdmiInput()
@@ -77,6 +80,8 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
             }
         }
 
@@ -88,6 +93,8 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
             }
         }
 
@@ -135,6 +142,82 @@ namespace WPEFramework
             }
             returnResponse(success);
 
+        }
+
+        uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFO();
+
+            bool result = true;
+            if (!parameters.HasLabel("x") && !parameters.HasLabel("y"))
+            {
+                result = false;
+                response["message"] = "please specif coordinates (x,y)";
+            }
+
+            if (!parameters.HasLabel("w") && !parameters.HasLabel("h"))
+            {
+                result = false;
+                response["message"] = "please specify window width and height (w,h)";
+            }
+
+            if (result)
+            {
+                int x = 0;
+                int y = 0;
+                int w = 0;
+                int h = 0;
+
+                try
+		{
+		       if (parameters.HasLabel("x"))
+                       {
+                           x = std::stoi(parameters["x"].String());
+                       }
+                       if (parameters.HasLabel("y"))
+                       {
+                           y = std::stoi(parameters["y"].String());
+                       }
+                       if (parameters.HasLabel("w"))
+                       {
+                           w = std::stoi(parameters["w"].String());
+                       }
+                       if (parameters.HasLabel("h"))
+                       {
+                           h = std::stoi(parameters["h"].String());
+                       }
+		}
+                catch (...) {
+		    LOGWARN("Invalid Arguments");
+		    response["message"] = "Invalid Arguments";
+		    returnResponse(false);
+                }
+
+                result = setVideoRectangle(x, y, w, h);
+                if (false == result) {
+                  LOGWARN("HdmiInputService::setVideoRectangle Failed");
+                  response["message"] = "failed to set scale";
+                }
+            }
+
+            returnResponse(result);
+
+        }
+
+        bool HdmiInput::setVideoRectangle(int x, int y, int width, int height)
+        {
+            bool ret = true;
+
+            try
+            {
+                device::HdmiInput::getInstance().scaleVideo(x, y, width, height);
+            }
+            catch (const device::Exception& err)
+            {
+                ret = false;
+            }
+
+            return ret;
         }
 
         uint32_t HdmiInput::getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
@@ -233,6 +316,75 @@ namespace WPEFramework
             sendNotify(HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
         }
 
+        /**
+         * @brief This function is used to translate HDMI input signal change to
+         * signalChanged event.
+         *
+         * @param[in] port HDMI In port id.
+         * @param[in] signalStatus signal status of HDMI In port.
+         */
+        void HdmiInput::hdmiInputSignalChange( int port , int signalStatus)
+        {
+            LOGWARN("hdmiInputSignalStatus [%d, %d]", port, signalStatus);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "hdmiin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+	    switch (signalStatus) {
+		    case dsHDMI_IN_SIGNAL_STATUS_NOSIGNAL:
+			    params["signalStatus"] = "noSignal";
+			    break;
+
+	            case dsHDMI_IN_SIGNAL_STATUS_UNSTABLE:
+			    params["signalStatus"] = "unstableSignal";
+			    break;
+
+                    case dsHDMI_IN_SIGNAL_STATUS_NOTSUPPORTED:
+                            params["signalStatus"] = "notSupportedSignal";
+                            break;
+
+                    case dsHDMI_IN_SIGNAL_STATUS_STABLE:
+                            params["signalStatus"] = "stableSignal";
+                            break;
+
+	            default:
+                            params["signalStatus"] = "none";
+                            break;
+            }
+
+            sendNotify(HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
+        }
+
+        /**
+         * @brief This function is used to translate HDMI input status change to
+         * inputStatusChanged event.
+         *
+         * @param[in] port HDMI In port id.
+         * @param[bool] isPresented HDMI In presentation started/stopped.
+         */
+        void HdmiInput::hdmiInputStatusChange( int port , bool isPresented)
+        {
+            LOGWARN("hdmiInputStatus [%d, %d]", port, isPresented);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "hdmiin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+            if(isPresented) {
+                params["status"] = "started";
+            }
+	    else {
+                params["status"] = "stopped";
+            }
+
+            sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
+        }
+	
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             LOGINFO();
@@ -248,6 +400,44 @@ namespace WPEFramework
                 LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG  event data:%d", hdmiin_hotplug_port);
 
                 HdmiInput::_instance->hdmiInputHotplug(hdmiin_hotplug_port, hdmiin_hotplug_conn ? HDMI_HOT_PLUG_EVENT_CONNECTED : HDMI_HOT_PLUG_EVENT_DISCONNECTED);
+            }
+        }
+
+        void HdmiInput::dsHdmiSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            LOGINFO();
+
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_sig_status.port;
+                int hdmi_in_signal_status = eventData->data.hdmi_in_sig_status.status;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS  event  port: %d, signal status: %d", hdmi_in_port,hdmi_in_signal_status);
+
+                HdmiInput::_instance->hdmiInputSignalChange(hdmi_in_port, hdmi_in_signal_status);
+
+            }
+        }
+
+        void HdmiInput::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            LOGINFO();
+
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_status.port;
+                bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
+
+                HdmiInput::_instance->hdmiInputStatusChange(hdmi_in_port, hdmi_in_status);
+
             }
         }
 

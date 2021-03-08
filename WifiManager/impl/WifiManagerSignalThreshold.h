@@ -47,6 +47,7 @@ namespace WPEFramework {
             WifiManagerSignalThreshold& operator=(const WifiManagerSignalThreshold&) = delete;
 
             uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response);
+            void setSignalThresholdChangeEnabled(bool enable);
             uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
 
         private:
@@ -63,6 +64,7 @@ namespace WPEFramework {
             std::mutex cv_mutex;
             std::condition_variable cv;
             WifiManagerInterface &wifiManager;
+            bool running;
         };
     }
 }

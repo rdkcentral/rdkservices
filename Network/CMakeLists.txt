@@ -35,6 +35,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 find_package(IARMBus)
 
+add_definitions (-DNET_DEFINED_INTERFACES_ONLY)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})

@@ -31,181 +31,149 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <syscall.h>
 #include "Module.h"
-#include "impl/TTSManager.h"
 #include "tracing/Logging.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
-#include "TTSServicesCommon.h"
-#include <vector>
-#include <mutex>
+
+#include "TextToSpeechImplementation.h"
 
 namespace WPEFramework {
-    namespace Plugin {
+namespace Plugin {
 
-        class TTSEventCallback;
-        /**
-        * @brief WPEFramework class declaration for TextToSpeech
-        **/
-        // This is a server for a JSONRPC communication channel. 
-        // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
-        // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
-        // This realization of this interface implements, by default, the following methods on this plugin
-        // - exists
-        // - register
-        // - unregister
-        // Any other methood to be handled by this plugin  can be added can be added by using the
-        // templated methods Register on the PluginHost::JSONRPC class.
-        // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
-        // this class exposes a public method called, Notify(), using this methods, all subscribed clients
-        // will receive a JSONRPC message as a notification, in case this method is called.
-        class TextToSpeech: public AbstractPlugin {
-        private:
-            typedef Core::JSON::String JString;
-            typedef Core::JSON::ArrayType<JString> JStringArray;
-            typedef Core::JSON::Boolean JBool;
+    class TextToSpeech: public AbstractPlugin {
+    public:
+        class Notification : public RPC::IRemoteConnection::INotification,
+                             public Exchange::ITextToSpeech::INotification {
+            private:
+                Notification() = delete;
+                Notification(const Notification&) = delete;
+                Notification& operator=(const Notification&) = delete;
 
-            // We do not allow this plugin to be copied !!
-            TextToSpeech(const TextToSpeech&) = delete;
-            TextToSpeech& operator=(const TextToSpeech&) = delete;
-
-            //TTS Global APIS for Resident application
-            uint32_t enabletts(const JsonObject& parameters, JsonObject& response);
-            uint32_t listvoices(const JsonObject& parameters, JsonObject& response);
-            uint32_t setttsconfiguration(const JsonObject& parameters, JsonObject& response);
-            uint32_t getttsconfiguration(const JsonObject& parameters, JsonObject& response);
-
-            // Mandotory TTS APIs for client application
-            uint32_t isttsenabled(const JsonObject& parameters, JsonObject& response);
-            uint32_t speak(const JsonObject& parameters, JsonObject& response);
-            uint32_t cancel(const JsonObject& parameters, JsonObject& response);
-
-            // These extended APIS can be used by Client application if needed
-            uint32_t pause(const JsonObject& parameters, JsonObject& response);
-            uint32_t resume(const JsonObject& parameters, JsonObject& response);
-            uint32_t isspeaking(const JsonObject& parameters, JsonObject& response);
-            uint32_t getspeechstate(const JsonObject& parameters, JsonObject& response);
-
-            //version number API's
-            uint32_t getapiversion(const JsonObject& parameters, JsonObject& response);
-
-        private:
-            static TTS::TTSManager* m_ttsManager;
-            static TTSEventCallback* m_eventCallback;
-            TTS::Configuration m_config;
-            uint32_t m_apiVersionNumber;
-            std::mutex  m_mutex;
-
-        public:
-            TextToSpeech();
-            virtual ~TextToSpeech();
-            void notifyClient(std::string eventname, JsonObject& param);
-            void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items);
-        };
-
-        /**
-        *  TTSEventCallback for TTS events
-        **/
-        class TTSEventCallback : public TTS::TTSEventCallback
-        {
             public:
-                TTSEventCallback(TextToSpeech* callback)
-                {
-                    m_eventHandler = callback;
+                explicit Notification(TextToSpeech* parent)
+                    : _parent(*parent) {
+                    ASSERT(parent != nullptr);
                 }
 
-                void onTTSStateChanged(bool state)
-                {
-                    JsonObject params;
-                    params["state"] = JsonValue((bool)state);
-                    m_eventHandler->notifyClient("onttsstatechanged", params);
+                virtual ~Notification() {
                 }
 
-                void onVoiceChanged(std::string voice)
-                {
-                    JsonObject params;
-                    params["voice"] = voice;
-                    m_eventHandler->notifyClient("onvoicechanged", params);
+            public:
+                virtual void StateChanged(const string &data) {
+                    _parent.dispatchJsonEvent("onttsstatechanged", data);
                 }
 
-                void onWillSpeak(TTS::SpeechData &data)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)data.id);
-                    params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onwillspeak", params);
+                virtual void VoiceChanged(const string &data) {
+                    _parent.dispatchJsonEvent("onvoicechanged", data);
                 }
 
-                void onSpeechStart(TTS::SpeechData &data)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)data.id);
-                    params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onspeechstart", params);
+                virtual void WillSpeak(const string &data) {
+                    _parent.dispatchJsonEvent("onwillspeak", data);
                 }
 
-                void onSpeechPause(uint32_t speechId)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onspeechpause", params);
+                virtual void SpeechStart(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechstart", data);
                 }
 
-                void onSpeechResume(uint32_t speechId)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onspeechresume", params);
+                virtual void SpeechPause(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechpause", data);
                 }
 
-                void onSpeechCancelled(std::vector<uint32_t> speechIds)
-                {
-                    std::stringstream ss;
-                    for(auto it = speechIds.begin(); it != speechIds.end(); ++it)
-                    {
-                        if(it != speechIds.begin())
-                            ss << ",";
-                        ss << *it;
-                    }
-                    JsonObject params;
-                    params["speechid"]  = ss.str().c_str();
-                    m_eventHandler->notifyClient("onspeechcancelled", params);
+                virtual void SpeechResume(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechresume", data);
                 }
 
-                void onSpeechInterrupted(uint32_t speechId)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onspeechinterrupted", params);
+                virtual void SpeechCancelled(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechcancelled", data);
                 }
 
-                void onNetworkError(uint32_t speechId)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onnetworkerror", params);
+                virtual void SpeechInterrupted(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechinterrupted", data);
                 }
 
-                void onPlaybackError(uint32_t speechId)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)speechId);
-                    m_eventHandler->notifyClient("onplaybackerror", params);
+                virtual void NetworkError(const string &data) {
+                    _parent.dispatchJsonEvent("onnetworkerror", data);
                 }
 
-                void onSpeechComplete(TTS::SpeechData &data)
-                {
-                    JsonObject params;
-                    params["speechid"]  = JsonValue((int)data.id);
-                    params["text"]      = data.text;
-                    m_eventHandler->notifyClient("onspeechcomplete", params);
+                virtual void PlaybackError(const string &data) {
+                    _parent.dispatchJsonEvent("onplaybackerror", data);
                 }
+
+                virtual void SpeechComplete(const string &data) {
+                    _parent.dispatchJsonEvent("onspeechcomplete", data);
+                }
+
+                virtual void Activated(RPC::IRemoteConnection* /* connection */) final
+                {
+                    TTSLOG_WARNING("TextToSpeech::Notification::Activated - %p", this);
+                }
+
+                virtual void Deactivated(RPC::IRemoteConnection* connection) final
+                {
+                    TTSLOG_WARNING("TextToSpeech::Notification::Deactivated - %p", this);
+                    _parent.Deactivated(connection);
+                }
+
+                BEGIN_INTERFACE_MAP(Notification)
+                INTERFACE_ENTRY(Exchange::ITextToSpeech::INotification)
+                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+                END_INTERFACE_MAP
 
             private:
-                TextToSpeech *m_eventHandler;
+                    TextToSpeech& _parent;
         };
 
- } // namespace Plugin
+        BEGIN_INTERFACE_MAP(TextToSpeech)
+        INTERFACE_AGGREGATE(Exchange::ITextToSpeech, _tts)
+        NEXT_INTERFACE_MAP(AbstractPlugin)
+
+    public:
+        TextToSpeech();
+        virtual ~TextToSpeech();
+        virtual const string Initialize(PluginHost::IShell* service) override;
+        virtual void Deinitialize(PluginHost::IShell* service) override;
+
+    private:
+        // We do not allow this plugin to be copied !!
+        TextToSpeech(const TextToSpeech&) = delete;
+        TextToSpeech& operator=(const TextToSpeech&) = delete;
+
+        void RegisterAll();
+
+        //TTS Global APIS for Resident application
+        uint32_t Enable(const JsonObject& parameters, JsonObject& response);
+        uint32_t ListVoices(const JsonObject& parameters, JsonObject& response);
+        uint32_t SetConfiguration(const JsonObject& parameters, JsonObject& response);
+        uint32_t GetConfiguration(const JsonObject& parameters, JsonObject& response);
+
+        // Mandotory TTS APIs for client application
+        uint32_t IsEnabled(const JsonObject& parameters, JsonObject& response);
+        uint32_t Speak(const JsonObject& parameters, JsonObject& response);
+        uint32_t Cancel(const JsonObject& parameters, JsonObject& response);
+
+        // These extended APIS can be used by Client application if needed
+        uint32_t Pause(const JsonObject& parameters, JsonObject& response);
+        uint32_t Resume(const JsonObject& parameters, JsonObject& response);
+        uint32_t IsSpeaking(const JsonObject& parameters, JsonObject& response);
+        uint32_t GetSpeechState(const JsonObject& parameters, JsonObject& response);
+
+        //version number API's
+        uint32_t getapiversion(const JsonObject& parameters, JsonObject& response);
+
+        void dispatchJsonEvent(const char *event, const string &data);
+        void Deactivated(RPC::IRemoteConnection* connection);
+
+    private:
+        uint8_t _skipURL;
+        uint32_t _connectionId;
+        PluginHost::IShell* _service;
+        Exchange::ITextToSpeech* _tts;
+        Core::Sink<Notification> _notification;
+        uint32_t _apiVersionNumber;
+
+        friend class Notification;
+    };
+
+} // namespace Plugin
 } // namespace WPEFramework
