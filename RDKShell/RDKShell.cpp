@@ -160,6 +160,9 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        static Core::TimerType<EventTimer> gEventTimer(64 * 1024, "RDKShellEventTimer");
+        std::vector<JsonObject> gPendingLaunchItems;
+
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -185,6 +188,7 @@ namespace WPEFramework {
         std::mutex gPluginDataMutex;
 
         std::mutex gLaunchMutex;
+        std::mutex gPendingLaunchMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
@@ -235,6 +239,8 @@ namespace WPEFramework {
                    std::string serviceCallsign = service->Callsign();
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
+                   std::string eventName("SYSTEMSERVICE");
+                   mShell.startEventTimer(eventName);
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -277,7 +283,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(false), mCurrentService(nullptr), mEventTimer(this), mSystemEventTimerStarted(false), mLaunchEventTimerStarted(false), mLaunchTimerEventProcessing(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -597,6 +603,13 @@ namespace WPEFramework {
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
+            gPendingLaunchMutex.lock();
+            gPendingLaunchItems.clear();
+            gPendingLaunchMutex.unlock();
+            std::string eventName("LAUNCHAPPLICATION");
+            stopEventTimer(eventName);
+            eventName = "SYSTEMSERVICE";
+            stopEventTimer(eventName);
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
         }
@@ -2103,7 +2116,7 @@ namespace WPEFramework {
                 bool launchInProgress = false;
                 int32_t currentLaunchCount = 0;
                 gLaunchMutex.lock();
-                if (gLaunchCount > 0)
+                if ((gLaunchCount > 0) || ((!mLaunchTimerEventProcessing && gPendingLaunchItems.size()) > 0))
                 {
                     launchInProgress = true;
                 }
@@ -2116,6 +2129,9 @@ namespace WPEFramework {
                 std::cout << "the current launch count is " << currentLaunchCount << std::endl;
                 if (launchInProgress)
                 {
+                    gPendingLaunchMutex.lock();
+                    gPendingLaunchItems.push_back(parameters);
+                    gPendingLaunchMutex.unlock();
                     const string appCallsign = parameters["callsign"].String();
                     std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
                     response["message"] = "failed to launch application.  another launch is in progress";
@@ -2214,6 +2230,13 @@ namespace WPEFramework {
                         if (!topmostClient.empty())
                         {
                             response["message"] = "failed to launch application.  topmost application already present";
+                            gPendingLaunchMutex.lock();
+                            if ((gPendingLaunchItems.size() > 0) && (mLaunchTimerEventProcessing == false))
+                            {
+                                std::string eventName("LAUNCHAPPLICATION");
+                                startEventTimer(eventName);
+                            }
+                            gPendingLaunchMutex.unlock();
                             returnResponse(false);
                         }
                     }
@@ -2281,6 +2304,13 @@ namespace WPEFramework {
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
+                    gPendingLaunchMutex.lock();
+                    if ((gPendingLaunchItems.size() > 0) && (mLaunchTimerEventProcessing == false))
+                    {
+                        std::string eventName("LAUNCHAPPLICATION");
+                        startEventTimer(eventName);
+                    }
+                    gPendingLaunchMutex.unlock();
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -2620,7 +2650,13 @@ namespace WPEFramework {
             gLaunchCount = 0;
             gLaunchMutex.unlock();
             std::cout << "new launch count at loc2 is 0\n";
-
+            gPendingLaunchMutex.lock();
+            if ((gPendingLaunchItems.size() > 0) && (mLaunchTimerEventProcessing == false))
+            {
+                std::string eventName("LAUNCHAPPLICATION");
+                startEventTimer(eventName);
+            }
+            gPendingLaunchMutex.unlock();
             returnResponse(result);
         }
 
@@ -4483,6 +4519,96 @@ namespace WPEFramework {
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
             return ret;
+        }
+
+        void RDKShell::startEventTimer(std::string& name)
+        {
+            if (name.compare("SYSTEMSERVICE") == 0)
+            {
+                if (!mSystemEventTimerStarted)
+                {
+                    gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
+                    mSystemEventTimerStarted = true;
+                }
+            }
+            else if(name.compare("LAUNCHAPPLICATION") == 0)
+            {
+                gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
+                mLaunchEventTimerStarted = true;
+            }
+        }
+
+        void RDKShell::stopEventTimer(std::string& name)
+        {
+            if ((name.compare("SYSTEMSERVICE") == 0) && mSystemEventTimerStarted)
+            {
+                mSystemEventTimerStarted = false;
+                gEventTimer.Revoke(mEventTimer);
+            }
+            else if((name.compare("LAUNCHAPPLICATION") == 0) && mLaunchEventTimerStarted)
+            {
+                mLaunchEventTimerStarted = false;
+                gEventTimer.Revoke(mEventTimer);
+            }
+        }
+
+        void RDKShell::onLaunchTimerEvent()
+        {
+            if (!mLaunchEventTimerStarted)
+              return;
+
+            std::string eventName("LAUNCHAPPLICATION");
+            if (gLaunchCount > 0)
+            {
+                stopEventTimer(eventName);
+                startEventTimer(eventName);
+                return;
+            }
+
+            mLaunchTimerEventProcessing = true;
+            gPendingLaunchMutex.lock();
+            int noPendingApplications = gPendingLaunchItems.size();
+            gPendingLaunchMutex.unlock();
+            while (noPendingApplications > 0)
+            {
+                gPendingLaunchMutex.lock();
+                JsonObject parameters = gPendingLaunchItems.front();
+                gPendingLaunchItems.erase(gPendingLaunchItems.begin());
+                gPendingLaunchMutex.unlock();
+                JsonObject response;
+                launchWrapper(parameters, response);
+                gPendingLaunchMutex.lock();
+                noPendingApplications = gPendingLaunchItems.size();
+                gPendingLaunchMutex.unlock();
+            }
+            mLaunchTimerEventProcessing = false;
+            stopEventTimer(eventName);
+        }
+
+        void RDKShell::onSystemServiceTimerEvent()
+        {
+            if (!mSystemEventTimerStarted)
+              return;
+
+            std::string eventName("SYSTEMSERVICE");
+            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
+            {
+                std::string eventName("onSystemPowerStateChanged");
+                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                    gSystemServiceEventsSubscribed = true;
+                }
+            }
+            stopEventTimer(eventName);
+        }
+
+        uint64_t EventTimer::Timed(const uint64_t scheduledTime)
+        {
+            mShell->onSystemServiceTimerEvent();
+            mShell->onLaunchTimerEvent();
+            return 0;
         }
 
         // Internal methods end
