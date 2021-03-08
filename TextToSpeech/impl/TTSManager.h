@@ -22,10 +22,7 @@
 
 #include "TTSCommon.h"
 #include "TTSSpeaker.h"
-#include <iostream>
 
-#include <map>
-#include <mutex>
 #include <vector>
 
 namespace TTS {
@@ -99,10 +96,6 @@ private:
     TTSConfiguration m_defaultConfiguration;
     TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
-    bool m_ttsEnabled;
-    std::mutex m_mutex;
-
-    void loadConfigurationsFromFile(std::string configFile);
 };
 
 } // namespace TTS

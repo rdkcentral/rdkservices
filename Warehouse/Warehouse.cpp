@@ -61,7 +61,7 @@
 #define VERSION_FILE_NAME "/version.txt"
 #define CUSTOM_DATA_FILE "/lib/rdk/wh_api_5.conf"
 
-#define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth"
+#define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"
 #define INTERNAL_RESET_SCRIPT "rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &"
 
 #define FRONT_PANEL_NONE -1
@@ -214,7 +214,16 @@ namespace WPEFramework
                 err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
             }
 
-            bool ok = err == IARM_RESULT_SUCCESS;
+            bool ok = true;
+
+            // If SuppressReboot is false ie device is rebooted, IARMBus daemon will also be stopped.
+            // So cannot rely on return value from IARM_Bus_Call above.
+            // Hence checking for status only when SuppressReboot is true.
+            if(suppressReboot)
+            {
+                ok = (err == IARM_RESULT_SUCCESS);
+            }
+            
             JsonObject params;
 
             params[PARAM_SUCCESS] = ok;

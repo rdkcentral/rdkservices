@@ -18,118 +18,28 @@
  */
 
 #include "TTSManager.h"
-#include "logger.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <fstream>
-#include <regex>
-#include <map>
-#include <set>
 
 namespace TTS {
-
-std::string TTS_CONFIGURATION_FILE = "/opt/tts/tts.ini";
-
-void TTSManager::loadConfigurationsFromFile(std::string configFileName) {
-    TTSLOG_TRACE("Reading configuration file");
-
-    // Read configuration file and update m_defaultConfiguration
-    std::ifstream configFile(configFileName, std::ios::in);
-
-    if(configFile.is_open()) {
-        std::cmatch m;
-        std::string line;
-        std::map<std::string, std::string> configSet;
-        std::regex re("\\s*([a-zA-Z0-9_-]+)\\s*=\\s*([^ ]+).*$");
-
-        while(1) {
-            if(std::getline(configFile, line)) {
-                if(!line.empty() && std::regex_match(line.c_str(), m, re) && m.size() >= 3)
-                    configSet[m[1].str()] = m[2].str();
-            } else
-                break;
-        }
-
-        std::map<std::string, std::string>::iterator it;
-        if((it = configSet.find("TTSEndPoint")) != configSet.end()) {
-            m_defaultConfiguration.setEndPoint(it->second.c_str());
-            configSet.erase(it);
-        }
-
-        if((it = configSet.find("SecureTTSEndPoint")) != configSet.end()) {
-            m_defaultConfiguration.setSecureEndPoint(it->second.c_str());
-            configSet.erase(it);
-        }
-
-        if((it = configSet.find("Language")) != configSet.end()) {
-            m_defaultConfiguration.setLanguage(it->second.c_str());
-            configSet.erase(it);
-        }
-
-        if((it = configSet.find("Voice")) != configSet.end()) {
-            m_defaultConfiguration.setVoice(it->second.c_str());
-            configSet.erase(it);
-        }
-
-        if((it = configSet.find("Volume")) != configSet.end()) {
-            m_defaultConfiguration.setVolume(std::stod(it->second));
-            configSet.erase(it);
-        }
-
-        if((it = configSet.find("Rate")) != configSet.end()) {
-            m_defaultConfiguration.setRate(std::stoi(it->second));
-            configSet.erase(it);
-        }
-
-        m_defaultConfiguration.m_others = std::move(configSet);
-
-        configFile.close();
-    } else {
-        TTSLOG_ERROR("Configuration file \"%s\" is not found, using defaults", configFileName.c_str());
-    }
-
-    TTSLOG_WARNING("TTSEndPoint : %s", m_defaultConfiguration.endPoint().c_str());
-    TTSLOG_WARNING("SecureTTSEndPoint : %s", m_defaultConfiguration.secureEndPoint().c_str());
-    TTSLOG_WARNING("Language : %s", m_defaultConfiguration.language().c_str());
-    TTSLOG_WARNING("Voice : %s", m_defaultConfiguration.voice().c_str());
-    TTSLOG_WARNING("Volume : %lf", m_defaultConfiguration.volume());
-    TTSLOG_WARNING("Rate : %u", m_defaultConfiguration.rate());
-
-    auto it = m_defaultConfiguration.m_others.begin();
-    while( it != m_defaultConfiguration.m_others.end()) {
-        TTSLOG_WARNING("%s : %s", it->first.c_str(), it->second.c_str());
-        ++it;
-    }
-}
 
 TTSManager* TTSManager::create(TTSEventCallback *eventCallback)
 {
     TTSLOG_TRACE("TTSManager::create");
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
-
     return new TTSManager(eventCallback);
 }
 
 TTSManager::TTSManager(TTSEventCallback *callback) :
     m_callback(callback),
-    m_speaker(NULL),
-    m_ttsEnabled(false) {
+    m_speaker(NULL){
 
     TTSLOG_TRACE("TTSManager::TTSManager");
-
-    // Load configuration from file
-    loadConfigurationsFromFile(TTS_CONFIGURATION_FILE);
 
     // Setup Speaker passing the read configuration
     m_speaker = new TTSSpeaker(m_defaultConfiguration);
 }
 
 TTSManager::~TTSManager() {
-    TTSLOG_INFO("TTSManager::~TTSManager");
+    TTSLOG_TRACE("TTSManager::~TTSManager");
+    m_callback = NULL;
 
     // Clear Speaker Instance
     if(m_speaker) {
@@ -139,21 +49,21 @@ TTSManager::~TTSManager() {
 }
 
 TTS_Error TTSManager::enableTTS(bool enable) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    if(m_ttsEnabled != enable) {
-        m_ttsEnabled = enable;
-        TTSLOG_INFO("TTS is %s", enable ? "Enabled" : "Disabled");
-        m_callback->onTTSStateChanged(m_ttsEnabled);
-        m_speaker->ensurePipeline(m_ttsEnabled);
+    static bool force = true; 
+    if(force || m_defaultConfiguration.setEnabled(enable)) {
+        if(!m_defaultConfiguration.enabled())
+            shut(0);
+        TTSLOG_INFO("TTS is %s", m_defaultConfiguration.enabled()? "Enabled" : "Disabled");
+        m_defaultConfiguration.updateConfigStore();
+        m_callback->onTTSStateChanged(m_defaultConfiguration.enabled());
+        m_speaker->ensurePipeline(m_defaultConfiguration.enabled());
+        force = false;
     }
-
     return TTS_OK;
 }
 
 bool TTSManager::isTTSEnabled() {
-    TTSLOG_INFO("TTSManager isTTSEnabled(%d)",m_ttsEnabled);
-    return m_ttsEnabled;
+    return m_defaultConfiguration.enabled();
 }
 
 TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> &voices) {
@@ -164,18 +74,16 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
         returnCurrentConfiguration = true; // return voice for the configured language
         key = m_defaultConfiguration.language();
     } else if(language != "*") {
-        key += language.c_str(); // return voices for only the passed language
+        key += language; // return voices for only the passed language
     }
 
     if(returnCurrentConfiguration) {
-        TTSLOG_INFO("Retrieving voice configured for language=%s", key.c_str());
-        voices.push_back(m_defaultConfiguration.voice().c_str());
+        voices.push_back(m_defaultConfiguration.voice());
     } else {
-        TTSLOG_INFO("Retrieving voice list for language key=%s", key.c_str());
         auto it = m_defaultConfiguration.m_others.begin();
         while(it != m_defaultConfiguration.m_others.end()) {
-            if(it->first.find(key.c_str()) == 0)
-                voices.push_back(it->second.c_str());
+            if(it->first.find(key) == 0)
+                voices.push_back(it->second);
             ++it;
         }
     }
@@ -184,18 +92,16 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
 }
 
 TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
-    TTSLOG_VERBOSE("Setting Default Configuration");
-
+    TTSLOG_TRACE("Setting Default Configuration");
+    bool updated = false;
     std::string v = m_defaultConfiguration.voice();
-
-    m_mutex.lock();
 
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
     m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
-    m_defaultConfiguration.setLanguage(configuration.language);
-    m_defaultConfiguration.setVoice(configuration.voice);
-    m_defaultConfiguration.setVolume(configuration.volume);
-    m_defaultConfiguration.setRate(configuration.rate);
+    updated |= m_defaultConfiguration.setLanguage(configuration.language);
+    updated |= m_defaultConfiguration.setVoice(configuration.voice);
+    updated |= m_defaultConfiguration.setVolume(configuration.volume);
+    updated |= m_defaultConfiguration.setRate(configuration.rate);
 
     if(m_defaultConfiguration.endPoint().empty() && !m_defaultConfiguration.secureEndPoint().empty())
         m_defaultConfiguration.setEndPoint(m_defaultConfiguration.secureEndPoint());
@@ -203,8 +109,6 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         m_defaultConfiguration.setSecureEndPoint(m_defaultConfiguration.endPoint());
     else if(m_defaultConfiguration.endPoint().empty() && m_defaultConfiguration.secureEndPoint().empty())
         TTSLOG_WARNING("TTSEndPoint & SecureTTSEndPoints are empty!!!");
-
-    m_mutex.unlock();
 
     TTSLOG_INFO("Default config updated, endPoint=%s, secureEndPoint=%s, lang=%s, voice=%s, vol=%lf, rate=%u",
             m_defaultConfiguration.endPoint().c_str(),
@@ -216,12 +120,14 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     if(v !=  m_defaultConfiguration.voice())
         m_callback->onVoiceChanged(m_defaultConfiguration.voice());
+    if(updated)
+        m_defaultConfiguration.updateConfigStore();
 
     return TTS_OK;
 }
 
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
-    TTSLOG_VERBOSE("Getting Default Configuration");
+    TTSLOG_TRACE("Getting Default Configuration");
 
     configuration.ttsEndPoint = m_defaultConfiguration.endPoint();
     configuration.ttsEndPointSecured = m_defaultConfiguration.secureEndPoint();
@@ -269,11 +175,9 @@ TTS_Error TTSManager::resume(uint32_t id) {
 
 TTS_Error TTSManager::shut(uint32_t id) {
     TTSLOG_TRACE("Shut");
-
-    if((id != 0) && m_speaker && m_speaker->cancelSpeech(id))
-        return TTS_OK;
-
-    return TTS_FAIL;
+    if(m_speaker)
+        m_speaker->cancelSpeech(id);
+    return TTS_OK;
 }
 
 TTS_Error TTSManager::isSpeaking(uint32_t id, bool &speaking) {
@@ -291,7 +195,7 @@ TTS_Error TTSManager::getSpeechState(uint32_t id, SpeechState &state) {
 }
 
 void TTSManager::willSpeak(uint32_t speech_id, std::string text) {
-    TTSLOG_VERBOSE(" [%d, %s]", speech_id, text.c_str());
+    TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
@@ -300,7 +204,7 @@ void TTSManager::willSpeak(uint32_t speech_id, std::string text) {
 }
 
 void TTSManager::started(uint32_t speech_id, std::string text) {
-    TTSLOG_VERBOSE(" [%d, %s]", speech_id, text.c_str());
+    TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
@@ -309,7 +213,7 @@ void TTSManager::started(uint32_t speech_id, std::string text) {
 }
 
 void TTSManager::spoke(uint32_t speech_id, std::string text) {
-    TTSLOG_VERBOSE(" [%d, %s]", speech_id, text.c_str());
+    TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
@@ -318,7 +222,7 @@ void TTSManager::spoke(uint32_t speech_id, std::string text) {
 }
 
 void TTSManager::paused(uint32_t speech_id) {
-    TTSLOG_WARNING(" [id=%d]", speech_id);
+    TTSLOG_TRACE(" [id=%d]", speech_id);
 
     m_callback->onSpeechPause(speech_id);
 }

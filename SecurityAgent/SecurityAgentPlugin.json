@@ -8,6 +8,25 @@
     "description": "Security Agent of thunder is responsible to allow or block access to the Thunder API.",
     "version": "1.0"
   },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "acl": {
+            "type": "string",
+            "description": "ACL"
+          },
+          "connector": {
+            "type": "string",
+            "description": "Connector"
+          }
+        }
+      }
+    }
+  },
   "interface": {
     "$ref": "{interfacedir}/SecurityAgent.json#"
   }

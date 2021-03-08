@@ -19,6 +19,8 @@
 
 #include "Network.h"
 
+using namespace std;
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -26,14 +28,14 @@ namespace WPEFramework
         /**
          * @ingroup SERVMGR_PING_API
          */
-        JsonObject Network::_doPing(std::string endPoint, int packets)
+        JsonObject Network::_doPing(const string& guid, const string& endPoint, int packets)
         {
             LOGINFO("PingService calling ping");
             JsonObject pingResult;
-            std::string interface = "";
-            std::string gateway;
+            string interface = "";
+            string gateway;
             bool result = false;
-            std::string outputFile;
+            string outputFile;
             FILE *fp = NULL;
 
             pingResult["target"] = endPoint;
@@ -58,7 +60,7 @@ namespace WPEFramework
                 return pingResult;
             }
 
-            if (!_getDefaultInterface(interface, gateway))
+            if (!_getDefaultInterface(interface, gateway) || interface.empty())
             {
                 LOGERR("%s: Could not get default interface", __FUNCTION__);
                 pingResult["success"] = false;
@@ -69,12 +71,12 @@ namespace WPEFramework
             char cmd [1000] = {0x0};
             if (NetUtils::isIPV6(endPoint))
             {
-                snprintf(cmd, sizeof(cmd), "ping6 -I %s -c %d -W 5 %s 2>&1",
+                snprintf(cmd, sizeof(cmd), "ping6 -I %s -c %d -W 5 '%s' 2>&1",
                         interface.c_str(), packets, endPoint.c_str());
             }
             else
             {
-                snprintf(cmd, sizeof(cmd), "ping -c %d -W 5 %s 2>&1",
+                snprintf(cmd, sizeof(cmd), "ping -c %d -W 5 '%s' 2>&1",
                         packets, endPoint.c_str());
             }
 
@@ -107,40 +109,43 @@ namespace WPEFramework
                 char linearray[1000]={0x0};
                 while(fgets(linearray, sizeof(linearray), fp) != NULL)
                 {
-                    std::string line(linearray);
+                    string line(linearray);
                     LOGINFO("ping result: %s", line.c_str());
 
-                    if( line.find( "packet" ) != std::string::npos ) {
+                    if( line.find( "packet" ) != string::npos )
+                    {
                         //Example: 10 packets transmitted, 10 packets received, 0% packet loss
 
-                        std::stringstream ss( line );
+                        stringstream ss( line );
                         int transCount;
                         ss >> transCount;
                         pingResult["packetsTransmitted"] = transCount;
 
-                        std::string token;
+                        string token;
                         getline( ss, token, ',' );
                         getline( ss, token, ',' );
-                        std::stringstream ss2( token );
+                        stringstream ss2( token );
                         int rxCount;
                         ss2 >> rxCount;
                         pingResult["packetsReceived"] = rxCount;
 
                         getline( ss, token, ',' );
-                        std::string prefix = token.substr(0, token.find("%"));
+                        string prefix = token.substr(0, token.find("%"));
                         //double lossFloat = ::atof(prefix.c_str());
                         //pingResult["packetLoss"] = lossFloat;
                         pingResult["packetLoss"] = prefix.c_str();
 
-                    }else if( line.find( "min/avg/max" ) != std::string::npos ) {
+                    }
+                    else if( line.find( "min/avg/max" ) != string::npos )
+                    {
                         //Example: round-trip min/avg/max = 17.038/18.310/20.197 ms
 
-                        std::stringstream ss( line );
-                        std::string fullpath;
+                        stringstream ss( line );
+                        string fullpath;
                         getline( ss, fullpath, '=' );
                         getline( ss, fullpath, '=' );
 
-                        std::string prefix;
+                        string prefix;
                         int index = fullpath.find("/");
                         if (index >= 0)
                         {
@@ -168,9 +173,11 @@ namespace WPEFramework
                         if (index >= 0)
                         {
                             fullpath = fullpath.substr(index + 1, fullpath.length());
-                            pingResult["tripStdDev"] = prefix.c_str();
+                            pingResult["tripStdDev"] = fullpath.c_str();
                         }
-                    }else if( line.find( "bad" ) != std::string::npos ) {
+                    }
+                    else if( line.find( "bad" ) != string::npos )
+                    {
                         pingResult["success"] = false;
                         pingResult["error"] = "Bad Address";
                     }
@@ -178,8 +185,10 @@ namespace WPEFramework
                 fclose(fp);
 
                 // clear up
-                std::remove(outputFile.c_str());
+                remove(outputFile.c_str());
             }
+
+            pingResult["guid"] = guid;
 
             return pingResult;
         }
@@ -187,19 +196,19 @@ namespace WPEFramework
         /**
          * @ingroup SERVMGR_PING_API
          */
-        JsonObject Network::_doPingNamedEndpoint(std::string endpointName, int packets)
+        JsonObject Network::_doPingNamedEndpoint(const string& guid, const string& endpointName, int packets)
         {
             LOGINFO("PingService calling pingNamedEndpoint for %s", endpointName.c_str());
-            std::string error = "";
+            string error = "";
             JsonObject returnResult;
 
             if (endpointName == "CMTS")
             {
+                std::string interface;
                 std::string gateway = "";
-                string interface;
-                if (_getDefaultInterface(interface, gateway))
+                if (_getDefaultInterface(interface, gateway) && !gateway.empty())
                 {
-                    returnResult = _doPing(gateway, packets);
+                    returnResult = _doPing(guid, gateway, packets);
                 }
                 else
                 {
@@ -208,10 +217,7 @@ namespace WPEFramework
                 }
             }
             else
-            {
                 error = "Invalid endpoint name";
-            }
-
 
             if (error != "")
             {
