@@ -45,6 +45,7 @@ add_library(${MODULE_NAME} SHARED
 add_library(${PLUGIN_OCDM_IMPLEMENTATION} SHARED
         CENCParser.cpp
         FrameworkRPC.cpp
+        CapsParser.cpp
         Module.cpp)
 
 add_dependencies(${MODULE_NAME} ${PLUGIN_OCDM_IMPLEMENTATION})
