@@ -127,6 +127,7 @@ bool gRdkShellSurfaceModeEnabled = false;
 static std::string sThunderSecurityToken;
 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gSystemServiceConnection;
 bool gSystemServiceEventsSubscribed = false;
+static bool sResidentAppFirstLaunch = true;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -137,6 +138,7 @@ bool gSystemServiceEventsSubscribed = false;
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
+#define RESIDENTAPP_CALLSIGN "ResidentApp"
 
 enum RDKShellLaunchType
 {
@@ -235,6 +237,16 @@ namespace WPEFramework {
                    std::string serviceCallsign = service->Callsign();
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
+                }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
+                {
+                    sResidentAppFirstLaunch = false;
+                    bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
+                    if (launchFactoryApp)
+                    {
+                      JsonObject request, response;
+                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
+                    }
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
@@ -3703,6 +3715,58 @@ namespace WPEFramework {
             sendNotify(event.c_str(), parameters);
         }
         // Events end
+
+        bool RDKShell::checkForBootupFactoryAppLaunch()
+        {
+#ifdef RFC_ENABLED
+            RFC_ParamData_t param;
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
+            if (true == ret && (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0))
+            {
+              std::cout << "launching factory app as mac is matching " << std::endl;
+              return true;
+            }
+#else
+            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
+#endif
+
+            JsonObject joAgingParams;
+            JsonObject joAgingResult;
+            joAgingParams.Set("namespace","FactoryTest");
+            joAgingParams.Set("key","AgingState");
+            std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+            std::cout << "attempting to check aging state \n";
+            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "get status for aging state: " << status << std::endl;
+
+            if ((status == 0) && (joAgingResult.HasLabel("value")))
+            {
+              const std::string valueString = joAgingResult["value"].String();
+              if (valueString == "true")
+              {
+                std::cout << "launching factory app as aging state is set " << std::endl;
+                return true;
+              }
+            }
+
+            joAgingParams.Set("key","FactoryMode");
+
+            std::cout << "attempting to check factory mode \n";
+            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "get status for factory mode: " << status << std::endl;
+
+            if ((status == 0) && (joAgingResult.HasLabel("value")))
+            {
+              const std::string valueString = joAgingResult["value"].String();
+              if (valueString == "true")
+              {
+                std::cout << "launching factory app as factory mode is set " << std::endl;
+                return true;
+              }
+            }
+            return false;
+        }
 
         void RDKShell::killAllApps()
         {
