@@ -592,8 +592,14 @@ namespace WPEFramework {
             sqlite3* &db = SQLITE;
 
             if (db)
+            {
+                int rc = sqlite3_db_cacheflush(db);
+                if (rc != SQLITE_OK)
+                {
+                    LOGERR("Error while flushing sqlite db cached: %d", rc);
+                }
                 sqlite3_close(db);
-
+            }
             db = NULL;
         }
 
