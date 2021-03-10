@@ -328,6 +328,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS, dsAudioMuteEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
 
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
@@ -363,6 +364,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
 
@@ -467,6 +469,19 @@ namespace WPEFramework {
                 default:
                     break;
                 }
+            }
+        }
+        
+        void DisplaySettings::dsAudioMuteEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(eventId == IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS)
+            {
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    bool audio_mute_status = eventData->data.audio_out_mute_status.isPortMuted;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS : %s ",\
+                                                                    audio_mute_status?"TRUE":"FALSE");
+                    if(DisplaySettings::_instance)
+                        DisplaySettings::_instance->connectedVideoDisplaysUpdated(hdmi_hotplug_event);
             }
         }
 
@@ -3130,28 +3145,14 @@ namespace WPEFramework {
             sendNotify("activeInputChanged", params);
         }
 
-        void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
+        void DisplaySettings::audioMuteStatusChanged(bool muteStatus)
         {
-            static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
-            static int firstTime = 1;
+            JsonObject params;
+            params["muteStatus"] = activeInput;
+            sendNotify("audioMuteStatusChanged", params);
+        }
 
-            if (firstTime || previousStatus != hdmiHotPlugEvent)
-            {
-                firstTime = 0;
-                JsonArray connectedDisplays;
-                if (HDMI_HOT_PLUG_EVENT_CONNECTED == hdmiHotPlugEvent)
-                {
-                    connectedDisplays.Add("HDMI0");
-                }
-                else
-                {
-                    /* notify Empty list on HDMI-output-disconnect hotplug */
-                }
-
-                JsonObject params;
-                params["connectedVideoDisplays"] = connectedDisplays;
-                sendNotify("connectedVideoDisplaysUpdated", params);
-            }
+        void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
             previousStatus = hdmiHotPlugEvent;
         }
 
