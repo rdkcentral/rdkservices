@@ -581,7 +581,7 @@ namespace WPEFramework {
                 success = (rc == SQLITE_OK);
                 if (rc != SQLITE_OK)
                 {
-                    LOGERR("Error while flushing sqlite db cached: %d", rc);
+                    LOGERR("Error while flushing sqlite database cache: %d", rc);
                 }
             }
             return success;
@@ -596,7 +596,7 @@ namespace WPEFramework {
                 int rc = sqlite3_db_cacheflush(db);
                 if (rc != SQLITE_OK)
                 {
-                    LOGERR("Error while flushing sqlite db cached: %d", rc);
+                    LOGERR("Error while flushing sqlite database cache: %d", rc);
                 }
                 sqlite3_close(db);
             }
