@@ -365,6 +365,8 @@ namespace WPEFramework {
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
+                    this);
         }
 
 
@@ -513,11 +515,12 @@ namespace WPEFramework {
          *		"method": "org.rdk.SystemServices.events.1.onSystemPowerStateChanged",
          *		"param":{"powerState": <string new power state mode>}}
          */
-        void SystemServices::onSystemPowerStateChanged(string powerState)
+        void SystemServices::onSystemPowerStateChanged(string currentPowerState, string powerState)
         {
             JsonObject params;
             params["powerState"] = powerState;
-            LOGINFO("power state changed to '%s'", powerState.c_str());
+            params["currentPowerState"] = currentPowerState;
+            LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
         }
 
@@ -2899,6 +2902,33 @@ namespace WPEFramework {
         }
 
         /***
+         * @brief : To retrieve Device Power State before reboot.
+         * @param1[in] : {"params":{}}
+         * @param2[out] : {"result":{"":"<bool>","success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getPowerStateBeforeReboot (const JsonObject& parameters,
+            JsonObject& response)
+        {
+            bool retVal = false;
+            IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                   IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
+                                   sizeof(param));
+
+            LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
+                     param.powerStateBeforeReboot);
+            response["state"] = string (param.powerStateBeforeReboot);
+            if (IARM_RESULT_SUCCESS == res) {
+                retVal = true;
+            } else {
+                retVal = false;
+            }
+            returnResponse(retVal);
+        }
+
+
+        /***
          * @brief : To handle the event of Power State change.
          *     The event is registered to the IARM event handle on powerStateChange.
          *     Connects the change event to SystemServices::onSystemPowerStateChanged()
@@ -2926,6 +2956,8 @@ namespace WPEFramework {
 				curState = "LIGHT_SLEEP";
 			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
 				curState = "DEEP_SLEEP";
+			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+				curState = "OFF";
 			}
 
 			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
@@ -2940,7 +2972,7 @@ namespace WPEFramework {
                                 Old State %s, New State: %s\n",
                                 curState.c_str() , newState.c_str());
                         if (SystemServices::_instance) {
-                            SystemServices::_instance->onSystemPowerStateChanged(newState);
+                            SystemServices::_instance->onSystemPowerStateChanged(curState, newState);
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
