@@ -308,7 +308,7 @@ namespace WPEFramework
 		 LOGINFO("Command: Abort, sending FeatureAbort");
 		 try
 		 { 
-		     conn.sendTo(header.from, MessageEncoder().encode(FeatureAbort(AbortReason(ABORT_REASON_ID))));
+		     conn.sendTo(header.from, MessageEncoder().encode(FeatureAbort(OpCode(msg->opCode()),AbortReason(ABORT_REASON_ID))));
 		 } 
 		 catch(...)
 		 {
