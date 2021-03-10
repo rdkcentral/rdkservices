@@ -180,6 +180,12 @@ namespace WPEFramework
         Bluetooth::~Bluetooth()
         {
             Bluetooth::_instance = nullptr;
+
+            BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
+            if (BTRMGR_RESULT_SUCCESS != rc)
+            {
+                LOGWARN("Failed to UnRegister BTRMgr...!");
+            }
         }
 
         string Bluetooth::Information() const
