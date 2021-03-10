@@ -95,6 +95,11 @@ namespace WPEFramework {
             uint32_t getDialogEnhancement(const JsonObject& parameters, JsonObject& response);
             uint32_t setIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getIntelligentEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setGraphicEqualizerMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getGraphicEqualizerMode(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setMS12AudioProfile(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getMS12AudioProfile(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
