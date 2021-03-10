@@ -1446,7 +1446,7 @@ static GSourceFuncs _handlerIntervention =
             string configLine = service->ConfigLine();
             Core::OptionalType<Core::JSON::Error> error;
             if (_config.FromString(configLine, error) == false) {
-                SYSLOG(Trace::Error,
+                SYSLOG(Logging::ParsingError,
                        (_T("Failed to parse config line, error: '%s', config line: '%s'."),
                         (error.IsSet() ? error.Value().Message().c_str() : "Unknown"),
                         configLine.c_str()));
