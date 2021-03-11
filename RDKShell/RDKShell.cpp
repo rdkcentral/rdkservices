@@ -242,7 +242,7 @@ namespace WPEFramework {
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
+                /*else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
                 {
                     sResidentAppLaunched = true;
                     sResidentAppFirstLaunch = false;
@@ -273,7 +273,7 @@ namespace WPEFramework {
                        gRdkShellMutex.unlock();
                     }
                     sPersistentStoreLaunched = true;
-                }
+                }*/
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
@@ -466,7 +466,7 @@ namespace WPEFramework {
                     CompositorController::showWatermark();
                     receivedShowWatermarkRequest = false;
                   }
-                  if (sFactoryAppLaunchCheck)
+                  /*if (sFactoryAppLaunchCheck)
                   {
                     std::cout << "checking about factory app check activated\n";
                     usleep(1000);
@@ -478,7 +478,7 @@ namespace WPEFramework {
                       uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
                     }
                     sFactoryAppLaunchCheck = false;
-                  }
+                  }*/
                   RdkShell::draw();
                   RdkShell::update();
                   gRdkShellMutex.unlock();
