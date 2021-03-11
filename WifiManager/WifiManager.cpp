@@ -25,6 +25,9 @@
 
 #include "libIBus.h"
 
+const short WPEFramework::Plugin::WifiManager::API_VERSION_NUMBER_MAJOR = 2;
+const short WPEFramework::Plugin::WifiManager::API_VERSION_NUMBER_MINOR = 0;
+
 namespace {
     using WPEFramework::Plugin::WifiManager;
     using WifiManagerConstMethod = uint32_t (WifiManager::*)(const JsonObject &parameters, JsonObject &response) const;
@@ -58,27 +61,26 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(WifiManager, 1, 0);
+        SERVICE_REGISTRATION(WifiManager, WifiManager::API_VERSION_NUMBER_MAJOR, WifiManager::API_VERSION_NUMBER_MINOR);
 
         WifiManager::WifiManager()
-        : PluginHost::JSONRPC(),
-          apiVersionNumber(1),
+        : AbstractPlugin(WifiManager::API_VERSION_NUMBER_MAJOR),
+          apiVersionNumber(API_VERSION_NUMBER_MAJOR),
           wifiSignalThreshold(*this)
         {
             for(const auto &mapping: constMethods)
-                Register(mapping.first, mapping.second, this);
+                registerMethod(mapping.first, mapping.second, this);
 
             for(const auto &mapping: mutableMethods)
-                Register(mapping.first, mapping.second, this);
+                registerMethod(mapping.first, mapping.second, this);
+
+            /* Version 2 API */
+            registerMethod("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this, {2});
         }
 
         WifiManager::~WifiManager()
         {
-            for(const auto &mapping: constMethods)
-                Unregister(mapping.first);
-
-            for(const auto &mapping: mutableMethods)
-                Unregister(mapping.first);
+            WifiManager::instance=nullptr;
         }
 
         const string WifiManager::Initialize(PluginHost::IShell* service)
@@ -288,6 +290,16 @@ namespace WPEFramework
             LOGINFOMETHOD();
 
             uint32_t result = wifiSignalThreshold.isSignalThresholdChangeEnabled(parameters, response);
+
+            LOGTRACEMETHODFIN();
+            return result;
+        }
+
+        uint32_t WifiManager::getSupportedSecurityModes(const JsonObject &parameters, JsonObject &response)
+        {
+            LOGINFOMETHOD();
+
+            uint32_t result = wifiState.getSupportedSecurityModes(parameters, response);
 
             LOGTRACEMETHODFIN();
             return result;
