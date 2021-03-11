@@ -46,6 +46,7 @@ namespace WPEFramework {
             virtual uint32_t isPaired(const JsonObject& parameters, JsonObject& response) const = 0;
             virtual uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) = 0;
             virtual uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const = 0;
+            virtual uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response) = 0;
             //End methods
 
             //Begin events
