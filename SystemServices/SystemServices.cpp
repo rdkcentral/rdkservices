@@ -937,9 +937,7 @@ namespace WPEFramework {
         void SystemServices::firmwareUpdateInfoReceived(void)
         {
             string env = "";
-            string model;
             string firmwareVersion;
-            string eStbMac = "";
             if (_instance) {
                 firmwareVersion = _instance->getStbVersionString();
             } else {
@@ -957,25 +955,11 @@ namespace WPEFramework {
             else if (true == findCaseInsensitive(firmwareVersion, "CQA"))
                 env = "CQA";
 
-            string ipAddress = collectDeviceInfo("estb_ip");
-            removeCharsFromString(ipAddress, "\n\r");
-            model = getModel();
-
-            eStbMac = collectDeviceInfo("estb_mac");
-            removeCharsFromString(eStbMac, "\n\r");
-            LOGWARN("ipAddress = '%s', eStbMac = '%s'\n", (ipAddress.empty()? "empty" : ipAddress.c_str()),
-                (eStbMac.empty()? "empty" : eStbMac.c_str()));
-
             std::string response;
-            long http_code = 0;
-            CURL *curl_handle = NULL;
-            CURLcode res = CURLE_OK;
             firmwareUpdate _fwUpdate;
-            string pdriVersion = "";
-            string partnerId = "";
-            string accountId = "";
-            string match = "http://";
-            std::vector<std::pair<std::string, std::string>> fields;
+            
+            _fwUpdate.success = false;
+            _fwUpdate.httpStatus = 0;
 
             bool bFileExists = false;
             string xconfOverride; 
@@ -993,96 +977,57 @@ namespace WPEFramework {
                     return;
                 }
             }
-            string fullCommand = (xconfOverride.empty()? URL_XCONF : xconfOverride);
-            size_t start_pos = fullCommand.find(match);
-            if (std::string::npos != start_pos) {
-                fullCommand.replace(start_pos, match.length(), "https://");
-            }
-            LOGWARN("fullCommand : '%s'\n", fullCommand.c_str());
-            pdriVersion = Utils::cRunScript("/usr/bin/mfr_util --PDRIVersion");
-            pdriVersion = trim(pdriVersion);
 
-            partnerId = Utils::cRunScript("sh -c \". /lib/rdk/getPartnerId.sh; getPartnerId\"");
-            partnerId = trim(partnerId);
+            std::system("/lib/rdk/xconfImageCheck.sh  >> /opt/logs/wpeframework.log");
 
-            accountId = Utils::cRunScript("sh -c \". /lib/rdk/getAccountId.sh; getAccountId\"");
-            accountId = trim(accountId);
-
-            string timeZone = getTimeZoneDSTHelper();
-            string utcDateTime = currentDateTimeUtc("%a %B %e %I:%M:%S %Z %Y");
-            LOGINFO("timeZone = '%s', utcDateTime = '%s'\n", timeZone.c_str(), utcDateTime.c_str());
-
-            curl_handle = curl_easy_init();
-            _fwUpdate.success = false;
-
-            if (curl_handle) {
-                struct curl_slist *headers = NULL;
-
-                /* url encode the payload portion alone. */
-                fields.push_back(make_pair("eStbMac", urlEncodeField(curl_handle, eStbMac)));
-                fields.push_back(make_pair("env", urlEncodeField(curl_handle, env)));
-                fields.push_back(make_pair("model", urlEncodeField(curl_handle, model)));
-                fields.push_back(make_pair("timezone", urlEncodeField(curl_handle, timeZone)));
-                fields.push_back(make_pair("localtime", urlEncodeField(curl_handle, utcDateTime)));
-                fields.push_back(make_pair("firmwareVersion", urlEncodeField(curl_handle, firmwareVersion)));
-                fields.push_back(make_pair("capabilities", "rebootDecoupled"));
-                fields.push_back(make_pair("capabilities", "RCDL"));
-                fields.push_back(make_pair("capabilities", "supportsFullHttpUrl"));
-                fields.push_back(make_pair("additionalFwVerInfo", urlEncodeField(curl_handle, pdriVersion)));
-                fields.push_back(make_pair("partnerId", urlEncodeField(curl_handle, partnerId)));
-                fields.push_back(make_pair("accountID", urlEncodeField(curl_handle, accountId)));
-
-                for (std::vector<std::pair<std::string, std::string>>::const_iterator iter = fields.begin();
-                        iter != fields.end(); ++iter) {
-                    if (iter == fields.begin()) {
-                        fullCommand += "?" + iter->first + "=" + iter->second;
-                    } else {
-                        fullCommand += "&" + iter->first + "=" + iter->second;
-                    }
-                }
-                LOGINFO("curl url (enc): '%s'\n", fullCommand.c_str());
-
-                curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_easy_setopt(curl_handle, CURLOPT_URL, fullCommand.c_str());
-                /* when redirected, follow the redirections */
-                curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
-                curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 10L);
-                curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 10L);
-                curl_easy_setopt(curl_handle, CURLOPT_EXPECT_100_TIMEOUT_MS, 3000L);
-                curl_easy_setopt(curl_handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-                curl_easy_setopt(curl_handle, CURLOPT_TRANSFER_ENCODING, 1L);
-                //curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
-                //curl_easy_setopt(curl_handle, CURLOPT_DEFAULT_PROTOCOL, "https");
-                curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
-                res = curl_easy_perform(curl_handle);
-                curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
-                LOGWARN("curl result code: %d, http response code: %ld\n", res, http_code);
-                if (CURLE_OK != res) {
-                    LOGERR("curl_easy_perform failed; reason: '%s'\n", curl_easy_strerror(res));
-                }
-                _fwUpdate.httpStatus = http_code;
-                curl_easy_cleanup(curl_handle);
-            } else {
-                LOGWARN("Could not perform curl\n");
-            }
-
-            if (CURLE_OK == res) {
-                LOGINFO("curl response '%s'\n", response.c_str());
-                JsonObject httpResp;
-                if(httpResp.FromString(response.c_str()) && httpResp.HasLabel("firmwareVersion"))
+            //get xconf http code
+            string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
+            if(!httpCodeStr.empty())
+            {
+                try
                 {
-                    _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
-                    LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
-                    _fwUpdate.success = true;
+                    _fwUpdate.httpStatus = std::stoi(httpCodeStr);
+                }
+                catch(const std::exception& e)
+                {
+                    LOGERR("exception in converting xconf http code %s", e.what());
+                }
+            }
+
+            LOGINFO("xconf http code %d\n", _fwUpdate.httpStatus);
+
+            response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
+            LOGINFO("xconf response '%s'\n", response.c_str());
+            
+            if(!response.empty()) 
+            {
+                JsonObject httpResp;
+                if(httpResp.FromString(response))
+                {
+                    if(httpResp.HasLabel("firmwareVersion"))
+                    {
+                        _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
+                        LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
+                        _fwUpdate.success = true;
+                    }
+                    else
+                    {
+                        LOGERR("Xconf response is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
+                        response = "";
+                    }
                 }
                 else
                 {
-                    LOGERR("Response String is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
-                    response = "";
+                    LOGERR("Error in parsing xconf json response");
                 }
+                 
             }
+            else
+            {
+                LOGERR("Unable to open xconf response file");
+            }
+            
+
             if (_instance) {
                 _instance->reportFirmwareUpdateInfoReceived(_fwUpdate.firmwareUpdateVersion,
                         _fwUpdate.httpStatus, _fwUpdate.success, firmwareVersion, response);
