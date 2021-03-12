@@ -3148,11 +3148,32 @@ namespace WPEFramework {
         void DisplaySettings::audioMuteStatusChanged(bool muteStatus)
         {
             JsonObject params;
-            params["muteStatus"] = activeInput;
+            params["muteStatus"] = muteStatus;
             sendNotify("audioMuteStatusChanged", params);
         }
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
+        {
+            static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
+            static int firstTime = 1;
+
+            if (firstTime || previousStatus != hdmiHotPlugEvent)
+            {
+                firstTime = 0;
+                JsonArray connectedDisplays;
+                if (HDMI_HOT_PLUG_EVENT_CONNECTED == hdmiHotPlugEvent)
+                {
+                    connectedDisplays.Add("HDMI0");
+                }
+                else
+                {
+                    /* notify Empty list on HDMI-output-disconnect hotplug */
+                }
+
+                JsonObject params;
+                params["connectedVideoDisplays"] = connectedDisplays;
+                sendNotify("connectedVideoDisplaysUpdated", params);
+            }
             previousStatus = hdmiHotPlugEvent;
         }
 
