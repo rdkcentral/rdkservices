@@ -481,7 +481,7 @@ namespace WPEFramework {
                     LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS : %s ",\
                                                                     audio_mute_status?"TRUE":"FALSE");
                     if(DisplaySettings::_instance)
-                        DisplaySettings::_instance->connectedVideoDisplaysUpdated(hdmi_hotplug_event);
+                        DisplaySettings::_instance->audioMuteStatusChanged(audio_mute_status);
             }
         }
 

@@ -133,6 +133,7 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
+            void audioMuteStatusChanged(bool audioMuteStatus);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
