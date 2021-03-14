@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <thread>
 #include <mutex>
 
@@ -74,10 +75,12 @@ namespace WPEFramework {
         private:
 
             static void threadRun(ActivityMonitor *am);
+            int threadStop();
             void monitoring();
 
             std::thread m_monitor;
             std::mutex m_monitoringMutex;
+            std::condition_variable m_cond;
 
             MonitorParams *m_monitorParams;
             bool m_stopMonitoring;
