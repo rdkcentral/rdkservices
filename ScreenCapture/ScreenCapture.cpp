@@ -385,6 +385,7 @@ namespace WPEFramework
             err = fbInit(context, &api, NULL);
             if (err != ErrNone) {
                 LOGERR("fbInit fail");
+                fbDestroy(context);
                 return false;
             }
 
