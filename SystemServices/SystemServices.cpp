@@ -3190,7 +3190,7 @@ namespace WPEFramework {
                 auto it = FwFailReasonFromText.find(str);
                 if (it != FwFailReasonFromText.end())
                     failReason = it->second;
-                else
+                else if (!str.empty())
                     LOGWARN("Unrecognised FailureReason!");
             } else {
                 LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
