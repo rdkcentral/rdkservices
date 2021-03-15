@@ -296,6 +296,7 @@ size_t curl_write(void *ptr, size_t size, size_t nmemb, void *stream);
 enum FwFailReason
 {
     FwFailReasonNone = 0,
+    FwFailReasonNotFound,
     FwFailReasonNetworkFailure,
     FwFailReasonServerUnreachable,
     FwFailReasonCorruptDownloadFile,
