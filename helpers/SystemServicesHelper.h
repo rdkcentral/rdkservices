@@ -306,6 +306,7 @@ enum FwFailReason
 static const std::map<FwFailReason, string> FwFailReasonToText =
         {
                 {FwFailReasonNone, "None"},
+                {FwFailReasonNotFound, "Not found"},
                 {FwFailReasonNetworkFailure, "Network failure"},
                 {FwFailReasonServerUnreachable, "Server unreachable"},
                 {FwFailReasonCorruptDownloadFile, "Corrupt download file"},
@@ -317,7 +318,7 @@ static const std::map<string, FwFailReason> FwFailReasonFromText =
         {
                 {"ESTB Download Failure", FwFailReasonServerUnreachable},
                 {"Image Download Failed - Unable to connect", FwFailReasonNetworkFailure},
-                {"Image Download Failed - Server not Found", FwFailReasonNetworkFailure},
+                {"Image Download Failed - Server not Found", FwFailReasonNotFound},
                 {"Image Download Failed - Error response from server", FwFailReasonServerUnreachable},
                 {"Image Download Failed - Unknown", FwFailReasonServerUnreachable},
                 {"Image download failed from server", FwFailReasonServerUnreachable}, // firmwareDwnld.sh only
