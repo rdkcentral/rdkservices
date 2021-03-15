@@ -2,6 +2,7 @@
 
 #include <sqlite3.h>
 #include <glib.h>
+#include <unistd.h>
 
 #if defined(USE_PLABELS)
 #include "pbnj_utils.hpp"
@@ -584,6 +585,7 @@ namespace WPEFramework {
                     LOGERR("Error while flushing sqlite database cache: %d", rc);
                 }
             }
+            sync();
             return success;
         }
 
