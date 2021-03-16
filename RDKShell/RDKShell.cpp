@@ -27,6 +27,8 @@
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
+#include <interfaces/IBrowser.h>
+
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -4244,24 +4246,35 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            /*gPluginDataMutex.lock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
-            if (pluginsEntry != gActivePluginsData.end())
+
+            std::map<std::string, PluginData> activePluginsData;
+            gPluginDataMutex.lock();
+            activePluginsData = gActivePluginsData;
+            gPluginDataMutex.unlock();
+            std::map<std::string, PluginData>::iterator pluginsEntry = activePluginsData.find(client);
+            if (pluginsEntry != activePluginsData.end())
             {
                 PluginData& pluginData = pluginsEntry->second;
                 if (pluginData.mClassName.compare("WebKitBrowser") == 0)
                 {
-                    WPEFramework::Core::JSON::String visibilityString;
-                    visibilityString = visible?"visible":"hidden";
-                    const string callsignWithVersion = client + ".1";
-                    int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
+                    std::cout << "setting the visiblity of " << client << " to " << visible << std::endl;
+                    uint32_t status = 0;
+                    Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
+                    if (browser != NULL)
+                    {
+                        status = browser->Visible(visible);
+                        browser->Release();
+                    }
+                    else
+                    {
+                        status = 1;
+                    }
                     if (status > 0)
                     {
                         std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
                     }
                 }
             }
-            gPluginDataMutex.unlock();*/
 
             return ret;
         }
