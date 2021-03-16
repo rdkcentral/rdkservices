@@ -38,7 +38,8 @@ typedef enum {
     STATUS_FAILURE,
     STATUS_INVALID_ARGUMENT,
     STATUS_INVALID_STATE,
-    STATUS_METHOD_NOT_FOUND
+    STATUS_METHOD_NOT_FOUND,
+    STATUS_FMR_NOT_SUPPORTED
 } StatusCode;
 
 typedef enum
@@ -108,7 +109,7 @@ namespace WPEFramework {
             uint32_t getValuesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startPairingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t endPairingModeWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t findLastUsedRemoteWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t canFindMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t checkRf4ceChipConnectivityWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods

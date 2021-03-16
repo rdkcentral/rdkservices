@@ -65,8 +65,6 @@ namespace WPEFramework {
 		: AbstractPlugin()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
-			LOGINFO();
-
 			StateObserver::_instance = this;
 			Register("getValues", &StateObserver::getValues, this);
 			Register("registerListeners", &StateObserver::registerListeners, this);
@@ -80,14 +78,12 @@ namespace WPEFramework {
 
 		StateObserver::~StateObserver()
 		{
-			LOGINFO();
 			StateObserver::_instance = nullptr;
 			//Unregister all the APIs
 		}
 
 		const string StateObserver::Initialize(PluginHost::IShell* /* service */)
 		{
-			LOGINFO();
 			InitializeIARM();
 
 			// On success return empty, to indicate there is no error text.
@@ -96,14 +92,11 @@ namespace WPEFramework {
 
 		void StateObserver::Deinitialize(PluginHost::IShell* /* service */)
 		{
-			LOGINFO();
 			DeinitializeIARM();
 		}
 
 		void StateObserver::InitializeIARM()
 		{
-		    LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -113,8 +106,6 @@ namespace WPEFramework {
 
 		void StateObserver::DeinitializeIARM()
 		{
-		    LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -280,7 +271,6 @@ namespace WPEFramework {
 
 		void StateObserver::getVal(std::vector<string> pname,JsonObject& response)
 		{
-			LOGINFO();
 			static bool checkForStandalone = true;
 			static bool stbStandAloneMode = false;
 			if (checkForStandalone)

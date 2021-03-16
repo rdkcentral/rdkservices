@@ -69,11 +69,6 @@ namespace WPEFramework {
             Register("setMotionEventsActivePeriod", &MotionDetection::setMotionEventsActivePeriod, this);
             Register("getMotionEventsActivePeriod", &MotionDetection::getMotionEventsActivePeriod, this);
 
-            MOTION_DETECTION_RegisterEventCallback(motiondetection_EventCallback);
-
-            MOTION_DETECTION_DisarmMotionDetector(MOTION_DETECTOR_INDEX);
-
-            m_lastEventTime = std::chrono::system_clock::now();
         }
 
         MotionDetection::~MotionDetection()
@@ -106,14 +101,20 @@ namespace WPEFramework {
 
         const string MotionDetection::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             // On success return empty, to indicate there is no error text.
+	    MOTION_DETECTION_Platform_Init();
+
+            MOTION_DETECTION_RegisterEventCallback(motiondetection_EventCallback);
+
+            MOTION_DETECTION_DisarmMotionDetector(MOTION_DETECTOR_INDEX);
+
+            m_lastEventTime = std::chrono::system_clock::now();
             return (string());
         }
 
         void MotionDetection::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
+	    MOTION_DETECTION_Platform_Term();
         }
 
         //Begin methods
@@ -412,7 +413,6 @@ namespace WPEFramework {
         //Begin events
         void MotionDetection::onMotionEvent(const string& index, const string& eventType)
         {
-            LOGINFO();
             JsonObject params;
             params["index"] = index;
             params["mode"] = eventType;

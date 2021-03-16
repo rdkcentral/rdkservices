@@ -53,9 +53,15 @@ public:
     int applicationStateChanged( string app, string state, string id, string error);
     /**
      *This function will enable cast service by default.
+     *@param friendlyname - friendlyname
      *@param enableService - Enable/Disable the SSDP discovery of Dial server
      */
-    void enableCastService(bool enableService = true);
+    void enableCastService(string friendlyname,bool enableService = true);
+    /**
+     *This function will update friendly name.
+     *@param friendlyname - friendlyname
+     */
+    void updateFriendlyName(string friendlyname);
     /**
      *Request the single instance of this class
      */

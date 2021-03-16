@@ -46,7 +46,6 @@ namespace WPEFramework
         ScreenCapture::ScreenCapture()
         : AbstractPlugin()
         {
-            LOGINFO();
             ScreenCapture::_instance = this;
 
             screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
@@ -60,7 +59,6 @@ namespace WPEFramework
 
         ScreenCapture::~ScreenCapture()
         {
-            LOGINFO();
             ScreenCapture::_instance = nullptr;
 
             delete screenShotDispatcher;
@@ -70,7 +68,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             std::string callGUID;
 

@@ -116,10 +116,10 @@ namespace Plugin {
                 inline void Load(RPC::IStringIterator* entries)
                 {
                     Designators.Clear();
-                    TRACE_L1("Adding Designators: %d", __LINE__);
+                    TRACE(Trace::Information, (_T("Adding Designators: %d"), __LINE__));
                     string entry;
                     while (entries->Next(entry) == true) {
-                        TRACE_L1("Designator: %s", entry.c_str());
+                        TRACE(Trace::Information, (_T("Designator: %s"), entry.c_str()));
                         Designators.Add() = entry;
                     }
                 }

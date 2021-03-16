@@ -90,7 +90,7 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-                std::thread thread_getMacAddresses;
+                Utils::ThreadRAII thread_getMacAddresses;
                 SystemServices* m_systemService;
                 /* TODO: Need to decide whether needed or not since setProperty
                    and getProperty functionalities are XRE/RTRemote dependent. */
@@ -106,7 +106,7 @@ namespace WPEFramework {
                 static std::string m_currentMode;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
-                std::thread m_getFirmwareInfoThread;
+                Utils::ThreadRAII m_getFirmwareInfoThread;
 
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
@@ -135,7 +135,7 @@ namespace WPEFramework {
 
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
-                void onSystemPowerStateChanged(string powerState);
+                void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
@@ -215,6 +215,7 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+                uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

@@ -312,6 +312,17 @@ static bool shouldGoToBackForwardListItem(WKBundlePageRef, WKBundleBackForwardLi
     return result;
 }
 
+static void updateCurrentURL(WKBundleFrameRef frame)
+{
+    if (WKBundleFrameIsMainFrame(frame)) {
+        WKURLRef mainFrameURL = WKBundleFrameCopyURL(frame);
+        WKStringRef urlString = WKURLCopyString(mainFrameURL);
+        g_currentURL = WebKit::Utils::WKStringToString(urlString);
+        WKRelease(urlString);
+        WKRelease(mainFrameURL);
+    }
+}
+
 static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     { 6, nullptr },
     // didStartProvisionalLoadForFrame
@@ -332,17 +343,14 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     },
     nullptr, // didReceiveServerRedirectForProvisionalLoadForFrame
     nullptr, // didFailProvisionalLoadWithErrorForFrame
-    nullptr, // didCommitLoadForFrame
+    // didCommitLoadForFrame
+    [](WKBundlePageRef, WKBundleFrameRef frame, WKTypeRef*, const void *) {
+        updateCurrentURL(frame);
+    },
     nullptr, // didFinishDocumentLoadForFrame
     // didFinishLoadForFrame
-    [](WKBundlePageRef pageRef, WKBundleFrameRef frame, WKTypeRef*, const void*) {
-
-        WKBundleFrameRef mainFrame = WKBundlePageGetMainFrame(pageRef);
-        WKURLRef mainFrameURL = WKBundleFrameCopyURL(mainFrame);
-        WKStringRef urlString = WKURLCopyString(mainFrameURL);
-        g_currentURL = WebKit::Utils::WKStringToString(urlString);
-        WKRelease(urlString);
-        WKRelease(mainFrameURL);
+    [](WKBundlePageRef, WKBundleFrameRef frame, WKTypeRef*, const void*) {
+        updateCurrentURL(frame);
     },
     nullptr, // didFailLoadWithErrorForFrame
     nullptr, // didSameDocumentNavigationForFrame

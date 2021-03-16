@@ -192,8 +192,6 @@ namespace WPEFramework
 
         const string Network::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -208,7 +206,6 @@ namespace WPEFramework
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;

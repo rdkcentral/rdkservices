@@ -46,7 +46,6 @@ namespace WPEFramework
         DeviceDiagnostics::DeviceDiagnostics()
         : AbstractPlugin()
         {
-            LOGINFO();
             DeviceDiagnostics::_instance = this;
 
             registerMethod(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
@@ -54,13 +53,12 @@ namespace WPEFramework
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
-            LOGINFO();
             DeviceDiagnostics::_instance = nullptr;
         }
 
         uint32_t DeviceDiagnostics::getConfigurationWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             JsonArray names = parameters["names"].Array();
 

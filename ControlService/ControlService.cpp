@@ -86,7 +86,7 @@ namespace WPEFramework {
             registerMethod("endPairingMode", &ControlService::endPairingModeWrapper, this);
 
             registerMethod("canFindMyRemote", &ControlService::canFindMyRemoteWrapper, this);
-            registerMethod("findMyRemote", &ControlService::findMyRemoteWrapper, this);
+            registerMethod("findLastUsedRemote", &ControlService::findLastUsedRemoteWrapper, this);
 
             registerMethod("checkRf4ceChipConnectivity", &ControlService::checkRf4ceChipConnectivityWrapper, this);
 
@@ -102,7 +102,6 @@ namespace WPEFramework {
 
         const string ControlService::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -110,13 +109,11 @@ namespace WPEFramework {
 
         void ControlService::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void ControlService::InitializeIARM()
         {
-            LOGINFO();
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -142,8 +139,6 @@ namespace WPEFramework {
 
         void ControlService::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -504,7 +499,6 @@ namespace WPEFramework {
 
         void ControlService::pairingHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN)
             {
                 LOGINFO("Got a controlMgr VALIDATION_BEGIN event!");
@@ -731,6 +725,7 @@ namespace WPEFramework {
             JsonArray array;
             array.Add("DELIA-43686");
             array.Add("RDK-28767");
+            array.Add("RDK-31263");
             response["quirks"] = array;
             returnResponse(true);
         }
@@ -951,7 +946,7 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
-        uint32_t ControlService::findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t ControlService::findLastUsedRemoteWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             StatusCode status_code = STATUS_OK;
@@ -959,24 +954,10 @@ namespace WPEFramework {
             int timeOutPeriod = -1;
             bool bOnlyLastUsed = true;
 
-            if (!parameters.IsSet())
-            {
-                // There are either NO parameters, or no remoteId.  We will treat this as a fatal error. Exit now.
-                LOGERR("ERROR - this method requires a 'timeOutPeriod' parameter and a bOnlyLastUsed parameter!");
-                response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
-                returnResponse(false);
-            }
-            else if (!parameters.HasLabel("timeOutPeriod"))
+            if (!parameters.HasLabel("timeOutPeriod"))
             {
 
                 LOGERR("ERROR - this method requires a 'timeOutPeriod' parameter!");
-                response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
-                returnResponse(false);
-            }
-            else if (!parameters.HasLabel("bOnlyLastUsed"))
-            {
-            // Get the remoteId from the parameters
-                LOGERR("ERROR - this method requires a 'bOnlyLastUsed' parameter!");
                 response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                 returnResponse(false);
             }
@@ -996,16 +977,6 @@ namespace WPEFramework {
                 }
                 timeOutPeriod = value;
                 LOGINFO("timeOutPeriod passed in is %d.", timeOutPeriod);
-            }
-
-            // Get the bOnlyLastUsed from the parameters
-            paramKey = "bOnlyLastUsed";
-            if (parameters.HasLabel(paramKey))
-            {
-                bool value = 0;
-                getBoolParameter(paramKey, value);
-                bOnlyLastUsed = value;
-                LOGINFO("bOnlyLastUsed passed in is %d.", bOnlyLastUsed);
             }
 
             std::lock_guard<std::mutex> guard(m_callMutex);
@@ -1561,7 +1532,16 @@ namespace WPEFramework {
                 if (pCmd->result != CTRLM_IARM_CALL_RESULT_SUCCESS)
                 {
                     LOGERR("ERROR - CTRLM_RCU_IARM_CALL_REVERSE_CMD FAILED, result: %d.", (int)pCmd->result);
-                    status_code = STATUS_FAILURE;
+                    if((pCmd->cmd_result == CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_CAPABLE) ||
+                       (pCmd->cmd_result == CTRLM_RCU_REVERSE_CMD_DISABLED))
+                    {
+                        status_code = STATUS_FMR_NOT_SUPPORTED;
+                        LOGINFO("CTRLM_RCU_IARM_CALL_REVERSE_CMD cmd_result: %d.", (int)pCmd->cmd_result);
+                    }
+                    else
+                    {
+                        status_code = STATUS_FAILURE;
+                    }
                 }
                 else
                 {
@@ -1575,6 +1555,9 @@ namespace WPEFramework {
                         case CTRLM_RCU_REVERSE_CMD_FAILURE:                 status_code = STATUS_FAILURE;           break;
                         case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_FOUND:    status_code = STATUS_INVALID_ARGUMENT;  break;
                         case CTRLM_RCU_REVERSE_CMD_USER_INTERACTION:        status_code = STATUS_FAILURE;           break;  // The bus call should NEVER return this!
+
+                        case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_CAPABLE:  status_code = STATUS_FMR_NOT_SUPPORTED; break;
+                        case CTRLM_RCU_REVERSE_CMD_DISABLED:                status_code = STATUS_FMR_NOT_SUPPORTED; break;
                     }
                 }
             }

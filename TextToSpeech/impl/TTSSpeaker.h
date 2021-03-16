@@ -52,12 +52,13 @@ public:
     TTSConfiguration();
     ~TTSConfiguration();
 
-    void setEndPoint(const std::string endpoint);
-    void setSecureEndPoint(const std::string endpoint);
-    void setLanguage(const std::string language);
-    void setVoice(const std::string voice);
-    void setVolume(const double volume);
-    void setRate(const uint8_t rate);
+    bool setEndPoint(const std::string endpoint);
+    bool setSecureEndPoint(const std::string endpoint);
+    bool setLanguage(const std::string language);
+    bool setVoice(const std::string voice);
+    bool setEnabled(const bool dnabled);
+    bool setVolume(const double volume);
+    bool setRate(const uint8_t rate);
     void setPreemptiveSpeak(const bool preemptive);
 
     const std::string &endPoint() { return m_ttsEndPoint; }
@@ -65,10 +66,13 @@ public:
     const std::string &language() { return m_language; }
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
+    const bool enabled() { return m_enabled; }
     bool isPreemptive() { return m_preemptiveSpeaking; }
+    bool loadFromConfigStore();
+    bool updateConfigStore();
     const std::string voice();
 
-    void updateWith(TTSConfiguration &config);
+    bool updateWith(TTSConfiguration &config);
     bool isValid();
 
     static std::map<std::string, std::string> m_others;
@@ -81,6 +85,7 @@ private:
     double m_volume;
     uint8_t m_rate;
     bool m_preemptiveSpeaking;
+    bool m_enabled;
 };
 
 class TTSSpeakerClient {

@@ -70,7 +70,6 @@ rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const 
 {
     if (numArgs == 1)
     {
-        LOGINFO ();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -92,7 +91,6 @@ rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -114,7 +112,6 @@ rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rt
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -139,7 +136,6 @@ rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const r
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -164,7 +160,6 @@ rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const 
 {
     if (numArgs == 1)
     {
-        LOGINFO();
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
@@ -212,6 +207,7 @@ int RtXcastConnector::connectToRemoteService()
     
     const char * serviceName = "com.comcast.xdialcast";
     
+    LOGINFO("connectToRemoteService entry " );
     err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 3000, &RtXcastConnector::remoteDisconnectCallback, m_observer);
     if(err == RT_OK && xdialCastObj != NULL)
     {
@@ -288,19 +284,35 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
         LOGINFO(" xdialCastObj is NULL ");
     return status;
 }//app && state not empty
-void RtXcastConnector::enableCastService(bool enableService)
+void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
 {
+    LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
     if(xdialCastObj != NULL)
     {
         rtObjectRef e = new rtMapObject;
         e.set("activation",(enableService ? "true": "false"));
-        xdialCastObj.send("onActivationChanged", e);
+        e.set("friendlyname",friendlyname.c_str());
+        int ret = xdialCastObj.send("onActivationChanged", e);
+        LOGINFO("XcastService send onActivationChanged:%d",ret);
     }
     else
         LOGINFO(" xdialCastObj is NULL ");
     
 }
 
+void RtXcastConnector::updateFriendlyName(string friendlyname)
+{
+    LOGINFO("XcastService::updateFriendlyName ARGS = %s ", friendlyname.c_str());
+    if(xdialCastObj != NULL)
+    {
+        rtObjectRef rtObj = new rtMapObject;
+        rtObj.set("friendlyname",friendlyname.c_str());
+        int ret = xdialCastObj.send("onFriendlyNameChanged", rtObj);
+        LOGINFO("XcastService send onFriendlyNameChanged ret:%d",ret);
+    }
+    else
+        LOGINFO(" xdialCastObj is NULL ");
+}
 
 RtXcastConnector * RtXcastConnector::getInstance()
 {

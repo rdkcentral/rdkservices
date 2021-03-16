@@ -2,6 +2,7 @@
 
 #include <sqlite3.h>
 #include <glib.h>
+#include <unistd.h>
 
 #if defined(USE_PLABELS)
 #include "pbnj_utils.hpp"
@@ -23,6 +24,7 @@ const string WPEFramework::Plugin::PersistentStore::METHOD_DELETE_NAMESPACE = "d
 const string WPEFramework::Plugin::PersistentStore::METHOD_GET_KEYS = "getKeys";
 const string WPEFramework::Plugin::PersistentStore::METHOD_GET_NAMESPACES = "getNamespaces";
 const string WPEFramework::Plugin::PersistentStore::METHOD_GET_STORAGE_SIZE = "getStorageSize";
+const string WPEFramework::Plugin::PersistentStore::METHOD_FLUSH_CACHE = "flushCache";
 const string WPEFramework::Plugin::PersistentStore::EVT_ON_STORAGE_EXCEEDED = "onStorageExceeded";
 const char* WPEFramework::Plugin::PersistentStore::STORE_NAME = "rdkservicestore";
 const char* WPEFramework::Plugin::PersistentStore::STORE_KEY = "xyzzy123";
@@ -80,6 +82,7 @@ namespace WPEFramework {
             registerMethod(METHOD_GET_KEYS, &PersistentStore::getKeysWrapper, this);
             registerMethod(METHOD_GET_NAMESPACES, &PersistentStore::getNamespacesWrapper, this);
             registerMethod(METHOD_GET_STORAGE_SIZE, &PersistentStore::getStorageSizeWrapper, this);
+            registerMethod(METHOD_FLUSH_CACHE, &PersistentStore::flushCacheWrapper, this);
         }
 
         PersistentStore::~PersistentStore()
@@ -92,8 +95,6 @@ namespace WPEFramework {
 
         const string PersistentStore::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             auto path = g_build_filename("opt", "persistent", nullptr);
             if (!fileExists(path))
                 g_mkdir_with_parents(path, 0745);
@@ -107,8 +108,6 @@ namespace WPEFramework {
 
         void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
-
             term();
         }
 
@@ -281,6 +280,15 @@ namespace WPEFramework {
                     jsonNamespaceSizes[it->first.c_str()] = it->second;
                 response["namespaceSizes"] = jsonNamespaceSizes;
             }
+
+            returnResponse(success);
+        }
+
+        uint32_t PersistentStore::flushCacheWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = flushCache();
 
             returnResponse(success);
         }
@@ -515,8 +523,6 @@ namespace WPEFramework {
 
         bool PersistentStore::getNamespaces(std::vector<string>& namespaces)
         {
-            LOGINFO();
-
             bool success = false;
 
             sqlite3* &db = SQLITE;
@@ -540,8 +546,6 @@ namespace WPEFramework {
 
         bool PersistentStore::getStorageSize(std::map<string, uint64_t>& namespaceSizes)
         {
-            LOGINFO();
-
             bool success = false;
 
             sqlite3* &db = SQLITE;
@@ -567,22 +571,42 @@ namespace WPEFramework {
             return success;
         }
 
+        bool PersistentStore::flushCache()
+        {
+            sqlite3* &db = SQLITE;
+            bool success = false;
+
+            if (db)
+            {
+                int rc = sqlite3_db_cacheflush(db);
+                success = (rc == SQLITE_OK);
+                if (rc != SQLITE_OK)
+                {
+                    LOGERR("Error while flushing sqlite database cache: %d", rc);
+                }
+            }
+            sync();
+            return success;
+        }
+
         void PersistentStore::term()
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             if (db)
+            {
+                int rc = sqlite3_db_cacheflush(db);
+                if (rc != SQLITE_OK)
+                {
+                    LOGERR("Error while flushing sqlite database cache: %d", rc);
+                }
                 sqlite3_close(db);
-
+            }
             db = NULL;
         }
 
         void PersistentStore::vacuum()
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             if (db)
@@ -604,8 +628,6 @@ namespace WPEFramework {
 
         bool PersistentStore::init(const char* filename, const char* key)
         {
-            LOGINFO();
-
             sqlite3* &db = SQLITE;
 
             term();

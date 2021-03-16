@@ -66,7 +66,6 @@ namespace WPEFramework
         Timer::Timer()
         : AbstractPlugin()
         {
-            LOGINFO();
             Timer::_instance = this;
 
             Utils::IARM::init();
@@ -83,14 +82,11 @@ namespace WPEFramework
 
         Timer::~Timer()
         {
-            LOGINFO();
             Timer::_instance = nullptr;
         }
 
         void Timer::checkTimers()
         {
-            LOGINFO();
-
             double minTimeout = 100000;
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
             {
@@ -188,8 +184,6 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
-
             std::list <int> itemsToDelete;
 
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
@@ -276,7 +270,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (!parameters.HasLabel("interval"))
             {
@@ -313,7 +307,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (!parameters.HasLabel("timerId"))
             {
@@ -343,7 +337,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (!parameters.HasLabel("timerId"))
             {
@@ -373,7 +367,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (!parameters.HasLabel("timerId"))
             {
@@ -404,7 +398,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (!parameters.HasLabel("timerId"))
             {
@@ -432,7 +426,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
-            LOGINFO();
+            LOGINFOMETHOD();
 
             JsonArray timers;
             for (unsigned int n = 0; n < m_timerItems.size(); n++)
