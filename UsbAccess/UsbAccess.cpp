@@ -28,7 +28,6 @@ namespace WPEFramework {
         UsbAccess::UsbAccess()
             : AbstractPlugin()
         {
-            LOGINFO();
             UsbAccess::_instance = this;
             registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
             registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
@@ -37,19 +36,16 @@ namespace WPEFramework {
 
         UsbAccess::~UsbAccess()
         {
-            LOGINFO();
             UsbAccess::_instance = nullptr;
         }
 
         const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             return "";
         }
 
         void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
         }
 
         string UsbAccess::Information() const
