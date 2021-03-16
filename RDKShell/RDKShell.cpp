@@ -400,6 +400,16 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
+            char* waylandDisplay = getenv("WAYLAND_DISPLAY");
+            if (NULL != waylandDisplay)
+            {
+                std::cout << "RDKShell WAYLAND_DISPLAY is set to: " << waylandDisplay <<" unsetting WAYLAND_DISPLAY\n";
+                unsetenv("WAYLAND_DISPLAY");
+            }
+            else
+            {
+                std::cout << "RDKShell WAYLAND_DISPLAY is not set\n";
+            }
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
