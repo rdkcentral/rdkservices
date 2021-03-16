@@ -2,7 +2,7 @@
 Steps involved in implementing new RDK services Plug-In
 --------------------------------------------------------
 
- reference: https://wiki.rdkcentral.com/display/RDK/User+Manual+-+RDK+Services+on+RPi
+ reference: https://wiki.rdkcentral.com/display/RDK/RDKServices+Plugin+Template
 
 
  In RDK services -plugins workspace:
