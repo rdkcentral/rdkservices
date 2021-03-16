@@ -3116,7 +3116,7 @@ namespace WPEFramework {
             returnIfParamNotFound(parameters, "scartParameterData");
 
             string sScartParameter = parameters["scartParameter"].String();
-            string sScartParameterData = parameters["cartParameterData"].String();
+            string sScartParameterData = parameters["scartParameterData"].String();
 
             bool success = true;
             try
