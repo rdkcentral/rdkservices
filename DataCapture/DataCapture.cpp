@@ -94,14 +94,12 @@ namespace WPEFramework {
 
         const string DataCapture::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             return "";
         }
 
         void DataCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
@@ -112,8 +110,6 @@ namespace WPEFramework {
 
         void DataCapture::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -123,8 +119,6 @@ namespace WPEFramework {
 
         void DataCapture::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;

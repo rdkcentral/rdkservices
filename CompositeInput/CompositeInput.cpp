@@ -47,7 +47,6 @@ namespace WPEFramework
         CompositeInput::CompositeInput()
         : AbstractPlugin()
         {
-            LOGINFO();
             CompositeInput::_instance = this;
 
             InitializeIARM();
@@ -60,7 +59,6 @@ namespace WPEFramework
 
         CompositeInput::~CompositeInput()
         {
-            LOGINFO();
             CompositeInput::_instance = nullptr;
 
             DeinitializeIARM();
@@ -68,8 +66,6 @@ namespace WPEFramework
 
         void CompositeInput::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -79,8 +75,6 @@ namespace WPEFramework
 
         void CompositeInput::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -90,7 +84,7 @@ namespace WPEFramework
 
         uint32_t CompositeInput::startCompositeInput(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
 
             string sPortId = parameters["portId"].String();
@@ -118,7 +112,7 @@ namespace WPEFramework
 
         uint32_t CompositeInput::stopCompositeInput(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool success = true;
             try
@@ -136,7 +130,7 @@ namespace WPEFramework
 
         uint32_t CompositeInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             bool result = true;
             if (!parameters.HasLabel("x") && !parameters.HasLabel("y"))
@@ -212,7 +206,7 @@ namespace WPEFramework
 
         uint32_t CompositeInput::getCompositeInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             response["devices"] = getCompositeInputDevices();
 
@@ -266,8 +260,6 @@ namespace WPEFramework
 
         void CompositeInput::dsCompositeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             if(!CompositeInput::_instance)
                 return;
 

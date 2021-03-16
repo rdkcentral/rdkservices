@@ -50,7 +50,6 @@ namespace WPEFramework
         HdcpProfile::HdcpProfile()
         : AbstractPlugin()
         {
-            LOGINFO();
             HdcpProfile::_instance = this;
 
             InitializeIARM();
@@ -62,7 +61,6 @@ namespace WPEFramework
 
         HdcpProfile::~HdcpProfile()
         {
-            LOGINFO();
             HdcpProfile::_instance = nullptr;
             device::Manager::DeInitialize();
             DeinitializeIARM();
@@ -70,8 +68,6 @@ namespace WPEFramework
 
         void HdcpProfile::InitializeIARM()
         {
-            LOGINFO();
-
             Utils::IARM::init();
 
             IARM_Result_t res;
@@ -81,8 +77,6 @@ namespace WPEFramework
 
         void HdcpProfile::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -93,7 +87,7 @@ namespace WPEFramework
 
         uint32_t HdcpProfile::getHDCPStatusWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             response["HDCPStatus"] = getHDCPStatus();
             returnResponse(true);
@@ -101,7 +95,7 @@ namespace WPEFramework
 
         uint32_t HdcpProfile::getSettopHDCPSupportWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             dsHdcpProtocolVersion_t hdcpProtocol = dsHDCP_VERSION_MAX;
 
@@ -133,8 +127,6 @@ namespace WPEFramework
 
         JsonObject HdcpProfile::getHDCPStatus()
         {
-            LOGINFO();
-
             JsonObject hdcpStatus;
 
             bool isConnected     = false;
@@ -207,8 +199,6 @@ namespace WPEFramework
 
         void HdcpProfile::onHdmiOutputHotPlug(int connectStatus)
         {
-            LOGINFO();
-
             if (HDMI_HOT_PLUG_EVENT_CONNECTED == connectStatus)
                 LOGWARN(" %s   Status : %d \n",__FUNCTION__, connectStatus);
 
@@ -234,8 +224,6 @@ namespace WPEFramework
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
         {
-            LOGINFO();
-
             JsonObject status = getHDCPStatus();
             JsonObject params;
             params["HDCPStatus"] = status;
@@ -247,8 +235,6 @@ namespace WPEFramework
 
         void HdcpProfile::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             if(!HdcpProfile::_instance)
                 return;
 

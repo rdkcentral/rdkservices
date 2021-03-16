@@ -70,8 +70,6 @@ namespace WPEFramework {
 		: AbstractPlugin()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
-			LOGINFO();
-
 			ContinueWatching::_instance = this;
 			//Register all the APIs
 			registerMethod("getApplicationToken", &ContinueWatching::getApplicationToken, this);
@@ -82,7 +80,6 @@ namespace WPEFramework {
 
 		ContinueWatching::~ContinueWatching()
 		{
-			LOGINFO();
 			ContinueWatching::_instance = nullptr;
 		}
 
@@ -99,7 +96,7 @@ namespace WPEFramework {
 		 */
 		uint32_t ContinueWatching::getApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
-			LOGINFO();
+            LOGINFOMETHOD();
 
 			JsonObject token;
 			JsonArray appToken;
@@ -139,7 +136,7 @@ namespace WPEFramework {
 		 */
 		uint32_t ContinueWatching::setApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
-			LOGINFO();
+            LOGINFOMETHOD();
 			std::lock_guard<std::mutex> lock(m_mutex);
 			string appName = parameters["applicationName"].String();
 			LOGINFO("appName %s  \n",appName.c_str());
@@ -168,7 +165,7 @@ namespace WPEFramework {
 		 */
 		uint32_t ContinueWatching::deleteApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
-			LOGINFO();
+            LOGINFOMETHOD();
 			std::lock_guard<std::mutex> lock(m_mutex);
 			string ApplicationName = parameters["applicationName"].String();
 			bool result=deleteAppToken(ApplicationName);
