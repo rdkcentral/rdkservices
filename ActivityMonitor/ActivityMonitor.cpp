@@ -202,17 +202,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            {
-                std::lock_guard<std::mutex> lock(m_monitoringMutex);
-                m_stopMonitoring = true;
-            }
-
-            if (m_monitor.joinable())
-            {
-                LOGWARN("Terminating monitor thread");
-                m_monitor.join();
-            }
-
+            threadStop();
             JsonArray configArray = parameters["config"].Array();
 
             if (0 == configArray.Length())
@@ -288,14 +278,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            {
-                std::lock_guard<std::mutex> lock(m_monitoringMutex);
-                m_stopMonitoring = true;
-            }
-
-            if (m_monitor.joinable())
-                m_monitor.join();
-            else
+            if (threadStop() == -1);
                 LOGWARN("Monitoring is already disabled");
 
             delete m_monitorParams;
@@ -730,6 +713,19 @@ namespace WPEFramework
             am->monitoring();
         }
 
+        int ActivityMonitor::threadStop()
+        {
+            if (!m_monitor.joinable())
+                return -1;
+
+            std::unique_lock<std::mutex> lock(m_monitoringMutex);
+            m_stopMonitoring = true;
+            m_cond.notify_one();
+            lock.unlock();
+            m_monitor.join();
+            return 0;
+        }
+
         void ActivityMonitor::monitoring()
         {
             if (0 == m_monitorParams->config.size())
@@ -740,13 +736,6 @@ namespace WPEFramework
 
             while (1)
             {
-                {
-                    std::lock_guard<std::mutex> lock(m_monitoringMutex);
-
-                    if (m_stopMonitoring)
-                        break;
-                }
-
                 std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - m_monitorParams->lastMemCheck;
                 bool memCheck = m_monitorParams->memoryIntervalSeconds > 0 && elapsed.count() > m_monitorParams->memoryIntervalSeconds - 0.01;
 
@@ -957,7 +946,10 @@ namespace WPEFramework
                     sleepTime = 0.01;
                 }
 
-                usleep(int(sleepTime * 1000000));
+                auto sleepfor = std::chrono::milliseconds((long)(sleepTime * 1000));
+                std::unique_lock<std::mutex> lock(m_monitoringMutex);
+                if (m_cond.wait_for(lock, sleepfor, [this] { return this->m_stopMonitoring; }))
+                    break;
             }
         }
 

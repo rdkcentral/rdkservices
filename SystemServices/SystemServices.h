@@ -135,7 +135,7 @@ namespace WPEFramework {
 
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
-                void onSystemPowerStateChanged(string powerState);
+                void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
@@ -215,6 +215,7 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+                uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
