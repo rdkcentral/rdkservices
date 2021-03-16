@@ -240,6 +240,7 @@ namespace WPEFramework {
 			if( items == NULL)
 			{
 				LOGWARN("not able to fetch property names from request \n");
+				cJSON_Delete(root);
 				returnResponse(ret);
 			}
 			int arrsize=cJSON_GetArraySize(items);
@@ -259,6 +260,7 @@ namespace WPEFramework {
 				getVal(pname,response);
 			}
 			LOGTRACEMETHODFIN();
+			cJSON_Delete(root);
 			returnResponse(ret);
 		}
 
@@ -630,6 +632,7 @@ namespace WPEFramework {
 			if( items == NULL)
 			{
 				LOGWARN("not able to fetch property names from request \n");
+				cJSON_Delete(root);
 				returnResponse(ret);
 			}
 			int arrsize=cJSON_GetArraySize(items);
@@ -657,6 +660,7 @@ namespace WPEFramework {
 				getVal(pname,response);
 			}
 			LOGTRACEMETHODFIN();
+			cJSON_Delete(root);
 			returnResponse(ret);
 		}
 
@@ -690,6 +694,7 @@ namespace WPEFramework {
 			if( items == NULL)
 			{
 				LOGWARN("not able to fetch property names from request \n");
+				cJSON_Delete(root);
 				returnResponse(ret);
 			}
 			int arrsize=cJSON_GetArraySize(items);
@@ -717,6 +722,7 @@ namespace WPEFramework {
 				}
 			}
 			LOGTRACEMETHODFIN();
+			cJSON_Delete(root);
 			returnResponse(ret);
 		}
 
