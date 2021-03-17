@@ -1442,7 +1442,16 @@ static GSourceFuncs _handlerIntervention =
             _service = service;
 
             _dataPath = service->DataPath();
-            _config.FromString(service->ConfigLine());
+
+            string configLine = service->ConfigLine();
+            Core::OptionalType<Core::JSON::Error> error;
+            if (_config.FromString(configLine, error) == false) {
+                SYSLOG(Logging::ParsingError,
+                       (_T("Failed to parse config line, error: '%s', config line: '%s'."),
+                        (error.IsSet() ? error.Value().Message().c_str() : "Unknown"),
+                        configLine.c_str()));
+                return (Core::ERROR_INCOMPLETE_CONFIG);
+            }
 
             bool environmentOverride(WebKitBrowser::EnvironmentOverride(_config.EnvironmentOverride.Value()));
 
