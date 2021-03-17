@@ -130,7 +130,7 @@ namespace Plugin {
     uint32_t WebKitBrowser::get_visibility(Core::JSON::EnumType<VisibilityType>& response) const /* Browser */
     {
         bool state = false;
-        _browser->Visible(state);
+        static_cast<const IWebBrowser*>(_browser)->Visible(state);
 
         response = (state == Exchange::IWebBrowser::Visibility::VISIBLE)
                 ? VisibilityType::VISIBLE
