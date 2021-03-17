@@ -1789,18 +1789,34 @@ namespace WPEFramework {
                 double scaleX = 1.0;
                 double scaleY = 1.0;
                 getScale(client, scaleX, scaleY);
-                if (parameters.HasLabel("sx"))
+                bool decodeSuccess = true;
+                try
                 {
-                    scaleX = std::stod(parameters["sx"].String());
+                    if (parameters.HasLabel("sx"))
+                    {
+                        scaleX = std::stod(parameters["sx"].String());
+                    }
+                    if (parameters.HasLabel("sy"))
+                    {
+                        scaleY = std::stod(parameters["sy"].String());
+                    }
                 }
-                if (parameters.HasLabel("sy"))
+                catch(...)
                 {
-                    scaleY = std::stod(parameters["sy"].String());
+                    decodeSuccess = false;
+                    std::cout << "error decoding sx or sy " << std::endl;
                 }
-
-                result = setScale(client, scaleX, scaleY);
-                if (false == result) {
-                  response["message"] = "failed to set scale";
+                if (false == decodeSuccess)
+                {
+                      response["message"] = "failed to set scale due to invalid parameters";
+                      result = false;
+                }
+                else
+                {
+                    result = setScale(client, scaleX, scaleY);
+                    if (false == result) {
+                      response["message"] = "failed to set scale";
+                    }
                 }
             }
             returnResponse(result);
