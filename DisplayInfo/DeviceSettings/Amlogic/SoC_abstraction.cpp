@@ -108,7 +108,7 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
     do {
         /* Setup buffer information */
-        drm_fd = open( DEFAULT_DEVICE, O_RDWR);
+        drm_fd = open( DEFAULT_DEVICE, O_RDWR | O_CLOEXEC);
 
         /* Setup KMS */
         kms = kms_setup(drm_fd);
