@@ -886,8 +886,7 @@ namespace WPEFramework {
 						systemStates.time_zone_available.payload[ sizeof( systemStates.time_zone_available.payload ) - 1] = 0;
 						if(StateObserver::_instance)
 							StateObserver::_instance->setProp(params,SYSTEM_TIME_ZONE,state,error);
-						string payload_str(payload);
-						params["payload"].FromString(payload_str);
+						params["payload"] = payload;
 						break;
 						}
 
