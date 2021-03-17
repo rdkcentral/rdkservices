@@ -63,7 +63,7 @@ namespace WPEFramework {
 
             JsonArray getHDMIInputDevices();
             void writeEDID(int deviceId, std::string message);
-            std::string readEDID();
+            std::string readEDID(int iPort);
 
             bool setVideoRectangle(int x, int y, int width, int height);
 
