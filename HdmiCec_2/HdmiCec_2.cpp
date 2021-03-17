@@ -65,7 +65,7 @@ static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defau
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
 static LogicalAddress logicalAddress = 0xF;
-static OSDName osdName = "TV Box";
+static OSDName osdName = "Sky";
 static int32_t powerState = 1;
 static PowerStatus tvPowerState = 1;
 static bool isDeviceActiveSource = false;
@@ -189,17 +189,14 @@ namespace WPEFramework
        void HdmiCec_2Processor::process (const GivePhysicalAddress &msg, const Header &header)
        {
              LOGINFO("Command: GivePhysicalAddress\n");
-             if (!(header.from == LogicalAddress(LogicalAddress::BROADCAST)))
+             try
+             { 
+                 LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
+                 conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
+             } 
+             catch(...)
              {
-                 try
-                 { 
-                     LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
-                 } 
-                 catch(...)
-                 {
-                    LOGWARN("Exception while sending ReportPhysicalAddress ");
-                 }
+                LOGWARN("Exception while sending ReportPhysicalAddress ");
              }
        }
        void HdmiCec_2Processor::process (const GiveDeviceVendorID &msg, const Header &header)
@@ -561,6 +558,15 @@ namespace WPEFramework
                  {
                     LOGWARN("Exception in getting edid info .\r\n");
                  }
+                 if(smConnection)
+                 {
+                     LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
+                                                     (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
+                     if(isLGTvConnected)
+                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                     else 
+                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                 }
             }
             return;
        }
@@ -903,6 +909,21 @@ namespace WPEFramework
                LOGINFO("persist setOTPEnabled ");
                persistOTPSettings(enabled);
                cecOTPSettingEnabled = enabled;
+           }
+           if((true == cecEnableStatus) && (cecOTPSettingEnabled == true) && !(smConnection))
+           {
+               try
+               {
+                   LOGINFO("Command: sending ImageViewOn TV \r\n");
+                   smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
+                   usleep(10000);
+                   LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
+                   smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+               }
+               catch(...)
+               {
+                   LOGWARN("Exception while processing performOTPAction");
+               }
            }
            return;
         }
