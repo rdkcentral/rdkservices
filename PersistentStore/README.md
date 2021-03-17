@@ -13,6 +13,7 @@ curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.PersistentStore.1.deleteNam
 curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.PersistentStore.1.getKeys","params":{"namespace":"foo"}}' http://127.0.0.1:9998/jsonrpc
 curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.PersistentStore.1.getNamespaces","params":{}}' http://127.0.0.1:9998/jsonrpc
 curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.PersistentStore.1.getStorageSize","params":{}}' http://127.0.0.1:9998/jsonrpc
+curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.PersistentStore.1.flushCache"}' http://127.0.0.1:9998/jsonrpc
 ```
 
 ## Responses

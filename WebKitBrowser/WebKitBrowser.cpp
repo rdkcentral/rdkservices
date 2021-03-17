@@ -27,7 +27,6 @@ namespace Plugin {
 
     /* virtual */ const string WebKitBrowser::Initialize(PluginHost::IShell* service)
     {
-        Config config;
         string message;
 
         ASSERT(_service == nullptr);
@@ -38,7 +37,6 @@ namespace Plugin {
         _service = service;
         _skipURL = _service->WebPrefix().length();
 
-        config.FromString(_service->ConfigLine());
         _persistentStoragePath = _service->PersistentPath();
 
         // Register the Connection::Notification stuff. The Remote process might die before we get a
@@ -67,8 +65,17 @@ namespace Plugin {
                 if (connection != nullptr)
                     connection->Release();
 
-                stateControl->Configure(_service);
-                stateControl->Register(&_notification);
+                if (stateControl->Configure(_service) != Core::ERROR_NONE) {
+                  if (_memory != nullptr) {
+                    _memory->Release();
+                    _memory = nullptr;
+                  }
+                  _browser->Unregister(&_notification);
+                  _browser->Release();
+                  _browser = nullptr;
+                } else {
+                  stateControl->Register(&_notification);
+                }
                 stateControl->Release();
             }
         }

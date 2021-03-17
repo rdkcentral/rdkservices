@@ -296,6 +296,10 @@ size_t curl_write(void *ptr, size_t size, size_t nmemb, void *stream);
 enum FwFailReason
 {
     FwFailReasonNone = 0,
+<<<<<<< HEAD
+=======
+    FwFailReasonNotFound,
+>>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
     FwFailReasonNetworkFailure,
     FwFailReasonServerUnreachable,
     FwFailReasonCorruptDownloadFile,
@@ -306,6 +310,10 @@ enum FwFailReason
 static const std::map<FwFailReason, string> FwFailReasonToText =
         {
                 {FwFailReasonNone, "None"},
+<<<<<<< HEAD
+=======
+                {FwFailReasonNotFound, "Not found"},
+>>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
                 {FwFailReasonNetworkFailure, "Network failure"},
                 {FwFailReasonServerUnreachable, "Server unreachable"},
                 {FwFailReasonCorruptDownloadFile, "Corrupt download file"},
@@ -317,7 +325,11 @@ static const std::map<string, FwFailReason> FwFailReasonFromText =
         {
                 {"ESTB Download Failure", FwFailReasonServerUnreachable},
                 {"Image Download Failed - Unable to connect", FwFailReasonNetworkFailure},
+<<<<<<< HEAD
                 {"Image Download Failed - Server not Found", FwFailReasonNetworkFailure},
+=======
+                {"Image Download Failed - Server not Found", FwFailReasonNotFound},
+>>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
                 {"Image Download Failed - Error response from server", FwFailReasonServerUnreachable},
                 {"Image Download Failed - Unknown", FwFailReasonServerUnreachable},
                 {"Image download failed from server", FwFailReasonServerUnreachable}, // firmwareDwnld.sh only

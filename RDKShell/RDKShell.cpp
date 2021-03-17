@@ -27,6 +27,8 @@
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
+#include <interfaces/IBrowser.h>
+
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -128,6 +130,9 @@ static std::string sThunderSecurityToken;
 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gSystemServiceConnection;
 bool gSystemServiceEventsSubscribed = false;
 static bool sResidentAppFirstLaunch = true;
+bool sResidentAppLaunched = false;
+bool sPersistentStoreLaunched = false;
+bool sFactoryAppLaunchCheck = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -139,6 +144,7 @@ static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
+#define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
 #define RDKSHELL_POWER_TIME_WAIT 2.5
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
@@ -244,16 +250,38 @@ namespace WPEFramework {
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
+                /*else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
                 {
+                    sResidentAppLaunched = true;
                     sResidentAppFirstLaunch = false;
-                    bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
-                    if (launchFactoryApp)
+                    if (sPersistentStoreLaunched)
                     {
-                      JsonObject request, response;
-                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
+                      bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
+                      std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
+                      if (launchFactoryApp)
+                      {
+                        JsonObject request, response;
+                        std::cout << "about to launch factory app\n";
+                        uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
+                      }
+                    }
+                    else
+                    {
+                      std::cout << "waiting for persistent before performing factory app check\n";
                     }
                 }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN)
+                {
+                    std::cout << "persistent store activated\n";
+                    if (!sPersistentStoreLaunched && sResidentAppLaunched)
+                    {
+                       std::cout << "schedule a factory app check\n";
+                       gRdkShellMutex.lock();
+                       sFactoryAppLaunchCheck = true;
+                       gRdkShellMutex.unlock();
+                    }
+                    sPersistentStoreLaunched = true;
+                }*/
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
@@ -380,6 +408,16 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
+            char* waylandDisplay = getenv("WAYLAND_DISPLAY");
+            if (NULL != waylandDisplay)
+            {
+                std::cout << "RDKShell WAYLAND_DISPLAY is set to: " << waylandDisplay <<" unsetting WAYLAND_DISPLAY\n";
+                unsetenv("WAYLAND_DISPLAY");
+            }
+            else
+            {
+                std::cout << "RDKShell WAYLAND_DISPLAY is not set\n";
+            }
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
@@ -413,7 +451,7 @@ namespace WPEFramework {
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
 
-            shellThread = std::thread([]() {
+            shellThread = std::thread([=]() {
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
                 PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
@@ -446,6 +484,19 @@ namespace WPEFramework {
                     CompositorController::showWatermark();
                     receivedShowWatermarkRequest = false;
                   }
+                  /*if (sFactoryAppLaunchCheck)
+                  {
+                    std::cout << "checking about factory app check activated\n";
+                    usleep(1000);
+                    bool launchFactoryApp = checkForBootupFactoryAppLaunch();
+                    if (launchFactoryApp)
+                    {
+                      std::cout << "launching the factory app on boot\n";
+                      JsonObject request, response;
+                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
+                    }
+                    sFactoryAppLaunchCheck = false;
+                  }*/
                   RdkShell::draw();
                   RdkShell::update();
                   gRdkShellMutex.unlock();
@@ -1807,18 +1858,34 @@ namespace WPEFramework {
                 double scaleX = 1.0;
                 double scaleY = 1.0;
                 getScale(client, scaleX, scaleY);
-                if (parameters.HasLabel("sx"))
+                bool decodeSuccess = true;
+                try
                 {
-                    scaleX = std::stod(parameters["sx"].String());
+                    if (parameters.HasLabel("sx"))
+                    {
+                        scaleX = std::stod(parameters["sx"].String());
+                    }
+                    if (parameters.HasLabel("sy"))
+                    {
+                        scaleY = std::stod(parameters["sy"].String());
+                    }
                 }
-                if (parameters.HasLabel("sy"))
+                catch(...)
                 {
-                    scaleY = std::stod(parameters["sy"].String());
+                    decodeSuccess = false;
+                    std::cout << "error decoding sx or sy " << std::endl;
                 }
-
-                result = setScale(client, scaleX, scaleY);
-                if (false == result) {
-                  response["message"] = "failed to set scale";
+                if (false == decodeSuccess)
+                {
+                      response["message"] = "failed to set scale due to invalid parameters";
+                      result = false;
+                }
+                else
+                {
+                    result = setScale(client, scaleX, scaleY);
+                    if (false == result) {
+                      response["message"] = "failed to set scale";
+                    }
                 }
             }
             returnResponse(result);
@@ -4441,6 +4508,7 @@ namespace WPEFramework {
 
         bool RDKShell::checkForBootupFactoryAppLaunch()
         {
+            std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
@@ -4466,6 +4534,7 @@ namespace WPEFramework {
             if ((status == 0) && (joAgingResult.HasLabel("value")))
             {
               const std::string valueString = joAgingResult["value"].String();
+              std::cout << "aging result: " << valueString << std::endl;
               if (valueString == "true")
               {
                 std::cout << "launching factory app as aging state is set " << std::endl;
@@ -4473,15 +4542,19 @@ namespace WPEFramework {
               }
             }
 
-            joAgingParams.Set("key","FactoryMode");
+            JsonObject joFactoryModeParams;
+            JsonObject joFactoryModeResult;
+            joFactoryModeParams.Set("namespace","FactoryTest");
+            joFactoryModeParams.Set("key","FactoryMode");
 
             std::cout << "attempting to check factory mode \n";
-            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
             std::cout << "get status for factory mode: " << status << std::endl;
 
-            if ((status == 0) && (joAgingResult.HasLabel("value")))
+            if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
             {
-              const std::string valueString = joAgingResult["value"].String();
+              const std::string valueString = joFactoryModeResult["value"].String();
+              std::cout << "factory mode " << valueString << std::endl;
               if (valueString == "true")
               {
                 std::cout << "launching factory app as factory mode is set " << std::endl;
@@ -4912,24 +4985,35 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-            /*gPluginDataMutex.lock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(client);
-            if (pluginsEntry != gActivePluginsData.end())
+
+            std::map<std::string, PluginData> activePluginsData;
+            gPluginDataMutex.lock();
+            activePluginsData = gActivePluginsData;
+            gPluginDataMutex.unlock();
+            std::map<std::string, PluginData>::iterator pluginsEntry = activePluginsData.find(client);
+            if (pluginsEntry != activePluginsData.end())
             {
                 PluginData& pluginData = pluginsEntry->second;
                 if (pluginData.mClassName.compare("WebKitBrowser") == 0)
                 {
-                    WPEFramework::Core::JSON::String visibilityString;
-                    visibilityString = visible?"visible":"hidden";
-                    const string callsignWithVersion = client + ".1";
-                    int32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "visibility",visibilityString);
+                    std::cout << "setting the visiblity of " << client << " to " << visible << std::endl;
+                    uint32_t status = 0;
+                    Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
+                    if (browser != NULL)
+                    {
+                        status = browser->Visible(visible);
+                        browser->Release();
+                    }
+                    else
+                    {
+                        status = 1;
+                    }
                     if (status > 0)
                     {
                         std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
                     }
                 }
             }
-            gPluginDataMutex.unlock();*/
 
             return ret;
         }
