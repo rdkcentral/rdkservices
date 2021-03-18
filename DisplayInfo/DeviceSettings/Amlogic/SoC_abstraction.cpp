@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "kms.h"
 
 #define MEM_PROCFS "/proc/meminfo"
@@ -152,6 +153,7 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
     cout << "[getGraphicSize] width : " << w << endl;
     cout << "[getGraphicSize] height : " << h << endl;
+    close(drm_fd);
 }
 
 
