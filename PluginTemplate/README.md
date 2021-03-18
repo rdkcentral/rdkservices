@@ -266,7 +266,7 @@ event API when hdmi connected :
 	{"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":["HDMI0"],"success":true}}root@raspberrypi-rdk-mc:~#
 
 event API when hdmi not connected :
-	root@raspberrypi-rdk-mc:~# curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginTemplate.1.getConnectedVideoDisplays"}'
+	curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginTemplate.1.getConnectedVideoDisplays"}'
 	{"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":[],"success":true}}root@raspberrypi-rdk-mc:~#
 
 Controller UI :
