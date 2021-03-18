@@ -35,6 +35,8 @@
 #define COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT "setVideoRectangle"
 
 #define COMPOSITEINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
+#define COMPOSITEINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
+#define COMPOSITEINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 
 namespace WPEFramework
 {
@@ -74,6 +76,8 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsCompositeEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, dsCompositeSignalStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsCompositeStatusEventHandler) );
             }
         }
 
@@ -83,6 +87,8 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS) );
             }
         }
 
@@ -262,6 +268,75 @@ namespace WPEFramework
             sendNotify(COMPOSITEINPUT_EVENT_ON_DEVICES_CHANGED, params);
         }
 
+        /**
+         * @brief This function is used to translate Composite input signal change
+         * to onSignalChanged event.
+         *
+         * @param[in] port Composite In port id.
+         * @param[in] signalStatus signal status of Composite In port.
+         */
+        void CompositeInput::compositeInputSignalChange( int port , int signalStatus)
+        {
+            LOGWARN("compositeInputSignalChange [%d, %d]", port, signalStatus);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "cvbsin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+	    switch (signalStatus) {
+		    case dsCOMP_IN_SIGNAL_STATUS_NOSIGNAL:
+			    params["signalStatus"] = "noSignal";
+			    break;
+
+	            case dsCOMP_IN_SIGNAL_STATUS_UNSTABLE:
+			    params["signalStatus"] = "unstableSignal";
+			    break;
+
+                    case dsCOMP_IN_SIGNAL_STATUS_NOTSUPPORTED:
+                            params["signalStatus"] = "notSupportedSignal";
+                            break;
+
+                    case dsCOMP_IN_SIGNAL_STATUS_STABLE:
+                            params["signalStatus"] = "stableSignal";
+                            break;
+
+	            default:
+                            params["signalStatus"] = "none";
+                            break;
+            }
+
+            sendNotify(COMPOSITEINPUT_EVENT_ON_SIGNAL_CHANGED, params);
+        }
+
+        /**
+         * @brief This function is used to translate Composite input status change to
+         * inputStatusChanged event.
+         *
+         * @param[in] port Composite In port id.
+         * @param[bool] isPresented Composite In presentation started/stopped.
+         */
+        void CompositeInput::compositeInputStatusChange( int port , bool isPresented)
+        {
+            LOGWARN("compositeInputStatusChange [%d, %d]", port, isPresented);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "cvbsin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+            if(isPresented) {
+                params["status"] = "started";
+            }
+            else {
+                params["status"] = "stopped";
+            }
+
+            sendNotify(COMPOSITEINPUT_EVENT_ON_STATUS_CHANGED, params);
+        }
+
         void CompositeInput::dsCompositeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!CompositeInput::_instance)
@@ -275,6 +350,38 @@ namespace WPEFramework
                 LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG  event data:%d", compositein_hotplug_port);
 
                 CompositeInput::_instance->compositeInputHotplug(compositein_hotplug_port, compositein_hotplug_conn ? COMPOSITE_HOT_PLUG_EVENT_CONNECTED : COMPOSITE_HOT_PLUG_EVENT_DISCONNECTED);
+            }
+        }
+
+        void CompositeInput::dsCompositeSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!CompositeInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int composite_in_port = eventData->data.composite_in_sig_status.port;
+                int composite_in_signal_status = eventData->data.composite_in_sig_status.status;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS  event  port: %d, signal status: %d", composite_in_port,composite_in_signal_status);
+
+                CompositeInput::_instance->compositeInputSignalChange(composite_in_port, composite_in_signal_status);
+            }
+        }
+
+        void CompositeInput::dsCompositeStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!CompositeInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int composite_in_port = eventData->data.composite_in_status.port;
+                bool composite_in_status = eventData->data.composite_in_status.isPresented;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS  event  port: %d, started: %d", composite_in_port,composite_in_status);
+
+                CompositeInput::_instance->compositeInputStatusChange(composite_in_port, composite_in_status);
             }
         }
 
