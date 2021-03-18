@@ -502,7 +502,10 @@ namespace WPEFramework
 
        HdmiCecSink::~HdmiCecSink()
        {
-	  
+       }
+
+       void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
+       {
 	    CECDisable();
 	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
@@ -524,7 +527,7 @@ namespace WPEFramework
 
             HdmiCecSink::_instance = nullptr;
             DeinitializeIARM();
-	    LOGWARN(" ~HdmiCecSink() Done");
+	    LOGWARN(" HdmiCecSink Deinitialize() Done");
        }
 
        const void HdmiCecSink::InitializeIARM()

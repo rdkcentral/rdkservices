@@ -87,9 +87,7 @@ namespace WPEFramework {
 
         DataCapture::~DataCapture()
         {
-            LOGINFO("dtor");
-            delete _sock_adaptor;
-            DataCapture::_instance = nullptr;
+            //LOGINFO("dtor");
         }
 
         const string DataCapture::Initialize(PluginHost::IShell* /* service */)
@@ -101,6 +99,8 @@ namespace WPEFramework {
         void DataCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            delete _sock_adaptor;
+            DataCapture::_instance = nullptr;
         }
 
         string DataCapture::Information() const

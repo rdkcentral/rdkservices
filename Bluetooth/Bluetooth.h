@@ -171,6 +171,7 @@ namespace WPEFramework {
 
             Bluetooth();
             virtual ~Bluetooth();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
 
         public:

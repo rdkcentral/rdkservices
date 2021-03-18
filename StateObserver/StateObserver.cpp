@@ -78,8 +78,6 @@ namespace WPEFramework {
 
 		StateObserver::~StateObserver()
 		{
-			StateObserver::_instance = nullptr;
-			//Unregister all the APIs
 		}
 
 		const string StateObserver::Initialize(PluginHost::IShell* /* service */)
@@ -93,6 +91,8 @@ namespace WPEFramework {
 		void StateObserver::Deinitialize(PluginHost::IShell* /* service */)
 		{
 			DeinitializeIARM();
+			StateObserver::_instance = nullptr;
+			//Unregister all the APIs
 		}
 
 		void StateObserver::InitializeIARM()
