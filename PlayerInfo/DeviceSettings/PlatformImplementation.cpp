@@ -300,34 +300,20 @@ public:
 
         try
         {
-            /* Return the sound mode of the audio ouput connected to the specified videoDisplay */
-            /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-
-            if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+            audioPort = "HDMI0";
+            /* Check if the device has an SPDIF out. Return SoundMode on SPDIF if yes */
+            device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+            for (size_t i = 0; i < aPorts.size(); i++)
             {
-                audioPort = "HDMI0";
-            }
-            else
-            {
-                /*  * If HDMI is not connected
-                    * Get the SPDIF if it is supported by platform
-                    * If Platform does not have connected ports. Default to HDMI.
-                */
-                audioPort = "HDMI0";
-                device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                for (size_t i = 0; i < vPorts.size(); i++)
+                device::AudioOutputPort &aPort = aPorts.at(i);
+                if(aPort.getName().find("SPDIF") != std::string::npos)
                 {
-                    device::VideoOutputPort &vPort = vPorts.at(i);
-                    if (vPort.isDisplayConnected())
-                    {
-                        audioPort = "SPDIF0";
-                        break;
-                    }
+                    //the platform supports SPDIF. Get the sound mode of the SPDIF port
+                    audioPort = "SPDIF0";
+                    break;
                 }
             }
-
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-
             if (aPort.isConnected())
             {
                 soundmode = aPort.getStereoMode();
