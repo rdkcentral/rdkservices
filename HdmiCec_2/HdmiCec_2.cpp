@@ -1073,13 +1073,10 @@ namespace WPEFramework
                     LOGINFO("Command: sending ImageViewOn TV \r\n");
                     smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
                     usleep(10000);
-                    if(!isDeviceActiveSource)
-                    {
-                        LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
-                        usleep(10000);
-                        isDeviceActiveSource = true;
-                    }
+                    LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                    usleep(10000);
+                    isDeviceActiveSource = true;
                     LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
                     smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
                     ret = true;
