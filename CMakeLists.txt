@@ -295,9 +295,9 @@ if(PLUGIN_DTV)
     add_subdirectory(DTV)
 endif()
 
-#if(PLUGIN_PLUGINTEMPLATE)
-#    add_subdirectory(PluginTemplate)
-#endif()
+if(PLUGIN_PLUGINTEMPLATE)
+    add_subdirectory(PluginTemplate)
+endif()
 
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
