@@ -7,6 +7,8 @@ should be defined inside the below namespace.
 #include "PluginTemplate.h"
 #include <algorithm>
 #include "dsMgr.h"
+
+// This files and libraries loaded and  added by target_include_directories(), target_link_libraries() functions in CMakeList.txt
 #include "libIBusDaemon.h"
 #include "host.hpp"
 #include "exception.hpp"
@@ -66,7 +68,7 @@ namespace WPEFramework {
         const string PluginTemplate::Initialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
-
+	    // hdmi event occuring through IARM
 	    InitializeIARM();
 
             return (string());
@@ -75,6 +77,7 @@ namespace WPEFramework {
         void PluginTemplate::Deinitialize(PluginHost::IShell* /* service */)
         {
             LOGINFO();
+	    // close IARM
 	    DeinitializeIARM();
 
         }
@@ -85,7 +88,8 @@ namespace WPEFramework {
 
             if (Utils::IARM::init())
             {
-                IARM_Result_t res;
+                IARM_Result_t resi;
+		//hdmi event handler through IARM bus
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
 
@@ -131,6 +135,7 @@ namespace WPEFramework {
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
                 {
+		    //IARM event manger
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     int hdmi_hotplug_event = eventData->data.hdmi_hpd.event;
                     LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event data:%d ", hdmi_hotplug_event);

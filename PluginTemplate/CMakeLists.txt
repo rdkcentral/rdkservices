@@ -27,6 +27,10 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 
+#for finding device setting libraries and IARM
+#IARM depends on DS hal layer
+#find.package present in the main cmake directory
+
 find_package(DS)
 if (DS_FOUND)
     find_package(IARMBus)
