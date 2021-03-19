@@ -910,21 +910,6 @@ namespace WPEFramework
                persistOTPSettings(enabled);
                cecOTPSettingEnabled = enabled;
            }
-           if((true == cecEnableStatus) && (cecOTPSettingEnabled == true) && !(smConnection))
-           {
-               try
-               {
-                   LOGINFO("Command: sending ImageViewOn TV \r\n");
-                   smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
-                   usleep(10000);
-                   LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                   smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
-               }
-               catch(...)
-               {
-                   LOGWARN("Exception while processing performOTPAction");
-               }
-           }
            return;
         }
 
