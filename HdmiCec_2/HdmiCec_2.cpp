@@ -562,20 +562,20 @@ namespace WPEFramework
                  {
                      try
                      {
+                         LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
+                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
+
                          LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
                              (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
                          if(isLGTvConnected)
                              smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
                          else 
                              smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
-
-                         LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
-                   } 
-                   catch(...)
-                   {
-                     LOGWARN("Exception while sending Messages onHdmiHotPlug\n");
-                   }
+                     } 
+                     catch(...)
+                     {
+                         LOGWARN("Exception while sending Messages onHdmiHotPlug\n");
+              `       }
                  }
             }
             return;
