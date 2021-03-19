@@ -3340,7 +3340,10 @@ namespace WPEFramework {
 
                 LOGINFO("Lines read:%d. FailureReason|%s", (int) lines.size(), C_STR(str));
 
-                auto it = FwFailReasonFromText.find(str);
+                auto it = find_if(FwFailReasonFromText.begin(), FwFailReasonFromText.end(),
+                                  [&str](const pair<string, FwFailReason> & t) {
+                                      return strcasecmp(C_STR(t.first), C_STR(str)) == 0;
+                                  });
                 if (it != FwFailReasonFromText.end())
                     failReason = it->second;
                 else if (!str.empty())

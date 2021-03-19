@@ -2576,6 +2576,8 @@ namespace WPEFramework {
                         height = parameters["h"].Number();
                     }
                     gRdkShellMutex.lock();
+                    std::cout << "setting the desired bounds\n";
+                    CompositorController::setBounds(callsign, 0, 0, 1, 1); //forcing a compositor resize flush
                     CompositorController::setBounds(callsign, x, y, width, height);
                     gRdkShellMutex.unlock();
 
@@ -4290,6 +4292,8 @@ namespace WPEFramework {
         {
             bool ret = false;
             gRdkShellMutex.lock();
+            std::cout << "setting the bounds\n";
+            ret = CompositorController::setBounds(client, 0, 0, 1, 1); //forcing a compositor resize flush
             ret = CompositorController::setBounds(client, x, y, w, h);
             gRdkShellMutex.unlock();
             return ret;
