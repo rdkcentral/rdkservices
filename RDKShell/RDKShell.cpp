@@ -129,10 +129,10 @@ bool gRdkShellSurfaceModeEnabled = false;
 static std::string sThunderSecurityToken;
 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gSystemServiceConnection;
 bool gSystemServiceEventsSubscribed = false;
-static bool sResidentAppFirstLaunch = true;
-bool sResidentAppLaunched = false;
-bool sPersistentStoreLaunched = false;
-bool sFactoryAppLaunchCheck = false;
+static bool sResidentAppFirstActivated = false;
+bool sPersistentStoreWaitProcessed = false;
+bool sPersistentStoreFirstActivated = false;
+bool sPersistentStorePreLaunchChecked=false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -244,38 +244,29 @@ namespace WPEFramework {
                    serviceCallsign.append(".1");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
-                /*else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && sResidentAppFirstLaunch)
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && !sResidentAppFirstActivated)
                 {
-                    sResidentAppLaunched = true;
-                    sResidentAppFirstLaunch = false;
-                    if (sPersistentStoreLaunched)
+                    sResidentAppFirstActivated = true;
+                    bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
+                    std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
+                    if (launchFactoryApp)
                     {
-                      bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
-                      std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
-                      if (launchFactoryApp)
-                      {
-                        JsonObject request, response;
-                        std::cout << "about to launch factory app\n";
-                        uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
-                      }
+                      JsonObject request, response;
+                      std::cout << "about to launch factory app\n";
+                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                     }
                     else
                     {
-                      std::cout << "waiting for persistent before performing factory app check\n";
+                      std::cout << "not launching factory app as conditions not matched\n";
                     }
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN)
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
                 {
                     std::cout << "persistent store activated\n";
-                    if (!sPersistentStoreLaunched && sResidentAppLaunched)
-                    {
-                       std::cout << "schedule a factory app check\n";
-                       gRdkShellMutex.lock();
-                       sFactoryAppLaunchCheck = true;
-                       gRdkShellMutex.unlock();
-                    }
-                    sPersistentStoreLaunched = true;
-                }*/
+                    gRdkShellMutex.lock();
+                    sPersistentStoreFirstActivated = true;
+                    gRdkShellMutex.unlock();
+                }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
@@ -445,16 +436,28 @@ namespace WPEFramework {
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
 
+            bool waitForPersistentStore = false;
+            char* waitValue = getenv("RDKSHELL_WAIT_FOR_PERSISTENT_STORE");
+            if (NULL != waitValue)
+            {
+                std::cout << "waiting for persistent store\n";
+                waitForPersistentStore = true;
+            }
+
             shellThread = std::thread([=]() {
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
-                PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
-                if (subSystems != nullptr)
+                if (!waitForPersistentStore)
                 {
-                    std::cout << "setting platform and graphics\n";
-                    subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                    subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                    subSystems->Release();
+                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    if (subSystems != nullptr)
+                    {
+                        std::cout << "setting platform and graphics\n";
+                        fflush(stdout);
+                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        subSystems->Release();
+                    }
                 }
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
@@ -478,19 +481,44 @@ namespace WPEFramework {
                     CompositorController::showWatermark();
                     receivedShowWatermarkRequest = false;
                   }
-                  /*if (sFactoryAppLaunchCheck)
+                  if (!sPersistentStorePreLaunchChecked)
                   {
-                    std::cout << "checking about factory app check activated\n";
-                    usleep(1000);
-                    bool launchFactoryApp = checkForBootupFactoryAppLaunch();
-                    if (launchFactoryApp)
+                      if (!sPersistentStoreFirstActivated)
+                      {
+                          Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+                          auto thunderController = getThunderControllerClient();
+                          int32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
+                          JsonArray stateArray;
+                          for (uint16_t i = 0; i < joResult.Length(); i++)
+                          {
+                              PluginHost::MetaData::Service service = joResult[i];
+                              std::string callsign;
+                              service.Callsign.ToString(callsign);
+                              if (callsign.find(PERSISTENT_STORE_CALLSIGN) != std::string::npos)
+                              {
+                                if (service.JSONState == PluginHost::MetaData::Service::state::ACTIVATED)
+                                {
+                                  sPersistentStoreFirstActivated = true;
+                                }
+                                break;
+                              } 
+                          }
+                      }
+                      sPersistentStorePreLaunchChecked = true;
+                  }
+
+                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
+                  {
+                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    if (subSystems != nullptr)
                     {
-                      std::cout << "launching the factory app on boot\n";
-                      JsonObject request, response;
-                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchFactoryApp", request, response);
+                        std::cout << "setting platform and graphics after wait\n";
+                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        subSystems->Release();
                     }
-                    sFactoryAppLaunchCheck = false;
-                  }*/
+                    sPersistentStoreWaitProcessed = true;
+                  }
                   RdkShell::draw();
                   RdkShell::update();
                   gRdkShellMutex.unlock();
@@ -3811,45 +3839,52 @@ namespace WPEFramework {
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
 
-            JsonObject joAgingParams;
-            JsonObject joAgingResult;
-            joAgingParams.Set("namespace","FactoryTest");
-            joAgingParams.Set("key","AgingState");
-            std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
-            std::cout << "attempting to check aging state \n";
-            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
-            std::cout << "get status for aging state: " << status << std::endl;
-
-            if ((status == 0) && (joAgingResult.HasLabel("value")))
+            if (sPersistentStoreFirstActivated)
             {
-              const std::string valueString = joAgingResult["value"].String();
-              std::cout << "aging result: " << valueString << std::endl;
-              if (valueString == "true")
-              {
-                std::cout << "launching factory app as aging state is set " << std::endl;
-                return true;
-              }
+                JsonObject joAgingParams;
+                JsonObject joAgingResult;
+                joAgingParams.Set("namespace","FactoryTest");
+                joAgingParams.Set("key","AgingState");
+                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+                std::cout << "attempting to check aging state \n";
+                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                std::cout << "get status for aging state: " << status << std::endl;
+
+                if ((status == 0) && (joAgingResult.HasLabel("value")))
+                {
+                  const std::string valueString = joAgingResult["value"].String();
+                  std::cout << "aging result: " << valueString << std::endl;
+                  if (valueString == "true")
+                  {
+                    std::cout << "launching factory app as aging state is set " << std::endl;
+                    return true;
+                  }
+                }
+
+                JsonObject joFactoryModeParams;
+                JsonObject joFactoryModeResult;
+                joFactoryModeParams.Set("namespace","FactoryTest");
+                joFactoryModeParams.Set("key","FactoryMode");
+
+                std::cout << "attempting to check factory mode \n";
+                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                std::cout << "get status for factory mode: " << status << std::endl;
+
+                if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
+                {
+                  const std::string valueString = joFactoryModeResult["value"].String();
+                  std::cout << "factory mode " << valueString << std::endl;
+                  if (valueString == "true")
+                  {
+                    std::cout << "launching factory app as factory mode is set " << std::endl;
+                    return true;
+                  }
+                }
             }
-
-            JsonObject joFactoryModeParams;
-            JsonObject joFactoryModeResult;
-            joFactoryModeParams.Set("namespace","FactoryTest");
-            joFactoryModeParams.Set("key","FactoryMode");
-
-            std::cout << "attempting to check factory mode \n";
-            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
-            std::cout << "get status for factory mode: " << status << std::endl;
-
-            if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
+            else
             {
-              const std::string valueString = joFactoryModeResult["value"].String();
-              std::cout << "factory mode " << valueString << std::endl;
-              if (valueString == "true")
-              {
-                std::cout << "launching factory app as factory mode is set " << std::endl;
-                return true;
-              }
+              std::cout << "persistent store not loaded during factory app check\n";
             }
             return false;
         }
