@@ -102,7 +102,6 @@ namespace WPEFramework {
 
         const string ControlService::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -110,13 +109,11 @@ namespace WPEFramework {
 
         void ControlService::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void ControlService::InitializeIARM()
         {
-            LOGINFO();
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -142,8 +139,6 @@ namespace WPEFramework {
 
         void ControlService::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -504,7 +499,6 @@ namespace WPEFramework {
 
         void ControlService::pairingHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN)
             {
                 LOGINFO("Got a controlMgr VALIDATION_BEGIN event!");
@@ -1137,7 +1131,7 @@ namespace WPEFramework {
         // Begin private method implementations
         StatusCode ControlService::getAllRemoteData(JsonObject& response)
         {
-            JObjectArray    infoArray;
+            JsonArray    infoArray;
 
             // The STB data items are directly part of the response - not nested.
             if (!getRf4ceStbData(response))
@@ -1160,7 +1154,7 @@ namespace WPEFramework {
                 {
                     infoArray.Add(m_remoteInfo[i]);
                 }
-                response["remoteData"] = JsonValue(infoArray);
+                response["remoteData"] = infoArray;
             }
 
             return STATUS_OK;

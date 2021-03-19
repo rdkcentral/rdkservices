@@ -190,6 +190,11 @@ namespace WPEFramework {
             registerMethod("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
             registerMethod("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
             registerMethod("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
+            registerMethod("setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
+            registerMethod("getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
+            registerMethod("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
+            registerMethod("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
+	    registerMethod("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
 
             registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
@@ -287,7 +292,6 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
 
             if(m_timer.isActive()) {
@@ -318,14 +322,11 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void DisplaySettings::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -364,8 +365,6 @@ namespace WPEFramework {
 
         void DisplaySettings::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -394,7 +393,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if(DisplaySettings::_instance)
             {
                 DisplaySettings::_instance->resolutionPreChange();
@@ -403,8 +401,6 @@ namespace WPEFramework {
 
         void DisplaySettings::ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
-
             int dw = 1280;
             int dh = 720;
 
@@ -428,7 +424,6 @@ namespace WPEFramework {
 
         void DisplaySettings::DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             //TODO(MROLLINS) Receiver has this whole thing guarded by #ifndef HEADLESS_GW
             if (strcmp(owner,IARM_BUS_DSMGR_NAME) == 0)
             {
@@ -490,7 +485,6 @@ namespace WPEFramework {
 
         void DisplaySettings::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             switch (eventId)
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
@@ -2287,6 +2281,132 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+
+        uint32_t DisplaySettings::setGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "graphicEqualizerMode");
+
+            string sGraphicEqualizerMode = parameters["graphicEqualizerMode"].String();
+                       int graphicEqualizerMode = 0;
+            try {
+                graphicEqualizerMode = stoi(sGraphicEqualizerMode);
+            }catch (const std::exception &err) {
+               LOGERR("Failed to parse graphicEqualizerMode '%s'", sGraphicEqualizerMode.c_str());
+                          returnResponse(false);
+            }
+
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setGraphicEqualizerMode (graphicEqualizerMode);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, sGraphicEqualizerMode);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+                       bool success = true;
+                       int graphicEqualizerMode = 0;
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                graphicEqualizerMode = aPort.getGraphicEqualizerMode ();
+                response["enable"] = (graphicEqualizerMode ? true : false);
+                response["mode"] = graphicEqualizerMode;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["enable"] = false;
+                response["mode"] = 0;
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::setMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "ms12AudioProfile");
+            string audioProfileName = parameters["ms12AudioProfile"].String();
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setMS12AudioProfile(audioProfileName);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, audioProfileName);
+                success = false;
+            }
+
+	    returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+	    string audioProfileName;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                audioProfileName = aPort.getMS12AudioProfile();
+                response["ms12AudioProfile"] = audioProfileName;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["ms12AudioProfile"] = "None";
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response)
+        {   //sample response: {"success":true,"supportedMS12AudioProfiles":["Off","Music","Movie","Game","Voice","Night","User"]}
+            LOGINFOMETHOD();
+            vector<string> supportedProfiles;
+	    string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+		device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+		supportedProfiles = aPort.getMS12AudioProfileList();
+                for (size_t i = 0; i < supportedProfiles.size(); i++)
+                {
+		    LOGINFO("Profile[%d]:  %s\n",i,supportedProfiles.at(i).c_str());
+                }
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+            setResponseArray(response, "supportedMS12AudioProfiles", supportedProfiles);
+            returnResponse(true);
+        }
+
+
         uint32_t DisplaySettings::getAudioDelay (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
@@ -2576,7 +2696,6 @@ namespace WPEFramework {
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
-            LOGINFO();
             bool success = true;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
@@ -2647,6 +2766,9 @@ namespace WPEFramework {
                     if (dsERR_NONE != eRet) {
                         LOGWARN("DisplaySettings::setEnableAudioPort aPort.setEnablePort retuned %04x \n", eRet);
                         success = false;
+                    } else if (aPort.isMuted()) {
+                        LOGWARN("DisplaySettings::setEnableAudioPort aPort.isMuted()\n");
+                        aPort.setMuted(true);
                     }
                 }
                 else {
@@ -2878,7 +3000,6 @@ namespace WPEFramework {
         // 4.
         void DisplaySettings::onTimer()
         {
-            LOGINFO();
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
@@ -3015,13 +3136,11 @@ namespace WPEFramework {
         //Begin events
         void DisplaySettings::resolutionPreChange()
         {
-            LOGINFO();
             sendNotify("resolutionPreChange", JsonObject());
         }
 
         void DisplaySettings::resolutionChanged(int width, int height)
         {
-            LOGINFO();
             vector<string> connectedDisplays;
             getConnectedVideoDisplaysHelper(connectedDisplays);
 
@@ -3076,7 +3195,6 @@ namespace WPEFramework {
         void DisplaySettings::zoomSettingUpdated(const string& zoomSetting)
         {//servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"None","success":true,"videoDisplayType":"all"}
          //servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"Full","success":true,"videoDisplayType":"all"}
-            LOGINFO();
             JsonObject params;
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
@@ -3085,7 +3203,6 @@ namespace WPEFramework {
 
         void DisplaySettings::activeInputChanged(bool activeInput)
         {
-            LOGINFO();
             JsonObject params;
             params["activeInput"] = activeInput;
             sendNotify("activeInputChanged", params);
@@ -3093,7 +3210,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
         {
-            LOGINFO();
             static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
             static int firstTime = 1;
 
@@ -3119,8 +3235,6 @@ namespace WPEFramework {
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
         {
-            LOGINFO();
-
             JsonObject params;
             string sPortName;
             string sPortStatus;
@@ -3158,7 +3272,6 @@ namespace WPEFramework {
 
         void DisplaySettings::getConnectedVideoDisplaysHelper(vector<string>& connectedDisplays)
         {
-            LOGINFO();
             try
             {
                 device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();

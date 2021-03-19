@@ -125,7 +125,6 @@ namespace WPEFramework {
 
         const string RemoteActionMapping::Initialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             InitializeIARM();
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -133,14 +132,11 @@ namespace WPEFramework {
 
         void RemoteActionMapping::Deinitialize(PluginHost::IShell* /* service */)
         {
-            LOGINFO();
             DeinitializeIARM();
         }
 
         void RemoteActionMapping::InitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -150,8 +146,6 @@ namespace WPEFramework {
 
         void RemoteActionMapping::DeinitializeIARM()
         {
-            LOGINFO();
-
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -170,7 +164,6 @@ namespace WPEFramework {
 
         void RemoteActionMapping::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            LOGINFO();
             if (!strcmp(owner, CTRLM_MAIN_IARM_BUS_NAME))
             {
                 if (eventId == CTRLM_RCU_IARM_EVENT_RIB_ACCESS_CONTROLLER)
@@ -1092,7 +1085,7 @@ namespace WPEFramework {
             }
 
             mappings = getFullKeyActionMapping(deviceID, keymapType);
-            response["keyMappings"] = JsonValue(mappings);
+            response["keyMappings"] = mappings;
 
             status_code = ((mappings.Length() > 0) ? STATUS_OK : STATUS_FAILURE);
 

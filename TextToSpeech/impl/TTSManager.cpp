@@ -29,8 +29,7 @@ TTSManager* TTSManager::create(TTSEventCallback *eventCallback)
 
 TTSManager::TTSManager(TTSEventCallback *callback) :
     m_callback(callback),
-    m_speaker(NULL),
-    m_ttsEnabled(false) {
+    m_speaker(NULL){
 
     TTSLOG_TRACE("TTSManager::TTSManager");
 
@@ -50,19 +49,21 @@ TTSManager::~TTSManager() {
 }
 
 TTS_Error TTSManager::enableTTS(bool enable) {
-
-    if(m_ttsEnabled != enable) {
-        m_ttsEnabled = enable;
-        TTSLOG_INFO("TTS is %s", enable ? "Enabled" : "Disabled");
-        m_callback->onTTSStateChanged(m_ttsEnabled);
-        m_speaker->ensurePipeline(m_ttsEnabled);
+    static bool force = true; 
+    if(force || m_defaultConfiguration.setEnabled(enable)) {
+        if(!m_defaultConfiguration.enabled())
+            shut(0);
+        TTSLOG_INFO("TTS is %s", m_defaultConfiguration.enabled()? "Enabled" : "Disabled");
+        m_defaultConfiguration.updateConfigStore();
+        m_callback->onTTSStateChanged(m_defaultConfiguration.enabled());
+        m_speaker->ensurePipeline(m_defaultConfiguration.enabled());
+        force = false;
     }
-
     return TTS_OK;
 }
 
 bool TTSManager::isTTSEnabled() {
-    return m_ttsEnabled;
+    return m_defaultConfiguration.enabled();
 }
 
 TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> &voices) {
@@ -92,15 +93,15 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
 
 TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Setting Default Configuration");
-
+    bool updated = false;
     std::string v = m_defaultConfiguration.voice();
 
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
     m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
-    m_defaultConfiguration.setLanguage(configuration.language);
-    m_defaultConfiguration.setVoice(configuration.voice);
-    m_defaultConfiguration.setVolume(configuration.volume);
-    m_defaultConfiguration.setRate(configuration.rate);
+    updated |= m_defaultConfiguration.setLanguage(configuration.language);
+    updated |= m_defaultConfiguration.setVoice(configuration.voice);
+    updated |= m_defaultConfiguration.setVolume(configuration.volume);
+    updated |= m_defaultConfiguration.setRate(configuration.rate);
 
     if(m_defaultConfiguration.endPoint().empty() && !m_defaultConfiguration.secureEndPoint().empty())
         m_defaultConfiguration.setEndPoint(m_defaultConfiguration.secureEndPoint());
@@ -119,6 +120,8 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     if(v !=  m_defaultConfiguration.voice())
         m_callback->onVoiceChanged(m_defaultConfiguration.voice());
+    if(updated)
+        m_defaultConfiguration.updateConfigStore();
 
     return TTS_OK;
 }
@@ -172,11 +175,9 @@ TTS_Error TTSManager::resume(uint32_t id) {
 
 TTS_Error TTSManager::shut(uint32_t id) {
     TTSLOG_TRACE("Shut");
-
-    if((id != 0) && m_speaker && m_speaker->cancelSpeech(id))
-        return TTS_OK;
-
-    return TTS_FAIL;
+    if(m_speaker)
+        m_speaker->cancelSpeech(id);
+    return TTS_OK;
 }
 
 TTS_Error TTSManager::isSpeaking(uint32_t id, bool &speaking) {

@@ -113,7 +113,6 @@ namespace WPEFramework
         , m_monitorParams(NULL)
         , m_stopMonitoring(false)
         {
-            LOGINFO();
             ActivityMonitor::_instance = this;
 
             registerMethod(ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE, &ActivityMonitor::getApplicationMemoryUsage, this);
@@ -124,7 +123,6 @@ namespace WPEFramework
 
         ActivityMonitor::~ActivityMonitor()
         {
-            LOGINFO();
             ActivityMonitor::_instance = nullptr;
 
             if (m_monitor.joinable())
@@ -135,7 +133,7 @@ namespace WPEFramework
 
         uint32_t ActivityMonitor::getApplicationMemoryUsage(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             if (parameters.HasLabel("pid"))
             {
@@ -171,7 +169,7 @@ namespace WPEFramework
 
         uint32_t ActivityMonitor::getAllMemoryUsage(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             response["freeMemoryMB"] = MemoryInfo::getFreeMemory();
 
@@ -202,7 +200,7 @@ namespace WPEFramework
 
         uint32_t ActivityMonitor::enableMonitoring(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             {
                 std::lock_guard<std::mutex> lock(m_monitoringMutex);
@@ -288,7 +286,7 @@ namespace WPEFramework
 
         uint32_t ActivityMonitor::disableMonitoring(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFO();
+            LOGINFOMETHOD();
 
             {
                 std::lock_guard<std::mutex> lock(m_monitoringMutex);
