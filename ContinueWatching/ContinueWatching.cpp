@@ -203,6 +203,7 @@ namespace WPEFramework {
 				}
 
 				std::string tokenData = continueWatchingImpl->getApplicationToken();
+				delete continueWatchingImpl;
 				continueWatchingImpl = NULL;
 				LOGINFO(" tokenData %s \n",tokenData.c_str());
 				return tokenData;
@@ -493,6 +494,7 @@ namespace WPEFramework {
 				long numbytes = ftell(file);
 				jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
 				if(jsonDoc == NULL) {
+					fclose(file);
 					return false;
 				}
 
@@ -539,6 +541,7 @@ namespace WPEFramework {
 				cJSON *tokenArray;
 				cJSON *jsonItem;
 
+				cJSON_Delete(root);
 				root  = cJSON_CreateObject();
 				tokenArray=  cJSON_CreateArray();
 				cJSON_AddItemToObject(root, "tokens", tokenArray);
@@ -586,6 +589,7 @@ namespace WPEFramework {
 			long numbytes = ftell(file);
 			jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
 			if(jsonDoc == NULL) {
+				fclose(file);
 				return retVal;
 			}
 
@@ -645,6 +649,7 @@ namespace WPEFramework {
 			long numbytes = ftell(file);
 			jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
 			if(jsonDoc==NULL) {
+				fclose(file);
 				return false;
 			}
 			fseek(file, 0, SEEK_SET);
@@ -830,6 +835,7 @@ namespace WPEFramework {
 			result = decryptData(workspace, num_chars, output, sizeof(output), bytesWritten);
 			if (!result){
 				LOGERR("decryptData failed..\n");
+				free(workspace);
 				return "";
 			}
 
@@ -847,6 +853,7 @@ namespace WPEFramework {
 
 			if (inputHash != tokenHash) {
 				LOGWARN("checksum not verified \n");
+				free(workspace);
 				return "";
 			}
 
@@ -855,6 +862,7 @@ namespace WPEFramework {
 			size_t decworkspace_size = b64_get_decoded_buffer_size(dectokenVec.size());
 			uint8_t *decworkspace = (uint8_t*)malloc(decworkspace_size);
 			if(decworkspace == NULL) {
+				free(workspace);
 				return "";
 			}
 			size_t decnum_chars = b64_decode(e, dectokenVec.size(),decworkspace);
@@ -865,6 +873,8 @@ namespace WPEFramework {
 				listdecydec << decworkspace[i];
 			}
 			dectokenbase64 = listdecydec.str();
+			free(workspace);
+			free(decworkspace);
 			return dectokenbase64;
 		}
 
@@ -913,12 +923,16 @@ namespace WPEFramework {
 			uint8_t *buff = &forencryptVec[0];
 			result = encryptData(buff, forencryptVec.size(), cipher, sizeof(cipher), bytesWritten);
 			if (!result)
+			{
+				free(workspace);
 				return false;
+			}
 
 
 			size_t jsonworkspace_size = b64_get_encoded_buffer_size(sizeof(cipher));
 			uint8_t *jsonworkspace = (uint8_t*)malloc(jsonworkspace_size);
 			if(jsonworkspace == NULL) {
+				free(workspace);
 				return false;
 			}
 			b64_encode(cipher,sizeof(cipher),jsonworkspace);
@@ -930,6 +944,8 @@ namespace WPEFramework {
 			}
 			jsontokenbase64 = listwritetofile.str();
 			result = writeToJson(jsontokenbase64);
+			free(workspace);
+			free(jsonworkspace);
 			return result;
 		}
 
