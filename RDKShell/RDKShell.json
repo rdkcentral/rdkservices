@@ -144,7 +144,7 @@
                                     "example": 2
                                 },
                                 "tween":{
-                                    "summary":"the animation tween type. The default is `linear`",
+                                    "summary":"The animation tween type. The default is `linear`",
                                     "type": "string",
                                     "enum": [
                                         "linear",

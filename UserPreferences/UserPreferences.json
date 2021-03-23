@@ -1,0 +1,69 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "UserPreferences API", 
+        "class": "UserPreferences",
+        "description": "The `UserPreferences` plugin controls user preference settings on set-top devices."
+    },
+    "definitions": {
+        "ui_language":{
+            "summary": "The language of the user interface",
+            "type": "string",
+            "example": "US_en"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getUILanguage ":{
+            "summary": "Returns the user preferred UI language",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ui_language":{
+                        "$ref": "#/definitions/ui_language"                       
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ui_language",
+                    "success"
+                ]
+            }
+        },
+        "setUILanguage":{
+            "summary": "Sets the user preferred UI language",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ui_language": {
+                        "$ref": "#/definitions/ui_language"
+                    }
+                },
+                "required": [
+                    "ui_language"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    }
+}

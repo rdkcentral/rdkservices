@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "System Plugin",
+      "callsign": "org.rdk.System",
+      "locator": "libWPEFrameworkSystemServices.so",
+      "status": "production",
+      "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "System.json#"
+    }
+}
