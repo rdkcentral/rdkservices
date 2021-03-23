@@ -891,7 +891,7 @@ namespace WPEFramework {
 						if(StateObserver::_instance)
 							StateObserver::_instance->setProp(params,SYSTEM_TIME_ZONE,state,error);
 						string payload_str(payload);
-						params["payload"].FromString(payload_str);
+						params["payload"] = payload_str;
 						break;
 						}
 
