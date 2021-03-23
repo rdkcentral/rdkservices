@@ -75,6 +75,7 @@ namespace WPEFramework {
         public:
             CompositeInput();
             virtual ~CompositeInput();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void terminate();
 

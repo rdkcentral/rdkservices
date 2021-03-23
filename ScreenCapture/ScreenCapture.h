@@ -100,6 +100,7 @@ namespace WPEFramework {
         public:
             ScreenCapture();
             virtual ~ScreenCapture();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static ScreenCapture* _instance;

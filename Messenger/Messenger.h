@@ -49,7 +49,6 @@ namespace Plugin {
 
         ~Messenger()
         {
-            UnregisterAll();
         }
 
         // IPlugin methods

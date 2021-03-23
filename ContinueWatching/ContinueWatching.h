@@ -88,6 +88,7 @@ namespace WPEFramework {
         	public:
 			ContinueWatching();
 			virtual ~ContinueWatching();
+                        virtual void Deinitialize(PluginHost::IShell* service) override;
         	private:
 			uint32_t getApiVersionNumber();
 			void setApiVersionNumber(uint32_t apiVersionNumber);

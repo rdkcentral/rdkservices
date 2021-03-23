@@ -179,6 +179,10 @@ namespace WPEFramework
 
         Bluetooth::~Bluetooth()
         {
+        }
+
+        void Bluetooth::Deinitialize(PluginHost::IShell* /* service */)
+        {
             Bluetooth::_instance = nullptr;
 
             BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);

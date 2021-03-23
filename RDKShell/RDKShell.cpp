@@ -380,14 +380,7 @@ namespace WPEFramework {
 
         RDKShell::~RDKShell()
         {
-            LOGINFO("dtor");
-            mClientsMonitor->Release();
-            RDKShell::_instance = nullptr;
-            mRemoteShell = false;
-            CompositorController::setEventListener(nullptr);
-            mEventListener = nullptr;
-            mEnableUserInactivityNotification = false;
-            gActivePluginsData.clear();
+            //LOGINFO("dtor");
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -688,8 +681,16 @@ namespace WPEFramework {
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
+            LOGINFO("Deinitialize");
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
+            mClientsMonitor->Release();
+            RDKShell::_instance = nullptr;
+            mRemoteShell = false;
+            CompositorController::setEventListener(nullptr);
+            mEventListener = nullptr;
+            mEnableUserInactivityNotification = false;
+            gActivePluginsData.clear();
         }
 
         string RDKShell::Information() const
@@ -2462,10 +2463,12 @@ namespace WPEFramework {
 
                 if (type == "Cobalt")
                 {
-                    if (suspend && configuration.find("\"preload\"") == std::string::npos)
+                    if (configuration.find("\"preload\"") == std::string::npos)
                     {
-                        std::cout << "enable Cobalt preload " << std::endl;
-                        configSet["preload"] = JsonValue(true);
+                        // Enable preload for l2s
+                        bool preload = suspend;
+                        std::cout << "setting Cobalt preload: " << preload << "\n";
+                        configSet["preload"] = JsonValue(preload);
                     }
                 }
 

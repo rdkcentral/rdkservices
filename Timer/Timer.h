@@ -102,6 +102,7 @@ namespace WPEFramework {
         public:
             Timer();
             virtual ~Timer();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static Timer* _instance;
