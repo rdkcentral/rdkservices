@@ -49,10 +49,12 @@ namespace Plugin {
         Register<JoinParamsData,JoinResultInfo>(_T("join"), &Messenger::endpoint_join, this);
         Register<JoinResultInfo,void>(_T("leave"), &Messenger::endpoint_leave, this);
         Register<SendParamsData,void>(_T("send"), &Messenger::endpoint_send, this);
+        Register<CreateParamsData,void>(_T("create"), &Messenger::endpoint_create, this);
     }
 
     void Messenger::UnregisterAll()
     {
+        Unregister(_T("create"));
         Unregister(_T("send"));
         Unregister(_T("leave"));
         Unregister(_T("join"));
@@ -115,6 +117,24 @@ namespace Plugin {
         return result? Core::ERROR_NONE : Core::ERROR_UNKNOWN_KEY;
     }
 
+    // Creates a messaging room name and URL regex.
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_BAD_REQUEST: Room name or URL regex was invalid
+    uint32_t Messenger::endpoint_create(const CreateParamsData& params)
+    {
+        uint32_t result = Core::ERROR_BAD_REQUEST;
+        const string& room = params.Room.Value();
+        const string& urlRegex = params.UrlRegex.Value();
+
+        if (!room.empty() && !urlRegex.empty()) {
+            AddRoomACL(room, urlRegex);
+            result = Core::ERROR_NONE;
+        }
+
+        return result;
+    }
+
     // Notifies about room status updates.
     void Messenger::event_roomupdate(const string& room, const RoomupdateParamsData::ActionType& action)
     {
@@ -149,6 +169,29 @@ namespace Plugin {
             const string designator_id = designator.substr(0, designator.find('.'));
             return (id == designator_id);
         });
+    }
+
+    // TokenCheckFunction
+    bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+    {
+        bool result = true;
+
+        if (method == _T("create")) {
+            CreateParamsData params;
+            params.FromString(parameters);
+            const string& room = params.Room.Value();
+
+            AddRoomACL(room, token, true);
+        }
+        else if (method == _T("join")) {
+            JoinParamsData params;
+            params.FromString(parameters);
+            const string& room = params.Room.Value();
+
+            result = IsRoomAllowed(room, token);
+        }
+
+        return result;
     }
 
 } // namespace Plugin

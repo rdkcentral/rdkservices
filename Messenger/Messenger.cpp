@@ -21,6 +21,8 @@
 #include "Messenger.h"
 #include "cryptalgo/Hash.h"
 
+#include <regex>
+
 namespace WPEFramework {
 
 namespace Plugin {
@@ -36,6 +38,7 @@ namespace Plugin {
         ASSERT(_roomAdmin == nullptr);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
+        ASSERT(_roomACL.empty() == true);
 
         _service = service;
         _service->AddRef();
@@ -68,6 +71,8 @@ namespace Plugin {
         _service->Release();
         _service = nullptr;
         UnregisterAll();
+
+        _roomACL.clear();
     }
 
     // Web request handlers
@@ -162,6 +167,54 @@ namespace Plugin {
             // Send the message to the room.
             (*it).second->SendMessage(message);
             result = true;
+        }
+
+        _adminLock.Unlock();
+
+        return result;
+    }
+
+    void Messenger::AddRoomACL(const string& roomId, const string& regex, bool replace)
+    {
+        std::string r = regex;
+
+        // Order of replacing is important
+        r = std::regex_replace(r, std::regex(R"([-[\]{}()+?.,\^$|#\s])"), R"(\$&)");
+        r = std::regex_replace(r, std::regex(":\\*"), ":[0-9]+");
+        r = std::regex_replace(r, std::regex("\\*:"), "[a-z]+:");
+        r = std::regex_replace(r, std::regex("\\*"), "[a-zA-Z0-9\\.]+");
+        r.insert(r.begin(), '^');
+
+        // Note, empty strings '' will match an empty regex '^'
+
+        _adminLock.Lock();
+
+        auto retval = _roomACL.emplace(std::piecewise_construct,
+                std::make_tuple(roomId),
+                std::make_tuple());
+
+        if (retval.second == false && replace) {
+            retval.first->second.clear();
+        }
+        retval.first->second.emplace_back(r);
+
+        _adminLock.Unlock();
+    }
+
+    bool Messenger::IsRoomAllowed(const string& roomId, const string& id) const
+    {
+        bool result = false;
+
+        _adminLock.Lock();
+
+        auto acl = _roomACL.find(roomId);
+        if (acl != _roomACL.end()) {
+            for (auto const& i : acl->second) {
+                if (std::regex_search(id, std::regex(i)) == true) {
+                    result = true;
+                    break;
+                }
+            }
         }
 
         _adminLock.Unlock();

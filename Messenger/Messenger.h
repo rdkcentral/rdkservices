@@ -38,7 +38,9 @@ namespace Plugin {
         Messenger& operator=(const Messenger&) = delete;
 
         Messenger()
-            : _connectionId(0)
+            : PluginHost::JSONRPCSupportsEventStatus(std::bind(&Messenger::CheckToken, this,
+                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+            , _connectionId(0)
             , _service(nullptr)
             , _roomAdmin(nullptr)
             , _roomIds()
@@ -129,6 +131,8 @@ namespace Plugin {
         string JoinRoom(const string& roomId, const string& userName);
         bool LeaveRoom(const string& roomId);
         bool SendMessage(const string& roomId, const string& message);
+        void AddRoomACL(const string& roomId, const string& regex, bool replace = false);
+        bool IsRoomAllowed(const string& roomId, const string& id) const;
 
         void UserJoinedHandler(const string& roomId, const string& userName)
         {
@@ -176,15 +180,18 @@ namespace Plugin {
         uint32_t endpoint_join(const JsonData::Messenger::JoinParamsData& params, JsonData::Messenger::JoinResultInfo& response);
         uint32_t endpoint_leave(const JsonData::Messenger::JoinResultInfo& params);
         uint32_t endpoint_send(const JsonData::Messenger::SendParamsData& params);
+        uint32_t endpoint_create(const JsonData::Messenger::CreateParamsData& params);
         void event_roomupdate(const string& room, const JsonData::Messenger::RoomupdateParamsData::ActionType& action);
         void event_userupdate(const string& id, const string& user, const JsonData::Messenger::UserupdateParamsData::ActionType& action);
         void event_message(const string& id, const string& user, const string& message);
+        bool CheckToken(const string& token, const string& method, const string& parameters);
 
         uint32_t _connectionId;
         PluginHost::IShell* _service;
         Exchange::IRoomAdministrator* _roomAdmin;
         std::map<string, Exchange::IRoomAdministrator::IRoom*> _roomIds;
         std::set<string> _rooms;
+        std::map<string, std::list<string>> _roomACL;
         mutable Core::CriticalSection _adminLock;
     }; // class Messenger
 
