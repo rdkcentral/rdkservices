@@ -118,9 +118,7 @@ namespace WPEFramework {
 
         RemoteActionMapping::~RemoteActionMapping()
         {
-            LOGINFO("dtor");
-            RemoteActionMapping::_instance = nullptr;
-
+            //LOGINFO("dtor");
         }
 
         const string RemoteActionMapping::Initialize(PluginHost::IShell* /* service */)
@@ -133,6 +131,7 @@ namespace WPEFramework {
         void RemoteActionMapping::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            RemoteActionMapping::_instance = nullptr;
         }
 
         void RemoteActionMapping::InitializeIARM()

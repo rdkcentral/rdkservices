@@ -97,7 +97,6 @@ namespace WPEFramework
 
         Warehouse::~Warehouse()
         {
-            Warehouse::_instance = nullptr;
         }
 
         const string Warehouse::Initialize(PluginHost::IShell* /* service */)
@@ -110,6 +109,7 @@ namespace WPEFramework
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            Warehouse::_instance = nullptr;
         }
 
         void Warehouse::InitializeIARM()

@@ -67,6 +67,7 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
+        UnregisterAll();
     }
 
     // Web request handlers

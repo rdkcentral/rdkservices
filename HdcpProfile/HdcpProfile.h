@@ -66,6 +66,7 @@ namespace WPEFramework {
         public:
             HdcpProfile();
             virtual ~HdcpProfile();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void terminate();
 

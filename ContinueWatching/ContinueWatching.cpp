@@ -80,6 +80,10 @@ namespace WPEFramework {
 
 		ContinueWatching::~ContinueWatching()
 		{
+		}
+
+		void ContinueWatching::Deinitialize(PluginHost::IShell* /* service */)
+		{
 			ContinueWatching::_instance = nullptr;
 		}
 
