@@ -77,6 +77,7 @@ namespace Plugin {
         }
 
         _connectionId = 0;
+         UnregisterAll();
     }
 
     /* virtual */ string DeviceIdentification::Information() const

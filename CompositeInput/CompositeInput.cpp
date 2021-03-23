@@ -61,6 +61,10 @@ namespace WPEFramework
 
         CompositeInput::~CompositeInput()
         {
+        }
+
+        void CompositeInput::Deinitialize(PluginHost::IShell* /* service */)
+        {
             CompositeInput::_instance = nullptr;
 
             DeinitializeIARM();

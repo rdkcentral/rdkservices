@@ -78,8 +78,6 @@ namespace WPEFramework {
 
 		StateObserver::~StateObserver()
 		{
-			StateObserver::_instance = nullptr;
-			//Unregister all the APIs
 		}
 
 		const string StateObserver::Initialize(PluginHost::IShell* /* service */)
@@ -93,6 +91,8 @@ namespace WPEFramework {
 		void StateObserver::Deinitialize(PluginHost::IShell* /* service */)
 		{
 			DeinitializeIARM();
+			StateObserver::_instance = nullptr;
+			//Unregister all the APIs
 		}
 
 		void StateObserver::InitializeIARM()
@@ -887,7 +887,7 @@ namespace WPEFramework {
 						if(StateObserver::_instance)
 							StateObserver::_instance->setProp(params,SYSTEM_TIME_ZONE,state,error);
 						string payload_str(payload);
-						params["payload"].FromString(payload_str);
+						params["payload"] = payload_str;
 						break;
 						}
 

@@ -386,14 +386,7 @@ namespace WPEFramework {
 
         RDKShell::~RDKShell()
         {
-            LOGINFO("dtor");
-            mClientsMonitor->Release();
-            RDKShell::_instance = nullptr;
-            mRemoteShell = false;
-            CompositorController::setEventListener(nullptr);
-            mEventListener = nullptr;
-            mEnableUserInactivityNotification = false;
-            gActivePluginsData.clear();
+            //LOGINFO("dtor");
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
@@ -694,8 +687,16 @@ namespace WPEFramework {
 
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
+            LOGINFO("Deinitialize");
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
+            mClientsMonitor->Release();
+            RDKShell::_instance = nullptr;
+            mRemoteShell = false;
+            CompositorController::setEventListener(nullptr);
+            mEventListener = nullptr;
+            mEnableUserInactivityNotification = false;
+            gActivePluginsData.clear();
         }
 
         string RDKShell::Information() const

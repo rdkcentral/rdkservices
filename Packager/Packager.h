@@ -325,18 +325,6 @@ namespace {
 
         ~Packager() override
         {
-            Unregister(kInstallMethodName);
-            Unregister(kSynchronizeMethodName);
-
-#ifdef INCLUDE_PACKAGER_EX
-            Unregister(kDAC_RemoveMethodName);
-            Unregister(kDAC_CancelMethodName);
-            Unregister(kDAC_IsInstalledMethodName);
-            Unregister(kDAC_GetInstallProgressMethodName);
-            Unregister(kDAC_GetInstalledMethodName);
-            Unregister(kDAC_GetPackageInfoMethodName);
-            Unregister(kDAC_GetAvailableSpaceMethodName);
-#endif // INCLUDE_PACKAGER_EX
         }
 
         BEGIN_INTERFACE_MAP(Packager)

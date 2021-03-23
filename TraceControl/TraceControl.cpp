@@ -102,6 +102,7 @@ namespace Plugin {
 
             _outputs.pop_front();
         }
+        UnregisterAll();
     }
 
     /* virtual */ string TraceControl::Information() const
