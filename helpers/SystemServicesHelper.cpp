@@ -165,16 +165,17 @@ namespace WPEFramework {
             return rtrim(ltrim(s));
         }
 
-        string getModel()
+        string getDeviceDetails(const string& name)
         {
-            const char * pipeName = "PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read";
+            string pipeNameStr = "PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read " + name;
+            const char * pipeName = pipeNameStr.c_str();
             FILE* pipe = popen(pipeName, "r");
             LOGWARN("%s: opened pipe for command '%s', with result %s : %s\n",
                     __FUNCTION__ , pipeName, pipe ? "sucess" : "failure", strerror(errno));
             if (!pipe) {
                 LOGERR("%s: SERVICEMANAGER_FILE_ERROR: Can't open pipe for command '%s' for read mode: %s\n"
                         , __FUNCTION__, pipeName, strerror(errno));
-                return "ERROR";
+                return "";
             }
 
             char buffer[128] = {'\0'};
@@ -187,11 +188,21 @@ namespace WPEFramework {
             }
             pclose(pipe);
 
-            string tri = caseInsensitive(result);
-            string ret = tri.c_str();
-            ret = trim(ret);
+            string ret = trim(result);
             LOGWARN("%s: ret=%s\n", __FUNCTION__, ret.c_str());
             return ret;
+        }
+
+        string getModel()
+        {
+            string result = getDeviceDetails("model");
+            if (result.empty())
+            {
+                result = getDeviceDetails("model_number");
+                if (result.empty())
+                    result = "ERROR";
+            }
+            return result;
         }
 
         string convertCase(string str)
