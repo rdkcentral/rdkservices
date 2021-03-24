@@ -1622,6 +1622,8 @@ namespace WPEFramework {
                             fwUpdateState = FirmwareUpdateStatePreparingReboot;
                         } else if (!strcmp(line.c_str(), "No upgrade needed")) {
                             fwUpdateState = FirmwareUpdateStateNoUpgradeNeeded;
+                        } else if (!strcmp(line.c_str(), "Uninitialized")){
+                            fwUpdateState = FirmwareUpdateStateUninitialized;
                         }
                     }
                 }
