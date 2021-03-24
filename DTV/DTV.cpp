@@ -249,6 +249,7 @@ namespace WPEFramework
          _dtv = nullptr;
 
          _service = nullptr;
+         UnregisterAll();
 
          SYSLOG(Logging::Shutdown, (string(_T("DTV de-initialised"))));
       }

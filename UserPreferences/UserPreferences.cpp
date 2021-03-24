@@ -48,7 +48,12 @@ namespace WPEFramework {
 
         UserPreferences::~UserPreferences()
         {
-            LOGINFO("dtor");
+            //LOGINFO("dtor");
+        }
+
+        void UserPreferences::Deinitialize(PluginHost::IShell* /* service */)
+        {
+            LOGINFO("Deinitialize");
             UserPreferences::_instance = nullptr;
         }
 

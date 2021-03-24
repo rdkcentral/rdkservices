@@ -87,10 +87,7 @@ namespace WPEFramework {
 
         PersistentStore::~PersistentStore()
         {
-            LOGINFO("dtor");
-            PersistentStore::_instance = nullptr;
-
-            term();
+            //LOGINFO("dtor");
         }
 
         const string PersistentStore::Initialize(PluginHost::IShell* /* service */)
@@ -109,6 +106,7 @@ namespace WPEFramework {
         void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
         {
             term();
+            PersistentStore::_instance = nullptr;
         }
 
         string PersistentStore::Information() const

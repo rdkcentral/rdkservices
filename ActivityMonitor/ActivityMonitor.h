@@ -68,6 +68,7 @@ namespace WPEFramework {
         public:
             ActivityMonitor();
             virtual ~ActivityMonitor();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static ActivityMonitor* _instance;

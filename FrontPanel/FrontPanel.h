@@ -125,6 +125,7 @@ namespace WPEFramework {
         public:
             FrontPanel();
             virtual ~FrontPanel();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void updateLedTextPattern();
 

@@ -49,15 +49,6 @@ OCIContainer::OCIContainer()
 
 OCIContainer::~OCIContainer()
 {
-    Unregister("listContainers");
-    Unregister("getContainerState");
-    Unregister("getContainerInfo");
-    Unregister("startContainer");
-    Unregister("startContainerFromDobbySpec");
-    Unregister("stopContainer");
-    Unregister("pauseContainer");
-    Unregister("resumeContainer");
-    Unregister("executeCommand");
 }
 
 const string OCIContainer::Initialize(PluginHost::IShell *service)
@@ -97,6 +88,15 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
     mDobbyProxy->unregisterListener(mEventListenerId);
+    Unregister("listContainers");
+    Unregister("getContainerState");
+    Unregister("getContainerInfo");
+    Unregister("startContainer");
+    Unregister("startContainerFromDobbySpec");
+    Unregister("stopContainer");
+    Unregister("pauseContainer");
+    Unregister("resumeContainer");
+    Unregister("executeCommand");
 }
 
 string OCIContainer::Information() const

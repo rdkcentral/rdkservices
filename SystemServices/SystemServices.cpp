@@ -379,7 +379,6 @@ namespace WPEFramework {
 
         SystemServices::~SystemServices()
         {       
-            SystemServices::_instance = nullptr;
         }
 
         const string SystemServices::Initialize(PluginHost::IShell*)
@@ -396,6 +395,7 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+            SystemServices::_instance = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -1778,6 +1778,8 @@ namespace WPEFramework {
                             fwUpdateState = FirmwareUpdateStatePreparingReboot;
                         } else if (!strcmp(line.c_str(), "No upgrade needed")) {
                             fwUpdateState = FirmwareUpdateStateNoUpgradeNeeded;
+                        } else if (!strcmp(line.c_str(), "Uninitialized")){
+                            fwUpdateState = FirmwareUpdateStateUninitialized;
                         }
                     }
                 }

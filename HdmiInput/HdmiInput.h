@@ -79,6 +79,7 @@ namespace WPEFramework {
         public:
             HdmiInput();
             virtual ~HdmiInput();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void terminate();
 

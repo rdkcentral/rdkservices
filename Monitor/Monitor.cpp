@@ -53,6 +53,8 @@ namespace Plugin {
         _monitor->Close();
 
         service->Unregister(_monitor);
+        UnregisterAll();
+        _monitor->Release();
     }
 
     /* virtual */ string Monitor::Information() const
