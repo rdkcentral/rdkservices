@@ -42,6 +42,7 @@ namespace Plugin {
 
         virtual ~DeviceIdentification()
         {
+            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(DeviceIdentification)
