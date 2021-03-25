@@ -341,6 +341,7 @@ namespace WPEFramework {
                 ~PluginStateChangeData();
                 void onStateChangeEvent(const JsonObject& params);
                 void enableLaunch(bool enable);
+                void resetConnection();
 
            private:
                 std::string mCallSign;
