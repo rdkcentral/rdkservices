@@ -168,6 +168,8 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        static Core::TimerType<EventTimer> gEventTimer(64 * 1024, "RDKShellEventTimer");
+
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -251,9 +253,8 @@ namespace WPEFramework {
                     std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
                     if (launchFactoryApp)
                     {
-                      JsonObject request, response;
-                      std::cout << "about to launch factory app\n";
-                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
+                      std::cout << "about to launch factory app timer\n";
+                      mShell.startEventTimer();
                     }
                     else
                     {
@@ -308,7 +309,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
+                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mEventTimer(this), mEventTimerStarted(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -4706,6 +4707,34 @@ namespace WPEFramework {
             return ret;
         }
 
+        void RDKShell::startEventTimer()
+        {
+            if (!mEventTimerStarted)
+            {
+                gEventTimer.Schedule(Core::Time::Now().Add(1000), mEventTimer);
+                mEventTimerStarted = true;
+            }
+        }
+
+        void RDKShell::stopEventTimer()
+        {
+            gEventTimer.Revoke(mEventTimer);
+            mEventTimerStarted = false;
+        }
+
+        void RDKShell::onEventTimer()
+        {
+            JsonObject factoryLaunchRequest, factoryLaunchResponse;
+            std::cout << "about to launch factory app from timer\n";
+            uint32_t status = launchFactoryAppWrapper(factoryLaunchRequest, factoryLaunchResponse);
+            stopEventTimer();
+        }
+
+        uint64_t EventTimer::Timed(const uint64_t scheduledTime)
+        {
+            mShell->onEventTimer();
+            return 0;
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
