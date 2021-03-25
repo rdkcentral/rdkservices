@@ -563,15 +563,17 @@ namespace WPEFramework
         uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-
-            if (parameters.HasLabel("interface"))
+            string interface = "";
+            string ipversion = "";
+            if ((parameters.HasLabel("interface")) || (parameters.HasLabel("ipversion")))
             {
-                string interface = "";
                 getStringParameter("interface", interface);
-
-                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-                strncpy(iarmData.interface, interface.c_str(), 16);
-                iarmData.isSupported = true;
+                getStringParameter("ipversion", ipversion);
+            }
+            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+            strncpy(iarmData.interface, interface.c_str(), 16);
+            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+            iarmData.isSupported = true;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
                 {
@@ -585,8 +587,6 @@ namespace WPEFramework
                     response["secondarydns"] = string(iarmData.secondarydns);
                     result = true;
                 }
-            }
-
             returnResponse(result)
         }
 
