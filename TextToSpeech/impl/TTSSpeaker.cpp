@@ -920,7 +920,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                 TTSLOG_ERROR("error! code: %d, %s, Debug: %s", error->code, error->message, debug);
                 GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "error-pipeline");
                 std::string source = GST_MESSAGE_SRC_NAME(message);
-                if(source.find("souphttpsrc") == 0)
+                if(source.find("httpsrc") != std::string::npos)
                     m_networkError = true;
                 m_pipelineError = true;
                 m_condition.notify_one();
