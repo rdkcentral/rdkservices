@@ -581,7 +581,7 @@ private:
             static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
-            void onHdmiHotPlug(int connectStatus);
+            void onHdmiHotPlug(int portId, int connectStatus);
 			void onPowerStateON();
 			void wakeupFromStandby();
             bool loadSettings();
