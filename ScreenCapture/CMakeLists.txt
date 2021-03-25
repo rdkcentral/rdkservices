@@ -29,9 +29,16 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+find_path(FRAMEBUFFER_API_HEADER NAMES framebuffer-api.h)
+if (NOT ${FRAMEBUFFER_API_HEADER} STREQUAL "FRAMEBUFFER_API_HEADER-NOTFOUND")
+    message("Found framebuffer-api.h")
+add_definitions (-DHAS_FRAMEBUFFER_API_HEADER)
+find_library(VNC_FRAMEBUFFER_LIBRARIES NAMES vncframebuffer)
+endif()
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl ${VNC_FRAMEBUFFER_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
