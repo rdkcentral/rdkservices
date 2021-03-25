@@ -2336,6 +2336,17 @@ namespace WPEFramework {
                     }
                 }
 
+                if (type == "Cobalt")
+                {
+                    if (configuration.find("\"preload\"") == std::string::npos)
+                    {
+                        // Enable preload for l2s
+                        bool preload = suspend;
+                        std::cout << "setting Cobalt preload: " << preload << "\n";
+                        configSet["preload"] = JsonValue(preload);
+                    }
+                }
+
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
 
                 std::cout << "set status: " << status << std::endl;
