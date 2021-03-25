@@ -29,6 +29,13 @@
 #include <png.h>
 #include <curl/curl.h>
 
+#ifdef HAS_FRAMEBUFFER_API_HEADER
+extern "C" {
+#include "framebuffer-api.h"
+#include "framebuffer-serverapi.h"
+}
+#endif
+
 // Methods
 #define METHOD_UPLOAD "uploadScreenCapture"
 
@@ -111,6 +118,10 @@ namespace WPEFramework
 
             #ifdef PLATFORM_INTEL
             got_screenshot = getScreenshotIntel(png_data);
+            #endif
+
+            #ifdef HAS_FRAMEBUFFER_API_HEADER
+            got_screenshot = getScreenshotRealtek(png_data);
             #endif
 
             if(got_screenshot)
@@ -329,6 +340,118 @@ namespace WPEFramework
             }
             else
                 return true;
+        }
+#endif
+
+#ifdef HAS_FRAMEBUFFER_API_HEADER
+        static vnc_bool_t FakeVNCServerFramebufferUpdateReady(void* ctx) {
+            LOGWARN("FakeVNCServerFramebufferUpdateReady called");
+            return vnc_true;
+        }
+
+        static void FakeVNCServerFramebufferDetailsChanged(void* ctx, vnc_uint8_t* fb, vnc_uint16_t width, vnc_uint16_t height, vnc_uint16_t stride, PixelFormat* pf) {
+            LOGWARN("FakeVNCServerFramebufferDetailsChanged called");
+        }
+
+        static void FakeVNCServerPaletteChanged(void* ctx, Palette* palette) {
+            LOGWARN("FakeVNCServerPaletteChanged called");
+        }
+
+        static void FakeVNCServerLogMessage(void* ctx_, const char* fmt, ...) {
+            LOGWARN("VNCServerLogMessage called");
+        }
+
+        bool ScreenCapture::getScreenshotRealtek(std::vector<unsigned char> &png_out_data)
+        {
+            ErrCode err;
+            vnc_bool_t result;
+            vnc_uint8_t* buffer; 
+            VncServerFramebufferAPI api;
+
+            api.framebufferUpdateReady = FakeVNCServerFramebufferUpdateReady;
+            api.framebufferDetailsChanged = FakeVNCServerFramebufferDetailsChanged;
+            api.paletteChanged = FakeVNCServerPaletteChanged;
+            api.logMsg = FakeVNCServerLogMessage;
+
+            FBContext *context = NULL;
+            err = fbCreate(&context);
+            if (err != ErrNone) {
+                LOGERR("fbCreate fail");
+                return false;
+            }
+
+            err = fbInit(context, &api, NULL);
+            if (err != ErrNone) {
+                LOGERR("fbInit fail");
+                fbDestroy(context);
+                return false;
+            }
+
+            PixelFormat *pf = fbGetPixelFormat(context);
+            if(pf) {
+                LOGINFO("fbGetPixelFormat:");
+                LOGINFO("\tbitsPerPixel=%d", pf->bitsPerPixel );
+                LOGINFO("\tdepth=%d", pf->depth);
+                LOGINFO("\tbigEndian=%s", (pf->bigEndian)?"true":"false");
+                LOGINFO("\ttrueColour=%s", (pf->trueColour)?"true":"false");
+                LOGINFO("\tredMax=%d", pf->redMax);
+                LOGINFO("\tgreenMax=%d", pf->greenMax);
+                LOGINFO("\tblueMax=%d", pf->blueMax);
+                LOGINFO("\tredShift=%d", pf->redShift);
+                LOGINFO("\tgreenShift=%d", pf->greenShift);
+                LOGINFO("\tblueShift=%d", pf->blueShift);
+            }
+
+            if (32 != pf->bitsPerPixel)
+            {
+                LOGERR("Unsupported bits per pixel: %d", pf->bitsPerPixel);
+                fbDestroy(context);
+                return false;
+            }
+
+            vnc_uint16_t w = fbGetWidth(context);
+            LOGINFO("fbGetWidth=%d", w);
+            vnc_uint16_t h = fbGetHeight(context);
+            LOGINFO("fbGetHeight=%d", h);
+            vnc_uint16_t s = fbGetStride(context);
+            LOGINFO("fbGetStride=%d", s);
+
+            buffer = fbGetFramebuffer(context);
+
+            if(buffer) {
+                LOGINFO("fbGetFramebuffer=ok"); 
+
+                for(unsigned int n = 0; n < h; n++)
+                {
+                    for(unsigned int i = 0; i < w; i++)
+                    {
+                        unsigned char *color = buffer + n * s + i * 4;
+
+                        unsigned char blue = color[0];
+                        color[0] =  color[2];
+                        color[2] = blue;
+                    }
+                }
+
+                if(!saveToPng(buffer, w, h, png_out_data))
+                {
+                    LOGERR("could not convert Nexus screenshot to png");
+                    fbDestroy(context);
+                    return false;
+                }
+                LOGINFO("[Done]");
+
+            } else {
+                LOGERR("fbGetFramebuffer=null");
+                fbDestroy(context);
+                return false;
+            }
+
+            err = fbDestroy(context);
+            if (err != ErrNone)
+                LOGERR("fbDestroy fail");
+
+            return true;
         }
 #endif
 

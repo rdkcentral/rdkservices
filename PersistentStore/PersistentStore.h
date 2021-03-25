@@ -34,6 +34,7 @@ namespace WPEFramework {
             static const string METHOD_GET_KEYS;
             static const string METHOD_GET_NAMESPACES;
             static const string METHOD_GET_STORAGE_SIZE;
+            static const string METHOD_FLUSH_CACHE;
             //events
             static const string EVT_ON_STORAGE_EXCEEDED;
             //other
@@ -52,6 +53,7 @@ namespace WPEFramework {
             uint32_t getKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getNamespacesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getStorageSizeWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t flushCacheWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             PersistentStore(const PersistentStore&) = delete;
@@ -64,6 +66,7 @@ namespace WPEFramework {
             bool getKeys(const string& ns, std::vector<string>& keys);
             bool getNamespaces(std::vector<string>& namespaces);
             bool getStorageSize(std::map<string, uint64_t>& namespaceSizes);
+            bool flushCache();
 
             void term();
             void vacuum();
