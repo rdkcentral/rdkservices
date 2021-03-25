@@ -607,11 +607,11 @@ namespace WPEFramework {
             return(string("{\"service\": \"") + SERVICE_NAME + string("\"}"));
         }
 
-        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign)
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > RDKShell::getThunderControllerClient(std::string callsign, std::string localidentifier)
         {
             string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), localidentifier.c_str(), false, query);
             return thunderClient;
         }
 
@@ -2336,6 +2336,17 @@ namespace WPEFramework {
                     }
                 }
 
+                if (type == "Cobalt")
+                {
+                    if (configuration.find("\"preload\"") == std::string::npos)
+                    {
+                        // Enable preload for l2s
+                        bool preload = suspend;
+                        std::cout << "setting Cobalt preload: " << preload << "\n";
+                        configSet["preload"] = JsonValue(preload);
+                    }
+                }
+
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
 
                 std::cout << "set status: " << status << std::endl;
@@ -2488,16 +2499,10 @@ namespace WPEFramework {
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
                     if (pluginStateChangeEntry == gPluginsEventListener.end())
                     {
-                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion);
+                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion, callsign);
                         PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, this);
                         gPluginsEventListener[callsign] = data;
                         remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
-                    }
-                    else
-                    {
-                        PluginStateChangeData* data = pluginStateChangeEntry->second;
-                        data->enableLaunch(true);
-                        deferLaunch = true;
                     }
                     gPluginDataMutex.unlock();
 
@@ -2505,27 +2510,46 @@ namespace WPEFramework {
                     {
                         if (suspend)
                         {
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                gPluginDataMutex.lock();
+                                std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
+                                if (pluginStateChangeEntry != gPluginsEventListener.end())
+                                {
+                                    PluginStateChangeData* data = pluginStateChangeEntry->second;
+                                    data->enableLaunch(true);
+                                    deferLaunch = true;
+                                }
+                                gPluginDataMutex.unlock();
+                                launchType = RDKShellLaunchType::SUSPEND;
+                            }
 
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "suspended";
                             status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             std::cout << "setting the state to suspended\n";
-                            if (launchType == RDKShellLaunchType::UNKNOWN)
-                            {
-                                launchType = RDKShellLaunchType::SUSPEND;
-                            }
                             visible = false;
                         }
                         else
                         {
+                            if (launchType == RDKShellLaunchType::UNKNOWN)
+                            {
+                                gPluginDataMutex.lock();
+                                std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
+                                if (pluginStateChangeEntry != gPluginsEventListener.end())
+                                {
+                                    PluginStateChangeData* data = pluginStateChangeEntry->second;
+                                    data->enableLaunch(true);
+                                    deferLaunch = true;
+                                }
+                                gPluginDataMutex.unlock();
+                                launchType = RDKShellLaunchType::RESUME;
+                            }
+                            
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "resumed";
                             status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-                            if (launchType == RDKShellLaunchType::UNKNOWN)
-                            {
-                                launchType = RDKShellLaunchType::RESUME;
-                            }
 
                             std::cout << "setting the state to resumed\n";
                         }
