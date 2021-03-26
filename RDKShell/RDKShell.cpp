@@ -133,6 +133,7 @@ static bool sResidentAppFirstActivated = false;
 bool sPersistentStoreWaitProcessed = false;
 bool sPersistentStoreFirstActivated = false;
 bool sPersistentStorePreLaunchChecked=false;
+static bool sRunning = true;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -438,6 +439,7 @@ namespace WPEFramework {
             }
 
             shellThread = std::thread([=]() {
+                bool isRunning = true;
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
                 if (!waitForPersistentStore)
@@ -452,9 +454,10 @@ namespace WPEFramework {
                         subSystems->Release();
                     }
                 }
+                isRunning = sRunning;
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
-                while(true) {
+                while(isRunning) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
@@ -523,6 +526,7 @@ namespace WPEFramework {
                   }
                 }
             });
+            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -682,6 +686,9 @@ namespace WPEFramework {
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO("Deinitialize");
+            gRdkShellMutex.lock();
+            sRunning = false;
+            gRdkShellMutex.unlock();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
