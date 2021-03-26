@@ -262,7 +262,7 @@ namespace WPEFramework {
                     else
                     {
                         if (std::regex_match(dp->d_name, std::regex(
-                                "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma)",
+                                "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt)",
                                 std::regex_constants::icase)) == true)
                             files.emplace_back(dp->d_name, "f");
                         else
