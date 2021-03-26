@@ -61,6 +61,10 @@ namespace WPEFramework
 
         HdcpProfile::~HdcpProfile()
         {
+        }
+
+        void HdcpProfile::Deinitialize(PluginHost::IShell* /* service */)
+        {
             HdcpProfile::_instance = nullptr;
             device::Manager::DeInitialize();
             DeinitializeIARM();

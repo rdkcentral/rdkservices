@@ -53,6 +53,10 @@ namespace WPEFramework
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
+        }
+
+        void DeviceDiagnostics::Deinitialize(PluginHost::IShell* /* service */)
+        {
             DeviceDiagnostics::_instance = nullptr;
         }
 

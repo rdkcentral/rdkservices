@@ -66,6 +66,10 @@ namespace WPEFramework
 
         ScreenCapture::~ScreenCapture()
         {
+        }
+
+        void ScreenCapture::Deinitialize(PluginHost::IShell* /* service */)
+        {
             ScreenCapture::_instance = nullptr;
 
             delete screenShotDispatcher;

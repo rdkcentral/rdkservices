@@ -73,19 +73,6 @@ namespace WPEFramework {
 
         MotionDetection::~MotionDetection()
         {
-            LOGINFO("MotionDetection dtor");
-            MotionDetection::_instance = nullptr;
-            Unregister("getMotionDetectors");
-            Unregister("arm");
-            Unregister("disarm");
-            Unregister("isarmed");
-            Unregister("setNoMotionPeriod");
-            Unregister("getNoMotionPeriod");
-            Unregister("setSensitivity");
-            Unregister("getSensitivity");
-            Unregister("getLastMotionEventElapsedTime");
-            Unregister("setMotionEventsActivePeriod");
-            Unregister("getMotionEventsActivePeriod");
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
@@ -114,7 +101,20 @@ namespace WPEFramework {
 
         void MotionDetection::Deinitialize(PluginHost::IShell* /* service */)
         {
+            LOGINFO("MotionDetection Deinitialize");
 	    MOTION_DETECTION_Platform_Term();
+            MotionDetection::_instance = nullptr;
+            Unregister("getMotionDetectors");
+            Unregister("arm");
+            Unregister("disarm");
+            Unregister("isarmed");
+            Unregister("setNoMotionPeriod");
+            Unregister("getNoMotionPeriod");
+            Unregister("setSensitivity");
+            Unregister("getSensitivity");
+            Unregister("getLastMotionEventElapsedTime");
+            Unregister("setMotionEventsActivePeriod");
+            Unregister("getMotionEventsActivePeriod");
         }
 
         //Begin methods
