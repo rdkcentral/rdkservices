@@ -24,6 +24,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
@@ -4119,6 +4120,9 @@ namespace WPEFramework {
             ret = CompositorController::setBounds(client, 0, 0, 1, 1); //forcing a compositor resize flush
             ret = CompositorController::setBounds(client, x, y, w, h);
             gRdkShellMutex.unlock();
+            std::cout << "bounds set\n";
+            usleep(68000);
+            std::cout << "all set\n";
             return ret;
         }
 
