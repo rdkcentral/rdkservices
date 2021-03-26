@@ -35,6 +35,8 @@
 #define HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES "getHDMIInputDevices"
 #define HDMIINPUT_METHOD_WRITE_EDID "writeEDID"
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
+#define HDMIINPUT_METHOD_READ_RAWHDMISPD "getRawHDMISPD"
+#define HDMIINPUT_METHOD_READ_HDMISPD "getHDMISPD"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
@@ -63,6 +65,8 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
             registerMethod(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
@@ -482,6 +486,133 @@ namespace WPEFramework
                 HdmiInput::_instance->hdmiInputStatusChange(hdmi_in_port, hdmi_in_status);
 
             }
+        }
+
+        uint32_t HdmiInput::getRawHDMISPDWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+           returnIfParamNotFound(parameters, "portId");
+
+           string sPortId = parameters["portId"].String();
+            int portId = 0;
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            string spdInfo = getRawHDMISPD (portId);
+            response["HDMISPD"] = spdInfo;
+            if (spdInfo.empty()) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        uint32_t HdmiInput::getHDMISPDWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+           returnIfParamNotFound(parameters, "portId");
+
+           string sPortId = parameters["portId"].String();
+            int portId = 0;
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            string spdInfo = getHDMISPD (portId);
+            response["HDMISPD"] = spdInfo;
+            if (spdInfo.empty()) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        std::string HdmiInput::getRawHDMISPD(int iPort)
+        {
+                LOGINFO("HdmiInput::getHDMISPDInfo");
+                vector<uint8_t> spdVect({'u','n','k','n','o','w','n' });
+                std::string spdbase64 = "";
+            try
+            {
+                LOGWARN("HdmiInput::getHDMISPDInfo");
+                vector<uint8_t> spdVect2;
+                device::HdmiInput::getInstance().getHDMISPDInfo(iPort, spdVect2);
+                spdVect = spdVect2;//edidVec must be "unknown" unless we successfully get to this line
+
+                //convert to base64
+                uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
+
+                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+
+                if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
+                    LOGERR("Size too large to use ToString base64 wpe api");
+                    return spdbase64;
+                }
+
+                LOGINFO("------------getHDMISPD: ");
+                for (int itr =0; itr < spdVect.size(); itr++) {
+                  LOGINFO("%02X ", spdVect[itr]);
+                }
+                Core::ToString((uint8_t*)&spdVect[0], size, false, spdbase64);
+
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+            }
+            return spdbase64;
+        }
+
+        std::string HdmiInput::getHDMISPD(int iPort)
+        {
+                LOGINFO("HdmiInput::getHDMISPDInfo");
+                vector<uint8_t> spdVect({'u','n','k','n','o','w','n' });
+                std::string spdbase64 = "";
+            try
+            {
+                LOGWARN("HdmiInput::getHDMISPDInfo");
+                vector<uint8_t> spdVect2;
+                device::HdmiInput::getInstance().getHDMISPDInfo(iPort, spdVect2);
+                spdVect = spdVect2;//edidVec must be "unknown" unless we successfully get to this line
+
+                //convert to base64
+                uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
+
+                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+
+                if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
+                    LOGERR("Size too large to use ToString base64 wpe api");
+                    return spdbase64;
+                }
+
+                LOGINFO("------------getHDMISPD: ");
+                for (int itr =0; itr < spdVect.size(); itr++) {
+                  LOGINFO("%02X ", spdVect[itr]);
+                }
+               if (spdVect.size() > 0) {
+                struct dsSpd_infoframe_st pre;
+                memcpy(&pre,spdVect.data(),sizeof(struct dsSpd_infoframe_st));
+
+              char str[200] = {0};
+               sprintf(str, "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X"
+,pre.pkttype,pre.version,pre.length,pre.vendor_name,pre.product_des,pre.source_info);
+              spdbase64 = str;
+               }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+            }
+            return spdbase64;
         }
 
     } // namespace Plugin
