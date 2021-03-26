@@ -942,6 +942,7 @@ namespace Plugin {
 #endif
         virtual ~TraceControl()
         {
+            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(TraceControl)

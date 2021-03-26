@@ -44,6 +44,7 @@ namespace Plugin {
 
     /* virtual */ LocationSync::~LocationSync()
     {
+        UnregisterAll();
     }
 
     /* virtual */ const string LocationSync::Initialize(PluginHost::IShell* service)
@@ -72,7 +73,6 @@ namespace Plugin {
         ASSERT(_service == service);
 
         _sink.Deinitialize();
-        UnregisterAll();
     }
 
     /* virtual */ string LocationSync::Information() const

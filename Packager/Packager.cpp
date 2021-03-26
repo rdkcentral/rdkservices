@@ -73,8 +73,6 @@ namespace {
 
         _service = nullptr;
         _implementation = nullptr;
-        Unregister(kInstallMethodName);
-        Unregister(kSynchronizeMethodName);
     }
 
     string Packager::Information() const
