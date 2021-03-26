@@ -133,6 +133,7 @@ static bool sResidentAppFirstActivated = false;
 bool sPersistentStoreWaitProcessed = false;
 bool sPersistentStoreFirstActivated = false;
 bool sPersistentStorePreLaunchChecked=false;
+bool sFactoryModeStart = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -247,17 +248,23 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && !sResidentAppFirstActivated)
                 {
                     sResidentAppFirstActivated = true;
-                    bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
-                    std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
-                    if (launchFactoryApp)
+                    if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                     {
-                      JsonObject request, response;
-                      std::cout << "about to launch factory app\n";
-                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
-                    }
-                    else
-                    {
-                      std::cout << "not launching factory app as conditions not matched\n";
+                        std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
+                        JsonObject deactivateParams;
+                        deactivateParams.Set("callsign", "ResidentApp");
+                        JsonObject deactivateResult;
+                        auto thunderController = getThunderControllerClient();
+                        int32_t deactivateStatus = thunderController->Invoke(3500, "deactivate", deactivateParams, deactivateResult);
+                        std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                        if (false == sFactoryModeStart)
+                        {
+                          // reached scenario where persistent store loaded late and conditions matched
+                          sFactoryModeStart = true;
+                          JsonObject request, response;
+                          std::cout << "about to launch factory app\n";
+                          uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
+                        }
                     }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
@@ -447,9 +454,27 @@ namespace WPEFramework {
                     {
                         std::cout << "setting platform and graphics\n";
                         fflush(stdout);
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        if ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch()))
+                        {
+                            sFactoryModeStart = true;
+                        }
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
+                        if (sFactoryModeStart) 
+                        {
+                            JsonObject request, response;
+                            std::cout << "about to launch factory app on start without persistent store wait\n";
+                            gRdkShellMutex.unlock();
+                            uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                            gRdkShellMutex.lock();
+                            std::cout << "launch factory app status:" << status << std::endl;
+                        }
+                        else
+                        {
+                          std::cout << "not launching factory app as conditions not matched\n";
+                        }
                     }
                 }
                 gRdkShellMutex.unlock();
@@ -503,14 +528,32 @@ namespace WPEFramework {
                   if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
                   {
                     PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    RDKShell* rdkshellPlugin = RDKShell::_instance;
                     if (subSystems != nullptr)
                     {
+                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
+                        {
+                            sFactoryModeStart = true;
+                        }
                         std::cout << "setting platform and graphics after wait\n";
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
                     }
                     sPersistentStoreWaitProcessed = true;
+                    if (sFactoryModeStart)
+                    {
+                        JsonObject request, response;
+                        std::cout << "about to launch factory app after persistent store wait\n";
+                        gRdkShellMutex.unlock();
+                        uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                        gRdkShellMutex.lock();
+                        std::cout << "launch factory app status:" << status << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "not launching factory app as conditions not matched\n";
+                    }
                   }
                   RdkShell::draw();
                   RdkShell::update();
