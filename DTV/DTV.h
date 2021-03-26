@@ -144,7 +144,6 @@ namespace WPEFramework
 
             virtual ~DTV()
             {
-               UnregisterAll();
             }
 
             static DTV* instance(DTV *dtv = nullptr)

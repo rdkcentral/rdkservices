@@ -223,8 +223,7 @@ namespace WPEFramework {
 
         DisplaySettings::~DisplaySettings()
         {
-            LOGINFO("dtor");
-            DisplaySettings::_instance = nullptr;
+            //LOGINFO("dtor");
         }
 
         void DisplaySettings::InitAudioPorts() 
@@ -323,6 +322,7 @@ namespace WPEFramework {
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            DisplaySettings::_instance = nullptr;
         }
 
         void DisplaySettings::InitializeIARM()
