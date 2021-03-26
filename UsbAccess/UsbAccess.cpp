@@ -36,6 +36,7 @@ namespace WPEFramework {
 
         UsbAccess::~UsbAccess()
         {
+            UsbAccess::_instance = nullptr;
         }
 
         const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
@@ -45,20 +46,6 @@ namespace WPEFramework {
 
         void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
         {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-            UsbAccess::_instance = nullptr;
-        }
-
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-        void UsbAccess::InitializeIARM()
-        {
-            if (Utils::IARM::init())
-            {
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE, _usbFirmwareUpdateStateChanged));
-            }
         }
 
         string UsbAccess::Information() const
