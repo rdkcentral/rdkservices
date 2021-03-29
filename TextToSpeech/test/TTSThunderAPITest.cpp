@@ -66,6 +66,9 @@ static int currentSpeechId = 0;
 #define OPT_BLOCK_TILL_INPUT      13
 #define OPT_SLEEP                 14
 
+/* Declare module name */
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 void showMenu()
 {
     cout << endl;
