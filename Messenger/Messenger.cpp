@@ -70,7 +70,6 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
-        UnregisterAll();
 
         _roomACL.clear();
     }

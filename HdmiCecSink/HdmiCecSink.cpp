@@ -1582,7 +1582,6 @@ namespace WPEFramework
 						LOGINFO("Ping caught %s \r\n",e.what());
 					  }
 					  
-					  LOGINFO("PING got Device ACK 0x%x \r\n",i);
 					  /* If we get ACK, then the device is present in the network*/
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {

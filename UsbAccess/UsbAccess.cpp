@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <mntent.h>
+#include <regex>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -256,7 +257,17 @@ namespace WPEFramework {
                 struct dirent * dp;
                 while ((dp = readdir(dirp)) != nullptr)
                 {
-                    files.emplace_back(dp->d_name, dp->d_type == DT_DIR ? "d" : "f");
+                    if (dp->d_type == DT_DIR)
+                        files.emplace_back(dp->d_name, "d");
+                    else
+                    {
+                        if (std::regex_match(dp->d_name, std::regex(
+                                "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)",
+                                std::regex_constants::icase)) == true)
+                            files.emplace_back(dp->d_name, "f");
+                        else
+                            LOGWARN("unsupported file name: '%s'", dp->d_name);
+                    }
                 }
                 closedir(dirp);
 

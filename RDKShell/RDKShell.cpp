@@ -24,6 +24,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
@@ -4181,25 +4182,34 @@ namespace WPEFramework {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
                 const JsonObject& keyInputInfo = keyInputs[i].Object();
-                if (keyInputInfo.HasLabel("keyCode"))
+                uint32_t keyCode, flags=0;
+                std::string virtualKey("");
+                if (keyInputInfo.HasLabel("key"))
                 {
-                  const uint32_t keyCode = keyInputInfo["keyCode"].Number();
-                  const uint32_t delay = keyInputInfo["delay"].Number();
-                  sleep(delay);
+                  virtualKey = keyInputInfo["key"].String();
+                }
+                else if (keyInputInfo.HasLabel("keyCode"))
+                {
+                  keyCode = keyInputInfo["keyCode"].Number();
                   const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
-                  std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
-                  if (keyClient.empty())
-                  {
-                    keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
-                  }
-                  uint32_t flags = 0;
                   for (int k=0; k<modifiers.Length(); k++) {
                     flags |= getKeyFlag(modifiers[k].String());
                   }
-                  gRdkShellMutex.lock();
-                  ret = CompositorController::generateKey(keyClient, keyCode, flags);
-                  gRdkShellMutex.unlock();
                 }
+                else
+                {
+                  continue;
+                }
+                const uint32_t delay = keyInputInfo["delay"].Number();
+                sleep(delay);
+                std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
+                if (keyClient.empty())
+                {
+                  keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
+                }
+                gRdkShellMutex.lock();
+                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                gRdkShellMutex.unlock();
             }
             return ret;
         }
@@ -4308,6 +4318,9 @@ namespace WPEFramework {
             ret = CompositorController::setBounds(client, 0, 0, 1, 1); //forcing a compositor resize flush
             ret = CompositorController::setBounds(client, x, y, w, h);
             gRdkShellMutex.unlock();
+            std::cout << "bounds set\n";
+            usleep(68000);
+            std::cout << "all set\n";
             return ret;
         }
 
