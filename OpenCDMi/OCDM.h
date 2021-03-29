@@ -156,6 +156,7 @@ namespace Plugin {
         #endif
         virtual ~OCDM()
         {
+            UnregisterAll();
         }
 
     public:

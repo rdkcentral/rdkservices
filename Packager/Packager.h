@@ -325,6 +325,8 @@ namespace {
 
         ~Packager() override
         {
+            Unregister(kInstallMethodName);
+            Unregister(kSynchronizeMethodName);
         }
 
         BEGIN_INTERFACE_MAP(Packager)

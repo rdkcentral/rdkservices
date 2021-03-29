@@ -83,6 +83,7 @@ namespace Plugin {
 
         virtual ~DeviceInfo()
         {
+            UnregisterAll();
         }
 
         BEGIN_INTERFACE_MAP(DeviceInfo)
