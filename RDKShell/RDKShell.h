@@ -253,7 +253,7 @@ namespace WPEFramework {
             void loadStartupConfig();
             void invokeStartupThunderApis();
 
-            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
@@ -341,6 +341,7 @@ namespace WPEFramework {
                 ~PluginStateChangeData();
                 void onStateChangeEvent(const JsonObject& params);
                 void enableLaunch(bool enable);
+                void resetConnection();
 
            private:
                 std::string mCallSign;

@@ -82,6 +82,10 @@ namespace WPEFramework
 
         Timer::~Timer()
         {
+        }
+
+        void Timer::Deinitialize(PluginHost::IShell* /* service */)
+        {
             Timer::_instance = nullptr;
         }
 

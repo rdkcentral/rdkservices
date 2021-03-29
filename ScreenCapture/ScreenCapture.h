@@ -93,6 +93,10 @@ namespace WPEFramework {
             bool getScreenshotIntel(std::vector<unsigned char> &png_data);
             #endif
 
+            #ifdef HAS_FRAMEBUFFER_API_HEADER
+            bool getScreenshotRealtek(std::vector<unsigned char> &png_data);
+            #endif
+
             bool saveToPng(unsigned char *bytes, int w, int h, std::vector<unsigned char> &png_out_data);
             bool uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str);
             bool doUploadScreenCapture(std::string url, std::string callGUID);
@@ -100,6 +104,7 @@ namespace WPEFramework {
         public:
             ScreenCapture();
             virtual ~ScreenCapture();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static ScreenCapture* _instance;

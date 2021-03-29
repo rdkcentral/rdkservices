@@ -56,6 +56,7 @@ namespace WPEFramework {
         public:
             DeviceDiagnostics();
             virtual ~DeviceDiagnostics();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static DeviceDiagnostics* _instance;

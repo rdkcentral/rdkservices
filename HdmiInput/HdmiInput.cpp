@@ -65,6 +65,10 @@ namespace WPEFramework
 
         HdmiInput::~HdmiInput()
         {
+        }
+
+        void HdmiInput::Deinitialize(PluginHost::IShell* /* service */)
+        {
             HdmiInput::_instance = nullptr;
 
             DeinitializeIARM();
