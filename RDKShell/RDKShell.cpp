@@ -467,6 +467,7 @@ namespace WPEFramework {
                             JsonObject request, response;
                             std::cout << "about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
+                            request["nokillresapp"] = "true";
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
@@ -546,6 +547,7 @@ namespace WPEFramework {
                         JsonObject request, response;
                         std::cout << "about to launch factory app after persistent store wait\n";
                         gRdkShellMutex.unlock();
+                        request["nokillresapp"] = "true";
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
@@ -3469,9 +3471,12 @@ namespace WPEFramework {
 
             uint32_t result;
             killAllApps();
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(destroyRequest, destroyResponse);
+            if (!parameters.HasLabel("nokillresapp"))
+            {
+                JsonObject destroyRequest, destroyResponse;
+                destroyRequest["callsign"] = "ResidentApp";
+                result = destroyWrapper(destroyRequest, destroyResponse);
+            }    
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
