@@ -168,26 +168,6 @@ namespace WPEFramework
 
         Network::~Network()
         {
-            Unregister("getQuirks");
-            Unregister("getInterfaces");
-            Unregister("isInterfaceEnabled");
-            Unregister("setInterfaceEnabled");
-            Unregister("getDefaultInterface");
-            Unregister("setDefaultInterface");
-            Unregister("getStbIp");
-            Unregister("setApiVersionNumber");
-            Unregister("getApiVersionNumber");
-            Unregister("trace");
-            Unregister("traceNamedEndpoint");
-            Unregister("getNamedEndpoints");
-            Unregister("ping");
-            Unregister("pingNamedEndpoint");
-            Unregister("setIPSettings");
-            Unregister("getIPSettings");
-            Unregister("isConnectedToInternet");
-            Unregister("setConnectivityTestEndpoints");
-
-            Network::_instance = nullptr;
         }
 
         const string Network::Initialize(PluginHost::IShell* /* service */)
@@ -214,6 +194,26 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE) );
             }
+            Unregister("getQuirks");
+            Unregister("getInterfaces");
+            Unregister("isInterfaceEnabled");
+            Unregister("setInterfaceEnabled");
+            Unregister("getDefaultInterface");
+            Unregister("setDefaultInterface");
+            Unregister("getStbIp");
+            Unregister("setApiVersionNumber");
+            Unregister("getApiVersionNumber");
+            Unregister("trace");
+            Unregister("traceNamedEndpoint");
+            Unregister("getNamedEndpoints");
+            Unregister("ping");
+            Unregister("pingNamedEndpoint");
+            Unregister("setIPSettings");
+            Unregister("getIPSettings");
+            Unregister("isConnectedToInternet");
+            Unregister("setConnectivityTestEndpoints");
+
+            Network::_instance = nullptr;
         }
 
         string Network::Information() const

@@ -502,7 +502,10 @@ namespace WPEFramework
 
        HdmiCecSink::~HdmiCecSink()
        {
-	  
+       }
+
+       void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
+       {
 	    CECDisable();
 	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
@@ -524,7 +527,7 @@ namespace WPEFramework
 
             HdmiCecSink::_instance = nullptr;
             DeinitializeIARM();
-	    LOGWARN(" ~HdmiCecSink() Done");
+	    LOGWARN(" HdmiCecSink Deinitialize() Done");
        }
 
        const void HdmiCecSink::InitializeIARM()
@@ -591,8 +594,9 @@ namespace WPEFramework
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 bool isHdmiConnected = eventData->data.hdmi_in_connect.isPortConnected;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG event data:%d \r\n", isHdmiConnected);
-                HdmiCecSink::_instance->onHdmiHotPlug(isHdmiConnected);
+                dsHdmiInPort_t portId = eventData->data.hdmi_in_connect.port;
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG event port: %d data:%d \r\n",portId,  isHdmiConnected);
+                HdmiCecSink::_instance->onHdmiHotPlug(portId,isHdmiConnected);
             }
        }
 
@@ -703,12 +707,16 @@ namespace WPEFramework
            return;
        }
 
-       void HdmiCecSink::onHdmiHotPlug(int connectStatus)
+       void HdmiCecSink::onHdmiHotPlug(int portId , int connectStatus)
        {
         	bool previousHdmiState = m_isHdmiInConnected;
 			int i = 0;
 			LOGINFO("onHdmiHotPlug Status : %d ", connectStatus);
-
+                        if(!connectStatus)
+                        {
+                            LOGINFO(" removeDevice port: %d Logical address :%d  \r\n",portId,hdmiInputs[portId].m_logicalAddr.toInt() );
+                            _instance->removeDevice(hdmiInputs[portId].m_logicalAddr.toInt());
+                        }
 			CheckHdmiInState();
 
 			if ( previousHdmiState != m_isHdmiInConnected )
@@ -828,8 +836,8 @@ namespace WPEFramework
        {
            LOGINFOMETHOD();
 
-			response["numberofdevices"] = HdmiCecSink::_instance->m_numberOfDevices;
-			
+                        response["numberofdevices"] = HdmiCecSink::_instance->m_numberOfDevices;
+                        LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
 			for (unsigned int n = 0; n < LogicalAddress::UNREGISTERED; n++)
@@ -847,8 +855,20 @@ namespace WPEFramework
 					device["osdName"] = HdmiCecSink::_instance->deviceList[n].m_osdName.toString().c_str();
 					device["vendorID"] = HdmiCecSink::_instance->deviceList[n].m_vendorID.toString().c_str();
 					device["powerStatus"] = HdmiCecSink::_instance->deviceList[n].m_powerStatus.toString().c_str();
-			
-					deviceList.Add(device);
+                                        int hdmiPortNumber = -1;
+                                        LOGINFO("getDeviceListWrapper  m_numofHdmiInput:%d looking for Logical Address :%d \n", m_numofHdmiInput, HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt());
+                                        for (int i=0; i < m_numofHdmiInput; i++)
+                                        {
+                                             LOGINFO("getDeviceListWrapper  connected : %d, portid:%d LA: %d  \n", hdmiInputs[i].m_isConnected, hdmiInputs[i].m_portID, hdmiInputs[i].m_logicalAddr.toInt());
+                                             if(hdmiInputs[i].m_isConnected  && hdmiInputs[i].m_logicalAddr.toInt() == HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt())
+                                             {
+                                                 hdmiPortNumber = hdmiInputs[i].m_portID;
+                                                 LOGINFO("got portid :%d break \n", hdmiPortNumber);
+                                                 break;
+                                             }
+                                        }
+                                        device["portNumber"] = hdmiPortNumber;
+                                        deviceList.Add(device);
 				}
 			}
 
@@ -1257,7 +1277,7 @@ namespace WPEFramework
 
         void HdmiCecSink::setEnabled(bool enabled)
         {
-           LOGINFO("Entered setEnabled ");
+           LOGINFO("Entered setEnabled: %d  cecSettingEnabled :%d ",enabled, cecSettingEnabled);
 
            if (cecSettingEnabled != enabled)
            {
@@ -1367,7 +1387,6 @@ namespace WPEFramework
 						hdmiInputs[i].getRoute(_instance->deviceList[logicalAddress.toInt()].m_physicalAddr, route);
 					}
 				}
-
 			}
 			else {
 				LOGERR("Not in correct state to Find Route");
@@ -1808,9 +1827,9 @@ namespace WPEFramework
 				{
 					if (_instance->deviceList[logicalAddress].m_physicalAddr.getByteValue(0) == (hdmiInputs[i].m_portID + 1)) {
 						hdmiInputs[i].removeChild(_instance->deviceList[logicalAddress].m_physicalAddr);
+                                                hdmiInputs[i].update(LogicalAddress(LogicalAddress::UNREGISTERED));
 					}
 				}
-
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
 			}
@@ -2305,6 +2324,15 @@ namespace WPEFramework
 
 			smConnection = new Connection(LogicalAddress::UNREGISTERED,false,"ServiceManager::Connection::");
             smConnection->open();
+            allocateLogicalAddress(DeviceType::TV);
+            LOGINFO("logical address allocalted: %x  \n",m_logicalAddressAllocated);
+            if ( m_logicalAddressAllocated != LogicalAddress::UNREGISTERED && smConnection)
+            {
+                logicalAddress = LogicalAddress(m_logicalAddressAllocated);
+                LOGINFO(" add logical address  %x  \n",m_logicalAddressAllocated);
+                LibCCEC::getInstance().addLogicalAddress(logicalAddress);
+                smConnection->setSource(logicalAddress);
+            }
             msgProcessor = new HdmiCecSinkProcessor(*smConnection);
             msgFrameListener = new HdmiCecSinkFrameListener(*msgProcessor);
             

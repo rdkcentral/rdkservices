@@ -484,6 +484,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -581,7 +582,7 @@ private:
             static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
-            void onHdmiHotPlug(int connectStatus);
+            void onHdmiHotPlug(int portId, int connectStatus);
 			void onPowerStateON();
 			void wakeupFromStandby();
             bool loadSettings();

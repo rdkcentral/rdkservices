@@ -65,6 +65,7 @@ namespace WPEFramework {
         public:
             HdmiCec();
             virtual ~HdmiCec();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static HdmiCec* _instance;

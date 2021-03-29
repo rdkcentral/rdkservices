@@ -80,7 +80,6 @@ namespace WPEFramework
 
         WifiManager::~WifiManager()
         {
-            WifiManager::instance=nullptr;
         }
 
         const string WifiManager::Initialize(PluginHost::IShell* service)

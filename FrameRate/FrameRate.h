@@ -74,6 +74,7 @@ namespace WPEFramework {
         public:
             FrameRate();
             virtual ~FrameRate();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
             static FrameRate* _instance;
