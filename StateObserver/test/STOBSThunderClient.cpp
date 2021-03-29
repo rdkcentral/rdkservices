@@ -29,6 +29,10 @@ using namespace std;
 using namespace WPEFramework;
 
 JSONRPC::LinkType<Core::JSON::IElement> *remoteObject = NULL;
+
+/* Declare module name */
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 void showMenu()
 {
         cout<<"Enter your choice\n";
