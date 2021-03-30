@@ -167,7 +167,7 @@ namespace WPEFramework
                         if (index >= 0)
                         {
                             fullpath = fullpath.substr(index + 1, fullpath.length());
-                            prefix = fullpath.substr(0, fullpath.find("/"));
+                            prefix = fullpath.substr(0, fullpath.find(" "));
                             pingResult["tripMax"] = prefix.c_str();
                         }
 
