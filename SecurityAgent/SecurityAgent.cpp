@@ -85,6 +85,7 @@ namespace Plugin {
 
     /* virtual */ SecurityAgent::~SecurityAgent()
     {
+        UnregisterAll();
     }
 
     /* virtual */ const string SecurityAgent::Initialize(PluginHost::IShell* service)
@@ -155,7 +156,6 @@ namespace Plugin {
             subSystem->Release();
         }
         _acl.Clear();
-        UnregisterAll();
     }
 
     /* virtual */ string SecurityAgent::Information() const

@@ -176,7 +176,6 @@ namespace Plugin {
         _memory = nullptr;
         _opencdmi = nullptr;
         _service = nullptr;
-         UnregisterAll();
     }
 
     /* virtual */ string OCDM::Information() const

@@ -57,7 +57,6 @@ namespace Plugin {
         }
 
         _service = nullptr;
-         UnregisterAll();
     }
 
     /* virtual */ string DeviceInfo::Information() const

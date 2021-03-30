@@ -1010,6 +1010,8 @@ namespace Plugin {
 #endif
         virtual ~Monitor()
         {
+            UnregisterAll();
+            _monitor->Release();
         }
 
         BEGIN_INTERFACE_MAP(Monitor)
