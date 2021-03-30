@@ -65,6 +65,8 @@ using namespace std;
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+static std::string gThunderAccessValue = SERVER_DETAILS ;
+
 
 #ifdef USE_IARM
 namespace
@@ -293,6 +295,13 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
+
+            char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
+            if (NULL != thunderAccessValue)
+            {
+                gThunderAccessValue = thunderAccessValue;
+            }
+
             InitializeIARM();
 
             if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
@@ -2803,7 +2812,7 @@ namespace WPEFramework {
         {
             uint32_t err = Core::ERROR_NONE;
             LOGINFO("Attempting to subscribe for event: %s\n", eventName);
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+	    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             if (nullptr == m_client) {
                 m_client = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
                 if (nullptr == m_client) {

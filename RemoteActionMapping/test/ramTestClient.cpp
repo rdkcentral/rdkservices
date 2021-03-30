@@ -38,6 +38,8 @@
 #define SYSSRV_CALLSIGN "org.rdk.RemoteActionMapping.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
+static std::string gThunderAccessValue = SERVER_DETAILS ;
+
 using namespace std;
 using namespace WPEFramework;
 
@@ -497,10 +499,13 @@ int main(int argc, char** argv)
     uint32_t ret;
     string json;
     string cmd;
+    char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
+    if (NULL != thunderAccessValue)
+    {
+       gThunderAccessValue = thunderAccessValue;
+    }
 
-
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
     // Security Token
     std::cout << "Retrieving security token" << std::endl;
     std::string sToken;

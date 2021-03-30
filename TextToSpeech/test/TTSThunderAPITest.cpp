@@ -40,6 +40,8 @@
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define MAX_STRING_LENGTH 2048
 
+static std::string gThunderAccessValue = SERVER_DETAILS ;
+
 using namespace std;
 using namespace WPEFramework;
 
@@ -210,8 +212,13 @@ int main(int argc, char *argv[]) {
     string stext;
 
     MyStream stream((argc > 1 ? argv[1] : "example.txt"));
+    char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
+    if (NULL != thunderAccessValue)
+    {
+        gThunderAccessValue = thunderAccessValue;
+    }
 
-    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+    Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
 
     if (NULL == remoteObject) {
         cout << endl << "TTS Thunder Plugin call sign is " << TTSSRV_CALLSIGN << endl;
