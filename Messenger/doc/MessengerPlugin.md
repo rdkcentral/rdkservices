@@ -75,6 +75,8 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *Messenger* |
 | locator | string | Library name: *libWPEFrameworkMessenger.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object | <sup>*(optional)*</sup>  |
+| configuration?.requireRoomSecurity | boolean | <sup>*(optional)*</sup> Enable room ACL |
 
 <a name="head.Methods"></a>
 # Methods

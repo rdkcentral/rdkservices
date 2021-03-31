@@ -11,6 +11,21 @@
     "status": "alpha",
     "description": "The Messenger allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room the client receives a unique token (room ID) to be used for sending and receiving the messages."
   },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "requireRoomSecurity": {
+            "type": "boolean",
+            "description": "Enable room ACL"
+          }
+        }
+      }
+    }
+  },
   "interface": {
     "$ref": "{interfacedir}/Messenger.json#"
   }

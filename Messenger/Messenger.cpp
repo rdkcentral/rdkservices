@@ -43,6 +43,8 @@ namespace Plugin {
         _service = service;
         _service->AddRef();
 
+        _config.FromString(_service->ConfigLine());
+
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
         ASSERT(_roomAdmin != nullptr);
 
@@ -204,19 +206,23 @@ namespace Plugin {
     {
         bool result = false;
 
-        _adminLock.Lock();
+        if (_config.RequireRoomSecurity.Value() == true) {
+            _adminLock.Lock();
 
-        auto acl = _roomACL.find(roomId);
-        if (acl != _roomACL.end()) {
-            for (auto const& i : acl->second) {
-                if (std::regex_search(id, std::regex(i)) == true) {
-                    result = true;
-                    break;
+            auto acl = _roomACL.find(roomId);
+            if (acl != _roomACL.end()) {
+                for (auto const& i : acl->second) {
+                    if (std::regex_search(id, std::regex(i)) == true) {
+                        result = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        _adminLock.Unlock();
+            _adminLock.Unlock();
+        } else {
+            result = true;
+        }
 
         return result;
     }
