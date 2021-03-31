@@ -53,7 +53,15 @@ namespace WPEFramework
             HdcpProfile::_instance = this;
 
             InitializeIARM();
-            device::Manager::Initialize();
+            try
+            {
+                device::Manager::Initialize();
+                LOGINFO("device::Manager::Initialize success");
+            }
+            catch (...)
+            {
+                LOGINFO("device::Manager::Initialize failed");
+            }
 
             registerMethod(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
             registerMethod(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
