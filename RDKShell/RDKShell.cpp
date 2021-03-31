@@ -258,6 +258,7 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
+                    bool residentAppDeactivated = false;
                     if (sFactoryModeBlockResidentApp)
                     {
                         // not first launch
@@ -271,6 +272,7 @@ namespace WPEFramework {
                                 JsonObject deactivateResult;
                                 auto thunderController = getThunderControllerClient();
                                 int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                                residentAppDeactivated = true;
                                 std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                             }
                         }
@@ -286,16 +288,32 @@ namespace WPEFramework {
                                 auto thunderController = getThunderControllerClient();
                                 int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
                                 std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                residentAppDeactivated = true;
                                 if (false == sFactoryModeStart)
                                 {
                                   // reached scenario where persistent store loaded late and conditions matched
                                   sFactoryModeStart = true;
                                   JsonObject request, response;
+                                  request["nokillresapp"] = "true";
                                   std::cout << "about to launch factory app\n";
                                   uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                                 }
                             }
                         }
+                    }
+                    if (!residentAppDeactivated)
+                    {
+                        JsonObject joFactoryModeParams;
+                        JsonObject joFactoryModeResult;
+                        joFactoryModeParams.Set("namespace","FactoryTest");
+                        joFactoryModeParams.Set("key","FactoryMode");
+                        joFactoryModeParams.Set("value","false");
+                        std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                        std::cout << "attempting to set factory mode flag to false on resident app activation " << std::endl;
+                        auto thunderController = getThunderControllerClient();
+                        uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                        std::cout << "factory mode set value " << setStatus << std::endl; 
                     }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
@@ -3718,16 +3736,6 @@ namespace WPEFramework {
                     ret = true;
                 }
             }
-            JsonObject joFactoryModeParams;
-            JsonObject joFactoryModeResult;
-            joFactoryModeParams.Set("namespace","FactoryTest");
-            joFactoryModeParams.Set("key","FactoryMode");
-            joFactoryModeParams.Set("value","false");
-            std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
-
-            std::cout << "attempting to set factory mode flag \n";
-            uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
-            std::cout << "set status: " << setStatus << std::endl;
             returnResponse(ret);
         }
 
