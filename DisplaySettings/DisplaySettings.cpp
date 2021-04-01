@@ -1782,6 +1782,11 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sBassBoost.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("bassBoost should be an initger");
+                    returnResponse(false);
+                }
                 try {
                         bassBoost = stoi(sBassBoost);
                 }catch (const device::Exception& err) {
