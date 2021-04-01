@@ -136,6 +136,7 @@ bool sPersistentStoreFirstActivated = false;
 bool sPersistentStorePreLaunchChecked=false;
 bool sFactoryModeStart = false;
 bool sFactoryModeBlockResidentApp = false;
+bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 
 #define ANY_KEY 65536
@@ -259,7 +260,7 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
-                    if (sFactoryModeBlockResidentApp)
+                    if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
                     {
                         // not first launch
                         if (sResidentAppFirstActivated)
@@ -3702,6 +3703,7 @@ namespace WPEFramework {
             uint32_t stopHdmiStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, stopHdmiInvoke.c_str(), joStopHdmiParams, joStopHdmiResult);
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
+            sForceResidentAppLaunch = true;
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
@@ -3736,6 +3738,7 @@ namespace WPEFramework {
             std::cout << "attempting to set factory mode flag \n";
             uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
             std::cout << "set status: " << setStatus << std::endl;
+            sForceResidentAppLaunch = false;
             returnResponse(ret);
         }
 
@@ -3752,7 +3755,9 @@ namespace WPEFramework {
             }
             if (isFactoryAppRunning)
             {
+                sForceResidentAppLaunch = true;
                 launchResidentAppWrapper(parameters, response);
+                sForceResidentAppLaunch = false;
             }
             else
             {
