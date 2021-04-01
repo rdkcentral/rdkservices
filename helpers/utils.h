@@ -349,6 +349,7 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
+    bool isValidInt(char* x);
 
     //class for std::thread RAII
     class ThreadRAII 
