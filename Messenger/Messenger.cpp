@@ -22,6 +22,7 @@
 #include "cryptalgo/Hash.h"
 
 #include <regex>
+#include <algorithm>
 
 namespace WPEFramework {
 
@@ -173,48 +174,49 @@ namespace Plugin {
         return result;
     }
 
-    void Messenger::AddRoomACL(const string& roomId, const string& regex, bool replace)
-    {
-        std::string r = regex;
-
-        // Order of replacing is important
-        r = std::regex_replace(r, std::regex(R"([-[\]{}()+?.,\^$|#\s])"), R"(\$&)");
-        r = std::regex_replace(r, std::regex(":\\*"), ":[0-9]+");
-        r = std::regex_replace(r, std::regex("\\*:"), "[a-z]+:");
-        r = std::regex_replace(r, std::regex("\\*"), "[a-zA-Z0-9\\.]+");
-        r.insert(r.begin(), '^');
-
-        // Note, empty strings '' will match an empty regex '^'
-
-        _adminLock.Lock();
-
-        auto retval = _roomACL.emplace(std::piecewise_construct,
-                std::make_tuple(roomId),
-                std::make_tuple());
-
-        if (retval.second == false && replace) {
-            retval.first->second.clear();
-        }
-        retval.first->second.emplace_back(r);
-
-        _adminLock.Unlock();
-    }
-
-    bool Messenger::IsRoomAllowed(const string& roomId, const string& id) const
+    bool Messenger::AddRoomACL(const string& roomName, const string& regex)
     {
         bool result = false;
 
         _adminLock.Lock();
 
-        auto acl = _roomACL.find(roomId);
-        if (acl != _roomACL.end()) {
-            for (auto const& i : acl->second) {
-                if (std::regex_search(id, std::regex(i)) == true) {
-                    result = true;
-                    break;
-                }
-            }
+        // Don't modify ACL for the active rooms
+        if (_rooms.find(roomName) == _rooms.end()) {
+            std::string r = regex;
+
+            // Order of replacing is important
+            r = std::regex_replace(r, std::regex(R"([-[\]{}()+?.,\^$|#\s])"), R"(\$&)");
+            r = std::regex_replace(r, std::regex(":\\*"), ":[0-9]+");
+            r = std::regex_replace(r, std::regex("\\*:"), "[a-z]+:");
+            r = std::regex_replace(r, std::regex("\\*"), "[a-zA-Z0-9\\.]+");
+            r.insert(r.begin(), '^');
+
+            // Note, empty strings '' will match an empty regex '^'
+
+            auto retval = _roomACL.emplace(std::piecewise_construct,
+                                           std::make_tuple(roomName),
+                                           std::make_tuple());
+
+            retval.first->second.emplace_back(r);
+
+            result = true;
         }
+
+        _adminLock.Unlock();
+
+        return result;
+    }
+
+    bool Messenger::RoomAllowed(const string& roomName, const string& id) const
+    {
+        bool result = false;
+
+        _adminLock.Lock();
+
+        auto acl = _roomACL.find(roomName);
+        result = (acl == _roomACL.end()) || std::any_of(acl->second.begin(), acl->second.end(), [&id](const string& i) {
+            return std::regex_search(id, std::regex(i));
+        });
 
         _adminLock.Unlock();
 

@@ -117,9 +117,10 @@ namespace Plugin {
         return result? Core::ERROR_NONE : Core::ERROR_UNKNOWN_KEY;
     }
 
-    // Creates a messaging room name and URL regex.
+    // Sets URL regex for a messaging room.
     // Return codes:
     //  - ERROR_NONE: Success
+    //  - ERROR_ILLEGAL_STATE: Room is being used (i.e. there are users in it)
     //  - ERROR_BAD_REQUEST: Room name or URL regex was invalid
     uint32_t Messenger::endpoint_create(const CreateParamsData& params)
     {
@@ -128,8 +129,11 @@ namespace Plugin {
         const string& urlRegex = params.UrlRegex.Value();
 
         if (!room.empty() && !urlRegex.empty()) {
-            AddRoomACL(room, urlRegex);
-            result = Core::ERROR_NONE;
+            if (AddRoomACL(room, urlRegex)) {
+                result = Core::ERROR_NONE;
+            } else {
+                result = Core::ERROR_ILLEGAL_STATE;
+            }
         }
 
         return result;
@@ -181,14 +185,14 @@ namespace Plugin {
             params.FromString(parameters);
             const string& room = params.Room.Value();
 
-            AddRoomACL(room, token, true);
+            AddRoomACL(room, token);
         }
         else if (method == _T("join")) {
             JoinParamsData params;
             params.FromString(parameters);
             const string& room = params.Room.Value();
 
-            result = IsRoomAllowed(room, token);
+            result = RoomAllowed(room, token);
         }
 
         return result;

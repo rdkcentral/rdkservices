@@ -132,8 +132,8 @@ namespace Plugin {
         string JoinRoom(const string& roomId, const string& userName);
         bool LeaveRoom(const string& roomId);
         bool SendMessage(const string& roomId, const string& message);
-        void AddRoomACL(const string& roomId, const string& regex, bool replace = false);
-        bool IsRoomAllowed(const string& roomId, const string& id) const;
+        bool AddRoomACL(const string& roomName, const string& regex);
+        bool RoomAllowed(const string& roomName, const string& id) const;
 
         void UserJoinedHandler(const string& roomId, const string& userName)
         {
@@ -168,6 +168,7 @@ namespace Plugin {
             _adminLock.Lock();
             ASSERT(_rooms.find(roomName) != _rooms.end());
             _rooms.erase(roomName);
+            _roomACL.erase(roomName);
             _adminLock.Unlock();
         }
 
