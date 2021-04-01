@@ -85,7 +85,7 @@ Messenger interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [create](#method.create) | Creates a messaging room name and URL regex |
+| [create](#method.create) | Sets URL regex for a messaging room |
 | [join](#method.join) | Joins a messaging room |
 | [leave](#method.leave) | Leaves a messaging room |
 | [send](#method.send) | Sends a message to a room |
@@ -94,7 +94,7 @@ Messenger interface methods:
 <a name="method.create"></a>
 ## *create <sup>method</sup>*
 
-Creates a messaging room name and URL regex.
+Sets URL regex for a messaging room.
 
 ### Description
 
@@ -105,8 +105,8 @@ Only apps that match the regex will be allowed to join the room
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.room | string | Name of the room to create (must not be empty) |
-| params.urlRegex | string | URL regex to match apps (must not be empty) |
+| params.room | string | Name of the room (must not be empty) |
+| params.urlRegex | string | URL regex (must not be empty) |
 
 ### Result
 
@@ -118,6 +118,7 @@ Only apps that match the regex will be allowed to join the room
 
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
+| 5 | ```ERROR_ILLEGAL_STATE``` | Room is being used (i.e. there are users in it) |
 | 30 | ```ERROR_BAD_REQUEST``` | Room name or URL regex was invalid |
 
 ### Example
