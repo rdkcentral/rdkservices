@@ -133,8 +133,6 @@ namespace WPEFramework {
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
 
-            void onPowerRestore();
-
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -205,9 +203,6 @@ namespace WPEFramework {
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
             RDKShell& operator=(const RDKShell&) = delete;
-
-            void InitializeIARM();
-            void DeinitializeIARM();
 
             bool moveToFront(const string& client);
             bool moveToBack(const string& client);
@@ -336,8 +331,6 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
-            long long mLastKeyTimestamp;
-            unsigned long mLastKeyCode;
         };
 
         struct PluginData

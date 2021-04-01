@@ -31,23 +31,6 @@
 #include <interfaces/IBrowser.h>
 
 
-#include "libIARM.h"
-#include "libIBus.h"
-#include "irMgr.h"
-#include "comcastIrKeyCodes.h"
-#include "libIBusDaemon.h"
-#include "pwrMgr.h"
-#ifdef ENABLE_DEEP_SLEEP
-#include "deepSleepMgr.h"
-#endif
-
-#include "ctrlm_ipc.h"
-#include "ctrlm_ipc_rcu.h"
-#include "ctrlm_ipc_key_codes.h"
-
-#include "sysMgr.h"
-
-
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
@@ -177,8 +160,6 @@ enum RDKShellLaunchType
 namespace WPEFramework {
     namespace Plugin {
 
-        static void _powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-
         struct RDKShellStartupConfig
         {
             std::string rfc;
@@ -262,7 +243,7 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
                 {
                    std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".1");
+                   serviceCallsign.append(".2");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && !sResidentAppFirstActivated)
@@ -330,7 +311,6 @@ namespace WPEFramework {
 
         RDKShell::RDKShell()
                 : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
-                , mLastKeyTimestamp(0), mLastKeyCode(0)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -419,8 +399,6 @@ namespace WPEFramework {
             {
                 std::cout << "RDKShell WAYLAND_DISPLAY is not set\n";
             }
-
-            InitializeIARM();
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
@@ -707,7 +685,6 @@ namespace WPEFramework {
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO("Deinitialize");
-            DeinitializeIARM();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -772,52 +749,6 @@ namespace WPEFramework {
                       int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                     }
                 }
-            }
-        }
-
-        void RDKShell::onPowerRestore()
-        {
-            DeepSleep_WakeupReason_t param;
-
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME, IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason, (void *)&param, sizeof(param));
-
-            if (IARM_RESULT_SUCCESS == res)
-            {
-                std::cout << "LastWakeupReason: " << param << std::endl;
-                if (param == DEEPSLEEP_WAKEUPREASON_RCU_BT)
-                {
-                    ctrlm_main_iarm_call_last_key_info_t    lastKeyInfo;
-                    IARM_Result_t                           res;
-
-                    // Get the current lastKeyInfo from the ControlMgr, which tracks all the information.
-                    memset((void*)&lastKeyInfo, 0, sizeof(lastKeyInfo));
-                    lastKeyInfo.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
-                    res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_LAST_KEY_INFO_GET, (void*)&lastKeyInfo, sizeof(lastKeyInfo));
-                    if (res != IARM_RESULT_SUCCESS)
-                    {
-                        mLastKeyTimestamp = 0;
-                        std::cout << "ERROR - LAST_KEY_INFO_GET IARM_Bus_Call FAILED, res: "  << res << std::endl;
-                        return;
-                    }
-                    else
-                    {
-                        if (lastKeyInfo.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
-                        {
-                            mLastKeyTimestamp = 0;
-                            std::cout << "ERROR - LAST_KEY_INFO_GET FAILED, call_result: "  << lastKeyInfo.result << std::endl;
-                            return;
-                        }
-                    }
-
-                    mLastKeyTimestamp = lastKeyInfo.timestamp;
-                    mLastKeyCode = lastKeyInfo.source_key_code;
-
-                    std::cout << "Got WakeupKey: "  << mLastKeyCode << " Timestamp: " << mLastKeyTimestamp << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "Failed to call IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason" << std::endl;
             }
         }
 
@@ -3906,12 +3837,36 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            if (0 != mLastKeyTimestamp)
+            if (nullptr == gSystemServiceConnection)
             {
-                response["keyCode"] = JsonValue((long long)mLastKeyCode);
-                response["timestamp"] = JsonValue((long long)mLastKeyTimestamp);
-                returnResponse(true);
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "Activated SystemService" << std::endl;
             }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                JsonObject req, res;
+                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                {
+                    gRdkShellMutex.lock();
+                    uint32_t keyCode = 0;
+                    uint32_t modifiers = 0;
+                    uint64_t timestampInSeconds = 0;
+                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+                    gRdkShellMutex.unlock();
+
+                    response["keyCode"] = JsonValue(keyCode);
+                    response["modifiers"] = JsonValue(modifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
+
+                    returnResponse(true);
+                }
+                else
+                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+            }
+            else
+                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
 
             response["message"] = "No last wakeup key";
             returnResponse(false);
@@ -4009,26 +3964,6 @@ namespace WPEFramework {
         }
 
         // Internal methods begin
-
-        void RDKShell::InitializeIARM()
-        {
-            if (Utils::IARM::init())
-            {
-                IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler) );
-            }
-        }
-
-        void RDKShell::DeinitializeIARM()
-        {
-            if (Utils::IARM::isConnected())
-            {
-                IARM_Result_t res;
-
-                // Remove handlers for irMgr control irkey events
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler) );
-            }
-        }
 
         bool RDKShell::moveToFront(const string& client)
         {
@@ -4815,36 +4750,6 @@ namespace WPEFramework {
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
             return ret;
-        }
-
-        void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
-                void *data, size_t len)
-        {
-            std::cout << __FUNCTION__ << std::endl;
-
-            switch (eventId) {
-                case  IARM_BUS_PWRMGR_EVENT_MODECHANGED:
-                    {
-                        IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
-
-                        if ((IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == eventData->data.state.curState ||
-                            IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == eventData->data.state.curState || 
-                            IARM_BUS_PWRMGR_POWERSTATE_STANDBY == eventData->data.state.curState || 
-                            IARM_BUS_PWRMGR_POWERSTATE_OFF == eventData->data.state.curState) && 
-                            IARM_BUS_PWRMGR_POWERSTATE_ON == eventData->data.state.newState
-                            )
-                        {
-                            if (RDKShell::_instance) {
-                                RDKShell::_instance->onPowerRestore();
-                            } else {
-                                std::cout << "RDKShell::_instance is NULL" << std::endl;
-                            }
-
-                        }
-                    }
-
-                    break;
-            }
         }
 
         // Internal methods end
