@@ -33,27 +33,6 @@ namespace Plugin {
     class Messenger : public PluginHost::IPlugin
                     , public Exchange::IRoomAdministrator::INotification
                     , public PluginHost::JSONRPCSupportsEventStatus {
-    private:
-        class Config : public Core::JSON::Container {
-        private:
-            Config(const Config&) = delete;
-            Config& operator=(const Config&) = delete;
-
-        public:
-            Config()
-                    : Core::JSON::Container()
-                    , RequireRoomSecurity(true)
-            {
-                Add(_T("requireRoomSecurity"), &RequireRoomSecurity);
-            }
-            ~Config()
-            {
-            }
-
-        public:
-            Core::JSON::Boolean RequireRoomSecurity;
-        };
-
     public:
         Messenger(const Messenger&) = delete;
         Messenger& operator=(const Messenger&) = delete;
@@ -66,7 +45,6 @@ namespace Plugin {
             , _roomAdmin(nullptr)
             , _roomIds()
             , _adminLock()
-            , _config()
         {
             RegisterAll();
         }
@@ -216,7 +194,6 @@ namespace Plugin {
         std::set<string> _rooms;
         std::map<string, std::list<string>> _roomACL;
         mutable Core::CriticalSection _adminLock;
-        Config _config;
     }; // class Messenger
 
 } // namespace Plugin
