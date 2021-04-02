@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <map>
+#include <mutex>
+#include <atomic>
 
 namespace WPEFramework {
 
@@ -68,11 +70,14 @@ namespace WPEFramework {
             bool getStorageSize(std::map<string, uint64_t>& namespaceSizes);
             bool flushCache();
 
+            bool open();
             void term();
             void vacuum();
             bool init(const char* filename, const char* key = nullptr);
 
             void* mData;
+            std::mutex mLock;
+            std::atomic<int> mReading;
         };
     } // namespace Plugin
 } // namespace WPEFramework
