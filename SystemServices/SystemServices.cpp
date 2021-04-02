@@ -3230,6 +3230,8 @@ namespace WPEFramework {
 
 			if(eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				curState = "ON";
+            } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                curState = "OFF";
 			} else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
 				   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
 				curState = "LIGHT_SLEEP";
@@ -3241,6 +3243,8 @@ namespace WPEFramework {
 
 			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				newState = "ON";
+            } else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                newState = "OFF";
 			} else if((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
 				  (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
                                 newState = "LIGHT_SLEEP";

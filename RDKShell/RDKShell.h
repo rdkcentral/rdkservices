@@ -26,6 +26,7 @@
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
+#include "tptimer.h"
 
 namespace WPEFramework {
 
@@ -115,6 +116,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION;
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
+            static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -206,6 +208,7 @@ namespace WPEFramework {
             uint32_t setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -263,6 +266,8 @@ namespace WPEFramework {
             bool getVirtualDisplayEnabled(const std::string& client, bool &enabled);
             void loadStartupConfig();
             void invokeStartupThunderApis();
+            int32_t subscribeForSystemEvent(std::string event);
+            void onTimer();
 
             void addFactoryModeEasterEggs();
             void removeFactoryModeEasterEggs();
@@ -341,6 +346,10 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+            uint32_t mLastWakeupKeyCode;
+            uint32_t mLastWakeupKeyModifiers;
+            uint64_t mLastWakeupKeyTimestamp;
+            TpTimer m_timer;
         };
 
         struct PluginData
