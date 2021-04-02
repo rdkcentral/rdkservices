@@ -13,6 +13,8 @@
 #endif
 
 #define SQLITE *(sqlite3**)&mData
+#define SQLITE_IS_ERROR_DBWRITE (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
+#define SQLITE_LOCK std::lock_guard<std::mutex> lck(mDataLock);
 
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MINOR = 0;
@@ -67,14 +69,10 @@ namespace WPEFramework {
 
         SERVICE_REGISTRATION(PersistentStore, 1, 0);
 
-        PersistentStore* PersistentStore::_instance = nullptr;
-
         PersistentStore::PersistentStore()
             : AbstractPlugin()
             , mData(nullptr)
         {
-            LOGINFO("ctor");
-            PersistentStore::_instance = this;
             registerMethod(METHOD_SET_VALUE, &PersistentStore::setValueWrapper, this);
             registerMethod(METHOD_GET_VALUE, &PersistentStore::getValueWrapper, this);
             registerMethod(METHOD_DELETE_KEY, &PersistentStore::deleteKeyWrapper, this);
@@ -87,26 +85,16 @@ namespace WPEFramework {
 
         PersistentStore::~PersistentStore()
         {
-            //LOGINFO("dtor");
         }
 
         const string PersistentStore::Initialize(PluginHost::IShell* /* service */)
         {
-            auto path = g_build_filename("opt", "persistent", nullptr);
-            if (!fileExists(path))
-                g_mkdir_with_parents(path, 0745);
-            auto file = g_build_filename(path, STORE_NAME, nullptr);
-            bool success = init(file, STORE_KEY);
-            g_free(path);
-            g_free(file);
-
-            return success ? "" : "init failed";
+            return open() ? "" : "init failed";
         }
 
         void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
         {
             term();
-            PersistentStore::_instance = nullptr;
         }
 
         string PersistentStore::Information() const
@@ -297,10 +285,16 @@ namespace WPEFramework {
 
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
-            if (db)
+            int retry = 0;
+            int rc;
+            do
             {
+                if (!db)
+                    break;
+
                 sqlite3_stmt *stmt;
                 sqlite3_prepare_v2(db, "SELECT sum(s) FROM ("
                                        " SELECT sum(length(key)+length(value)) s FROM item"
@@ -308,7 +302,8 @@ namespace WPEFramework {
                                        " SELECT sum(length(name)) s FROM namespace"
                                        ");", -1, &stmt, nullptr);
 
-                if (sqlite3_step(stmt) == SQLITE_ROW)
+                rc = sqlite3_step(stmt);
+                if (rc == SQLITE_ROW)
                 {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
@@ -317,52 +312,52 @@ namespace WPEFramework {
                         success = true;
                 }
                 else
-                    LOGERR("ERROR getting size: %s", sqlite3_errmsg(db));
+                    LOGERR("ERROR getting size: %s", sqlite3_errstr(rc));
 
                 sqlite3_finalize(stmt);
-            }
 
-            if (success)
-            {
-                success = false;
+                if (success)
+                {
+                    success = false;
 
-                sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "INSERT OR IGNORE INTO namespace (name) values (?);", -1, &stmt, nullptr);
+                    sqlite3_stmt *stmt;
+                    sqlite3_prepare_v2(db, "INSERT OR IGNORE INTO namespace (name) values (?);", -1, &stmt, nullptr);
 
-                sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
 
-                int rc = sqlite3_step(stmt);
-                if (rc != SQLITE_DONE)
-                    LOGERR("ERROR inserting data: %s", sqlite3_errmsg(db));
-                else
-                    success = true;
+                    rc = sqlite3_step(stmt);
+                    if (rc != SQLITE_DONE)
+                        LOGERR("ERROR inserting data: %s", sqlite3_errstr(rc));
+                    else
+                        success = true;
 
-                sqlite3_finalize(stmt);
-            }
+                    sqlite3_finalize(stmt);
+                }
 
-            if (success)
-            {
-                success = false;
+                if (success)
+                {
+                    success = false;
 
-                sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, "INSERT INTO item (ns,key,value)"
-                                       " SELECT id, ?, ?"
-                                       " FROM namespace"
-                                       " WHERE name = ?"
-                                       ";", -1, &stmt, nullptr);
+                    sqlite3_stmt *stmt;
+                    sqlite3_prepare_v2(db, "INSERT INTO item (ns,key,value)"
+                                           " SELECT id, ?, ?"
+                                           " FROM namespace"
+                                           " WHERE name = ?"
+                                           ";", -1, &stmt, nullptr);
 
-                sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
-                sqlite3_bind_text(stmt, 2, value.c_str(), -1, SQLITE_TRANSIENT);
-                sqlite3_bind_text(stmt, 3, ns.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(stmt, 2, value.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_text(stmt, 3, ns.c_str(), -1, SQLITE_TRANSIENT);
 
-                int rc = sqlite3_step(stmt);
-                if (rc != SQLITE_DONE)
-                    LOGERR("ERROR inserting data: %s", sqlite3_errmsg(db));
-                else
-                    success = true;
+                    rc = sqlite3_step(stmt);
+                    if (rc != SQLITE_DONE)
+                        LOGERR("ERROR inserting data: %s", sqlite3_errstr(rc));
+                    else
+                        success = true;
 
-                sqlite3_finalize(stmt);
-            }
+                    sqlite3_finalize(stmt);
+                }
+            } while (!success && SQLITE_IS_ERROR_DBWRITE(rc) && (++retry < 2) && open());
 
             if (success)
             {
@@ -375,7 +370,8 @@ namespace WPEFramework {
                                        " SELECT sum(length(name)) s FROM namespace"
                                        ");", -1, &stmt, nullptr);
 
-                if (sqlite3_step(stmt) == SQLITE_ROW)
+                rc = sqlite3_step(stmt);
+                if (rc == SQLITE_ROW)
                 {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
@@ -389,7 +385,7 @@ namespace WPEFramework {
                         success = true;
                 }
                 else
-                    LOGERR("ERROR getting size: %s", sqlite3_errmsg(db));
+                    LOGERR("ERROR getting size: %s", sqlite3_errstr(rc));
 
                 sqlite3_finalize(stmt);
             }
@@ -403,6 +399,7 @@ namespace WPEFramework {
 
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
             if (db)
@@ -437,10 +434,16 @@ namespace WPEFramework {
 
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
-            if (db)
+            int retry = 0;
+            int rc;
+            do
             {
+                if (!db)
+                    break;
+
                 sqlite3_stmt *stmt;
                 sqlite3_prepare_v2(db, "DELETE FROM item"
                                        " where ns in (select id from namespace where name = ?)"
@@ -450,14 +453,14 @@ namespace WPEFramework {
                 sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
                 sqlite3_bind_text(stmt, 2, key.c_str(), -1, SQLITE_TRANSIENT);
 
-                int rc = sqlite3_step(stmt);
+                rc = sqlite3_step(stmt);
                 if (rc != SQLITE_DONE)
-                    LOGERR("ERROR removing data: %s", sqlite3_errmsg(db));
+                    LOGERR("ERROR removing data: %s", sqlite3_errstr(rc));
                 else
                     success = true;
 
                 sqlite3_finalize(stmt);
-            }
+            } while (!success && SQLITE_IS_ERROR_DBWRITE(rc) && (++retry < 2) && open());
 
             return success;
         }
@@ -468,23 +471,29 @@ namespace WPEFramework {
 
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
-            if (db)
+            int retry = 0;
+            int rc;
+            do
             {
+                if (!db)
+                    break;
+
                 sqlite3_stmt *stmt;
                 sqlite3_prepare_v2(db, "DELETE FROM namespace where name = ?;", -1, &stmt, NULL);
 
                 sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
 
-                int rc = sqlite3_step(stmt);
+                rc = sqlite3_step(stmt);
                 if (rc != SQLITE_DONE)
-                    LOGERR("ERROR removing data: %s", sqlite3_errmsg(db));
+                    LOGERR("ERROR removing data: %s", sqlite3_errstr(rc));
                 else
                     success = true;
 
                 sqlite3_finalize(stmt);
-            }
+            } while (!success && SQLITE_IS_ERROR_DBWRITE(rc) && (++retry < 2) && open());
 
             return success;
         }
@@ -495,6 +504,7 @@ namespace WPEFramework {
 
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
             keys.clear();
@@ -523,6 +533,7 @@ namespace WPEFramework {
         {
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
             namespaces.clear();
@@ -546,6 +557,7 @@ namespace WPEFramework {
         {
             bool success = false;
 
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
 
             namespaceSizes.clear();
@@ -571,6 +583,7 @@ namespace WPEFramework {
 
         bool PersistentStore::flushCache()
         {
+            SQLITE_LOCK
             sqlite3* &db = SQLITE;
             bool success = false;
 
@@ -587,6 +600,31 @@ namespace WPEFramework {
             return success;
         }
 
+        bool PersistentStore::open()
+        {
+            bool result;
+
+            auto path = g_build_filename("opt", "persistent", nullptr);
+            auto file = g_build_filename(path, STORE_NAME, nullptr);
+
+            sqlite3* &db = SQLITE;
+
+            if (db && fileExists(file))
+                result = false; // Seems open!
+            else
+            {
+                if (!fileExists(path))
+                    g_mkdir_with_parents(path, 0745);
+
+                result = init(file, STORE_KEY);
+            }
+
+            g_free(path);
+            g_free(file);
+
+            return result;
+        }
+
         void PersistentStore::term()
         {
             sqlite3* &db = SQLITE;
@@ -598,9 +636,10 @@ namespace WPEFramework {
                 {
                     LOGERR("Error while flushing sqlite database cache: %d", rc);
                 }
-                sqlite3_close(db);
+                sqlite3_close_v2(db);
             }
-            db = NULL;
+
+            db = nullptr;
         }
 
         void PersistentStore::vacuum()
@@ -637,7 +676,7 @@ namespace WPEFramework {
             int rc = sqlite3_open(filename, &db);
             if (rc)
             {
-                LOGERR("%d : %s", rc, sqlite3_errmsg(db));
+                LOGERR("%d : %s", rc, sqlite3_errstr(rc));
                 term();
                 return false;
             }
@@ -681,7 +720,7 @@ namespace WPEFramework {
 
                 if (rc != SQLITE_OK)
                 {
-                    LOGERR("Failed to attach encryption key to SQLite database %s\nCause - %s", filename, sqlite3_errmsg(db));
+                    LOGERR("Failed to attach encryption key to SQLite database %s\nCause - %s", filename, sqlite3_errstr(rc));
                     term();
                     return false;
                 }
