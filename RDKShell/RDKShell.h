@@ -108,6 +108,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION;
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
+            static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -131,6 +132,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -196,6 +198,7 @@ namespace WPEFramework {
             uint32_t setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -243,6 +246,7 @@ namespace WPEFramework {
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
             void killAllApps();
+            bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost);
