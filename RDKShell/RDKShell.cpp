@@ -96,6 +96,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION = "setVirtualResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -136,6 +137,8 @@ bool sPersistentStoreFirstActivated = false;
 bool sPersistentStorePreLaunchChecked=false;
 bool sFactoryModeStart = false;
 bool sFactoryModeBlockResidentApp = false;
+bool sForceResidentAppLaunch = false;
+static bool sRunning = true;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -253,12 +256,12 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
                 {
                    std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".1");
+                   serviceCallsign.append(".2");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
-                    if (sFactoryModeBlockResidentApp)
+                    if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
                     {
                         // not first launch
                         if (sResidentAppFirstActivated)
@@ -414,6 +417,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
         }
 
         RDKShell::~RDKShell()
@@ -483,6 +487,7 @@ namespace WPEFramework {
             }
 
             shellThread = std::thread([=]() {
+                bool isRunning = true;
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
                 if (!waitForPersistentStore)
@@ -519,9 +524,10 @@ namespace WPEFramework {
                         }
                     }
                 }
+                isRunning = sRunning;
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
-                while(true) {
+                while(isRunning) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
@@ -603,6 +609,7 @@ namespace WPEFramework {
                   }
                   RdkShell::draw();
                   RdkShell::update();
+                  isRunning = sRunning;
                   gRdkShellMutex.unlock();
                   double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
                   if (frameTime < maxSleepTime)
@@ -612,6 +619,7 @@ namespace WPEFramework {
                   }
                 }
             });
+            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -771,6 +779,9 @@ namespace WPEFramework {
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO("Deinitialize");
+            gRdkShellMutex.lock();
+            sRunning = false;
+            gRdkShellMutex.unlock();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -3694,6 +3705,7 @@ namespace WPEFramework {
             uint32_t stopHdmiStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, stopHdmiInvoke.c_str(), joStopHdmiParams, joStopHdmiResult);
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
+            sForceResidentAppLaunch = true;
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
@@ -3728,6 +3740,7 @@ namespace WPEFramework {
             std::cout << "attempting to set factory mode flag \n";
             uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
             std::cout << "set status: " << setStatus << std::endl;
+            sForceResidentAppLaunch = false;
             returnResponse(ret);
         }
 
@@ -3744,7 +3757,9 @@ namespace WPEFramework {
             }
             if (isFactoryAppRunning)
             {
+                sForceResidentAppLaunch = true;
                 launchResidentAppWrapper(parameters, response);
+                sForceResidentAppLaunch = false;
             }
             else
             {
@@ -3933,6 +3948,45 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            if (nullptr == gSystemServiceConnection)
+            {
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "Activated SystemService" << std::endl;
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                JsonObject req, res;
+                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                {
+                    gRdkShellMutex.lock();
+                    uint32_t keyCode = 0;
+                    uint32_t modifiers = 0;
+                    uint64_t timestampInSeconds = 0;
+                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+                    gRdkShellMutex.unlock();
+
+                    response["keyCode"] = JsonValue(keyCode);
+                    response["modifiers"] = JsonValue(modifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
+
+                    returnResponse(true);
+                }
+                else
+                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+            }
+            else
+                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
+
+            response["message"] = "No last wakeup key";
+            returnResponse(false);
+        }
         // Registered methods end
 
         // Events begin
@@ -4037,6 +4091,7 @@ namespace WPEFramework {
         }
 
         // Internal methods begin
+
         bool RDKShell::moveToFront(const string& client)
         {
             bool ret = false;
