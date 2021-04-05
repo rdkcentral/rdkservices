@@ -96,6 +96,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION = "setVirtualResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -236,7 +237,7 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
                 {
                    std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".1");
+                   serviceCallsign.append(".2");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
@@ -348,6 +349,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -3706,6 +3708,45 @@ namespace WPEFramework {
             }
 
             returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            if (nullptr == gSystemServiceConnection)
+            {
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "Activated SystemService" << std::endl;
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                JsonObject req, res;
+                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                {
+                    gRdkShellMutex.lock();
+                    uint32_t keyCode = 0;
+                    uint32_t modifiers = 0;
+                    uint64_t timestampInSeconds = 0;
+                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+                    gRdkShellMutex.unlock();
+
+                    response["keyCode"] = JsonValue(keyCode);
+                    response["modifiers"] = JsonValue(modifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
+
+                    returnResponse(true);
+                }
+                else
+                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+            }
+            else
+                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
+
+            response["message"] = "No last wakeup key";
+            returnResponse(false);
         }
         // Registered methods end
 
