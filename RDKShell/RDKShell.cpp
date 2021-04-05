@@ -96,6 +96,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION = "setVirtualResolution";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -134,6 +135,10 @@ static bool sResidentAppFirstActivated = false;
 bool sPersistentStoreWaitProcessed = false;
 bool sPersistentStoreFirstActivated = false;
 bool sPersistentStorePreLaunchChecked=false;
+bool sFactoryModeStart = false;
+bool sFactoryModeBlockResidentApp = false;
+bool sForceResidentAppLaunch = false;
+static bool sRunning = true;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -147,11 +152,12 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
-#define RDKSHELL_POWER_TIME_WAIT 2.5
-#define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
-
-static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
-#define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
+enum FactoryAppLaunchStatus
+{
+    NOTLAUNCHED = 0,
+    STARTED,
+    COMPLETED
+};
 
 enum RDKShellLaunchType
 {
@@ -161,6 +167,8 @@ enum RDKShellLaunchType
     SUSPEND,
     RESUME
 };
+
+FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
     namespace Plugin {
@@ -248,23 +256,49 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
                 {
                    std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".1");
+                   serviceCallsign.append(".2");
                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN && !sResidentAppFirstActivated)
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
-                    sResidentAppFirstActivated = true;
-                    bool launchFactoryApp = mShell.checkForBootupFactoryAppLaunch();
-                    std::cout << "should launch factory app: " << launchFactoryApp << std::endl;
-                    if (launchFactoryApp)
+                    if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
                     {
-                      JsonObject request, response;
-                      std::cout << "about to launch factory app\n";
-                      uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
-                    }
-                    else
-                    {
-                      std::cout << "not launching factory app as conditions not matched\n";
+                        // not first launch
+                        if (sResidentAppFirstActivated)
+                        {
+                            if(sFactoryAppLaunchStatus != NOTLAUNCHED)
+                            {
+                                std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
+                                JsonObject deactivateParams;
+                                deactivateParams.Set("callsign", "ResidentApp");
+                                JsonObject deactivateResult;
+                                auto thunderController = getThunderControllerClient();
+                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            sResidentAppFirstActivated = true;
+                            if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
+                            {
+                                std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
+                                JsonObject deactivateParams;
+                                deactivateParams.Set("callsign", "ResidentApp");
+                                JsonObject deactivateResult;
+                                auto thunderController = getThunderControllerClient();
+                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                if (false == sFactoryModeStart)
+                                {
+                                  // reached scenario where persistent store loaded late and conditions matched
+                                  sFactoryModeStart = true;
+                                  JsonObject request, response;
+                                  std::cout << "about to launch factory app\n";
+                                  uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
+                                }
+                            }
+                        }
                     }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
@@ -383,6 +417,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
         }
 
         RDKShell::~RDKShell()
@@ -444,7 +479,15 @@ namespace WPEFramework {
                 waitForPersistentStore = true;
             }
 
+            char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
+            if (NULL != blockResidentApp)
+            {
+                std::cout << "block resident app on factory mode\n";
+                sFactoryModeBlockResidentApp = true;
+            }
+
             shellThread = std::thread([=]() {
+                bool isRunning = true;
                 gRdkShellMutex.lock();
                 RdkShell::initialize();
                 if (!waitForPersistentStore)
@@ -454,14 +497,37 @@ namespace WPEFramework {
                     {
                         std::cout << "setting platform and graphics\n";
                         fflush(stdout);
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        if ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch()))
+                        {
+                            sFactoryModeStart = true;
+                        }
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
+                        if (sFactoryModeStart) 
+                        {
+                            JsonObject request, response;
+                            std::cout << "about to launch factory app on start without persistent store wait\n";
+                            gRdkShellMutex.unlock();
+                            if (sFactoryModeBlockResidentApp)
+                            {
+                                request["nokillresapp"] = "true";
+                            }
+                            uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                            gRdkShellMutex.lock();
+                            std::cout << "launch factory app status:" << status << std::endl;
+                        }
+                        else
+                        {
+                          std::cout << "not launching factory app as conditions not matched\n";
+                        }
                     }
                 }
+                isRunning = sRunning;
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
-                while(true) {
+                while(isRunning) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
@@ -510,17 +576,40 @@ namespace WPEFramework {
                   if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
                   {
                     PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    RDKShell* rdkshellPlugin = RDKShell::_instance;
                     if (subSystems != nullptr)
                     {
+                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
+                        {
+                            sFactoryModeStart = true;
+                        }
                         std::cout << "setting platform and graphics after wait\n";
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
                     }
                     sPersistentStoreWaitProcessed = true;
+                    if (sFactoryModeStart)
+                    {
+                        JsonObject request, response;
+                        std::cout << "about to launch factory app after persistent store wait\n";
+                        gRdkShellMutex.unlock();
+                        if (sFactoryModeBlockResidentApp)
+                        {
+                            request["nokillresapp"] = "true";
+                        }
+                        uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                        gRdkShellMutex.lock();
+                        std::cout << "launch factory app status:" << status << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "not launching factory app as conditions not matched\n";
+                    }
                   }
                   RdkShell::draw();
                   RdkShell::update();
+                  isRunning = sRunning;
                   gRdkShellMutex.unlock();
                   double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
                   if (frameTime < maxSleepTime)
@@ -530,6 +619,7 @@ namespace WPEFramework {
                   }
                 }
             });
+            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -689,6 +779,9 @@ namespace WPEFramework {
         void RDKShell::Deinitialize(PluginHost::IShell* service)
         {
             LOGINFO("Deinitialize");
+            gRdkShellMutex.lock();
+            sRunning = false;
+            gRdkShellMutex.unlock();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -2827,6 +2920,11 @@ namespace WPEFramework {
                 }
                 else
                 {
+                    if (callsign == "factoryapp")
+                    {
+                        sFactoryModeStart = false;
+                        sFactoryAppLaunchStatus = NOTLAUNCHED;
+                    }
                     onDestroyed(callsign);
                 }
             }
@@ -4101,6 +4199,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            sFactoryAppLaunchStatus = STARTED;
             if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
             {
                 std::string eventName("onSystemPowerStateChanged");
@@ -4129,12 +4228,14 @@ namespace WPEFramework {
                     if (status > 0)
                     {
                         response["message"] = " unable to check aging flag";
+                        sFactoryAppLaunchStatus = NOTLAUNCHED;
                         returnResponse(false);
                     }
 
                     if (!joAgingResult.HasLabel("value"))
                     {
                         response["message"] = " aging value not found";
+                        sFactoryAppLaunchStatus = NOTLAUNCHED;
                         returnResponse(false);
                     }
 
@@ -4143,19 +4244,23 @@ namespace WPEFramework {
                     {
                         std::cout << "aging value is " << valueString << std::endl;
                         response["message"] = " aging is not set for startup";
+                        sFactoryAppLaunchStatus = NOTLAUNCHED;
                         returnResponse(false);
                     }
                 }
             }
 
             uint32_t result;
-            killAllApps();
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(destroyRequest, destroyResponse);
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
+                killAllApps();
+                if (!parameters.HasLabel("nokillresapp"))
+                {
+                    JsonObject destroyRequest, destroyResponse;
+                    destroyRequest["callsign"] = "ResidentApp";
+                    result = destroyWrapper(destroyRequest, destroyResponse);
+                }
                 JsonObject launchRequest;
                 launchRequest["callsign"] = "factoryapp";
                 launchRequest["type"] = "ResidentApp";
@@ -4172,6 +4277,7 @@ namespace WPEFramework {
                 {
                     std::cout << "Launching factory application failed " << std::endl;
                     response["message"] = " launching factory application failed ";
+                    sFactoryAppLaunchStatus = NOTLAUNCHED;
                     returnResponse(false);
                 }
                 JsonObject joFactoryModeParams;
@@ -4184,12 +4290,14 @@ namespace WPEFramework {
                 std::cout << "attempting to set factory mode flag \n";
                 uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
                 std::cout << "set status: " << setStatus << std::endl;
+                sFactoryAppLaunchStatus = COMPLETED;
                 returnResponse(true);
             }
             else
             {
                 std::cout << "factory app url is empty " << std::endl;
                 response["message"] = " factory app url is empty";
+                sFactoryAppLaunchStatus = NOTLAUNCHED;
                 returnResponse(false);
             }
         }
@@ -4314,6 +4422,7 @@ namespace WPEFramework {
             uint32_t stopHdmiStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, stopHdmiInvoke.c_str(), joStopHdmiParams, joStopHdmiResult);
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
+            sForceResidentAppLaunch = true;
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
@@ -4348,6 +4457,7 @@ namespace WPEFramework {
             std::cout << "attempting to set factory mode flag \n";
             uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
             std::cout << "set status: " << setStatus << std::endl;
+            sForceResidentAppLaunch = false;
             returnResponse(ret);
         }
 
@@ -4364,7 +4474,9 @@ namespace WPEFramework {
             }
             if (isFactoryAppRunning)
             {
+                sForceResidentAppLaunch = true;
                 launchResidentAppWrapper(parameters, response);
+                sForceResidentAppLaunch = false;
             }
             else
             {
@@ -4553,6 +4665,45 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            if (nullptr == gSystemServiceConnection)
+            {
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "Activated SystemService" << std::endl;
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                JsonObject req, res;
+                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                {
+                    gRdkShellMutex.lock();
+                    uint32_t keyCode = 0;
+                    uint32_t modifiers = 0;
+                    uint64_t timestampInSeconds = 0;
+                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+                    gRdkShellMutex.unlock();
+
+                    response["keyCode"] = JsonValue(keyCode);
+                    response["modifiers"] = JsonValue(modifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
+
+                    returnResponse(true);
+                }
+                else
+                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+            }
+            else
+                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
+
+            response["message"] = "No last wakeup key";
+            returnResponse(false);
+        }
         // Registered methods end
 
         // Events begin
@@ -4568,10 +4719,21 @@ namespace WPEFramework {
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
-            if (true == ret && (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0))
+            if (true == ret)
             {
-              std::cout << "launching factory app as mac is matching " << std::endl;
-              return true;
+                if (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    return true;
+                }
+                else
+                {
+                  std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac rfc failed " << std::endl;
             }
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
@@ -4646,6 +4808,7 @@ namespace WPEFramework {
         }
 
         // Internal methods begin
+
         bool RDKShell::moveToFront(const string& client)
         {
             bool ret = false;
