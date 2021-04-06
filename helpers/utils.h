@@ -27,6 +27,11 @@
 #include <tracing/tracing.h>
 #include "rfcapi.h"
 
+// telemetry
+#ifdef ENABLE_TELEMETRY_LOGGING
+#include <telemetry_busmessage_sender.h>
+#endif
+
 // IARM
 #include "rdk/iarmbus/libIARM.h"
 
@@ -40,7 +45,7 @@
 #define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGDBG(fmt, ...) do { fprintf(stderr, "[%d] DEBUG [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); Utils::Telemetry::sendError(fmt, ##__VA_ARGS__); } while (0)
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() );  }
 #define LOGTRACEMETHODFIN() do { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() );  } while (0)
@@ -363,4 +368,39 @@ namespace Utils
             std::thread t;
     };
 
+    struct Telemetry
+    {
+        static void init()
+        {
+#ifdef ENABLE_TELEMETRY_LOGGING
+            t2_init("Thunder_Plugins");
+#endif
+        };
+
+        static void sendMessage(char* message)
+        {
+#ifdef ENABLE_TELEMETRY_LOGGING
+            t2_event_s("THUNDER_MESSAGE", message);
+#endif
+        };
+
+        static void sendError(char* format, ...)
+        {
+#ifdef ENABLE_TELEMETRY_LOGGING
+            va_list parameters;
+            va_start(parameters, format);
+            std::string message;
+            WPEFramework::Trace::Format(message, format, parameters);
+            va_end(parameters);
+
+            // get rid of const for t2_event_s
+            char* error = strdup(message.c_str());
+            t2_event_s("THUNDER_ERROR", error);
+            if (error)
+            {
+                free(error);
+            }
+#endif
+        };
+    };
 } // namespace Utils
