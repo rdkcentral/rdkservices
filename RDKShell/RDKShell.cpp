@@ -3976,6 +3976,8 @@ namespace WPEFramework {
                     response["modifiers"] = JsonValue(modifiers);
                     response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
 
+                    std::cout << "Got LastWakeupKey, keyCode: " << keyCode << " modifiers: " << modifiers << " timestampInSeconds: " << timestampInSeconds << std::endl;
+
                     returnResponse(true);
                 }
                 else
