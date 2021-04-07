@@ -264,6 +264,7 @@ void RtXcastConnector::shutdown()
         m_eventMtrThread.join();    
 
     rtRemoteShutdown(rtEnvironmentGetGlobal());
+    delete _instance;
 }
 
 int RtXcastConnector::applicationStateChanged( string app, string state, string id, string error)
