@@ -672,6 +672,11 @@ namespace Plugin {
             virtual uint32_t Worker()
             {
                 
+                if (_traceControl.HasDirectOutput())
+                {
+                    TRACE_L1(_T("TraceControl Worker Thread - direct output - stop"));
+                    State(STOPPING);
+                }
                 while ((IsRunning() == true) && (_traceControl.Wait(Core::infinite) == Core::ERROR_NONE)) {
                     // Before we start we reset the flag, if new info is coming in, we will get a retrigger flag.
                     _traceControl.Acknowledge();
