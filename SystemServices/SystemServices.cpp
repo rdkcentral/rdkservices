@@ -1629,7 +1629,7 @@ namespace WPEFramework {
                         }
                     }
                 }
-                response["firmwareUpdateState"] = (int)fwUpdateState;
+                response["firmwareUpdateState"] = FIRMWARE_UPDATE_STATE_STR[fwUpdateState];
                 retStatus = true;
             } else {
                 LOGERR("Could not read file %s\n", FWDNLDSTATUS_FILE_NAME);
@@ -1644,15 +1644,18 @@ namespace WPEFramework {
          * @param1[in]  : newstate
          * @param2[out] : {"jsonrpc": "2.0","method":
          *			"org.rdk.SystemServices.events.1.onFirmwareUpdateStateChange",
-         *			"param":{"firmwareUpdateState":<enum:0-6>}}
+         *			"param":{"firmwareUpdateState":<string>}}
          */
         void SystemServices::onFirmwareUpdateStateChange(int newState)
         {
             JsonObject params;
 
-            const FirmwareUpdateState firmwareUpdateState = (FirmwareUpdateState)newState;
-            params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
-            LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
+            if (newState >= FirmwareUpdateStateMax) {
+                LOGERR("Invalid firmware update state: %d", newState);
+                return;
+            }
+            params["firmwareUpdateStateChange"] = FIRMWARE_UPDATE_STATE_STR[newState];
+            LOGINFO("New firmwareUpdateState = %s\n", FIRMWARE_UPDATE_STATE_STR[newState]);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
         }
 
