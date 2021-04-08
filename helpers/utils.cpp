@@ -29,6 +29,7 @@
 #include <securityagent/SecurityTokenUtil.h>
 #include <curl/curl.h>
 #include <utility>
+#include <ctype.h>
 
 #define MAX_STRING_LENGTH 2048
 
@@ -341,4 +342,27 @@ Utils::ThreadRAII::~ThreadRAII()
     }
 }
 
+bool Utils::isValidInt(char* x)
+{
+    bool Checked = true;
+    int i = 0;
+    do
+    {
+        //valid digit?
+        if (isdigit(x[i]))
+        {
+            //to the next character
+            i++;
+            Checked = true;
+        }
+        else
+        {
+            //to the next character
+            i++;
+            Checked = false;
+            break;
+        }
+    } while (x[i] != '\0');
+    return Checked;
+}
 
