@@ -1816,6 +1816,12 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
                 int VolumeLeveller = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sVolumeLeveller.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("level should be an integer");
+                    returnResponse(false);
+                }
+
                 try {
                         VolumeLeveller = stoi(sVolumeLeveller);
                 }catch (const device::Exception& err) {
@@ -1870,6 +1876,11 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sBassBoost.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("bassBoost should be an integer");
+                    returnResponse(false);
+                }
                 try {
                         bassBoost = stoi(sBassBoost);
                 }catch (const device::Exception& err) {
@@ -1897,6 +1908,11 @@ namespace WPEFramework {
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
                int surroundVirtualizer = 0;
+               bool isIntiger = Utils::isValidInt ((char*)sSurroundVirtualizer.c_str());
+               if (false == isIntiger) {
+                   LOGWARN("boost should be an integer");
+                   returnResponse(false);
+               }
 
                try {
                   surroundVirtualizer = stoi(sSurroundVirtualizer);
@@ -2049,6 +2065,11 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "DRCMode");
                 string sDRCMode = parameters["DRCMode"].String();
                 int DRCMode = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sDRCMode.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("DRCMode should be an integer");
+                    returnResponse(false);
+                }
                 try {
                         DRCMode = stoi(sDRCMode);
                 }catch (const device::Exception& err) {
