@@ -13,7 +13,7 @@
 #endif
 
 #define SQLITE *(sqlite3**)&mData
-#define SQLITE_IS_ERROR_DBWRITE (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
+#define SQLITE_IS_ERROR_DBWRITE(rc) (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
 
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MINOR = 0;
