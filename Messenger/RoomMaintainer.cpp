@@ -192,7 +192,7 @@ namespace Plugin {
 
         _adminLock.Lock();
 
-        auto const it(std::find(_observers.cbegin(), _observers.cend(), sink));
+        auto it(std::find(_observers.begin(), _observers.end(), sink));
 
         // Make sure it was really registered.
         ASSERT(it != _observers.cend());
