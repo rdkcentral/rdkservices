@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <mutex>
+#include <atomic>
 
 namespace WPEFramework {
 
@@ -75,7 +76,8 @@ namespace WPEFramework {
             bool init(const char* filename, const char* key = nullptr);
 
             void* mData;
-            std::mutex mDataLock;
+            std::mutex mLock;
+            std::atomic<int> mReading;
         };
     } // namespace Plugin
 } // namespace WPEFramework

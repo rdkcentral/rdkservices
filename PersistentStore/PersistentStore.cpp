@@ -14,7 +14,6 @@
 
 #define SQLITE *(sqlite3**)&mData
 #define SQLITE_IS_ERROR_DBWRITE (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
-#define SQLITE_LOCK std::lock_guard<std::mutex> lck(mDataLock);
 
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MINOR = 0;
@@ -72,6 +71,7 @@ namespace WPEFramework {
         PersistentStore::PersistentStore()
             : AbstractPlugin()
             , mData(nullptr)
+            , mReading(0)
         {
             registerMethod(METHOD_SET_VALUE, &PersistentStore::setValueWrapper, this);
             registerMethod(METHOD_GET_VALUE, &PersistentStore::getValueWrapper, this);
@@ -285,7 +285,9 @@ namespace WPEFramework {
 
             bool success = false;
 
-            SQLITE_LOCK
+            lock_guard<mutex> lck(mLock);
+            while (mReading > 0);
+
             sqlite3* &db = SQLITE;
 
             int retry = 0;
@@ -399,7 +401,11 @@ namespace WPEFramework {
 
             bool success = false;
 
-            SQLITE_LOCK
+            {
+                lock_guard<mutex> lck(mLock);
+                mReading++;
+            }
+
             sqlite3* &db = SQLITE;
 
             if (db)
@@ -425,6 +431,8 @@ namespace WPEFramework {
                 sqlite3_finalize(stmt);
             }
 
+            mReading--;
+
             return success;
         }
 
@@ -434,7 +442,9 @@ namespace WPEFramework {
 
             bool success = false;
 
-            SQLITE_LOCK
+            lock_guard<mutex> lck(mLock);
+            while (mReading > 0);
+
             sqlite3* &db = SQLITE;
 
             int retry = 0;
@@ -471,7 +481,9 @@ namespace WPEFramework {
 
             bool success = false;
 
-            SQLITE_LOCK
+            lock_guard<mutex> lck(mLock);
+            while (mReading > 0);
+
             sqlite3* &db = SQLITE;
 
             int retry = 0;
@@ -504,7 +516,11 @@ namespace WPEFramework {
 
             bool success = false;
 
-            SQLITE_LOCK
+            {
+                lock_guard<mutex> lck(mLock);
+                mReading++;
+            }
+
             sqlite3* &db = SQLITE;
 
             keys.clear();
@@ -526,6 +542,8 @@ namespace WPEFramework {
                 success = true;
             }
 
+            mReading--;
+
             return success;
         }
 
@@ -533,7 +551,11 @@ namespace WPEFramework {
         {
             bool success = false;
 
-            SQLITE_LOCK
+            {
+                lock_guard<mutex> lck(mLock);
+                mReading++;
+            }
+
             sqlite3* &db = SQLITE;
 
             namespaces.clear();
@@ -550,6 +572,8 @@ namespace WPEFramework {
                 success = true;
             }
 
+            mReading--;
+
             return success;
         }
 
@@ -557,7 +581,11 @@ namespace WPEFramework {
         {
             bool success = false;
 
-            SQLITE_LOCK
+            {
+                lock_guard<mutex> lck(mLock);
+                mReading++;
+            }
+
             sqlite3* &db = SQLITE;
 
             namespaceSizes.clear();
@@ -578,12 +606,16 @@ namespace WPEFramework {
                 success = true;
             }
 
+            mReading--;
+
             return success;
         }
 
         bool PersistentStore::flushCache()
         {
-            SQLITE_LOCK
+            lock_guard<mutex> lck(mLock);
+            while (mReading > 0);
+
             sqlite3* &db = SQLITE;
             bool success = false;
 
