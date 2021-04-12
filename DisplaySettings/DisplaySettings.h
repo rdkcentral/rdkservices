@@ -167,6 +167,7 @@ namespace WPEFramework {
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    void onTimer();
+	    bool isSettopbox ();
 
 	    TpTimer m_timer;
             bool m_subscribed;
