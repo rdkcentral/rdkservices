@@ -40,6 +40,9 @@
 #define WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CommonProperties.WarehouseHost.CName1"
 #define WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CommonProperties.WarehouseHost.CName2"
 #define WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM     "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CommonProperties.WarehouseHost.CNameTail"
+#define WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM     "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable"
+#define WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"
+#define WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results"
 
 #define WAREHOUSE_METHOD_RESET_DEVICE "resetDevice"
 #define WAREHOUSE_METHOD_GET_DEVICE_INFO "getDeviceInfo"
@@ -47,6 +50,8 @@
 #define WAREHOUSE_METHOD_INTERNAL_RESET "internalReset"
 #define WAREHOUSE_METHOD_LIGHT_RESET "lightReset"
 #define WAREHOUSE_METHOD_IS_CLEAN "isClean"
+#define WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST "executeHardwareTest"
+#define WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS "getHardwareTestResults"
 
 #define WAREHOUSE_EVT_DEVICE_INFO_RETRIEVED "deviceInfoRetrieved"
 #define WAREHOUSE_EVT_RESET_DONE "resetDone"
@@ -74,25 +79,23 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Warehouse, 1, 0);
-
-        Warehouse* Warehouse::_instance = nullptr;
+        SERVICE_REGISTRATION(Warehouse, 2, 0);
 
         Warehouse::Warehouse()
-        : AbstractPlugin()
+        : AbstractPlugin(2)
 #ifdef HAS_FRONT_PANEL
         , m_ledTimer(64 * 1024, "LedTimer")
         , m_ledInfo(this)
 #endif
         {
-            Warehouse::_instance = this;
-
             registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
             registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
             registerMethod(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
             registerMethod(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
             registerMethod(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
             registerMethod(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
+            registerMethod(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this, {2});
+            registerMethod(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this, {2});
         }
 
         Warehouse::~Warehouse()
@@ -109,7 +112,6 @@ namespace WPEFramework
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
-            Warehouse::_instance = nullptr;
         }
 
         void Warehouse::InitializeIARM()
@@ -737,6 +739,47 @@ namespace WPEFramework
             response["clean"] = existedObjects.Length() == 0;
         }
 
+        bool Warehouse::executeHardwareTest() const
+        {
+            bool result = false;
+
+            WDMP_STATUS wdmpStatus;
+
+            wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "true", WDMP_BOOLEAN);
+            result = (wdmpStatus == WDMP_SUCCESS);
+            if (result)
+            {
+                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM, "1", WDMP_INT);
+                result = (wdmpStatus == WDMP_SUCCESS);
+            }
+            if (!result)
+                LOGERR("%s", getRFCErrorString(wdmpStatus));
+
+            return result;
+        }
+
+        bool Warehouse::getHardwareTestResults(string& testResults) const
+        {
+            bool result = false;
+
+            WDMP_STATUS wdmpStatus;
+            RFC_ParamData_t param = {0};
+
+            wdmpStatus = getRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM, &param);
+            result = (wdmpStatus == WDMP_SUCCESS);
+            if (result)
+            {
+                testResults = param.value;
+                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "false", WDMP_BOOLEAN);
+                result = (wdmpStatus == WDMP_SUCCESS);
+            }
+            if (!result)
+                LOGERR("%s", getRFCErrorString(wdmpStatus));
+
+            return result;
+        }
+
+        // JsonRpc
         uint32_t Warehouse::resetDeviceWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -817,6 +860,30 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
+        uint32_t Warehouse::executeHardwareTestWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = false;
+
+            success = executeHardwareTest();
+
+            returnResponse(success);
+        }
+
+        uint32_t Warehouse::getHardwareTestResultsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = false;
+
+            string testResults;
+            success = getHardwareTestResults(testResults);
+            if (success)
+                response["testResults"] = testResults;
+
+            returnResponse(success);
+        }
 
 #ifdef HAS_FRONT_PANEL
         void Warehouse::onSetFrontPanelStateTimer()
