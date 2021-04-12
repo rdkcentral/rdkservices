@@ -108,7 +108,6 @@ private:
 private:
     using AudioIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IAudioCodecIterator>;
     using VideoIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IVideoCodecIterator>;
-
     typedef std::map<const string, const Exchange::IPlayerProperties::AudioCodec> AudioCaps;
     typedef std::map<const string, const Exchange::IPlayerProperties::VideoCodec> VideoCaps;
 
@@ -188,16 +187,23 @@ public:
         isEnbaled = false;
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected()) {
-                isEnbaled = aPort.GetLEConfig();
-                LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
-            }
-            else
+            if (device::Host::getInstance().isHDMIOutPortPresent()) 
             {
-                TRACE(Trace::Information, (_T("IsAudioEquivalenceEnabled failure: HDMI0 not connected!")));
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected()) {
+                    isEnbaled = aPort.GetLEConfig();
+                    LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
+                }
+                else
+                {
+                    TRACE(Trace::Information, (_T("IsAudioEquivalenceEnabled failure: HDMI0 not connected!")));
 
-                LOGERR("IsAudioEquivalenceEnabled failure: HDMI0 not connected!");
+                    LOGERR("IsAudioEquivalenceEnabled failure: HDMI0 not connected!");
+                }
+            }
+            else {
+                isEnbaled = device::Host::getInstance().GetLEConfig();
+                LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
             }
         }
         catch(const device::Exception& err)
@@ -284,14 +290,19 @@ public:
         supported = false;
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected())
-            {
-                aPort.getSinkDeviceAtmosCapability(atmosCapability);
+            if (device::Host::getInstance().isHDMIOutPortPresent()) {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected())
+                {
+                    aPort.getSinkDeviceAtmosCapability(atmosCapability);
+                }
+                else
+                {
+                    TRACE(Trace::Error, (_T("getSinkAtmosCapability failure: HDMI0 not connected!\n")));
+                }
             }
-            else
-            {
-               TRACE(Trace::Error, (_T("getSinkAtmosCapability failure: HDMI0 not connected!\n")));
+            else {
+                device::Host::getInstance().getSinkDeviceAtmosCapability(atmosCapability);
             }
         }
         catch(const device::Exception& err)
@@ -347,15 +358,20 @@ public:
     {
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected()) {
-                aPort.setAudioAtmosOutputMode(enable);
+            if (device::Host::getInstance().isHDMIOutPortPresent()) {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected()) {
+                    aPort.setAudioAtmosOutputMode(enable);
+                }
+                else
+                {
+                    TRACE(Trace::Error, (_T("setAudioAtmosOutputMode failure: HDMI0 not connected!\n")));
+                }
             }
-            else
-            {
-                TRACE(Trace::Error, (_T("setAudioAtmosOutputMode failure: HDMI0 not connected!\n")));
+            else {
+                device::Host::getInstance().setAudioAtmosOutputMode(enable);
+                LOGERR( "Anoojc AtmosMetadata");
             }
-
         }
         catch (const device::Exception& err)
         {
