@@ -14,6 +14,7 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_AVAILABLE_FIRMWARE_FILES = "getAvailableFirmwareFiles";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
+const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
 
@@ -36,6 +37,15 @@ namespace Plugin {
         bool clearLink(const string& to) {
             return (0 == remove(to.c_str()));
         }
+
+        int runScript(const char *command) {
+            int result = -1;
+            FILE *pipe = nullptr;
+            if ((pipe = popen(command, "r"))) {
+                result = pclose(pipe);
+            }
+            return result;
+        }
     }
 
     SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
@@ -48,6 +58,7 @@ namespace Plugin {
         registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
         registerMethod(METHOD_GET_AVAILABLE_FIRMWARE_FILES, &UsbAccess::getAvailableFirmwareFilesWrapper, this, {2});
         registerMethod(METHOD_GET_MOUNTED, &UsbAccess::getMountedWrapper, this, {2});
+        registerMethod(METHOD_UPDATE_FIRMWARE, &UsbAccess::updateFirmware, this, {2});
     }
 
     UsbAccess::~UsbAccess()
@@ -157,6 +168,43 @@ namespace Plugin {
             });
         });
         response["availableFirmwareFiles"] = arr;
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::updateFirmware(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        string fileName;
+        if (parameters.HasLabel("fileName"))
+            fileName = parameters["fileName"].String();
+
+        string name = fileName.substr(fileName.find_last_of("/\\") + 1);
+        string path = fileName.substr(0, fileName.find_last_of("/\\"));
+        if (!name.empty() && !path.empty() &&
+            std::regex_match(name, std::regex("([\\w-]*)\\.bin", std::regex_constants::icase)) == true)
+        {
+            char buff[1000];
+            size_t n = sizeof(buff);
+            int size = snprintf(buff, n,
+                    "/lib/rdk/userInitiatedFWDnld.sh %s %s %s %d >> /opt/logs/swupdate.log &",
+                    "usb",
+                    path.c_str(),
+                    name.c_str(),
+                    0);
+            if (size > 0 && size < n)
+            {
+                int rc = runScript(buff);
+                LOGINFO("'%s' return code: %d", buff, rc);
+                result = true;
+            }
+        }
+
+        if (!result)
+            response["error"] = "invalid filename";
 
         returnResponse(result);
     }
