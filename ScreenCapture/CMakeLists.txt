@@ -34,11 +34,12 @@ if (NOT ${FRAMEBUFFER_API_HEADER} STREQUAL "FRAMEBUFFER_API_HEADER-NOTFOUND")
     message("Found framebuffer-api.h")
 add_definitions (-DHAS_FRAMEBUFFER_API_HEADER)
 find_library(VNC_FRAMEBUFFER_LIBRARIES NAMES vncframebuffer)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl ${VNC_FRAMEBUFFER_LIBRARIES})
+else()
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl)
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl ${VNC_FRAMEBUFFER_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

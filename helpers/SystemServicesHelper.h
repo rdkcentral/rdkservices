@@ -74,7 +74,7 @@
 #define MODE_EAS        "EAS"
 #define MODE_WAREHOUSE  "WAREHOUSE"
 
-#define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | tr -s ' ' | cut -d ' ' -f3"
+#define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | sed '/^[^M/G]*$/d' | tr -s ' ' | cut -d ' ' -f3"
 
 enum eRetval { E_NOK = -1,
     E_OK };
