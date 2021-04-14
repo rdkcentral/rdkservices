@@ -145,6 +145,7 @@ static bool sRunning = true;
 #define RDKSHELL_POWER_TIME_WAIT 2.5
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
+#define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -2416,7 +2417,23 @@ namespace WPEFramework {
                     if (topmost)
                     {
                         std::string topmostClient;
-                        gRdkShellMutex.lock();
+                        {
+                            bool lockAcquired = false;
+                            double startTime = RdkShell::milliseconds();
+                            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+                            {
+                                lockAcquired = gRdkShellMutex.try_lock();
+                            }
+                            if (!lockAcquired)
+                            {
+                                std::cout << "unable to get lock for topmost, defaulting to normal lock\n";
+                                gRdkShellMutex.lock();
+                            }
+                            else
+                            {
+                                std::cout << "lock was acquired via try for topmost\n";
+                            }
+                        }
                         bool topmostResult =  CompositorController::getTopmost(topmostClient);
                         gRdkShellMutex.unlock();
                         if (!topmostClient.empty())
@@ -2517,7 +2534,23 @@ namespace WPEFramework {
                     joParams.ToString(strParams);
                     joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
-                    gRdkShellMutex.lock();
+                    {
+                        bool lockAcquired = false;
+                        double startTime = RdkShell::milliseconds();
+                        while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+                        {
+                            lockAcquired = gRdkShellMutex.try_lock();
+                        }
+                        if (!lockAcquired)
+                        {
+                            std::cout << "unable to get lock for create display, defaulting to normal lock\n";
+                            gRdkShellMutex.lock();
+                        }
+                        else
+                        {
+                            std::cout << "lock was acquired via try for create display\n";
+                        }
+                    }
                     RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                     gRdkShellMutex.unlock();
                 }
@@ -2666,7 +2699,23 @@ namespace WPEFramework {
                     uint32_t tempY = 0;
                     uint32_t screenWidth = 0;
                     uint32_t screenHeight = 0;
-                    gRdkShellMutex.lock();
+                    {
+                        bool lockAcquired = false;
+                        double startTime = RdkShell::milliseconds();
+                        while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+                        {
+                            lockAcquired = gRdkShellMutex.try_lock();
+                        }
+                        if (!lockAcquired)
+                        {
+                            std::cout << "unable to get lock for get bounds, defaulting to normal lock\n";
+                            gRdkShellMutex.lock();
+                        }
+                        else
+                        {
+                            std::cout << "lock was acquired via try for get bounds\n";
+                        }
+                    }
                     CompositorController::getBounds(callsign, tempX, tempY, screenWidth, screenHeight);
                     gRdkShellMutex.unlock();
                     width = screenWidth;
@@ -2687,7 +2736,23 @@ namespace WPEFramework {
                     {
                         height = parameters["h"].Number();
                     }
-                    gRdkShellMutex.lock();
+                    {
+                        bool lockAcquired = false;
+                        double startTime = RdkShell::milliseconds();
+                        while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+                        {
+                            lockAcquired = gRdkShellMutex.try_lock();
+                        }
+                        if (!lockAcquired)
+                        {
+                            std::cout << "unable to get lock for set bounds, defaulting to normal lock\n";
+                            gRdkShellMutex.lock();
+                        }
+                        else
+                        {
+                            std::cout << "lock was acquired via try for set bounds\n";
+                        }
+                    }
                     std::cout << "setting the desired bounds\n";
                     CompositorController::setBounds(callsign, 0, 0, 1, 1); //forcing a compositor resize flush
                     CompositorController::setBounds(callsign, x, y, width, height);
@@ -5222,7 +5287,23 @@ namespace WPEFramework {
         bool RDKShell::setVisibility(const string& client, const bool visible)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            {
+                bool lockAcquired = false;
+                double startTime = RdkShell::milliseconds();
+                while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+                {
+                    lockAcquired = gRdkShellMutex.try_lock();
+                }
+                if (!lockAcquired)
+                {
+                    std::cout << "unable to get lock for visibility, defaulting to normal lock\n";
+                    gRdkShellMutex.lock();
+                }
+                else
+                {
+                    std::cout << "lock was acquired via try for visibility\n";
+                }
+            }
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
 
