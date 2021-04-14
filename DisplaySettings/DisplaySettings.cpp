@@ -150,7 +150,7 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSettingWrapper, this);
+            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
             registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
@@ -212,12 +212,12 @@ namespace WPEFramework {
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
 
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            tvZoomSettings.push_back("TV AUTO");
-            tvZoomSettings.push_back("TV DIRECT");
-            tvZoomSettings.push_back("TV NORMAL");
-            tvZoomSettings.push_back("TV 16X9 STRETCH");
-            tvZoomSettings.push_back("TV LETTERBOX");
-            tvZoomSettings.push_back("TV ZOOM");
+        tvZoomSettings.push_back("TV AUTO");
+        tvZoomSettings.push_back("TV DIRECT");
+        tvZoomSettings.push_back("TV NORMAL");
+        tvZoomSettings.push_back("TV 16X9 STRETCH");
+        tvZoomSettings.push_back("TV LETTERBOX");
+        tvZoomSettings.push_back("TV ZOOM");
 #endif
         }
 
@@ -308,11 +308,6 @@ namespace WPEFramework {
             else
             {
                 LOGWARN("Current power state %d", m_powerState);
-            }
-
-            if (!setZoomSetting(getZoomSettingConfig()))
-            {
-                LOGERR("Couldn't restore zoom settings");
             }
 
             // On success return empty, to indicate there is no error text.
@@ -845,7 +840,7 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            string zoomSetting = getZoomSettingConfig();
+            string zoomSetting = getTVZoomSetting();
 #else
             string zoomSetting = "unknown";
             try
@@ -866,60 +861,52 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
-        std::string DisplaySettings::getZoomSettingConfig()
-        {
 #ifdef ENABLE_TV_ZOOM_SETTINGS
+        std::string DisplaySettings::getTVZoomSetting()
+        {
             string zoomSetting = "TV AUTO";
-#else
-            string zoomSetting = "FULL";
-#endif
             Core::File settingsFile;
-            settingsFile = ZOOM_SETTINGS_FILE;
+            settingsFile = TV_ZOOM_SETTINGS_FILE;
             if (settingsFile.Open())
             {
                 JsonObject settingsJson;
                 if (settingsJson.IElement::FromFile(settingsFile))
                 {
-                    zoomSetting = settingsJson["zoomSetting"].String();
+                    std::string settingsValue = settingsJson["zoomSetting"].String();
+                    if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), settingsValue) != tvZoomSettings.end())
+                    {
+                        zoomSetting = settingsValue;
+                    }
+                    else
+                    {
+                        LOGERR("Couldn't parse tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                    }
                 }
                 else
                 {
-                    LOGERR("Couldn't read zoom settings file %s", ZOOM_SETTINGS_FILE);
+                    LOGERR("Couldn't read tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
                 }
                 settingsFile.Close();
             }
             else
             {
-                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
+                LOGWARN("Couldn't open tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
             }
 
             return zoomSetting;
         }
+#endif
 
-
-        uint32_t DisplaySettings::setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
             returnIfParamNotFound(parameters, "zoomSetting");
             string zoomSetting = parameters["zoomSetting"].String();
 
-            returnResponse(setZoomSetting(zoomSetting));
-        }
-
-        bool DisplaySettings::setZoomSetting(std::string zoomSetting)
-        {
             bool success = true;
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
-            {
-                success = setZoomSettingConfig(zoomSetting);
-            }
-            else
-            {
-                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
-                success = false;
-            }
+            success = setTVZoomSetting(zoomSetting);
 #else
             try
             {
@@ -929,7 +916,6 @@ namespace WPEFramework {
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
-                success = setZoomSettingConfig(zoomSetting);
             }
             catch(const device::Exception& err)
             {
@@ -937,15 +923,14 @@ namespace WPEFramework {
                 success = false;
             }
 #endif
-            return success;
+            returnResponse(success);
         }
 
-        bool DisplaySettings::setZoomSettingConfig(std::string zoomSetting)
+#ifdef ENABLE_TV_ZOOM_SETTINGS
+        bool DisplaySettings::setTVZoomSetting(std::string zoomSetting)
         {
             bool success = true;
-            Core::File settingsFile;
-            settingsFile = ZOOM_SETTINGS_FILE;
-            if (!settingsFile.Open(false))
+            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
             {
                 LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
 
@@ -957,25 +942,35 @@ namespace WPEFramework {
                 }
                 else if (!settingsFile.Create())
                 {
-                    LOGERR("Couldn't create zoom settings file %s", ZOOM_SETTINGS_FILE);
-                    success = false;
+                    LOGWARN("Couldn't open tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                    if (!settingsFile.Create())
+                    {
+                        LOGERR("Couldn't create tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                        success = false;
+                    }
+                }
+
+                if (settingsFile.IsOpen())
+                {
+                    JsonObject settingsJson;
+                    settingsJson["zoomSetting"] = zoomSetting;
+                    if (!settingsJson.IElement::ToFile(settingsFile))
+                    {
+                        LOGERR("Couldn't save tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
+                        success = false;
+                    }
+                    settingsFile.Close();
                 }
             }
-
-            if (settingsFile.IsOpen())
+            else
             {
-                JsonObject settingsJson;
-                settingsJson["zoomSetting"] = zoomSetting;
-                if (!settingsJson.IElement::ToFile(settingsFile))
-                {
-                    LOGERR("Couldn't save zoom settings file %s", ZOOM_SETTINGS_FILE);
-                    success = false;
-                }
-                settingsFile.Close();
+                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
+                success = false;
             }
 
             return success;
         }
+#endif
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
