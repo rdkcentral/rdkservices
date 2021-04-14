@@ -2654,14 +2654,21 @@ namespace WPEFramework {
 			dsATMOSCapability_t atmosCapability;
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-                if (aPort.isConnected()) {
-                    aPort.getSinkDeviceAtmosCapability (atmosCapability);
-                    response["atmos_capability"] = (int)atmosCapability;
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if (aPort.isConnected()) {
+                        aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                        response["atmos_capability"] = (int)atmosCapability;
+                    }
+                    else {
+                        LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
+                        success = false;
+                    }
                 }
                 else {
-					LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
-                    success = false;
+                    device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
+                    response["atmos_capability"] = (int)atmosCapability;
                 }
             }
             catch(const device::Exception& err)
@@ -2683,15 +2690,20 @@ namespace WPEFramework {
             bool success = true;
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-                if (aPort.isConnected()) {
-                    aPort.setAudioAtmosOutputMode (enable);
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if (aPort.isConnected()) {
+                        aPort.setAudioAtmosOutputMode (enable);
+                    }
+                    else {
+					    LOGERR("setAudioAtmosOutputMode failure: HDMI0 not connected!\n");
+                        success = false;
+                    }
                 }
                 else {
-					LOGERR("setAudioAtmosOutputMode failure: HDMI0 not connected!\n");
-                    success = false;
+                    device::Host::getInstance().setAudioAtmosOutputMode (enable);
                 }
-
             }
             catch (const device::Exception& err)
             {
@@ -2850,7 +2862,6 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
-
 
         // Thunder plugins communication
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> DisplaySettings::getHdmiCecSinkPlugin()
