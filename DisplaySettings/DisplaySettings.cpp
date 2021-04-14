@@ -840,30 +840,6 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            string zoomSetting = getTVZoomSetting();
-#else
-            string zoomSetting = "unknown";
-            try
-            {
-                // TODO: why is this always the first one in the list
-                device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
-                zoomSetting = decoder.getDFC().getName();
-            }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION0();
-            }
-#ifdef USE_IARM
-            zoomSetting = iarm2svc(zoomSetting);
-#endif
-#endif
-            response["zoomSetting"] = zoomSetting;
-            returnResponse(true);
-        }
-
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-        std::string DisplaySettings::getTVZoomSetting()
-        {
             string zoomSetting = "TV AUTO";
             Core::File settingsFile;
             settingsFile = TV_ZOOM_SETTINGS_FILE;
@@ -892,10 +868,25 @@ namespace WPEFramework {
             {
                 LOGWARN("Couldn't open tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
             }
-
-            return zoomSetting;
-        }
+#else
+            string zoomSetting = "unknown";
+            try
+            {
+                // TODO: why is this always the first one in the list
+                device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
+                zoomSetting = decoder.getDFC().getName();
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+#ifdef USE_IARM
+            zoomSetting = iarm2svc(zoomSetting);
 #endif
+#endif
+            response["zoomSetting"] = zoomSetting;
+            returnResponse(true);
+        }
 
         uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
@@ -906,30 +897,6 @@ namespace WPEFramework {
 
             bool success = true;
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            success = setTVZoomSetting(zoomSetting);
-#else
-            try
-            {
-#ifdef USE_IARM
-                zoomSetting = svc2iarm(zoomSetting);
-#endif
-                // TODO: why is this always the first one in the list?
-                device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
-                decoder.setDFC(zoomSetting);
-            }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(zoomSetting);
-                success = false;
-            }
-#endif
-            returnResponse(success);
-        }
-
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-        bool DisplaySettings::setTVZoomSetting(std::string zoomSetting)
-        {
-            bool success = true;
             if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
             {
                 LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
@@ -952,9 +919,7 @@ namespace WPEFramework {
 
                 if (settingsFile.IsOpen())
                 {
-                    JsonObject settingsJson;
-                    settingsJson["zoomSetting"] = zoomSetting;
-                    if (!settingsJson.IElement::ToFile(settingsFile))
+                    if (!parameters.IElement::ToFile(settingsFile))
                     {
                         LOGERR("Couldn't save tv zoom settings file %s", TV_ZOOM_SETTINGS_FILE);
                         success = false;
@@ -967,10 +932,24 @@ namespace WPEFramework {
                 LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
                 success = false;
             }
-
-            return success;
-        }
+#else
+            try
+            {
+#ifdef USE_IARM
+                zoomSetting = svc2iarm(zoomSetting);
 #endif
+                // TODO: why is this always the first one in the list?
+                device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
+                decoder.setDFC(zoomSetting);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(zoomSetting);
+                success = false;
+            }
+#endif
+            returnResponse(success);
+        }
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
