@@ -52,8 +52,6 @@ namespace WPEFramework {
             typedef Core::JSON::Boolean JBool;
 
 #ifdef ENABLE_TV_ZOOM_SETTINGS
-            std::string getTVZoomSetting();
-            bool setTVZoomSetting(std::string zoomSetting);
             std::vector<std::string> tvZoomSettings;
 #endif
 
