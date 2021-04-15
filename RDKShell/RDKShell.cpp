@@ -371,6 +371,25 @@ namespace WPEFramework {
 
         static std::thread shellThread;
 
+        void lockRdkShellMutex()
+        {
+            bool lockAcquired = false;
+            double startTime = RdkShell::milliseconds();
+            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+            {
+                lockAcquired = gRdkShellMutex.try_lock();
+            }
+            if (!lockAcquired)
+            {
+                std::cout << "unable to get lock for defaulting to normal lock\n";
+                gRdkShellMutex.lock();
+            }
+            /*else
+            {
+                std::cout << "lock was acquired via try\n";
+            }*/
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -1669,7 +1688,7 @@ namespace WPEFramework {
                 {
                     client = parameters["callsign"].String();
                 }
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 result = CompositorController::removeKeyMetadataListener(client);
                 gRdkShellMutex.unlock();
                 if (false == result) {
@@ -1927,7 +1946,7 @@ namespace WPEFramework {
                 }
 
                 unsigned int x=0,y=0,w=0,h=0;
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 CompositorController::getBounds(client, x, y, w, h);
                 gRdkShellMutex.unlock();
                 if (parameters.HasLabel("x"))
@@ -2268,7 +2287,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
             std::string logLevel = "INFO";
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::getLogLevel(logLevel);
             gRdkShellMutex.unlock();
             if (false == result) {
@@ -2293,7 +2312,7 @@ namespace WPEFramework {
             {
                 std::string logLevel  = parameters["logLevel"].String();
                 std::string currentLogLevel = "INFO";
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 result = CompositorController::setLogLevel(logLevel);
                 CompositorController::getLogLevel(currentLogLevel);
                 gRdkShellMutex.unlock();
@@ -2313,7 +2332,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::hideSplashScreen();
             gRdkShellMutex.unlock();
 
@@ -2448,7 +2467,7 @@ namespace WPEFramework {
 
                 unsigned int x = 0, y = 0;
                 unsigned int clientWidth = 0, clientHeight = 0;
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 CompositorController::getBounds(client, x, y, clientWidth, clientHeight);
                 if (parameters.HasLabel("x"))
                 {
@@ -3342,7 +3361,7 @@ namespace WPEFramework {
 
                 if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
-                    gRdkShellMutex.lock();
+                    lockRdkShellMutex();
                     result = CompositorController::suspendApplication(client);
                     gRdkShellMutex.unlock();
                 }
@@ -3409,7 +3428,7 @@ namespace WPEFramework {
 
                 if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
-                    gRdkShellMutex.lock();
+                    lockRdkShellMutex();
                     result = CompositorController::resumeApplication(client);
                     gRdkShellMutex.unlock();
                 }
@@ -3565,7 +3584,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::hideFullScreenImage();
             gRdkShellMutex.unlock();
 
@@ -4227,7 +4246,7 @@ namespace WPEFramework {
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
                 if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
                 {
-                    gRdkShellMutex.lock();
+                    lockRdkShellMutex();
                     uint32_t keyCode = 0;
                     uint32_t modifiers = 0;
                     uint64_t timestampInSeconds = 0;
@@ -4359,7 +4378,7 @@ namespace WPEFramework {
         bool RDKShell::moveToFront(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::moveToFront(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4368,7 +4387,7 @@ namespace WPEFramework {
         bool RDKShell::moveToBack(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::moveToBack(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4377,7 +4396,7 @@ namespace WPEFramework {
         bool RDKShell::moveBehind(const string& client, const string& target)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             bool targetFound = false;
@@ -4400,7 +4419,7 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4409,7 +4428,7 @@ namespace WPEFramework {
         bool RDKShell::kill(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             RdkShell::CompositorController::removeListener(client, mEventListener);
             ret = CompositorController::kill(client);
             gRdkShellMutex.unlock();
@@ -4640,7 +4659,7 @@ namespace WPEFramework {
                 {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
                 gRdkShellMutex.unlock();
             }
@@ -4651,7 +4670,7 @@ namespace WPEFramework {
         {
             unsigned int width=0,height=0;
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getScreenResolution(width, height);
             gRdkShellMutex.unlock();
             if (true == ret) {
@@ -4664,7 +4683,7 @@ namespace WPEFramework {
 
         bool RDKShell::setScreenResolution(const unsigned int w, const unsigned int h)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             receivedResolutionRequest = true;
             resolutionWidth = w;
             resolutionHeight = h;
@@ -4675,7 +4694,7 @@ namespace WPEFramework {
         bool RDKShell::setMimeType(const string& client, const string& mimeType)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setMimeType(client, mimeType);
             gRdkShellMutex.unlock();
             return ret;
@@ -4684,7 +4703,7 @@ namespace WPEFramework {
         bool RDKShell::getMimeType(const string& client, string& mimeType)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getMimeType(client, mimeType);
             gRdkShellMutex.unlock();
             return ret;
@@ -4694,7 +4713,7 @@ namespace WPEFramework {
             const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
                 virtualDisplay, virtualWidth, virtualHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
@@ -4705,7 +4724,7 @@ namespace WPEFramework {
         bool RDKShell::getClients(JsonArray& clients)
         {
             std::vector<std::string> clientList;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::getClients(clientList);
             gRdkShellMutex.unlock();
             for (size_t i=0; i<clientList.size(); i++) {
@@ -4717,7 +4736,7 @@ namespace WPEFramework {
         bool RDKShell::getZOrder(JsonArray& clients)
         {
             std::vector<std::string> zOrderList;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::getZOrder(zOrderList);
             gRdkShellMutex.unlock();
             for (size_t i=0; i<zOrderList.size(); i++) {
@@ -4730,7 +4749,7 @@ namespace WPEFramework {
         {
             unsigned int x=0,y=0,width=0,height=0;
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getBounds(client, x, y, width, height);
             gRdkShellMutex.unlock();
             if (true == ret) {
@@ -4746,7 +4765,7 @@ namespace WPEFramework {
         bool RDKShell::setBounds(const std::string& client, const unsigned int x, const unsigned int y, const unsigned int w, const unsigned int h)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             std::cout << "setting the bounds\n";
             ret = CompositorController::setBounds(client, 0, 0, 1, 1); //forcing a compositor resize flush
             ret = CompositorController::setBounds(client, x, y, w, h);
@@ -4760,7 +4779,7 @@ namespace WPEFramework {
         bool RDKShell::getVisibility(const string& client, bool& visible)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVisibility(client, visible);
             gRdkShellMutex.unlock();
             return ret;
@@ -4824,7 +4843,7 @@ namespace WPEFramework {
         bool RDKShell::getOpacity(const string& client, unsigned int& opacity)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getOpacity(client, opacity);
             gRdkShellMutex.unlock();
             return ret;
@@ -4833,7 +4852,7 @@ namespace WPEFramework {
         bool RDKShell::setOpacity(const string& client, const unsigned int opacity)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setOpacity(client, opacity);
             gRdkShellMutex.unlock();
             return ret;
@@ -4842,7 +4861,7 @@ namespace WPEFramework {
         bool RDKShell::getScale(const string& client, double& scaleX, double& scaleY)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getScale(client, scaleX, scaleY);
             gRdkShellMutex.unlock();
             return ret;
@@ -4851,7 +4870,7 @@ namespace WPEFramework {
         bool RDKShell::setScale(const string& client, const double scaleX, const double scaleY)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setScale(client, scaleX, scaleY);
             gRdkShellMutex.unlock();
             return ret;
@@ -4860,7 +4879,7 @@ namespace WPEFramework {
         bool RDKShell::getHolePunch(const string& client, bool& holePunch)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getHolePunch(client, holePunch);
             gRdkShellMutex.unlock();
             return ret;
@@ -4869,7 +4888,7 @@ namespace WPEFramework {
         bool RDKShell::setHolePunch(const string& client, const bool holePunch)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setHolePunch(client, holePunch);
             gRdkShellMutex.unlock();
             return ret;
@@ -4878,7 +4897,7 @@ namespace WPEFramework {
         bool RDKShell::removeAnimation(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::removeAnimation(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4886,7 +4905,7 @@ namespace WPEFramework {
 
         bool RDKShell::addAnimationList(const JsonArray& animations)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             for (int i=0; i<animations.Length(); i++) {
                 const JsonObject& animationInfo = animations[i].Object();
                 if (animationInfo.HasLabel("client") && animationInfo.HasLabel("duration"))
@@ -4955,7 +4974,7 @@ namespace WPEFramework {
 
         bool RDKShell::enableInactivityReporting(const bool enable)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::enableInactivityReporting(enable);
             gRdkShellMutex.unlock();
             return true;
@@ -4963,7 +4982,7 @@ namespace WPEFramework {
 
         bool RDKShell::setInactivityInterval(const uint32_t interval)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             try
             {
               CompositorController::setInactivityInterval((double)interval);
@@ -5004,7 +5023,7 @@ namespace WPEFramework {
 
         bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
             gRdkShellMutex.unlock();
             return ret;
@@ -5032,7 +5051,7 @@ namespace WPEFramework {
         bool RDKShell::getKeyRepeatsEnabled(bool& enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getKeyRepeatsEnabled(enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5041,7 +5060,7 @@ namespace WPEFramework {
         bool RDKShell::enableKeyRepeats(const bool enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::enableKeyRepeats(enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5050,7 +5069,7 @@ namespace WPEFramework {
         bool RDKShell::setTopmost(const string& callsign, const bool topmost)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setTopmost(callsign, topmost);
             gRdkShellMutex.unlock();
             return ret;
@@ -5059,7 +5078,7 @@ namespace WPEFramework {
         bool RDKShell::getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVirtualResolution(client, virtualWidth, virtualHeight);
             gRdkShellMutex.unlock();
             return ret;
@@ -5068,7 +5087,7 @@ namespace WPEFramework {
         bool RDKShell::setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setVirtualResolution(client, virtualWidth, virtualHeight);
             gRdkShellMutex.unlock();
             return ret;
@@ -5077,7 +5096,7 @@ namespace WPEFramework {
         bool RDKShell::enableVirtualDisplay(const std::string& client, const bool enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::enableVirtualDisplay(client, enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5086,7 +5105,7 @@ namespace WPEFramework {
         bool RDKShell::getVirtualDisplayEnabled(const std::string& client, bool &enabled)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVirtualDisplayEnabled(client, enabled);
             gRdkShellMutex.unlock();
             return ret;
@@ -5136,7 +5155,7 @@ namespace WPEFramework {
         bool RDKShell::showWatermark(const bool enable)
         {
             bool ret = true;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             if (enable)
             {
                 receivedShowWatermarkRequest = true;
@@ -5152,7 +5171,7 @@ namespace WPEFramework {
         bool RDKShell::showFullScreenImage(std::string& path)
         {
             bool ret = true;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             fullScreenImagePath = path;
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
