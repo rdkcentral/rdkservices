@@ -25,6 +25,7 @@ namespace Plugin {
         static const string METHOD_CLEAR_LINK;
         static const string METHOD_GET_AVAILABLE_FIRMWARE_FILES;
         static const string METHOD_GET_MOUNTED;
+        static const string METHOD_UPDATE_FIRMWARE;
         //events
         //other
         static const string LINK_URL_HTTP;
@@ -38,6 +39,7 @@ namespace Plugin {
         uint32_t clearLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
 
     private/*internal methods*/:
         UsbAccess(const UsbAccess&) = delete;
