@@ -69,6 +69,8 @@ using namespace std;
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
+#define DEVICE_PROPERTIES_FILE "/etc/device.properties"
+
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
 /**
@@ -608,12 +610,61 @@ namespace WPEFramework {
             bool retAPIStatus = false;
             string queryParams = parameters["params"].String();
             removeCharsFromString(queryParams, "[\"]");
+
+            // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
+            if (queryParams == "make") {
+
+                if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
+                    populateResponseWithError(SysSrv_FileNotPresent, response);
+                    returnResponse(retAPIStatus);
+                }
+
+                char buf[1024];
+
+                FILE *f = fopen(DEVICE_PROPERTIES_FILE, "r");
+
+                if(!f) {
+                    LOGWARN("failed to open %s:%s", DEVICE_PROPERTIES_FILE, strerror(errno));
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                    returnResponse(retAPIStatus);
+                }
+
+                std::string line;
+                std::string make;
+                while(fgets(buf, sizeof(buf), f) != NULL) {
+                    line = buf;
+                    size_t eq = line.find_first_of("=");
+
+                    if (std::string::npos != eq) {
+                        std::string key = line.substr(0, eq);
+
+                        if (key == "MFG_NAME") {
+                            make = line.substr(eq + 1);
+                            Utils::String::trim(make);
+                            break;
+                        }
+                    }
+                }
+
+                fclose(f);
+
+                if (make.size() > 0) {
+                    response["make"] = make;
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+                returnResponse(retAPIStatus);
+            }
+
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
                 returnResponse(getManufacturerData(queryParams, response));
             }
 #endif
-            string methodType = queryParams;
+            // Since there is no friendly_id available yet, returning hardcoded values based on model_number
+            string methodType = queryParams == "friendly_id" ? "model_number" : queryParams;
             string respBuffer;
             string fileName = "/tmp/." + methodType;
             LOGERR("accessing fileName : %s\n", fileName.c_str());
@@ -624,7 +675,21 @@ namespace WPEFramework {
                 if (respBuffer.length() <= 0) {
                     populateResponseWithError(SysSrv_FileAccessFailed, response);
                 } else {
-                    response[methodType.c_str()] = respBuffer;
+                    Utils::String::trim(respBuffer);
+                    if (queryParams == "friendly_id") {
+                        if (respBuffer == "PLTL11AEI") {
+                            respBuffer = "CAD11";
+                        } else if (respBuffer == "HSTP11MWR") {
+                            respBuffer = "43A6GX";
+                        } else {
+                            respBuffer = "";
+                        }
+
+                        response["friendly_id"] = respBuffer;
+                    }
+                    else {
+                        response[methodType.c_str()] = respBuffer;
+                    }
                     retAPIStatus = true;
                 }
             } else {
