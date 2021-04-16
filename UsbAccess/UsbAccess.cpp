@@ -152,10 +152,10 @@ namespace Plugin {
     {
         LOGINFOMETHOD();
 
-        bool result = true;
+        bool result = false;
 
         std::list<string> paths;
-        getMounted(paths);
+        result = getMounted(paths);
 
         JsonArray arr;
         for_each(paths.begin(), paths.end(), [&arr](const string& it)
@@ -213,10 +213,10 @@ namespace Plugin {
     {
         LOGINFOMETHOD();
 
-        bool result = true;
+        bool result = false;
 
         std::list<string> paths;
-        getMounted(paths);
+        result = getMounted(paths);
 
         JsonArray arr;
         for_each(paths.begin(), paths.end(), [&arr](const string& it)
@@ -261,8 +261,10 @@ namespace Plugin {
         return result;
     }
 
-    void UsbAccess::getMounted(std::list <std::string>& paths)
+    bool UsbAccess::getMounted(std::list <std::string>& paths)
     {
+        bool result = false;
+
         std::list<std::string> devnodes;
 
         struct udev *udev = udev_new();
@@ -274,6 +276,7 @@ namespace Plugin {
         struct udev_list_entry *devices = udev_enumerate_get_list_entry(enumerate);
         struct udev_list_entry *entry;
 
+        // If the list is empty, or on failure, NULL is returned.
         if (devices)
         {
             udev_list_entry_foreach(entry, devices)
@@ -297,6 +300,8 @@ namespace Plugin {
         FILE *file = setmntent("/proc/mounts", "r");
         if (file != nullptr)
         {
+            result = true;
+
             while (nullptr != (ent = getmntent(file)))
                 if (std::find(devnodes.begin(), devnodes.end(), string(ent->mnt_fsname)) != devnodes.end())
                     mapping.emplace(string(ent->mnt_fsname), string(ent->mnt_dir));
@@ -306,6 +311,8 @@ namespace Plugin {
 
         for (auto const& x : mapping)
             paths.emplace_back(x.second);
+
+        return result;
     }
 } // namespace Plugin
 } // namespace WPEFramework

@@ -50,7 +50,7 @@ namespace Plugin {
         typedef std::list<PathInfo> FileList;
 
         static bool getFileList(const string& path, FileList& files, const string& fileRegex, bool includeFolders);
-        static void getMounted(std::list<string>& paths);
+        static bool getMounted(std::list<string>& paths);
     };
 
 } // namespace Plugin
