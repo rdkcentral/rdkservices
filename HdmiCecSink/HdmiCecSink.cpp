@@ -1309,9 +1309,10 @@ namespace WPEFramework
 
 			if (_instance->deviceList[logicalAddress].m_isDevicePresent &&
 					_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
+			
 			{
+	                       /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
 				sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
-				wakeupFromStandby();
 			}
 
 			sendNotify(eventString[HDMICECSINK_EVENT_IMAGE_VIEW_ON_MSG], params);
@@ -1332,8 +1333,8 @@ namespace WPEFramework
 			if (_instance->deviceList[logicalAddress].m_isDevicePresent &&
 					_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
 			{
+			        /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
 				sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
-				wakeupFromStandby();
 			}
 
 			sendNotify(eventString[HDMICECSINK_EVENT_TEXT_VIEW_ON_MSG], params);
@@ -1543,12 +1544,12 @@ namespace WPEFramework
 				if (_instance->deviceList[logical_address].m_isDevicePresent &&
 									_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::STANDBY)
 				{
+					 /* Bringing TV out of standby is handled by application.notify UI to bring the TV out of standby */
 					sendNotify(eventString[HDMICECSINK_EVENT_WAKEUP_FROM_STANDBY], params);
-					wakeupFromStandby();
 				}
 
 				params["logicalAddress"] = JsonValue(logical_address);
-				params["phsicalAddress"] = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
+				params["physicalAddress"] = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
 				sendNotify(eventString[HDMICECSINK_EVENT_ACTIVE_SOURCE_CHANGE], params);
 			}
        	}
