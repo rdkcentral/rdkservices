@@ -1549,7 +1549,7 @@ namespace WPEFramework
 				}
 
 				params["logicalAddress"] = JsonValue(logical_address);
-				params["phsicalAddress"] = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
+				params["physicalAddress"] = _instance->deviceList[logical_address].m_physicalAddr.toString().c_str(); 
 				sendNotify(eventString[HDMICECSINK_EVENT_ACTIVE_SOURCE_CHANGE], params);
 			}
        	}
