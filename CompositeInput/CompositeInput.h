@@ -66,9 +66,16 @@ namespace WPEFramework {
             void compositeInputHotplug( int input , int connect);
             static void dsCompositeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+            void compositeInputSignalChange( int port , int signalStatus);
+            static void dsCompositeSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+            void compositeInputStatusChange( int port , bool isPresented);
+            static void dsCompositeStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
         public:
             CompositeInput();
             virtual ~CompositeInput();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
             void terminate();
 

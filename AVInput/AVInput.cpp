@@ -66,8 +66,7 @@ namespace WPEFramework {
 
         AVInput::~AVInput()
         {
-            LOGINFO("dtor");
-            AVInput::_instance = nullptr;
+            //LOGINFO("dtor");
         }
 
         const string AVInput::Initialize(PluginHost::IShell* /* service */)
@@ -84,6 +83,7 @@ namespace WPEFramework {
 
         void AVInput::Deinitialize(PluginHost::IShell* /* service */)
         {
+            AVInput::_instance = nullptr;
         }
 
         string AVInput::Information() const

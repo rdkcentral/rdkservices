@@ -91,20 +91,6 @@ XCast::XCast() : AbstractPlugin()
 
 XCast::~XCast()
 {
-    Unregister(METHOD_GET_API_VERSION_NUMBER);
-    Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
-    Unregister(METHOD_SET_ENABLED);
-    Unregister(METHOD_GET_ENABLED);
-    Unregister(METHOD_GET_STANDBY_BEHAVIOR);
-    Unregister(METHOD_SET_STANDBY_BEHAVIOR);
-    Unregister(METHOD_GET_FRIENDLYNAME);
-    Unregister(METHOD_SET_FRIENDLYNAME);
-
-    DeinitializeIARM();
-    if ( m_locateCastTimer.isActive())
-    {
-        m_locateCastTimer.stop();
-    }
 }
 const void XCast::InitializeIARM()
 {
@@ -128,6 +114,20 @@ void XCast::DeinitializeIARM()
      {
          IARM_Result_t res;
          IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+     }
+     Unregister(METHOD_GET_API_VERSION_NUMBER);
+     Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
+     Unregister(METHOD_SET_ENABLED);
+     Unregister(METHOD_GET_ENABLED);
+     Unregister(METHOD_GET_STANDBY_BEHAVIOR);
+     Unregister(METHOD_SET_STANDBY_BEHAVIOR);
+     Unregister(METHOD_GET_FRIENDLYNAME);
+     Unregister(METHOD_SET_FRIENDLYNAME);
+
+     DeinitializeIARM();
+     if ( m_locateCastTimer.isActive())
+     {
+         m_locateCastTimer.stop();
      }
 }
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)

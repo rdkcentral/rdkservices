@@ -43,6 +43,7 @@ namespace WPEFramework {
         public:
             UserPreferences();
             virtual ~UserPreferences();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
 
 
         public:

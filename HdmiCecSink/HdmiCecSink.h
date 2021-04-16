@@ -484,6 +484,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;

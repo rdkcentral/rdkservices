@@ -502,7 +502,10 @@ namespace WPEFramework
 
        HdmiCecSink::~HdmiCecSink()
        {
-	  
+       }
+
+       void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
+       {
 	    CECDisable();
 	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
@@ -524,7 +527,7 @@ namespace WPEFramework
 
             HdmiCecSink::_instance = nullptr;
             DeinitializeIARM();
-	    LOGWARN(" ~HdmiCecSink() Done");
+	    LOGWARN(" HdmiCecSink Deinitialize() Done");
        }
 
        const void HdmiCecSink::InitializeIARM()
@@ -1584,7 +1587,6 @@ namespace WPEFramework
 						LOGINFO("Ping caught %s \r\n",e.what());
 					  }
 					  
-					  LOGINFO("PING got Device ACK 0x%x \r\n",i);
 					  /* If we get ACK, then the device is present in the network*/
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {

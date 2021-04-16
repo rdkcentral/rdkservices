@@ -131,6 +131,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+
         private/*registered methods (wrappers)*/:
 
             //methods ("parameters" here is "params" from the curl request)
@@ -243,6 +244,7 @@ namespace WPEFramework {
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
             void killAllApps();
+            bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost);
@@ -253,7 +255,7 @@ namespace WPEFramework {
             void loadStartupConfig();
             void invokeStartupThunderApis();
 
-            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="");
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
@@ -341,6 +343,7 @@ namespace WPEFramework {
                 ~PluginStateChangeData();
                 void onStateChangeEvent(const JsonObject& params);
                 void enableLaunch(bool enable);
+                void resetConnection();
 
            private:
                 std::string mCallSign;

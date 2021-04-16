@@ -223,8 +223,7 @@ namespace WPEFramework {
 
         DisplaySettings::~DisplaySettings()
         {
-            LOGINFO("dtor");
-            DisplaySettings::_instance = nullptr;
+            //LOGINFO("dtor");
         }
 
         void DisplaySettings::InitAudioPorts() 
@@ -258,6 +257,17 @@ namespace WPEFramework {
                         else {
                             m_audioOutputPortConfig["HDMI_ARC"] = false;
                         }
+
+                        //Stop timer if its already running
+                        if(m_timer.isActive()) {
+                            m_timer.stop();
+                        }
+
+                        Utils::activatePlugin(HDMICECSINK_CALLSIGN);
+
+                        //Start the timer only if the device supports HDMI_ARC
+                        LOGINFO("Starting the timer");
+                        m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
                     }
                     else {
                         JsonObject aPortHdmiEnableResult;
@@ -294,14 +304,6 @@ namespace WPEFramework {
         {
             InitializeIARM();
 
-            if(m_timer.isActive()) {
-                m_timer.stop();
-            }
-
-            Utils::activatePlugin(HDMICECSINK_CALLSIGN);
-            LOGINFO("Starting the timer");
-            m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
-
             if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
             {
                 InitAudioPorts();
@@ -315,7 +317,6 @@ namespace WPEFramework {
             {
                 LOGERR("Couldn't restore zoom settings");
             }
-
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -323,6 +324,7 @@ namespace WPEFramework {
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
+            DisplaySettings::_instance = nullptr;
         }
 
         void DisplaySettings::InitializeIARM()
@@ -1870,6 +1872,11 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sBassBoost.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("bassBoost should be an integer");
+                    returnResponse(false);
+                }
                 try {
                         bassBoost = stoi(sBassBoost);
                 }catch (const device::Exception& err) {

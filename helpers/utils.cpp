@@ -29,6 +29,7 @@
 #include <securityagent/SecurityTokenUtil.h>
 #include <curl/curl.h>
 #include <utility>
+#include <ctype.h>
 
 #define MAX_STRING_LENGTH 2048
 
@@ -255,8 +256,12 @@ bool Utils::SecurityToken::isThunderSecurityConfigured()
 // Thunder plugins communication
 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > Utils::getThunderControllerClient(std::string callsign)
 {
+    string token;
+    Utils::SecurityToken::getSecurityToken(token);
+    string query = "token=" + token;
+
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "",false,query);
     return thunderClient;
 }
 
@@ -337,4 +342,27 @@ Utils::ThreadRAII::~ThreadRAII()
     }
 }
 
+bool Utils::isValidInt(char* x)
+{
+    bool Checked = true;
+    int i = 0;
+    do
+    {
+        //valid digit?
+        if (isdigit(x[i]))
+        {
+            //to the next character
+            i++;
+            Checked = true;
+        }
+        else
+        {
+            //to the next character
+            i++;
+            Checked = false;
+            break;
+        }
+    } while (x[i] != '\0');
+    return Checked;
+}
 
