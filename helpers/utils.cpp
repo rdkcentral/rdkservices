@@ -38,11 +38,9 @@
 using namespace WPEFramework;
 using namespace std;
 
-const char* Utils::IARM::NAME = "Thunder_Plugins";
-
 bool Utils::IARM::init()
 {
-    string memberName = NAME;
+    string memberName = "Thunder_Plugins";
     LOGINFO("%s", memberName.c_str());
 
     IARM_Result_t res;
