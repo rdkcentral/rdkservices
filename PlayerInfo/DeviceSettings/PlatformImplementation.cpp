@@ -323,7 +323,7 @@ public:
 
         try
         {
-            audioPort = "HDMI0";
+            audioPort = device::Host::getInstance().getDefaultAudioPort();
             /* Check if the device has an SPDIF out. Return SoundMode on SPDIF if yes */
             device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
             for (size_t i = 0; i < aPorts.size(); i++)

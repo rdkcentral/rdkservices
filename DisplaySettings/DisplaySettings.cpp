@@ -923,9 +923,8 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
-            if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
-
+            if (!checkPortName(audioPort)) 
+                audioPort = device::Host::getInstance().getDefaultAudioPort();
             string modeString("");
             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
 
@@ -1320,7 +1319,7 @@ namespace WPEFramework {
             JsonArray audioCapabilities;
             int capabilities = dsAUDIOSUPPORT_NONE;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1353,7 +1352,7 @@ namespace WPEFramework {
 
             JsonArray ms12Capabilities;
             int capabilities = dsMS12SUPPORT_NONE;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1474,7 +1473,7 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
 
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 int level = 0;
 
                 try
@@ -1502,7 +1501,7 @@ namespace WPEFramework {
         {
                 LOGINFOMETHOD();
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 int boost = 0;
                 try
                 {
@@ -1533,7 +1532,7 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 bool success = true;
                 bool surroundDecoderEnable = false;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
 
                 try
                 {
@@ -1563,7 +1562,7 @@ namespace WPEFramework {
             bool success = true;
             float gain = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1584,7 +1583,7 @@ namespace WPEFramework {
             bool success = true;
             bool muted = false;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1605,7 +1604,7 @@ namespace WPEFramework {
             bool success = true;
             float level = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1625,7 +1624,7 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 bool success = true;
                 int mode = 0;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1652,7 +1651,7 @@ namespace WPEFramework {
         {
                 LOGINFOMETHOD();
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 int boost = 0;
 
                 try
@@ -1683,7 +1682,7 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 bool success = true;
                 bool enable = false;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1725,7 +1724,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1752,7 +1751,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1784,7 +1783,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1817,7 +1816,7 @@ namespace WPEFramework {
                               returnResponse(false);
                }
                bool success = true;
-               string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+               string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                try
                {
                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1844,7 +1843,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1871,7 +1870,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1905,7 +1904,7 @@ namespace WPEFramework {
                 }
 
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 LOGWARN("DisplaySettings::setMuted called Audio Port :%s muted:%d\n", audioPort.c_str(), muted);
                 try
                 {
@@ -1940,7 +1939,7 @@ namespace WPEFramework {
 
 
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -1973,7 +1972,7 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
                 bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2002,7 +2001,7 @@ namespace WPEFramework {
             }
 
             bool success = true;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2022,7 +2021,7 @@ namespace WPEFramework {
                        bool success = true;
                        int compressionlevel = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2059,7 +2058,7 @@ namespace WPEFramework {
             }
 
             bool success = true;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2078,7 +2077,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
                        bool success = true;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2107,7 +2106,7 @@ namespace WPEFramework {
             }
 
             bool success = true;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2127,7 +2126,7 @@ namespace WPEFramework {
                        bool success = true;
                        int enhancerlevel = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2160,7 +2159,7 @@ namespace WPEFramework {
             }
 
             bool success = true;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2180,7 +2179,7 @@ namespace WPEFramework {
                        bool success = true;
                        int intelligentEqualizerMode = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2214,7 +2213,7 @@ namespace WPEFramework {
             }
 
             bool success = true;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2234,7 +2233,7 @@ namespace WPEFramework {
                        bool success = true;
                        int graphicEqualizerMode = 0;
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2262,7 +2261,7 @@ namespace WPEFramework {
             returnIfParamNotFound(parameters, "ms12AudioProfile");
             string audioProfileName = parameters["ms12AudioProfile"].String();
 
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2284,7 +2283,7 @@ namespace WPEFramework {
             bool success = true;
 
 	    string audioProfileName;
-            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2305,7 +2304,7 @@ namespace WPEFramework {
         {   //sample response: {"success":true,"supportedMS12AudioProfiles":["Off","Music","Movie","Game","Voice","Night","User"]}
             LOGINFOMETHOD();
             vector<string> supportedProfiles;
-	    string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+	    string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : device::Host::getInstance().getDefaultAudioPort().c_str();
             try
             {
 		device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
@@ -2331,7 +2330,7 @@ namespace WPEFramework {
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
             if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
+                audioPort = device::Host::getInstance().getDefaultAudioPort();
 
             uint32_t audioDelayMs = 0;
             try
@@ -2396,7 +2395,7 @@ namespace WPEFramework {
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
             if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
+                audioPort = device::Host::getInstance().getDefaultAudioPort();
 
             try
             {
@@ -2445,7 +2444,7 @@ namespace WPEFramework {
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
             if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
+                audioPort = device::Host::getInstance().getDefaultAudioPort();
 
             uint32_t audioDelayOffsetMs = 0;
             try
@@ -2513,7 +2512,7 @@ namespace WPEFramework {
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
             if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
+                audioPort = device::Host::getInstance().getDefaultAudioPort();
 
             try
             {
