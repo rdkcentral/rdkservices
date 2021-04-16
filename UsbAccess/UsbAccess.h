@@ -15,6 +15,9 @@ namespace Plugin {
         virtual void Deinitialize(PluginHost::IShell* service) override;
         virtual string Information() const override;
 
+    public/*members*/:
+        static UsbAccess* _instance;
+
     public /*constants*/:
         static const short API_VERSION_NUMBER_MAJOR;
         static const short API_VERSION_NUMBER_MINOR;
@@ -27,9 +30,12 @@ namespace Plugin {
         static const string METHOD_GET_MOUNTED;
         static const string METHOD_UPDATE_FIRMWARE;
         //events
+        static const string EVT_ON_USB_MOUNT_CHANGED;
         //other
         static const string LINK_URL_HTTP;
         static const string LINK_PATH;
+        static const string REGEX_BIN;
+        static const string REGEX_FILE;
 
     private/*registered methods (wrappers)*/:
 
@@ -40,6 +46,13 @@ namespace Plugin {
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
+
+    private/*iarm*/:
+        void InitializeIARM();
+        void DeinitializeIARM();
+        static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        void onUSBMountChanged(bool mounted, const string& device);
 
     private/*internal methods*/:
         UsbAccess(const UsbAccess&) = delete;

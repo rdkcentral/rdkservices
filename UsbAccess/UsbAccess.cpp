@@ -6,6 +6,12 @@
 #include <libudev.h>
 #include <algorithm>
 
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "libIARM.h"
+#include "libIBus.h"
+#include "usbAccess.h"
+#endif /* USE_IARMBUS || USE_IARM_BUS */
+
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
@@ -17,6 +23,10 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
 const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
+const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
+const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "([\\w-]*)\\.bin";
+const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
+        "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
 
 namespace WPEFramework {
 namespace Plugin {
@@ -50,9 +60,13 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
 
+    UsbAccess* UsbAccess::_instance = nullptr;
+
     UsbAccess::UsbAccess()
     : AbstractPlugin(UsbAccess::API_VERSION_NUMBER_MAJOR)
     {
+        UsbAccess::_instance = this;
+
         registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
         registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
         registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
@@ -63,15 +77,18 @@ namespace Plugin {
 
     UsbAccess::~UsbAccess()
     {
+        UsbAccess::_instance = nullptr;
     }
 
     const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
     {
+        InitializeIARM();
         return "";
     }
 
     void UsbAccess::Deinitialize(PluginHost::IShell * /* service */)
     {
+        DeinitializeIARM();
     }
 
     string UsbAccess::Information() const
@@ -94,9 +111,7 @@ namespace Plugin {
         std::list<string> paths;
         getMounted(paths);
         if (!paths.empty())
-            result = getFileList(joinPaths(*paths.begin(), pathParam), files,
-                    "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)",
-                    true);
+            result = getFileList(joinPaths(*paths.begin(), pathParam), files, REGEX_FILE, true);
 
         if (!result)
             response["error"] = "not found";
@@ -161,7 +176,7 @@ namespace Plugin {
         for_each(paths.begin(), paths.end(), [&arr](const string& it)
         {
             FileList files;
-            getFileList(it, files, "([\\w-]*)\\.bin", false);
+            getFileList(it, files, REGEX_BIN, false);
             for_each(files.begin(), files.end(), [&arr,&it](const PathInfo& jt)
             {
                 arr.Add(joinPaths(it, jt.first));
@@ -185,7 +200,7 @@ namespace Plugin {
         string name = fileName.substr(fileName.find_last_of("/\\") + 1);
         string path = fileName.substr(0, fileName.find_last_of("/\\"));
         if (!name.empty() && !path.empty() &&
-            std::regex_match(name, std::regex("([\\w-]*)\\.bin", std::regex_constants::icase)) == true)
+            std::regex_match(name, std::regex(REGEX_BIN, std::regex_constants::icase)) == true)
         {
             char buff[1000];
             size_t n = sizeof(buff);
@@ -226,6 +241,68 @@ namespace Plugin {
         response["mounted"] = arr;
 
         returnResponse(result);
+    }
+
+    // iarm
+    void UsbAccess::InitializeIARM()
+    {
+        if (Utils::IARM::init())
+        {
+            IARM_Result_t res;
+            IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_USBACCESS_NAME, IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED, eventHandler));
+        }
+    }
+
+    void UsbAccess::DeinitializeIARM()
+    {
+        if (Utils::IARM::isConnected())
+        {
+            IARM_Result_t res;
+            IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_USBACCESS_NAME, IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED));
+        }
+    }
+
+    void UsbAccess::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if (UsbAccess::_instance)
+            UsbAccess::_instance->iarmEventHandler(owner, eventId, data, len);
+        else
+            LOGWARN("cannot handle IARM events without a UsbAccess plugin instance!");
+    }
+
+    void UsbAccess::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if (strcmp(owner, IARM_BUS_USBACCESS_NAME) != 0)
+        {
+            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+            return;
+        }
+        if (data == nullptr || len == 0)
+        {
+            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+            return;
+        }
+
+        switch (eventId)
+        {
+            case IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED:
+            {
+                IARM_Bus_USBAccess_MountChanged_t *eventData = (IARM_Bus_USBAccess_MountChanged_t*)data;
+                onUSBMountChanged((eventData->mounted == 1), eventData->dir);
+                break;
+            }
+            default:
+                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                break;
+        }
+    }
+
+    void UsbAccess::onUSBMountChanged(bool mounted, const string& device)
+    {
+        JsonObject params;
+        params["mounted"] = mounted;
+        params["device"] = device;
+        sendNotify(EVT_ON_USB_MOUNT_CHANGED, params);
     }
 
     // internal methods
