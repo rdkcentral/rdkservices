@@ -3763,6 +3763,12 @@ namespace WPEFramework {
         uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            if (NOTLAUNCHED != sFactoryAppLaunchStatus)
+            {
+                std::cout << "factory app is already running, do nothing";
+                response["message"] = " factory app already running";
+                returnResponse(false);
+            }
             sFactoryAppLaunchStatus = STARTED;
             if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
             {
