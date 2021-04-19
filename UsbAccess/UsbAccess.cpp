@@ -5,12 +5,13 @@
 #include <regex>
 #include <libudev.h>
 #include <algorithm>
+#include <mutex>
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+//#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
 #include "usbAccess.h"
-#endif /* USE_IARMBUS || USE_IARM_BUS */
+//#endif /* USE_IARMBUS || USE_IARM_BUS */
 
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
@@ -27,6 +28,7 @@ const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBM
 const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "([\\w-]*)\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
         "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
+const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 
 namespace WPEFramework {
 namespace Plugin {
@@ -54,6 +56,39 @@ namespace Plugin {
             if ((pipe = popen(command, "r"))) {
                 result = pclose(pipe);
             }
+            return result;
+        }
+
+        string findProp(const char* filename, const char* prop) {
+            string result;
+            std::ifstream fs(filename, std::ifstream::in);
+            std::string::size_type delimpos;
+            std::string line;
+
+            if (!fs.fail()) {
+                while (std::getline(fs, line)) {
+                    if (!line.empty() &&
+                        ((delimpos = line.find('=')) > 0)) {
+                        std::string itemKey = line.substr(0, delimpos);
+                        if (itemKey.compare(prop) == 0) {
+                            result = line.substr(delimpos + 1, std::string::npos);
+                            break;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        string deviceSpecificRegexBin() {
+            static string result;
+            static std::once_flag flag;
+            std::call_once(flag, [&]() {
+                string model = findProp(UsbAccess::PATH_DEVICE_PROPERTIES.c_str(), "MODEL_NUM");
+                result = model.empty() ? UsbAccess::REGEX_BIN : (model + "([\\w-]*)\\.bin");
+
+                LOGINFO("bin file regex for device '%s' is '%s'", model.c_str(), result.c_str());
+            });
             return result;
         }
     }
@@ -176,7 +211,7 @@ namespace Plugin {
         for_each(paths.begin(), paths.end(), [&arr](const string& it)
         {
             FileList files;
-            getFileList(it, files, REGEX_BIN, false);
+            getFileList(it, files, deviceSpecificRegexBin(), false);
             for_each(files.begin(), files.end(), [&arr,&it](const PathInfo& jt)
             {
                 arr.Add(joinPaths(it, jt.first));
@@ -200,7 +235,7 @@ namespace Plugin {
         string name = fileName.substr(fileName.find_last_of("/\\") + 1);
         string path = fileName.substr(0, fileName.find_last_of("/\\"));
         if (!name.empty() && !path.empty() &&
-            std::regex_match(name, std::regex(REGEX_BIN, std::regex_constants::icase)) == true)
+            std::regex_match(name, std::regex(deviceSpecificRegexBin(), std::regex_constants::icase)) == true)
         {
             char buff[1000];
             size_t n = sizeof(buff);

@@ -36,6 +36,7 @@ namespace Plugin {
         static const string LINK_PATH;
         static const string REGEX_BIN;
         static const string REGEX_FILE;
+        static const string PATH_DEVICE_PROPERTIES;
 
     private/*registered methods (wrappers)*/:
 
