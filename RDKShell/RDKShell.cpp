@@ -342,6 +342,9 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        std::map<std::string, bool> gDestroyApplications;
+        std::map<std::string, bool> gLaunchApplications;
+        
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -365,6 +368,7 @@ namespace WPEFramework {
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
+        std::mutex gLaunchDestroyMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
@@ -2498,6 +2502,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+
             double launchStartTime = RdkShell::seconds();
             bool result = true;
             if (!parameters.HasLabel("callsign"))
@@ -2506,6 +2511,7 @@ namespace WPEFramework {
                 response["message"] = "please specify callsign";
             }
 
+            const string appCallsign = parameters["callsign"].String();
             if (result)
             {
                 bool launchInProgress = false;
@@ -2524,13 +2530,31 @@ namespace WPEFramework {
                 std::cout << "the current launch count is " << currentLaunchCount << std::endl;
                 if (launchInProgress)
                 {
-                    const string appCallsign = parameters["callsign"].String();
                     std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
                     response["message"] = "failed to launch application.  another launch is in progress";
                     returnResponse(false);
                 }
             }
 
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(appCallsign) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            else
+            {
+                gLaunchApplications[appCallsign] = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+	    {
+                gLaunchMutex.lock();
+                gLaunchCount = 0;
+                gLaunchMutex.unlock();
+                response["message"] = "failed to launch application due to active destroy request";
+	        returnResponse(false);
+	    }
             if (result)
             {
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
@@ -2638,6 +2662,12 @@ namespace WPEFramework {
                         if (!topmostClient.empty())
                         {
                             response["message"] = "failed to launch application.  topmost application already present";
+                            gLaunchMutex.lock();
+                            gLaunchCount = 0;
+                            gLaunchMutex.unlock();
+		            gLaunchDestroyMutex.lock();
+                            gLaunchApplications.erase(appCallsign);
+		            gLaunchDestroyMutex.unlock();
                             returnResponse(false);
                         }
                     }
@@ -2705,6 +2735,9 @@ namespace WPEFramework {
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
+		    gLaunchDestroyMutex.lock();
+                    gLaunchApplications.erase(appCallsign);
+		    gLaunchDestroyMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
@@ -3126,6 +3159,9 @@ namespace WPEFramework {
             gLaunchMutex.lock();
             gLaunchCount = 0;
             gLaunchMutex.unlock();
+	    gLaunchDestroyMutex.lock();
+            gLaunchApplications.erase(appCallsign);
+	    gLaunchDestroyMutex.unlock();
             std::cout << "new launch count at loc2 is 0\n";
 
             returnResponse(result);
@@ -3188,6 +3224,23 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+                bool isApplicationBeingLaunched = false;
+		gLaunchDestroyMutex.lock();
+                if (gLaunchApplications.find(callsign) != gLaunchApplications.end())
+                {
+                    isApplicationBeingLaunched = true;
+                }
+                else
+                {
+                    gDestroyApplications[callsign] = true;
+                }
+		gLaunchDestroyMutex.unlock();
+                if (isApplicationBeingLaunched)
+                {
+                    std::cout << "failed to destroy " << callsign << " as launch in progress" << std::endl;
+                    response["message"] = "failed to destroy application as same application being launched";
+                    returnResponse(false);
+                }
                 std::cout << "destroying " << callsign << std::endl;
                 JsonObject joParams;
                 joParams.Set("callsign",callsign.c_str());
@@ -3208,6 +3261,9 @@ namespace WPEFramework {
                     }
                     onDestroyed(callsign);
                 }
+		gLaunchDestroyMutex.lock();
+                gDestroyApplications.erase(callsign);
+		gLaunchDestroyMutex.unlock();
             }
             if (!result)
             {
