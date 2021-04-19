@@ -1,21 +1,3 @@
-# If not stated otherwise in this file or this component's license file the
-# following copyright and licenses apply:
-#
-# Copyright 2021 RDK Management
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 set(PLUGIN_NAME OCIContainer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
@@ -25,18 +7,6 @@ find_package(Dobby REQUIRED CONFIG)
 
 # Temporary fix to get defines in Dobby. Will be removed later.
 add_definitions( -DRDK )
-
-# Set default Dobby dbus service to org.rdk.dobby and add defines
-set( DOBBY_SERVICE "org.rdk.dobby" CACHE STRING "Dobby dbus service name")
-if(NOT DOBBY_SERVICE STREQUAL "org.rdk.dobby")
-    add_definitions( -DDOBBY_SERVICE_OVERRIDE="${DOBBY_SERVICE}")
-endif()
-
-# Set default Dobby dbus object path to /org/rdk/dobby and add defines
-set( DOBBY_OBJECT "/org/rdk/dobby" CACHE STRING "Dobby dbus object path")
-if(NOT DOBBY_OBJECT STREQUAL "/org/rdk/dobby")
-    add_definitions( -DDOBBY_OBJECT_OVERRIDE="${DOBBY_OBJECT}")
-endif()
 
 add_library(${MODULE_NAME} SHARED
         OCIContainer.cpp

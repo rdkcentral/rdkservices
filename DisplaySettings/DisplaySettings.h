@@ -107,7 +107,6 @@ namespace WPEFramework {
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
-            uint32_t isConnectedDeviceRepeater(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
@@ -140,7 +139,6 @@ namespace WPEFramework {
             void zoomSettingUpdated(const string& zoomSetting);
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
-            void audioMuteStatusChanged(bool audioMuteStatus);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
@@ -158,10 +156,6 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-<<<<<<< HEAD
-=======
-            static void dsAudioMuteEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
->>>>>>> upstream/sprint/2102
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
             bool checkPortName(std::string& name) const;

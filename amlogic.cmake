@@ -128,10 +128,6 @@ if (BUILD_LLAMA)
     add_definitions (-DPLUGIN_STATEOBSERVER)
 endif()
 
-if (BUILD_AML_STB)
-    add_definitions(-DNET_DEFINED_INTERFACES_ONLY)
-endif()
-
 if(SCREEN_CAPTURE)
     if(NOT DISABLE_SCREEN_CAPTURE)
 	    message("Yocto AMLOGIC build: Building Amlogic specific screen capturing")

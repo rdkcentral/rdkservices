@@ -836,14 +836,9 @@ namespace WPEFramework
        {
            LOGINFOMETHOD();
 
-<<<<<<< HEAD
                         response["numberofdevices"] = HdmiCecSink::_instance->m_numberOfDevices;
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
-=======
-			
->>>>>>> upstream/sprint/2102
 			JsonArray deviceList;
-                        int numOfDevice = 0;
 			
 			for (unsigned int n = 0; n < LogicalAddress::UNREGISTERED; n++)
 			{
@@ -861,7 +856,6 @@ namespace WPEFramework
 					device["vendorID"] = HdmiCecSink::_instance->deviceList[n].m_vendorID.toString().c_str();
 					device["powerStatus"] = HdmiCecSink::_instance->deviceList[n].m_powerStatus.toString().c_str();
                                         int hdmiPortNumber = -1;
-<<<<<<< HEAD
                                         LOGINFO("getDeviceListWrapper  m_numofHdmiInput:%d looking for Logical Address :%d \n", m_numofHdmiInput, HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt());
                                         for (int i=0; i < m_numofHdmiInput; i++)
                                         {
@@ -875,22 +869,8 @@ namespace WPEFramework
                                         }
                                         device["portNumber"] = hdmiPortNumber;
                                         deviceList.Add(device);
-=======
-                                        for (int i=0; i < m_numofHdmiInput; i++)
-                                        {
-                                             if(hdmiInputs[i].m_isConnected  && hdmiInputs[i].m_logicalAddr.toInt() == HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt())
-                                             {
-                                                 hdmiPortNumber = hdmiInputs[i].m_portID;
-                                             }
-                                        }
-                                        device["portNumber"] = hdmiPortNumber;
-			
-					deviceList.Add(device);
-                                        numOfDevice++;
->>>>>>> upstream/sprint/2102
 				}
 			}
-			response["numberofdevices"] = numOfDevice;
 
 			response["deviceList"] = deviceList;
 
@@ -1607,6 +1587,7 @@ namespace WPEFramework
 						LOGINFO("Ping caught %s \r\n",e.what());
 					  }
 					  
+					  LOGINFO("PING got Device ACK 0x%x \r\n",i);
 					  /* If we get ACK, then the device is present in the network*/
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {
@@ -2402,19 +2383,11 @@ namespace WPEFramework
 			}
 		}
 		catch(const std::system_error& e)
-<<<<<<< HEAD
 		{
 			LOGERR("system_error exception in thread join %s", e.what());
 		}
 		catch(const std::exception& e)
 		{
-=======
-		{
-			LOGERR("system_error exception in thread join %s", e.what());
-		}
-		catch(const std::exception& e)
-		{
->>>>>>> upstream/sprint/2102
 			LOGERR("exception in thread join %s", e.what());
 		}
 

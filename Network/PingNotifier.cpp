@@ -109,8 +109,6 @@ namespace WPEFramework
                 char linearray[1000]={0x0};
                 while(fgets(linearray, sizeof(linearray), fp) != NULL)
                 {
-                    // remove newline from linearray
-                    linearray[strcspn(linearray, "\n")] = '\0';
                     string line(linearray);
                     LOGINFO("ping result: %s", line.c_str());
 
@@ -167,7 +165,7 @@ namespace WPEFramework
                         if (index >= 0)
                         {
                             fullpath = fullpath.substr(index + 1, fullpath.length());
-                            prefix = fullpath.substr(0, fullpath.find(" "));
+                            prefix = fullpath.substr(0, fullpath.find("/"));
                             pingResult["tripMax"] = prefix.c_str();
                         }
 

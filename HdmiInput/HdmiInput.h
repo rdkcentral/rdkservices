@@ -55,8 +55,6 @@ namespace WPEFramework {
             uint32_t getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t getRawHDMISPDWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t getHDMISPDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
 
@@ -66,12 +64,6 @@ namespace WPEFramework {
             JsonArray getHDMIInputDevices();
             void writeEDID(int deviceId, std::string message);
             std::string readEDID(int iPort);
-<<<<<<< HEAD
-=======
-            std::string getRawHDMISPD(int iPort);
-            std::string getHDMISPD(int iPort);
-
->>>>>>> upstream/sprint/2102
 
             bool setVideoRectangle(int x, int y, int width, int height);
 

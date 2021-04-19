@@ -145,9 +145,9 @@ namespace Plugin {
 
         _opencdmi->Deinitialize(service);
 
-        _opencdmi->Release();
+        if (_opencdmi->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
 
-        if (_connectionId != 0) {
+            ASSERT(_connectionId != 0);
 
             TRACE(Trace::Information, (_T("OCDM Plugin is not properly destructed. %d"), _connectionId));
 
@@ -231,8 +231,12 @@ namespace Plugin {
             } else {
                 if (index.Current().Text() == _T("Sessions")) {
 
+                    // Core::ProxyType<Web::JSONBodyType<WifiControl::NetworkList> > networks (jsonResponseFactoryNetworkList.Element());
+
+                    // virtual RPC::IStringIterator* Sessions(const string& keySystem);
                     result->ErrorCode = Web::STATUS_OK;
                     result->Message = _T("Active Sessions.");
+                    // result->Body(networks);
 
                 } else if (index.Current().Text() == _T("Designators")) {
                     if (index.Next() == true) {
