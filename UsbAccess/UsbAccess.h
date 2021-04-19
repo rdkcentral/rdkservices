@@ -59,9 +59,12 @@ namespace Plugin {
         UsbAccess(const UsbAccess&) = delete;
         UsbAccess& operator=(const UsbAccess&) = delete;
 
-        typedef string FileType;
-        typedef std::pair<string,FileType> PathInfo;
-        typedef std::list<PathInfo> FileList;
+        struct FileEnt
+        {
+            char fileType; // 'f' or 'd'
+            string filename;
+        };
+        typedef std::list<FileEnt> FileList;
 
         static bool getFileList(const string& path, FileList& files, const string& fileRegex, bool includeFolders);
         static bool getMounted(std::list<string>& paths);

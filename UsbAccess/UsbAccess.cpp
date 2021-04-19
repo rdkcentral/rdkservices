@@ -7,11 +7,11 @@
 #include <algorithm>
 #include <mutex>
 
-//#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
-#include "usbAccess.h"
-//#endif /* USE_IARMBUS || USE_IARM_BUS */
+#include "sysMgr.h"
+#endif /* USE_IARMBUS || USE_IARM_BUS */
 
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
@@ -25,9 +25,9 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFi
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
-const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "([\\w-]*)\\.bin";
+const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
-        "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
+        "[\\w-]*\\.{0,1}[\\w-]*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 
 namespace WPEFramework {
@@ -85,11 +85,19 @@ namespace Plugin {
             static std::once_flag flag;
             std::call_once(flag, [&]() {
                 string model = findProp(UsbAccess::PATH_DEVICE_PROPERTIES.c_str(), "MODEL_NUM");
-                result = model.empty() ? UsbAccess::REGEX_BIN : (model + "([\\w-]*)\\.bin");
+                result = (model + UsbAccess::REGEX_BIN);
 
                 LOGINFO("bin file regex for device '%s' is '%s'", model.c_str(), result.c_str());
             });
             return result;
+        }
+
+        time_t fileModTime(const char* filename) {
+            struct stat st;
+            time_t mod_time;
+            if (stat(filename, &st) == 0)
+                mod_time = st.st_mtime;
+            return mod_time;
         }
     }
 
@@ -153,11 +161,11 @@ namespace Plugin {
         else
         {
             JsonArray arr;
-            for_each(files.begin(), files.end(), [&arr](const PathInfo& it)
+            for_each(files.begin(), files.end(), [&arr](const FileEnt& it)
             {
                 JsonObject ent;
-                ent["name"] = it.first.c_str();
-                ent["t"] = it.second.c_str();
+                ent["name"] = it.filename;
+                ent["t"] = string(1, it.fileType);
                 arr.Add(ent);
             });
             response["contents"] = arr;
@@ -208,14 +216,23 @@ namespace Plugin {
         result = getMounted(paths);
 
         JsonArray arr;
-        for_each(paths.begin(), paths.end(), [&arr](const string& it)
+        std::list<string> allFiles;
+        for_each(paths.begin(), paths.end(), [&allFiles](const string& it)
         {
             FileList files;
             getFileList(it, files, deviceSpecificRegexBin(), false);
-            for_each(files.begin(), files.end(), [&arr,&it](const PathInfo& jt)
-            {
-                arr.Add(joinPaths(it, jt.first));
+            for_each(files.begin(), files.end(), [&allFiles, &it](const FileEnt& jt) {
+                allFiles.emplace_back(joinPaths(it, jt.filename));
             });
+        });
+        // sort list in ascending order based on time, with newest image being the last in the list.
+        allFiles.sort([](const string &a, const string &b)
+        {
+            return std::difftime(fileModTime(a.c_str()), fileModTime(b.c_str())) < 0;
+        });
+        for_each(allFiles.begin(), allFiles.end(), [&arr](const string& it)
+        {
+            arr.Add(it);
         });
         response["availableFirmwareFiles"] = arr;
 
@@ -284,7 +301,7 @@ namespace Plugin {
         if (Utils::IARM::init())
         {
             IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_USBACCESS_NAME, IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED, eventHandler));
+            IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, eventHandler));
         }
     }
 
@@ -293,7 +310,7 @@ namespace Plugin {
         if (Utils::IARM::isConnected())
         {
             IARM_Result_t res;
-            IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_USBACCESS_NAME, IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED));
+            IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED));
         }
     }
 
@@ -307,7 +324,7 @@ namespace Plugin {
 
     void UsbAccess::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if (strcmp(owner, IARM_BUS_USBACCESS_NAME) != 0)
+        if (strcmp(owner, IARM_BUS_SYSMGR_NAME) != 0)
         {
             LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
             return;
@@ -320,9 +337,9 @@ namespace Plugin {
 
         switch (eventId)
         {
-            case IARM_BUS_USBACCESS_EVENT_MOUNT_CHANGED:
+            case IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED:
             {
-                IARM_Bus_USBAccess_MountChanged_t *eventData = (IARM_Bus_USBAccess_MountChanged_t*)data;
+                IARM_Bus_SYSMgr_USBMountChanged_t *eventData = (IARM_Bus_SYSMgr_USBMountChanged_t*)data;
                 onUSBMountChanged((eventData->mounted == 1), eventData->dir);
                 break;
             }
@@ -355,14 +372,14 @@ namespace Plugin {
                 struct dirent *dp;
                 while ((dp = readdir(dirp)) != nullptr)
                 {
-                    if (dp->d_type == DT_DIR)
-                    {
-                        if (includeFolders)
-                            files.emplace_back(dp->d_name, "d");
-                    }
-                    else if (fileRegex.empty() ||
-                            std::regex_match(dp->d_name, std::regex(fileRegex, std::regex_constants::icase)) == true)
-                        files.emplace_back(dp->d_name, "f");
+                    if (((dp->d_type == DT_DIR) && includeFolders) ||
+                        ((dp->d_type != DT_DIR) && (fileRegex.empty() ||
+                            std::regex_match(dp->d_name, std::regex(fileRegex, std::regex_constants::icase)) == true)))
+                        files.push_back(
+                                {
+                                    dp->d_type == DT_DIR ? 'd' : 'f',
+                                    dp->d_name
+                                });
                 }
                 closedir(dirp);
 
