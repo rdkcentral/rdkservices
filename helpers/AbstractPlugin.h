@@ -129,6 +129,7 @@ namespace WPEFramework {
 
             virtual void Deinitialize(PluginHost::IShell* service)
             {
+<<<<<<< HEAD
                 // unregister all registered APIs from all supported versions
                 for (const auto& kv : m_versionHandlers) 
                 {
@@ -138,6 +139,8 @@ namespace WPEFramework {
                         handler->Unregister(api);
                     }
                 }
+=======
+>>>>>>> upstream/sprint/2102
             }
 
             virtual string Information() const

@@ -3,8 +3,17 @@
 #include <unistd.h>
 #include <mntent.h>
 #include <regex>
+<<<<<<< HEAD
 #include <libudev.h>
 #include <algorithm>
+=======
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "libIARM.h"
+#include "libIBus.h"
+#include "sysMgr.h"
+#endif /* USE_IARMBUS || USE_IARM_BUS */
+>>>>>>> upstream/sprint/2102
 
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
@@ -17,6 +26,7 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
 const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
+<<<<<<< HEAD
 
 namespace WPEFramework {
 namespace Plugin {
@@ -101,6 +111,88 @@ namespace Plugin {
         if (!result)
             response["error"] = "not found";
         else
+=======
+const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_FIRMWARE_UPDATE = "onUSBFirmwareUpdate";
+
+using namespace std;
+
+namespace WPEFramework {
+    namespace Plugin {
+
+        namespace {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void _usbFirmwareUpdateStateChanged(const char *, IARM_EventId_t eventId, void *data, size_t)
+        {
+            if (eventId != IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE) return;
+
+            IARM_Bus_SYSMgr_EventData_t *sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+            const char *status = &sysEventData->data.usbFirmwareUpdate.status[0];
+            LOGWARN("IARMEvt: IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE = '%s'\n", status);
+
+            if (UsbAccess::_instance) {
+                UsbAccess::_instance->onUSBFirmwareUpdate(status);
+            } else {
+                LOGERR("UsbAccess::_instance is NULL.\n");
+            }
+        }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+        }
+
+        SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
+
+        UsbAccess* UsbAccess::_instance = nullptr;
+
+        UsbAccess::UsbAccess()
+            : AbstractPlugin()
+        {
+            UsbAccess::_instance = this;
+            registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
+            registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
+            registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
+        }
+
+        UsbAccess::~UsbAccess()
+        {
+        }
+
+        const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
+        {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            InitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+            return "";
+        }
+
+        void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
+        {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+            UsbAccess::_instance = nullptr;
+        }
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void UsbAccess::InitializeIARM()
+        {
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE, _usbFirmwareUpdateStateChanged));
+            }
+        }
+
+        void UsbAccess::DeinitializeIARM()
+        {
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE));
+            }
+        }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
+        string UsbAccess::Information() const
+>>>>>>> upstream/sprint/2102
         {
             JsonArray arr;
             for_each(files.begin(), files.end(), [&arr](const PathInfo& it)
@@ -172,15 +264,50 @@ namespace Plugin {
         returnResponse(result);
     }
 
+<<<<<<< HEAD
     uint32_t UsbAccess::updateFirmware(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFOMETHOD();
+=======
+        void UsbAccess::onUSBFirmwareUpdate(const char *status)
+        {
+            JsonObject params;
+            params["status"] = status;
+            sendNotify(C_STR(EVT_ON_USB_FIRMWARE_UPDATE), params);
+        }
+
+        bool UsbAccess::getFileList(const string& dir, FileList& files) const
+        {
+            bool success = false;
+>>>>>>> upstream/sprint/2102
 
         bool result = false;
 
+<<<<<<< HEAD
         string fileName;
         if (parameters.HasLabel("fileName"))
             fileName = parameters["fileName"].String();
+=======
+            DIR* dirp = opendir(dir.c_str());
+            if (dirp != nullptr)
+            {
+                struct dirent * dp;
+                while ((dp = readdir(dirp)) != nullptr)
+                {
+                    if (dp->d_type == DT_DIR)
+                        files.emplace_back(dp->d_name, "d");
+                    else
+                    {
+                        if (std::regex_match(dp->d_name, std::regex(
+                                "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)",
+                                std::regex_constants::icase)) == true)
+                            files.emplace_back(dp->d_name, "f");
+                        else
+                            LOGWARN("unsupported file name: '%s'", dp->d_name);
+                    }
+                }
+                closedir(dirp);
+>>>>>>> upstream/sprint/2102
 
         string name = fileName.substr(fileName.find_last_of("/\\") + 1);
         string path = fileName.substr(0, fileName.find_last_of("/\\"));

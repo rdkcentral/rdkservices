@@ -92,10 +92,13 @@ namespace WPEFramework {
             uint32_t disableWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getNameWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setNameWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setPropertiesWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPropertiesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t sendAudioPlaybackCommandWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setEventResponseWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getMediaTrackInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getStatusSupportWrapper(const JsonObject& parameters, JsonObject& response);
             // Registered methods end
 
         private: /*internal methods*/
@@ -114,7 +117,7 @@ namespace WPEFramework {
             bool setDevicePairing(long long int deviceID, bool pair);
             bool setBluetoothEnabled(const string &enabled);
             bool setBluetoothDiscoverable(bool enabled, int timeout);
-            bool getBluetoothProperties(JsonObject* rp);
+            bool getBluetoothProperties(JsonObject* rp, const string& property = "name");
             bool setBluetoothProperties(const JsonObject& properties);
             bool setAudioControlCommand(long long int  deviceID, const string &audioCtrlCmd);
             bool setEventResponse(long long int  deviceID, const string &eventType, const string &respValue);
@@ -140,11 +143,14 @@ namespace WPEFramework {
             static const string METHOD_SET_DISCOVERABLE;
             static const string METHOD_GET_NAME;
             static const string METHOD_SET_NAME;
+            static const string METHOD_GET_PROPERTIES;
+            static const string METHOD_SET_PROPERTIES;
             static const string METHOD_SET_AUDIO_PLAYBACK_COMMAND;
             static const string METHOD_SET_EVENT_RESPONSE;
             static const string METHOD_GET_DEVICE_INFO;
             static const string METHOD_GET_AUDIO_INFO;
             static const string METHOD_GET_API_VERSION_NUMBER;
+            static const string METHOD_GET_STATUS_SUPPORT;
             static const string EVT_STATUS_CHANGED;
             static const string EVT_PAIRING_REQUEST;
             static const string EVT_REQUEST_FAILED;

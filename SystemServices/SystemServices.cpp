@@ -67,6 +67,10 @@ using namespace std;
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
+#define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
+#define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
+#define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
@@ -364,10 +368,20 @@ namespace WPEFramework {
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
+<<<<<<< HEAD
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
 
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
+=======
+
+            registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
+                    this);
+            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
+            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
+            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
+            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
+>>>>>>> upstream/sprint/2102
         }
 
 
@@ -507,6 +521,152 @@ namespace WPEFramework {
             }
             returnResponse(result);
         }//end of requestSystemReboot
+
+        /*
+         * @brief This function delays the reboot in seconds.
+         * This will internally sets the tr181 fwDelayReboot parameter.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareRebootDelay",
+         *                  "params":{"delaySeconds": int seconds}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareRebootDelay(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            uint32_t delay_in_sec = 0;
+
+            if ( parameters.HasLabel("delaySeconds") ){
+                /* get the value */
+                delay_in_sec = static_cast<unsigned int>(parameters["delaySeconds"].Number());
+
+                /* we can delay with max 24 Hrs = 86400 sec */
+                if (delay_in_sec > 0 && delay_in_sec <= MAX_REBOOT_DELAY ){
+
+                    const char * set_rfc_val=(parameters["delaySeconds"].String()).c_str();
+
+                    LOGINFO("set_rfc_value %s\n",set_rfc_val);
+
+                    /*set tr181Set command from here*/
+                    WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                            TR181_FW_DELAY_REBOOT, set_rfc_val, WDMP_INT);
+                    if ( WDMP_SUCCESS == status ){
+                        result=true;
+                        LOGINFO("Success Setting setFirmwareRebootDelay value\n");
+                    }
+                    else {
+                        LOGINFO("Failed Setting setFirmwareRebootDelay value %s\n",getRFCErrorString(status));
+                    }
+                }
+                else {
+                    /* we didnt get a valid Auto Reboot delay */
+                    LOGERR("Invalid setFirmwareRebootDelay Value Max.Value is 86400 sec\n");
+                }
+            }
+            else {
+                /* havent got the correct label */
+                LOGERR("setFirmwareRebootDelay Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues,response);
+            }
+            returnResponse(result);
+        }
+
+        /*
+         * @brief This function Enable/Disable the AutReboot Feature.
+         * This will internally sets the tr181 AutoReboot.Enable to True/False.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareAutoReboot",
+         *                  "params":{"enable": bool }}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareAutoReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            bool enableFwAutoreboot = false;
+
+           if ( parameters.HasLabel("enable") ){
+               /* get the value */
+               enableFwAutoreboot = (parameters["enable"].Boolean());
+               LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
+
+               const char *set_rfc_val = (parameters["enable"].String().c_str());
+
+               /* set tr181Set command from here */
+               WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                       TR181_AUTOREBOOT_ENABLE,set_rfc_val,WDMP_BOOLEAN);
+               if ( WDMP_SUCCESS == status ){
+                   result=true;
+                   LOGINFO("Success Setting the setFirmwareAutoReboot value\n");
+               }
+               else {
+                   LOGINFO("Failed Setting the setFirmwareAutoReboot value %s\n",getRFCErrorString(status));
+               }
+           }
+           else {
+               /* havent got the correct label */
+               LOGERR("setFirmwareAutoReboot Missing Key Values\n");
+               populateResponseWithError(SysSrv_MissingKeyValues,response);
+           }
+           returnResponse(result);
+        }
+
+        /*
+         * @brief This function notifies about pending Reboot.
+         * This will internally set 120 sec and trigger event to application.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.fireFirmwarePendingReboot",
+         *                  "params":{}}
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":true}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::fireFirmwarePendingReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            int seconds = 600; /* 10 Minutes to Reboot */
+
+            /* trigger event saying we are in Maintenance Window */
+
+            /* check if we have valid instance */
+            if ( _instance ){
+                /* clear any older values, Reset the fwDelayReboot = 0 */
+                LOGINFO("Reset Older FwDelayReboot to 0, if any\n");
+
+                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                        TR181_FW_DELAY_REBOOT,"0", WDMP_INT);
+
+                /* call the event handler if reset SUCCESS */
+                if ( WDMP_SUCCESS == status ){
+                    /* trigger event saying we are in Maintenance Window */
+                    _instance->onFirmwarePendingReboot(seconds);
+                    result=true;
+                }
+                else {
+                    LOGINFO("Failed to reset FwDelayReboot due to %s\n",getRFCErrorString(status));
+                }
+            }
+            else {
+                LOGERR("_instance in fireFirmwarePendingReboot is NULL.\n");
+            }
+
+            returnResponse(result);
+        }
+
+        /*
+         * @brief : send event when system is in maintenance window
+         * @param1[in]  : int seconds
+         */
+
+        void SystemServices::onFirmwarePendingReboot(int seconds)
+        {
+            JsonObject params;
+            params["fireFirmwarePendingReboot"] = seconds;
+            LOGINFO("Notifying onFirmwarePendingReboot received \n");
+            sendNotify(EVT_ONFWPENDINGREBOOT, params);
+        }
 
         /***
          * @brief : send notification when system power state is changed
@@ -1005,6 +1165,7 @@ namespace WPEFramework {
             {
                 JsonObject httpResp;
                 if(httpResp.FromString(response))
+<<<<<<< HEAD
                 {
                     if(httpResp.HasLabel("firmwareVersion"))
                     {
@@ -1022,6 +1183,25 @@ namespace WPEFramework {
                 {
                     LOGERR("Error in parsing xconf json response");
                 }
+=======
+                {
+                    if(httpResp.HasLabel("firmwareVersion"))
+                    {
+                        _fwUpdate.firmwareUpdateVersion = httpResp["firmwareVersion"].String();
+                        LOGWARN("fwVersion: '%s'\n", _fwUpdate.firmwareUpdateVersion.c_str());
+                        _fwUpdate.success = true;
+                    }
+                    else
+                    {
+                        LOGERR("Xconf response is not valid json and/or doesn't contain firmwareVersion. '%s'\n", response.c_str());
+                        response = "";
+                    }
+                }
+                else
+                {
+                    LOGERR("Error in parsing xconf json response");
+                }
+>>>>>>> upstream/sprint/2102
                  
             }
             else
@@ -3173,6 +3353,7 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
+<<<<<<< HEAD
         /***
          * @brief : upload STB logs to the specified URL.
          * @param1[in] : url::String
@@ -3196,6 +3377,39 @@ namespace WPEFramework {
 #endif
 
             returnResponse(success);
+=======
+        uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
+        {
+            bool retStatus = true;
+            FwFailReason failReason = FwFailReasonNone;
+
+            std::vector<string> lines;
+            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
+                std::string str;
+                for (auto i = lines.begin(); i != lines.end(); ++i) {
+                    std::smatch m;
+                    if (std::regex_match(*i, m, std::regex("^FailureReason\\|(.*)$"))) {
+                        str = m.str(1);
+                    }
+                }
+
+                LOGINFO("Lines read:%d. FailureReason|%s", (int) lines.size(), C_STR(str));
+
+                auto it = find_if(FwFailReasonFromText.begin(), FwFailReasonFromText.end(),
+                                  [&str](const pair<string, FwFailReason> & t) {
+                                      return strcasecmp(C_STR(t.first), C_STR(str)) == 0;
+                                  });
+                if (it != FwFailReasonFromText.end())
+                    failReason = it->second;
+                else if (!str.empty())
+                    LOGWARN("Unrecognised FailureReason!");
+            } else {
+                LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
+            }
+
+            response["failReason"] = FwFailReasonToText.at(failReason);
+            returnResponse(retStatus);
+>>>>>>> upstream/sprint/2102
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

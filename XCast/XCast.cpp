@@ -290,10 +290,14 @@ uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& respon
          {
             m_friendlyName = paramStr;
             LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
+<<<<<<< HEAD
             if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
                _rtConnector->enableCastService(m_friendlyName,true);
             else
                 _rtConnector->enableCastService(m_friendlyName,false);
+=======
+            _rtConnector->updateFriendlyName(m_friendlyName);
+>>>>>>> upstream/sprint/2102
          }
          else
             returnResponse(false);
