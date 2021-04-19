@@ -26,8 +26,13 @@ find_package(GSTREAMER REQUIRED)
 
 find_package(Curl)
 
+set(AUDIO_CLIENT_LIB "")
+if (BUILD_AMLOGIC)
+set(AUDIO_CLIENT_LIB "audio_client")
+endif()
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
