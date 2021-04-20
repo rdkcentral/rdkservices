@@ -143,6 +143,7 @@ namespace WPEFramework {
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
+	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
@@ -167,6 +168,7 @@ namespace WPEFramework {
 	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getSystemPlugin();
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
+	    bool requestShortAudioDescriptor();
 	    void onTimer();
 
 	    TpTimer m_timer;
