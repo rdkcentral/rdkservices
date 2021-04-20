@@ -522,7 +522,7 @@ void TTSSpeaker::createPipeline() {
 
 #if defined(PLATFORM_AMLOGIC)
         if(m_pcmAudioEnabled) {
-            g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
+            g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
         }
 #endif
 
