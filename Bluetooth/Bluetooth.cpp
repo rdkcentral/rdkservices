@@ -156,11 +156,12 @@ namespace WPEFramework
             registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
 
-            BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
-            rc = BTRMGR_Init();
+            Utils::IARM::init();
+
+            BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
-                LOGWARN("Failed to init BTRMgr...!");
+                LOGWARN("Failed to Register BTRMgr...!");
             }
             else {
                 BTRMGR_RegisterEventCallback(bluetoothSrv_EventCallback);
@@ -174,6 +175,12 @@ namespace WPEFramework
         void Bluetooth::Deinitialize(PluginHost::IShell* /* service */)
         {
             Bluetooth::_instance = nullptr;
+
+            BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
+            if (BTRMGR_RESULT_SUCCESS != rc)
+            {
+                LOGWARN("Failed to UnRegister BTRMgr...!");
+            }
         }
 
         string Bluetooth::Information() const
