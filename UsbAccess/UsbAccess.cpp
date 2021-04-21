@@ -339,8 +339,8 @@ namespace Plugin {
         {
             case IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED:
             {
-                IARM_Bus_SYSMgr_USBMountChanged_t *eventData = (IARM_Bus_SYSMgr_USBMountChanged_t*)data;
-                onUSBMountChanged((eventData->mounted == 1), eventData->dir);
+                IARM_Bus_SYSMgr_EventData_t *eventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+                onUSBMountChanged((eventData->data.usbMountData.mounted == 1), eventData->data.usbMountData.dir);
                 break;
             }
             default:
@@ -354,7 +354,7 @@ namespace Plugin {
         JsonObject params;
         params["mounted"] = mounted;
         params["device"] = device;
-        sendNotify(EVT_ON_USB_MOUNT_CHANGED, params);
+        sendNotify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
     }
 
     // internal methods
