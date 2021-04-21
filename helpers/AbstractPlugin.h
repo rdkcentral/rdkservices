@@ -64,7 +64,10 @@ namespace WPEFramework {
                 {
                     auto handler = m_versionHandlers.find(ver);
                     if(handler != m_versionHandlers.end())
+                    {
                         handler->second->Register<WPEFramework::Core::JSON::VariantContainer, WPEFramework::Core::JSON::VariantContainer, METHOD, REALOBJECT>(methodName, method, objectPtr);
+                        m_versionAPIs[ver].push_back(methodName);
+                    }
                 }
             }
 
@@ -76,7 +79,10 @@ namespace WPEFramework {
                 {
                     auto handler = m_versionHandlers.find(ver);
                     if(handler != m_versionHandlers.end())
+                    {
                         handler->second->Register<WPEFramework::Core::JSON::VariantContainer, WPEFramework::Core::JSON::VariantContainer, METHOD, REALOBJECT>(methodName, method, objectPtr);
+                        m_versionAPIs[ver].push_back(methodName);
+                    }
                 } 
             }
 
@@ -133,6 +139,15 @@ namespace WPEFramework {
 
             virtual void Deinitialize(PluginHost::IShell* service)
             {
+                // unregister all registered APIs from all supported versions
+                for (const auto& kv : m_versionHandlers) 
+                {
+                    auto handler = kv.second;
+                    for ( auto api : m_versionAPIs[kv.first] )
+                    {
+                        handler->Unregister(api);
+                    }
+                }
             }
 
             virtual string Information() const
@@ -142,6 +157,7 @@ namespace WPEFramework {
             }
         private:
             std::unordered_map<uint8_t, WPEFramework::Core::JSONRPC::Handler*> m_versionHandlers;
+            std::unordered_map<uint8_t, std::vector<std::string>> m_versionAPIs;
             uint8_t m_currVersion; // current supported version
         };
 	} // namespace Plugin
