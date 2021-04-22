@@ -21,6 +21,11 @@
 #include "Messenger.h"
 #include "cryptalgo/Hash.h"
 
+#include <interfaces/json/JsonData_Messenger.h>
+
+#include <regex>
+#include <algorithm>
+
 namespace WPEFramework {
 
 namespace Plugin {
@@ -36,6 +41,7 @@ namespace Plugin {
         ASSERT(_roomAdmin == nullptr);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
+        ASSERT(_roomACL.empty() == true);
 
         _service = service;
         _service->AddRef();
@@ -67,6 +73,8 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
+
+        _roomACL.clear();
     }
 
     // Web request handlers
@@ -182,6 +190,109 @@ namespace Plugin {
         Core::ToHexString(digest.Result(), (digest.Length / 2), roomId); // let's take only half of the hash
 
         return roomId;
+    }
+
+    // TokenCheckFunction
+
+    bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+    {
+        bool result = true;
+
+        // Only for "join"
+        if (method == _T("join")) {
+            JsonData::Messenger::JoinParamsData params;
+            params.FromString(parameters);
+            const string& room = params.Room.Value();
+            const bool secure = params.Secure.Value();
+            const auto& acl = params.Acl;
+
+            // Only if "secure":true
+            if (secure) {
+                result = false;
+
+                _adminLock.Lock();
+
+                const bool settingAcl = acl.IsSet();
+                auto found = _roomACL.find(room);
+
+                if (found == _roomACL.end()) {
+                    TRACE(Trace::Information, (_T("Joining room '%s' w/o ACL"), room.c_str()));
+
+                    if (!settingAcl) {
+                        TRACE(Trace::Error, (_T("Room '%s' isn't secure"), room.c_str()));
+                    } else if (_rooms.find(room) != _rooms.end()) {
+                        TRACE(Trace::Error, (_T("Can't set ACL of an active room '%s'"), room.c_str()));
+                    } else {
+                        auto auth = _service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>(
+                                "SecurityAgent"); // TODO: find a way to get security callsign
+                        if (auth == nullptr) {
+                            TRACE(Trace::Error, (_T("No Security")));
+                        } else {
+                            // Token passed here isn't a token but a URL, convert it..
+                            JsonObject object;
+                            object["url"] = token;
+                            string payload;
+                            object.ToString(payload);
+
+                            string encoded;
+                            if (auth->CreateToken(
+                                    static_cast<uint16_t>(payload.length()),
+                                    reinterpret_cast<const uint8_t*>(payload.c_str()),
+                                    encoded) != Core::ERROR_NONE) {
+                                TRACE(Trace::Error, (_T("Token creation failed")));
+                            } else {
+                                PluginHost::ISecurity* officer = auth->Officer(encoded);
+                                if (officer == nullptr) {
+                                    TRACE(Trace::Error, (_T("Token isn't valid")));
+                                } else {
+                                    Core::JSON::ArrayType<Core::JSON::String>::ConstIterator index =
+                                            acl.Elements();
+                                    Core::JSONRPC::Message message;
+                                    message.Designator = "Messenger.acl";
+
+                                    if (!officer->Allowed(message)) {
+                                        TRACE(Trace::Error, (_T("Not permitted to set ACL")));
+                                    } else if (index.Count() == 0) {
+                                        TRACE(Trace::Error, (_T("ACL is empty")));
+                                    } else {
+                                        auto retval = _roomACL.emplace(std::piecewise_construct,
+                                                                       std::make_tuple(room),
+                                                                       std::make_tuple());
+                                        while (index.Next()) {
+                                            retval.first->second.emplace_back(index.Current().Value());
+                                        }
+
+                                        result = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    TRACE(Trace::Information, (_T("Joining room '%s' w/ ACL"), room.c_str()));
+
+                    if (settingAcl) {
+                        TRACE(Trace::Error, (_T("ACL for '%s' already set"), room.c_str()));
+                    } else {
+                        result = std::any_of(found->second.begin(), found->second.end(),
+                                [&token](const string& i) {
+                            std::string r = i;
+                            r = std::regex_replace(r, std::regex(R"([-[\]{}()+?.,\^$|#\s])"), R"(\$&)");
+                            r = std::regex_replace(r, std::regex(":\\*"), ":[0-9]+");
+                            r = std::regex_replace(r, std::regex("\\*:"), "[a-z]+:");
+                            r = std::regex_replace(r, std::regex("\\*"), "[a-zA-Z0-9\\.]+");
+                            r.insert(r.begin(), '^');
+
+                            return std::regex_search(token, std::regex(r));
+                        });
+                    }
+                }
+
+                _adminLock.Unlock();
+            }
+        }
+
+        return result;
     }
 
 } // namespace Plugin
