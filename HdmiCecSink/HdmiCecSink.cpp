@@ -389,10 +389,17 @@ namespace WPEFramework
        {
               printHeader(header);
              LOGINFO("Command: Abort\n");
-             AbortReason reason = AbortReason::UNRECOGNIZED_OPCODE;
-             LogicalAddress logicaladdress =header.from.toInt();
-             OpCode feature = msg.opCode();
-             HdmiCecSink::_instance->sendFeatureAbort(logicaladdress, feature,reason);
+	      if (!(header.to == LogicalAddress(LogicalAddress::BROADCAST)))
+             {
+                AbortReason reason = AbortReason::UNRECOGNIZED_OPCODE;
+                LogicalAddress logicaladdress =header.from.toInt();
+                OpCode feature = msg.opCode();
+                HdmiCecSink::_instance->sendFeatureAbort(logicaladdress, feature,reason);
+	     }
+	     else
+	     {
+		LOGINFO("Command: Abort broadcast msg so ignore\n");
+	     }
        }
        void HdmiCecSinkProcessor::process (const Polling &msg, const Header &header)                                 {
              printHeader(header);
@@ -1633,7 +1640,7 @@ namespace WPEFramework
 
                        if(!HdmiCecSink::_instance)
                                return;
-		       LOGINFO(" Sending sendFeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
+		       LOGINFO(" Sending FeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
                        _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 1000);
                  }
 	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
