@@ -387,8 +387,12 @@ namespace WPEFramework
        }
        void HdmiCecSinkProcessor::process (const Abort &msg, const Header &header)
        {
-             printHeader(header);
+              printHeader(header);
              LOGINFO("Command: Abort\n");
+             AbortReason reason = AbortReason::UNRECOGNIZED_OPCODE;
+             LogicalAddress logicaladdress =header.from.toInt();
+             OpCode feature = msg.opCode();
+             HdmiCecSink::_instance->sendFeatureAbort(logicaladdress, feature,reason);
        }
        void HdmiCecSinkProcessor::process (const Polling &msg, const Header &header)                                 {
              printHeader(header);
@@ -1624,6 +1628,14 @@ namespace WPEFramework
                     _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1100);
 
 		}
+		void HdmiCecSink::sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason)
+	        {
+
+                       if(!HdmiCecSink::_instance)
+                               return;
+		       LOGINFO(" Sending sendFeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
+                       _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 1000);
+                 }
 	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
         {
         	int i;

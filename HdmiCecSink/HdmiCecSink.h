@@ -517,6 +517,7 @@ private:
                         void requestShortaudioDescriptor();
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
+			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
