@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <rdkshell/logger.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -115,6 +116,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -779,7 +782,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
-
+            registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5095,6 +5099,37 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             returnResponse(result);
         }
+
+        uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                bool enable = parameters["enable"].Boolean();
+                enableLogsFlushing(enable);
+                result = true;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+           LOGINFOMETHOD();
+
+            bool enabled = false;
+            getLogsFlushingEnabled(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
+        }
         // Registered methods end
 
         // Events begin
@@ -6154,6 +6189,7 @@ namespace WPEFramework {
             return ret;
         }
 
+<<<<<<< HEAD
         void RDKShell::onTimer()
         {
             if (gSystemServiceEventsSubscribed)
@@ -6216,6 +6252,22 @@ namespace WPEFramework {
 
             return status;
         }
+=======
+        void RDKShell::enableLogsFlushing(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            Logger::enableFlushing(enable);
+            gRdkShellMutex.unlock();
+        }
+
+        void RDKShell::getLogsFlushingEnabled(bool &enabled)
+        {
+            gRdkShellMutex.lock();
+            enabled = Logger::isFlushingEnabled();
+            gRdkShellMutex.unlock();
+        }
+
+>>>>>>> 69cefa9... RDK-32260 API for enabling flushing after log (#1085)
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
