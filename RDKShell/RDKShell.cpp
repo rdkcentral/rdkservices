@@ -28,6 +28,7 @@
 #include <memory>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <rdkshell/logger.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <plugins/System.h>
@@ -99,6 +100,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -622,6 +625,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -4332,6 +4337,37 @@ namespace WPEFramework {
             response["message"] = "No last wakeup key";
             returnResponse(false);
         }
+
+        uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                bool enable = parameters["enable"].Boolean();
+                enableLogsFlushing(enable);
+                result = true;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+           LOGINFOMETHOD();
+
+            bool enabled = false;
+            getLogsFlushingEnabled(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
+        }
         // Registered methods end
 
         // Events begin
@@ -5238,6 +5274,20 @@ namespace WPEFramework {
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
             return ret;
+        }
+
+        void RDKShell::enableLogsFlushing(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            Logger::enableFlushing(enable);
+            gRdkShellMutex.unlock();
+        }
+
+        void RDKShell::getLogsFlushingEnabled(bool &enabled)
+        {
+            gRdkShellMutex.lock();
+            enabled = Logger::isFlushingEnabled();
+            gRdkShellMutex.unlock();
         }
 
         // Internal methods end
