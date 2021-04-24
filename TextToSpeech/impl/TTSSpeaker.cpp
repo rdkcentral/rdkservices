@@ -524,7 +524,7 @@ void TTSSpeaker::createPipeline() {
         if(m_pcmAudioEnabled) {
             //Raw PCM audio does not work with souphhtpsrc on Amlogic alsaasink
             m_source = gst_element_factory_make("httpsrc", NULL);
-            g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
+            g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
         }
         else {
             m_source = gst_element_factory_make("souphttpsrc", NULL);
