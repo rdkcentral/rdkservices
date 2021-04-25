@@ -46,7 +46,7 @@
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
 #define EVT_ONMAINTENANCSTATUSCHANGE        "onMaintenanceStatusChange" /* Maintenance Status change */
 /* we have a persistant file to hold the record */
-#define MAITNENANCE_MGR_RECORD_FILE          "/opt/mw/maintenance_mgr_record.conf"
+#define MAINTENANCE_MGR_RECORD_FILE          "/opt/maintenance_mgr_record.conf"
 
 typedef enum {
     MAINTENANCE_IDLE,
@@ -58,6 +58,19 @@ typedef enum {
 
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
+
+#define DCM_SUCCESS                     0
+#define RFC_SUCCESS                     1
+#define LOGUPLOAD_SUCCESS               2
+#define DIFD_SUCCESS                    3
+#define PING_TELEMETRY_SUCCESS          4
+#define REBOOT_REQUIRED                 5
+#define TASK_SKIPPED                    6
+#define TASKS_STARTED                   7
+
+#define SET_STATUS(VALUE,N)     ((VALUE) |=  (1<<(N)))
+#define CLEAR_STATUS(VALUE,N)   ((VALUE) &= ~(1<<(N)))
+#define CHECK_STATUS(VALUE,N)   ((VALUE) & (1<<(N)))
 
 namespace WPEFramework {
     namespace Plugin {
@@ -83,10 +96,13 @@ namespace WPEFramework {
 
                 static string g_currentMode;
                 static string g_is_critical_maintenance;
+                static string g_is_reboot_pending;
+                static string g_lastSuccessful_maint_time;
                 static IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
                 static Maint_notify_status_t g_notify_status;
                 static cSettings m_setting;
                 static string g_epoch_time;
+                static uint8_t g_task_status;
 
                 static void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
@@ -118,8 +134,6 @@ namespace WPEFramework {
                 uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
 #endif /* DEBUG */
 
-                /* TODO: Stub implementation; Decide whether needed or not since setProperty
-                   and getProperty functionalities are XRE/RTRemote dependent. */
                 uint32_t getMaintenanceActivityStatus(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceStartTime(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMaintenanceMode(const JsonObject& parameters, JsonObject& response);
