@@ -4758,8 +4758,22 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
-                gRdkShellMutex.unlock();
+                std::vector<std::string> clientList;
+                 CompositorController::getClients(clientList);
+                bool targetFound = false;
+                for (size_t i=0; i<clientList.size(); i++)
+               {
+                if (strcasecmp(clientList[i].c_str(),keyClient.c_str()) == 0)
+                {
+                    targetFound = true;
+                    break;
+                }
+                }
+               if (targetFound)
+               {
+               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+	       }  
+	       gRdkShellMutex.unlock();
             }
             return ret;
         }
@@ -4951,7 +4965,21 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+             std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                if (strcasecmp(clientList[i].c_str(),client.c_str()) == 0)
+                {
+                    targetFound = true;
+                    break;
+                }
+            }
+            if (targetFound)
+            {
             ret = CompositorController::setOpacity(client, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -4969,7 +4997,21 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                if (strcasecmp(clientList[i].c_str(),client.c_str()) == 0)
+                {
+                    targetFound = true;
+                    break;
+                }
+            }
+            if (targetFound)
+            {
             ret = CompositorController::setScale(client, scaleX, scaleY);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
