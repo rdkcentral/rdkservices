@@ -161,10 +161,6 @@ namespace WPEFramework
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             registerMethod(METHOD_GET_STATUS_SUPPORT, &Bluetooth::getStatusSupportWrapper, this);
 
-            //version 2 APIs
-            registerMethod(METHOD_SET_PROPERTIES, &Bluetooth::setPropertiesWrapper, this, {2});
-            registerMethod(METHOD_GET_PROPERTIES, &Bluetooth::getPropertiesWrapper, this, {2});
-
             Utils::IARM::init();
 
             BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
@@ -1435,30 +1431,6 @@ namespace WPEFramework
         }
 
         uint32_t Bluetooth::setNameWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool successFlag;
-            successFlag = setBluetoothProperties(parameters);
-            returnResponse(successFlag);
-        }
-
-        uint32_t Bluetooth::getPropertiesWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool successFlag;
-            string property;
-            if (parameters.HasLabel("property")) {
-                getStringParameter("property", property);
-                successFlag = getBluetoothProperties(&response, property);
-            } else {
-                LOGERR("Please specify 'property' parameter");
-                response["error"] = "Please specify 'property' parameter";
-                successFlag = false;
-            }
-            returnResponse(successFlag);
-        }
-
-        uint32_t Bluetooth::setPropertiesWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool successFlag;

@@ -25,10 +25,13 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include <memory>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <rdkshell/logger.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
+#include <plugins/System.h>
 
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -97,6 +100,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -174,6 +179,162 @@ FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 namespace WPEFramework {
     namespace Plugin {
 
+
+        struct JSONRPCDirectLink
+        {
+        private:
+          uint32_t mId { 0 };
+          std::string mCallSign { };
+          PluginHost::IDispatcher * dispatcher_ {nullptr};
+
+          Core::ProxyType<Core::JSONRPC::Message> Message() const
+          {
+            return (Core::ProxyType<Core::JSONRPC::Message>(PluginHost::IFactories::Instance().JSONRPC()));
+          }
+
+          template <typename PARAMETERS>
+          bool ToMessage(PARAMETERS& parameters, Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            return ToMessage((Core::JSON::IElement*)(&parameters), message);
+          }
+          bool ToMessage(Core::JSON::IElement* parameters, Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            if (!parameters->IsSet())
+              return true;
+            string values;
+            if (!parameters->ToString(values))
+            {
+              std::cout << "Failed to convert params to string\n";
+              return false;
+            }
+            if (values.empty() != true)
+            {
+              message->Parameters = values;
+            }
+            return true;
+          }
+          template <typename RESPONSE>
+          bool FromMessage(RESPONSE& response, const Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            return FromMessage((Core::JSON::IElement*)(&response), message);
+          }
+          bool FromMessage(Core::JSON::IElement* response, const Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            Core::OptionalType<Core::JSON::Error> error;
+            if ( ! response->FromString(message->Result.Value(), error) )
+            {
+              std::cout << "Failed to parse response!!! Error: '" <<  error.Value().Message() << "'\n";
+              return false;
+            }
+            return true;
+          }
+
+        public:
+          JSONRPCDirectLink(PluginHost::IShell* service, std::string callsign)
+            : mCallSign(callsign)
+          {
+            if (service)
+              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
+          }
+      
+          JSONRPCDirectLink(PluginHost::IShell* service)
+            : JSONRPCDirectLink(service, "Controller")
+          {
+          }
+          ~JSONRPCDirectLink()
+          {
+            if (dispatcher_)
+              dispatcher_->Release();
+          }
+
+          template <typename PARAMETERS>
+          uint32_t Get(const uint32_t waitTime, const string& method, PARAMETERS& respObject)
+          {
+            JsonObject empty;
+            return Invoke(waitTime, method, empty, respObject);
+          }
+
+          template <typename PARAMETERS>
+          uint32_t Set(const uint32_t waitTime, const string& method, const PARAMETERS& sendObject)
+          {
+            JsonObject empty;
+            return Invoke(waitTime, method, sendObject, empty);
+          }
+
+          template <typename PARAMETERS, typename RESPONSE>
+          uint32_t Invoke(const uint32_t waitTime, const string& method, const PARAMETERS& parameters, RESPONSE& response)
+          {
+            if (dispatcher_ == nullptr) {
+              std::cout << "No JSON RPC dispatcher for " << mCallSign << '\n';
+              return Core::ERROR_GENERAL;
+            }
+
+            auto message = Message();
+
+            message->JSONRPC = Core::JSONRPC::Message::DefaultVersion;
+            message->Id = Core::JSON::DecUInt32(++mId);
+            message->Designator = Core::JSON::String(mCallSign + ".1." + method);
+
+            ToMessage(parameters, message);
+
+            const uint32_t channelId = ~0;
+            auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+            if (resp->Error.IsSet()) {
+              std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
+              return resp->Error.Code;
+            }
+
+            if (!FromMessage(response, resp))
+              return Core::ERROR_GENERAL;
+
+            return Core::ERROR_NONE;
+          }
+        };
+
+        class StateControlNotification: public PluginHost::IStateControl::INotification
+        {
+          RDKShell& mRDKShell;
+          std::string mCallSign;
+          bool mLaunchEnabled { false };
+        public:
+          StateControlNotification(std::string callsign, RDKShell& shell)
+            : mRDKShell(shell)
+            , mCallSign(callsign)
+          {
+          }
+
+          void enableLaunch(bool enable)
+          {
+            mLaunchEnabled = enable;
+          }
+
+          void StateChange(const PluginHost::IStateControl::state state) override
+          {
+            bool isSuspended = (state == PluginHost::IStateControl::SUSPENDED);
+            if (mLaunchEnabled)
+            {
+               JsonObject params;
+               params["client"] = mCallSign;
+               params["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               mLaunchEnabled = false;
+            }
+
+            if (isSuspended)
+            {
+                JsonObject params;
+                params["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+            }            
+          }
+
+          BEGIN_INTERFACE_MAP(Notification)
+          INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
+          END_INTERFACE_MAP
+        };
+
+        std::map<std::string, StateControlNotification*> gStateNotifications;
+
         struct RDKShellStartupConfig
         {
             std::string rfc;
@@ -184,6 +345,9 @@ namespace WPEFramework {
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
+        std::map<std::string, bool> gDestroyApplications;
+        std::map<std::string, bool> gLaunchApplications;
+        
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -207,11 +371,31 @@ namespace WPEFramework {
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
+        std::mutex gLaunchDestroyMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
+
+        void lockRdkShellMutex()
+        {
+            bool lockAcquired = false;
+            double startTime = RdkShell::milliseconds();
+            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
+            {
+                lockAcquired = gRdkShellMutex.try_lock();
+            }
+            if (!lockAcquired)
+            {
+                std::cout << "unable to get lock for defaulting to normal lock\n";
+                gRdkShellMutex.lock();
+            }
+            /*else
+            {
+                std::cout << "lock was acquired via try\n";
+            }*/
+        }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -309,6 +493,28 @@ namespace WPEFramework {
                     sPersistentStoreFirstActivated = true;
                     gRdkShellMutex.unlock();
                 }
+                else if (currentState == PluginHost::IShell::DEACTIVATION)
+                {
+                    StateControlNotification* notification = nullptr;
+                    gPluginDataMutex.lock();
+                    auto notificationIt = gStateNotifications.find(service->Callsign());
+                    if (notificationIt != gStateNotifications.end())
+                    {
+                        notification = notificationIt->second;
+                        gStateNotifications.erase(notificationIt);
+                    }
+                    gPluginDataMutex.unlock();
+                    if (notification)
+                    {
+                        PluginHost::IStateControl* stateControl(service->QueryInterface<PluginHost::IStateControl>());
+                        if (stateControl != nullptr)
+                        {
+                            stateControl->Unregister(notification);
+                            stateControl->Release();
+                        }
+                        notification->Release();
+                    }
+                }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
@@ -350,7 +556,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -419,6 +625,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
         }
 
         RDKShell::~RDKShell()
@@ -1489,7 +1697,7 @@ namespace WPEFramework {
                 {
                     client = parameters["callsign"].String();
                 }
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 result = CompositorController::removeKeyMetadataListener(client);
                 gRdkShellMutex.unlock();
                 if (false == result) {
@@ -1747,7 +1955,7 @@ namespace WPEFramework {
                 }
 
                 unsigned int x=0,y=0,w=0,h=0;
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 CompositorController::getBounds(client, x, y, w, h);
                 gRdkShellMutex.unlock();
                 if (parameters.HasLabel("x"))
@@ -2088,7 +2296,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
             std::string logLevel = "INFO";
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::getLogLevel(logLevel);
             gRdkShellMutex.unlock();
             if (false == result) {
@@ -2113,7 +2321,7 @@ namespace WPEFramework {
             {
                 std::string logLevel  = parameters["logLevel"].String();
                 std::string currentLogLevel = "INFO";
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 result = CompositorController::setLogLevel(logLevel);
                 CompositorController::getLogLevel(currentLogLevel);
                 gRdkShellMutex.unlock();
@@ -2133,7 +2341,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::hideSplashScreen();
             gRdkShellMutex.unlock();
 
@@ -2268,7 +2476,7 @@ namespace WPEFramework {
 
                 unsigned int x = 0, y = 0;
                 unsigned int clientWidth = 0, clientHeight = 0;
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 CompositorController::getBounds(client, x, y, clientWidth, clientHeight);
                 if (parameters.HasLabel("x"))
                 {
@@ -2299,6 +2507,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+
             double launchStartTime = RdkShell::seconds();
             bool result = true;
             if (!parameters.HasLabel("callsign"))
@@ -2307,6 +2516,7 @@ namespace WPEFramework {
                 response["message"] = "please specify callsign";
             }
 
+            const string appCallsign = parameters["callsign"].String();
             if (result)
             {
                 bool launchInProgress = false;
@@ -2325,13 +2535,31 @@ namespace WPEFramework {
                 std::cout << "the current launch count is " << currentLaunchCount << std::endl;
                 if (launchInProgress)
                 {
-                    const string appCallsign = parameters["callsign"].String();
                     std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
                     response["message"] = "failed to launch application.  another launch is in progress";
                     returnResponse(false);
                 }
             }
 
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(appCallsign) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            else
+            {
+                gLaunchApplications[appCallsign] = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+	    {
+                gLaunchMutex.lock();
+                gLaunchCount = 0;
+                gLaunchMutex.unlock();
+                response["message"] = "failed to launch application due to active destroy request";
+	        returnResponse(false);
+	    }
             if (result)
             {
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
@@ -2439,6 +2667,12 @@ namespace WPEFramework {
                         if (!topmostClient.empty())
                         {
                             response["message"] = "failed to launch application.  topmost application already present";
+                            gLaunchMutex.lock();
+                            gLaunchCount = 0;
+                            gLaunchMutex.unlock();
+		            gLaunchDestroyMutex.lock();
+                            gLaunchApplications.erase(appCallsign);
+		            gLaunchDestroyMutex.unlock();
                             returnResponse(false);
                         }
                     }
@@ -2461,7 +2695,8 @@ namespace WPEFramework {
                       originalPluginFound = true;
                     }
                 }
-                auto thunderController = getThunderControllerClient();
+                auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                //auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
@@ -2505,6 +2740,9 @@ namespace WPEFramework {
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
+		    gLaunchDestroyMutex.lock();
+                    gLaunchApplications.erase(appCallsign);
+		    gLaunchDestroyMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
@@ -2786,13 +3024,20 @@ namespace WPEFramework {
                     }
 
                     gPluginDataMutex.lock();
-                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
-                    if (pluginStateChangeEntry == gPluginsEventListener.end())
                     {
-                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion, callsign);
-                        PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, this);
-                        gPluginsEventListener[callsign] = data;
-                        remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
+                      auto notificationIt = gStateNotifications.find(callsign);
+                      if (notificationIt == gStateNotifications.end()) {
+                        PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                        if (stateControl) {
+                          auto* handler = new Core::Sink<StateControlNotification>(callsign, *this);
+                          stateControl->Register(handler);
+                          stateControl->Release();
+                          gStateNotifications[callsign] = handler;
+                        }
+                      } else {
+                        notificationIt->second->enableLaunch(true);
+                        deferLaunch = true;
+                      }
                     }
                     gPluginDataMutex.unlock();
  
@@ -2816,7 +3061,7 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "suspended";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
                             
                             std::cout << "setting the state to suspended\n";
                             visible = false;
@@ -2839,11 +3084,12 @@ namespace WPEFramework {
                             
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "resumed";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             std::cout << "setting the state to resumed\n";
                         }
                     }
+
                     setVisibility(callsign, visible);
                     setHolePunch(callsign, holePunch);
                     if (!visible)
@@ -2862,7 +3108,7 @@ namespace WPEFramework {
                     {
                         WPEFramework::Core::JSON::String urlString;
                         urlString = uri;
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                        status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
                         if (status > 0)
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
@@ -2918,6 +3164,9 @@ namespace WPEFramework {
             gLaunchMutex.lock();
             gLaunchCount = 0;
             gLaunchMutex.unlock();
+	    gLaunchDestroyMutex.lock();
+            gLaunchApplications.erase(appCallsign);
+	    gLaunchDestroyMutex.unlock();
             std::cout << "new launch count at loc2 is 0\n";
 
             returnResponse(result);
@@ -2934,13 +3183,21 @@ namespace WPEFramework {
             }
             if (result)
             {
+                uint32_t status;
                 const string callsign = parameters["callsign"].String();
                 std::cout << "about to suspend " << callsign << std::endl;
 
-                WPEFramework::Core::JSON::String stateString;
-                stateString = "suspended";
-                const string callsignWithVersion = callsign + ".1";
-                uint32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                if (stateControl) {
+                  stateControl->Request(PluginHost::IStateControl::SUSPEND);
+                  stateControl->Release();
+                  status = Core::ERROR_NONE;
+                } else {
+                  WPEFramework::Core::JSON::String stateString;
+                  stateString = "suspended";
+                  const string callsignWithVersion = callsign + ".1";
+                  status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
 
                 if (status > 0)
                 {
@@ -2972,6 +3229,23 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+                bool isApplicationBeingLaunched = false;
+		gLaunchDestroyMutex.lock();
+                if (gLaunchApplications.find(callsign) != gLaunchApplications.end())
+                {
+                    isApplicationBeingLaunched = true;
+                }
+                else
+                {
+                    gDestroyApplications[callsign] = true;
+                }
+		gLaunchDestroyMutex.unlock();
+                if (isApplicationBeingLaunched)
+                {
+                    std::cout << "failed to destroy " << callsign << " as launch in progress" << std::endl;
+                    response["message"] = "failed to destroy application as same application being launched";
+                    returnResponse(false);
+                }
                 std::cout << "destroying " << callsign << std::endl;
                 JsonObject joParams;
                 joParams.Set("callsign",callsign.c_str());
@@ -2992,6 +3266,9 @@ namespace WPEFramework {
                     }
                     onDestroyed(callsign);
                 }
+		gLaunchDestroyMutex.lock();
+                gDestroyApplications.erase(callsign);
+		gLaunchDestroyMutex.unlock();
             }
             if (!result)
             {
@@ -3145,7 +3422,7 @@ namespace WPEFramework {
 
                 if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
-                    gRdkShellMutex.lock();
+                    lockRdkShellMutex();
                     result = CompositorController::suspendApplication(client);
                     gRdkShellMutex.unlock();
                 }
@@ -3212,7 +3489,7 @@ namespace WPEFramework {
 
                 if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
-                    gRdkShellMutex.lock();
+                    lockRdkShellMutex();
                     result = CompositorController::resumeApplication(client);
                     gRdkShellMutex.unlock();
                 }
@@ -3376,7 +3653,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool result = true;
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             result = CompositorController::hideFullScreenImage();
             gRdkShellMutex.unlock();
 
@@ -3384,256 +3661,6 @@ namespace WPEFramework {
         }
 
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-
-                    if (!installResult.Get("available").Boolean())
-                    {
-                        response["message"] = "Packager reports app is not installed";
-                        returnResponse(false);
-                    }
-
-                    // App is installed, find the bundle location
-                    JsonObject infoParams;
-                    JsonObject infoResult;
-
-                    infoParams.Set("pkgId", uri.c_str());
-                    packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "getPackageInfo", infoParams, infoResult);
-
-                    string bundlePath = infoResult["bundlePath"].String();
-
-                    // We know where the app lives and are ready to start it,
-                    // create a display with rdkshell
-                    if (!createDisplay(client, uri))
-                    {
-                        response["message"] = "Could not create display";
-                        returnResponse(false);
-                    }
-
-                    string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + uri;
-
-                    // Set mime type
-                    if (!setMimeType(client, mimeType))
-                    {
-                        LOGWARN("Failed to set mime type - non fatal...");
-                    }
-
-                    // Start container
-                    auto ociContainerPlugin = getOCIContainerPlugin();
-                    if (!ociContainerPlugin)
-                    {
-                        response["message"] = "OCIContainer initialisation failed";
-                        returnResponse(false);
-                    }
-
-                    JsonObject ociContainerResult;
-                    JsonObject param;
-
-                    // Container ID set to client so we can find the container
-                    // when suspend/resume/killing which use client id
-                    param["containerId"] = client;
-                    param["bundlePath"] = bundlePath;
-                    param["westerosSocket"] = display;
-
-                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "startContainer", param, ociContainerResult);
-
-                    if (!ociContainerResult["success"].Boolean())
-                    {
-                        // Something went wrong starting the container, destory the display we just created
-                        kill(client);
-                        response["message"] = "Could not start Dobby container";
-                        returnResponse(false);
-                    }
-                }
-                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
-                {
-                    gRdkShellMutex.lock();
-                    result = CompositorController::launchApplication(client, uri, mimeType);
-                    gRdkShellMutex.unlock();
-
-                    if (!result)
-                    {
-                        response["message"] = "failed to launch application";
-                    }
-                }
-                else
-                {
-                    result = false;
-                    response["message"] = "Unsupported MIME type";
-                }
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::suspendApplicationWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-                const string client = parameters["client"].String();
-
-                std::string mimeType;
-                if (!getMimeType(client, mimeType))
-                {
-                    response["message"] = "Could not determine app mime type";
-                    returnResponse(false);
-                }
-
-                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
-                {
-                    gRdkShellMutex.lock();
-                    result = CompositorController::suspendApplication(client);
-                    gRdkShellMutex.unlock();
-                }
-                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
-                {
-                    // Pause the container with Dobby
-                    LOGINFO("Pausing DAC app");
-
-                    auto ociContainerPlugin = getOCIContainerPlugin();
-
-                    if (!ociContainerPlugin)
-                    {
-                        response["message"] = "OCIContainer initialisation failed";
-                        returnResponse(false);
-                    }
-
-                    JsonObject ociContainerResult;
-                    JsonObject param;
-                    param["containerId"] = client;
-
-                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "pauseContainer", param, ociContainerResult);
-
-                    if (!ociContainerResult["success"].Boolean())
-                    {
-                        response["message"] = "Could not pause container";
-                        returnResponse(false);
-                    }
-                }
-                else
-                {
-                    response["message"] = "Unsupported mime type";
-                    returnResponse(false);
-                }
-
-                // Make the application hidden
-                result = setVisibility(client, false);
-                if (!result)
-                {
-                    response["message"] = "failed to suspend application";
-                }
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::resumeApplicationWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-                const string client = parameters["client"].String();
-
-                std::string mimeType;
-                if (!getMimeType(client, mimeType))
-                {
-                    response["message"] = "Could not determine app mime type";
-                    returnResponse(false);
-                }
-
-                if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
-                {
-                    gRdkShellMutex.lock();
-                    result = CompositorController::resumeApplication(client);
-                    gRdkShellMutex.unlock();
-                }
-                else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
-                {
-                    // Resume the container with Dobby
-                    LOGINFO("Resuming DAC app");
-
-                    auto ociContainerPlugin = getOCIContainerPlugin();
-                    if (!ociContainerPlugin)
-                    {
-                        response["message"] = "OCIContainer initialisation failed";
-                        returnResponse(false);
-                    }
-
-                    JsonObject ociContainerResult;
-                    JsonObject param;
-
-                    param["containerId"] = client;
-                    ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "resumeContainer", param, ociContainerResult);
-
-                    if (!ociContainerResult["success"].Boolean())
-                    {
-                        response["message"] = "Could not resume container";
-                        returnResponse(false);
-                    }
-                }
-                else
-                {
-                    response["message"] = "Unsupported mime type";
-                    returnResponse(false);
-                }
-
-                // Make the application visible
-                result = setVisibility(client, true);
-
-                if (!result)
-                {
-                    response["message"] = "failed to resume application";
-                }
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::getAvailableTypesWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-
-            string method = "status";
-            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
-
-            JsonArray availableTypes;
-            for (uint16_t i = 0; i < joResult.Length(); i++)
-            {
-                PluginHost::MetaData::Service service = joResult[i];
-                std::string configLine;
-                service.Configuration.ToString(configLine);
-                if (!configLine.empty())
-                {
-                    JsonObject serviceConfig = JsonObject(configLine.c_str());
-                    if (serviceConfig.HasLabel("clientidentifier"))
-                    {
-                        std::string typeName;
-                        service.Callsign.ToString(typeName);
-                        typeName.erase(std::remove(typeName.begin(),typeName.end(),'\"'),typeName.end());
-                        availableTypes.Add(typeName);
-                    }
-                }
-            }
-            response["types"] = availableTypes;
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::setTopmostWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool result = true;
@@ -3710,560 +3737,42 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              std::map<std::string, RdkShellData> configuration;
+              configuration["enable"] = parameters["enable"].Boolean();
 
-            gRdkShellMutex.lock();
-            result = CompositorController::hideFullScreenImage();
-            gRdkShellMutex.unlock();
-
+              if (parameters.HasLabel("interval"))
+              {
+                configuration["interval"] = std::stod(parameters["interval"].String());
+              }
+              if (parameters.HasLabel("lowRam"))
+              {
+                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
+              }
+              if (parameters.HasLabel("criticallyLowRam"))
+              {
+                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
+              }
+              RdkShell::setMemoryMonitor(configuration);
+            }
             returnResponse(result);
         }
 
         uint32_t RDKShell::getState(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool result = true;
-
-            string method = "status";
-            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
-
-
-            JsonArray stateArray;
-            for (uint16_t i = 0; i < joResult.Length(); i++)
+            if (NOTLAUNCHED != sFactoryAppLaunchStatus)
             {
-                PluginHost::MetaData::Service service = joResult[i];
-                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
-                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
-                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
-                {
-                    std::string configLine;
-                    service.Configuration.ToString(configLine);
-                    if (!configLine.empty())
-                    {
-                        JsonObject serviceConfig = JsonObject(configLine.c_str());
-                        if (serviceConfig.HasLabel("clientidentifier"))
-                        {
-                            std::string callsign;
-                            service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                            WPEFramework::Core::JSON::String stateString;
-                            const string callsignWithVersion = callsign + ".1";
-                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
-                            if (stateStatus == 0)
-                            {
-                                WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
-
-                                JsonObject typeObject;
-                                typeObject["callsign"] = callsign;
-                                typeObject["state"] = stateString.Value();
-                                if (urlStatus == 0)
-                                {
-                                    typeObject["uri"] = urlString.Value();
-                                }
-                                else
-                                {
-                                    typeObject["uri"] = "";
-                                }
-                                stateArray.Add(typeObject);
-                            }
-                        }
-                    }
-                }
-            }
-            response["state"] = stateArray;
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::getSystemMemoryWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            uint32_t freeKb=0, usedSwapKb=0, totalKb=0;
-            result = systemMemory(freeKb, totalKb, usedSwapKb);
-            if (!result) {
-              response["message"] = "failed to get system Ram";
-            }
-            else
-            {
-              response["freeRam"] = freeKb;
-              response["swapRam"] = usedSwapKb;
-              response["totalRam"] = totalKb;
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::getSystemResourceInfoWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-
-            JsonArray memoryInfo;
-
-            string method = "status";
-            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
-
-            /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
-                    std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
-                    std::cout << "ACTIVATED: " << PluginHost::MetaData::Service::state::ACTIVATED << std::endl;
-                    std::cout << "ACTIVATION: " << PluginHost::MetaData::Service::state::ACTIVATION << std::endl;
-                    std::cout << "DESTROYED: " << PluginHost::MetaData::Service::state::DESTROYED << std::endl;
-                    std::cout << "PRECONDITION: " << PluginHost::MetaData::Service::state::PRECONDITION << std::endl;
-                    std::cout << "SUSPENDED: " << PluginHost::MetaData::Service::state::SUSPENDED << std::endl;
-                    std::cout << "RESUMED: " << PluginHost::MetaData::Service::state::RESUMED << std::endl;*/
-
-            JsonArray stateArray;
-            for (uint16_t i = 0; i < joResult.Length(); i++)
-            {
-                PluginHost::MetaData::Service service = joResult[i];
-                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
-                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
-                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
-                {
-                    std::string configLine;
-                    service.Configuration.ToString(configLine);
-                    if (!configLine.empty())
-                    {
-                        JsonObject serviceConfig = JsonObject(configLine.c_str());
-                        if (serviceConfig.HasLabel("clientidentifier"))
-                        {
-                            std::string callsign;
-                            service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                            WPEFramework::Core::JSON::String stateString;
-                            const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
-                            if (stateStatus == 0)
-                            {
-                                result = pluginMemoryUsage(callsign, memoryInfo);
-                            }
-                        }
-                    }
-                }
-            }
-
-            response["types"] = memoryInfo;
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::setMemoryMonitorWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("enable"))
-            {
-                result = false;
-                response["message"] = "please specify enable parameter";
-            }
-            if (result)
-            {
-              std::map<std::string, RdkShellData> configuration;
-              configuration["enable"] = parameters["enable"].Boolean();
-
-              if (parameters.HasLabel("interval"))
-              {
-                configuration["interval"] = std::stod(parameters["interval"].String());
-              }
-              if (parameters.HasLabel("lowRam"))
-              {
-                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
-              }
-              if (parameters.HasLabel("criticallyLowRam"))
-              {
-                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
-              }
-              RdkShell::setMemoryMonitor(configuration);
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
-            {
-                std::string eventName("onSystemPowerStateChanged");
-                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
-                if (status == 0)
-                {
-                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
-                    gSystemServiceEventsSubscribed = true;
-                }
-            }
-            if (parameters.HasLabel("startup"))
-            {
-                bool startup = parameters["startup"].Boolean();
-                if (startup)
-                {
-                    JsonObject joAgingParams;
-                    JsonObject joAgingResult;
-                    joAgingParams.Set("namespace","FactoryTest");
-                    joAgingParams.Set("key","AgingState");
-                    std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
-                    std::cout << "attempting to check aging flag \n";
-                    uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
-                    std::cout << "get status: " << status << std::endl;
-
-                    if (status > 0)
-                    {
-                        response["message"] = " unable to check aging flag";
-                        returnResponse(false);
-                    }
-
-                    if (!joAgingResult.HasLabel("value"))
-                    {
-                        response["message"] = " aging value not found";
-                        returnResponse(false);
-                    }
-
-                    const std::string valueString = joAgingResult["value"].String();
-                    if (valueString != "true")
-                    {
-                        std::cout << "aging value is " << valueString << std::endl;
-                        response["message"] = " aging is not set for startup";
-                        returnResponse(false);
-                    }
-                }
-            }
-
-            uint32_t result;
-            killAllApps();
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "ResidentApp";
-            result = destroyWrapper(destroyRequest, destroyResponse);
-            char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
-            {
-                JsonObject launchRequest;
-                launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "LightningApp";
-                launchRequest["uri"] = std::string(factoryAppUrl);
-                launchRequest["focused"] = true;
-                std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
-                result = launchWrapper(launchRequest, response);
-                bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;
-                if (true == launchFactoryResult)
-                {
-                    std::cout << "Launching factory application succeeded " << std::endl;
-                }
-                else
-                {
-                    std::cout << "Launching factory application failed " << std::endl;
-                }
-                return result;
-            }
-            else
-            {
-                std::cout << "factory app url is empty " << std::endl;
-                response["message"] = " factory app url is empty";
+                std::cout << "factory app is already running, do nothing";
+                response["message"] = " factory app already running";
                 returnResponse(false);
             }
-        }
-
-        uint32_t RDKShell::launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            
-            JsonObject joToFacParams;
-            JsonObject joToFacResult;
-            joToFacParams.Set("namespace","FactoryTest");
-            joToFacParams.Set("key","ToFacFlag");
-            std::string toFacGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
-            std::cout << "attempting to check flag \n";
-            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
-            std::cout << "get status: " << status << std::endl;
-
-            if (status > 0)
-            {
-                response["message"] = " unable to check toFac flag";
-                returnResponse(false);
-            }
-
-            if (!joToFacResult.HasLabel("value"))
-            {
-                response["message"] = " toFac value not found";
-                returnResponse(false);
-            }
-
-            const std::string valueString = joToFacResult["value"].String();
-            if (valueString != "M" && valueString != "m")
-            {
-                std::cout << "toFac value is " << valueString << std::endl;
-                response["message"] = " toFac not in the correct mode";
-                returnResponse(false);
-            }
-
-            std::string callsign("factoryapp");
-            bool isFactoryAppRunning = false;
-            gPluginDataMutex.lock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
-            if (pluginsEntry != gActivePluginsData.end())
-            {
-                std::cout << "factory app is already running" << std::endl;
-                isFactoryAppRunning = true;
-            }
-            gPluginDataMutex.unlock();
-            if (isFactoryAppRunning)
-            {
-                std::cout << "factory app is arleady running, do nothing";
-                response["message"] = " factory mode already running";
-                returnResponse(false);
-            }
-
-            return launchFactoryAppWrapper(parameters, response);
-        }
-
-        uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            killAllApps();
-            //try to kill factoryapp once more if kill apps missed killing due to timeout
-            JsonObject destroyRequest, destroyResponse;
-            destroyRequest["callsign"] = "factoryapp";
-            uint32_t result = destroyWrapper(destroyRequest, destroyResponse);
-
-            bool ret = true;
-            std::string callsign("ResidentApp");
-            JsonObject activateParams;
-            activateParams.Set("callsign",callsign.c_str());
-            JsonObject activateResult;
-            int32_t status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
-
-            std::cout << "activate resident app status: " << status << std::endl;
-            if (status > 0)
-            {
-                std::cout << "trying status one more time...\n";
-                status = getThunderControllerClient()->Invoke(3500, "activate", activateParams, activateResult);
-                std::cout << "activate resident app status: " << status << std::endl;
-                if (status > 0)
-                {
-                    response["message"] = "resident app launch failed";
-                    ret = false;
-                }
-                else
-                {
-                    ret = true;
-                }
-            }
-            returnResponse(ret);
-        }
-
-        uint32_t RDKShell::toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            std::string callsign("factoryapp");
-            bool isFactoryAppRunning = false;
-            gPluginDataMutex.lock();
-            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
-            if (pluginsEntry != gActivePluginsData.end())
-            {
-                std::cout << "factory app is already running" << std::endl;
-                isFactoryAppRunning = true;
-            }
-            gPluginDataMutex.unlock();
-            if (isFactoryAppRunning)
-            {
-                launchResidentAppWrapper(parameters, response);
-            }
-            else
-            {
-                launchFactoryAppWrapper(parameters, response);
-            }
-            returnResponse(true);
-        }
-
-        uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-                string client;
-                if (parameters.HasLabel("client"))
-                {
-                    client = parameters["client"].String();
-                }
-                else
-                {
-                    client = parameters["callsign"].String();
-                }
-                uint32_t width = 0;
-                uint32_t height = 0;
-                if (!getVirtualResolution(client, width, height))
-                {
-                    response["message"] = "failed to get virtual resolution";
-                    result = false;
-                }
-                else
-                {
-                    response["width"] = width;
-                    response["height"] = height;
-                    result = true;
-                }
-            }
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("enable"))
-            {
-                result = false;
-                response["message"] = "please specify enable parameter";
-            }
-            if (result)
-            {
-              bool enable = parameters["enable"].Boolean();
-              result = enableKeyRepeats(enable);
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = false, enable=false;
-            result = getKeyRepeatsEnabled(enable);
-            if (false == result) {
-              response["message"] = "failed to get key repeats";
-            }
-            else {
-              response["keyRepeat"] = enable;
-            }
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-                string client;
-                if (parameters.HasLabel("client"))
-                {
-                    client = parameters["client"].String();
-                }
-                else
-                {
-                    client = parameters["callsign"].String();
-                }
-
-                uint32_t width = 0;
-                uint32_t height = 0;
-                getVirtualResolution(client, width, height);
-
-                if (parameters.HasLabel("width"))
-                {
-                    width = parameters["width"].Number();
-                }
-                if (parameters.HasLabel("height"))
-                {
-                    height = parameters["height"].Number();
-                }
-
-                result = setVirtualResolution(client, width, height);
-            }
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-                string client;
-                if (parameters.HasLabel("client"))
-                {
-                    client = parameters["client"].String();
-                }
-                else
-                {
-                    client = parameters["callsign"].String();
-                }
-
-                if (!parameters.HasLabel("enable"))
-                {
-                    response["message"] = "please specify enable parameter";
-                    result = false;
-                }
-                else
-                {
-                    bool enable = parameters["enable"].Boolean();
-                    result = enableVirtualDisplay(client, enable);
-                }
-            }
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            bool result = true;
-            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
-            {
-                result = false;
-                response["message"] = "please specify client";
-            }
-            if (result)
-            {
-              std::map<std::string, RdkShellData> configuration;
-              configuration["enable"] = parameters["enable"].Boolean();
-
-              if (parameters.HasLabel("interval"))
-              {
-                configuration["interval"] = std::stod(parameters["interval"].String());
-              }
-              if (parameters.HasLabel("lowRam"))
-              {
-                configuration["lowRam"] = std::stod(parameters["lowRam"].String());
-              }
-              if (parameters.HasLabel("criticallyLowRam"))
-              {
-                configuration["criticallyLowRam"] = std::stod(parameters["criticallyLowRam"].String());
-              }
-              RdkShell::setMemoryMonitor(configuration);
-            }
-
-            returnResponse(result);
-        }
-
-        uint32_t RDKShell::launchFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
             sFactoryAppLaunchStatus = STARTED;
             if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
             {
@@ -4796,6 +4305,323 @@ namespace WPEFramework {
                   std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
                 }
             }
+            JsonObject joFactoryModeParams;
+            JsonObject joFactoryModeResult;
+            joFactoryModeParams.Set("namespace","FactoryTest");
+            joFactoryModeParams.Set("key","FactoryMode");
+            joFactoryModeParams.Set("value","false");
+            std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+            std::cout << "attempting to set factory mode flag \n";
+            uint32_t setStatus = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+            std::cout << "set status: " << setStatus << std::endl;
+            sForceResidentAppLaunch = false;
+            returnResponse(ret);
+        }
+
+        uint32_t RDKShell::toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            std::string callsign("factoryapp");
+            bool isFactoryAppRunning = false;
+            std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
+            if (pluginsEntry != gActivePluginsData.end())
+            {
+                std::cout << "factory app is already running" << std::endl;
+                isFactoryAppRunning = true;
+            }
+            if (isFactoryAppRunning)
+            {
+                sForceResidentAppLaunch = true;
+                launchResidentAppWrapper(parameters, response);
+                sForceResidentAppLaunch = false;
+            }
+            else
+            {
+                launchFactoryAppWrapper(parameters, response);
+            }
+        }
+
+        uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                uint32_t width = 0;
+                uint32_t height = 0;
+                if (!getVirtualResolution(client, width, height))
+                {
+                    response["message"] = "failed to get virtual resolution";
+                    result = false;
+                }
+                else
+                {
+                    response["width"] = width;
+                    response["height"] = height;
+                    result = true;
+                }
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                result = false;
+                response["message"] = "please specify enable parameter";
+            }
+            if (result)
+            {
+              bool enable = parameters["enable"].Boolean();
+              result = enableKeyRepeats(enable);
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false, enable=false;
+            result = getKeyRepeatsEnabled(enable);
+            if (false == result) {
+              response["message"] = "failed to get key repeats";
+            }
+            else {
+              response["keyRepeat"] = enable;
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                uint32_t width = 0;
+                uint32_t height = 0;
+                getVirtualResolution(client, width, height);
+
+                if (parameters.HasLabel("width"))
+                {
+                    width = parameters["width"].Number();
+                }
+                if (parameters.HasLabel("height"))
+                {
+                    height = parameters["height"].Number();
+                }
+
+                result = setVirtualResolution(client, width, height);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                if (!parameters.HasLabel("enable"))
+                {
+                    response["message"] = "please specify enable parameter";
+                    result = false;
+                }
+                else
+                {
+                    bool enable = parameters["enable"].Boolean();
+                    result = enableVirtualDisplay(client, enable);
+                }
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("client") && !parameters.HasLabel("callsign"))
+            {
+                result = false;
+                response["message"] = "please specify client";
+            }
+            if (result)
+            {
+                string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
+                }
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+
+                bool enabled = false;
+                if (!getVirtualDisplayEnabled(client, enabled))
+                {
+                    response["message"] = "failed to call getVirtualDisplayEnabled";
+                    result = false;
+                }
+                else
+                {
+                    response["enabled"] = enabled;
+                    result = true;
+                }
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            if (nullptr == gSystemServiceConnection)
+            {
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "Activated SystemService" << std::endl;
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                JsonObject req, res;
+                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                {
+                    lockRdkShellMutex();
+                    uint32_t keyCode = 0;
+                    uint32_t modifiers = 0;
+                    uint64_t timestampInSeconds = 0;
+                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+                    gRdkShellMutex.unlock();
+
+                    response["keyCode"] = JsonValue(keyCode);
+                    response["modifiers"] = JsonValue(modifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
+
+                    std::cout << "Got LastWakeupKey, keyCode: " << keyCode << " modifiers: " << modifiers << " timestampInSeconds: " << timestampInSeconds << std::endl;
+
+                    returnResponse(true);
+                }
+                else
+                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+            }
+            else
+                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
+
+            response["message"] = "No last wakeup key";
+            returnResponse(false);
+        }
+
+        uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                bool enable = parameters["enable"].Boolean();
+                enableLogsFlushing(enable);
+                result = true;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+           LOGINFOMETHOD();
+
+            bool enabled = false;
+            getLogsFlushingEnabled(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
+        }
+        // Registered methods end
+
+        // Events begin
+        void RDKShell::notify(const std::string& event, const JsonObject& parameters)
+        {
+            sendNotify(event.c_str(), parameters);
+        }
+        // Events end
+
+        bool RDKShell::checkForBootupFactoryAppLaunch()
+        {
+            std::cout << "inside of checkForBootupFactoryAppLaunch\n";
+#ifdef RFC_ENABLED
+            RFC_ParamData_t param;
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
+            if (true == ret)
+            {
+                if (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    return true;
+                }
+                else
+                {
+                  std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
+                }
+            }
             else
             {
                 std::cout << "reading stb mac rfc failed " << std::endl;
@@ -4877,7 +4703,7 @@ namespace WPEFramework {
         bool RDKShell::moveToFront(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::moveToFront(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4886,7 +4712,7 @@ namespace WPEFramework {
         bool RDKShell::moveToBack(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::moveToBack(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4895,7 +4721,7 @@ namespace WPEFramework {
         bool RDKShell::moveBehind(const string& client, const string& target)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             bool targetFound = false;
@@ -4918,7 +4744,7 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -4927,7 +4753,7 @@ namespace WPEFramework {
         bool RDKShell::kill(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             RdkShell::CompositorController::removeListener(client, mEventListener);
             ret = CompositorController::kill(client);
             gRdkShellMutex.unlock();
@@ -5158,7 +4984,7 @@ namespace WPEFramework {
                 {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
-                gRdkShellMutex.lock();
+                lockRdkShellMutex();
                 ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
                 gRdkShellMutex.unlock();
             }
@@ -5169,7 +4995,7 @@ namespace WPEFramework {
         {
             unsigned int width=0,height=0;
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getScreenResolution(width, height);
             gRdkShellMutex.unlock();
             if (true == ret) {
@@ -5182,7 +5008,7 @@ namespace WPEFramework {
 
         bool RDKShell::setScreenResolution(const unsigned int w, const unsigned int h)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             receivedResolutionRequest = true;
             resolutionWidth = w;
             resolutionHeight = h;
@@ -5193,7 +5019,7 @@ namespace WPEFramework {
         bool RDKShell::setMimeType(const string& client, const string& mimeType)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setMimeType(client, mimeType);
             gRdkShellMutex.unlock();
             return ret;
@@ -5202,7 +5028,7 @@ namespace WPEFramework {
         bool RDKShell::getMimeType(const string& client, string& mimeType)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getMimeType(client, mimeType);
             gRdkShellMutex.unlock();
             return ret;
@@ -5212,7 +5038,7 @@ namespace WPEFramework {
             const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
                 virtualDisplay, virtualWidth, virtualHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
@@ -5223,7 +5049,7 @@ namespace WPEFramework {
         bool RDKShell::getClients(JsonArray& clients)
         {
             std::vector<std::string> clientList;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::getClients(clientList);
             gRdkShellMutex.unlock();
             for (size_t i=0; i<clientList.size(); i++) {
@@ -5235,7 +5061,7 @@ namespace WPEFramework {
         bool RDKShell::getZOrder(JsonArray& clients)
         {
             std::vector<std::string> zOrderList;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::getZOrder(zOrderList);
             gRdkShellMutex.unlock();
             for (size_t i=0; i<zOrderList.size(); i++) {
@@ -5248,7 +5074,7 @@ namespace WPEFramework {
         {
             unsigned int x=0,y=0,width=0,height=0;
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getBounds(client, x, y, width, height);
             gRdkShellMutex.unlock();
             if (true == ret) {
@@ -5264,7 +5090,7 @@ namespace WPEFramework {
         bool RDKShell::setBounds(const std::string& client, const unsigned int x, const unsigned int y, const unsigned int w, const unsigned int h)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             std::cout << "setting the bounds\n";
             ret = CompositorController::setBounds(client, 0, 0, 1, 1); //forcing a compositor resize flush
             ret = CompositorController::setBounds(client, x, y, w, h);
@@ -5278,7 +5104,7 @@ namespace WPEFramework {
         bool RDKShell::getVisibility(const string& client, bool& visible)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVisibility(client, visible);
             gRdkShellMutex.unlock();
             return ret;
@@ -5342,7 +5168,7 @@ namespace WPEFramework {
         bool RDKShell::getOpacity(const string& client, unsigned int& opacity)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getOpacity(client, opacity);
             gRdkShellMutex.unlock();
             return ret;
@@ -5351,7 +5177,7 @@ namespace WPEFramework {
         bool RDKShell::setOpacity(const string& client, const unsigned int opacity)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setOpacity(client, opacity);
             gRdkShellMutex.unlock();
             return ret;
@@ -5360,7 +5186,7 @@ namespace WPEFramework {
         bool RDKShell::getScale(const string& client, double& scaleX, double& scaleY)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getScale(client, scaleX, scaleY);
             gRdkShellMutex.unlock();
             return ret;
@@ -5369,7 +5195,7 @@ namespace WPEFramework {
         bool RDKShell::setScale(const string& client, const double scaleX, const double scaleY)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setScale(client, scaleX, scaleY);
             gRdkShellMutex.unlock();
             return ret;
@@ -5378,7 +5204,7 @@ namespace WPEFramework {
         bool RDKShell::getHolePunch(const string& client, bool& holePunch)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getHolePunch(client, holePunch);
             gRdkShellMutex.unlock();
             return ret;
@@ -5387,7 +5213,7 @@ namespace WPEFramework {
         bool RDKShell::setHolePunch(const string& client, const bool holePunch)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setHolePunch(client, holePunch);
             gRdkShellMutex.unlock();
             return ret;
@@ -5396,7 +5222,7 @@ namespace WPEFramework {
         bool RDKShell::removeAnimation(const string& client)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::removeAnimation(client);
             gRdkShellMutex.unlock();
             return ret;
@@ -5404,7 +5230,7 @@ namespace WPEFramework {
 
         bool RDKShell::addAnimationList(const JsonArray& animations)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             for (int i=0; i<animations.Length(); i++) {
                 const JsonObject& animationInfo = animations[i].Object();
                 if (animationInfo.HasLabel("client") && animationInfo.HasLabel("duration"))
@@ -5473,7 +5299,7 @@ namespace WPEFramework {
 
         bool RDKShell::enableInactivityReporting(const bool enable)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             CompositorController::enableInactivityReporting(enable);
             gRdkShellMutex.unlock();
             return true;
@@ -5481,7 +5307,7 @@ namespace WPEFramework {
 
         bool RDKShell::setInactivityInterval(const uint32_t interval)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             try
             {
               CompositorController::setInactivityInterval((double)interval);
@@ -5522,7 +5348,7 @@ namespace WPEFramework {
 
         bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
         {
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
             gRdkShellMutex.unlock();
             return ret;
@@ -5550,7 +5376,7 @@ namespace WPEFramework {
         bool RDKShell::getKeyRepeatsEnabled(bool& enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getKeyRepeatsEnabled(enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5559,7 +5385,7 @@ namespace WPEFramework {
         bool RDKShell::enableKeyRepeats(const bool enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::enableKeyRepeats(enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5568,7 +5394,7 @@ namespace WPEFramework {
         bool RDKShell::setTopmost(const string& callsign, const bool topmost)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setTopmost(callsign, topmost);
             gRdkShellMutex.unlock();
             return ret;
@@ -5577,7 +5403,7 @@ namespace WPEFramework {
         bool RDKShell::getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVirtualResolution(client, virtualWidth, virtualHeight);
             gRdkShellMutex.unlock();
             return ret;
@@ -5586,7 +5412,7 @@ namespace WPEFramework {
         bool RDKShell::setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::setVirtualResolution(client, virtualWidth, virtualHeight);
             gRdkShellMutex.unlock();
             return ret;
@@ -5595,7 +5421,7 @@ namespace WPEFramework {
         bool RDKShell::enableVirtualDisplay(const std::string& client, const bool enable)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::enableVirtualDisplay(client, enable);
             gRdkShellMutex.unlock();
             return ret;
@@ -5604,7 +5430,7 @@ namespace WPEFramework {
         bool RDKShell::getVirtualDisplayEnabled(const std::string& client, bool &enabled)
         {
             bool ret = false;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             ret = CompositorController::getVirtualDisplayEnabled(client, enabled);
             gRdkShellMutex.unlock();
             return ret;
@@ -5654,7 +5480,7 @@ namespace WPEFramework {
         bool RDKShell::showWatermark(const bool enable)
         {
             bool ret = true;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             if (enable)
             {
                 receivedShowWatermarkRequest = true;
@@ -5670,12 +5496,27 @@ namespace WPEFramework {
         bool RDKShell::showFullScreenImage(std::string& path)
         {
             bool ret = true;
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             fullScreenImagePath = path;
             receivedFullScreenImageRequest = true;
             gRdkShellMutex.unlock();
             return ret;
         }
+
+        void RDKShell::enableLogsFlushing(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            Logger::enableFlushing(enable);
+            gRdkShellMutex.unlock();
+        }
+
+        void RDKShell::getLogsFlushingEnabled(bool &enabled)
+        {
+            gRdkShellMutex.lock();
+            enabled = Logger::isFlushingEnabled();
+            gRdkShellMutex.unlock();
+        }
+
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework

@@ -77,8 +77,8 @@ typedef struct {
     char ipaddress[MAX_IP_ADDRESS_LEN];
     char netmask[MAX_IP_ADDRESS_LEN];
     char gateway[MAX_IP_ADDRESS_LEN];
-    char primarydns[16];
-    char secondarydns[16];
+    char primarydns[MAX_IP_ADDRESS_LEN];
+    char secondarydns[MAX_IP_ADDRESS_LEN];
     bool isSupported;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
@@ -583,8 +583,8 @@ namespace WPEFramework
                 response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
                 response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
                 response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
-                response["primarydns"] = string(iarmData.primarydns);
-                response["secondarydns"] = string(iarmData.secondarydns);
+                response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
+                response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
                 result = true;
             }
             returnResponse(result)

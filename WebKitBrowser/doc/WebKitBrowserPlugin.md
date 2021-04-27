@@ -627,12 +627,6 @@ Also see: [visibilitychange](#event.visibilitychange)
 | :-------- | :-------- | :-------- |
 | 2 | ```ERROR_UNAVAILABLE``` | Returned when the operation is unavailable |
 
-### Errors
-
-| Code | Message | Description |
-| :-------- | :-------- | :-------- |
-| 2 | ```ERROR_UNAVAILABLE``` | Returned when the operation is unavailable |
-
 ### Example
 
 #### Get Request

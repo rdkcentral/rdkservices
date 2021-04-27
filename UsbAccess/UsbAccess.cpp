@@ -1,11 +1,11 @@
 #include "UsbAccess.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include <unistd.h>
 #include <mntent.h>
 #include <regex>
+#include <libudev.h>
+#include <algorithm>
+#include <mutex>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
@@ -13,373 +13,435 @@
 #include "sysMgr.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
-const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 1;
+const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_AVAILABLE_FIRMWARE_FILES = "getAvailableFirmwareFiles";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
+const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
-const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_FIRMWARE_UPDATE = "onUSBFirmwareUpdate";
-
-using namespace std;
+const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
+const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
+const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
+        "[\\w-]*\\.{0,1}[\\w-]*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
+const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 
 namespace WPEFramework {
-    namespace Plugin {
+namespace Plugin {
 
-        namespace {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-        void _usbFirmwareUpdateStateChanged(const char *, IARM_EventId_t eventId, void *data, size_t)
-        {
-            if (eventId != IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE) return;
+    namespace {
+        string joinPaths(const string& path1, const string& path2) {
+            string result = path1;
+            if (!result.empty() && !path2.empty() && *path2.begin() != '/' && *result.rbegin() != '/')
+                result.append(1, '/');
+            result.append(path2);
+            return result;
+        }
 
-            IARM_Bus_SYSMgr_EventData_t *sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
-            const char *status = &sysEventData->data.usbFirmwareUpdate.status[0];
-            LOGWARN("IARMEvt: IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE = '%s'\n", status);
+        bool createLink(const string& from, const string& to) {
+            return (0 == symlink(from.c_str(), to.c_str()));
+        }
 
-            if (UsbAccess::_instance) {
-                UsbAccess::_instance->onUSBFirmwareUpdate(status);
-            } else {
-                LOGERR("UsbAccess::_instance is NULL.\n");
+        bool clearLink(const string& to) {
+            return (0 == remove(to.c_str()));
+        }
+
+        int runScript(const char *command) {
+            int result = -1;
+            FILE *pipe = nullptr;
+            if ((pipe = popen(command, "r"))) {
+                result = pclose(pipe);
             }
-        }
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-        }
-
-        SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
-
-        UsbAccess* UsbAccess::_instance = nullptr;
-
-        UsbAccess::UsbAccess()
-            : AbstractPlugin()
-        {
-            UsbAccess::_instance = this;
-            registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
-            registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
-            registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
+            return result;
         }
 
-        UsbAccess::~UsbAccess()
-        {
-        }
+        string findProp(const char* filename, const char* prop) {
+            string result;
+            std::ifstream fs(filename, std::ifstream::in);
+            std::string::size_type delimpos;
+            std::string line;
 
-        const string UsbAccess::Initialize(PluginHost::IShell* /* service */)
-        {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            InitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-            return "";
-        }
-
-        void UsbAccess::Deinitialize(PluginHost::IShell* /* service */)
-        {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-            UsbAccess::_instance = nullptr;
-        }
-
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-        void UsbAccess::InitializeIARM()
-        {
-            if (Utils::IARM::init())
-            {
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE, _usbFirmwareUpdateStateChanged));
-            }
-        }
-
-        void UsbAccess::DeinitializeIARM()
-        {
-            if (Utils::IARM::isConnected())
-            {
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_FW_UPDATE));
-            }
-        }
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
-        string UsbAccess::Information() const
-        {
-            return(string("{\"service\": \"") + SERVICE_NAME + string("\"}"));
-        }
-
-        // Registered methods (wrappers) begin
-        uint32_t UsbAccess::getFileListWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            string dir;
-            if (!getMountPath(dir))
-            {
-                LOGERR("mount path not found");
-                response["error"] = "not found";
-            }
-            else
-            {
-                if (parameters.HasLabel("path"))
-                {
-                    string path = parameters["path"].String();
-                    if (!path.empty())
-                    {
-                        if (path[0] != '/')
-                            dir += "/";
-                        dir += path;
-                    }
-                }
-
-                struct stat statbuf;
-                if (stat(dir.c_str(), &statbuf) != 0)
-                {
-                    LOGERR("path '%s' not found", dir.c_str());
-                    response["error"] = "not found";
-                }
-                else if (!S_ISDIR(statbuf.st_mode))
-                {
-                    LOGERR("path '%s' isn't dir", dir.c_str());
-                    response["error"] = "isn't dir";
-                }
-                else
-                {
-                    LOGINFO("path '%s' found and is dir", dir.c_str());
-
-                    FileList files;
-                    if (!getFileList(dir, files))
-                    {
-                        LOGERR("could not open");
-                        response["error"] = "could not open";
-                    }
-                    else
-                    {
-                        JsonArray contents;
-                        for (auto it = files.begin(); it != files.end(); it++)
-                        {
-                            LOGINFO("%s : %s", it->first.c_str(), it->second.c_str());
-
-                            JsonObject ent;
-                            ent["name"] = it->first.c_str();
-                            ent["t"] = it->second.c_str();
-                            contents.Add(ent);
-                        }
-
-                        response["contents"] = contents;
-                        success = true;
-                    }
-                }
-            }
-
-            returnResponse(success);
-        }
-
-        uint32_t UsbAccess::createLinkWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            string linkPath = LINK_PATH;
-            struct stat statbuf;
-            int rc = stat(linkPath.c_str(), &statbuf);
-            if (rc == 0)
-            {
-                LOGERR("file exists");
-                response["error"] = "file exists";
-            }
-            else
-            {
-                string dir;
-                if (!getMountPath(dir))
-                {
-                    LOGERR("mount path not found");
-                    response["error"] = "not found";
-                }
-                else
-                {
-                    rc = symlink(dir.c_str(), linkPath.c_str());
-                    if (0 == rc)
-                    {
-                        LOGINFO("symlink %s created", linkPath.c_str());
-                        response["baseURL"] = LINK_URL_HTTP;
-                        success = true;
-                    }
-                    else
-                    {
-                        LOGERR("error %d", rc);
-                        response["error"] = "could not create symlink";
-                    }
-                }
-            }
-
-            returnResponse(success);
-        }
-
-        uint32_t UsbAccess::clearLinkWrapper(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            string linkPath = LINK_PATH;
-            int rc = remove(linkPath.c_str());
-            if (0 == rc)
-            {
-                LOGINFO("symlink %s removed", linkPath.c_str());
-                success = true;
-            }
-            else
-            {
-                LOGERR("error %d", rc);
-                response["error"] = "could not remove symlink";
-            }
-
-            returnResponse(success);
-        }
-
-        void UsbAccess::onUSBFirmwareUpdate(const char *status)
-        {
-            JsonObject params;
-            params["status"] = status;
-            sendNotify(C_STR(EVT_ON_USB_FIRMWARE_UPDATE), params);
-        }
-
-        bool UsbAccess::getFileList(const string& dir, FileList& files) const
-        {
-            bool success = false;
-
-            files.clear();
-
-            DIR* dirp = opendir(dir.c_str());
-            if (dirp != nullptr)
-            {
-                struct dirent * dp;
-                while ((dp = readdir(dirp)) != nullptr)
-                {
-                    if (dp->d_type == DT_DIR)
-                        files.emplace_back(dp->d_name, "d");
-                    else
-                    {
-                        if (std::regex_match(dp->d_name, std::regex(
-                                "([\\w-]*)\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)",
-                                std::regex_constants::icase)) == true)
-                            files.emplace_back(dp->d_name, "f");
-                        else
-                            LOGWARN("unsupported file name: '%s'", dp->d_name);
-                    }
-                }
-                closedir(dirp);
-
-                success = true;
-            }
-
-            return success;
-        }
-
-        bool UsbAccess::getMountPath(string& dir) const
-        {
-            // get the mount path of the first available partition of the first available USB device
-
-            bool success = false;
-
-            dir.clear();
-            string path = "/sys/block/";
-
-            // 1. get the first available USB device
-            list<string> usbDevices;
-
-            DIR* dirp = opendir(path.c_str());
-            if (dirp != nullptr)
-            {
-                struct dirent* dp;
-                while ((dp = readdir(dirp)) != nullptr)
-                {
-                    if (string(dp->d_name).rfind("sd", 0) == 0)
-                        usbDevices.emplace_back(dp->d_name);
-                }
-                closedir(dirp);
-            }
-
-            usbDevices.sort();
-            string usbDevice;
-
-            for (auto it = usbDevices.begin(); it != usbDevices.end(); it++)
-            {
-                string rPath = path + *it + "/removable";
-                FILE* aFile = fopen(rPath.c_str(), "r");
-                if (aFile != nullptr)
-                {
-                    char isRemovable;
-                    if ((fread(&isRemovable, 1, 1, aFile) == 1) && (isRemovable == '1'))
-                    {
-                        usbDevice = *it;
-                        break;
-                    }
-                    fclose(aFile);
-                }
-            }
-
-            // 2. get the first available partition
-            list<string> partitions;
-
-            if (!usbDevice.empty())
-            {
-                LOGINFO("usb device: %s", usbDevice.c_str());
-
-                path += usbDevice;
-                dirp = opendir(path.c_str());
-                if (dirp != nullptr)
-                {
-                    struct dirent* dp;
-                    while ((dp = readdir(dirp)) != nullptr)
-                    {
-                        if (dp->d_type == DT_DIR && string(dp->d_name).rfind(usbDevice.c_str(), 0) == 0)
-                            partitions.emplace_back(dp->d_name);
-                    }
-                    closedir(dirp);
-                }
-            }
-
-            partitions.sort();
-            string partition = partitions.empty() ? usbDevice : partitions.front();
-
-            // 3. get the mount path
-            if (!partition.empty())
-            {
-                LOGINFO("usb device partition: %s", partition.c_str());
-
-                path = "/dev/" + partition;
-
-                struct mntent* ent;
-                FILE* aFile = setmntent("/proc/mounts", "r");
-                if (aFile != nullptr)
-                {
-                    while (nullptr != (ent = getmntent(aFile)))
-                    {
-                        if (string(ent->mnt_fsname) == path)
-                        {
-                            dir = ent->mnt_dir;
+            if (!fs.fail()) {
+                while (std::getline(fs, line)) {
+                    if (!line.empty() &&
+                        ((delimpos = line.find('=')) > 0)) {
+                        std::string itemKey = line.substr(0, delimpos);
+                        if (itemKey.compare(prop) == 0) {
+                            result = line.substr(delimpos + 1, std::string::npos);
                             break;
                         }
                     }
-                    endmntent(aFile);
                 }
             }
-
-            // 4. ensure folder exists
-            if (!dir.empty())
-            {
-                LOGINFO("usb device partition mount: %s", dir.c_str());
-
-                struct stat statbuf;
-                if (stat(dir.c_str(), &statbuf) == 0)
-                {
-                    success = true;
-                }
-            }
-
-            return success;
+            return result;
         }
-    } // namespace Plugin
+
+        string deviceSpecificRegexBin() {
+            static string result;
+            static std::once_flag flag;
+            std::call_once(flag, [&]() {
+                string model = findProp(UsbAccess::PATH_DEVICE_PROPERTIES.c_str(), "MODEL_NUM");
+                result = (model + UsbAccess::REGEX_BIN);
+
+                LOGINFO("bin file regex for device '%s' is '%s'", model.c_str(), result.c_str());
+            });
+            return result;
+        }
+
+        time_t fileModTime(const char* filename) {
+            struct stat st;
+            time_t mod_time;
+            if (stat(filename, &st) == 0)
+                mod_time = st.st_mtime;
+            return mod_time;
+        }
+    }
+
+    SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
+
+    UsbAccess* UsbAccess::_instance = nullptr;
+
+    UsbAccess::UsbAccess()
+    : AbstractPlugin(UsbAccess::API_VERSION_NUMBER_MAJOR)
+    {
+        UsbAccess::_instance = this;
+
+        registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
+        registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
+        registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
+        registerMethod(METHOD_GET_AVAILABLE_FIRMWARE_FILES, &UsbAccess::getAvailableFirmwareFilesWrapper, this, {2});
+        registerMethod(METHOD_GET_MOUNTED, &UsbAccess::getMountedWrapper, this, {2});
+        registerMethod(METHOD_UPDATE_FIRMWARE, &UsbAccess::updateFirmware, this, {2});
+    }
+
+    UsbAccess::~UsbAccess()
+    {
+        UsbAccess::_instance = nullptr;
+    }
+
+    const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
+    {
+        InitializeIARM();
+        return "";
+    }
+
+    void UsbAccess::Deinitialize(PluginHost::IShell * /* service */)
+    {
+        DeinitializeIARM();
+    }
+
+    string UsbAccess::Information() const
+    {
+        return (string("{\"service\": \"") + SERVICE_NAME + string("\"}"));
+    }
+
+    // Registered methods (wrappers) begin
+    uint32_t UsbAccess::getFileListWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        string pathParam;
+        if (parameters.HasLabel("path"))
+            pathParam = parameters["path"].String();
+
+        FileList files;
+        std::list<string> paths;
+        getMounted(paths);
+        if (!paths.empty())
+            result = getFileList(joinPaths(*paths.begin(), pathParam), files, REGEX_FILE, true);
+
+        if (!result)
+            response["error"] = "not found";
+        else
+        {
+            JsonArray arr;
+            for_each(files.begin(), files.end(), [&arr](const FileEnt& it)
+            {
+                JsonObject ent;
+                ent["name"] = it.filename;
+                ent["t"] = string(1, it.fileType);
+                arr.Add(ent);
+            });
+            response["contents"] = arr;
+        }
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::createLinkWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        std::list<string> paths;
+        getMounted(paths);
+        if (!paths.empty())
+            result = createLink(*paths.begin(), LINK_PATH);
+
+        if (result)
+            response["baseURL"] = LINK_URL_HTTP;
+        else
+            response["error"] = "could not create symlink";
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::clearLinkWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        result = clearLink(LINK_PATH);
+        if (!result)
+            response["error"] = "could not remove symlink";
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::getAvailableFirmwareFilesWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        std::list<string> paths;
+        result = getMounted(paths);
+
+        JsonArray arr;
+        std::list<string> allFiles;
+        for_each(paths.begin(), paths.end(), [&allFiles](const string& it)
+        {
+            FileList files;
+            getFileList(it, files, deviceSpecificRegexBin(), false);
+            for_each(files.begin(), files.end(), [&allFiles, &it](const FileEnt& jt) {
+                allFiles.emplace_back(joinPaths(it, jt.filename));
+            });
+        });
+        // sort list in ascending order based on time, with newest image being the last in the list.
+        allFiles.sort([](const string &a, const string &b)
+        {
+            return std::difftime(fileModTime(a.c_str()), fileModTime(b.c_str())) < 0;
+        });
+        for_each(allFiles.begin(), allFiles.end(), [&arr](const string& it)
+        {
+            arr.Add(it);
+        });
+        response["availableFirmwareFiles"] = arr;
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::updateFirmware(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        string fileName;
+        if (parameters.HasLabel("fileName"))
+            fileName = parameters["fileName"].String();
+
+        string name = fileName.substr(fileName.find_last_of("/\\") + 1);
+        string path = fileName.substr(0, fileName.find_last_of("/\\"));
+        if (!name.empty() && !path.empty() &&
+            std::regex_match(name, std::regex(deviceSpecificRegexBin(), std::regex_constants::icase)) == true)
+        {
+            char buff[1000];
+            size_t n = sizeof(buff);
+            int size = snprintf(buff, n,
+                    "/lib/rdk/userInitiatedFWDnld.sh %s %s %s %d >> /opt/logs/swupdate.log &",
+                    "usb",
+                    path.c_str(),
+                    name.c_str(),
+                    0);
+            if (size > 0 && size < n)
+            {
+                int rc = runScript(buff);
+                LOGINFO("'%s' return code: %d", buff, rc);
+                result = true;
+            }
+        }
+
+        if (!result)
+            response["error"] = "invalid filename";
+
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::getMountedWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+
+        std::list<string> paths;
+        result = getMounted(paths);
+
+        JsonArray arr;
+        for_each(paths.begin(), paths.end(), [&arr](const string& it)
+        {
+            arr.Add(it.c_str());
+        });
+        response["mounted"] = arr;
+
+        returnResponse(result);
+    }
+
+    // iarm
+    void UsbAccess::InitializeIARM()
+    {
+        if (Utils::IARM::init())
+        {
+            IARM_Result_t res;
+            IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, eventHandler));
+        }
+    }
+
+    void UsbAccess::DeinitializeIARM()
+    {
+        if (Utils::IARM::isConnected())
+        {
+            IARM_Result_t res;
+            IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED));
+        }
+    }
+
+    void UsbAccess::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if (UsbAccess::_instance)
+            UsbAccess::_instance->iarmEventHandler(owner, eventId, data, len);
+        else
+            LOGWARN("cannot handle IARM events without a UsbAccess plugin instance!");
+    }
+
+    void UsbAccess::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if (strcmp(owner, IARM_BUS_SYSMGR_NAME) != 0)
+        {
+            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+            return;
+        }
+        if (data == nullptr || len == 0)
+        {
+            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+            return;
+        }
+
+        switch (eventId)
+        {
+            case IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED:
+            {
+                IARM_Bus_SYSMgr_EventData_t *eventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+                onUSBMountChanged((eventData->data.usbMountData.mounted == 1), eventData->data.usbMountData.dir);
+                break;
+            }
+            default:
+                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                break;
+        }
+    }
+
+    void UsbAccess::onUSBMountChanged(bool mounted, const string& device)
+    {
+        JsonObject params;
+        params["mounted"] = mounted;
+        params["device"] = device;
+        sendNotify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
+    }
+
+    // internal methods
+    bool UsbAccess::getFileList(const string& path, FileList& files, const string& fileRegex, bool includeFolders)
+    {
+        bool result = false;
+
+        if (!path.empty())
+        {
+            DIR *dirp = opendir(path.c_str());
+            if (dirp != nullptr)
+            {
+                files.clear();
+
+                struct dirent *dp;
+                while ((dp = readdir(dirp)) != nullptr)
+                {
+                    if (((dp->d_type == DT_DIR) && includeFolders) ||
+                        ((dp->d_type != DT_DIR) && (fileRegex.empty() ||
+                            std::regex_match(dp->d_name, std::regex(fileRegex, std::regex_constants::icase)) == true)))
+                        files.push_back(
+                                {
+                                    dp->d_type == DT_DIR ? 'd' : 'f',
+                                    dp->d_name
+                                });
+                }
+                closedir(dirp);
+
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
+    bool UsbAccess::getMounted(std::list <std::string>& paths)
+    {
+        bool result = false;
+
+        std::list<std::string> devnodes;
+
+        struct udev *udev = udev_new();
+
+        struct udev_enumerate *enumerate = udev_enumerate_new(udev);
+        udev_enumerate_add_match_subsystem(enumerate, "block");
+        udev_enumerate_scan_devices(enumerate);
+
+        struct udev_list_entry *devices = udev_enumerate_get_list_entry(enumerate);
+        struct udev_list_entry *entry;
+
+        // If the list is empty, or on failure, NULL is returned.
+        if (devices)
+        {
+            udev_list_entry_foreach(entry, devices)
+            {
+                const char *path = udev_list_entry_get_name(entry);
+                struct udev_device *dev = udev_device_new_from_syspath(udev, path);
+                struct udev_device *usb = udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
+                if (usb != nullptr && std::regex_match(udev_device_get_devtype(dev), std::regex("(partition|disk)")))
+                    devnodes.emplace_back(udev_device_get_devnode(dev));
+
+                udev_device_unref(dev);
+            }
+        }
+
+        udev_enumerate_unref(enumerate);
+        udev_unref(udev);
+
+        std::map<std::string,std::string> mapping;
+
+        struct mntent *ent;
+        FILE *file = setmntent("/proc/mounts", "r");
+        if (file != nullptr)
+        {
+            result = true;
+
+            while (nullptr != (ent = getmntent(file)))
+                if (std::find(devnodes.begin(), devnodes.end(), string(ent->mnt_fsname)) != devnodes.end())
+                    mapping.emplace(string(ent->mnt_fsname), string(ent->mnt_dir));
+
+            endmntent(file);
+        }
+
+        for (auto const& x : mapping)
+            paths.emplace_back(x.second);
+
+        return result;
+    }
+} // namespace Plugin
 } // namespace WPEFramework

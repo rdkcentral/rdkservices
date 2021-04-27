@@ -61,10 +61,13 @@ using namespace std;
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
 #define HDMICECSINK_ARC_INITIATION_EVENT "arcInitiationEvent"
 #define HDMICECSINK_ARC_TERMINATION_EVENT "arcTerminationEvent"
+#define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
+#define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
+#define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #ifdef USE_IARM
 namespace
@@ -302,6 +305,20 @@ namespace WPEFramework {
             {
                 LOGWARN("Current power state %d", m_powerState);
             }
+
+            Utils::activatePlugin(HDMICECSINK_CALLSIGN);
+            LOGINFO("Starting the timer");
+            m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
+
+            if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
+            {
+                InitAudioPorts();
+            }
+            else
+            {
+                LOGWARN("Current power state %d", m_powerState);
+            }
+
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -328,7 +345,6 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS, dsAudioMuteEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
 
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
@@ -364,7 +380,6 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MUTE_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
 
@@ -569,6 +584,26 @@ namespace WPEFramework {
 
                                 if(hdmiin_hotplug_conn) {
                                     aPort.getSupportedARCTypes(&types);
+                                    LOGINFO("dsHdmiEventHandler: Configuring User set Audio mode before starting ARC/eARC Playback...\n");
+                                    if(aPort.getStereoAuto() == true) {
+					if(types & dsAUDIOARCSUPPORT_eARC) {
+					    aPort.setStereoAuto(true,true);
+					}
+					else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                            if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                                LOGERR("dsHdmiEventHandler (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                            }
+                                            else {
+                                                LOGINFO("dsHdmiEventHandler (ARC): requestShortAudioDescriptor successful\n");
+                                            }
+					}
+                                    }
+                                    else{
+                                        device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                                        mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                                        aPort.setStereoMode(mode.toString(), true);
+                                    }
+
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
                                         LOGINFO("dsHdmiEventHandler: Enable eARC\n");
                                         aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
@@ -1097,6 +1132,15 @@ namespace WPEFramework {
                         else
                             modeString.append(mode.toString());
                     }
+		    else if(aPort.getType().getId() == device::AudioOutputPortType::kARC){
+                        if (aPort.getStereoAuto()) {
+                            LOGINFO("HDMI_ARC0 output mode Auto");
+                            modeString.append("AUTO");
+			}
+			else{
+			    modeString.append(mode.toString());
+			}
+		    }
                     else
                     {
                         if (mode == device::AudioStereoMode::kSurround)
@@ -1206,14 +1250,40 @@ namespace WPEFramework {
                                 else
                                     mode = device::AudioStereoMode::kStereo;
                             }
+                            //TODO: if mode has not changed, we can skip the extra call
+                            aPort.setStereoMode(mode.toString(), persist);
                         }
                         else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                         {
                             LOGERR("Reset auto on %s for mode = %s!", audioPort.c_str(), soundMode.c_str());
                             aPort.setStereoAuto(false, persist);
+                            //TODO: if mode has not changed, we can skip the extra call
+                            aPort.setStereoMode(mode.toString(), persist);
                         }
-                        //TODO: if mode has not changed, we can skip the extra call
-                        aPort.setStereoMode(mode.toString(), persist);
+			else if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+		            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
+				    aPort.setStereoAuto(false, persist);
+				    aPort.setStereoMode(mode.toString(), persist);
+		            }
+			    else { //Auto Mode
+			        int types = dsAUDIOARCSUPPORT_NONE;
+                                aPort.getSupportedARCTypes(&types);
+
+				if(types & dsAUDIOARCSUPPORT_eARC) {
+				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
+				}
+				else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                    if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                        success = false;
+                                        LOGERR("setSoundMode Auto: requestShortAudioDescriptor failed !!!\n");;
+                                    }
+                                    else {
+                                        LOGINFO("setSoundMode Auto: requestShortAudioDescriptor successful\n");
+                                    }
+				}
+			   }
+			}
+
                     }
                 }
                 else
@@ -1551,13 +1621,14 @@ namespace WPEFramework {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
                 if (vPort.isDisplayConnected())
                 {
-                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth;
-                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth);
+                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
+                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
 
                     response["colorSpace"] = colorSpace;
                     response["colorDepth"] = colorDepth;
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
+                    response["quantizationRange"] = quantizationRange;
                 }
                 else
                 {
@@ -1818,6 +1889,12 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
                 int VolumeLeveller = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sVolumeLeveller.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("level should be an integer");
+                    returnResponse(false);
+                }
+
                 try {
                         VolumeLeveller = stoi(sVolumeLeveller);
                 }catch (const device::Exception& err) {
@@ -1904,6 +1981,11 @@ namespace WPEFramework {
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
                int surroundVirtualizer = 0;
+               bool isIntiger = Utils::isValidInt ((char*)sSurroundVirtualizer.c_str());
+               if (false == isIntiger) {
+                   LOGWARN("boost should be an integer");
+                   returnResponse(false);
+               }
 
                try {
                   surroundVirtualizer = stoi(sSurroundVirtualizer);
@@ -2056,6 +2138,11 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "DRCMode");
                 string sDRCMode = parameters["DRCMode"].String();
                 int DRCMode = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sDRCMode.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("DRCMode should be an integer");
+                    returnResponse(false);
+                }
                 try {
                         DRCMode = stoi(sDRCMode);
                 }catch (const device::Exception& err) {
@@ -2653,14 +2740,21 @@ namespace WPEFramework {
 			dsATMOSCapability_t atmosCapability;
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-                if (aPort.isConnected()) {
-                    aPort.getSinkDeviceAtmosCapability (atmosCapability);
-                    response["atmos_capability"] = (int)atmosCapability;
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if (aPort.isConnected()) {
+                        aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                        response["atmos_capability"] = (int)atmosCapability;
+                    }
+                    else {
+                        LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
+                        success = false;
+                    }
                 }
                 else {
-					LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
-                    success = false;
+                    device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
+                    response["atmos_capability"] = (int)atmosCapability;
                 }
             }
             catch(const device::Exception& err)
@@ -2682,15 +2776,20 @@ namespace WPEFramework {
             bool success = true;
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-                if (aPort.isConnected()) {
-                    aPort.setAudioAtmosOutputMode (enable);
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if (aPort.isConnected()) {
+                        aPort.setAudioAtmosOutputMode (enable);
+                    }
+                    else {
+					    LOGERR("setAudioAtmosOutputMode failure: HDMI0 not connected!\n");
+                        success = false;
+                    }
                 }
                 else {
-					LOGERR("setAudioAtmosOutputMode failure: HDMI0 not connected!\n");
-                    success = false;
+                    device::Host::getInstance().setAudioAtmosOutputMode (enable);
                 }
-
             }
             catch (const device::Exception& err)
             {
@@ -2736,6 +2835,34 @@ namespace WPEFramework {
             return success;
 	}
 
+        bool DisplaySettings::requestShortAudioDescriptor()
+        {
+            bool success = true;
+
+            if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
+                auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
+                if (!hdmiCecSinkPlugin) {
+                    LOGERR("HdmiCecSink plugin not accessible\n");
+                }
+                else {
+                    JsonObject hdmiCecSinkResult;
+                    JsonObject param;
+
+                    LOGINFO("Requesting Short Audio Descriptor \n");
+                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                        success = false;
+                        LOGERR("HdmiCecSink Plugin returned error\n");
+                    }
+                }
+            }
+            else {
+                success = false;
+                LOGERR("HdmiCecSink plugin not ready\n");
+            }
+
+            return success;
+        }
 
         uint32_t DisplaySettings::setEnableAudioPort (const JsonObject& parameters, JsonObject& response)
         {   //TODO: Handle other audio ports. Currently only supports HDMI ARC/eARC
@@ -2784,6 +2911,28 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
+                    LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
+                    if(aPort.isConnected()) {
+                        if(aPort.getStereoAuto() == true) {
+                            if(types & dsAUDIOARCSUPPORT_eARC) {
+                                aPort.setStereoAuto(true,true);
+                            }
+                            else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                    LOGERR("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                }
+                                else {
+                                    LOGINFO("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor successful\n");
+                                }
+                            }
+                        }
+                        else{
+                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            aPort.setStereoMode(mode.toString(), true);
+                        }
+                    }		    
+
                     if(types & dsAUDIOARCSUPPORT_eARC) {
                         if(pEnable) {
                             LOGINFO("DisplaySettings::setEnableAudioPort Enable eARC !!!");
@@ -2849,7 +2998,6 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
-
 
         // Thunder plugins communication
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> DisplaySettings::getHdmiCecSinkPlugin()
@@ -2930,6 +3078,9 @@ namespace WPEFramework {
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
+                } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
+                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                            , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
                 }
                 else {
                      err = Core::ERROR_UNAVAILABLE;
@@ -3005,13 +3156,51 @@ namespace WPEFramework {
         }
 
         // 4.
+        void DisplaySettings::onShortAudioDescriptorEventHandler(const JsonObject& parameters) {
+            string message;
+
+            parameters.ToString(message);
+	    JsonArray shortAudioDescriptorList;
+            LOGINFO("[Short Audio Descriptor Event], %s : %s", __FUNCTION__, C_STR(message));
+
+            if (parameters.HasLabel("ShortAudioDescriptor")) {
+                shortAudioDescriptorList = parameters["ShortAudioDescriptor"].Array();
+                    try
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+			LOGINFO("Total Short Audio Descriptors received from connected ARC device: %d\n",shortAudioDescriptorList.Length());
+			if(shortAudioDescriptorList.Length() <= 0) {
+			    LOGERR("Not setting SAD. No SAD returned by connected ARC device\n");
+			    return;
+			}
+
+			std::vector<int> sad_list;
+			for (int i=0; i<shortAudioDescriptorList.Length(); i++) {
+                            LOGINFO("Short Audio Descriptor[%d]: %ld \n",i, shortAudioDescriptorList[i].Number());
+                            sad_list.push_back(shortAudioDescriptorList[i].Number());
+                        }
+
+		        aPort.setSAD(sad_list);
+			aPort.setStereoAuto(true,true);
+                    }
+                    catch (const device::Exception& err)
+                    {
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    }
+            } else {
+                LOGERR("Field 'ShortAudioDescriptor' could not be found in the event's payload.");
+            }
+        }
+
+
+        // 5.
         void DisplaySettings::onTimer()
         {
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             if(!m_subscribed) {
-                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE))
+                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE))
                 {
                     m_subscribed = true;
                     if (m_timer.isActive()) {

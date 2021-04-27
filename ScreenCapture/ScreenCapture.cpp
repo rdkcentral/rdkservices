@@ -387,6 +387,7 @@ namespace WPEFramework
             err = fbInit(context, &api, NULL);
             if (err != ErrNone) {
                 LOGERR("fbInit fail");
+                fbDestroy(context);
                 return false;
             }
 
@@ -408,6 +409,7 @@ namespace WPEFramework
             if (32 != pf->bitsPerPixel)
             {
                 LOGERR("Unsupported bits per pixel: %d", pf->bitsPerPixel);
+                fbDestroy(context);
                 return false;
             }
 
@@ -438,21 +440,22 @@ namespace WPEFramework
                 if(!saveToPng(buffer, w, h, png_out_data))
                 {
                     LOGERR("could not convert Nexus screenshot to png");
+                    fbDestroy(context);
                     return false;
                 }
-                else
-                    return true;
-
-
                 LOGINFO("[Done]");
+
             } else {
                 LOGERR("fbGetFramebuffer=null");
+                fbDestroy(context);
+                return false;
             }
 
             err = fbDestroy(context);
             if (err != ErrNone)
                 LOGERR("fbDestroy fail");
 
+            return true;
         }
 #endif
 

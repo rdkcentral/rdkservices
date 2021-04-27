@@ -250,9 +250,9 @@ if(BUILD_ENABLE_CEF)
     add_definitions (-DUSE_CEF)
 endif()
 
-if (BUILD_ENABLE_TELEMETRY_LOGGING)
-    message("Building with telemetry logging")
-    add_definitions (-DENABLE_TELEMETRY_LOGGING)
+if(BUILD_ENABLE_SYSTEM_UPLOAD_LOGS)
+    message("Building with System Service uploadLogs")
+    add_definitions (-DENABLE_SYSTEM_UPLOAD_LOGS)
 endif()
 
 if(BUILD_BROADCOM)
