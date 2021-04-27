@@ -85,7 +85,7 @@ FrameRate interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setCollectionFrequency](#method.setCollectionFrequency) | Sets the amount of milliseconds per collection interval |
+| [setCollectionFrequency](#method.setCollectionFrequency) | Sets the FPS data collection interval |
 | [startFpsCollection](#method.startFpsCollection) | Starts the FPS collection |
 | [stopFpsCollection](#method.stopFpsCollection) | Stops the FPS collection |
 
@@ -93,14 +93,14 @@ FrameRate interface methods:
 <a name="method.setCollectionFrequency"></a>
 ## *setCollectionFrequency <sup>method</sup>*
 
-Sets the amount of milliseconds per collection interval. The default frequency if no frequency is specified is 10000 milliseconds.
+Sets the FPS data collection interval.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.frequency | integer | The collection interval in milliseconds |
+| params.frequency | integer | The amount of time in milliseconds. The default frequency if no frequency is specified is 10000 milliseconds |
 
 ### Result
 

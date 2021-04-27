@@ -17,6 +17,20 @@
             "type":"string",
             "example":"[TV] UE32J5530"
         },
+        "name_p": {
+            "summary":"Name of the Bluetooth Adapter",
+            "type":"string",
+            "example":"bluetooth"
+        },
+        "power": {
+            "summary":"The power status.",
+            "enum": [
+                "ON",
+                "OFF"
+            ],
+            "type":"string",
+            "example":"ON"
+        },
         "deviceType": {
             "summary":"Device class (for example: `headset`, `speakers`, etc.)",
             "type":"string",
@@ -125,8 +139,29 @@
         }   
     },
     "methods": {
-        "enable":{
-            "summary": "Enables the Bluetooth stack",
+        "connect":{
+            "summary": "Connects to the given Bluetooth device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "deviceType":{
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "connectedProfile":{
+                        "summary": "Profile of the connected device. See [startscan](#method.startscan) for supported profiles.",
+                        "type":"string",
+                        "example": "SMARTPHONE"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "deviceType",
+                    "connectedProfile"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -137,218 +172,94 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "getName":{
-            "summary": "Returns the name of this device as seen by other Bluetooth devices",
-            "result": {
+        "disconnect":{
+            "summary": "Disconnects the given device from this device",
+            "params": {
                 "type":"object",
                 "properties": {
-                    "name": {
-                        "summary": "The name of the device",
-                        "type":"string",
-                        "example":"RDK Bluetooth Device"
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
                     },
-                    "success": {
-                        "$ref": "#/definitions/success"
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
                     }
                 },
                 "required": [
-                    "name",
-                    "success"
-                ]
-            }
-        },
-        "setName":{
-            "summary": "Sets the name of this device as seen by other Bluetooth devices",
-            "params":{
-                "type":"object",
-                "properties":{
-                    "name":{
-                        "summary":"The name of the device",
-                        "type":"string",
-                        "example":"RDK Bluetooth Device"
-                    }
-                },
-                "required":[
-                    "name"
+                    "deviceID",
+                    "deviceType"
                 ]
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
-        "isDiscoverable":{
-            "summary": "Returns `true` if this device can be discovered by other Bluetooth devices",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "discoverable": {
-                        "$ref": "#/definitions/discoverable"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "discoverable",
-                    "success"
-                ]
-            }
-
-        },
-        "setDiscoverable":{
-            "summary": "When `true`, this device can be discovered by other Bluetooth devices.  When `false`, this device is not discoverable.",
-            "params":{
-                "type":"object",
-                "properties":{
-                    "discoverable":{
-                        "$ref": "#/definitions/discoverable"
-                    }
-                },
-                "required":[
-                    "discoverable"
-                ]
-            },
+        "enable":{
+            "summary": "Enables the Bluetooth stack",
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
-        "startScan":{
-            "summary": "Starts scanning for other Bluetooth devices that match the given profile.  \n Supported profiles include:  \n* For Audio-Out: `LOUDSPEAKER`, `HEADPHONES`, `WEARABLE HEADSET`, `HIFI AUDIO DEVICE`  \n* For Audio-In: `SMARTPHONE`, `TABLET`  \n* For HID: `KEYBOARD`, `MOUSE`, `JOYSTICK`  \n* For HandsFree: `HandsFree`.  \n\n The method returns one of the following statuses:  \n* `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  \n* `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.",
-            "params":{
+        "getAudioInfo":{
+            "summary": "Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.",
+            "params": {
                 "type":"object",
-                "properties":{
-                    "timeout":{
-                        "summary":"Discovery timeout in seconds",
-                        "type":"integer",
-                        "example":5
-                    },
-                    "profile":{
-                        "summary":"Comma separated list of profiles to scan.",
-                        "type":"string",
-                        "example":"SMARTPHONE, HEADSET"
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
                     }
                 },
-                "required":[
-                    "timeout",
-                    "profile"
+                "required": [
+                    "deviceID"
                 ]
             },
             "result": {
                 "type":"object",
                 "properties": {
-                    "status": {
-                        "summary": "Discovery status.",
-                        "type":"string",
-                        "example":"AVAIlABLE"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "status",
-                    "success"
-                ]
-            }
-        },
-        "stopScan":{
-            "summary": "Stops scanning for Bluetooth devices",
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-
-        },
-        "getDiscoveredDevices":{
-            "summary": "Returns an array of discovered devices. This function should be called after getting at least one [onDiscoveredDevice](#events.onDiscoveredDevice) event. Those events are triggered when scanning is running.",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "discoveredDevices": {
-                        "summary": "An array of objects where each object represents a discovered device",
-                        "type":"array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "deviceID": {
-                                    "$ref": "#/definitions/deviceID"
-                                },
-                                "name": {
-                                    "$ref": "#/definitions/name" 
-                                },
-                                "deviceType": {
-                                    "$ref": "#/definitions/deviceType"
-                                },
-                                "connected":{
-                                    "$ref": "#/definitions/connected"
-                                },
-                                "paired":{
-                                    "summary":"Whether a device is paired with this device",
-                                    "type":"boolean",
-                                    "example":true
-                                }
-
+                    "trackInfo": {
+                        "summary": "An object that contains information about the currently playing audio selection",
+                        "type":"object",
+                        "properties": {
+                            "album": {
+                                "$ref": "#/definitions/album"
                             },
-                            "required": [
-                                "deviceID",
-                                "name",
-                                "deviceType",
-                                "connected",
-                                "paired"
-                            ]
-                        }
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "discoveredDevices",
-                    "success"
-                ]
-            }
-        },
-        "getPairedDevices":{
-            "summary": "Returns a list of devices that have paired with this device",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "pairedDevices": {
-                        "summary": "An array of objects where each object represents a paired device",
-                        "type":"array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "deviceID": {
-                                    "$ref": "#/definitions/deviceID"
-                                },
-                                "name": {
-                                    "$ref": "#/definitions/name" 
-                                },
-                                "deviceType": {
-                                    "$ref": "#/definitions/deviceType"
-                                },
-                                "connected":{
-                                    "$ref": "#definitions/connected"
-                                }
+                            "genre": {
+                                "$ref": "#/definitions/genre" 
                             },
-                            "required": [
-                                "deviceID",
-                                "name",
-                                "deviceType",
-                                "connected"
-                            ]
-                        }
+                            "title": {
+                                "$ref": "#/definitions/title"
+                            },
+                            "artist": {
+                                "$ref": "#/definitions/artist"
+                            },
+                            "ui32Duration": {
+                                "$ref": "#/definitions/ui32Duration"
+                            },
+                            "ui32TrackNumber": {
+                                "$ref": "#/definitions/ui32TrackNumber"
+                            },
+                            "ui32NumberOfTracks": {
+                                "$ref": "#/definitions/ui32NumberOfTracks"
+                            }
+                        },
+                        "required": [
+                            "album",
+                            "genre",
+                            "title",
+                            "artist",
+                            "ui32Duration",
+                            "ui32TrackNumber",
+                            "ui32NumberOfTracks"
+                        ]
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "pairedDevices",
+                    "trackInfo",
                     "success"
                 ]
             }
-
         },
         "getConnectedDevices":{
             "summary": "Returns a list of devices connected to this device.",
@@ -392,108 +303,6 @@
                     "connectedDevices",
                     "success"
                 ]
-            }
-        },
-        "pair":{
-            "summary": "Pairs the given device with this device",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    }
-                },
-                "required": [
-                    "deviceID"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "unpair":{
-            "summary": "Unpairs the given device with this device",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    }
-                },
-                "required": [
-                    "deviceID"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "connect":{
-            "summary": "Connects to the given Bluetooth device",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "deviceType":{
-                        "$ref": "#/definitions/deviceType"
-                    },
-                    "connectedProfile":{
-                        "summary": "Profile of the connected device. See [startscan](#method.startscan) for supported profiles.",
-                        "type":"string",
-                        "example": "SMARTPHONE"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "deviceType",
-                    "connectedProfile"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-
-        },
-        "disconnect":{
-            "summary": "Disconnects the given device from this device",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    }
-                },
-                "required": [
-                    "deviceID"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "setAudioStream":{
-            "summary": "Sets the primary or secondary audio-out to the given Bluetooth device",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "audioStreamName":{
-                        "summary":"The audio out to set. Either `PRIMARY` or `AUXILIARY`",
-                        "type":"string",
-                        "example":"PRIMARY"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "audioStreamName"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
             }
         },
         "getDeviceInfo":{
@@ -566,8 +375,168 @@
                 ]
             }
         },
-        "getAudioInfo":{
-            "summary": "Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.",
+        "getDiscoveredDevices":{
+            "summary": "Returns an array of discovered devices. This function should be called after getting at least one [onDiscoveredDevice](#events.onDiscoveredDevice) event. Those events are triggered when scanning is running.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "discoveredDevices": {
+                        "summary": "An array of objects where each object represents a discovered device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "deviceID": {
+                                    "$ref": "#/definitions/deviceID"
+                                },
+                                "name": {
+                                    "$ref": "#/definitions/name" 
+                                },
+                                "deviceType": {
+                                    "$ref": "#/definitions/deviceType"
+                                },
+                                "connected":{
+                                    "$ref": "#/definitions/connected"
+                                },
+                                "paired":{
+                                    "summary":"Whether a device is paired with this device",
+                                    "type":"boolean",
+                                    "example":true
+                                }
+
+                            },
+                            "required": [
+                                "deviceID",
+                                "name",
+                                "deviceType",
+                                "connected",
+                                "paired"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "discoveredDevices",
+                    "success"
+                ]
+            }
+        },
+        "getName":{
+            "summary": "Returns the name of this device as seen by other Bluetooth devices",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "name": {
+                        "summary": "The name of the device",
+                        "type":"string",
+                        "example":"RDK Bluetooth Device"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "name",
+                    "success"
+                ]
+            }
+        },
+        "getPairedDevices":{
+            "summary": "Returns a list of devices that have paired with this device",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "pairedDevices": {
+                        "summary": "An array of objects where each object represents a paired device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "deviceID": {
+                                    "$ref": "#/definitions/deviceID"
+                                },
+                                "name": {
+                                    "$ref": "#/definitions/name" 
+                                },
+                                "deviceType": {
+                                    "$ref": "#/definitions/deviceType"
+                                },
+                                "connected":{
+                                    "$ref": "#definitions/connected"
+                                }
+                            },
+                            "required": [
+                                "deviceID",
+                                "name",
+                                "deviceType",
+                                "connected"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "pairedDevices",
+                    "success"
+                ]
+            }
+
+        },
+        "getProperties": {
+            "summary": "(Version 2) Gets the value of a Bluetooth property on the set-top box.  \nThe following properties are supported:  \n* `name` - Name for the Bluetooth Adapter  \n* `power` - Current power status. Either `ON` or `OFF`",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "property": {
+                        "summary": "The property to query",
+                        "type": "string",
+                        "example": "power"
+                    }
+                },
+                "required": [
+                    "property"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "power": {
+                        "$ref": "#/definitions/power"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "isDiscoverable":{
+            "summary": "Returns `true` if this device can be discovered by other Bluetooth devices",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "discoverable": {
+                        "$ref": "#/definitions/discoverable"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "discoverable",
+                    "success"
+                ]
+            }
+        },
+        "pair":{
+            "summary": "Pairs the given device with this device",
             "params": {
                 "type":"object",
                 "properties": {
@@ -577,74 +546,6 @@
                 },
                 "required": [
                     "deviceID"
-                ]
-            },
-            "result": {
-                "type":"object",
-                "properties": {
-                    "trackInfo": {
-                        "summary": "An object that contains information about the currently playing audio selection",
-                        "type":"object",
-                        "properties": {
-                            "album": {
-                                "$ref": "#/definitions/album"
-                            },
-                            "genre": {
-                                "$ref": "#/definitions/genre" 
-                            },
-                            "title": {
-                                "$ref": "#/definitions/title"
-                            },
-                            "artist": {
-                                "$ref": "#/definitions/artist"
-                            },
-                            "ui32Duration": {
-                                "$ref": "#/definitions/ui32Duration"
-                            },
-                            "ui32TrackNumber": {
-                                "$ref": "#/definitions/ui32TrackNumber"
-                            },
-                            "ui32NumberOfTracks": {
-                                "$ref": "#/definitions/ui32NumberOfTracks"
-                            }
-                        },
-                        "required": [
-                            "album",
-                            "genre",
-                            "title",
-                            "artist",
-                            "ui32Duration",
-                            "ui32TrackNumber",
-                            "ui32NumberOfTracks"
-                        ]
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "trackInfo",
-                    "success"
-                ]
-            }
-        },
-        "sendAudioPlaybackCommand":{
-            "summary": "Provides control over the connected source. Requests can have one of the following values: `PLAY`, `PAUSE`, `STOP`, `SKIP_NEXT`, `SKIP_PREVIOUS`.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "command":{
-                        "summary": "Command to send to the connected source",
-                        "type":"string",
-                        "example": "PLAY"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "command"
                 ]
             },
             "result": {
@@ -680,20 +581,217 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
-
-        }
-    },
-    "events":{
-        "onStatusChanged": {
-            "summary": "Triggered when the Bluetooth functionality status changes. Supported statuses are:  \n* `HARDWARE_AVAILABLE` - adapter inserted for external adapter, or onboard Bluetooth initialized and available  \n* `HARDWARE_DISABLED` - adapter removed for external adapter, or onboard Bluetooth no longer available  \n* `SOFTWARE_ENABLED` - Bluetooth functionality is enabled through software API  \n* `SOFTWARE_INPUT_ENABLED` - Bluetooth input functionality is enabled through software API  \n* `SOFTWARE_DISABLED` - Bluetooth functionality is disabled through software API  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices).",
+        },
+        "sendAudioPlaybackCommand":{
+            "summary": "Provides control over the connected source. Requests can have one of the following values: `PLAY`, `PAUSE`, `STOP`, `SKIP_NEXT`, `SKIP_PREVIOUS`.",
             "params": {
                 "type":"object",
                 "properties": {
-                    "newStatus": {
-                        "$ref": "#/definitions/newStatus"
-                    },
                     "deviceID": {
                         "$ref": "#/definitions/deviceID"
+                    },
+                    "command":{
+                        "summary": "Command to send to the connected source",
+                        "type":"string",
+                        "example": "PLAY"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "command"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setAudioStream":{
+            "summary": "Sets the primary or secondary audio-out to the given Bluetooth device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "audioStreamName":{
+                        "summary":"The audio out to set. Either `PRIMARY` or `AUXILIARY`",
+                        "type":"string",
+                        "example":"PRIMARY"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "audioStreamName"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDiscoverable":{
+            "summary": "When `true`, this device can be discovered by other Bluetooth devices.  When `false`, this device is not discoverable.",
+            "params":{
+                "type":"object",
+                "properties":{
+                    "discoverable":{
+                        "$ref": "#/definitions/discoverable"
+                    }
+                },
+                "required":[
+                    "discoverable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setName":{
+            "summary": "Sets the name of this device as seen by other Bluetooth devices",
+            "params":{
+                "type":"object",
+                "properties":{
+                    "name":{
+                        "summary":"The name of the device",
+                        "type":"string",
+                        "example":"RDK Bluetooth Device"
+                    }
+                },
+                "required":[
+                    "name"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setProperties": {
+            "summary": "(Version 2) Sets the value of a Bluetooth property on the set-top box.  \nThe following properties are supported:  \n* `name` - Name for the Bluetooth Adapter  \n* `power` - Current power status. Either `ON` or `OFF`",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "power": {
+                        "$ref": "#/definitions/power"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startScan":{
+            "summary": "Starts scanning for other Bluetooth devices that match the given profile.  \n Supported profiles include:  \n* For Audio-Out: `LOUDSPEAKER`, `HEADPHONES`, `WEARABLE HEADSET`, `HIFI AUDIO DEVICE`  \n* For Audio-In: `SMARTPHONE`, `TABLET`  \n* For HID: `KEYBOARD`, `MOUSE`, `JOYSTICK`  \n* For HandsFree: `HandsFree`.  \n\n The method returns one of the following statuses:  \n* `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  \n* `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.",
+            "params":{
+                "type":"object",
+                "properties":{
+                    "timeout":{
+                        "summary":"Discovery timeout in seconds",
+                        "type":"integer",
+                        "example":5
+                    },
+                    "profile":{
+                        "summary":"Comma separated list of profiles to scan.",
+                        "type":"string",
+                        "example":"SMARTPHONE, HEADSET"
+                    }
+                },
+                "required":[
+                    "timeout",
+                    "profile"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "summary": "Discovery status.",
+                        "type":"string",
+                        "example":"AVAIlABLE"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "status",
+                    "success"
+                ]
+            }
+        },
+        "stopScan":{
+            "summary": "Stops scanning for Bluetooth devices",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+
+        },
+        "unpair":{
+            "summary": "Unpairs the given device with this device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    }
+                },
+                "required": [
+                    "deviceID"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events":{
+        "onConnectionRequest": {
+            "summary": "Triggered when a connection is requested by third party device that has already been paired to the set-top box",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "supportedProfile":{
+                        "$ref": "#/definitions/supportedProfile"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "MAC": {
+                        "$ref": "#/definitions/MAC"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "supportedProfile",
+                    "manufacturer",
+                    "MAC"
+                ]
+            }
+        },
+        "onDiscoveredDevice": {
+            "summary": "Triggered during device discovery when a new device is discovered or a discovered device has been lost in real time",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "discoveryType":{
+                        "summary": "either `DISCOVERED` or `LOST`",
+                        "type": "string",
+                        "example":"DISCOVERED"
                     },
                     "name": {
                         "$ref": "#/definitions/name"
@@ -706,16 +804,21 @@
                     },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
+                    },
+                    "paired": {
+                        "summary": "Whether the device is paired. `true` if the device is paired when the `PAIRING_CHANGE` status is sent. `false` if the device is unpaired. **Note**: The set-top box does not retain/store all paired devices across previous power cycles. In addition, if the device is unpaired as part of a previous operation and the same device gets detected in a new discovery cycle, the device will not be a paired device.",
+                        "type":"boolean",
+                        "example": true
                     }
-
                 },
                 "required": [
-                    "newStatus",
                     "deviceID",
+                    "discoveryType",
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "lastConnectedState"
+                    "lastConnectedState",
+                    "paired"
                 ]
             }
         },
@@ -752,7 +855,6 @@
                         "type": "string",
                         "example": "0601"
                     }
-
                 },
                 "required": [
                     "deviceID",
@@ -763,6 +865,132 @@
                     "MAC",
                     "pinRequired",
                     "pinValue"
+                ]
+            }
+        },
+        "onPlaybackChange": {
+            "summary": "Triggered when playback is interrupted or changed. Note that there is no resume event. After the previously paused playback is resumed, it is followed by `onPlaybackProgress` events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "action":{
+                        "summary": "Current playback state. Either `started`, `paused`, `stopped` or `ended`. If the state is `ended`, then `position` and `Duration` are omitted.",
+                        "type": "string",
+                        "example": "started"
+                    },
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "position":{
+                        "$ref": "#/definitions/position"
+                    },
+                    "Duration":{
+                        "$ref": "#/definitions/Duration"
+                    }
+                },
+                "required": [
+                    "action",
+                    "deviceID",
+                    "position",
+                    "Duration"
+                ]
+            }
+        },
+        "onPlaybackNewTrack": {
+            "summary": "Triggered whenever the user plays a new track or when the music player selects a next track automatically from its playlist.",
+            "params":{
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "album": {
+                        "$ref": "#/definitions/album"
+                        },
+                    "genre": {
+                        "$ref": "#/definitions/genre" 
+                    },
+                    "title": {
+                        "$ref": "#/definitions/title"
+                    },
+                    "artist": {
+                        "$ref": "#/definitions/artist"
+                    },
+                    "ui32Duration": {
+                        "$ref": "#/definitions/ui32Duration"
+                    },
+                    "ui32TrackNumber": {
+                        "$ref": "#/definitions/ui32TrackNumber"
+                    },
+                    "ui32NumberOfTracks": {
+                        "$ref": "#/definitions/ui32NumberOfTracks"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "album",
+                    "genre",
+                    "title",
+                    "artist",
+                    "ui32Duration",
+                    "ui32TrackNumber",
+                    "ui32NumberOfTracks"
+                ]
+            }
+        },
+        "onPlaybackProgress": {
+            "summary": "Triggered in one second intervals as long as the status of the playback is playing.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "position":{
+                        "$ref": "#/definitions/position"
+                    },
+                    "Duration":{
+                        "$ref": "#/definitions/Duration"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "position",
+                    "Duration"
+                ]
+            }
+        },
+        "onPlaybackRequest": {
+            "summary": "Triggered when playback is requested by third party device that has already been paired to the set-top box.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "supportedProfile":{
+                        "$ref": "#/definitions/supportedProfile"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "MAC": {
+                        "$ref": "#/definitions/MAC"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "supportedProfile",
+                    "manufacturer",
+                    "MAC"
                 ]
             }
         },
@@ -812,178 +1040,16 @@
                 ]
             }
         },
-        "onConnectionRequest": {
-            "summary": "Triggered when a connection is requested by third party device that has already been paired to the set-top box",
+        "onStatusChanged": {
+            "summary": "Triggered when the Bluetooth functionality status changes. Supported statuses are:  \n* `HARDWARE_AVAILABLE` - adapter inserted for external adapter, or onboard Bluetooth initialized and available  \n* `HARDWARE_DISABLED` - adapter removed for external adapter, or onboard Bluetooth no longer available  \n* `SOFTWARE_ENABLED` - Bluetooth functionality is enabled through software API  \n* `SOFTWARE_INPUT_ENABLED` - Bluetooth input functionality is enabled through software API  \n* `SOFTWARE_DISABLED` - Bluetooth functionality is disabled through software API  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices).",
             "params": {
                 "type":"object",
                 "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "name": {
-                        "$ref": "#/definitions/name"
-                    },
-                    "deviceType": {
-                        "$ref": "#/definitions/deviceType"
-                    },
-                    "supportedProfile":{
-                        "$ref": "#/definitions/supportedProfile"
-                    },
-                    "manufacturer": {
-                        "$ref": "#/definitions/manufacturer"
-                    },
-                    "MAC": {
-                        "$ref": "#/definitions/MAC"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "name",
-                    "deviceType",
-                    "supportedProfile",
-                    "manufacturer",
-                    "MAC"
-                ]
-            }
-        },
-        "onPlaybackRequest": {
-            "summary": "Triggered when playback is requested by third party device that has already been paired to the set-top box.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "name": {
-                        "$ref": "#/definitions/name"
-                    },
-                    "deviceType": {
-                        "$ref": "#/definitions/deviceType"
-                    },
-                    "supportedProfile":{
-                        "$ref": "#/definitions/supportedProfile"
-                    },
-                    "manufacturer": {
-                        "$ref": "#/definitions/manufacturer"
-                    },
-                    "MAC": {
-                        "$ref": "#/definitions/MAC"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "name",
-                    "deviceType",
-                    "supportedProfile",
-                    "manufacturer",
-                    "MAC"
-                ]
-            }
-        },
-        "onPlaybackChange": {
-            "summary": "Triggered when playback is interrupted or changed. Note that there is no resume event. After the previously paused playback is resumed, it is followed by `onPlaybackProgress` events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "action":{
-                        "summary": "Current playback state. Either `started`, `paused`, `stopped` or `ended`. If the state is `ended`, then `position` and `Duration` are omitted.",
-                        "type": "string",
-                        "example": "started"
+                    "newStatus": {
+                        "$ref": "#/definitions/newStatus"
                     },
                     "deviceID": {
                         "$ref": "#/definitions/deviceID"
-                    },
-                    "position":{
-                        "$ref": "#/definitions/position"
-                    },
-                    "Duration":{
-                        "$ref": "#/definitions/Duration"
-                    }
-                },
-                "required": [
-                    "action",
-                    "deviceID",
-                    "position",
-                    "Duration"
-                ]
-            }
-        },
-        "onPlaybackProgress": {
-            "summary": "Triggered in one second intervals as long as the status of the playback is playing.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "position":{
-                        "$ref": "#/definitions/position"
-                    },
-                    "Duration":{
-                        "$ref": "#/definitions/Duration"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "position",
-                    "Duration"
-                ]
-            }
-        },
-        "onPlaybackNewTrack": {
-            "summary": "Triggered whenever the user plays a new track or when the music player selects a next track automatically from its playlist.",
-            "params":{
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "album": {
-                        "$ref": "#/definitions/album"
-                        },
-                    "genre": {
-                        "$ref": "#/definitions/genre" 
-                    },
-                    "title": {
-                        "$ref": "#/definitions/title"
-                    },
-                    "artist": {
-                        "$ref": "#/definitions/artist"
-                    },
-                    "ui32Duration": {
-                        "$ref": "#/definitions/ui32Duration"
-                    },
-                    "ui32TrackNumber": {
-                        "$ref": "#/definitions/ui32TrackNumber"
-                    },
-                    "ui32NumberOfTracks": {
-                        "$ref": "#/definitions/ui32NumberOfTracks"
-                    }
-                },
-                "required": [
-                    "deviceID",
-                    "album",
-                    "genre",
-                    "title",
-                    "artist",
-                    "ui32Duration",
-                    "ui32TrackNumber",
-                    "ui32NumberOfTracks"
-                ]
-            }
-        },
-        "onDiscoveredDevice": {
-            "summary": "Triggered during device discovery when a new device is discovered or a discovered device has been lost in real time",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "deviceID": {
-                        "$ref": "#/definitions/deviceID"
-                    },
-                    "discoveryType":{
-                        "summary": "either `DISCOVERED` or `LOST`",
-                        "type": "string",
-                        "example":"DISCOVERED"
                     },
                     "name": {
                         "$ref": "#/definitions/name"
@@ -996,25 +1062,18 @@
                     },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
-                    },
-                    "paired": {
-                        "summary": "Whether the device is paired. `true` if the device is paired when the `PAIRING_CHANGE` status is sent. `false` if the device is unpaired. **Note**: The set-top box does not retain/store all paired devices across previous power cycles. In addition, if the device is unpaired as part of a previous operation and the same device gets detected in a new discovery cycle, the device will not be a paired device.",
-                        "type":"boolean",
-                        "example": true
                     }
 
                 },
                 "required": [
+                    "newStatus",
                     "deviceID",
-                    "discoveryType",
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "lastConnectedState",
-                    "paired"
+                    "lastConnectedState"
                 ]
             }
-        }    
-            
+        }
     }
 }

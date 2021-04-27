@@ -85,99 +85,15 @@ XCast interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setEnabled](#method.setEnabled) | Enables, or disables, the cast service |
-| [getEnabled](#method.getEnabled) | Reports whether the cast service is enabled or disabled |
 | [getApiVersionNumber](#method.getApiVersionNumber) | Gets the API version |
+| [getEnabled](#method.getEnabled) | Reports whether xcast is enabled or disabled |
+| [getFriendlyName](#method.getFriendlyName) | Gets the human readable name for the implementation |
+| [getStandbyBehavior](#method.getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
 | [onApplicationStateChanged](#method.onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
+| [setEnabled](#method.setEnabled) | Enables or disables xcast |
+| [setFriendlyName](#method.setFriendlyName) | Sets a name for the implementation |
+| [setStandbyBehavior](#method.setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
 
-
-<a name="method.setEnabled"></a>
-## *setEnabled <sup>method</sup>*
-
-Enables, or disables, the cast service.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.enabled | boolean | `true` for enable or `false` for disable |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.Xcast.1.setEnabled",
-    "params": {
-        "enabled": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.getEnabled"></a>
-## *getEnabled <sup>method</sup>*
-
-Reports whether the cast service is enabled or disabled.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enabled | boolean | `true` for enable or `false` for disable |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.Xcast.1.getEnabled"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "enabled": true,
-        "success": true
-    }
-}
-```
 
 <a name="method.getApiVersionNumber"></a>
 ## *getApiVersionNumber <sup>method</sup>*
@@ -216,6 +132,132 @@ This method takes no parameters.
     "id": 1234567890,
     "result": {
         "version": 1,
+        "success": true
+    }
+}
+```
+
+<a name="method.getEnabled"></a>
+## *getEnabled <sup>method</sup>*
+
+Reports whether xcast is enabled or disabled.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.enabled | boolean | `true` for enabled or `false` for disabled |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.getEnabled"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "enabled": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.getFriendlyName"></a>
+## *getFriendlyName <sup>method</sup>*
+
+Gets the human readable name for the implementation.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.friendlyname | string | The friendly name of the implementation |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.getFriendlyName"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "friendlyname": "xdial",
+        "success": true
+    }
+}
+```
+
+<a name="method.getStandbyBehavior"></a>
+## *getStandbyBehavior <sup>method</sup>*
+
+Gets the expected xcast behavior in standby mode.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.standbybehavior | string | whether to remain active or inactive during standby mode (must be one of the following: *active*, *inactive*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.getStandbyBehavior"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "standbybehavior": "active",
         "success": true
     }
 }
@@ -265,6 +307,144 @@ provides notification whenever an application changes state (due to user activit
         "state": "running",
         "applicationId": "1234",
         "error": ""
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setEnabled"></a>
+## *setEnabled <sup>method</sup>*
+
+Enables or disables xcast.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | `true` for enabled or `false` for disabled |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.setEnabled",
+    "params": {
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setFriendlyName"></a>
+## *setFriendlyName <sup>method</sup>*
+
+Sets a name for the implementation.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.friendlyname | string | The friendly name of the implementation |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.setFriendlyName",
+    "params": {
+        "friendlyname": "xdial"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setStandbyBehavior"></a>
+## *setStandbyBehavior <sup>method</sup>*
+
+Sets the expected xcast behavior in standby mode.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.standbybehavior | string | whether to remain active or inactive during standby mode (must be one of the following: *active*, *inactive*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.setStandbyBehavior",
+    "params": {
+        "standbybehavior": "active"
     }
 }
 ```

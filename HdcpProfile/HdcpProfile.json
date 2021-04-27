@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdcpProfile API", 
@@ -8,39 +8,44 @@
     },
     "definitions": {
         "supportedHDCPVersion": {
-            "description": "Supported HDCP protocol version by the host device.",
+            "summary": "Supported HDCP protocol version by the host device.",
             "type": "string",
             "example": "2.2"
         },
         "HDCPStatus":{
-            "description": "Contains HDCP-related data as separate properties",
+            "summary": "Contains HDCP-related data as separate properties",
             "type": "object",
             "properties": {
                 "isConnected": {
-                    "description": "Indicates whether a display is connected.",
+                    "summary": "Indicates whether a display is connected.",
                     "type": "boolean",
                     "example": false
                 },
                 "isHDCPCompliant": {
-                    "description": "Indicates whether the display is HDCP compliant.",
+                    "summary": "Indicates whether the display is HDCP compliant.",
                     "type": "boolean",
                     "example": false
                 },
                 "isHDCPEnabled": {
-                    "description": "Indicates whether content is protected.",
+                    "summary": "Indicates whether content is protected.",
                     "type": "boolean",
-                    "example": "false"
+                    "example": false
+                },
+                "hdcpReason": {
+                    "summary": "The HDCP status reason",
+                    "type": "integer",
+                    "example": 1
                 },
                 "supportedHDCPVersion": {
                     "$ref": "#/definitions/supportedHDCPVersion"
                 },
                 "receiverHDCPVersion": {
-                    "description": "Supported HDCP protocol version by the receiver device (display)",
+                    "summary": "Supported HDCP protocol version by the receiver device (display)",
                     "type": "string",
                     "example": "1.4"
                 },
                 "currentHDCPVersion": {
-                    "description": "Currently used HDCP protocol version",
+                    "summary": "Currently used HDCP protocol version",
                     "type": "string",
                     "example": "1.4"
                 }
@@ -49,6 +54,7 @@
                 "isConnected",
                 "isHDCPCompliant",
                 "isHDCPEnabled",
+                "hdcpReason",
                 "supportedHDCPVersion",
                 "receiverHDCPVersion",
                 "currentHDCPVersion"
@@ -73,7 +79,7 @@
     },
     "methods": {
         "getHDCPStatus": {
-            "summary": "Returns HDCP-related data",
+            "summary": "Returns HDCP-related data.  \n**hdcpReason Argument Values**  \n* `0`: HDMI cable is not connected or rx sense status is `off`  \n* `1`: If rx device connected with power on state, then this should be the initial status  \n* `2`: HDCP success  \n* `3`:  After multiple retries, the platform should transition to this state  \n* `4`:  Platform in HDCP process   \n* `5`: Expected when `dsEnableVideoPort` is called with enable status `false`",
             "result": {
                 "type":"object",
                 "properties": {

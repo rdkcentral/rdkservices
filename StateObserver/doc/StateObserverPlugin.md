@@ -254,7 +254,7 @@ Returns the values and errors for the specified properties.
 | result.properties[#] | object |  |
 | result.properties[#].propertyName | string | The fully qualified property name |
 | result.properties[#].value | integer | The property value |
-| result.properties[#].error | integer | An error value |
+| result.properties[#].error | integer | The error state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -315,7 +315,7 @@ Register a listener on the specified properties for value change notifications. 
 | result.properties[#] | object |  |
 | result.properties[#].propertyName | string | The fully qualified property name |
 | result.properties[#].value | integer | The property value |
-| result.properties[#].error | integer | An error value |
+| result.properties[#].error | integer | The error state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -475,7 +475,7 @@ Triggered whenever a device property value changes. A handler function is called
 | params | object |  |
 | params.propertyName | string | The fully qualified property name |
 | params.value | integer | The property value |
-| params.error | integer | An error value |
+| params.error | integer | The error state |
 
 ### Example
 

@@ -203,6 +203,9 @@
                 "properties": {
                     "interface": {
                         "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
                     }
                 },
                 "required": [
@@ -278,6 +281,39 @@
         },
         "getStbIp":{
             "summary": "Gets the IP address of the default interface",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ip": {
+                        "summary": "The IP address",
+                        "type": "string",
+                        "example": "192.168.1.101"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ip",
+                    "success"
+                ]
+            }
+        },
+        "getSTBIPFamily":{
+            "summary": "Gets the IP address of the default interface by address family",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "family": {
+                        "summary": "The address family to query",
+                        "type": "string",
+                        "example": "AF_INET"
+                    }
+                },
+                "required": [
+                    "family"
+                ]
+            },
             "result": {
                 "type": "object",
                 "properties": {

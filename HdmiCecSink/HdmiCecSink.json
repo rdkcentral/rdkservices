@@ -57,6 +57,11 @@
             "type": "string",
             "example": "0019fc"                        
         },
+        "status": {
+            "summary": "Whether the operation succeeded",
+            "type": "string",
+            "example": "success"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -219,6 +224,11 @@
                                 },
                                 "powerStatus": {
                                     "$ref": "#/definitions/powerStatus"
+                                },
+                                "portNumber": {
+                                    "Summary": "HDMI port number of the device",
+                                    "type": "integer",
+                                    "example": 0
                                 }
                             },
                             "required": [
@@ -228,7 +238,8 @@
                                 "cecVersion",
                                 "osdName",
                                 "vendorID",
-                                "powerStatus"
+                                "powerStatus",
+                                "portNumber"
                             ]
                         }
                     },
@@ -335,6 +346,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setMenuLanguage": {
+            "summary": "Updates the internal data structure with the new menu Language and also broadcasts the <Set Menu Language> CEC message",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "language":{
+                        "summary": "3 byte ASCII defined in ISO_639-2_codes (https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes)",
+                        "type": "string",
+                        "example": "chi" 
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setRoutingChange":{
             "summary": "Changes routing while switching between HDMI inputs and TV",
             "params": {
@@ -360,6 +390,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "SetupARCRouting":{
+            "summary": "Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing. ARC is initiated when HDMI-CEC sink is enabled.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Indicates whether HDMI-CEC ARC is enabled (`true`) or disabled (`false`). If enabled, the CEC <Request ARC Initiation> and <Report ARC Initiated> messages are sent. If disabled, the CEC <Request ARC Termination> and <Report ARC Terminated> messages are sent.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setVendorId":{
             "summary": "Sets a vendor ID for the sink device.",
             "params": {
@@ -376,7 +425,142 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
-
+        }
+    },
+    "events": {
+        "arcInitiationEvent": {
+            "summary": "Triggered when routing though the HDMI ARC port is successfully established",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "arcTerminationEvent": {
+            "summary": "Triggered when routing though the HDMI ARC port terminates",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "onActiveSourceChange": {
+            "summary": "Triggered with the active source device changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "physicalAddress": {
+                        "$ref": "#/definitions/physicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "physicalAddress"
+                ]
+            }
+        },
+        "onDeviceAdded": {
+            "summary": "Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information is collected such as CEC version, OSD name, vendor ID, and power status. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onDeviceRemoved": {
+            "summary": "Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onImageViewOnMsg": {
+            "summary": "Triggered when an <Image View ON> CEC message is received from the source device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onInActiveSource": {
+            "summary": "Triggered when the source is no longer active",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "physicalAddress": {
+                        "$ref": "#/definitions/physicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "physicalAddress"
+                ]
+            }
+        },
+        "onTextViewOnMsg": {
+            "summary": "Triggered when a <Text View ON> CEC message is received from the source device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onWakeupFromStandby": {
+            "summary": "Triggered when the source device changes status from STANDBY to ON and the <Image View ON> CEC message is received from the source device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
         }
     }
 }

@@ -8,7 +8,7 @@
     },
     "definitions": {
         "ui_language":{
-            "summary": "The language of the user interface",
+            "summary": "The preferred user interface language. The language is written to the `/opt/user_preferences.conf` file on the device. It is the responsibility of the client application to validate the language value and process it if required. Any language string that is valid on the client can be set.",
             "type": "string",
             "example": "US_en"
         },
@@ -31,7 +31,7 @@
     },
     "methods": {
         "getUILanguage ":{
-            "summary": "Returns the user preferred UI language",
+            "summary": "Returns the preferred user interface language",
             "result": {
                 "type": "object",
                 "properties": {
@@ -49,7 +49,7 @@
             }
         },
         "setUILanguage":{
-            "summary": "Sets the user preferred UI language",
+            "summary": "Sets the preferred user interface language",
             "params": {
                 "type": "object",
                 "properties": {

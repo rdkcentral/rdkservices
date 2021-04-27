@@ -112,23 +112,6 @@
                 ]
             }
         },
-        "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "enabled":{
-                        "$ref": "#/definitions/enabled" 
-                    }
-                },
-                "required": [
-                    "enabled"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
         "sendMessage":{
             "summary": "Writes HDMI-CEC frame to the driver",
             "params": {
@@ -140,6 +123,23 @@
                 },
                 "required": [
                     "message"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setEnabled":{
+            "summary": "Enables or disables HDMI-CEC",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled" 
+                    }
+                },
+                "required": [
+                    "enabled"
                 ]
             },
             "result": {

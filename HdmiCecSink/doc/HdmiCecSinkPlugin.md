@@ -14,6 +14,7 @@ org.rdk.HdmiCecSink plugin for Thunder framework.
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
 - [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
 <a name="head.Introduction"></a>
 # Introduction
@@ -21,7 +22,7 @@ org.rdk.HdmiCecSink plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the org.rdk.HdmiCecSink plugin. It includes detailed specification about its configuration and methods provided.
+This document describes purpose and functionality of the org.rdk.HdmiCecSink plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -93,7 +94,9 @@ HdmiCecSink interface methods:
 | [setActivePath](#method.setActivePath) | Sets the source device to active (`setStreamPath`) |
 | [setActiveSource](#method.setActiveSource) | Sets the current active source as TV (physical address 0 |
 | [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC sink |
+| [setMenuLanguage](#method.setMenuLanguage) | Updates the internal data structure with the new menu Language and also broadcasts the <Set Menu Language> CEC message |
 | [setRoutingChange](#method.setRoutingChange) | Changes routing while switching between HDMI inputs and TV |
+| [SetupARCRouting](#method.SetupARCRouting) | Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing |
 | [setVendorId](#method.setVendorId) | Sets a vendor ID for the sink device |
 
 
@@ -239,6 +242,7 @@ This method takes no parameters.
 | result.devicelist[#].osdName | string | OSD name of the device if available |
 | result.devicelist[#].vendorID | string | Vendor ID of the device |
 | result.devicelist[#].powerStatus | string | Power status of the device |
+| result.devicelist[#].portNumber | integer |  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -269,7 +273,8 @@ This method takes no parameters.
                 "cecVersion": "Version 1.4",
                 "osdName": "Fire TV Stick",
                 "vendorID": "0ce7",
-                "powerStatus": "Standby"
+                "powerStatus": "Standby",
+                "portNumber": 0
             }
         ],
         "success": true
@@ -533,6 +538,52 @@ Enables or disables HDMI-CEC sink.
 }
 ```
 
+<a name="method.setMenuLanguage"></a>
+## *setMenuLanguage <sup>method</sup>*
+
+Updates the internal data structure with the new menu Language and also broadcasts the <Set Menu Language> CEC message.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.language | string | 3 byte ASCII defined in ISO_639-2_codes (https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiCecSink.1.setMenuLanguage",
+    "params": {
+        "language": "chi"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setRoutingChange"></a>
 ## *setRoutingChange <sup>method</sup>*
 
@@ -565,6 +616,52 @@ Changes routing while switching between HDMI inputs and TV.
     "params": {
         "oldPort": "HDMI0",
         "newPort": "TV"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.SetupARCRouting"></a>
+## *SetupARCRouting <sup>method</sup>*
+
+Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing. ARC is initiated when HDMI-CEC sink is enabled.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | Indicates whether HDMI-CEC ARC is enabled (`true`) or disabled (`false`). If enabled, the CEC <Request ARC Initiation> and <Report ARC Initiated> messages are sent. If disabled, the CEC <Request ARC Termination> and <Report ARC Terminated> messages are sent |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiCecSink.1.SetupARCRouting",
+    "params": {
+        "enabled": true
     }
 }
 ```
@@ -623,6 +720,248 @@ Sets a vendor ID for the sink device.
     "id": 1234567890,
     "result": {
         "success": true
+    }
+}
+```
+
+<a name="head.Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+
+The following events are provided by the org.rdk.HdmiCecSink plugin:
+
+HdmiCecSink interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [arcInitiationEvent](#event.arcInitiationEvent) | Triggered when routing though the HDMI ARC port is successfully established |
+| [arcTerminationEvent](#event.arcTerminationEvent) | Triggered when routing though the HDMI ARC port terminates |
+| [onActiveSourceChange](#event.onActiveSourceChange) | Triggered with the active source device changes |
+| [onDeviceAdded](#event.onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
+| [onDeviceRemoved](#event.onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
+| [onImageViewOnMsg](#event.onImageViewOnMsg) | Triggered when an <Image View ON> CEC message is received from the source device |
+| [onInActiveSource](#event.onInActiveSource) | Triggered when the source is no longer active |
+| [onTextViewOnMsg](#event.onTextViewOnMsg) | Triggered when a <Text View ON> CEC message is received from the source device |
+| [onWakeupFromStandby](#event.onWakeupFromStandby) | Triggered when the source device changes status from STANDBY to ON and the <Image View ON> CEC message is received from the source device |
+
+
+<a name="event.arcInitiationEvent"></a>
+## *arcInitiationEvent <sup>event</sup>*
+
+Triggered when routing though the HDMI ARC port is successfully established.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | string | Whether the operation succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.arcInitiationEvent",
+    "params": {
+        "status": "success"
+    }
+}
+```
+
+<a name="event.arcTerminationEvent"></a>
+## *arcTerminationEvent <sup>event</sup>*
+
+Triggered when routing though the HDMI ARC port terminates.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | string | Whether the operation succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.arcTerminationEvent",
+    "params": {
+        "status": "success"
+    }
+}
+```
+
+<a name="event.onActiveSourceChange"></a>
+## *onActiveSourceChange <sup>event</sup>*
+
+Triggered with the active source device changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+| params.physicalAddress | string | Physical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onActiveSourceChange",
+    "params": {
+        "logicalAddress": 4,
+        "physicalAddress": "1.0.0.0"
+    }
+}
+```
+
+<a name="event.onDeviceAdded"></a>
+## *onDeviceAdded <sup>event</sup>*
+
+Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information is collected such as CEC version, OSD name, vendor ID, and power status. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDeviceAdded",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.onDeviceRemoved"></a>
+## *onDeviceRemoved <sup>event</sup>*
+
+Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDeviceRemoved",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.onImageViewOnMsg"></a>
+## *onImageViewOnMsg <sup>event</sup>*
+
+Triggered when an <Image View ON> CEC message is received from the source device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onImageViewOnMsg",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.onInActiveSource"></a>
+## *onInActiveSource <sup>event</sup>*
+
+Triggered when the source is no longer active.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+| params.physicalAddress | string | Physical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onInActiveSource",
+    "params": {
+        "logicalAddress": 4,
+        "physicalAddress": "1.0.0.0"
+    }
+}
+```
+
+<a name="event.onTextViewOnMsg"></a>
+## *onTextViewOnMsg <sup>event</sup>*
+
+Triggered when a <Text View ON> CEC message is received from the source device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onTextViewOnMsg",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.onWakeupFromStandby"></a>
+## *onWakeupFromStandby <sup>event</sup>*
+
+Triggered when the source device changes status from STANDBY to ON and the <Image View ON> CEC message is received from the source device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onWakeupFromStandby",
+    "params": {
+        "logicalAddress": 4
     }
 }
 ```

@@ -90,6 +90,7 @@ Network interface methods:
 | [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
 | [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
+| [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
 | [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
@@ -209,6 +210,7 @@ Gets the IP setting for the given interface.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
+| params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
 
 ### Result
 
@@ -235,7 +237,8 @@ Gets the IP setting for the given interface.
     "id": 1234567890,
     "method": "org.rdk.Network.1.getIPSettings",
     "params": {
-        "interface": "WIFI"
+        "interface": "WIFI",
+        "ipversion": "IPv4"
     }
 }
 ```
@@ -331,6 +334,54 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.Network.1.getStbIp"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "ip": "192.168.1.101",
+        "success": true
+    }
+}
+```
+
+<a name="method.getSTBIPFamily"></a>
+## *getSTBIPFamily <sup>method</sup>*
+
+Gets the IP address of the default interface by address family.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.family | string | The address family to query |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ip | string | The IP address |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Network.1.getSTBIPFamily",
+    "params": {
+        "family": "AF_INET"
+    }
 }
 ```
 

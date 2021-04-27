@@ -37,7 +37,7 @@
             "example": "password"
         },
         "securityMode": {
-            "summary": "The security mode",
+            "summary": "The security mode. See `getSupportedSecurityModes`.",
             "type": "integer",
             "example": 2
         },
@@ -106,7 +106,7 @@
             }
         },
         "connect":{
-            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.  \n**Security Modes**  \n* `0`: None - No security  \n* `1`: WEP_64  \n* `2`: WEP_128 \n* `3`: WPA_PSK_TKIP  \n* `4`: WPA_PSK_AES  \n* `5`: WPA2_PSK_TKIP  \n* `6`: WPA2_PSK_AES  \n* `7`: WPA_ENTERPRISE_TKIP  \n* `8`: WPA_ENTERPRISE_AES  \n* `9`: WPA2_ENTERPRISE_TKIP \n* `10`: WPA2_ENTERPRISE_AES  \n* `15`: NOT_SUPPORTED",
+            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -251,6 +251,75 @@
                 "required": [
                     "ssid",
                     "bssid",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedSecurityModes":{
+            "summary": "Returns the Wifi security modes that the device supports",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "security_modes": {
+                        "summary": "The supported security modes and its associated integer value.",
+                        "type": "object",
+                        "properties": {
+                            "NET_WIFI_SECURITY_NONE": {
+                                "type": "integer",
+                                "example": 0 
+                            },
+                            "NET_WIFI_SECURITY_WEP_64": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "NET_WIFI_SECURITY_WEP_128": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "NET_WIFI_SECURITY_WPA_PSK_TKIP": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "NET_WIFI_SECURITY_WPA_PSK_AES": {
+                                "type": "integer",
+                                "example": 4
+                            },
+                            "NET_WIFI_SECURITY_WPA2_PSK_TKIP": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "NET_WIFI_SECURITY_WPA2_PSK_AES": {
+                                "type": "integer",
+                                "example": 6
+                            },
+                            "NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP": {
+                                "type": "integer",
+                                "example": 7
+                            },
+                            "NET_WIFI_SECURITY_WPA_ENTERPRISE_AES": {
+                                "type": "integer",
+                                "example": 8
+                            },
+                            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP": {
+                                "type": "integer",
+                                "example": 9
+                            },
+                            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "NET_WIFI_SECURITY_WPA3_SAE": {
+                                "type": "integer",
+                                "example": 14
+                            }
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "security_modes",
                     "success"
                 ]
             }

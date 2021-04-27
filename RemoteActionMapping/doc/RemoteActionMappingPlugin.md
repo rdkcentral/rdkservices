@@ -85,13 +85,13 @@ RemoteActionMapping interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cancelCodeDownload](#method.cancelCodeDownload) |  |
+| [cancelCodeDownload](#method.cancelCodeDownload) | Cancels downloading IR and five digit codes from the IRRF database |
 | [clearKeyActionMapping](#method.clearKeyActionMapping) | Clears an action mapping for the specified keys |
 | [getApiVersionNumber](#method.getApiVersionNumber) | Returns the API version number |
-| [getFullKeyActionMapping](#method.getFullKeyActionMapping) | Returns mapping of all action keys |
+| [getFullKeyActionMapping](#method.getFullKeyActionMapping) | Returns the mapping of all action keys |
 | [getKeymap](#method.getKeymap) | Returns a hard-coded list of key names |
 | [getLastUsedDeviceID](#method.getLastUsedDeviceID) | Returns the last used remote information |
-| [getSingleKeyActionMapping](#method.getSingleKeyActionMapping) | Returns the mapping of single action key |
+| [getSingleKeyActionMapping](#method.getSingleKeyActionMapping) | Returns the mapping for a single action key |
 | [setFiveDigitCode](#method.setFiveDigitCode) | Sets the TV and AVR five digit code |
 | [setKeyActionMapping](#method.setKeyActionMapping) | Sets the mapping of a single action key |
 
@@ -99,7 +99,7 @@ RemoteActionMapping interface methods:
 <a name="method.cancelCodeDownload"></a>
 ## *cancelCodeDownload <sup>method</sup>*
 
-.
+Cancels downloading IR and five digit codes from the IRRF database.
 
 ### Parameters
 
@@ -113,7 +113,7 @@ RemoteActionMapping interface methods:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -166,7 +166,7 @@ Clears an action mapping for the specified keys.
 | result | object |  |
 | result.keyNames | array | The remote key name |
 | result.keyNames[#] | integer |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -249,7 +249,7 @@ This method takes no parameters.
 <a name="method.getFullKeyActionMapping"></a>
 ## *getFullKeyActionMapping <sup>method</sup>*
 
-Returns mapping of all action keys.
+Returns the mapping of all action keys.
 
 ### Parameters
 
@@ -272,7 +272,7 @@ Returns mapping of all action keys.
 | result?.KeyMappings[#].tvIRKeyCode[#] | integer |  |
 | result?.KeyMappings[#].avrIRKeyCode | array | AVR IR code of a particular key name. A byte [] of length 12 |
 | result?.KeyMappings[#].avrIRKeyCode[#] | integer |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -336,7 +336,7 @@ Returns a hard-coded list of key names.
 | result | object |  |
 | result.keyNames | array | The remote key name |
 | result.keyNames[#] | integer |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -386,10 +386,10 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.deviceID | integer | An ID in the range of `0` - `_CTRLM_RCU_IARM_BUS_API_REVISION_` |
-| result.remoteType | string | The remote type returned by a `CTRLM_MAIN_IARM_CALL_NETWORK_STATUS_GET` call |
-| result.fiveDigitCodePresent | boolean | Returns `true` if the remote has the TVs five digits code saved |
+| result.remoteType | string | The remote type as returned by `CTRLM_MAIN_IARM_CALL_NETWORK_STATUS_GET` |
+| result.fiveDigitCodePresent | boolean | Returns `true` if the remote has the TV's five digits code saved |
 | result.setFiveDigitCodeSupported | boolean | Returns `true` if five digit code support is enabled |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -424,7 +424,7 @@ This method takes no parameters.
 <a name="method.getSingleKeyActionMapping"></a>
 ## *getSingleKeyActionMapping <sup>method</sup>*
 
-Returns the mapping of single action key.
+Returns the mapping for a single action key.
 
 ### Parameters
 
@@ -447,7 +447,7 @@ Returns the mapping of single action key.
 | result?.KeyMapping.tvIRKeyCode[#] | integer |  |
 | result?.KeyMapping.avrIRKeyCode | array | AVR IR code of a particular key name. A byte [] of length 12 |
 | result?.KeyMapping.avrIRKeyCode[#] | integer |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -511,7 +511,7 @@ Also see: [onFiveDigitCodeLoad](#event.onFiveDigitCodeLoad)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -547,7 +547,7 @@ Also see: [onFiveDigitCodeLoad](#event.onFiveDigitCodeLoad)
 <a name="method.setKeyActionMapping"></a>
 ## *setKeyActionMapping <sup>method</sup>*
 
-Sets the mapping of a single action key. Unavailable (returns error) if if the remote supports 5 digit codes.
+Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.
 
 Also see: [onIRCodeLoad](#event.onIRCodeLoad)
 
@@ -572,7 +572,7 @@ Also see: [onIRCodeLoad](#event.onIRCodeLoad)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.status_code | integer | Returns `0` if no error has occurred, otherwise an error code |
+| result.status_code | integer | Returns `0` if no error has occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example

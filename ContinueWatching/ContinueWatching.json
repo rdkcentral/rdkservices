@@ -30,6 +30,23 @@
         }
     },
     "methods": {
+        "deleteApplicationToken":{
+            "summary": "Deletes the stored tokens for a particular application",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    }
+                },
+                "required": [
+                    "applicationName"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "getApplicationToken":{
             "summary": "Retrieves the tokens for a particular application",
             "params": {
@@ -73,23 +90,6 @@
                     "application_token",
                     "success"
                 ] 
-            }
-        },
-        "deleteApplicationToken":{
-            "summary": "Deletes the stored tokens for a particular application",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "applicationName": {
-                        "$ref": "#/definitions/applicationName"
-                    }
-                },
-                "required": [
-                    "applicationName"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
             }
         },
         "setApplicationToken":{

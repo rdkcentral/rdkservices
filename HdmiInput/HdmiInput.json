@@ -45,6 +45,11 @@
             "type": "boolean",
             "example": true
         },
+        "portId":{
+            "summary": "An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method",
+            "type": "string",
+            "example": "0"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -81,25 +86,129 @@
                 ]
             }
         },
-        "readEDID":{
-            "summary": "Returns the current EDID value",
+        "getHDMISPD": {
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
             "result": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "summary": "The EDID value, currently stubbed",
+                    "HDMISPD": {
+                        "summary": "The SPD information",
                         "type": "string",
-                        "example": "HdmiInputEDIDStub"
+                        "example": ""
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "name",
+                    "HDMISPD",
                     "success"
                 ]
             }
+        },
+        "getRawHDMISPD":{
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HDMISPD": {
+                        "summary": "The SPD information as raw bits",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "HDMISPD",
+                    "success"
+                ]
+            }
+        },
+        "readEDID":{
+            "summary": "Returns the current EDID value",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceId": {
+                        "$ref": "#/definitions/id"
+                    }
+                },
+                "required": [
+                    "deviceId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "EDID": {
+                        "summary": "The EDID Value",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "EDID",
+                    "success"
+                ]
+            }
+        },
+        "startHdmiInput": {
+            "summary": "Activates the specified HDMI Input port as the primary video source",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopHdmiInput": {
+            "summary": "Deactivates the HDMI Input port currently selected as the primary video source",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }            
         },
         "setVideoRectangle": {
             "summary": "Sets an HDMI Input video window",
@@ -136,40 +245,6 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
-
-        },
-        "startHdmiInput": {
-            "summary": "Activates the specified HDMI Input port as the primary video source",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "portid":{
-                        "summary": "An ID of an HDMI Input port. Use The `getHdmiInputDevices` method to list available HDMI Input ports.",
-                        "type": "number",
-                        "example": 0
-                    }
-                },
-                "required": [
-                    "portid"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "stopHdmiInput": {
-            "summary": "Deactivates the HDMI Input port currently selected as the primary video source",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
-            }            
         },
         "writeEDID": {
             "summary": "Changes a current EDID value",

@@ -86,8 +86,6 @@ DisplaySettings interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [enableSurroundDecoder](#method.enableSurroundDecoder) | Enables or disables Surround Decoder capability |
-| [isConnectedDeviceRepeater](#method.isConnectedDeviceRepeater) | Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater |
-| [isSurroundDecoderEnabled](#method.isSurroundDecoderEnabled) | Returns the current status of Surround Decoder |
 | [getActiveInput](#method.getActiveInput) | Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`) |
 | [getAudioDelay](#method.getAudioDelay) | Returns the audio delay (in ms) on the selected audio port |
 | [getAudioDelayOffset](#method.getAudioDelayOffset) | Returns the audio delay offset (in ms) on the selected audio port |
@@ -100,16 +98,22 @@ DisplaySettings interface methods:
 | [getDialogEnhancement](#method.getDialogEnhancement) | Returns the current Dialog Enhancer level (port HDMI0) |
 | [getDolbyVolumeMode](#method.getDolbyVolumeMode) | Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0) |
 | [getDRCMode](#method.getDRCMode) | Returns the current Dynamic Range Control mode |
+| [getEnableAudioPort](#method.getEnableAudioPort) |  Returns the current status of the specified input audio port |
 | [getGain](#method.getGain) | Returns the current gain value |
+| [getGraphicEqualizerMode](#method.getGraphicEqualizerMode) | Returns the current Graphic Equalizer Mode setting (port HDMI0) |
 | [getIntelligentEqualizerMode](#method.getIntelligentEqualizerMode) | Returns the current Intelligent Equalizer Mode setting (port HDMI0) |
 | [getMISteering](#method.getMISteering) | Returns the current status of Media Intelligence Steering settings |
 | [getMS12AudioCompression](#method.getMS12AudioCompression) | Returns the current audio compression settings |
+| [getMS12AudioProfile](#method.getMS12AudioProfile) | Returns the current MS12 audio profile settings |
 | [getMuted](#method.getMuted) | Returns whether audio is muted on a given port |
+| [getSettopAudioCapabilities](#method.getSettopAudioCapabilities) | Returns the set-top audio capabilities for the specified audio port |
 | [getSettopHDRSupport](#method.getSettopHDRSupport) | Returns an HDR support object (list of standards that the STB supports) |
+| [getSettopMS12Capabilities](#method.getSettopMS12Capabilities) | Returns the set-top MS12 audio capabilities for the specified audio port |
 | [getSinkAtmosCapability](#method.getSinkAtmosCapability) | Returns the ATMOS capability of the sink (HDMI0) |
 | [getSoundMode](#method.getSoundMode) | Returns the sound mode for the incoming video display |
 | [getSupportedAudioModes](#method.getSupportedAudioModes) | Returns a list of strings containing the supported audio modes |
 | [getSupportedAudioPorts](#method.getSupportedAudioPorts) | Returns all audio ports supported on the device (all ports that are physically present) |
+| [getSupportedMS12AudioProfiles](#method.getSupportedMS12AudioProfiles) | Returns list of platform supported MS12 audio profiles for the specified audio port |
 | [getSupportedResolutions](#method.getSupportedResolutions) | Returns supported resolutions on the selected video display port (both TV and STB) by its name |
 | [getSupportedSettopResolutions](#method.getSupportedSettopResolutions) | Returns supported STB resolutions |
 | [getSupportedTvResolutions](#method.getSupportedTvResolutions) | Returns supported TV resolutions on the selected video display port |
@@ -121,6 +125,8 @@ DisplaySettings interface methods:
 | [getVolumeLevel](#method.getVolumeLevel) | Returns the current volume level |
 | [getVolumeLeveller](#method.getVolumeLeveller) | Returns the current Volume Leveller level |
 | [getZoomSetting](#method.getZoomSetting) | Returns the zoom setting value |
+| [isConnectedDeviceRepeater](#method.isConnectedDeviceRepeater) | Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater |
+| [isSurroundDecoderEnabled](#method.isSurroundDecoderEnabled) | Returns the current status of Surround Decoder |
 | [readEDID](#method.readEDID) | Reads the EDID from the connected HDMI (output) device |
 | [readHostEDID](#method.readHostEDID) | Reads the EDID of the host (STB) |
 | [setAudioAtmosOutputMode](#method.setAudioAtmosOutputMode) | Sets ATMOS audio output mode (on HDMI0) |
@@ -131,10 +137,13 @@ DisplaySettings interface methods:
 | [setDialogEnhancement](#method.setDialogEnhancement) | Sets the Dialog Enhancer level |
 | [setDolbyVolumeMode](#method.setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#method.setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
+| [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port ID |
 | [setGain](#method.setGain) | Adjusts the gain on a specific port |
+| [setGraphicEqualizerMode](#method.setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
 | [setIntelligentEqualizerMode](#method.setIntelligentEqualizerMode) | Sets the Intelligent Equalizer mode (port HDMI0) |
 | [setMISteering](#method.setMISteering) | Enables or Disables Media Intelligent Steering |
 | [setMS12AudioCompression](#method.setMS12AudioCompression) | Sets the audio dynamic range compression level (port HDMI0) |
+| [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
@@ -155,7 +164,7 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.surroundDecoderEnable | boolean | Whether Surround Decoder is is enabled (`true`) or disabled (`false`) |
 
 ### Result
@@ -193,96 +202,6 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 }
 ```
 
-<a name="method.isConnectedDeviceRepeater"></a>
-## *isConnectedDeviceRepeater <sup>method</sup>*
-
-Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.HdcpRepeater | boolean | `true` if the device is an HDCP repeater otherwise `false` |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.isConnectedDeviceRepeater"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "HdcpRepeater": true,
-        "success": true
-    }
-}
-```
-
-<a name="method.isSurroundDecoderEnabled"></a>
-## *isSurroundDecoderEnabled <sup>method</sup>*
-
-Returns the current status of Surround Decoder.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.surroundDecoderEnable | boolean | Whether Surround Decoder is is enabled (`true`) or disabled (`false`) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.isSurroundDecoderEnabled",
-    "params": {
-        "audioPort": "SPEAKER0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "surroundDecoderEnable": true,
-        "success": true
-    }
-}
-```
-
 <a name="method.getActiveInput"></a>
 ## *getActiveInput <sup>method</sup>*
 
@@ -300,7 +219,7 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default value is `HDMI0` if no port is specified |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -348,7 +267,7 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 
 ### Result
 
@@ -396,7 +315,7 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 
 ### Result
 
@@ -444,7 +363,7 @@ Returns the current status of the Bass Enhancer settings.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -632,7 +551,7 @@ Returns the current resolution on the selected video display port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default value is `HDMI0` if no port is specified |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -808,7 +727,7 @@ Returns the current Dynamic Range Control mode.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -846,6 +765,54 @@ Returns the current Dynamic Range Control mode.
 }
 ```
 
+<a name="method.getEnableAudioPort"></a>
+## *getEnableAudioPort <sup>method</sup>*
+
+ Returns the current status of the specified input audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.enable | boolean | `true` if the audio port is enabled, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getEnableAudioPort",
+    "params": {
+        "audioPort": "HDMI0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "enable": true,
+        "success": true
+    }
+}
+```
+
 <a name="method.getGain"></a>
 ## *getGain <sup>method</sup>*
 
@@ -856,7 +823,7 @@ Returns the current gain value.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -894,6 +861,56 @@ Returns the current gain value.
 }
 ```
 
+<a name="method.getGraphicEqualizerMode"></a>
+## *getGraphicEqualizerMode <sup>method</sup>*
+
+Returns the current Graphic Equalizer Mode setting (port HDMI0).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.enable | boolean | `true` if Graphic Equalizer Mode is enabled, otherwise `false` |
+| result.mode | integer | Graphic Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getGraphicEqualizerMode",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "enable": true,
+        "mode": 2,
+        "success": true
+    }
+}
+```
+
 <a name="method.getIntelligentEqualizerMode"></a>
 ## *getIntelligentEqualizerMode <sup>method</sup>*
 
@@ -908,8 +925,8 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.enable | boolean | `true` if intelligent Equalizer Mode is enabled, otherwise `false` |
-| result.mode | integer | Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error) |
+| result.enable | boolean | `true` if Intelligent Equalizer Mode is enabled, otherwise `false` |
+| result.mode | integer | Intelligent Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -948,7 +965,7 @@ Returns the current status of Media Intelligence Steering settings.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1030,6 +1047,54 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getMS12AudioProfile"></a>
+## *getMS12AudioProfile <sup>method</sup>*
+
+Returns the current MS12 audio profile settings.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ms12AudioProfile | string | An MS12 audio profile name from `getSupportedMS12AudioProfile` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getMS12AudioProfile",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "ms12AudioProfile": "Game",
+        "success": true
+    }
+}
+```
+
 <a name="method.getMuted"></a>
 ## *getMuted <sup>method</sup>*
 
@@ -1040,7 +1105,7 @@ Returns whether audio is muted on a given port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1073,6 +1138,57 @@ Returns whether audio is muted on a given port.
     "id": 1234567890,
     "result": {
         "muted": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.getSettopAudioCapabilities"></a>
+## *getSettopAudioCapabilities <sup>method</sup>*
+
+Returns the set-top audio capabilities for the specified audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.audioCapabilities | array | A string [] of audio capabilities |
+| result.audioCapabilities[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getSettopAudioCapabilities",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "audioCapabilities": [
+            "DOLBY DIGITAL"
+        ],
         "success": true
     }
 }
@@ -1125,6 +1241,57 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getSettopMS12Capabilities"></a>
+## *getSettopMS12Capabilities <sup>method</sup>*
+
+Returns the set-top MS12 audio capabilities for the specified audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ms12Capabilities | array | A string [] of MS12 audio capabilities |
+| result.ms12Capabilities[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getSettopMS12Capabilities",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "ms12Capabilities": [
+            "Dolby Volume"
+        ],
+        "success": true
+    }
+}
+```
+
 <a name="method.getSinkAtmosCapability"></a>
 ## *getSinkAtmosCapability <sup>method</sup>*
 
@@ -1139,7 +1306,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.atmos_capability | integer | <sup>*(optional)*</sup> ATMOS Capability (`1` = open, `2` = rich, `3` = focused or `0` in case of error) |
+| result?.atmos_capability | integer | <sup>*(optional)*</sup> ATMOS Capability (`0` = off, `1` = open, `2` = rich, `3` = focused) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1177,7 +1344,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 
 ### Result
 
@@ -1231,7 +1398,7 @@ For **Auto** mode in DS5, this API has the following extra specification:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 
 ### Result
 
@@ -1317,6 +1484,57 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getSupportedMS12AudioProfiles"></a>
+## *getSupportedMS12AudioProfiles <sup>method</sup>*
+
+Returns list of platform supported MS12 audio profiles for the specified audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.supportedMS12AudioProfiles | array | A string [] of MS12 audio profiles |
+| result.supportedMS12AudioProfiles[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getSupportedMS12AudioProfiles",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "supportedMS12AudioProfiles": [
+            "Movie"
+        ],
+        "success": true
+    }
+}
+```
+
 <a name="method.getSupportedResolutions"></a>
 ## *getSupportedResolutions <sup>method</sup>*
 
@@ -1327,7 +1545,7 @@ Returns supported resolutions on the selected video display port (both TV and ST
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default value is `HDMI0` if no port is specified |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1423,7 +1641,7 @@ Returns supported TV resolutions on the selected video display port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default value is `HDMI0` if no port is specified |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1519,7 +1737,7 @@ Returns the current Surround Virtualizer boost settings.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1713,7 +1931,7 @@ Returns the current volume level.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1761,7 +1979,7 @@ Returns the current Volume Leveller level.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1838,6 +2056,96 @@ This method takes no parameters.
     "id": 1234567890,
     "result": {
         "zoomSetting": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.isConnectedDeviceRepeater"></a>
+## *isConnectedDeviceRepeater <sup>method</sup>*
+
+Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.HdcpRepeater | boolean | `true` if the device is an HDCP repeater otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.isConnectedDeviceRepeater"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "HdcpRepeater": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.isSurroundDecoderEnabled"></a>
+## *isSurroundDecoderEnabled <sup>method</sup>*
+
+Returns the current status of Surround Decoder.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.surroundDecoderEnable | boolean | Whether Surround Decoder is is enabled (`true`) or disabled (`false`) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.isSurroundDecoderEnabled",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "surroundDecoderEnable": true,
         "success": true
     }
 }
@@ -1983,7 +2291,7 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 | params.audioDelay | string | Delay (in ms) on the selected audio port |
 
 ### Result
@@ -2031,7 +2339,7 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 | params.audioDelayOffset | string | Delay offset (in ms) on the selected audio port |
 
 ### Result
@@ -2079,7 +2387,7 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.bassBoost | integer | Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost |
 
 ### Result
@@ -2127,7 +2435,7 @@ Sets the current resolution.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default value is `HDMI0` if no port is specified |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 | params.resolution | string | Video display resolution |
 
 ### Result
@@ -2267,7 +2575,7 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.DRCMode | integer | Value of 0 or 1, where 0 is Line mode and 1 is RF mode |
 
 ### Result
@@ -2305,6 +2613,54 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 }
 ```
 
+<a name="method.setEnableAudioPort"></a>
+## *setEnableAudioPort <sup>method</sup>*
+
+Enable or disable the specified audio port based on the input audio port ID. This feature provides the consumer with a single user control to enable or disable the specified audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.enable | boolean | `true` enables the specified audio port. `false` disables the specified audio port |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.setEnableAudioPort",
+    "params": {
+        "audioPort": "HDMI0",
+        "enable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setGain"></a>
 ## *setGain <sup>method</sup>*
 
@@ -2315,7 +2671,7 @@ Adjusts the gain on a specific port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.gain | number | Value between 0 and 100, where 0 means no gain and 100 means maximum gain |
 
 ### Result
@@ -2353,6 +2709,54 @@ Adjusts the gain on a specific port.
 }
 ```
 
+<a name="method.setGraphicEqualizerMode"></a>
+## *setGraphicEqualizerMode <sup>method</sup>*
+
+Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer that allows the end user to customize the sonic qualities of the system.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.graphicEqualizerMode | integer | Graphic Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.setGraphicEqualizerMode",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "graphicEqualizerMode": 2
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setIntelligentEqualizerMode"></a>
 ## *setIntelligentEqualizerMode <sup>method</sup>*
 
@@ -2363,7 +2767,7 @@ Sets the Intelligent Equalizer mode (port HDMI0).
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.intelligentEqualizerMode | integer | Intelligent Equalizer mode (`1` = open, `2` = rich, `3` = focused, or `0` in case of error) |
+| params.intelligentEqualizerMode | integer | Intelligent Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused) |
 
 ### Result
 
@@ -2409,7 +2813,7 @@ Enables or Disables Media Intelligent Steering.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.MISteeringEnable | boolean | Whether Media Intelligence Steering is enabled (`true`) or disabled (`false`) |
 
 ### Result
@@ -2493,6 +2897,54 @@ Sets the audio dynamic range compression level (port HDMI0).
 }
 ```
 
+<a name="method.setMS12AudioProfile"></a>
+## *setMS12AudioProfile <sup>method</sup>*
+
+Sets the selected MS12 audio profile.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.ms12AudioProfile | string | An MS12 audio profile name from `getSupportedMS12AudioProfile` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.setMS12AudioProfile",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "ms12AudioProfile": "Game"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setMuted"></a>
 ## *setMuted <sup>method</sup>*
 
@@ -2503,7 +2955,7 @@ Mutes or unmutes audio on a specific port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.muted | boolean | mute or unmute audio |
 
 ### Result
@@ -2609,7 +3061,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name |
+| params.audioPort | string | Audio port name. An error returns if no port is specified |
 | params.soundMode | string | Sound mode. Possible values: `AUTO`, `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `Dolby Digital 5.1`, `MONO`, `SURROUND`, `STEREO` |
 | params.persist | boolean | persists the sound mode |
 
@@ -2659,7 +3111,7 @@ Sets the Surround Virtualizer boost.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.boost | integer | Value between 0 and 96, where 0 means no boost and 96 means maximum boost |
 
 ### Result
@@ -2757,7 +3209,7 @@ Adjusts the Volume Level on a specific port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.volumeLevel | number | Value between 0 and 100, where 0 means no level and 100 means maximum level |
 
 ### Result
@@ -2805,7 +3257,7 @@ Sets the Volume Leveller level. Volume Leveler is an advanced volume-control sol
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default value is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.level | integer | Value between 0 and 10, where 0 means no level and 10 means maximum level |
 
 ### Result
@@ -2901,6 +3353,8 @@ DisplaySettings interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [activeInputChanged](#event.activeInputChanged) | Triggered on active input change (RxSense) |
+| [audioMuteStatusChanged](#event.audioMuteStatusChanged) | Triggered when the mute setting changes for the current audio port |
+| [connectedAudioPortUpdated](#event.connectedAudioPortUpdated) | Triggered when the connected audio port is updated |
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
 | [resolutionPreChange](#event.resolutionPreChange) | Triggered on resolution pre-change |
@@ -2927,6 +3381,56 @@ Triggered on active input change (RxSense).
     "method": "client.events.1.activeInputChanged",
     "params": {
         "activeInput": true
+    }
+}
+```
+
+<a name="event.audioMuteStatusChanged"></a>
+## *audioMuteStatusChanged <sup>event</sup>*
+
+Triggered when the mute setting changes for the current audio port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.muteStatus | boolean | `true` if muted, otherwise `false` |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.audioMuteStatusChanged",
+    "params": {
+        "muteStatus": true
+    }
+}
+```
+
+<a name="event.connectedAudioPortUpdated"></a>
+## *connectedAudioPortUpdated <sup>event</sup>*
+
+Triggered when the connected audio port is updated.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.HotpluggedAudioPort | string | <sup>*(optional)*</sup> Audio port ID for which the connection status has changed. Possible audio port IDs are (`HDMI_ARC0`, `HEADPHONE0`,  etc) |
+| params.isConnected | string | Current connection status of the audio port (must be one of the following: *connected*, *disconnected*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.connectedAudioPortUpdated",
+    "params": {
+        "HotpluggedAudioPort": "HDMI_ARC0",
+        "isConnected": "connected"
     }
 }
 ```

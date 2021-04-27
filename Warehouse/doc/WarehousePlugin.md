@@ -88,7 +88,7 @@ Warehouse interface methods:
 | [getDeviceInfo](#method.getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
 | [internalReset](#method.internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
 | [isClean](#method.isClean) | Checks the locations on the device where customer data may be stored |
-| [lightReset](#method.lightReset) | Performs a light reset of application data |
+| [lightReset](#method.lightReset) | Resets the application data |
 | [resetDevice](#method.resetDevice) | Resets the STB to the warehouse state |
 | [setFrontPanelState](#method.setFrontPanelState) | Sets the state of the front panel LEDs to indicate the download state of the STB software image |
 
@@ -260,7 +260,7 @@ This method takes no parameters.
 <a name="method.lightReset"></a>
 ## *lightReset <sup>method</sup>*
 
-Performs a light reset of application data.
+Resets the application data.
 
 ### Parameters
 
@@ -302,7 +302,7 @@ This method takes no parameters.
 <a name="method.resetDevice"></a>
 ## *resetDevice <sup>method</sup>*
 
-Resets the STB to the warehouse state. It dispatches a `resetDone` event notifying a success or failure.
+Resets the STB to the warehouse state. It dispatches a `resetDone` event notification indicating a successful reset or failure.
 
 Also see: [resetDone](#event.resetDone)
 
@@ -312,7 +312,7 @@ Also see: [resetDone](#event.resetDone)
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.suppressReboot | boolean | if `true`, the STB should not be rebooted, otherwise `false`. Only the `WAREHOUSE` reset type supports suppressing the reboot |
-| params.resetType | string | The reset type. If no `resetType` is specified, then `WAREHOUSE` is the default. (must be one of the following: *WAREHOUSE*, *FACTORY*, *USERFACTORY*, *COLDFACTORY*) |
+| params.resetType | string | The reset type. If `resetType` is not specified, then `WAREHOUSE` is the default. (must be one of the following: *WAREHOUSE*, *FACTORY*, *USERFACTORY*, *COLDFACTORY*) |
 
 ### Result
 

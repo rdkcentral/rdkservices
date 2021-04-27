@@ -87,7 +87,7 @@ ControlService interface methods:
 | :-------- | :-------- |
 | [canFindMyRemote](#method.canFindMyRemote) | Checks if the Control Manager can search for the remote |
 | [endPairingMode](#method.endPairingMode) | Leaves pairing mode |
-| [findMyRemote](#method.findMyRemote) | Searches for the remote |
+| [findLastUsedRemote](#method.findLastUsedRemote) | Searches for the remote |
 | [getAllRemoteData](#method.getAllRemoteData) | Returns all remote data |
 | [getLastKeypressSource](#method.getLastKeypressSource) | Returns last key press source data |
 | [getLastPairedRemoteData](#method.getLastPairedRemoteData) | Returns all remote data for the last paired remote |
@@ -189,8 +189,8 @@ Leaves pairing mode.
 }
 ```
 
-<a name="method.findMyRemote"></a>
-## *findMyRemote <sup>method</sup>*
+<a name="method.findLastUsedRemote"></a>
+## *findLastUsedRemote <sup>method</sup>*
 
 Searches for the remote.
 
@@ -218,7 +218,7 @@ Searches for the remote.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.ControlService.1.findMyRemote",
+    "method": "org.rdk.ControlService.1.findLastUsedRemote",
     "params": {
         "timeOutPeriod": 100,
         "bOnlyLastUsed": true

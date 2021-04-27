@@ -56,6 +56,29 @@
             "type": "string",
             "example": "20"
         },
+        "ranges": {
+            "summary": "Active period time ranges. Setting a single range with startTime and endTime set to 0 disables the active period and allows the sensor to be armed 24 hours per day. In this case, the nowTime parameter is ignored.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "startTime": {
+                        "summary": "The start time of the active sensor period, in seconds, since midnight in local time",
+                        "type": "integer",
+                        "example": 21600
+                    },
+                    "endTime": {
+                        "summary": "The end time of the active sensor period, in seconds, since midnight in local time",
+                        "type": "integer",
+                        "example": 71000                    
+                    }
+                },
+                "required": [
+                    "startTime",
+                    "endTime"
+                ]
+            }
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -243,6 +266,37 @@
                 ]
             }
         },
+        "getMotionEventsActivePeriod": {
+            "summary": "Returns the configured times during the day when the motion sensor is active and detecting motion",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ranges": {
+                        "$ref": "#/definitions/ranges"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "anyOf": [
+                    {
+                        "ranges": {
+                            "$ref": "#/definitions/ranges"
+                        }
+                    },
+                    {
+                        "message": {
+                            "summary": "A message indicating that no active time period is set (only returned if no ranges are configured)",
+                            "type": "string",
+                            "example": "No Active Periods Set"
+                        }
+                    }
+                ],                
+                "required": [
+                    "success"
+                ]
+            }
+        },
         "getNoMotionPeriod":{
             "summary": "Returns the no-motion period for the specified motion detector",
             "params": {
@@ -295,6 +349,25 @@
                         "$ref": "#/definitions/success"
                     }
                 },
+                "anyOf": [
+                    {
+                        "if": {
+                            "properties": { "sensitivityMode": { "const":  2 } }
+                        },
+                        "then": {
+                            "properties": { "name": { "$ref": "#/definitions/name" } }
+                        }
+                    },
+                    {
+                        "if":{
+                            "properties": { "sensitivityMode": { "const": 1 } }
+                        },
+                        "then": {
+                            "properties": { "value": { "$ref": "#/definitions/value" }
+                            }
+                        }
+                    }
+                ],
                 "required": [
                     "success"  
                 ]
@@ -329,6 +402,33 @@
                     "state",
                     "success"  
                 ]
+            }
+        },
+        "setMotionEventsActivePeriod": {
+            "summary": "Sets the period of time during the day when the motion sensor is active and detecting motion. Any motion notifications outside of this period should be deferred until the start of the active period or cancelled if the notification is no longer valid. If this method is not called, then the active period is considered disabled and the sensor is armed 24 hours per day.  \n**Note:** The start time may be a higher value than the end time (for example, when a configured activation period spans across midnight from 09:00 pm to 01:00 am). Also, Daylight savings time (DST) may apply to the time zone where this feature is being used and the caller should be aware of the 23 hour and 25 hour days which occur during the shift days. For this reason it is advised that the caller reprograms the active period the day before and the day after the shift days to ensure reliable operation. If the caller is reprogramming this value every 24 hours then this should not be an issue.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index" 
+                    },
+                    "nowTime":{
+                        "summary": "The present time, in seconds, since midnight in local time",
+                        "type": "integer",
+                        "example": 1234 
+                    },
+                    "ranges": {
+                        "$ref": "#/definitions/ranges"
+                    }
+                },
+                "required": [
+                    "index",
+                    "nowTime",
+                    "ranges"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
             }
         },
         "setNoMotionPeriod":{
@@ -367,7 +467,7 @@
                 "anyOf": [
                     {
                         "if": {
-                            "properties": { "sensitivityMode": { "const":  1 } }
+                            "properties": { "sensitivityMode": { "const":  2 } }
                         },
                         "then": {
                             "properties": { "name": { "$ref": "#/definitions/name" } }
@@ -375,7 +475,7 @@
                     },
                     {
                         "if":{
-                            "properties": { "sensitivityMode": { "const": 2 } }
+                            "properties": { "sensitivityMode": { "const": 1 } }
                         },
                         "then": {
                             "properties": { "value": { "$ref": "#/definitions/value" }

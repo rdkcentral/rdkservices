@@ -93,6 +93,7 @@ WifiManager interface methods:
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WPS |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
@@ -190,20 +191,7 @@ This method takes no parameters.
 <a name="method.connect"></a>
 ## *connect <sup>method</sup>*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.  
-**Security Modes**  
-* `0`: None - No security  
-* `1`: WEP_64  
-* `2`: WEP_128 
-* `3`: WPA_PSK_TKIP  
-* `4`: WPA_PSK_AES  
-* `5`: WPA2_PSK_TKIP  
-* `6`: WPA2_PSK_AES  
-* `7`: WPA_ENTERPRISE_TKIP  
-* `8`: WPA_ENTERPRISE_AES  
-* `9`: WPA2_ENTERPRISE_TKIP 
-* `10`: WPA2_ENTERPRISE_AES  
-* `15`: NOT_SUPPORTED.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
 
 ### Parameters
 
@@ -212,7 +200,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 | params | object |  |
 | params.ssid | string | The paired SSID |
 | params.passphrase | string | The access point password |
-| params.securityMode | integer | The security mode |
+| params.securityMode | integer | The security mode. See `getSupportedSecurityModes` |
 
 ### Result
 
@@ -482,6 +470,73 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getSupportedSecurityModes"></a>
+## *getSupportedSecurityModes <sup>method</sup>*
+
+Returns the Wifi security modes that the device supports.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.security_modes | object | The supported security modes and its associated integer value |
+| result.security_modes?.NET_WIFI_SECURITY_NONE | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WEP_64 | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WEP_128 | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_PSK_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_PSK_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_PSK_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_PSK_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA3_SAE | integer | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Wifi.1.getSupportedSecurityModes"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "security_modes": {
+            "NET_WIFI_SECURITY_NONE": 0,
+            "NET_WIFI_SECURITY_WEP_64": 1,
+            "NET_WIFI_SECURITY_WEP_128": 2,
+            "NET_WIFI_SECURITY_WPA_PSK_TKIP": 3,
+            "NET_WIFI_SECURITY_WPA_PSK_AES": 4,
+            "NET_WIFI_SECURITY_WPA2_PSK_TKIP": 5,
+            "NET_WIFI_SECURITY_WPA2_PSK_AES": 6,
+            "NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP": 7,
+            "NET_WIFI_SECURITY_WPA_ENTERPRISE_AES": 8,
+            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP": 9,
+            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES": 10,
+            "NET_WIFI_SECURITY_WPA3_SAE": 14
+        },
+        "success": true
+    }
+}
+```
+
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing <sup>method</sup>*
 
@@ -620,7 +675,7 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 | params | object |  |
 | params.ssid | string | The paired SSID |
 | params.passphrase | string | The access point password |
-| params.securityMode | integer | The security mode |
+| params.securityMode | integer | The security mode. See `getSupportedSecurityModes` |
 
 ### Result
 
@@ -979,7 +1034,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
 | params.ssids | array | A list of SSIDs and their information |
 | params.ssids[#] | object |  |
 | params.ssids[#].ssid | string | The paired SSID |
-| params.ssids[#].security | integer | The security mode |
+| params.ssids[#].security | integer | The security mode. See `getSupportedSecurityModes` |
 | params.ssids[#].signalStrength | string | The RSSI value in dBm |
 | params.ssids[#].frequency | string | The supported frequency for this SSID in GHz |
 | params.moreData | boolean | When `true`, scanning is not complete and more SSIDs are returned as separate events |

@@ -191,7 +191,7 @@
             }
         },
         "lightReset":{
-            "summary": "Performs a light reset of application data",
+            "summary": "Resets the application data",
             "result": {
                 "type": "object",
                 "properties": {
@@ -208,7 +208,7 @@
             }
         },
         "resetDevice":{
-            "summary": "Resets the STB to the warehouse state. It dispatches a `resetDone` event notifying a success or failure",
+            "summary": "Resets the STB to the warehouse state. It dispatches a `resetDone` event notification indicating a successful reset or failure.",
             "events": [
                 "resetDone"
             ],
@@ -221,7 +221,7 @@
                         "example": true
                     },
                     "resetType": {
-                        "summary": "The reset type. If no `resetType` is specified, then `WAREHOUSE` is the default.",
+                        "summary": "The reset type. If `resetType` is not specified, then `WAREHOUSE` is the default.",
                         "enum": [
                             "WAREHOUSE",
                             "FACTORY",

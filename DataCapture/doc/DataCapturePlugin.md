@@ -110,7 +110,7 @@ Return Values:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.error | string | An error value |
+| result.error | integer | An error value |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -135,7 +135,7 @@ Return Values:
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "error": "0",
+        "error": 0,
         "success": true
     }
 }
@@ -149,6 +149,8 @@ Supported streams:
 * `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  
 * `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).
 
+Also see: [onAudioClipReady](#event.onAudioClipReady)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -157,7 +159,7 @@ Supported streams:
 | params.clipRequest | object | An object that contains audio capture parameters |
 | params.clipRequest.stream | string | Type of audio stream that will be captured |
 | params.clipRequest.url | string | Destination where to deliver data and any required application parameters. The example shows a URL for a music ID service |
-| params.clipRequest.duration | integer | Duration of clip in seconds |
+| params.clipRequest.duration | number | Duration of clip in seconds |
 | params.clipRequest.captureMode | string | Audio can be captured in the past or it can be captured starting with a trigger. Valid capture modes are: `precapture` - an audio clip is already stored in the buffer and capturing concludes when a call to this function is made. The audio data is sent immediately to the requested URL. `postCapture` - An audio capture starts when a call to this function is made and ends when the duration is reached. Sending data is delayed for the `duration` length. **Note**: This mode is not supported in the current implementation of the audio capture manager |
 
 ### Result
@@ -165,7 +167,7 @@ Supported streams:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.error | string | Returns `0` if the request is supported or an error if the request could not be fulfilled |
+| result.error | integer | Returns `0` if the request is supported or an error if the request could not be fulfilled |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -195,7 +197,7 @@ Supported streams:
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "error": "0",
+        "error": 0,
         "success": true
     }
 }

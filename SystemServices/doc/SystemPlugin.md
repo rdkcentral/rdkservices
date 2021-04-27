@@ -98,16 +98,17 @@ SystemServices interface methods:
 | [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
 | [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
+| [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | Retrieves the last firmware failure reason |
 | [getMacAddresses](#method.getMacAddresses) | Gets the MAC address of the device |
 | [getMilestones](#method.getMilestones) | Returns the list of milestones |
 | [getMode](#method.getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
+| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | Returns the power state before reboot |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
 | [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
 | [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
 | [getPreviousRebootReason](#method.getPreviousRebootReason) | Returns the last reboot reason |
-| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | Returns the power state before reboot |
 | [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
 | [getStateInfo](#method.getStateInfo) | Queries device state information of various properties |
@@ -728,6 +729,48 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getLastFirmwareFailureReason"></a>
+## *getLastFirmwareFailureReason <sup>method</sup>*
+
+Retrieves the last firmware failure reason.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.failureReason | string | <sup>*(optional)*</sup> The reason the failure occurred |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.getLastFirmwareFailureReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "failureReason": "Image Download Failed - Unable to connect",
+        "success": true
+    }
+}
+```
+
 <a name="method.getMacAddresses"></a>
 ## *getMacAddresses <sup>method</sup>*
 
@@ -954,6 +997,48 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getPowerStateBeforeReboot"></a>
+## *getPowerStateBeforeReboot <sup>method</sup>*
+
+Returns the power state before reboot.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.state | string | The power state |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "state": "ON",
+        "success": true
+    }
+}
+```
+
 <a name="method.getPreferredStandbyMode"></a>
 ## *getPreferredStandbyMode <sup>method</sup>*
 
@@ -1130,48 +1215,6 @@ This method takes no parameters.
     "id": 1234567890,
     "result": {
         "reason": "FIRMWARE_FAILURE",
-        "success": true
-    }
-}
-```
-
-<a name="method.getPowerStateBeforeReboot"></a>
-## *getPowerStateBeforeReboot <sup>method</sup>*
-
-Returns the power state before reboot.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.state | string | The power state |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "state": "ON",
         "success": true
     }
 }
@@ -2646,6 +2689,7 @@ Triggered when the power manager detects a device power state change.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
+| params?.currentPowerState | string | <sup>*(optional)*</sup> The current power state |
 
 ### Example
 
@@ -2654,7 +2698,8 @@ Triggered when the power manager detects a device power state change.
     "jsonrpc": "2.0",
     "method": "client.events.1.onSystemPowerStateChanged",
     "params": {
-        "powerState": "ON"
+        "powerState": "ON",
+        "currentPowerState": "ON"
     }
 }
 ```

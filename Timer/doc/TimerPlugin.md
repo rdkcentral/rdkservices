@@ -302,7 +302,7 @@ Resumes the specified timer.
 <a name="method.startTimer_"></a>
 ## *startTimer  <sup>method</sup>*
 
-Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. If `repeatInterval` equals `0.0 `or is not provided, then the timer executes only once (one-shot). Otherwise, the subsequent intervals have a duration of the  `repeatInverval` value.
+Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.
 
 Also see: [timerExpired](#event.timerExpired)
 
@@ -313,7 +313,7 @@ Also see: [timerExpired](#event.timerExpired)
 | params | object |  |
 | params.interval | number | The time interval in seconds |
 | params?.mode | string | <sup>*(optional)*</sup> The mode of the timer (must be one of the following: *GENERIC*, *SLEEP*, *WAKE*) |
-| params?.repeatInterval | number | <sup>*(optional)*</sup> The repeat interval in seconds. For non-zero values, this is the period of subsequent timers execution. If 0.0 or not provided, then the timer executes once (one-shot mode) |
+| params?.repeatInterval | number | <sup>*(optional)*</sup> The repeat interval in seconds. For non-zero values, this is the period of subsequent timers execution. If `0.0` or not provided, then the timer executes once (one-shot mode) |
 | params?.remindBefore | number | <sup>*(optional)*</sup> The send notification expiration timeout in seconds. A `timerExpiryReminder` notification is sent if the duration to the timer expiration is less than the `remindBefore` value. After sending the notification, an internal flag is set and the reminder is not sent again for the given timer interval. If the value is 0.0 or not provided, then the reminder is not sent |
 
 ### Result
@@ -413,7 +413,7 @@ Timer interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [timerExpired](#event.timerExpired) | Triggered when a timer expires |
-| [timerExpiryReminder](#event.timerExpiryReminder) | Triggered before a timer actually expires as a reminder |
+| [timerExpiryReminder](#event.timerExpiryReminder) | Triggered before a timer actually expires |
 
 
 <a name="event.timerExpired"></a>
@@ -447,7 +447,7 @@ Triggered when a timer expires.
 <a name="event.timerExpiryReminder"></a>
 ## *timerExpiryReminder <sup>event</sup>*
 
-Triggered before a timer actually expires as a reminder.
+Triggered before a timer actually expires.
 
 ### Parameters
 

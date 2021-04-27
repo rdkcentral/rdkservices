@@ -115,7 +115,7 @@
 
         },
         "disableMonitoring":{
-            "summary": "Disables monitoring for all applications",
+            "summary": "Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",

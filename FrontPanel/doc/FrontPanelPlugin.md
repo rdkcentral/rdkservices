@@ -97,6 +97,7 @@ FrontPanel interface methods:
 | [setClockBrightness](#method.setClockBrightness) | Sets the clock brightness |
 | [setClockTestPattern](#method.setClockTestPattern) | Allows you to set a test pattern on the STB clock (`88 88`) |
 | [setLED](#method.setLED) | Set preferences for the specified Front Panel LED indicator |
+| [setPowerStatus](#method.setPowerStatus) | Sets the power status |
 | [setPreferences](#method.setPreferences) | Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences |
 
 
@@ -728,6 +729,52 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
         "red": 0,
         "green": 0,
         "blue": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setPowerStatus"></a>
+## *setPowerStatus <sup>method</sup>*
+
+Sets the power status.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.power | boolean | The power status |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.FrontPanel.1.setPowerStatus",
+    "params": {
+        "power": false
     }
 }
 ```

@@ -92,7 +92,14 @@ HdcpProfile interface methods:
 <a name="method.getHDCPStatus"></a>
 ## *getHDCPStatus <sup>method</sup>*
 
-Returns HDCP-related data.
+Returns HDCP-related data.  
+**hdcpReason Argument Values**  
+* `0`: HDMI cable is not connected or rx sense status is `off`  
+* `1`: If rx device connected with power on state, then this should be the initial status  
+* `2`: HDCP success  
+* `3`:  After multiple retries, the platform should transition to this state  
+* `4`:  Platform in HDCP process   
+* `5`: Expected when `dsEnableVideoPort` is called with enable status `false`.
 
 ### Parameters
 
@@ -107,6 +114,7 @@ This method takes no parameters.
 | result.HDCPStatus.isConnected | boolean | Indicates whether a display is connected |
 | result.HDCPStatus.isHDCPCompliant | boolean | Indicates whether the display is HDCP compliant |
 | result.HDCPStatus.isHDCPEnabled | boolean | Indicates whether content is protected |
+| result.HDCPStatus.hdcpReason | integer | The HDCP status reason |
 | result.HDCPStatus.supportedHDCPVersion | string | Supported HDCP protocol version by the host device |
 | result.HDCPStatus.receiverHDCPVersion | string | Supported HDCP protocol version by the receiver device (display) |
 | result.HDCPStatus.currentHDCPVersion | string | Currently used HDCP protocol version |
@@ -135,6 +143,7 @@ This method takes no parameters.
             "isConnected": false,
             "isHDCPCompliant": false,
             "isHDCPEnabled": false,
+            "hdcpReason": 1,
             "supportedHDCPVersion": "2.2",
             "receiverHDCPVersion": "1.4",
             "currentHDCPVersion": "1.4"
@@ -216,6 +225,7 @@ Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotP
 | params.HDCPStatus.isConnected | boolean | Indicates whether a display is connected |
 | params.HDCPStatus.isHDCPCompliant | boolean | Indicates whether the display is HDCP compliant |
 | params.HDCPStatus.isHDCPEnabled | boolean | Indicates whether content is protected |
+| params.HDCPStatus.hdcpReason | integer | The HDCP status reason |
 | params.HDCPStatus.supportedHDCPVersion | string | Supported HDCP protocol version by the host device |
 | params.HDCPStatus.receiverHDCPVersion | string | Supported HDCP protocol version by the receiver device (display) |
 | params.HDCPStatus.currentHDCPVersion | string | Currently used HDCP protocol version |
@@ -231,6 +241,7 @@ Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotP
             "isConnected": false,
             "isHDCPCompliant": false,
             "isHDCPEnabled": false,
+            "hdcpReason": 1,
             "supportedHDCPVersion": "2.2",
             "receiverHDCPVersion": "1.4",
             "currentHDCPVersion": "1.4"

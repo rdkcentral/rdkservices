@@ -450,6 +450,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setPowerStatus": {
+            "summary": "Sets the power status",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "power": {
+                        "summary": "The power status",
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "required":[
+                    "power"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setPreferences": {
             "summary": "Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.",
             "params": {

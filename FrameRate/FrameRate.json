@@ -26,13 +26,14 @@
     },
     "methods": {
         "setCollectionFrequency": {
-            "summary": "Sets the amount of milliseconds per collection interval. The default frequency if no frequency is specified is 10000 milliseconds.",
+            "summary": "Sets the FPS data collection interval",
             "params": {
                 "type":"object",
                 "properties": {
                     "frequency":{
-                        "summary": "The collection interval in milliseconds",
+                        "summary": "The amount of time in milliseconds. The default frequency if no frequency is specified is 10000 milliseconds.",
                         "type":"integer",
+                        "default": 10000,
                         "example": 1000 
                     }
                 }

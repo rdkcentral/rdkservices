@@ -40,7 +40,7 @@
             "example": "1894.646"
         },
         "repeatInterval": {
-            "summary": "The repeat interval in seconds. For non-zero values, this is the period of subsequent timers execution. If 0.0 or not provided, then the timer executes once (one-shot mode)",
+            "summary": "The repeat interval in seconds. For non-zero values, this is the period of subsequent timers execution. If `0.0` or not provided, then the timer executes once (one-shot mode)",
             "type": "number",
             "example": 1.4
         },
@@ -210,7 +210,7 @@
             }
         },
         "startTimer ": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. If `repeatInterval` equals `0.0 `or is not provided, then the timer executes only once (one-shot). Otherwise, the subsequent intervals have a duration of the  `repeatInverval` value.",
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.",
             "events": [
                 "timerExpired"
             ],
@@ -296,7 +296,7 @@
             }
         },
         "timerExpiryReminder": {
-            "summary": "Triggered before a timer actually expires as a reminder",
+            "summary": "Triggered before a timer actually expires",
             "params": {
                 "type" :"object",
                 "properties": {

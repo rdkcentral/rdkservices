@@ -84,10 +84,56 @@ ContinueWatching interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getApplicationToken](#method.getApplicationToken) | Retrieves the tokens for a particular application |
 | [deleteApplicationToken](#method.deleteApplicationToken) | Deletes the stored tokens for a particular application |
+| [getApplicationToken](#method.getApplicationToken) | Retrieves the tokens for a particular application |
 | [setApplicationToken](#method.setApplicationToken) | Sets the given tokens for an application |
 
+
+<a name="method.deleteApplicationToken"></a>
+## *deleteApplicationToken <sup>method</sup>*
+
+Deletes the stored tokens for a particular application.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applicationName | string | The application name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.ContinueWatching.1.deleteApplicationToken",
+    "params": {
+        "applicationName": "netflix"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
 
 <a name="method.getApplicationToken"></a>
 ## *getApplicationToken <sup>method</sup>*
@@ -140,52 +186,6 @@ Retrieves the tokens for a particular application.
                 "DEF": "uvw"
             }
         ],
-        "success": true
-    }
-}
-```
-
-<a name="method.deleteApplicationToken"></a>
-## *deleteApplicationToken <sup>method</sup>*
-
-Deletes the stored tokens for a particular application.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.applicationName | string | The application name |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.ContinueWatching.1.deleteApplicationToken",
-    "params": {
-        "applicationName": "netflix"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
         "success": true
     }
 }

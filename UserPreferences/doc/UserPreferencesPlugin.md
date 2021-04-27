@@ -84,14 +84,14 @@ UserPreferences interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getUILanguage ](#method.getUILanguage ) | Returns the user preferred UI language |
-| [setUILanguage](#method.setUILanguage) | Sets the user preferred UI language |
+| [getUILanguage ](#method.getUILanguage ) | Returns the preferred user interface language |
+| [setUILanguage](#method.setUILanguage) | Sets the preferred user interface language |
 
 
 <a name="method.getUILanguage_"></a>
 ## *getUILanguage  <sup>method</sup>*
 
-Returns the user preferred UI language.
+Returns the preferred user interface language.
 
 ### Parameters
 
@@ -102,7 +102,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.ui_language | string | The language of the user interface |
+| result.ui_language | string | The preferred user interface language. The language is written to the `/opt/user_preferences.conf` file on the device. It is the responsibility of the client application to validate the language value and process it if required. Any language string that is valid on the client can be set |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -133,14 +133,14 @@ This method takes no parameters.
 <a name="method.setUILanguage"></a>
 ## *setUILanguage <sup>method</sup>*
 
-Sets the user preferred UI language.
+Sets the preferred user interface language.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.ui_language | string | The language of the user interface |
+| params.ui_language | string | The preferred user interface language. The language is written to the `/opt/user_preferences.conf` file on the device. It is the responsibility of the client application to validate the language value and process it if required. Any language string that is valid on the client can be set |
 
 ### Result
 

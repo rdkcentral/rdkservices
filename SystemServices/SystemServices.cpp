@@ -633,11 +633,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
-<<<<<<< HEAD
-            int seconds = 120; /* 2 Minutes to Reboot */
-=======
             int seconds = 600; /* 10 Minutes to Reboot */
->>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
 
             /* trigger event saying we are in Maintenance Window */
 
@@ -3393,34 +3389,6 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
-<<<<<<< HEAD
-        /***
-         * @brief : upload STB logs to the specified URL.
-         * @param1[in] : url::String
-         */
-        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
-            string url;
-            getStringParameter("url", url);
-            auto err = UploadLogs::upload(url);
-            if (err != UploadLogs::OK)
-                response["error"] = UploadLogs::errToText(err);
-            else
-                success = true;
-#else
-            response["error"] = "unsupported";
-#endif
-
-            returnResponse(success);
-        }
-
-=======
->>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
             bool retStatus = true;
@@ -3444,11 +3412,7 @@ namespace WPEFramework {
                                   });
                 if (it != FwFailReasonFromText.end())
                     failReason = it->second;
-<<<<<<< HEAD
-                else
-=======
                 else if (!str.empty())
->>>>>>> 0c6bef6d707854aa20a1646f53fc709bd0f451d3
                     LOGWARN("Unrecognised FailureReason!");
             } else {
                 LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);

@@ -439,6 +439,28 @@
                 ]
             }
         },
+        "getLastFirmwareFailureReason": {
+            "summary": "Retrieves the last firmware failure reason",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "failureReason": {
+                        "summary": "The reason the failure occurred",
+                        "type": "string",
+                        "example": "Image Download Failed - Unable to connect"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "lastDeepSleepReason",
+                    "success"
+                ]
+            }
+
+
+        },
         "getMacAddresses":{
             "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.",
             "events": [
@@ -548,6 +570,26 @@
                 ]
             }
         },
+        "getPowerStateBeforeReboot":{
+            "summary": "Returns the power state before reboot",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "summary": "The power state",
+                        "type": "string",
+                        "example": "ON"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
+        },
         "getPreferredStandbyMode":{
             "summary": "Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.",
             "result": {
@@ -650,26 +692,6 @@
                 },
                 "required": [
                     "reason",
-                    "success"
-                ]
-            }
-        },
-        "getPowerStateBeforeReboot":{
-            "summary": "Returns the power state before reboot",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "state": {
-                        "summary": "The power state",
-                        "type": "string",
-                        "example": "ON"
-                    },
-                    "success":{
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "state",
                     "success"
                 ]
             }
@@ -1502,6 +1524,11 @@
                 "properties": {
                     "powerState": {
                         "$ref": "#/definitions/powerState"
+                    },
+                    "currentPowerState": {
+                        "summary": "The current power state",
+                        "type": "string",
+                        "example": "ON"
                     }
                 },
                 "required": [

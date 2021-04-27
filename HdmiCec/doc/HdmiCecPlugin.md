@@ -87,8 +87,8 @@ HdmiCec interface methods:
 | :-------- | :-------- |
 | [getCECAddresses](#method.getCECAddresses) | Returns the HDMI-CEC addresses that are assigned to the local device |
 | [getEnabled](#method.getEnabled) | Returns whether HDMI-CEC is enabled |
-| [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC |
 | [sendMessage](#method.sendMessage) | Writes HDMI-CEC frame to the driver |
+| [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC |
 
 
 <a name="method.getCECAddresses"></a>
@@ -191,52 +191,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setEnabled"></a>
-## *setEnabled <sup>method</sup>*
-
-Enables or disables HDMI-CEC.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.enabled | boolean | Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.HdmiCec.1.setEnabled",
-    "params": {
-        "enabled": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="method.sendMessage"></a>
 ## *sendMessage <sup>method</sup>*
 
@@ -267,6 +221,52 @@ Writes HDMI-CEC frame to the driver.
     "method": "org.rdk.HdmiCec.1.sendMessage",
     "params": {
         "message": "1234567890"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setEnabled"></a>
+## *setEnabled <sup>method</sup>*
+
+Enables or disables HDMI-CEC.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiCec.1.setEnabled",
+    "params": {
+        "enabled": false
     }
 }
 ```

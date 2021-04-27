@@ -25,8 +25,8 @@
         }
     },
     "methods": {
-        "numberOfInputs" : {
-            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
+        "contentProtected": {
+            "summary": "Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -35,19 +35,19 @@
             "result": {
                 "type":"object",
                 "properties": {
-                    "numberOfInputs" : {
-                        "summary": "The number of inputs that are available for selection",
-                        "type":"number",
-                        "example": 1
+                    "isContentProtected" : {
+                        "summary": "Whether the HDMI input is protected",
+                        "type":"boolean",
+                        "example": true
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "numberOfInputs",
+                    "isContentProtected",
                     "success"
-                ]
+                ]           
             }
         },
         "currentVideoMode": {
@@ -76,8 +76,8 @@
             }
 
         },
-        "contentProtected": {
-            "summary": "Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.",
+        "numberOfInputs" : {
+            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -86,23 +86,21 @@
             "result": {
                 "type":"object",
                 "properties": {
-                    "isContentProtected" : {
-                        "summary": "Whether the HDMI input is protected",
-                        "type":"boolean",
-                        "example": true
+                    "numberOfInputs" : {
+                        "summary": "The number of inputs that are available for selection",
+                        "type":"number",
+                        "example": 1
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "isContentProtected",
+                    "numberOfInputs",
                     "success"
-                ]           
+                ]
             }
         }
-
-
     },
     "events": {
         "onAVInputActive":{

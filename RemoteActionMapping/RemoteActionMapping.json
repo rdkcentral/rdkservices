@@ -27,7 +27,7 @@
             }                    
         },
         "status_code":{
-            "summary": "Returns `0` if no error has occurred, otherwise an error code",
+            "summary": "Returns `0` if no error has occurred",
             "type": "integer",
             "example": 0
         },
@@ -76,7 +76,7 @@
     },
     "methods":{
         "cancelCodeDownload": {
-            "summary": "",
+            "summary": "Cancels downloading IR and five digit codes from the IRRF database",
             "params": {
                 "type":"object",
                 "properties": {
@@ -166,7 +166,7 @@
             }
        },
         "getFullKeyActionMapping": {
-            "summary": "Returns mapping of all action keys",
+            "summary": "Returns the mapping of all action keys",
             "params": {
                 "type":"object",
                 "properties": {
@@ -272,12 +272,12 @@
                         "$ref": "#/definitions/deviceID"           
                     },
                     "remoteType": {
-                        "summary": "The remote type returned by a `CTRLM_MAIN_IARM_CALL_NETWORK_STATUS_GET` call",
+                        "summary": "The remote type as returned by `CTRLM_MAIN_IARM_CALL_NETWORK_STATUS_GET`",
                         "type": "string",
                         "example": ""
                     },
                     "fiveDigitCodePresent": {
-                        "summary": "Returns `true` if the remote has the TVs five digits code saved",
+                        "summary": "Returns `true` if the remote has the TV's five digits code saved",
                         "type": "boolean",
                         "example": true
                     },
@@ -304,7 +304,7 @@
             }
         },
         "getSingleKeyActionMapping":{
-            "summary": "Returns the mapping of single action key",
+            "summary": "Returns the mapping for a single action key",
             "params": {
                 "type":"object",
                 "properties": {
@@ -410,7 +410,7 @@
             }
         },
         "setKeyActionMapping": {
-            "summary": "Sets the mapping of a single action key. Unavailable (returns error) if if the remote supports 5 digit codes.",
+            "summary": "Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.",
             "events": [
                 "onIRCodeLoad"
             ],

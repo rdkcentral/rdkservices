@@ -85,15 +85,15 @@ AVInput interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
-| [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
 | [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
+| [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
+| [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
 
 
-<a name="method.numberOfInputs"></a>
-## *numberOfInputs <sup>method</sup>*
+<a name="method.contentProtected"></a>
+## *contentProtected <sup>method</sup>*
 
-Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
+Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
 
 ### Parameters
 
@@ -106,7 +106,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.numberOfInputs | number | The number of inputs that are available for selection |
+| result.isContentProtected | boolean | Whether the HDMI input is protected |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -117,7 +117,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.AVInput.1.numberOfInputs",
+    "method": "org.rdk.AVInput.1.contentProtected",
     "params": {}
 }
 ```
@@ -129,7 +129,7 @@ Returns an integer that specifies the number of available inputs. For example, a
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "numberOfInputs": 1,
+        "isContentProtected": true,
         "success": true
     }
 }
@@ -180,10 +180,10 @@ Returns a string encoding the video mode being supplied by the device currently 
 }
 ```
 
-<a name="method.contentProtected"></a>
-## *contentProtected <sup>method</sup>*
+<a name="method.numberOfInputs"></a>
+## *numberOfInputs <sup>method</sup>*
 
-Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
+Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
 
 ### Parameters
 
@@ -196,7 +196,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.isContentProtected | boolean | Whether the HDMI input is protected |
+| result.numberOfInputs | number | The number of inputs that are available for selection |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -207,7 +207,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.AVInput.1.contentProtected",
+    "method": "org.rdk.AVInput.1.numberOfInputs",
     "params": {}
 }
 ```
@@ -219,7 +219,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "isContentProtected": true,
+        "numberOfInputs": 1,
         "success": true
     }
 }

@@ -23,7 +23,7 @@
             "example": 2
         },
         "error": {
-            "summary": "An error value",
+            "summary": "The error state",
             "type": "integer",
             "example": 0                           
         },

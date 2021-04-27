@@ -89,9 +89,11 @@ MotionDetection interface methods:
 | [disarm](#method.disarm) | Disables the specified motion detector |
 | [getLastMotionEventElapsedTime](#method.getLastMotionEventElapsedTime) | Returns the elapsed time since the last motion event occurred for the specified motion detector |
 | [getMotionDetectors](#method.getMotionDetectors) | Returns the available motion detectors and then lists information for each detector including their supported sensitivity mode |
+| [getMotionEventsActivePeriod](#method.getMotionEventsActivePeriod) | Returns the configured times during the day when the motion sensor is active and detecting motion |
 | [getNoMotionPeriod](#method.getNoMotionPeriod) | Returns the no-motion period for the specified motion detector |
 | [getSensitivity](#method.getSensitivity) | Returns the current sensitivity configuration for the specified motion detector |
 | [isarmed](#method.isarmed) | Returns whether the specified motion detector is enabled |
+| [setMotionEventsActivePeriod](#method.setMotionEventsActivePeriod) | Sets the period of time during the day when the motion sensor is active and detecting motion |
 | [setNoMotionPeriod](#method.setNoMotionPeriod) | Sets the no-motion period, in seconds, for the specified motion detector |
 | [setSensitivity](#method.setSensitivity) | Sets the sensitivity of the sensor for the specified motion detector |
 
@@ -306,6 +308,56 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getMotionEventsActivePeriod"></a>
+## *getMotionEventsActivePeriod <sup>method</sup>*
+
+Returns the configured times during the day when the motion sensor is active and detecting motion.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.ranges | array | <sup>*(optional)*</sup> Active period time ranges. Setting a single range with startTime and endTime set to 0 disables the active period and allows the sensor to be armed 24 hours per day. In this case, the nowTime parameter is ignored |
+| result?.ranges[#] | object | <sup>*(optional)*</sup>  |
+| result?.ranges[#].startTime | integer | The start time of the active sensor period, in seconds, since midnight in local time |
+| result?.ranges[#].endTime | integer | The end time of the active sensor period, in seconds, since midnight in local time |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.MotionDetection.1.getMotionEventsActivePeriod"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "ranges": [
+            {
+                "startTime": 21600,
+                "endTime": 71000
+            }
+        ],
+        "success": true
+    }
+}
+```
+
 <a name="method.getNoMotionPeriod"></a>
 ## *getNoMotionPeriod <sup>method</sup>*
 
@@ -445,6 +497,65 @@ Returns whether the specified motion detector is enabled.
     "id": 1234567890,
     "result": {
         "state": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.setMotionEventsActivePeriod"></a>
+## *setMotionEventsActivePeriod <sup>method</sup>*
+
+Sets the period of time during the day when the motion sensor is active and detecting motion. Any motion notifications outside of this period should be deferred until the start of the active period or cancelled if the notification is no longer valid. If this method is not called, then the active period is considered disabled and the sensor is armed 24 hours per day.  
+**Note:** The start time may be a higher value than the end time (for example, when a configured activation period spans across midnight from 09:00 pm to 01:00 am). Also, Daylight savings time (DST) may apply to the time zone where this feature is being used and the caller should be aware of the 23 hour and 25 hour days which occur during the shift days. For this reason it is advised that the caller reprograms the active period the day before and the day after the shift days to ensure reliable operation. If the caller is reprogramming this value every 24 hours then this should not be an issue.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.index | string | The name of a motion detector that is returned by the `getMotionDetectors` method |
+| params.nowTime | integer | The present time, in seconds, since midnight in local time |
+| params.ranges | array | Active period time ranges. Setting a single range with startTime and endTime set to 0 disables the active period and allows the sensor to be armed 24 hours per day. In this case, the nowTime parameter is ignored |
+| params.ranges[#] | object |  |
+| params.ranges[#].startTime | integer | The start time of the active sensor period, in seconds, since midnight in local time |
+| params.ranges[#].endTime | integer | The end time of the active sensor period, in seconds, since midnight in local time |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.MotionDetection.1.setMotionEventsActivePeriod",
+    "params": {
+        "index": "FP_MD",
+        "nowTime": 1234,
+        "ranges": [
+            {
+                "startTime": 21600,
+                "endTime": 71000
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
         "success": true
     }
 }

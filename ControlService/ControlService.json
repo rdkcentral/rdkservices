@@ -161,7 +161,7 @@
             }
 
         },
-        "findMyRemote":{
+        "findLastUsedRemote":{
             "summary": "Searches for the remote",
             "params": {
                 "type":"object",
@@ -706,8 +706,6 @@
                     "validationDigit3"
                 ]
             }
-            
         }
-
     }
 }

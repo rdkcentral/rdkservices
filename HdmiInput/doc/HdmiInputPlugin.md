@@ -86,10 +86,12 @@ HdmiInput interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getHDMIInputDevices](#method.getHDMIInputDevices) | Returns an array of available HDMI Input ports |
+| [getHDMISPD](#method.getHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawHDMISPD](#method.getRawHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
 | [readEDID](#method.readEDID) | Returns the current EDID value |
-| [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI Input video window |
 | [startHdmiInput](#method.startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
 | [stopHdmiInput](#method.stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
+| [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#method.writeEDID) | Changes a current EDID value |
 
 
@@ -145,21 +147,24 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.readEDID"></a>
-## *readEDID <sup>method</sup>*
+<a name="method.getHDMISPD"></a>
+## *getHDMISPD <sup>method</sup>*
 
-Returns the current EDID value.
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.name | string | The EDID value, currently stubbed |
+| result.HDMISPD | string | The SPD information |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -170,7 +175,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.HdmiInput.1.readEDID"
+    "method": "org.rdk.HdmiInput.1.getHDMISPD",
+    "params": {
+        "portId": "0"
+    }
 }
 ```
 
@@ -181,7 +189,189 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "name": "HdmiInputEDIDStub",
+        "HDMISPD": "",
+        "success": true
+    }
+}
+```
+
+<a name="method.getRawHDMISPD"></a>
+## *getRawHDMISPD <sup>method</sup>*
+
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.HDMISPD | string | The SPD information as raw bits |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.getRawHDMISPD",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "HDMISPD": "",
+        "success": true
+    }
+}
+```
+
+<a name="method.readEDID"></a>
+## *readEDID <sup>method</sup>*
+
+Returns the current EDID value.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.deviceId | number | The port identifier for the HDMI Input |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.EDID | string | The EDID Value |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.readEDID",
+    "params": {
+        "deviceId": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "EDID": "",
+        "success": true
+    }
+}
+```
+
+<a name="method.startHdmiInput"></a>
+## *startHdmiInput <sup>method</sup>*
+
+Activates the specified HDMI Input port as the primary video source.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.startHdmiInput",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.stopHdmiInput"></a>
+## *stopHdmiInput <sup>method</sup>*
+
+Deactivates the HDMI Input port currently selected as the primary video source.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.stopHdmiInput"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
         "success": true
     }
 }
@@ -224,92 +414,6 @@ Sets an HDMI Input video window.
         "w": 1920,
         "h": 1080
     }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.startHdmiInput"></a>
-## *startHdmiInput <sup>method</sup>*
-
-Activates the specified HDMI Input port as the primary video source.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.portid | number | An ID of an HDMI Input port. Use The `getHdmiInputDevices` method to list available HDMI Input ports |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.HdmiInput.1.startHdmiInput",
-    "params": {
-        "portid": 0
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.stopHdmiInput"></a>
-## *stopHdmiInput <sup>method</sup>*
-
-Deactivates the HDMI Input port currently selected as the primary video source.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.HdmiInput.1.stopHdmiInput"
 }
 ```
 

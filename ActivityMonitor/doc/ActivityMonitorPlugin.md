@@ -158,7 +158,7 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
 <a name="method.disableMonitoring"></a>
 ## *disableMonitoring <sup>method</sup>*
 
-Disables monitoring for all applications.
+Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.
 
 ### Parameters
 
