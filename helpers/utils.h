@@ -25,10 +25,12 @@
 #include <syscall.h>
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
-//#include "rfcapi.h"
+#include "rfcapi.h"
 
 // IARM
-//#include "rdk/iarmbus/libIARM.h"
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "rdk/iarmbus/libIARM.h"
+#endif
 
 // std
 #include <string>
