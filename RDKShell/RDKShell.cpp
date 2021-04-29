@@ -3921,6 +3921,18 @@ namespace WPEFramework {
                 std::cout << "attempting to set factory mode flag \n";
                 uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
                 std::cout << "set status: " << setStatus << std::endl;
+
+                JsonObject joFactoryExitParams;
+                JsonObject joFactoryExitResult;
+                joFactoryExitParams.Set("namespace","FactoryTest");
+                joFactoryExitParams.Set("key","AllowExit");
+                joFactoryExitParams.Set("value","true");
+                std::string factoryExitSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                std::cout << "attempting to set factory allow exit flag \n";
+                uint32_t setExitStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryExitSetInvoke.c_str(), joFactoryExitParams, joFactoryExitResult);
+                std::cout << "set status: " << setExitStatus << std::endl;
+
                 sFactoryAppLaunchStatus = COMPLETED;
                 returnResponse(true);
             }
@@ -4029,6 +4041,38 @@ namespace WPEFramework {
                 else
                 {
                     std::cout << "aging value is not set\n";
+                }
+
+                JsonObject joExitParams;
+                JsonObject joExitResult;
+                joExitParams.Set("namespace","FactoryTest");
+                joExitParams.Set("key","AllowExit");
+                std::string factoryExitGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+                std::cout << "attempting to check factory exit flag\n";
+                uint32_t factoryExitStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryExitGetInvoke.c_str(), joExitParams, joExitResult);
+                std::cout << "factory exit get status: " << factoryExitStatus << std::endl;
+
+                if (factoryExitStatus == 0 && joExitResult.HasLabel("value"))
+                {
+                    const std::string valueString = joExitResult["value"].String();
+                    std::cout << "exit value is " << valueString << std::endl;
+                    if (valueString == "false")
+                    {
+                        std::cout << "factory exit flag is false.  not allowing the exit of the factory app\n";
+                        response["message"] = "factory exit flag is false";
+                        returnResponse(false);
+                    }
+                    else
+                    {
+                        std::cout << "factory exit flag is true.  allowing the factory app to exit\n";
+                    }
+                }
+                else
+                {
+                    std::cout << "factory exit flag not found.  not allowing the exit of the factory app\n";
+                    response["message"] = "factory exit flag not found";
+                    returnResponse(false);
                 }
             }
             setVisibility("factoryapp", false);
