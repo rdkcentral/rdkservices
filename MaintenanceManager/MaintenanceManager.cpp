@@ -110,8 +110,11 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-        case MAINT_PINGTELEMETRY_COMPLETE:
+         case MAINT_PINGTELEMETRY_COMPLETE:
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
+            break;
+        case MAINT_PINGTELEMETRY_ERROR:
+            ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
             break;
         case MAINT_FWDOWNLOAD_COMPLETE:
             ret_status="MAINTENANCE_FWDONLOAD_COMPLETE";
@@ -125,6 +128,9 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_FWDOWNLOAD_ABORTED:
             ret_status="MAINTENANCE_FWDOWNLOAD_ABORTED";
             break;
+        case MAINT_CRITICAL_UPDATE:
+            ret_status="MAINTENANCE_CRITICAL_UPDATE";
+            break;
         default:
             ret_status="MAINTENANCE_EMPTY";
     }
@@ -137,14 +143,16 @@ namespace WPEFramework {
     namespace Plugin {
         //Prototypes
         SERVICE_REGISTRATION(MaintenanceManager,API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR);
-        /* Globale time Structure */
-        //sTime MaintenanceManager::g_start_time;
+        /* Global time variable */
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
         Maint_notify_status_t MaintenanceManager::g_notify_status=MAINTENANCE_IDLE;
         string MaintenanceManager::g_epoch_time;
         std::string MaintenanceManager::g_currentMode = "";
-        cSettings MaintenanceManager::m_setting(MAITNENANCE_MGR_RECORD_FILE);
         string MaintenanceManager::g_is_critical_maintenance="";
+        string MaintenanceManager::g_is_reboot_pending="";
+        string MaintenanceManager::g_lastSuccessful_maint_time="";
+        uint8_t MaintenanceManager::g_task_status=0;
+        cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
@@ -155,21 +163,98 @@ namespace WPEFramework {
             /* on boot up we set these things */
             MaintenanceManager::g_currentMode = FOREGROUND_MODE;
 
-            // default 0300Hrs UTC
-            MaintenanceManager::g_epoch_time = "10800";
+            MaintenanceManager::g_epoch_time="";
 
-             LOGINFO("DBG: At init executing");
+            bool skip_task=false;
+
+            int32_t exec_status=E_NOK;
+
             /* we call dcmscript to get the new start time */
-            if (Utils::fileExists("/lib/rdk/StartDCM.sh")) {
-//                string dcmscript_command("sh /lib/rdk/StartDCM.sh &");
-//                LOGINFO("DBG: Executing %s\n", dcmscript_command.c_str());
-//                Utils::cRunScript(dcmscript_command.c_str());
-                  int32_t sysResult=E_NOK;
-                  sysResult = system("/lib/rdk/StartDCM.sh &");
+            if (Utils::fileExists("/lib/rdk/StartDCM_maintaince.sh")) {
+                  exec_status = system("/lib/rdk/StartDCM_maintaince.sh &");
+                  if ( E_OK == exec_status ){
+                      LOGINFO("DBG:Succesfully executed StartDCM_maintaince.sh \n");
+                  }
+                  else {
+                      LOGINFO("DBG:Failed to execute StartDCM_maintaince.sh !! \n");
+                  }
             }
             else {
-                LOGINFO("DBG: Unable to find StartDCM.sh \n");
+                LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
             }
+
+            /* We set the bit to say we have started the maintenance */
+            SET_STATUS(g_task_status,TASKS_STARTED);
+
+            /* we run all the critical maintenance activities */
+            if (Utils::fileExists("/lib/rdk/RFCbase.sh")) {
+                LOGINFO("executing RFCbase.sh\n");
+                exec_status=system("/lib/rdk/RFCbase.sh &");
+                if (exec_status == E_OK) {
+                    LOGINFO("RFCbase execution Success\n");
+                }
+                else {
+                    LOGINFO("Failed to execute RFCbase.sh\n");
+                    skip_task=true;
+                }
+            }
+            else {
+                LOGINFO("RFCbase.sh is not present \n");
+                skip_task=true;
+            }
+
+            if (Utils::fileExists("/lib/rdk/Start_uploadSTBLogs.sh")) {
+                exec_status=system("sh /lib/rdk/Start_uploadSTBLogs.sh &");
+                if (exec_status == E_OK) {
+                    LOGINFO("Successfully executed lib/rdk/Start_uploadSTBLogs.sh \n");
+                }
+                else{
+                    LOGINFO( "Failed to execute /lib/rdk/Start_uploadSTBLogs.sh \n");
+                    skip_task=true;
+                }
+            }
+            else {
+                LOGINFO("Start_uploadSTBLogs.sh is not present \n");
+                skip_task=true;
+            }
+            if (Utils::fileExists("/lib/rdk/deviceInitiatedFWDnld.sh")) {
+                LOGWARN("Checking for new Firmware\n");
+                exec_status=system("/lib/rdk/deviceInitiatedFWDnld.sh 0 1 >> /opt/logs/swupdate.log &");
+                if (exec_status == E_OK) {
+                    LOGINFO("Successfully executed DIFD\n");
+                }
+                else{
+                    LOGINFO( "Failed to execute DIFD \n" );
+                    skip_task=true;
+                }
+            }
+            else {
+                LOGINFO("deviceInitiatedFWDnld is not present \n");
+                skip_task=true;
+            }
+
+            if (Utils::fileExists("/lib/rdk/ping-telemetry.sh")) {
+                exec_status=system("sh /lib/rdk/ping-telemetry.sh &");
+                if (exec_status == E_OK) {
+                    LOGINFO("Successfully executed lib/rdk/ping-telemetry.sh \n");
+                }
+                else{
+                    LOGINFO( "Failed to execute /lib/rdk/ping-telemetry.sh \n");
+                    skip_task=true;
+                }
+            }
+            else {
+                LOGINFO("ping-telemetry.sh is not present \n");
+                skip_task=true;
+            }
+
+
+            if (skip_task){
+                /* we set the corresponding flag to set
+                 * which means one of then skipped */
+                SET_STATUS(g_task_status,TASK_SKIPPED);
+            }
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -230,9 +315,13 @@ namespace WPEFramework {
 
         void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            Maint_notify_status_t m_notify_status;
+            Maint_notify_status_t m_notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
+            bool task_error=false;
+            time_t successfulTime;
+            string str_successfulTime="";
+
             LOGINFO("Event-ID = %d \n",eventId);
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("event= %d \n",event);
@@ -250,20 +339,76 @@ namespace WPEFramework {
                     LOGINFO("MaintMGR Status %d \n",module_status);
                     string status_string=moduleStatusToString(module_status);
                     LOGINFO("MaintMGR Status %s \n", status_string.c_str());
-                    if ( MAINT_CRITICAL_UPDATE == module_status ){
-                        g_is_critical_maintenance="true";
+                    switch (module_status) {
+                        case MAINT_RFC_COMPLETE :
+                            SET_STATUS(g_task_status,RFC_SUCCESS);
+                            break;
+                        case MAINT_DCM_COMPLETE :
+                            SET_STATUS(g_task_status,DCM_SUCCESS);
+                            break;
+                        case MAINT_FWDOWNLOAD_COMPLETE :
+                            SET_STATUS(g_task_status,DIFD_SUCCESS);
+                            break;
+                        case MAINT_PINGTELEMETRY_COMPLETE:
+                            SET_STATUS(g_task_status,PING_TELEMETRY_SUCCESS);
+                            break;
+                        case MAINT_LOGUPLOAD_COMPLETE :
+                            SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
+                            break;
+                        case MAINT_REBOOT_REQUIRED :
+                            SET_STATUS(g_task_status,REBOOT_REQUIRED);
+                            g_is_reboot_pending="true";
+                            break;
+                        case MAINT_CRITICAL_UPDATE:
+                            g_is_critical_maintenance="true";
+                            break;
+                        case MAINT_FWDOWNLOAD_ABORTED:
+                            SET_STATUS(g_task_status,TASK_SKIPPED);
+                            task_error=true;
+                            break;
+                        case MAINT_DCM_ERROR:
+                        case MAINT_RFC_ERROR:
+                        case MAINT_LOGUPLOAD_ERROR:
+                        case MAINT_PINGTELEMETRY_ERROR:
+                        case MAINT_FWDOWNLOAD_ERROR:
+                            LOGINFO("Error encountered in one of the task \n");
+                            task_error=true;
+                            break;
                     }
-                    else if ( (MAINT_RFC_ERROR == module_status) ||
-                            ( MAINT_DCM_ERROR == module_status) )
-                    {
-                        MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                    }
-                    //TODO handle all other case scenarios.
+                    LOGINFO(" BITFIELD Status : %x",g_task_status);
                 }
                 else{
                     LOGINFO("Unknown Maintenance Status!!");
                 }
-                /* Logic to strore the status as bit fields about each module */
+
+                /* Send the updated status only if all task started */
+
+                if ( (g_task_status & 0x80 ) == 0x80 ){
+                    if ( (g_task_status & 0x1F) == 0x1F ){
+                        LOGINFO("DBG:Maintenance Successfully Completed!!");
+                        m_notify_status=MAINTENANCE_COMPLETE;
+                        successfulTime=time(nullptr);
+                        str_successfulTime=to_string(successfulTime);
+                        /* Remove any old completion time */
+                        m_setting.remove("LastSuccessfulCompletionTime");
+                        m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime.c_str());
+                        MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+                    }
+                    /* we send only updated notification if one of the
+                     * task returned with error or DIFD encountered abort */
+                    if ( task_error) {
+                        if ((g_task_status & 0x40 ) == 0x40 ){
+                            LOGINFO("DBG:There are Skipped Task. Incomplete");
+                            m_notify_status=MAINTENANCE_INCOMPLETE;
+                        }
+                        else {
+                            LOGINFO("DBG:There are Errors");
+                            m_notify_status=MAINTENANCE_ERROR;
+                        }
+
+                        MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+                    }
+                }
             }
             else {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
@@ -311,7 +456,7 @@ namespace WPEFramework {
                 {
                     bool result = false;
                     string isCriticalMaintenance = "false";
-                    bool isRebootPending = false;
+                    string isRebootPending = "false";
                     string LastSuccessfulCompletionTime = "NA"; /* TODO : check max size to hold this */
                     string getMaintenanceStatusString = "\0";
 
@@ -319,13 +464,15 @@ namespace WPEFramework {
                     if (!g_is_critical_maintenance.empty()){
                         isCriticalMaintenance=g_is_critical_maintenance;
                     }
-
+                    if (!g_is_reboot_pending.empty()){
+                        isRebootPending=g_is_reboot_pending;
+                    }
                     /* Get the last SuccessfulCompletion time from Persistant location */
                     if (m_setting.contains("LastSuccessfulCompletionTime")){
                         LastSuccessfulCompletionTime=m_setting.getValue("LastSuccessfulCompletionTime").String();
                     }
 
-                    response["status"] = notifyStatusToString(g_notify_status);
+                    response["maintenanceStatus"] = notifyStatusToString(g_notify_status);
                     response["LastSuccessfulCompletionTime"] = LastSuccessfulCompletionTime;
                     response["isCriticalMaintenance"] = isCriticalMaintenance;
                     response["isRebootPending"] = isRebootPending;
@@ -341,14 +488,44 @@ namespace WPEFramework {
          */
         uint32_t MaintenanceManager::getMaintenanceStartTime (const JsonObject& parameters,
                 JsonObject& response)
-                {
-                    bool result = false;
-                    if(!g_epoch_time.empty()) {
-                        response["time"] = g_epoch_time.c_str();
-                        result=true;
-                    }
-                    returnResponse(result);
+        {
+            bool result = false;
+            if(!g_epoch_time.empty()) {
+                response["maintenanceStartTime"] = g_epoch_time.c_str();
+                result=true;
+            }
+            else {
+                /* use default time 0300Hrs */
+                time_t start_time=10800;
+                time_t start_epoch;
+                time_t tEpoc = time(nullptr);
+                long int sec;
+                tm ltime = *localtime(&tEpoc);
+                tm lmidnight = ltime;
+                lmidnight.tm_hour = 0;
+                lmidnight.tm_min  = 0;
+                lmidnight.tm_sec  = 0;
+                time_t midnightEpoc = mktime(&lmidnight);
+                /*we add the offset and start time */
+                LOGINFO("midnightEpoc =%ld \n", midnightEpoc);
+                start_epoch=midnightEpoc+start_time+14400;
+                LOGINFO("start_epoch = %ld \n",start_epoch);
+                /*check if it is the same day or not */
+                sec=start_epoch-tEpoc;
+                LOGINFO("sec = %ld",sec);
+                if (sec < 0) {
+                    int secInDay = 23*60*60 + 59*60 + 60;
+                    sec = start_epoch + secInDay;
                 }
+                else{
+                    sec = start_epoch;
+                }
+                response["maintenanceStartTime"] = to_string(sec);
+                result=true;
+            }
+
+            returnResponse(result);
+        }
 
         /*
          * @brief This function returns the current status of the current
@@ -387,6 +564,8 @@ namespace WPEFramework {
                             /* foreground */
                             g_currentMode =new_mode;
                             m_setting.remove("abort_flag");
+                            abort_flag="false";
+                            m_setting.setValue("abort_flag",abort_flag);
                         }
                         result = true;
                     }
@@ -416,6 +595,11 @@ namespace WPEFramework {
                     Maint_notify_status_t notify_status = MAINTENANCE_IDLE;
                     /* check what mode we currently have */
                     string current_mode="";
+                    bool skip_task=false;
+                    string abort_flag="";
+
+                    /*reset the status to 0*/
+                    g_task_status=0;
 
                     /* check if there is any critical maintenance happening */
                     if (!(g_is_critical_maintenance.compare("true"))){
@@ -426,40 +610,86 @@ namespace WPEFramework {
 
                     current_mode=g_currentMode;
 
-                    /* notify that we started the maintenance*/
+                    /* notify that we started the maintenance */
                     MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+                    /* We set the bit to say we have started the maintenance */
+                    SET_STATUS(g_task_status,TASKS_STARTED);
                     if (Utils::fileExists("/lib/rdk/RFCbase.sh")) {
                         LOGINFO("executing RFCbase.sh\n");
                         exec_status=system("/lib/rdk/RFCbase.sh &");
-                        if (exec_status != E_OK) {
+                        if (exec_status == E_OK) {
+                            LOGINFO("RFCbase execution Success\n");
+                        }
+                        else {
                             LOGINFO("Failed to execute RFCbase.sh\n");
+                            skip_task=true;
                         }
                     }
                     else {
                         LOGINFO("RFCbase.sh is not present \n");
-                    }
-                    if (Utils::fileExists("/lib/rdk/dca_utility.sh")) {
-                        exec_status=system("sh /lib/rdk/dca_utility.sh 0 0 &");
-                        LOGINFO("executing DCA UTILITY");
-                        if (exec_status != E_OK) {
-                            LOGINFO("Failed to execute DCA utility\n");
-                        }
+                        skip_task=true;
                     }
 
-                    if ( BACKGROUND_MODE != current_mode ) {
+                    if (Utils::fileExists("/lib/rdk/Start_uploadSTBLogs.sh")) {
+                        exec_status=system("sh /lib/rdk/Start_uploadSTBLogs.sh &");
+                        if (exec_status == E_OK) {
+                            LOGINFO("Successfully executed lib/rdk/Start_uploadSTBLogs.sh \n");
+                        }
+                        else{
+                            LOGINFO( "Failed to execute /lib/rdk/Start_uploadSTBLogs.sh \n");
+                            skip_task=true;
+                        }
+                    }
+                    else {
+                        LOGINFO("Start_uploadSTBLogs.sh is not present \n");
+                        skip_task=true;
+                    }
+
+                    if (Utils::fileExists("/lib/rdk/ping-telemetry.sh")) {
+                        exec_status=system("sh /lib/rdk/ping-telemetry.sh &");
+                        if (exec_status == E_OK) {
+                            LOGINFO("Successfully executed lib/rdk/ping-telemetry.sh \n");
+                        }
+                        else{
+                            LOGINFO( "Failed to execute /lib/rdk/ping-telemetry.sh \n");
+                            skip_task=true;
+                        }
+                    }
+                    else {
+                        LOGINFO("ping-telemetry.sh is not present \n");
+                        skip_task=true;
+                    }
+
+                    /* check the abort flag is set or not*/
+                    abort_flag=m_setting.getValue("abort_flag").String();
+
+                    LOGINFO("DBG: Abort_flag = %s\n", abort_flag.c_str());
+                    if ( !(abort_flag.compare("false")) || ( abort_flag.empty() ) ) {
                         if (Utils::fileExists("/lib/rdk/deviceInitiatedFWDnld.sh")) {
                             LOGWARN("Checking for new Firmware\n");
                             exec_status=system("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
-                            if (exec_status != E_OK) {
-                                LOGINFO("Failed to execute deviceInitiatedFWDnld.sh\n");
+                            if (exec_status == E_OK) {
+                                LOGINFO("Successfully executed DIFD\n");
+                            }
+                            else{
+                                LOGINFO( "Failed to execute DIFD \n" );
+                                skip_task=true;
                             }
                         }
                         else {
                             LOGINFO("deviceInitiatedFWDnld is not present \n");
+                            skip_task=true;
                         }
                     }
                     else {
                         LOGINFO("SKipping deviceInitiatedFWDnld due to Background Mode \n");
+                        skip_task=true;
+                    }
+
+                    if (skip_task){
+                        /* we set the corresponding flag to set
+                         * which means one of then skipped */
+                        SET_STATUS(g_task_status,TASK_SKIPPED);
                     }
                     result=true;
                     returnResponse(result);
@@ -469,7 +699,7 @@ namespace WPEFramework {
             JsonObject params;
             /* we store the updated value as well */
             g_notify_status=status;
-            params["onMaintenanceStatusChange"]=notifyStatusToString(status);
+            params["maintenanceStatus"]=notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
         }
 
