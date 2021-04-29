@@ -2295,7 +2295,7 @@ namespace WPEFramework {
                 response["message"] = "please specify callsign";
             }
 
-            string appCallsign(""); = parameters["callsign"].String();
+            string appCallsign(""); 
             /*if (result)
             {
                 bool launchInProgress = false;
