@@ -49,6 +49,7 @@
 
 #define DATA_LED "data_led"
 #define RECORD_LED "record_led"
+#define POWER_LED "power_led"
 #ifdef CLOCK_BRIGHTNESS_ENABLED
 #define CLOCK_LED "clock_led"
 #define TEXT_LED "Text"
@@ -392,6 +393,11 @@ namespace WPEFramework
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_RECORD);
             }
+	    else if (fp_ind.compare(POWER_LED) == 0)
+            {
+                LOGWARN("calling powerOnLed");
+                ok = powerLedOn(FRONT_PANEL_INDICATOR_POWER);
+            }
             returnResponse(ok);
         }
 
@@ -427,6 +433,11 @@ namespace WPEFramework
             {
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_RECORD);
+            }
+	    else if (fp_ind.compare(POWER_LED) == 0)
+            {
+                LOGWARN("calling powerOffLed");
+                ok = powerLedOff(FRONT_PANEL_INDICATOR_POWER);
             }
             returnResponse(ok);
         }
