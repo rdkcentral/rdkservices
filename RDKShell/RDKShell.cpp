@@ -673,6 +673,7 @@ namespace WPEFramework {
             }
 #else
             mEnableUserInactivityNotification = true;
+            enableInactivityReporting(true);
 #endif
 
             Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
