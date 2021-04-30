@@ -480,6 +480,7 @@ namespace WPEFramework {
                                   sFactoryModeStart = true;
                                   JsonObject request, response;
                                   std::cout << "about to launch factory app\n";
+                                  request["resetagingtime"] = "true";
                                   uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                                 }
                             }
@@ -723,6 +724,7 @@ namespace WPEFramework {
                             {
                                 request["nokillresapp"] = "true";
                             }
+                            request["resetagingtime"] = "true";
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
@@ -807,6 +809,7 @@ namespace WPEFramework {
                         {
                             request["nokillresapp"] = "true";
                         }
+                        request["resetagingtime"] = "true";
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
@@ -3885,6 +3888,20 @@ namespace WPEFramework {
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
+                if (parameters.HasLabel("resetagingtime"))
+                {
+                    JsonObject joAgingSetValueParams;
+                    JsonObject joAgingSetValueResult;
+                    joAgingSetValueParams.Set("namespace","FactoryTest");
+                    joAgingSetValueParams.Set("key","AgingTotalTime");
+                    joAgingSetValueParams.Set("value","0");
+                    std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                    std::cout << "attempting to set aging total time to 0 \n";
+                    uint32_t agingTotalTimeSetStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingSetValueParams, joAgingSetValueResult);
+                    std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
+                }
+
                 killAllApps();
                 if (!parameters.HasLabel("nokillresapp"))
                 {
