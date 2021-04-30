@@ -1163,6 +1163,16 @@ namespace WPEFramework {
 				}
 			   }
 			}
+                        else if (aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
+                        {
+			    if(stereoAuto == false) {
+                                aPort.setStereoAuto(false, persist);
+                                aPort.setStereoMode(mode.toString(), persist);
+			    }
+			    else{
+			        aPort.setStereoAuto(true, persist);
+			    }
+                        }
 
                     }
                 }
