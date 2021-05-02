@@ -71,6 +71,8 @@ using namespace std;
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
+#define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -365,6 +367,10 @@ namespace WPEFramework {
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
+                    this);
+            registerMethod("setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
+            registerMethod("isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
         }
 
 
@@ -3164,6 +3170,68 @@ namespace WPEFramework {
 
             returnResponse(success);
         }
+
+        /***
+         * @brief : To set Telemetry Opt Out Status
+         *
+         * @param1[in]  : {"params":{"Opt-Out":<bool>}}
+         * @param2[out] : "result":{"success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setOptOutTelemetry(
+                const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool optout = false;
+	    bool result = false;
+            ofstream optfile;
+	    if (parameters.HasLabel("Opt-Out")) {
+		    optout = parameters["Opt-Out"].Boolean();
+                    optfile.open(OPTOUT_TELEMETRY_STATUS, ios::out);
+                    if (optfile) {
+                        optfile << (optout ? "true" :"false");
+                        optfile.close();
+                        result = true;
+                        LOGINFO("TelemetryOptOut flag set to %s\n", 
+                                optout ? "true" :"false");
+                    } else {
+                        LOGERR("Couldn't update Telemetry Opt Out flag\n");
+                    }
+	    } else {
+		    populateResponseWithError(SysSrv_MissingKeyValues, response);
+	    }
+            returnResponse(result);
+        } //end of setOptOutTelemetry
+
+        /***
+         * @brief : To check Telemetry Opt Out status
+         *
+         * @param1[in]  : {"params":{}}
+         * @param2[out] : {"result":{"Opt-Out":<bool>,"success":true}}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::isOptOutTelemetry(const JsonObject& parameters,
+                JsonObject& response)
+        {
+		bool optout = false;
+		bool result = true;
+                bool retVal = false;
+                char lines[32] = {'\0'};
+                string optStatus = "";
+
+                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, lines);
+                if (retVal) {
+                    optStatus = strtok(lines," ");
+                    if ("true" == optStatus) {
+                       optout = true;
+                    } else {
+                       optout = false;
+                    }
+                }
+                LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
+		response["Opt-Out"] = optout;
+		returnResponse(result);
+        } //end of isOptOutTelemetry
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 
