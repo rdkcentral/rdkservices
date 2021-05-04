@@ -3903,7 +3903,7 @@ namespace WPEFramework {
                     std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
                 }
 
-                killAllApps();
+                killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
                     JsonObject destroyRequest, destroyResponse;
@@ -4515,12 +4515,30 @@ namespace WPEFramework {
             return false;
         }
 
-        void RDKShell::killAllApps()
+        void RDKShell::killAllApps(bool enableDestroyEvent)
         {
             bool ret = false;
             JsonObject stateRequest, stateResponse;
             uint32_t result = getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+
+            if (enableDestroyEvent)
+            {
+                for (int i=0; i<stateList.Length(); i++)
+                {
+                    const JsonObject& stateInfo = stateList[i].Object();
+                    if (stateInfo.HasLabel("callsign"))
+                    {
+                        const string callsign = stateInfo["callsign"].String();
+                        std::cout << "RDKShell sending onWillDestroyEvent for " << callsign << std::endl;
+                        JsonObject params;
+                        params["callsign"] = callsign;
+                        notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+                    }
+                }
+                sleep(1);
+            }
+
             for (int i=0; i<stateList.Length(); i++)
             {
                 const JsonObject& stateInfo = stateList[i].Object();
