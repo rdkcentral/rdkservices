@@ -4761,13 +4761,9 @@ namespace WPEFramework {
                 std::vector<std::string> clientList;
                  CompositorController::getClients(clientList);
                 bool targetFound = false;
-                for (size_t i=0; i<clientList.size(); i++)
-               {
-                if (strcasecmp(clientList[i].c_str(),keyClient.c_str()) == 0)
+               if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
                 {
-                    targetFound = true;
-                    break;
-                }
+                    targetFound = true;                   
                 }
                if (targetFound)
                {
@@ -4968,14 +4964,10 @@ namespace WPEFramework {
              std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             bool targetFound = false;
-            for (size_t i=0; i<clientList.size(); i++)
+            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
             {
-                if (strcasecmp(clientList[i].c_str(),client.c_str()) == 0)
-                {
-                    targetFound = true;
-                    break;
-                }
-            }
+               targetFound = true;                    
+             }
             if (targetFound)
             {
             ret = CompositorController::setOpacity(client, opacity);
@@ -5000,14 +4992,10 @@ namespace WPEFramework {
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             bool targetFound = false;
-            for (size_t i=0; i<clientList.size(); i++)
-            {
-                if (strcasecmp(clientList[i].c_str(),client.c_str()) == 0)
+           if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
                 {
-                    targetFound = true;
-                    break;
+                    targetFound = true;                    
                 }
-            }
             if (targetFound)
             {
             ret = CompositorController::setScale(client, scaleX, scaleY);
