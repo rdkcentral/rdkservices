@@ -141,7 +141,7 @@ namespace WPEFramework {
             Unregister(_T("load"));
             Unregister(_T("play"));
             Unregister(_T("pause"));
-            Unregister(_T("setPosition"));
+            Unregister(_T("seekTo"));
             Unregister(_T("stop"));
             Unregister(_T("initConfig"));
             Unregister(_T("initDRMConfig"));
