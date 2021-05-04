@@ -644,7 +644,6 @@ namespace WPEFramework {
                   }
                 }
             });
-            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -807,6 +806,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             sRunning = false;
             gRdkShellMutex.unlock();
+            shellThread.join();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
