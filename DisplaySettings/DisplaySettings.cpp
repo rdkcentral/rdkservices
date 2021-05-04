@@ -61,6 +61,7 @@ using namespace std;
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
 #define HDMICECSINK_ARC_INITIATION_EVENT "arcInitiationEvent"
 #define HDMICECSINK_ARC_TERMINATION_EVENT "arcTerminationEvent"
+#define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
@@ -150,7 +151,7 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSettingWrapper, this);
+            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
             registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
@@ -210,15 +211,6 @@ namespace WPEFramework {
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
-
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-            tvZoomSettings.push_back("TV AUTO");
-            tvZoomSettings.push_back("TV DIRECT");
-            tvZoomSettings.push_back("TV NORMAL");
-            tvZoomSettings.push_back("TV 16X9 STRETCH");
-            tvZoomSettings.push_back("TV LETTERBOX");
-            tvZoomSettings.push_back("TV ZOOM");
-#endif
         }
 
         DisplaySettings::~DisplaySettings()
@@ -308,11 +300,6 @@ namespace WPEFramework {
             else
             {
                 LOGWARN("Current power state %d", m_powerState);
-            }
-
-            if (!setZoomSetting(getZoomSettingConfig()))
-            {
-                LOGERR("Couldn't restore zoom settings");
             }
 
             // On success return empty, to indicate there is no error text.
@@ -567,6 +554,26 @@ namespace WPEFramework {
 
                                 if(hdmiin_hotplug_conn) {
                                     aPort.getSupportedARCTypes(&types);
+                                    LOGINFO("dsHdmiEventHandler: Configuring User set Audio mode before starting ARC/eARC Playback...\n");
+                                    if(aPort.getStereoAuto() == true) {
+					if(types & dsAUDIOARCSUPPORT_eARC) {
+					    aPort.setStereoAuto(true,true);
+					}
+					else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                            if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                                LOGERR("dsHdmiEventHandler (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                            }
+                                            else {
+                                                LOGINFO("dsHdmiEventHandler (ARC): requestShortAudioDescriptor successful\n");
+                                            }
+					}
+                                    }
+                                    else{
+                                        device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                                        mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                                        aPort.setStereoMode(mode.toString(), true);
+                                    }
+
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
                                         LOGINFO("dsHdmiEventHandler: Enable eARC\n");
                                         aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
@@ -844,9 +851,6 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-            string zoomSetting = getZoomSettingConfig();
-#else
             string zoomSetting = "unknown";
             try
             {
@@ -861,66 +865,18 @@ namespace WPEFramework {
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
-#endif
             response["zoomSetting"] = zoomSetting;
             returnResponse(true);
         }
 
-        std::string DisplaySettings::getZoomSettingConfig()
-        {
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-            string zoomSetting = "TV AUTO";
-#else
-            string zoomSetting = "FULL";
-#endif
-            Core::File settingsFile;
-            settingsFile = ZOOM_SETTINGS_FILE;
-            if (settingsFile.Open())
-            {
-                JsonObject settingsJson;
-                if (settingsJson.IElement::FromFile(settingsFile))
-                {
-                    zoomSetting = settingsJson["zoomSetting"].String();
-                }
-                else
-                {
-                    LOGERR("Couldn't read zoom settings file %s", ZOOM_SETTINGS_FILE);
-                }
-                settingsFile.Close();
-            }
-            else
-            {
-                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
-            }
-
-            return zoomSetting;
-        }
-
-
-        uint32_t DisplaySettings::setZoomSettingWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
             returnIfParamNotFound(parameters, "zoomSetting");
             string zoomSetting = parameters["zoomSetting"].String();
 
-            returnResponse(setZoomSetting(zoomSetting));
-        }
-
-        bool DisplaySettings::setZoomSetting(std::string zoomSetting)
-        {
             bool success = true;
-#ifdef ENABLE_TV_ZOOM_SETTINGS
-            if (std::find(tvZoomSettings.begin(), tvZoomSettings.end(), zoomSetting) != tvZoomSettings.end())
-            {
-                success = setZoomSettingConfig(zoomSetting);
-            }
-            else
-            {
-                LOGERR("Unsupported tv zoom settings value %s", zoomSetting.c_str());
-                success = false;
-            }
-#else
             try
             {
 #ifdef USE_IARM
@@ -929,52 +885,13 @@ namespace WPEFramework {
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
-                success = setZoomSettingConfig(zoomSetting);
             }
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(zoomSetting);
                 success = false;
             }
-#endif
-            return success;
-        }
-
-        bool DisplaySettings::setZoomSettingConfig(std::string zoomSetting)
-        {
-            bool success = true;
-            Core::File settingsFile;
-            settingsFile = ZOOM_SETTINGS_FILE;
-            if (!settingsFile.Open(false))
-            {
-                LOGWARN("Couldn't open zoom settings file %s", ZOOM_SETTINGS_FILE);
-
-                Core::Directory settingsDirectory(ZOOM_SETTINGS_DIRECTORY);
-                if (!settingsDirectory.CreatePath())
-                {
-                    LOGERR("Couldn't create zoom settings file path %s", ZOOM_SETTINGS_DIRECTORY);
-                    success = false;
-                }
-                else if (!settingsFile.Create())
-                {
-                    LOGERR("Couldn't create zoom settings file %s", ZOOM_SETTINGS_FILE);
-                    success = false;
-                }
-            }
-
-            if (settingsFile.IsOpen())
-            {
-                JsonObject settingsJson;
-                settingsJson["zoomSetting"] = zoomSetting;
-                if (!settingsJson.IElement::ToFile(settingsFile))
-                {
-                    LOGERR("Couldn't save zoom settings file %s", ZOOM_SETTINGS_FILE);
-                    success = false;
-                }
-                settingsFile.Close();
-            }
-
-            return success;
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
@@ -1095,6 +1012,15 @@ namespace WPEFramework {
                         else
                             modeString.append(mode.toString());
                     }
+		    else if(aPort.getType().getId() == device::AudioOutputPortType::kARC){
+                        if (aPort.getStereoAuto()) {
+                            LOGINFO("HDMI_ARC0 output mode Auto");
+                            modeString.append("AUTO");
+			}
+			else{
+			    modeString.append(mode.toString());
+			}
+		    }
                     else
                     {
                         if (mode == device::AudioStereoMode::kSurround)
@@ -1204,14 +1130,50 @@ namespace WPEFramework {
                                 else
                                     mode = device::AudioStereoMode::kStereo;
                             }
+                            //TODO: if mode has not changed, we can skip the extra call
+                            aPort.setStereoMode(mode.toString(), persist);
                         }
                         else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                         {
                             LOGERR("Reset auto on %s for mode = %s!", audioPort.c_str(), soundMode.c_str());
                             aPort.setStereoAuto(false, persist);
+                            //TODO: if mode has not changed, we can skip the extra call
+                            aPort.setStereoMode(mode.toString(), persist);
                         }
-                        //TODO: if mode has not changed, we can skip the extra call
-                        aPort.setStereoMode(mode.toString(), persist);
+			else if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+		            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
+				    aPort.setStereoAuto(false, persist);
+				    aPort.setStereoMode(mode.toString(), persist);
+		            }
+			    else { //Auto Mode
+			        int types = dsAUDIOARCSUPPORT_NONE;
+                                aPort.getSupportedARCTypes(&types);
+
+				if(types & dsAUDIOARCSUPPORT_eARC) {
+				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
+				}
+				else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                    if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                        success = false;
+                                        LOGERR("setSoundMode Auto: requestShortAudioDescriptor failed !!!\n");;
+                                    }
+                                    else {
+                                        LOGINFO("setSoundMode Auto: requestShortAudioDescriptor successful\n");
+                                    }
+				}
+			   }
+			}
+                        else if (aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
+                        {
+			    if(stereoAuto == false) {
+                                aPort.setStereoAuto(false, persist);
+                                aPort.setStereoMode(mode.toString(), persist);
+			    }
+			    else{
+			        aPort.setStereoAuto(true, persist);
+			    }
+                        }
+
                     }
                 }
                 else
@@ -1549,13 +1511,14 @@ namespace WPEFramework {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
                 if (vPort.isDisplayConnected())
                 {
-                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth;
-                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth);
+                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
+                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
 
                     response["colorSpace"] = colorSpace;
                     response["colorDepth"] = colorDepth;
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
+                    response["quantizationRange"] = quantizationRange;
                 }
                 else
                 {
@@ -2762,6 +2725,34 @@ namespace WPEFramework {
             return success;
 	}
 
+        bool DisplaySettings::requestShortAudioDescriptor()
+        {
+            bool success = true;
+
+            if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
+                auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
+                if (!hdmiCecSinkPlugin) {
+                    LOGERR("HdmiCecSink plugin not accessible\n");
+                }
+                else {
+                    JsonObject hdmiCecSinkResult;
+                    JsonObject param;
+
+                    LOGINFO("Requesting Short Audio Descriptor \n");
+                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                        success = false;
+                        LOGERR("HdmiCecSink Plugin returned error\n");
+                    }
+                }
+            }
+            else {
+                success = false;
+                LOGERR("HdmiCecSink plugin not ready\n");
+            }
+
+            return success;
+        }
 
         uint32_t DisplaySettings::setEnableAudioPort (const JsonObject& parameters, JsonObject& response)
         {   //TODO: Handle other audio ports. Currently only supports HDMI ARC/eARC
@@ -2810,6 +2801,28 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
+                    LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
+                    if(aPort.isConnected()) {
+                        if(aPort.getStereoAuto() == true) {
+                            if(types & dsAUDIOARCSUPPORT_eARC) {
+                                aPort.setStereoAuto(true,true);
+                            }
+                            else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                    LOGERR("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                }
+                                else {
+                                    LOGINFO("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor successful\n");
+                                }
+                            }
+                        }
+                        else{
+                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            aPort.setStereoMode(mode.toString(), true);
+                        }
+                    }		    
+
                     if(types & dsAUDIOARCSUPPORT_eARC) {
                         if(pEnable) {
                             LOGINFO("DisplaySettings::setEnableAudioPort Enable eARC !!!");
@@ -2955,6 +2968,9 @@ namespace WPEFramework {
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
+                } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
+                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                            , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
                 }
                 else {
                      err = Core::ERROR_UNAVAILABLE;
@@ -3030,13 +3046,51 @@ namespace WPEFramework {
         }
 
         // 4.
+        void DisplaySettings::onShortAudioDescriptorEventHandler(const JsonObject& parameters) {
+            string message;
+
+            parameters.ToString(message);
+	    JsonArray shortAudioDescriptorList;
+            LOGINFO("[Short Audio Descriptor Event], %s : %s", __FUNCTION__, C_STR(message));
+
+            if (parameters.HasLabel("ShortAudioDescriptor")) {
+                shortAudioDescriptorList = parameters["ShortAudioDescriptor"].Array();
+                    try
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+			LOGINFO("Total Short Audio Descriptors received from connected ARC device: %d\n",shortAudioDescriptorList.Length());
+			if(shortAudioDescriptorList.Length() <= 0) {
+			    LOGERR("Not setting SAD. No SAD returned by connected ARC device\n");
+			    return;
+			}
+
+			std::vector<int> sad_list;
+			for (int i=0; i<shortAudioDescriptorList.Length(); i++) {
+                            LOGINFO("Short Audio Descriptor[%d]: %ld \n",i, shortAudioDescriptorList[i].Number());
+                            sad_list.push_back(shortAudioDescriptorList[i].Number());
+                        }
+
+		        aPort.setSAD(sad_list);
+			aPort.setStereoAuto(true,true);
+                    }
+                    catch (const device::Exception& err)
+                    {
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    }
+            } else {
+                LOGERR("Field 'ShortAudioDescriptor' could not be found in the event's payload.");
+            }
+        }
+
+
+        // 5.
         void DisplaySettings::onTimer()
         {
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             if(!m_subscribed) {
-                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE))
+                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE))
                 {
                     m_subscribed = true;
                     if (m_timer.isActive()) {

@@ -202,7 +202,8 @@ public:
                 }
             }
             else {
-                isEnbaled = device::Host::getInstance().GetLEConfig();
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("SPEAKER0");
+                isEnbaled = aPort.GetLEConfig();
                 LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
             }
         }
