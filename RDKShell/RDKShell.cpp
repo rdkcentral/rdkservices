@@ -4838,7 +4838,17 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                 std::vector<std::string> clientList;
+                CompositorController::getClients(clientList);
+                bool targetFound = false;
+                if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                {
+                 targetFound = true;
+                }
+               if (targetFound)
+               {
+               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+               }
                 gRdkShellMutex.unlock();
             }
             return ret;
@@ -5031,7 +5041,17 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+             std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
+            {
+              targetFound = true;
+            }
+             if (targetFound)
+            {
             ret = CompositorController::setOpacity(client, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -5049,7 +5069,17 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
+            {
+             targetFound = true;
+            }
+            if (targetFound)
+            {
             ret = CompositorController::setScale(client, scaleX, scaleY);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
