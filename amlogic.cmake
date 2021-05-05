@@ -82,11 +82,6 @@ if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
     add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
 endif()
 
-if (BUILD_ENABLE_TV_ZOOM_SETTINGS)
-    message("Building with tv zoom settings")
-    add_definitions (-DENABLE_TV_ZOOM_SETTINGS)
-endif()
-
 if (AMLOGIC_E2)
     add_definitions (-DAMLOGIC_E2)
 endif()
