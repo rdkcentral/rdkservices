@@ -29,6 +29,7 @@ const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
         "[\\w-]*\\.{0,1}[\\w-]*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
+const std::list<string> WPEFramework::Plugin::UsbAccess::ADDITIONAL_FW_PATHS {"UsbTestFWUpdate", "UsbProdFWUpdate"};
 
 namespace WPEFramework {
 namespace Plugin {
@@ -214,6 +215,10 @@ namespace Plugin {
 
         std::list<string> paths;
         result = getMounted(paths);
+
+        for (auto it = paths.begin(); it != paths.end(); ++it)
+            for (auto jt = ADDITIONAL_FW_PATHS.begin(); jt != ADDITIONAL_FW_PATHS.end(); ++jt)
+                paths.insert(it, joinPaths(*it, *jt));
 
         JsonArray arr;
         std::list<string> allFiles;

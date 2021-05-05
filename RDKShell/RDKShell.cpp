@@ -480,6 +480,7 @@ namespace WPEFramework {
                                   sFactoryModeStart = true;
                                   JsonObject request, response;
                                   std::cout << "about to launch factory app\n";
+                                  request["resetagingtime"] = "true";
                                   uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                                 }
                             }
@@ -672,6 +673,7 @@ namespace WPEFramework {
             }
 #else
             mEnableUserInactivityNotification = true;
+            enableInactivityReporting(true);
 #endif
 
             Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
@@ -723,6 +725,7 @@ namespace WPEFramework {
                             {
                                 request["nokillresapp"] = "true";
                             }
+                            request["resetagingtime"] = "true";
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
@@ -807,6 +810,7 @@ namespace WPEFramework {
                         {
                             request["nokillresapp"] = "true";
                         }
+                        request["resetagingtime"] = "true";
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
@@ -828,7 +832,6 @@ namespace WPEFramework {
                   }
                 }
             });
-            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -991,6 +994,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             sRunning = false;
             gRdkShellMutex.unlock();
+            shellThread.join();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -3885,7 +3889,21 @@ namespace WPEFramework {
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
-                killAllApps();
+                if (parameters.HasLabel("resetagingtime"))
+                {
+                    JsonObject joAgingSetValueParams;
+                    JsonObject joAgingSetValueResult;
+                    joAgingSetValueParams.Set("namespace","FactoryTest");
+                    joAgingSetValueParams.Set("key","AgingTotalTime");
+                    joAgingSetValueParams.Set("value","0");
+                    std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                    std::cout << "attempting to set aging total time to 0 \n";
+                    uint32_t agingTotalTimeSetStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingSetValueParams, joAgingSetValueResult);
+                    std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
+                }
+
+                killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
                     JsonObject destroyRequest, destroyResponse;
@@ -3921,6 +3939,18 @@ namespace WPEFramework {
                 std::cout << "attempting to set factory mode flag \n";
                 uint32_t setStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
                 std::cout << "set status: " << setStatus << std::endl;
+
+                JsonObject joFactoryExitParams;
+                JsonObject joFactoryExitResult;
+                joFactoryExitParams.Set("namespace","FactoryTest");
+                joFactoryExitParams.Set("key","AllowExit");
+                joFactoryExitParams.Set("value","true");
+                std::string factoryExitSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                std::cout << "attempting to set factory allow exit flag \n";
+                uint32_t setExitStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryExitSetInvoke.c_str(), joFactoryExitParams, joFactoryExitResult);
+                std::cout << "set status: " << setExitStatus << std::endl;
+
                 sFactoryAppLaunchStatus = COMPLETED;
                 returnResponse(true);
             }
@@ -4029,6 +4059,38 @@ namespace WPEFramework {
                 else
                 {
                     std::cout << "aging value is not set\n";
+                }
+
+                JsonObject joExitParams;
+                JsonObject joExitResult;
+                joExitParams.Set("namespace","FactoryTest");
+                joExitParams.Set("key","AllowExit");
+                std::string factoryExitGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+                std::cout << "attempting to check factory exit flag\n";
+                uint32_t factoryExitStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, factoryExitGetInvoke.c_str(), joExitParams, joExitResult);
+                std::cout << "factory exit get status: " << factoryExitStatus << std::endl;
+
+                if (factoryExitStatus == 0 && joExitResult.HasLabel("value"))
+                {
+                    const std::string valueString = joExitResult["value"].String();
+                    std::cout << "exit value is " << valueString << std::endl;
+                    if (valueString == "false")
+                    {
+                        std::cout << "factory exit flag is false.  not allowing the exit of the factory app\n";
+                        response["message"] = "factory exit flag is false";
+                        returnResponse(false);
+                    }
+                    else
+                    {
+                        std::cout << "factory exit flag is true.  allowing the factory app to exit\n";
+                    }
+                }
+                else
+                {
+                    std::cout << "factory exit flag not found.  not allowing the exit of the factory app\n";
+                    response["message"] = "factory exit flag not found";
+                    returnResponse(false);
                 }
             }
             setVisibility("factoryapp", false);
@@ -4453,12 +4515,30 @@ namespace WPEFramework {
             return false;
         }
 
-        void RDKShell::killAllApps()
+        void RDKShell::killAllApps(bool enableDestroyEvent)
         {
             bool ret = false;
             JsonObject stateRequest, stateResponse;
             uint32_t result = getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+
+            if (enableDestroyEvent)
+            {
+                for (int i=0; i<stateList.Length(); i++)
+                {
+                    const JsonObject& stateInfo = stateList[i].Object();
+                    if (stateInfo.HasLabel("callsign"))
+                    {
+                        const string callsign = stateInfo["callsign"].String();
+                        std::cout << "RDKShell sending onWillDestroyEvent for " << callsign << std::endl;
+                        JsonObject params;
+                        params["callsign"] = callsign;
+                        notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+                    }
+                }
+                sleep(1);
+            }
+
             for (int i=0; i<stateList.Length(); i++)
             {
                 const JsonObject& stateInfo = stateList[i].Object();
@@ -4758,7 +4838,17 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                 std::vector<std::string> clientList;
+                CompositorController::getClients(clientList);
+                bool targetFound = false;
+                if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                {
+                 targetFound = true;
+                }
+               if (targetFound)
+               {
+               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+               }
                 gRdkShellMutex.unlock();
             }
             return ret;
@@ -4951,7 +5041,17 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+             std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
+            {
+              targetFound = true;
+            }
+             if (targetFound)
+            {
             ret = CompositorController::setOpacity(client, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -4969,7 +5069,17 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
+            {
+             targetFound = true;
+            }
+            if (targetFound)
+            {
             ret = CompositorController::setScale(client, scaleX, scaleY);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
