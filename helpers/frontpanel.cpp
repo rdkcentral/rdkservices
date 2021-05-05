@@ -339,7 +339,8 @@ namespace WPEFramework
                         device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     case FRONT_PANEL_INDICATOR_POWER:
-                        LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                        //LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+			device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     }
                 }
@@ -387,7 +388,8 @@ namespace WPEFramework
                     }
                     break;
                 case FRONT_PANEL_INDICATOR_POWER:
-                    LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                    //LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+		    device::FrontPanelIndicator::getInstance("Power").setState(false);
                     break;
                 }
             }

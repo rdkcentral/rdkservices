@@ -480,6 +480,7 @@ namespace WPEFramework {
                                   sFactoryModeStart = true;
                                   JsonObject request, response;
                                   std::cout << "about to launch factory app\n";
+                                  request["resetagingtime"] = "true";
                                   uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                                 }
                             }
@@ -672,6 +673,7 @@ namespace WPEFramework {
             }
 #else
             mEnableUserInactivityNotification = true;
+            enableInactivityReporting(true);
 #endif
 
             Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
@@ -723,6 +725,7 @@ namespace WPEFramework {
                             {
                                 request["nokillresapp"] = "true";
                             }
+                            request["resetagingtime"] = "true";
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
@@ -807,6 +810,7 @@ namespace WPEFramework {
                         {
                             request["nokillresapp"] = "true";
                         }
+                        request["resetagingtime"] = "true";
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
@@ -828,7 +832,6 @@ namespace WPEFramework {
                   }
                 }
             });
-            shellThread.detach();
 
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
@@ -991,6 +994,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             sRunning = false;
             gRdkShellMutex.unlock();
+            shellThread.join();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -3885,7 +3889,21 @@ namespace WPEFramework {
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
-                killAllApps();
+                if (parameters.HasLabel("resetagingtime"))
+                {
+                    JsonObject joAgingSetValueParams;
+                    JsonObject joAgingSetValueResult;
+                    joAgingSetValueParams.Set("namespace","FactoryTest");
+                    joAgingSetValueParams.Set("key","AgingTotalTime");
+                    joAgingSetValueParams.Set("value","0");
+                    std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
+
+                    std::cout << "attempting to set aging total time to 0 \n";
+                    uint32_t agingTotalTimeSetStatus = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingSetValueParams, joAgingSetValueResult);
+                    std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
+                }
+
+                killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
                     JsonObject destroyRequest, destroyResponse;
@@ -4497,12 +4515,30 @@ namespace WPEFramework {
             return false;
         }
 
-        void RDKShell::killAllApps()
+        void RDKShell::killAllApps(bool enableDestroyEvent)
         {
             bool ret = false;
             JsonObject stateRequest, stateResponse;
             uint32_t result = getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+
+            if (enableDestroyEvent)
+            {
+                for (int i=0; i<stateList.Length(); i++)
+                {
+                    const JsonObject& stateInfo = stateList[i].Object();
+                    if (stateInfo.HasLabel("callsign"))
+                    {
+                        const string callsign = stateInfo["callsign"].String();
+                        std::cout << "RDKShell sending onWillDestroyEvent for " << callsign << std::endl;
+                        JsonObject params;
+                        params["callsign"] = callsign;
+                        notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+                    }
+                }
+                sleep(1);
+            }
+
             for (int i=0; i<stateList.Length(); i++)
             {
                 const JsonObject& stateInfo = stateList[i].Object();

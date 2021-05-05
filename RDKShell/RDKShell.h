@@ -249,7 +249,7 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
-            void killAllApps();
+            void killAllApps(bool enableDestroyEvent=false);
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
