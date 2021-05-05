@@ -34,16 +34,10 @@ namespace {
 
         auto auth = service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
         if (auth != nullptr) {
-            // Token passed from Thunder isn't a token but a URL, convert it..
-            JsonObject object;
-            object["url"] = token;
-            string payload;
-            object.ToString(payload);
-
             string encoded;
             if (auth->CreateToken(
-                    static_cast<uint16_t>(payload.length()),
-                    reinterpret_cast<const uint8_t *>(payload.c_str()),
+                    static_cast<uint16_t>(token.length()),
+                    reinterpret_cast<const uint8_t *>(token.c_str()),
                     encoded) == WPEFramework::Core::ERROR_NONE) {
                 WPEFramework::PluginHost::ISecurity *officer = auth->Officer(encoded);
                 if (officer != nullptr) {
@@ -94,6 +88,7 @@ namespace Plugin {
 
     // TokenCheckFunction
 
+    // Note, token is assumed to be a URL
     bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
     {
         bool result = false;
