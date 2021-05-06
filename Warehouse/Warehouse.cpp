@@ -88,7 +88,7 @@ namespace WPEFramework
             Warehouse::_instance = this;
 
             registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
+            registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this, {1}); // org.rdk.System.1.getDeviceInfo should be used instead on later versions
             registerMethod(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
             registerMethod(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
             registerMethod(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
