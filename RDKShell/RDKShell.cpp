@@ -651,6 +651,29 @@ namespace WPEFramework {
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
+            bool factoryMacMatched = false;
+#ifdef RFC_ENABLED
+            RFC_ParamData_t macparam;
+            bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
+            if (true == macret)
+            {
+                if (strncasecmp(macparam.value,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    factoryMacMatched = true;
+                }
+                else
+                {
+                    std::cout << "mac match failed. mac from rfc - " << macparam.value << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac rfc failed " << std::endl;
+            }
+#else
+            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
+#endif
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
@@ -689,6 +712,10 @@ namespace WPEFramework {
                 std::cout << "waiting for persistent store\n";
                 waitForPersistentStore = true;
             }
+            if (factoryMacMatched)
+            {
+                waitForPersistentStore = false;
+            }
 
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
@@ -709,7 +736,7 @@ namespace WPEFramework {
                         std::cout << "setting platform and graphics\n";
                         fflush(stdout);
                         RDKShell* rdkshellPlugin = RDKShell::_instance;
-                        if ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch()))
+                        if (factoryMacMatched || ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch())))
                         {
                             sFactoryModeStart = true;
                         }
@@ -737,6 +764,10 @@ namespace WPEFramework {
                     }
                 }
                 isRunning = sRunning;
+                if (factoryMacMatched)
+                {
+                  CompositorController::hideSplashScreen();
+                }
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
                 while(isRunning) {
@@ -4442,28 +4473,6 @@ namespace WPEFramework {
         bool RDKShell::checkForBootupFactoryAppLaunch()
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
-#ifdef RFC_ENABLED
-            RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
-            if (true == ret)
-            {
-                if (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching " << std::endl;
-                    return true;
-                }
-                else
-                {
-                  std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "reading stb mac rfc failed " << std::endl;
-            }
-#else
-            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
-#endif
 
             if (sPersistentStoreFirstActivated)
             {
