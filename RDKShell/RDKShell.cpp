@@ -756,6 +756,7 @@ namespace WPEFramework {
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
+                            CompositorController::hideSplashScreen();
                         }
                         else
                         {
@@ -764,10 +765,6 @@ namespace WPEFramework {
                     }
                 }
                 isRunning = sRunning;
-                if (factoryMacMatched)
-                {
-                  CompositorController::hideSplashScreen();
-                }
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
                 while(isRunning) {
@@ -845,6 +842,7 @@ namespace WPEFramework {
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
+                        CompositorController::hideSplashScreen();
                     }
                     else
                     {
