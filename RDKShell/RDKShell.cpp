@@ -4471,7 +4471,6 @@ namespace WPEFramework {
         bool RDKShell::checkForBootupFactoryAppLaunch()
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
-
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
