@@ -36,6 +36,8 @@
 #define REGISTRY_FILENAME_RNE "/home/root/waylandregistryrne.conf"
 #define REGISTRY_FILENAME_DEV "/opt/waylandregistry.conf"
 
+#define CALLSIGN_PARAMETER "-C"
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -99,13 +101,16 @@ namespace WPEFramework
             static void readSmaps(const char *pid, unsigned int &pvtOut, unsigned int &sharedOut);
 
             static void getProcStat(const char *dirName, std::string &cmdName, unsigned int &ppid, bool calcCpu, long long unsigned int &cpuTicks);
+            static std::string getCallSign(int pid);
             static void getProcInfo(bool calcMem, bool calcCpu, std::vector<unsigned int> &pidsOut, std::vector <std::string> &cmdsOut, std::vector <unsigned int> &memUsageOut, std::vector <long long unsigned int> &cpuUsageOut);
 
         private:
             static std::map <std::string, std::string> registry;
+            static bool isRegistryLoaded;
         };
 
         std::map <std::string, std::string> MemoryInfo::registry;
+        bool MemoryInfo::isRegistryLoaded = false;
 
 
         ActivityMonitor::ActivityMonitor()
@@ -206,17 +211,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            {
-                std::lock_guard<std::mutex> lock(m_monitoringMutex);
-                m_stopMonitoring = true;
-            }
-
-            if (m_monitor.joinable())
-            {
-                LOGWARN("Terminating monitor thread");
-                m_monitor.join();
-            }
-
+            threadStop();
             JsonArray configArray = parameters["config"].Array();
 
             if (0 == configArray.Length())
@@ -292,14 +287,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            {
-                std::lock_guard<std::mutex> lock(m_monitoringMutex);
-                m_stopMonitoring = true;
-            }
-
-            if (m_monitor.joinable())
-                m_monitor.join();
-            else
+            if (threadStop() == -1);
                 LOGWARN("Monitoring is already disabled");
 
             delete m_monitorParams;
@@ -590,10 +578,59 @@ namespace WPEFramework
 
         }
 
+        std::string MemoryInfo::getCallSign(int pid)
+        {
+            std::string callSign = "";
+
+            std::stringstream fileName;
+            fileName << "/proc/" << pid << "/cmdline";
+
+            std::vector <char> buf;
+            buf.resize(1024);
+            buf.data()[0] = 0;
+
+            size_t r = 0;
+            FILE *f = fopen(fileName.str().c_str(), "r");
+            if (f)
+            {
+                r = fread(buf.data(), 1, buf.size(), f);
+                if (buf.size() == r)
+                {
+                    LOGERR("Failed to read stat, buffer is too small");
+                }
+                fclose(f);
+            }
+
+            buf.data()[buf.size() - 1] = 0;
+
+            int pos = 0;
+            while (pos < buf.size())
+            {
+                if (0 == strcmp(buf.data() + pos, CALLSIGN_PARAMETER))
+                {    
+                    pos += strlen(buf.data() + pos) + 1;
+
+                    if (pos < buf.size())
+                        callSign = (const char *)buf.data() + pos;
+                    else
+                        LOGERR("Unexpected end of cmd line");
+
+                    break;
+                }
+
+                pos += strlen(buf.data() + pos) + 1;
+            }
+
+            return callSign;
+        }
+
         void MemoryInfo::getProcInfo(bool calcMem, bool calcCpu, std::vector<unsigned int> &pidsOut, std::vector <std::string> &cmdsOut, std::vector <unsigned int> &memUsageOut, std::vector <long long unsigned int> &cpuUsageOut)
         {
-            if (0 == registry.size())
+            if (!isRegistryLoaded)
+            {
                 MemoryInfo::initRegistry();
+                isRegistryLoaded = true;
+            }
 
             if (!calcMem && !calcCpu)
             {
@@ -638,6 +675,8 @@ namespace WPEFramework
 
             std::map <unsigned int, std::vector <unsigned int>> cmdMap;
 
+            std::map <unsigned int, std::string> pid2callSign;
+
             for (unsigned int n = 0; n < cmds.size(); n++)
             {
                 unsigned int lastIdx = cmds.size();
@@ -647,9 +686,30 @@ namespace WPEFramework
                     idx = pidMap[pid];
                     std::string cmd = cmds[idx];
 
-                    if (registry.find(cmd) != registry.end())
+                    if (registry.size())
                     {
-                        lastIdx = idx;
+                        if (registry.find(cmd) != registry.end())
+                        {
+                            lastIdx = idx;
+                        }
+                    }
+                    else if (ppids[idx] == getpid()) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
+                    {
+                        if (pid2callSign.find(pids[idx]) == pid2callSign.end())
+                        {
+                            std::string callSign = getCallSign(pids[idx]);
+
+                            if (callSign.size() > 0)
+                            {    
+                                pid2callSign[pids[idx]] = callSign;
+                                lastIdx = idx;
+                            }
+
+                        }
+                        else
+                        {    
+                            lastIdx = idx;
+                        }
                     }
 
                     if (cnt >= 100)
@@ -692,7 +752,7 @@ namespace WPEFramework
                         }
                         unsigned int usage = (pvt + shared / cnt) / 1024;
 
-                        if (it->first != it->second[n])
+                        if (registry.size() && it->first != it->second[n])
                         {
                             pidsOut.push_back(pids[it->second[n]]);
                             cmdsOut.push_back(cmds[it->second[n]]);
@@ -708,7 +768,7 @@ namespace WPEFramework
                 {
                     for (unsigned int n = 0; n < it->second.size(); n++)
                     {
-                        if (it->first != it->second[n])
+                        if (registry.size() && it->first != it->second[n])
                         {
                             if (!calcMem) // If calcMem was disabled, pid and cmd should be added here.
                             {
@@ -723,7 +783,22 @@ namespace WPEFramework
                 }
 
                 pidsOut.push_back(pids[it->first]);
-                cmdsOut.push_back(cmds[it->first]);
+
+                if (registry.size())
+                {
+                    cmdsOut.push_back(cmds[it->first]);
+                }
+                else
+                {
+                    if (pid2callSign.find(pids[it->first]) != pid2callSign.end())
+                        cmdsOut.push_back(pid2callSign[pids[it->first]]);
+                    else
+                    {
+                        LOGWARN("No callSign for %s(%d)", cmds[it->first].c_str(), pids[it->first]);
+                        cmdsOut.push_back(cmds[it->first]);
+                    }
+                }
+
                 memUsageOut.push_back(memUsage);
                 cpuUsageOut.push_back(cpu_usage);
             }
@@ -732,6 +807,19 @@ namespace WPEFramework
         void ActivityMonitor::threadRun(ActivityMonitor *am)
         {
             am->monitoring();
+        }
+
+        int ActivityMonitor::threadStop()
+        {
+            if (!m_monitor.joinable())
+                return -1;
+
+            std::unique_lock<std::mutex> lock(m_monitoringMutex);
+            m_stopMonitoring = true;
+            m_cond.notify_one();
+            lock.unlock();
+            m_monitor.join();
+            return 0;
         }
 
         void ActivityMonitor::monitoring()
@@ -744,13 +832,6 @@ namespace WPEFramework
 
             while (1)
             {
-                {
-                    std::lock_guard<std::mutex> lock(m_monitoringMutex);
-
-                    if (m_stopMonitoring)
-                        break;
-                }
-
                 std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - m_monitorParams->lastMemCheck;
                 bool memCheck = m_monitorParams->memoryIntervalSeconds > 0 && elapsed.count() > m_monitorParams->memoryIntervalSeconds - 0.01;
 
@@ -961,7 +1042,10 @@ namespace WPEFramework
                     sleepTime = 0.01;
                 }
 
-                usleep(int(sleepTime * 1000000));
+                auto sleepfor = std::chrono::milliseconds((long)(sleepTime * 1000));
+                std::unique_lock<std::mutex> lock(m_monitoringMutex);
+                if (m_cond.wait_for(lock, sleepfor, [this] { return this->m_stopMonitoring; }))
+                    break;
             }
         }
 

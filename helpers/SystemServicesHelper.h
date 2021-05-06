@@ -74,7 +74,7 @@
 #define MODE_EAS        "EAS"
 #define MODE_WAREHOUSE  "WAREHOUSE"
 
-#define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | tr -s ' ' | cut -d ' ' -f3"
+#define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | sed '/^[^M/G]*$/d' | tr -s ' ' | cut -d ' ' -f3"
 
 enum eRetval { E_NOK = -1,
     E_OK };
@@ -292,6 +292,50 @@ void removeCharsFromString(string &str, const char* charsToRemove);
  * @brief Curl write request callback handler.
  */
 size_t curl_write(void *ptr, size_t size, size_t nmemb, void *stream);
+
+enum FwFailReason
+{
+    FwFailReasonNone = 0,
+    FwFailReasonNotFound,
+    FwFailReasonNetworkFailure,
+    FwFailReasonServerUnreachable,
+    FwFailReasonCorruptDownloadFile,
+    FwFailReasonFailureInFlashWrite,
+    FwFailReasonUpgradeFailedAfterFlashWrite,
+};
+
+static const std::map<FwFailReason, string> FwFailReasonToText =
+        {
+                {FwFailReasonNone, "None"},
+                {FwFailReasonNotFound, "Not found"},
+                {FwFailReasonNetworkFailure, "Network failure"},
+                {FwFailReasonServerUnreachable, "Server unreachable"},
+                {FwFailReasonCorruptDownloadFile, "Corrupt download file"},
+                {FwFailReasonFailureInFlashWrite, "Failure in flash write"},
+                {FwFailReasonUpgradeFailedAfterFlashWrite, "Upgrade failed after flash write"},
+        };
+
+static const std::map<string, FwFailReason> FwFailReasonFromText =
+        {
+                {"ESTB Download Failure", FwFailReasonServerUnreachable},
+                {"Image Download Failed - Unable to connect", FwFailReasonNetworkFailure},
+                {"Image Download Failed - Server not Found", FwFailReasonNotFound},
+                {"Image Download Failed - Error response from server", FwFailReasonServerUnreachable},
+                {"Image Download Failed - Unknown", FwFailReasonServerUnreachable},
+                {"Image download failed from server", FwFailReasonServerUnreachable}, // firmwareDwnld.sh only
+                {"RCDL Upgrade Failed", FwFailReasonFailureInFlashWrite},
+                {"ECM trigger failed", FwFailReasonFailureInFlashWrite},
+                {"Failed in flash write", FwFailReasonFailureInFlashWrite},
+                {"Flashing failed", FwFailReasonFailureInFlashWrite}, // userInitiatedFWDnld.sh only
+                {"Versions Match", FwFailReasonNone}, // XConf
+                {"Cloud FW Version is empty", FwFailReasonNone}, // XConf
+                {"Cloud FW Version is invalid", FwFailReasonNone}, // XConf
+                {"Invalid Request", FwFailReasonNone}, // XConf
+                {"Network Communication Error", FwFailReasonNone}, // XConf
+                {"Previous Upgrade In Progress", FwFailReasonNone}, // firmwareDwnld.sh only
+                {"Empty image name from CDL server", FwFailReasonNone}, // firmwareDwnld.sh only
+                {"Upgrade failed after flash write", FwFailReasonUpgradeFailedAfterFlashWrite},
+        };
 
 #endif /* __SYSTEM_SERVICE_HELPER_H__ */
 

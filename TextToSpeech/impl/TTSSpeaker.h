@@ -33,6 +33,9 @@
 
 #include "TTSCommon.h"
 
+#if defined(PLATFORM_AMLOGIC)
+#include "audio_if.h"
+#endif
 // --- //
 
 namespace TTS {
@@ -172,6 +175,14 @@ private:
     bool        m_flushed;
     bool        m_isEOS;
     bool        m_pcmAudioEnabled;
+#if defined(PLATFORM_AMLOGIC)
+    audio_hw_device_t *m_audio_dev;
+    enum MixGain {
+	MIXGAIN_PRIM,
+	MIXGAIN_SYS, //direct-mode=false
+	MIXGAIN_TTS //tts=mode=true
+    };
+#endif
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
     guint       m_busWatch;
@@ -179,6 +190,10 @@ private:
     uint8_t     m_pipelineConstructionFailures;
     const uint8_t     m_maxPipelineConstructionFailures;
 
+#if defined(PLATFORM_AMLOGIC)
+    bool setMixGain(MixGain gain, int val);
+    bool loadInitAudioDev();
+#endif
     static void GStreamerThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();

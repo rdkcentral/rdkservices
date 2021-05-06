@@ -109,6 +109,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
+            static const string RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING;
+            static const string RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -199,6 +201,8 @@ namespace WPEFramework {
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -246,7 +250,7 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
-            void killAllApps();
+            void killAllApps(bool enableDestroyEvent=false);
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
@@ -257,6 +261,8 @@ namespace WPEFramework {
             bool getVirtualDisplayEnabled(const std::string& client, bool &enabled);
             void loadStartupConfig();
             void invokeStartupThunderApis();
+            void enableLogsFlushing(const bool enable);
+            void getLogsFlushingEnabled(bool &enabled);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();

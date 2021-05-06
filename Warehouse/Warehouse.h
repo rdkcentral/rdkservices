@@ -87,6 +87,8 @@ namespace WPEFramework {
             void internalReset(JsonObject& response);
             void lightReset(JsonObject& response);
             void isClean(int age, JsonObject& response);
+            bool executeHardwareTest() const;
+            bool getHardwareTestResults(string& testResults) const;
 
             //Begin methods
             uint32_t resetDeviceWrapper(const JsonObject& parameters, JsonObject& response);
@@ -95,6 +97,8 @@ namespace WPEFramework {
             uint32_t internalResetWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t lightResetWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t isCleanWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t executeHardwareTestWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getHardwareTestResultsWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:
@@ -106,8 +110,6 @@ namespace WPEFramework {
 
             void onSetFrontPanelStateTimer();
 
-        public:
-            static Warehouse* _instance;
         private:
             void InitializeIARM();
             void DeinitializeIARM();

@@ -108,7 +108,6 @@ private:
 private:
     using AudioIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IAudioCodecIterator>;
     using VideoIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IVideoCodecIterator>;
-
     typedef std::map<const string, const Exchange::IPlayerProperties::AudioCodec> AudioCaps;
     typedef std::map<const string, const Exchange::IPlayerProperties::VideoCodec> VideoCaps;
 
@@ -118,6 +117,7 @@ public:
         gst_init(0, nullptr);
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
+        Utils::IARM::init();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
@@ -188,16 +188,24 @@ public:
         isEnbaled = false;
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected()) {
+            if (device::Host::getInstance().isHDMIOutPortPresent()) 
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected()) {
+                    isEnbaled = aPort.GetLEConfig();
+                    LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
+                }
+                else
+                {
+                    TRACE(Trace::Information, (_T("IsAudioEquivalenceEnabled failure: HDMI0 not connected!")));
+
+                    LOGERR("IsAudioEquivalenceEnabled failure: HDMI0 not connected!");
+                }
+            }
+            else {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("SPEAKER0");
                 isEnbaled = aPort.GetLEConfig();
                 LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
-            }
-            else
-            {
-                TRACE(Trace::Information, (_T("IsAudioEquivalenceEnabled failure: HDMI0 not connected!")));
-
-                LOGERR("IsAudioEquivalenceEnabled failure: HDMI0 not connected!");
             }
         }
         catch(const device::Exception& err)
@@ -284,14 +292,19 @@ public:
         supported = false;
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected())
-            {
-                aPort.getSinkDeviceAtmosCapability(atmosCapability);
+            if (device::Host::getInstance().isHDMIOutPortPresent()) {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected())
+                {
+                    aPort.getSinkDeviceAtmosCapability(atmosCapability);
+                }
+                else
+                {
+                    TRACE(Trace::Error, (_T("getSinkAtmosCapability failure: HDMI0 not connected!\n")));
+                }
             }
-            else
-            {
-               TRACE(Trace::Error, (_T("getSinkAtmosCapability failure: HDMI0 not connected!\n")));
+            else {
+                device::Host::getInstance().getSinkDeviceAtmosCapability(atmosCapability);
             }
         }
         catch(const device::Exception& err)
@@ -347,15 +360,19 @@ public:
     {
         try
         {
-            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-            if (aPort.isConnected()) {
-                aPort.setAudioAtmosOutputMode(enable);
+            if (device::Host::getInstance().isHDMIOutPortPresent()) {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                if (aPort.isConnected()) {
+                    aPort.setAudioAtmosOutputMode(enable);
+                }
+                else
+                {
+                    TRACE(Trace::Error, (_T("setAudioAtmosOutputMode failure: HDMI0 not connected!\n")));
+                }
             }
-            else
-            {
-                TRACE(Trace::Error, (_T("setAudioAtmosOutputMode failure: HDMI0 not connected!\n")));
+            else {
+                device::Host::getInstance().setAudioAtmosOutputMode(enable);
             }
-
         }
         catch (const device::Exception& err)
         {

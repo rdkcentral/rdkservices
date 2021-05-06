@@ -28,7 +28,9 @@
 #include "rfcapi.h"
 
 // IARM
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "rdk/iarmbus/libIARM.h"
+#endif
 
 // std
 #include <string>
@@ -185,6 +187,8 @@ namespace Utils
         static bool init();
         static bool isConnected() { return m_connected; }
 
+        static const char* NAME;
+
     private:
         static bool m_connected;
     };
@@ -294,7 +298,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -303,7 +307,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
-
+#endif
     /***
      * @brief	: Execute shell script and get response
      * @param1[in]	: script to be executed with args

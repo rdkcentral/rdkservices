@@ -28,6 +28,10 @@ using namespace std;
 using namespace WPEFramework;
 
 JSONRPC::Client* remoteObject = NULL;
+
+/* Declare module name */
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 void showMenu()
 {
 	cout<<"Enter your choice\n";
