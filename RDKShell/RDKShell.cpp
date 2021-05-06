@@ -4472,6 +4472,29 @@ namespace WPEFramework {
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 
+#ifdef RFC_ENABLED
+            RFC_ParamData_t param;
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
+            if (true == ret)
+            {
+                if (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    return true;
+                }
+                else
+                {
+                    std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac rfc failed " << std::endl;
+            }
+#else
+            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
+#endif
+
             if (sPersistentStoreFirstActivated)
             {
                 JsonObject joAgingParams;
