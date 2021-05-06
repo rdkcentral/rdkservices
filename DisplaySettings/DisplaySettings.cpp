@@ -810,7 +810,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "HDMI"))
+                if (Utils::String::stringContains(audioPort, "HDMI0"))
                 {
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                     int surroundMode = vPort.getDisplay().getSurroundMode();
@@ -832,11 +832,10 @@ namespace WPEFramework {
                         supportedAudioModes.emplace_back("AUTO (Stereo)");
                     }
                 }
-
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF"))
+		else if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF0") || Utils::String::stringContains(audioPort, "HDMI_ARC0"))
                 {
                     if (HAL_hasSurround) {
-                        supportedAudioModes.emplace_back("Surround");
+                        supportedAudioModes.emplace_back("SURROUND");
                     }
                 }
             }
@@ -1023,9 +1022,6 @@ namespace WPEFramework {
 		    }
                     else
                     {
-                        if (mode == device::AudioStereoMode::kSurround)
-                            modeString.append("Surround");
-                        else
                             modeString.append(mode.toString());
                     }
                 }
@@ -1036,7 +1032,7 @@ namespace WPEFramework {
                     * "Stereo" as safe default;
                     */
                     mode = device::AudioStereoMode::kStereo;
-                    modeString.append("AUTO (Stereo)");
+                    modeString.append(mode.toString());
                 }
             }
             catch (const device::Exception& err)
@@ -1047,7 +1043,7 @@ namespace WPEFramework {
                 // "Stereo" as safe default;
                 //
                 mode = device::AudioStereoMode::kStereo;
-                modeString += "AUTO (Stereo)";
+		modeString.append(mode.toString());
             }
 
             LOGWARN("audioPort = %s, mode = %s!", audioPort.c_str(), modeString.c_str());
@@ -1075,15 +1071,15 @@ namespace WPEFramework {
             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
             bool stereoAuto = false;
 
-            if (soundMode == "mono")
+            if (soundMode == "mono" || soundMode == "MONO")
                 mode = device::AudioStereoMode::kMono;
-            else if (soundMode == "stereo")
+            else if (soundMode == "stereo" || soundMode == "STEREO")
                 mode = device::AudioStereoMode::kStereo;
-            else if (soundMode == "surround")
+            else if (soundMode == "surround" || soundMode == "SURROUND")
                 mode = device::AudioStereoMode::kSurround;
-            else if (soundMode == "passthru")
+            else if (soundMode == "passthru" || soundMode == "PASSTHRU")
                 mode = device::AudioStereoMode::kPassThru;
-            else if (soundMode == "auto" || soundMode == "auto ")
+            else if (soundMode == "auto" || soundMode == "auto " || soundMode == "AUTO" || soundMode == "AUTO ")
             {
                 /*
                  * anything after "auto" is only descriptive, and can be ignored.
@@ -1175,6 +1171,10 @@ namespace WPEFramework {
                         }
 
                     }
+		    else {
+			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
+			    success = false;
+		    }
                 }
                 else
                 {
