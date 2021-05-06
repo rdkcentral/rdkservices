@@ -214,14 +214,14 @@ namespace WPEFramework {
             return true;
           }
           template <typename RESPONSE>
-          bool FromMessage(RESPONSE& response, const Core::ProxyType<Core::JSONRPC::Message>& message) const
+          bool FromMessage(RESPONSE& response, const Core::ProxyType<Core::JSONRPC::Message>& message, bool isResponseString=false) const
           {
-            return FromMessage((Core::JSON::IElement*)(&response), message);
+            return FromMessage((Core::JSON::IElement*)(&response), message, isResponseString);
           }
-          bool FromMessage(Core::JSON::IElement* response, const Core::ProxyType<Core::JSONRPC::Message>& message) const
+          bool FromMessage(Core::JSON::IElement* response, const Core::ProxyType<Core::JSONRPC::Message>& message, bool isResponseString=false) const
           {
             Core::OptionalType<Core::JSON::Error> error;
-            if ( ! response->FromString(message->Result.Value(), error) )
+            if ( !isResponseString && !response->FromString(message->Result.Value(), error) )
             {
               std::cout << "Failed to parse response!!! Error: '" <<  error.Value().Message() << "'\n";
               return false;
@@ -262,7 +262,7 @@ namespace WPEFramework {
           }
 
           template <typename PARAMETERS, typename RESPONSE>
-          uint32_t Invoke(const uint32_t waitTime, const string& method, const PARAMETERS& parameters, RESPONSE& response)
+          uint32_t Invoke(const uint32_t waitTime, const string& method, const PARAMETERS& parameters, RESPONSE& response, bool isResponseString=false)
           {
             if (dispatcher_ == nullptr) {
               std::cout << "No JSON RPC dispatcher for " << mCallSign << '\n';
@@ -284,7 +284,7 @@ namespace WPEFramework {
               return resp->Error.Code;
             }
 
-            if (!FromMessage(response, resp))
+            if (!FromMessage(response, resp, isResponseString))
               return Core::ERROR_GENERAL;
 
             return Core::ERROR_NONE;
@@ -2758,7 +2758,7 @@ namespace WPEFramework {
                     joParams.Set("newcallsign",callsign.c_str());
                     JsonObject joResult;
                     // setting wait Time to 2 seconds
-                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult, true);
 
                     std::cout << "clone status: " << status << std::endl;
                     if (status > 0)
@@ -2767,7 +2767,7 @@ namespace WPEFramework {
                         JsonObject joParams2;
                         joParams2.Set("callsign", type);
                         joParams2.Set("newcallsign",callsign.c_str());
-                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult, true);
                         std::cout << "clone status: " << status << std::endl;
                     }
 
