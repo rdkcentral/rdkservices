@@ -315,13 +315,13 @@ namespace Plugin {
 
 #ifdef INCLUDE_PACKAGER_EX
 
-    void PackagerImplementation::NotifyIntallStep(Exchange::IPackager::state status, uint32_t task /*= 0*/, string id /* = "" */, int32_t code /*= 0*/)
+    void PackagerImplementation::NotifyInstallStep(Exchange::IPackager::state status, uint32_t task /*= 0*/, string id /* = "" */, int32_t code /*= 0*/)
     {
         _adminLock.Lock();
         _isSyncing = false;
         for (auto* notification : _notifications)
         {
-            notification->IntallStep(status, task, id, code);
+            notification->InstallStep(status, task, id, code);
         }
         _adminLock.Unlock();
     }

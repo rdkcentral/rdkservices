@@ -327,6 +327,16 @@ namespace {
         {
             Unregister(kInstallMethodName);
             Unregister(kSynchronizeMethodName);
+
+#ifdef INCLUDE_PACKAGER_EX
+            Unregister(kDAC_RemoveMethodName);
+            Unregister(kDAC_CancelMethodName);
+            Unregister(kDAC_IsInstalledMethodName);
+            Unregister(kDAC_GetInstallProgressMethodName);
+            Unregister(kDAC_GetInstalledMethodName);
+            Unregister(kDAC_GetPackageInfoMethodName);
+            Unregister(kDAC_GetAvailableSpaceMethodName);
+#endif // INCLUDE_PACKAGER_EX
         }
 
         BEGIN_INTERFACE_MAP(Packager)
@@ -391,9 +401,9 @@ namespace {
                // Needed >> Exchange::IPackager::INotification is Pure Virtual
             }
 
-            virtual void IntallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code) override
+            virtual void InstallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code) override
             {
-                _parent.IntallStep(status, task, id, code);
+                _parent.InstallStep(status, task, id, code);
             }
 
             virtual void StateChange(const PluginHost::IStateControl::state state) override
@@ -418,7 +428,7 @@ namespace {
 
 #ifdef INCLUDE_PACKAGER_EX
 
-        void IntallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code);
+        void InstallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code);
 
         // JSONRPC
         void event_installstep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code);

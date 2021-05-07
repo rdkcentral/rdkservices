@@ -158,7 +158,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
     {
       LOGERR(" - %s ... ALREADY installed", pkgId.c_str());
 
-      NotifyIntallStep(Exchange::IPackager::INSTALLED, 0, pkgId); // technically true
+      NotifyInstallStep(Exchange::IPackager::INSTALLED, 0, pkgId); // technically true
 
       return 9; // FAIL  //PackagerExUtils::DACrc_t::dac_FAIL;
     }
@@ -208,7 +208,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
     {
         LOGERR(" ... Invlaid download URL >> %s \n", url.c_str());
 
-        NotifyIntallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -1);
+        NotifyInstallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -1);
 
         return 11; // FAIL  //PackagerExUtils::DACrc_t::dac_FAIL;
     }
@@ -217,7 +217,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
     std::string install_name = pkgId;    // dummy defaults
     std::string install_ver  = "1.2.3";  // dummy defaults
 
-//    NotifyIntallStep(INSTALL_START);
+//    NotifyInstallStep(INSTALL_START);
 
     std::string ext = PackagerExUtils::fileExtension(install_url);
 
@@ -238,7 +238,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
         {
             LOGERR(" ... ERROR:  Failed to download JSON >> %s \n", install_url.c_str());
 
-            NotifyIntallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -2);
+            NotifyInstallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -2);
 
             return 22; // FAIL  //PackagerExUtils::DACrc_t::dac_FAIL;
         }
@@ -263,7 +263,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
             LOGINFO(" ... install_url: %s   install_name: %s  install_ver: %s\n",
                      install_url.c_str(), install_name.c_str(), install_ver.c_str());
 
-            NotifyIntallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -3);
+            NotifyInstallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -3);
 
             return 33; // FAIL  //PackagerExUtils::DACrc_t::dac_FAIL;
         }
@@ -274,7 +274,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
     {
         LOGERR(" ... Invlaid URL >> %s \n", url.c_str());
 
-        NotifyIntallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -4);
+        NotifyInstallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -4);
 
         return 44; // FAIL  //PackagerExUtils::DACrc_t::dac_FAIL;
     }
@@ -285,7 +285,7 @@ LOGINFO("########## NOW ? hasPkgRow('TestApp0123456') == %s\n",
       // TODO:  Find a JSON manifest within the .tgz ?
     }
 
-    NotifyIntallStep(Exchange::IPackager::DOWNLOADING, taskId, pkgId);
+    NotifyInstallStep(Exchange::IPackager::DOWNLOADING, taskId, pkgId);
 JUNK_SLEEP_MS(200);
 
     // Download TGZ package...
@@ -294,7 +294,7 @@ JUNK_SLEEP_MS(200);
 
     if(PackagerExUtils::downloadURL(install_url.c_str(), download_name) != PackagerExUtils::DACrc_t::dac_OK)
     {
-      NotifyIntallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -5);
+      NotifyInstallStep(Exchange::IPackager::DOWNLOAD_FAILED, 0, pkgId, -5);
 JUNK_SLEEP_MS(200);
 
       LOGERR(" ... DOWNLOAD (%s)>>>  FAILED\n", install_url.c_str());
@@ -302,10 +302,10 @@ JUNK_SLEEP_MS(200);
     }
     else
     {
-        NotifyIntallStep(Exchange::IPackager::DOWNLOADED, taskId, pkgId);
+        NotifyInstallStep(Exchange::IPackager::DOWNLOADED, taskId, pkgId);
  JUNK_SLEEP_MS(200);
 
-        NotifyIntallStep(Exchange::IPackager::VERIFYING, taskId, pkgId);  // aka "onExtractCommence"
+        NotifyInstallStep(Exchange::IPackager::VERIFYING, taskId, pkgId);  // aka "onExtractCommence"
 JUNK_SLEEP_MS(200);
 
         // Get UUID ...
@@ -322,7 +322,7 @@ JUNK_SLEEP_MS(200);
           //
           LOGERR(" ... EXTRACT >>>  FAILED\n");
 
-          NotifyIntallStep(Exchange::IPackager::EXTRACTION_FAILED, taskId, pkgId, -1);
+          NotifyInstallStep(Exchange::IPackager::EXTRACTION_FAILED, taskId, pkgId, -1);
 
           PackagerExUtils::fileRemove(download_name); // Always cleanup
           PackagerExUtils::removeFolder(uuid_path);   // Remove debris
@@ -330,21 +330,21 @@ JUNK_SLEEP_MS(200);
           return 66; // FAIL
         }
 
-        NotifyIntallStep(Exchange::IPackager::VERIFIED, taskId, pkgId);
+        NotifyInstallStep(Exchange::IPackager::VERIFIED, taskId, pkgId);
 JUNK_SLEEP_MS(200);
 
         // TODO: look for JSON meta in app bundle...
         //
         LOGINFO(" ... INSTALLED >>> [ %s ]\n", install_name.c_str());
 
-        NotifyIntallStep(Exchange::IPackager::INSTALLING, taskId, pkgId);
+        NotifyInstallStep(Exchange::IPackager::INSTALLING, taskId, pkgId);
 JUNK_SLEEP_MS(200);
 
         // INSTALL
         //
         PackagerExUtils::fileRemove(download_name); // Always cleanup
 
-        NotifyIntallStep(Exchange::IPackager::INSTALLING, taskId, pkgId);
+        NotifyInstallStep(Exchange::IPackager::INSTALLING, taskId, pkgId);
 JUNK_SLEEP_MS(200);
 
         time_t rawtime;
@@ -371,7 +371,7 @@ JUNK_SLEEP_MS(200);
 
 JUNK_SLEEP_MS(200);
 
-        NotifyIntallStep(Exchange::IPackager::INSTALLED, taskId, pkgId);
+        NotifyInstallStep(Exchange::IPackager::INSTALLED, taskId, pkgId);
         LOGINFO(" ... COMPLETE (%s) --------------------------------------------------------\n\n\n", install_url.c_str());
     }
 
@@ -396,7 +396,7 @@ JUNK_SLEEP_MS(200);
       {
         LOGINFO("... Remove(%s, %s) - FAILED... not found ? ", pkgId.c_str(), listener.c_str());
 
-        NotifyIntallStep(Exchange::IPackager::REMOVE_FAILED, 0, pkgId, -1);
+        NotifyInstallStep(Exchange::IPackager::REMOVE_FAILED, 0, pkgId, -1);
 
         return -1; // FAILED
       }
@@ -430,7 +430,7 @@ JUNK_SLEEP_MS(200);
   {
     DDD();
 
-   NotifyIntallStep(Exchange::IPackager::state::IDLE);
+   NotifyInstallStep(Exchange::IPackager::state::IDLE);
 
     // TODO:
     return 42;

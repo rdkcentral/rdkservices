@@ -511,8 +511,8 @@ void TTSSpeaker::createPipeline() {
 
 
     // create soc specific elements
-    m_source = gst_element_factory_make("souphttpsrc", NULL);
 #if defined(PLATFORM_BROADCOM)
+    m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
     m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_AMLOGIC)
@@ -560,7 +560,12 @@ void TTSSpeaker::createPipeline() {
 
 #if defined(PLATFORM_AMLOGIC)
         if(m_pcmAudioEnabled) {
+            //Raw PCM audio does not work with souphhtpsrc on Amlogic amlhalasink
+            m_source = gst_element_factory_make("httpsrc", NULL);
             g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
+        }
+        else {
+            m_source = gst_element_factory_make("souphttpsrc", NULL);
         }
 #endif
 
@@ -1000,7 +1005,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                 TTSLOG_ERROR("error! code: %d, %s, Debug: %s", error->code, error->message, debug);
                 GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "error-pipeline");
                 std::string source = GST_MESSAGE_SRC_NAME(message);
-                if(source.find("souphttpsrc") == 0)
+                if(source.find("httpsrc") != std::string::npos)
                     m_networkError = true;
                 m_pipelineError = true;
                 m_condition.notify_one();

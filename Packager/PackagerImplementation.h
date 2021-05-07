@@ -138,7 +138,7 @@ namespace Plugin {
 
             _adminLock.Unlock();
 
-            TRACE(Trace::Information, (_T("Registered a sink on the browser %p"), sink));
+            TRACE_L1("Registered a sink on the browser %p", sink);
         }
 
         virtual void Unregister(PluginHost::IStateControl::INotification* sink)
@@ -153,7 +153,7 @@ namespace Plugin {
             if (index != _stateControlClients.end()) {
                 (*index)->Release();
                 _stateControlClients.erase(index);
-                TRACE(Trace::Information, (_T("Unregistered a sink on the browser %p"), sink));
+                TRACE_L1("Unregistered a sink on the browser %p", sink);
             }
 
             _adminLock.Unlock();
@@ -380,7 +380,7 @@ namespace Plugin {
         void InitPackageDB();
         void TermPackageDB();
 
-        void NotifyIntallStep(Exchange::IPackager::state status, uint32_t task = 0, string id = "", int32_t code = 0);   // NOTIFY
+        void NotifyInstallStep(Exchange::IPackager::state status, uint32_t task = 0, string id = "", int32_t code = 0);   // NOTIFY
 
         static const uint64_t STORE_BYTES_QUOTA;
         static const char*    STORE_NAME;

@@ -39,6 +39,9 @@
 using namespace std;
 using namespace WPEFramework;
 
+/* Declare module name */
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 /* This section can be used for API validation logic. */
 void showMenu()
 {

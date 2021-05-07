@@ -65,7 +65,7 @@ namespace {
         _implementation->Unregister(&_notification);
 #endif
 
-        _implementation->Release();
+        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
 
         if (_connectionId != 0) {
 
@@ -414,9 +414,9 @@ namespace {
         return(result);
     }
 
-    void Packager::IntallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code)
+    void Packager::InstallStep(Exchange::IPackager::state status, uint32_t task, string id, int32_t code)
     {
-        // LOGINFO("Packager::IntallStep(uint32_t status)  >>> %u", status);
+        // LOGINFO("Packager::InstallStep(uint32_t status)  >>> %u", status);
         event_installstep(status, task, id, code);
     }
 

@@ -23,7 +23,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(libprovision QUIET)
 find_package(LibOPKG REQUIRED)
-find_package(GLIB REQUIRED)
 
 option(BUILD_WITH_PACKAGER_EX "BUILD_WITH_PACKAGER_EX" OFF)
 
@@ -34,6 +33,7 @@ option(BUILD_WITH_PACKAGER_EX "BUILD_WITH_PACKAGER_EX" OFF)
 ##
 
 if (BUILD_WITH_PACKAGER_EX)
+    find_package(GLIB REQUIRED)
 
     add_definitions(-DINCLUDE_PACKAGER_EX)
 

@@ -200,6 +200,13 @@ namespace WPEFramework
                 LOGINFO("%s reset...", resetType.c_str());
                 err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
             }
+            else if (resetType.compare("WAREHOUSE_CLEAR") == 0)
+            {
+                LOGINFO("%s reset...", resetType.c_str());
+                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                whParam.suppressReboot = suppressReboot;
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
+            }
             else // WAREHOUSE
             {
                 LOGINFO("WAREHOUSE reset...");
