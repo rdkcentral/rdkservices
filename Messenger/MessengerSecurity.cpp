@@ -99,20 +99,16 @@ namespace Plugin {
             JoinParamsData params;
             params.FromString(parameters);
             auto room = params.Room.Value();
-            bool secure = params.Secure.Value();
             const auto& acl = params.Acl;
 
             _adminLock.Lock();
 
+            bool secure = room.rfind("@", 0) == 0;
             auto actualAcl = _roomACL.find(room);
             bool aclSet = actualAcl != _roomACL.end();
 
             if (!secure) {
-                if (aclSet) {
-                    TRACE(Trace::Error, (_T("Room '%s' is secure"), room.c_str()));
-                } else {
-                    result = true;
-                }
+                result = true;
             } else {
                 bool settingAcl = acl.IsSet();
                 Core::JSON::ArrayType<Core::JSON::String>::ConstIterator index = acl.Elements();
@@ -121,14 +117,12 @@ namespace Plugin {
                 if (!aclSet) {
                     TRACE(Trace::Information, (_T("Joining room '%s' w/o ACL"), room.c_str()));
 
-                    if (!settingAcl) {
-                        TRACE(Trace::Error, (_T("Room '%s' isn't secure"), room.c_str()));
+                    if (!settingAcl || index.Count() == 0) {
+                        TRACE(Trace::Error, (_T("ACL is empty")));
                     } else if (roomExists) {
                         TRACE(Trace::Error, (_T("Can't set ACL of an active room '%s'"), room.c_str()));
                     } else if (!IsAllowed(_service, token, _service->Callsign() + ".acl")) {
                         TRACE(Trace::Error, (_T("Not permitted to set ACL")));
-                    } else if (index.Count() == 0) {
-                        TRACE(Trace::Error, (_T("ACL is empty")));
                     } else {
                         auto retval = _roomACL.emplace(std::piecewise_construct,
                                                        std::make_tuple(room),
