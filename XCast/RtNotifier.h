@@ -29,6 +29,8 @@ public:
     
             virtual void onRtServiceDisconnected(void)=0;
             virtual void onXcastApplicationLaunchRequest(string appName, string parameter)=0;
+            virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,
+                                        string strPayLoad, string strQuery, string strAddDataUrl)=0;
             virtual void onXcastApplicationStopRequest(string appName, string appID)=0;
             virtual void onXcastApplicationHideRequest(string appName, string appID)=0;
             virtual void onXcastApplicationResumeRequest(string appName, string appID)=0;
