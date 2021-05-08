@@ -19,6 +19,7 @@
 
 #include "RtXcastConnector.h"
 #include "utils.h"
+#include <cjson/cJSON.h>
 
 using namespace std;
 using namespace WPEFramework;
@@ -27,6 +28,11 @@ using namespace WPEFramework;
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
 #define EVENT_LOOP_ITERATION_IN_100MS     100000
+
+#define NETFLIX_DEF_APP_REQ ("{\"names\":[\"Netflix\"],\"cors\":[\".netflix.com\"],\"properties\":{\"allowStop\" :true}}")
+#define YOUTUBE_DEF_APP_REQ ("{\"names\":[\"YouTube\"],\"cors\":[\".youtube.com\"],\"properties\":{\"allowStop\" :true}}")
+#define SPOTIFY_DEF_APP_REQ ("{\"names\":[\"com.spotify.Spotify.TV\"],\"prefixes\" : [\"com.spotify\"],\"cors\":[\".spotify.com\"],\"properties\":{\"allowStop\" :true}}")
+#define PARING_DEF_APP_REQ  ("{\"names\":[\"Pairing\"],\"cors\":[\".comcast.com\"],\"properties\":{\"allowStop\" :true}}")
 
 static rtObjectRef xdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
@@ -75,8 +81,22 @@ rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const 
         rtString appName = appObject.get<rtString>("applicationName");
         if (!strcmp(appName.cString(),"Netflix"))
             appName = "NetflixApp";
-        rtString rtparams = appObject.get<rtString>("parameters");
-        observer->onXcastApplicationLaunchRequest(appName.cString() , rtparams.cString());
+        rtString rtparamIsUrl = appObject.get<rtString>("isUrl");
+        if (0 == strcmp(rtparamIsUrl.cString(), "false")) {
+
+            rtString rtPayload = appObject.get<rtString>("payload");
+            rtString rtQuery = appObject.get<rtString>("query");
+            rtString rtAddDataUrl = appObject.get<rtString>("addDataUrl");
+            observer->onXcastApplicationLaunchRequestWithLaunchParam(
+                                         appName.cString(),
+                                         rtPayload.cString(),
+                                         rtQuery.cString(),
+                                         rtAddDataUrl.cString());
+        }
+        else {
+            rtString rtparams = appObject.get<rtString>("parameters");
+            observer->onXcastApplicationLaunchRequest(appName.cString() , rtparams.cString());
+        }
     }
     else
         LOGERR(" *** Error: received unknown event");
@@ -223,6 +243,43 @@ int RtXcastConnector::connectToRemoteService()
         LOGINFO("Registed onApplicationStateRequest %d", e );
         e = xdialCastObj.send("on", "bye" , new rtFunctionCallback(RtXcastConnector::onRtServiceByeCallback, m_observer));
         LOGINFO("Registed rtService bye event %d", e );
+
+       /*Static AppList init*/
+       if(!IsDynamicAppListEnabled()) {
+           char strXCastDefaultAppReq [1024];
+           bool IsCommaReq = false;
+
+           memset (strXCastDefaultAppReq, '\0', sizeof (strXCastDefaultAppReq));
+           strcpy (strXCastDefaultAppReq, "[");
+           if(IsAppEnabled("youtube")) {
+               strcat (strXCastDefaultAppReq, YOUTUBE_DEF_APP_REQ);
+               IsCommaReq = true;
+           }
+           if(IsAppEnabled("spotify")) {
+               if (IsCommaReq) {
+                   strcat (strXCastDefaultAppReq, ", ");
+               }
+               strcat (strXCastDefaultAppReq, SPOTIFY_DEF_APP_REQ);
+               IsCommaReq = true;
+           }
+           if(IsAppEnabled("netflix")) {
+               if (IsCommaReq) {
+                   strcat (strXCastDefaultAppReq, ", ");
+               }
+               strcat (strXCastDefaultAppReq, NETFLIX_DEF_APP_REQ);
+               IsCommaReq = true;
+           }
+           if(IsAppEnabled("pairing")) {
+               if (IsCommaReq) {
+                   strcat (strXCastDefaultAppReq, ", ");
+               }
+               strcat (strXCastDefaultAppReq, PARING_DEF_APP_REQ);
+               IsCommaReq = true;
+           }
+           strcat (strXCastDefaultAppReq, "]");
+           std::string strAppList = std::string (strXCastDefaultAppReq);
+           registerApplications (strAppList);
+       }
         
     }
     else
@@ -323,6 +380,247 @@ void RtXcastConnector::updateFriendlyName(string friendlyname)
         LOGINFO(" xdialCastObj is NULL ");
 }
 
+void RtXcastConnector::clearAppLaunchParamList (){
+   for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
+       if (NULL != regAppLaunchParam.appName) {
+           free (regAppLaunchParam.appName);
+           regAppLaunchParam.appName = NULL;
+       }
+       if (NULL != regAppLaunchParam.query) {
+           free (regAppLaunchParam.query);
+           regAppLaunchParam.query = NULL;
+       }
+       if (NULL != regAppLaunchParam.payload) {
+           free (regAppLaunchParam.payload);
+           regAppLaunchParam.payload = NULL;
+       }
+    }
+    m_appLaunchParamList.clear();
+}
+
+bool RtXcastConnector::getEntryFrmAppLaunchParamList (const char* appName, RegAppLaunchParams* reqParam){
+    bool isEntryFound = false;
+    for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
+        if (0 == strcmp (regAppLaunchParam.appName, appName)) {
+            isEntryFound = true;
+            int iNameLen = strlen (regAppLaunchParam.appName);
+            reqParam->appName = (char*) malloc (iNameLen);
+            memset (reqParam->appName, '\0', iNameLen);
+            strcpy (reqParam->appName, regAppLaunchParam.appName);
+
+            if (regAppLaunchParam.query) {
+                int iQueryLen = strlen (regAppLaunchParam.query);
+                reqParam->query = (char*) malloc (iQueryLen);
+                memset (reqParam->query, '\0', iQueryLen);
+                strcpy (reqParam->query, regAppLaunchParam.query);
+            }
+
+            if (regAppLaunchParam.payload) {
+                int iPayLoad = strlen (regAppLaunchParam.payload);
+                reqParam->payload = (char*) malloc (iPayLoad);
+                memset (reqParam->payload, '\0', iPayLoad);
+                strcpy (reqParam->payload, regAppLaunchParam.payload);
+            }
+            break;
+        }
+    }
+    return isEntryFound;
+}
+
+void RtXcastConnector::registerApplications(string strApps)
+{
+    LOGINFO("XcastService::registerApplications");
+
+    cJSON *itrApp = NULL;
+
+    cJSON *jNames = NULL;
+    cJSON *itrName = NULL;
+
+    cJSON *jPrefixes = NULL;
+    cJSON *itrPrefix = NULL;
+
+    cJSON *jCors = NULL;
+    cJSON *itrCor = NULL;
+
+    cJSON *jProperties = NULL;
+    cJSON *jAllowStop = NULL;
+
+    cJSON *jLaunchParam = NULL;
+    cJSON *jQuery = NULL;
+    cJSON *jPayload = NULL;
+    if (!strApps.empty()) {
+        cJSON *applications = cJSON_Parse(strApps.c_str());
+        if (!cJSON_IsArray(applications)) {
+            LOGINFO ("applications array passed: %s", strApps.c_str());
+            LOGINFO ("\nInvalid applications array exititng\n");
+            cJSON_Delete(applications);
+            return;
+        }
+
+        /* iterate over ints */
+        LOGINFO("Applications:\n");
+        int iIndex = 0;
+        rtArrayObject *appReqList = new rtArrayObject;
+
+        /*Clear all existing launch param*/
+        clearAppLaunchParamList ();
+
+        cJSON_ArrayForEach(itrApp, applications) {
+            LOGINFO("Application: %d \n", iIndex);
+            if (!cJSON_IsObject(itrApp)) {
+                LOGINFO ("\nInvalid appliaction format at index. Skipping%d\n", iIndex);
+                continue;
+            }
+            rtObjectRef appReq = new rtMapObject;
+            jNames = cJSON_GetObjectItem(itrApp, "names");
+            if (!cJSON_IsArray(jNames)) {
+                LOGINFO ("\nInvalid names format at application index %d. Skipping the application\n", iIndex);
+                continue;
+            }
+            else {
+                rtArrayObject *appNameList = new rtArrayObject;
+                cJSON_ArrayForEach(itrName, jNames) {
+                    if (!cJSON_IsString(itrName)) {
+                        LOGINFO ("\nInvalid name format at application index. Skipping%d\n", iIndex);
+                        continue;
+                    }
+                    LOGINFO("%s, ", itrName->valuestring);
+                    appNameList->pushBack (itrName->valuestring);
+                }
+                appReq.set ("Names", rtValue(appNameList));
+                LOGINFO("\n");
+            }
+
+            jPrefixes = cJSON_GetObjectItem(itrApp, "prefixes");
+            if (!cJSON_IsArray(jPrefixes)) {
+                LOGINFO ("\nInvalid prefixes format at application index %d\n", iIndex);
+            }
+            else {
+                rtArrayObject *appPrefixes = new rtArrayObject;
+                cJSON_ArrayForEach(itrPrefix, jPrefixes) {
+                    if (!cJSON_IsString(itrPrefix)) {
+                        LOGINFO ("\nInvalid prefix format at application index. Skipping%d\n", iIndex);
+                        continue;
+                    }
+                    LOGINFO("%s, ", itrPrefix->valuestring);
+                    appPrefixes->pushBack (itrPrefix->valuestring);
+                }
+                appReq.set ("prefixes", rtValue(appPrefixes));
+                LOGINFO("\n");
+            }
+
+            jCors = cJSON_GetObjectItem(itrApp, "cors");
+            if (!cJSON_IsArray(jCors)) {
+                LOGINFO ("\nInvalid cors format at application index %d. Skipping the application\n", iIndex);
+                continue;
+            }
+            else {
+                rtArrayObject *appCors = new rtArrayObject;
+                cJSON_ArrayForEach(itrCor, jCors) {
+                    if (!cJSON_IsString(itrCor)) {
+                        LOGINFO ("\nInvalid cor format at application index. Skipping%d\n", iIndex);
+                        continue;
+                    }
+                    LOGINFO("%s, ", itrCor->valuestring);
+                    appCors->pushBack (itrCor->valuestring);
+                }
+                appReq.set ("cors", rtValue(appCors));
+                LOGINFO("\n");
+            }
+
+            jProperties = cJSON_GetObjectItem(itrApp, "properties");
+            if (!cJSON_IsObject(jProperties)) {
+                LOGINFO ("\nInvalid property format at application index %d\n", iIndex);
+            }
+            else {
+                rtObjectRef appProp = new rtMapObject;
+                jAllowStop = cJSON_GetObjectItem(jProperties, "allowStop");
+                if (!cJSON_IsBool(jAllowStop)) {
+                    LOGINFO ("\nInvalid allowStop format at application index %d\n", iIndex);
+                }
+                else {
+                    LOGINFO("allowStop: %d", jAllowStop->valueint);
+                    appProp.set("allowStop",jAllowStop->valueint);
+                    LOGINFO("\n");
+                }
+                appReq.set ("properties", rtValue(appProp));
+            }
+
+            jLaunchParam = cJSON_GetObjectItem(itrApp, "launchParameters");
+            if (!cJSON_IsObject(jLaunchParam)) {
+                LOGINFO ("\nInvalid Launch param format at application index %d\n", iIndex);
+            }
+            else {
+                jQuery = cJSON_GetObjectItem(jLaunchParam, "query");
+                if (!cJSON_IsString(jQuery)) {
+                    LOGINFO ("\nInvalid query format at application index %d\n", iIndex);
+                }
+                else {
+                    LOGINFO("query: %s, ", jQuery->valuestring);
+                }
+                jPayload = cJSON_GetObjectItem(jLaunchParam, "payload");
+                if (!cJSON_IsString(jPayload)) {
+                    LOGINFO ("\nInvalid payload format at application index %d\n", iIndex);
+                }
+                else {
+                    LOGINFO("payload: %s", jPayload->valuestring);
+                    LOGINFO("\n");
+                }
+                //Set launchParameters in list for later usage
+                rtObjectRef appNames;
+                int err = appReq.get ("Names", appNames);
+                if(err == RT_OK) {
+                    for(int i = 0 ; i< 25; i ++) {
+                        rtString appName;
+                        err = appNames.get(i,appName);
+                        if(err == RT_OK) {
+                            RegAppLaunchParams reqAppLaunchParams;
+
+                            int iNameLen = strlen (appName.cString());
+                            reqAppLaunchParams.appName = (char*) malloc (iNameLen+1);
+                            memset (reqAppLaunchParams.appName, '\0', iNameLen+1);
+                            strcpy (reqAppLaunchParams.appName, appName.cString());
+                            LOGINFO("reqAppLaunchParams.appName:%s iNameLen:%d appName:%s", reqAppLaunchParams.appName, iNameLen, appName.cString());
+
+                            if (cJSON_IsString(jQuery)) {
+                                int iQueryLen = strlen (jQuery->valuestring);
+                                reqAppLaunchParams.query = (char*) malloc (iQueryLen+1);
+                                memset (reqAppLaunchParams.query, '\0', iQueryLen+1);
+                                strcpy (reqAppLaunchParams.query, jQuery->valuestring);
+                                LOGINFO("reqAppLaunchParams.query:%s iQueryLen:%d jQuery:%s", reqAppLaunchParams.query, iQueryLen, jQuery->valuestring);
+                            }
+
+                            if (cJSON_IsString(jPayload)) {
+                                int iPayLoadLen = strlen (jPayload->valuestring);
+                                reqAppLaunchParams.payload = (char*) malloc (iPayLoadLen+1);
+                                memset (reqAppLaunchParams.payload, '\0', iPayLoadLen+1);
+                                strcpy (reqAppLaunchParams.payload, jPayload->valuestring);
+                                LOGINFO("reqAppLaunchParams.payload:%s iPayLoadLen:%d jPayload:%s", reqAppLaunchParams.payload, iPayLoadLen, jPayload->valuestring);
+                            }
+                            m_appLaunchParamList.push_back (reqAppLaunchParams);
+                        }
+                    }
+                }
+            }
+            iIndex++;
+            appReqList->pushBack(rtValue(appReq));
+        }
+        LOGINFO("\n");
+
+        cJSON_Delete(applications);
+
+        if(xdialCastObj != NULL)
+        {
+	        LOGINFO("%s:%d xdialCastObj Not NULL strApps:%s", __FUNCTION__, __LINE__, strApps.c_str());
+            int ret = xdialCastObj.send("onRegisterApplications", appReqList);
+            LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
+        }
+        else
+            LOGINFO(" xdialCastObj is NULL ");
+    }
+}
+
+
 RtXcastConnector * RtXcastConnector::getInstance()
 {
     if(RtXcastConnector::_instance == nullptr)
@@ -332,4 +630,46 @@ RtXcastConnector * RtXcastConnector::getInstance()
     return RtXcastConnector::_instance;
 }
 
+bool RtXcastConnector::IsDynamicAppListEnabled()
+{
+    bool ret = false;
+#ifdef RFC_ENABLED
+    RFC_ParamData_t param;
+    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.DynamicAppList", &param);
+    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
+    {
+        if( param.type == WDMP_BOOLEAN )
+        {
+            if(strncasecmp(param.value,"true",4) == 0 )
+                ret = true;
+        }
+    }
 
+    LOGINFO(" IsDynamicAppListEnabled enabled ? %d , call value %d ", ret, wdmpStatus);
+#endif //RFC_ENABLED
+
+    return ret;
+}
+
+bool RtXcastConnector::IsAppEnabled(char* strAppName)
+{
+    bool ret = false;
+    char* strfound = NULL;
+#ifdef RFC_ENABLED
+    RFC_ParamData_t param;
+    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList", &param);
+    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
+    {
+        if (NULL != strAppName) {
+            strfound = strstr(param.value, strAppName);
+        }
+        if (strfound) {
+            ret = true;
+        }
+    }
+
+    LOGINFO(" IsAppEnabled for %s enabled ? %d , call value %d ", strAppName, ret, wdmpStatus);
+#endif //RFC_ENABLED
+
+    return ret;
+}

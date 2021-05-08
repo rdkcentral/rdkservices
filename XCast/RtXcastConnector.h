@@ -20,12 +20,20 @@
 #include <thread>
 #include <mutex>
 #include <iostream>
+#include <list>
 
 #include <rtRemote.h>
 #include <rtObject.h>
 #include <rtError.h>
 #include "RtNotifier.h"
 using namespace std;
+
+typedef struct _RegAppLaunchParams {
+    char *appName = NULL;
+    char *query = NULL;
+    char *payload = NULL;
+}RegAppLaunchParams;
+
 /**
  * This is the connector class for interacting with xdial client using rtRemote.
  */
@@ -34,6 +42,8 @@ protected:
     RtXcastConnector():m_runEventThread(true){
         }
 public:
+    std::list<RegAppLaunchParams> m_appLaunchParamList;
+
     virtual ~RtXcastConnector();
     /**
      * Initialize rtRemote communication with rtDial server
@@ -62,6 +72,7 @@ public:
      *@param friendlyname - friendlyname
      */
     void updateFriendlyName(string friendlyname);
+    void registerApplications (string strApps);
     /**
      *Request the single instance of this class
      */
@@ -70,6 +81,8 @@ public:
      *Call back function for rtConnection
      */
     int connectToRemoteService();
+    bool IsDynamicAppListEnabled();
+    bool getEntryFrmAppLaunchParamList (const char* appName, RegAppLaunchParams* reqParam);
     
     void setService(RtNotifier * service){
         m_observer = service;
@@ -86,7 +99,8 @@ private:
     bool m_runEventThread;
     // Member function to handle RT messages.
     void processRtMessages();
-
+    void clearAppLaunchParamList ();
+    bool IsAppEnabled(char* strAppName);
 
     // Class level contracts
     // Singleton instance
