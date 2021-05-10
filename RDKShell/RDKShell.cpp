@@ -19,6 +19,7 @@
 
 #include "RDKShell.h"
 #include <string>
+#include <memory>
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -29,6 +30,8 @@
 #include <rdkshell/application.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
+#include <rdkshell/logger.h>
+#include <plugins/System.h>
 
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -173,6 +176,162 @@ FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 namespace WPEFramework {
     namespace Plugin {
 
+
+        struct JSONRPCDirectLink
+        {
+        private:
+          uint32_t mId { 0 };
+          std::string mCallSign { };
+          PluginHost::IDispatcher * dispatcher_ {nullptr};
+
+          Core::ProxyType<Core::JSONRPC::Message> Message() const
+          {
+            return (Core::ProxyType<Core::JSONRPC::Message>(PluginHost::IFactories::Instance().JSONRPC()));
+          }
+
+          template <typename PARAMETERS>
+          bool ToMessage(PARAMETERS& parameters, Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            return ToMessage((Core::JSON::IElement*)(&parameters), message);
+          }
+          bool ToMessage(Core::JSON::IElement* parameters, Core::ProxyType<Core::JSONRPC::Message>& message) const
+          {
+            if (!parameters->IsSet())
+              return true;
+            string values;
+            if (!parameters->ToString(values))
+            {
+              std::cout << "Failed to convert params to string\n";
+              return false;
+            }
+            if (values.empty() != true)
+            {
+              message->Parameters = values;
+            }
+            return true;
+          }
+          template <typename RESPONSE>
+          bool FromMessage(RESPONSE& response, const Core::ProxyType<Core::JSONRPC::Message>& message, bool isResponseString=false) const
+          {
+            return FromMessage((Core::JSON::IElement*)(&response), message, isResponseString);
+          }
+          bool FromMessage(Core::JSON::IElement* response, const Core::ProxyType<Core::JSONRPC::Message>& message, bool isResponseString=false) const
+          {
+            Core::OptionalType<Core::JSON::Error> error;
+            if ( !isResponseString && !response->FromString(message->Result.Value(), error) )
+            {
+              std::cout << "Failed to parse response!!! Error: '" <<  error.Value().Message() << "'\n";
+              return false;
+            }
+            return true;
+          }
+
+        public:
+          JSONRPCDirectLink(PluginHost::IShell* service, std::string callsign)
+            : mCallSign(callsign)
+          {
+            if (service)
+              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
+          }
+      
+          JSONRPCDirectLink(PluginHost::IShell* service)
+            : JSONRPCDirectLink(service, "Controller")
+          {
+          }
+          ~JSONRPCDirectLink()
+          {
+            if (dispatcher_)
+              dispatcher_->Release();
+          }
+
+          template <typename PARAMETERS>
+          uint32_t Get(const uint32_t waitTime, const string& method, PARAMETERS& respObject)
+          {
+            JsonObject empty;
+            return Invoke(waitTime, method, empty, respObject);
+          }
+
+          template <typename PARAMETERS>
+          uint32_t Set(const uint32_t waitTime, const string& method, const PARAMETERS& sendObject)
+          {
+            JsonObject empty;
+            return Invoke(waitTime, method, sendObject, empty);
+          }
+
+          template <typename PARAMETERS, typename RESPONSE>
+          uint32_t Invoke(const uint32_t waitTime, const string& method, const PARAMETERS& parameters, RESPONSE& response, bool isResponseString=false)
+          {
+            if (dispatcher_ == nullptr) {
+              std::cout << "No JSON RPC dispatcher for " << mCallSign << '\n';
+              return Core::ERROR_GENERAL;
+            }
+
+            auto message = Message();
+
+            message->JSONRPC = Core::JSONRPC::Message::DefaultVersion;
+            message->Id = Core::JSON::DecUInt32(++mId);
+            message->Designator = Core::JSON::String(mCallSign + ".1." + method);
+
+            ToMessage(parameters, message);
+
+            const uint32_t channelId = ~0;
+            auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+            if (resp->Error.IsSet()) {
+              std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
+              return resp->Error.Code;
+            }
+
+            if (!FromMessage(response, resp, isResponseString))
+              return Core::ERROR_GENERAL;
+
+            return Core::ERROR_NONE;
+          }
+        };
+
+        class StateControlNotification: public PluginHost::IStateControl::INotification
+        {
+          RDKShell& mRDKShell;
+          std::string mCallSign;
+          bool mLaunchEnabled { false };
+        public:
+          StateControlNotification(std::string callsign, RDKShell& shell)
+            : mRDKShell(shell)
+            , mCallSign(callsign)
+          {
+          }
+
+          void enableLaunch(bool enable)
+          {
+            mLaunchEnabled = enable;
+          }
+
+          void StateChange(const PluginHost::IStateControl::state state) override
+          {
+            bool isSuspended = (state == PluginHost::IStateControl::SUSPENDED);
+            if (mLaunchEnabled)
+            {
+               JsonObject params;
+               params["client"] = mCallSign;
+               params["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               mLaunchEnabled = false;
+            }
+
+            if (isSuspended)
+            {
+                JsonObject params;
+                params["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+            }            
+          }
+
+          BEGIN_INTERFACE_MAP(Notification)
+          INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
+          END_INTERFACE_MAP
+        };
+
+        std::map<std::string, StateControlNotification*> gStateNotifications;
+
         struct RDKShellStartupConfig
         {
             std::string rfc;
@@ -185,6 +344,7 @@ namespace WPEFramework {
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
+        
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -331,6 +491,28 @@ namespace WPEFramework {
                     sPersistentStoreFirstActivated = true;
                     gRdkShellMutex.unlock();
                 }
+                else if (currentState == PluginHost::IShell::DEACTIVATION)
+                {
+                    StateControlNotification* notification = nullptr;
+                    gPluginDataMutex.lock();
+                    auto notificationIt = gStateNotifications.find(service->Callsign());
+                    if (notificationIt != gStateNotifications.end())
+                    {
+                        notification = notificationIt->second;
+                        gStateNotifications.erase(notificationIt);
+                    }
+                    gPluginDataMutex.unlock();
+                    if (notification)
+                    {
+                        PluginHost::IStateControl* stateControl(service->QueryInterface<PluginHost::IStateControl>());
+                        if (stateControl != nullptr)
+                        {
+                            stateControl->Unregister(notification);
+                            stateControl->Release();
+                        }
+                        notification->Release();
+                    }
+                }
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
@@ -372,7 +554,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -463,6 +645,29 @@ namespace WPEFramework {
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
+            bool factoryMacMatched = false;
+#ifdef RFC_ENABLED
+            RFC_ParamData_t macparam;
+            bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
+            if (true == macret)
+            {
+                if (strncasecmp(macparam.value,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    factoryMacMatched = true;
+                }
+                else
+                {
+                    std::cout << "mac match failed. mac from rfc - " << macparam.value << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac rfc failed " << std::endl;
+            }
+#else
+            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
+#endif
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
@@ -485,7 +690,7 @@ namespace WPEFramework {
             }
 #else
             mEnableUserInactivityNotification = true;
-            enableInactivityReporting(true);	 
+            enableInactivityReporting(true);
 #endif
 
             Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
@@ -500,6 +705,10 @@ namespace WPEFramework {
             {
                 std::cout << "waiting for persistent store\n";
                 waitForPersistentStore = true;
+            }
+            if (factoryMacMatched)
+            {
+                waitForPersistentStore = false;
             }
 
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
@@ -521,7 +730,7 @@ namespace WPEFramework {
                         std::cout << "setting platform and graphics\n";
                         fflush(stdout);
                         RDKShell* rdkshellPlugin = RDKShell::_instance;
-                        if ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch()))
+                        if (factoryMacMatched || ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch())))
                         {
                             sFactoryModeStart = true;
                         }
@@ -541,6 +750,7 @@ namespace WPEFramework {
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
+                            CompositorController::hideSplashScreen();
                         }
                         else
                         {
@@ -626,6 +836,7 @@ namespace WPEFramework {
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
+                        CompositorController::hideSplashScreen();
                     }
                     else
                     {
@@ -2310,6 +2521,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+
             double launchStartTime = RdkShell::seconds();
             bool result = true;
             if (!parameters.HasLabel("callsign"))
@@ -2318,7 +2530,7 @@ namespace WPEFramework {
                 response["message"] = "please specify callsign";
             }
 
-            string appCallsign(""); 
+            string appCallsign("");
             /*if (result)
             {
                 bool launchInProgress = false;
@@ -2343,7 +2555,6 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
             }*/
-
             if (result)
             {
                 appCallsign = parameters["callsign"].String();
@@ -2359,13 +2570,13 @@ namespace WPEFramework {
                 }
                 gLaunchDestroyMutex.unlock();
                 if (isApplicationBeingDestroyed)
-	        {
+                {
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
                     response["message"] = "failed to launch application due to active destroy request";
-	            returnResponse(false);
-	        }
+                    returnResponse(false);
+                }
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
@@ -2499,7 +2710,8 @@ namespace WPEFramework {
                       originalPluginFound = true;
                     }
                 }
-                auto thunderController = getThunderControllerClient();
+                auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                //auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
@@ -2538,10 +2750,10 @@ namespace WPEFramework {
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
-                    std::cout << "new launch count loc1: 0\n";
 		    gLaunchDestroyMutex.lock();
                     gLaunchApplications.erase(appCallsign);
 		    gLaunchDestroyMutex.unlock();
+                    std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -2552,7 +2764,7 @@ namespace WPEFramework {
                     joParams.Set("newcallsign",callsign.c_str());
                     JsonObject joResult;
                     // setting wait Time to 2 seconds
-                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult);
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult, true);
 
                     std::cout << "clone status: " << status << std::endl;
                     if (status > 0)
@@ -2561,7 +2773,7 @@ namespace WPEFramework {
                         JsonObject joParams2;
                         joParams2.Set("callsign", type);
                         joParams2.Set("newcallsign",callsign.c_str());
-                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult);
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult, true);
                         std::cout << "clone status: " << status << std::endl;
                     }
 
@@ -2822,16 +3034,23 @@ namespace WPEFramework {
                     }
 
                     gPluginDataMutex.lock();
-                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(callsign);
-                    if (pluginStateChangeEntry == gPluginsEventListener.end())
                     {
-                        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> remoteObject = getThunderControllerClient(callsignWithVersion, callsign);
-                        PluginStateChangeData* data = new PluginStateChangeData(callsign.c_str(), remoteObject, this);
-                        gPluginsEventListener[callsign] = data;
-                        remoteObject->Subscribe<JsonObject>(2000, _T("statechange"), &PluginStateChangeData::onStateChangeEvent, data);
+                      auto notificationIt = gStateNotifications.find(callsign);
+                      if (notificationIt == gStateNotifications.end()) {
+                        PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                        if (stateControl) {
+                          auto* handler = new Core::Sink<StateControlNotification>(callsign, *this);
+                          stateControl->Register(handler);
+                          stateControl->Release();
+                          gStateNotifications[callsign] = handler;
+                        }
+                      } else {
+                        notificationIt->second->enableLaunch(true);
+                        deferLaunch = true;
+                      }
                     }
                     gPluginDataMutex.unlock();
-
+ 
                     if (setSuspendResumeStateOnLaunch)
                     {
                         if (suspend)
@@ -2852,8 +3071,8 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "suspended";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
+                            status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            
                             std::cout << "setting the state to suspended\n";
                             visible = false;
                         }
@@ -2875,11 +3094,12 @@ namespace WPEFramework {
                             
                             WPEFramework::Core::JSON::String stateString;
                             stateString = "resumed";
-                            status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
                             std::cout << "setting the state to resumed\n";
                         }
                     }
+
                     setVisibility(callsign, visible);
                     setHolePunch(callsign, holePunch);
                     if (!visible)
@@ -2898,7 +3118,7 @@ namespace WPEFramework {
                     {
                         WPEFramework::Core::JSON::String urlString;
                         urlString = uri;
-                        status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                        status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
                         if (status > 0)
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
@@ -2954,10 +3174,10 @@ namespace WPEFramework {
             gLaunchMutex.lock();
             gLaunchCount = 0;
             gLaunchMutex.unlock();
-            std::cout << "new launch count at loc2 is 0\n";
 	    gLaunchDestroyMutex.lock();
             gLaunchApplications.erase(appCallsign);
 	    gLaunchDestroyMutex.unlock();
+            std::cout << "new launch count at loc2 is 0\n";
 
             returnResponse(result);
         }
@@ -2973,13 +3193,21 @@ namespace WPEFramework {
             }
             if (result)
             {
+                uint32_t status;
                 const string callsign = parameters["callsign"].String();
                 std::cout << "about to suspend " << callsign << std::endl;
 
-                WPEFramework::Core::JSON::String stateString;
-                stateString = "suspended";
-                const string callsignWithVersion = callsign + ".1";
-                uint32_t status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                if (stateControl) {
+                  stateControl->Request(PluginHost::IStateControl::SUSPEND);
+                  stateControl->Release();
+                  status = Core::ERROR_NONE;
+                } else {
+                  WPEFramework::Core::JSON::String stateString;
+                  stateString = "suspended";
+                  const string callsignWithVersion = callsign + ".1";
+                  status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
 
                 if (status > 0)
                 {
@@ -3681,7 +3909,7 @@ namespace WPEFramework {
                     std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
                 }
 
-                killAllApps();
+                killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
                     JsonObject destroyRequest, destroyResponse;
@@ -4161,7 +4389,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                  std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
+                    std::cout << "mac match failed. mac from rfc - " << param.value << std::endl;
                 }
             }
             else
@@ -4222,12 +4450,30 @@ namespace WPEFramework {
             return false;
         }
 
-        void RDKShell::killAllApps()
+        void RDKShell::killAllApps(bool enableDestroyEvent)
         {
             bool ret = false;
             JsonObject stateRequest, stateResponse;
             uint32_t result = getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
+
+            if (enableDestroyEvent)
+            {
+                for (int i=0; i<stateList.Length(); i++)
+                {
+                    const JsonObject& stateInfo = stateList[i].Object();
+                    if (stateInfo.HasLabel("callsign"))
+                    {
+                        const string callsign = stateInfo["callsign"].String();
+                        std::cout << "RDKShell sending onWillDestroyEvent for " << callsign << std::endl;
+                        JsonObject params;
+                        params["callsign"] = callsign;
+                        notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
+                    }
+                }
+                sleep(1);
+            }
+
             for (int i=0; i<stateList.Length(); i++)
             {
                 const JsonObject& stateInfo = stateList[i].Object();
