@@ -84,6 +84,7 @@ namespace WPEFramework {
                 void process (const InitiateArc &msg, const Header &header);
                 void process (const TerminateArc &msg, const Header &header);
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
+		void process (const SystemAudioModeRequest &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -519,6 +520,7 @@ private:
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
+			void systemAudioModeRequest();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
