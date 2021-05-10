@@ -579,7 +579,7 @@ namespace WPEFramework
                      catch(...)
                      {
                          LOGWARN("Exception while sending Messages onHdmiHotPlug\n");
-              `       }
+                     }
                  }
             }
             return;
