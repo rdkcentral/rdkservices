@@ -654,6 +654,13 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(device::FrontPanelIndicator::Color::getInstance(blinkInfo.colorName.c_str()), false);
                 }
 
+            }
+            catch (...)
+            {
+                LOGWARN("Exception caught in setBlinkLed for setColor");
+            }
+            try
+            {
                 if (brightness == -1)
                     brightness = device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).getBrightness();
 
@@ -661,7 +668,7 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception caught in setBlinkLed");
+                LOGWARN("Exception caught in setBlinkLed for setBrightness ");
             }
         }
 
