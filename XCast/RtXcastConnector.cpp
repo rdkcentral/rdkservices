@@ -233,7 +233,6 @@ int RtXcastConnector::connectToRemoteService()
 
 RtXcastConnector::~RtXcastConnector()
 {
-    LOGINFO("Dtr");
     _instance = nullptr;
     m_observer = nullptr;
 }
