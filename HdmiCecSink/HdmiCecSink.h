@@ -84,7 +84,6 @@ namespace WPEFramework {
                 void process (const InitiateArc &msg, const Header &header);
                 void process (const TerminateArc &msg, const Header &header);
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
-		void process (const SystemAudioModeRequest &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
