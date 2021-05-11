@@ -74,15 +74,21 @@ namespace WPEFramework
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
+            try{
+            	if (parameters.HasLabel("frequency"))
+            	{
+            		int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
+	                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
+        	    	setCollectionFrequency(fpsFrequencyInMilliseconds);
+            		returnResponse(true);
+            	}
+		}
+	     catch(...)
+	     {
+		returnResponse(false);
+ 	     }	
             
-            int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
-            if (parameters.HasLabel("frequency"))
-            {
-                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
-            }
-            setCollectionFrequency(fpsFrequencyInMilliseconds);
-            
-            returnResponse(true);
+             returnResponse(false);
         }
         
         uint32_t FrameRate::startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response)
