@@ -24,7 +24,7 @@
 #include <regex>
 
 #define INT_FROM_ENV(env, default_value) ((getenv(env) ? atoi(getenv(env)) : 0) > 0 ? atoi(getenv(env)) : default_value)
-#define TTS_CONFIGURATION_STORE "/opt/persistent/ttssetting.ini"
+#define TTS_CONFIGURATION_STORE "/opt/persistent/tts.setting.ini"
 #define UPDATE_AND_RETURN(o, n) if(o != n) { o = n; return true; }
 
 namespace WPEFramework {
