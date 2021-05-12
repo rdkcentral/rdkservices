@@ -5106,6 +5106,7 @@ namespace WPEFramework {
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             std::string newClient(client);
+            bool targetFound = false;
             transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
             if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
                 {
