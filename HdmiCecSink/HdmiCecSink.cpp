@@ -56,6 +56,7 @@
 #define HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE "requestActiveSource"
 #define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
 #define HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR  "requestShortAudioDescriptor"
+#define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -90,6 +91,7 @@ enum {
         HDMICECSINK_EVENT_ARC_INITIATION_EVENT,
 	HDMICECSINK_EVENT_ARC_TERMINATION_EVENT,
         HDMICECSINK_EVENT_SHORT_AUDIODESCRIPTOR_EVENT,
+        HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 };
 
 static char *eventString[] = {
@@ -105,6 +107,7 @@ static char *eventString[] = {
         "arcInitiationEvent",
         "arcTerminationEvent",
         "shortAudiodesciptorEvent",
+        "standbyMessageReceived"
 };
 	
 
@@ -192,6 +195,7 @@ namespace WPEFramework
        {
              printHeader(header);
 			 LOGINFO("Command: Standby from %s\n", header.from.toString().c_str());
+             HdmiCecSink::_instance->SendStandbyMsgEvent(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const GetCECVersion &msg, const Header &header)
        {
@@ -490,6 +494,7 @@ namespace WPEFramework
                    registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
+                   registerMethod(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
@@ -873,6 +878,15 @@ namespace WPEFramework
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
 
         }
+
+        void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
+        {
+            JsonObject params;
+	    if(!HdmiCecSink::_instance)
+		return;
+	    params["logicalAddress"] = JsonValue(logicalAddress);
+            sendNotify(eventString[HDMICECSINK_EVENT_STANDBY_MSG_EVENT], params);
+       }
        uint32_t HdmiCecSink::setEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
            LOGINFOMETHOD();
@@ -1221,6 +1235,11 @@ namespace WPEFramework
 			requestShortaudioDescriptor();
 			returnResponse(true);
 	}
+        uint32_t HdmiCecSink::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+          sendStandbyMessage();
+	  returnResponse(true);
+        }
         bool HdmiCecSink::loadSettings()
         {
             Core::File file;
