@@ -5097,6 +5097,7 @@ namespace WPEFramework {
                  std::vector<std::string> clientList;
                 CompositorController::getClients(clientList);
                 bool targetFound = false;
+                transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
                 if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
                 {
                  targetFound = true;
@@ -5300,13 +5301,17 @@ namespace WPEFramework {
              std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
             bool targetFound = false;
-            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
-            {
-              targetFound = true;
-            }
+            std::string newClient(client);
+            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+                {
+                    targetFound = true;
+
+                }
              if (targetFound)
             {
-            ret = CompositorController::setOpacity(client, opacity);
+            ret = CompositorController::setOpacity(newClient, opacity);
+
             }
             gRdkShellMutex.unlock();
             return ret;
@@ -5327,14 +5332,17 @@ namespace WPEFramework {
             lockRdkShellMutex();
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
-            bool targetFound = false;
-            if (std::find(clientList.begin(), clientList.end(), client) != clientList.end())
-            {
-             targetFound = true;
-            }
+            std::string newClient(client);
+            transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+                {
+                    targetFound = true;
+
+                }
             if (targetFound)
             {
-            ret = CompositorController::setScale(client, scaleX, scaleY);
+            ret = CompositorController::setScale(newClient, scaleX, scaleY);
+
             }
             gRdkShellMutex.unlock();
             return ret;

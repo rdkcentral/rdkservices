@@ -134,7 +134,7 @@ namespace WPEFramework {
         private:
             const void InitializeIARM();
             void DeinitializeIARM();
-
+            static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         public:
             static FrontPanel* _instance;
         private:

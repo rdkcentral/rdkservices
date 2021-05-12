@@ -969,6 +969,12 @@ namespace WPEFramework
                 LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
                 smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(RequestActiveSource()), 5000);
                 isDeviceActiveSource = false;
+                LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
+                                                 (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
+                if(isLGTvConnected)
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                else 
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
             }
             return;
         }
@@ -1078,19 +1084,13 @@ namespace WPEFramework
             {
                 try
                 {
-                    if(tvPowerState.toInt())
-                    {
-                       LOGINFO("Command: sending ImageViewOn TV \r\n");
-                       smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()), 5000);
-                       usleep(10000);
-                    }
-                    if(!isDeviceActiveSource)
-                    {
-                        LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
-                        usleep(10000);
-                        isDeviceActiveSource = true;
-                    }
+                    LOGINFO("Command: sending ImageViewOn TV \r\n");
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
+                    usleep(10000);
+                    LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                    usleep(10000);
+                    isDeviceActiveSource = true;
                     LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
                     smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
                     ret = true;
