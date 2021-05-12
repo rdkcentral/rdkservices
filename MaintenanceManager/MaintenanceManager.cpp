@@ -236,6 +236,7 @@ namespace WPEFramework {
         void MaintenanceManager::task_execution_thread(){
             LOGINFO("INSIDE thread task execution");
             int task_count=3;
+            int i=0;
 
             /* Check if the last reboot was MAITENANCE REBOOT */
             string reboot_reason=getLastRebootReason();
@@ -248,18 +249,40 @@ namespace WPEFramework {
             string cmd="";
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-            std::unique_lock<std::mutex> lck(m_callMutex);
+            /*  In an unsolicited maintenance we make sure only after
+             *  after DCM task activities are started.
+             */
+
             /* we add the task in a loop */
-            for ( int i=0;i< task_count ;i++ ){
-                task_thread.wait(lck);
-                if ( FOREGROUND_MODE == g_currentMode ){
+            std::unique_lock<std::mutex> lck(m_callMutex);
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("UNSOLICITED_MAINTENANCE");
+                for ( i=0;i< task_count ;i++ ){
+                    task_thread.wait(lck);
                     cmd=task_names_foreground[i].c_str();
+                    cmd+=" &";
+                    cmd+="\0";
+                    system(cmd.c_str());
                 }
-                cmd+=" &";
-                cmd+="\0";
-                system(cmd.c_str());
+                LOGINFO("Worker Thread Completed");
             }
-            LOGINFO("Worker Thread Completed");
+            /* Here in Solicited we start with RFC so no
+             * need to wait for any DCM events */
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type ){
+                    LOGINFO("SOLICITED_MAINTENANCE");
+                    cmd=task_names_foreground[0].c_str();
+                    cmd+=" &";
+                    cmd+="\0";
+                    system(cmd.c_str());
+                    cmd="";
+                    for (i=1;i<task_count;i++){
+                        task_thread.wait(lck);
+                        cmd=task_names_foreground[i].c_str();
+                        cmd+=" &";
+                        cmd+="\0";
+                        system(cmd.c_str());
+                    }
+            }
         }
 
         MaintenanceManager::~MaintenanceManager()
@@ -306,6 +329,9 @@ namespace WPEFramework {
             MaintenanceManager::g_notify_status=MAINTENANCE_IDLE;
             MaintenanceManager::g_epoch_time="";
 
+            /* to know the maintenance is solicited or unsolicited */
+            g_maintenance_type=UNSOLICITED_MAINTENANCE;
+
             MaintenanceManager::g_is_critical_maintenance="false";
             MaintenanceManager::g_is_reboot_pending="false";
             MaintenanceManager::g_lastSuccessful_maint_time="";
@@ -351,7 +377,6 @@ namespace WPEFramework {
             Maint_notify_status_t m_notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
-            bool task_error=false;
             time_t successfulTime;
             string str_successfulTime="";
 
@@ -391,7 +416,6 @@ namespace WPEFramework {
                        case MAINT_LOGUPLOAD_COMPLETE :
                             SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                             SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                            task_thread.notify_one();
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
@@ -402,39 +426,33 @@ namespace WPEFramework {
                             break;
                         case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
-                            task_error=true;
                             break;
                         case MAINT_DCM_ERROR:
                             SET_STATUS(g_task_status,DCM_COMPLETE);
-                            task_error=true;
                             task_thread.notify_one();
                             LOGINFO("Error encountered in one of the task \n");
                             break;
                         case MAINT_RFC_ERROR:
                             SET_STATUS(g_task_status,RFC_COMPLETE);
-                            task_error=true;
                             task_thread.notify_one();
                             LOGINFO("Error encountered in one of the task \n");
                             break;
                         case MAINT_LOGUPLOAD_ERROR:
                             SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                            task_error=true;
-                            task_thread.notify_one();
                             LOGINFO("Error encountered in one of the task \n");
                             break;
                        case MAINT_FWDOWNLOAD_ERROR:
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
                             LOGINFO("Error encountered in one of the task \n");
-                            task_error=true;
                             break;
                     }
-                    LOGINFO(" BITFIELD Status : %x",g_task_status);
                 }
                 else{
                     LOGINFO("Unknown Maintenance Status!!");
                 }
 
+                LOGINFO(" BITFIELD Status : %x",g_task_status);
                 /* Send the updated status only if all task completes execution
                  * until that we say maintenance started */
                 if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
@@ -459,10 +477,8 @@ namespace WPEFramework {
                                 requestSystemReboot();
                         }
                     }
-
-                    /* we send only updated notification if one of the
-                     * task returned with error or DIFD encountered abort */
-                    if ( task_error) {
+                    /* Check other than all success case which means we have errors */
+                    else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
                             LOGINFO("DBG:There are Skipped Task. Incomplete");
                             m_notify_status=MAINTENANCE_INCOMPLETE;
@@ -482,9 +498,13 @@ namespace WPEFramework {
 
                         }
                     }
+
                     if(m_thread.joinable()){
                         m_thread.join();
                     }
+                }
+                else {
+                    LOGINFO("Still task are not completed!!!! So status is MAINTENANCE_STARTED");
                 }
             }
             else {
@@ -576,14 +596,16 @@ namespace WPEFramework {
         {
             bool result = false;
             string starttime="";
+            unsigned long int start_time=0;
             if(!g_epoch_time.empty()) {
-                response["maintenanceStartTime"] = g_epoch_time.c_str();
+
+                response["maintenanceStartTime"] = stoi(g_epoch_time.c_str());
                 result=true;
             }
             else {
                 string starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
                 if (!starttime.empty()){
-                    response["maintenanceStartTime"]=starttime;
+                    response["maintenanceStartTime"]=stoi(starttime.c_str());
                     result=true;
                 }
             }
@@ -614,6 +636,7 @@ namespace WPEFramework {
                 new_mode = parameters["maintenanceMode"].String();
 
                 LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
+                std::lock_guard<std::mutex> guard(m_callMutex);
                 /* check if maintenance is on progress or not */
                 /* if in progress restrict the same */
                 if ( MAINTENANCE_STARTED != g_notify_status ){
@@ -670,24 +693,35 @@ namespace WPEFramework {
                     bool skip_task=false;
                     string abort_flag="";
 
-                    /*reset the status to 0*/
-                    g_task_status=0;
+                    /* only one maintenance at a time */
+                    if ( MAINTENANCE_STARTED != g_notify_status  ){
 
-                    /* isRebootPending will be set to true
-                     * irrespective of XConf configuration */
-                    g_is_reboot_pending="true";
+                        /*reset the status to 0*/
+                        g_task_status=0;
+                        g_maintenance_type=SOLICITED_MAINTENANCE;
 
-                    /* we set this to false */
-                    g_is_critical_maintenance="false";
+                        /* we dont touch the dcm so
+                         * we say DCM is success and complete */
+                        SET_STATUS(g_task_status,DCM_SUCCESS);
+                        SET_STATUS(g_task_status,DCM_COMPLETE);
 
-                    /* notify that we started the maintenance */
-                    MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-                    /* We set the bit to say we have started the maintenance */
-                    SET_STATUS(g_task_status,TASKS_STARTED);
+                        /* isRebootPending will be set to true
+                         * irrespective of XConf configuration */
+                        g_is_reboot_pending="true";
 
-                    m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
+                        /* we set this to false */
+                        g_is_critical_maintenance="false";
 
-                    result=true;
+                        /* notify that we started the maintenance */
+                        MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+
+                        m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
+
+                        result=true;
+                    }
+                    else {
+                        LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
+                    }
                     returnResponse(result);
                 }
 
