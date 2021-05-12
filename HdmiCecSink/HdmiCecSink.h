@@ -520,7 +520,7 @@ private:
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void systemAudioModeRequest();
-                        void SendStandbyMsgEvent();
+                        void SendStandbyMsgEvent(const int logicalAddress);
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!

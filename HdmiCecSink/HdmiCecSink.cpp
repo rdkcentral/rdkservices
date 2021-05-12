@@ -195,7 +195,7 @@ namespace WPEFramework
        {
              printHeader(header);
 			 LOGINFO("Command: Standby from %s\n", header.from.toString().c_str());
-             HdmiCecSink::_instance->SendStandbyMsgEvent();
+             HdmiCecSink::_instance->SendStandbyMsgEvent(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const GetCECVersion &msg, const Header &header)
        {
@@ -879,11 +879,12 @@ namespace WPEFramework
 
         }
 
-        void HdmiCecSink::SendStandbyMsgEvent()
+        void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
         {
             JsonObject params;
 	    if(!HdmiCecSink::_instance)
 		return;
+	    params["logicalAddress"] = JsonValue(logicalAddress);
             sendNotify(eventString[HDMICECSINK_EVENT_STANDBY_MSG_EVENT], params);
        }
        uint32_t HdmiCecSink::setEnabledWrapper(const JsonObject& parameters, JsonObject& response)
