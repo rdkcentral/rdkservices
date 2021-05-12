@@ -841,8 +841,8 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 
         //Wait for EOS with a timeout incase EOS never comes
         if(m_pcmAudioEnabled) {
-            //FIXME, find out way to EOS or position for raw PCM audio
-            waitForAudioToFinishTimeout(60);
+            //if no EOS , we can speak maximum upto 30 min
+            waitForAudioToFinishTimeout(1800);
         }
         else {
             waitForAudioToFinishTimeout(10);
