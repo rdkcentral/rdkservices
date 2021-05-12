@@ -151,6 +151,7 @@ static bool sRunning = true;
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
+#define REATTEMPT_TIME_IN_MILLISECONDS 30000
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -628,6 +629,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -723,6 +726,12 @@ namespace WPEFramework {
                 std::cout << "block resident app on factory mode\n";
                 sFactoryModeBlockResidentApp = true;
             }
+
+            if(m_timer.isActive()) {
+                m_timer.stop();
+            }
+	    std::cout << "starting the timer.." << std::endl;
+	    m_timer.start(REATTEMPT_TIME_IN_MILLISECONDS);
 
             shellThread = std::thread([=]() {
                 bool isRunning = true;
@@ -1066,9 +1075,21 @@ namespace WPEFramework {
         {
             std::string message;
             parameters.ToString(message);
-            if (parameters.HasLabel("powerState"))
+            if ((parameters.HasLabel("powerState")) && (parameters.HasLabel("currentPowerState")))
             {
                 std::string powerState = parameters["powerState"].String();
+		std::string currentPowerState = parameters["currentPowerState"].String();
+		if ((powerState.compare("DEEP_SLEEP") == 0) && ((currentPowerState.compare("LIGHT_SLEEP") == 0) || (currentPowerState.compare("STANDBY") == 0) || (currentPowerState.compare("ON") == 0)))
+                {
+		     std::cout << "Received power state change to deep sleep from " << currentPowerState.c_str() << std::endl;
+		     const char* splashFile = getenv("RDKSHELL_SPLASH_IMAGE_JPEG");
+		     if (splashFile)
+                     {
+			std::string file = splashFile;
+			std::cout << "displaying splash screen on deep sleep " << std::endl;
+                        showFullScreenImage(file);
+		     }
+                }
                 if ((powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
                     std::cout << "Received power state change to light or deep sleep " << std::endl;
@@ -1089,6 +1110,52 @@ namespace WPEFramework {
                     }
                 }
             }
+        }
+
+        void RDKShell::onTimer()
+        {
+          bool pluginActivated = Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN);
+          if (pluginActivated && (subscribeForSystemServiceEvent("onSystemPowerStateChanged") == Core::ERROR_NONE))
+          {
+              std::cout << "Subscription completed." << std::endl;
+          }
+          else
+          {
+             std::cout << "Could not subscribe this time, one more attempt in " << RECONNECTION_TIME_IN_MILLISECONDS << "ms.Plugin is " <<  pluginActivated  << std::endl;
+          }
+        }
+
+        uint32_t RDKShell::subscribeForSystemServiceEvent(const char* eventName)
+        {
+           uint32_t err = Core::ERROR_NONE;
+
+           std::cout << "gSystemServiceEventsSubscribed -" << std::boolalpha << gSystemServiceEventsSubscribed << std::endl;
+           if(!gSystemServiceEventsSubscribed && nullptr != gSystemServiceConnection)
+           {
+                std::cout << "attempting to subscribe event - " << eventName << std::endl;
+                if(strcmp(eventName, "onSystemPowerStateChanged") == 0)
+                err == gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+
+                if (err == Core::ERROR_NONE)
+                {
+                     std::cout << "RDKShell subscribed to " << eventName << std::endl;
+                     gSystemServiceEventsSubscribed = true;
+                     if (m_timer.isActive()) {
+                        m_timer.stop();
+			std::cout << "Timer stopped." << std::endl;
+                     }
+                }
+                else
+                     std::cout << "failed to subscribe to " << eventName << "with error - " << err << std::endl;
+            }
+            else if(gSystemServiceEventsSubscribed)
+            {
+               std::cout << "already subscribed,stopping timer" << std::endl;
+               if (m_timer.isActive()) {
+                   m_timer.stop();
+               }
+            }
+            return err;
         }
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)

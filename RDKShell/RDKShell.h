@@ -22,6 +22,7 @@
 #include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include "tptimer.h"
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
@@ -262,6 +263,9 @@ namespace WPEFramework {
             void invokeStartupThunderApis();
             void enableLogsFlushing(const bool enable);
             void getLogsFlushingEnabled(bool &enabled);
+            void onTimer();
+            uint32_t subscribeForSystemServiceEvent(const char* eventName);
+
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -336,6 +340,7 @@ namespace WPEFramework {
             MonitorClients* mClientsMonitor;
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
+            TpTimer m_timer;
             //std::mutex m_callMutex;
         };
 
