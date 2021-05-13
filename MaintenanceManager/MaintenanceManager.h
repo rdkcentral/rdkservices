@@ -57,7 +57,7 @@ typedef enum {
 } Maint_notify_status_t;
 
 typedef enum{
-    SOCLITED_MAINTENANCE,
+    SOLICITED_MAINTENANCE,
     UNSOLICITED_MAINTENANCE
 }Maintenance_Type_t;
 
