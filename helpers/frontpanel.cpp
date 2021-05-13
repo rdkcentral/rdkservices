@@ -339,7 +339,8 @@ namespace WPEFramework
                         device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     case FRONT_PANEL_INDICATOR_POWER:
-                        LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                        //LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+			device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     }
                 }
@@ -387,7 +388,8 @@ namespace WPEFramework
                     }
                     break;
                 case FRONT_PANEL_INDICATOR_POWER:
-                    LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                    //LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+		    device::FrontPanelIndicator::getInstance("Power").setState(false);
                     break;
                 }
             }
@@ -652,6 +654,13 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(device::FrontPanelIndicator::Color::getInstance(blinkInfo.colorName.c_str()), false);
                 }
 
+            }
+            catch (...)
+            {
+                LOGWARN("Exception caught in setBlinkLed for setColor");
+            }
+            try
+            {
                 if (brightness == -1)
                     brightness = device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).getBrightness();
 
@@ -659,7 +668,7 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception caught in setBlinkLed");
+                LOGWARN("Exception caught in setBlinkLed for setBrightness ");
             }
         }
 
