@@ -75,6 +75,7 @@ namespace WPEFramework {
             virtual uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
             virtual uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response) override;
+            virtual uint32_t getSavedSSID(const JsonObject& parameters, JsonObject& response) override;
             //End methods
 
             //Begin events
