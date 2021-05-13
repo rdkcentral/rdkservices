@@ -59,6 +59,7 @@ private:
     uint32_t getStandbyBehavior(const JsonObject& parameters, JsonObject& response);
     uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
     uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
+    uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
     //End methods
     
     //Begin events
@@ -79,6 +80,8 @@ public:
     
     virtual void onRtServiceDisconnected(void) override;
     virtual void onXcastApplicationLaunchRequest(string appName, string parameter) override;
+    virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,
+                    string strPayLoad, string strQuery, string strAddDataUrl) override;
     virtual void onXcastApplicationStopRequest(string appName, string appID) override;
     virtual void onXcastApplicationHideRequest(string appName, string appID) override;
     virtual void onXcastApplicationResumeRequest(string appName, string appID) override;
@@ -100,7 +103,7 @@ private:
     void DeinitializeIARM();
     //Internal methods
     void onLocateCastTimer();
-    
+    void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
     /**
      * Check whether the xdial service is allowed in this device.
      */
