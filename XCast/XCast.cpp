@@ -25,6 +25,7 @@
 #endif //RFC_ENABLED
 #include <syscall.h>
 #include <cstring>
+#include <cjson/cJSON.h>
 #include "RtXcastConnector.h"
 using namespace std;
 
@@ -45,11 +46,23 @@ using namespace std;
 #define METHOD_GET_FRIENDLYNAME "getFriendlyName"
 #define METHOD_SET_FRIENDLYNAME "setFriendlyName"
 
+#define METHOD_REG_APPLICATIONS "registerApplications"
 
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
+
+/*
+ * The maximum DIAL payload accepted per the DIAL 1.6.1 specification.
+ */
+#define DIAL_MAX_PAYLOAD (4096)
+
+/*
+ * The maximum additionalDataUrl length
+ */
+#define DIAL_MAX_ADDITIONALURL (1024)
+
 
 namespace WPEFramework {
 
@@ -83,6 +96,7 @@ XCast::XCast() : AbstractPlugin()
         registerMethod(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
         registerMethod(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
         registerMethod(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
+        registerMethod(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
     }
@@ -289,10 +303,12 @@ uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& respon
          {
             m_friendlyName = paramStr;
             LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
-            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
                _rtConnector->enableCastService(m_friendlyName,true);
-            else
+            }
+            else {
                 _rtConnector->enableCastService(m_friendlyName,false);
+            }
          }
          else
             returnResponse(false);
@@ -308,6 +324,40 @@ uint32_t XCast::getFriendlyName(const JsonObject& parameters, JsonObject& respon
     LOGINFO("XcastService::getFriendlyNamem_friendlyName :%s ",m_friendlyName.c_str());
     response["friendlyname"] = m_friendlyName;
     returnResponse(true);
+}
+
+uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::registerApplications \n ");
+    bool hasAppReq = parameters.HasLabel("applications");
+    if (hasAppReq) {
+       LOGINFO ("\nInput string is:%s\n", parameters["applications"].String().c_str());
+
+       if(_rtConnector)
+       {
+	       LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
+           if(_rtConnector->IsDynamicAppListEnabled()) {
+               /*Disable cast service before registering Applications*/
+               _rtConnector->enableCastService(m_friendlyName,false);
+
+               _rtConnector->registerApplications (parameters["applications"].String());
+
+               /*Reenabling cast service after registering Applications*/
+               if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+                   _rtConnector->enableCastService(m_friendlyName,true);
+               }
+               returnResponse(true);
+           }
+           else {
+               returnResponse(false);
+           }
+       }
+       else
+           returnResponse(false);
+    }
+    else {
+        returnResponse(false);
+    }
 }
 
 //Timer Functions
@@ -341,18 +391,144 @@ void XCast::onLocateCastTimer()
     }// err != RT_OK
     locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
-    if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+    if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
         _rtConnector->enableCastService(m_friendlyName,true);
-    else
+    }
+    else {
         _rtConnector->enableCastService(m_friendlyName,false);
+    }
     
-   LOGINFO("XCast::onLocateCastTimer : Timer still active ? %d ",m_locateCastTimer.isActive());
+    LOGINFO("XCast::onLocateCastTimer : Timer still active ? %d ",m_locateCastTimer.isActive());
 }
 
 void XCast::onRtServiceDisconnected() 
 {
     LOGINFO("RT communication failure. Reconnecting.. ");
     m_locateCastTimer.start(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
+}
+
+void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url) {
+    LOGINFO("getUrlFromAppLaunchParams : Application launch request: appName: %s  query: [%s], payload: [%s], additionalDataUrl [%s]\n",
+        app_name, query_string, payload, additional_data_url);
+
+    memset (url, '\0', sizeof(url));
+    if(strcmp(app_name,"YouTube") == 0) {
+        if ((payload != NULL) && (additional_data_url != NULL)){
+            sprintf( url, "https://www.youtube.com/tv?%s&additionalDataUrl=%s", payload, additional_data_url);
+        }else if (payload != NULL){
+            sprintf( url, "https://www.youtube.com/tv?%s", payload);
+        }else{
+            sprintf( url, "https://www.youtube.com/tv");
+        }
+    }
+
+    else if(strcmp(app_name,"Netflix") == 0) {
+        memset( url, 0, sizeof(url) );
+        strcat( url, "source_type=12" );
+        if(payload != NULL)
+        {
+            const char * pUrlEncodedParams;
+            pUrlEncodedParams = payload;
+            if( pUrlEncodedParams ){
+                strcat( url, "&dial=");
+                strcat( url, pUrlEncodedParams );
+            }
+        }
+
+        if(additional_data_url != NULL){
+            strcat(url, "&additionalDataUrl=");
+            strcat(url, additional_data_url);
+        }
+    }
+    else {
+        int url_len = sizeof(url);
+        {
+            memset( url, 0, url_len );
+            url_len -= DIAL_MAX_ADDITIONALURL+1; //save for &additionalDataUrl
+            url_len -= 1; //save for nul byte
+            LOGINFO("query_string=[%s]\r\n", query_string);
+            int has_query = query_string && strlen(query_string);
+            int has_payload = 0;
+            if (has_query) {
+                strcat(url, query_string);
+                url_len -= strlen(query_string);
+            }
+            if(payload && strlen(payload)) {
+                if (has_query) url_len -=1;  //for &
+                const char payload_key[] = "dialpayload=";
+                url_len -= sizeof(payload_key) - 1;
+                url_len -= strlen(payload);
+                if(url_len >= 0){
+                    if (has_query) strcat(url, "&");
+                    strcat(url, payload_key);
+                    strcat(url, payload);
+                    has_payload = 1;
+                }
+                else {
+                    LOGINFO("there is no enough room for payload\r\n");
+                }
+            }
+
+        if(additional_data_url != NULL){
+                if (has_query || has_payload) strcat(url, "&");
+                strcat(url, "additionalDataUrl=");
+            strcat(url, additional_data_url);
+            }
+            LOGINFO(" url is [%s]\r\n", url);
+        }
+    }
+}
+
+void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
+        string strPayLoad, string strQuery, string strAddDataUrl)
+{
+    //TODO
+    LOGINFO ("XcastService::onXcastApplicationLaunchRequestWithLaunchParam ");
+    JsonObject params;
+    JsonObject urlParam;
+    char url[DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100] = {0,};
+
+    if(_rtConnector) {
+        RegAppLaunchParams reqParam;
+        _rtConnector->getEntryFromAppLaunchParamList (appName.c_str(), &reqParam);
+
+        /*Replacing with App requested payload and query*/
+        if (reqParam.query && reqParam.payload) {
+            getUrlFromAppLaunchParams (appName.c_str(),
+                               reqParam.payload,
+                               reqParam.query,
+                               strAddDataUrl.c_str(), url);
+        }
+        else if(reqParam.payload){
+            getUrlFromAppLaunchParams (appName.c_str(),
+                               reqParam.payload,
+                               strQuery.c_str(),
+                               strAddDataUrl.c_str(), url);
+        }
+        else if(reqParam.query) {
+            getUrlFromAppLaunchParams (appName.c_str(),
+                               strPayLoad.c_str(),
+                               reqParam.query,
+                               strAddDataUrl.c_str(), url);
+        }
+        else {
+            getUrlFromAppLaunchParams (appName.c_str(),
+                               strPayLoad.c_str(),
+                               strQuery.c_str(),
+                               strAddDataUrl.c_str(), url);
+        }
+
+        string strUrl = std::string (url);
+        if (appName == "NetflixApp")
+            urlParam["pluginUrl"]=strUrl;
+        else
+            urlParam["url"]=strUrl;
+
+        params["applicationName"]= appName;
+        params["parameters"]= urlParam;
+
+        sendNotify(EVT_ON_LAUNCH_REQUEST, params);
+    }
 }
 
 void XCast::onXcastApplicationLaunchRequest(string appName, string parameter) 
@@ -441,5 +617,6 @@ bool XCast::checkRFCServiceStatus()
     
     return XCast::isCastEnabled;
 }
+
 } // namespace Plugin
 } // namespace WPEFramework
