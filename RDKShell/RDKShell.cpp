@@ -1121,7 +1121,7 @@ namespace WPEFramework {
           }
           else
           {
-             std::cout << "Could not subscribe this time, one more attempt in " << RECONNECTION_TIME_IN_MILLISECONDS << "ms.Plugin is " <<  pluginActivated  << std::endl;
+             std::cout << "Could not subscribe this time, one more attempt in " << REATTEMPT_TIME_IN_MILLISECONDS << "ms.Plugin is " <<  pluginActivated  << std::endl;
           }
         }
 
