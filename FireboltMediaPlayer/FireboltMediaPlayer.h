@@ -78,10 +78,10 @@ namespace WPEFramework {
 
                 public:
                     MediaStreamSink(MediaStreamProxy* parent)
-                : _parent(*parent)
-                {
-                        ASSERT(parent != nullptr);
-                }
+                    : _parent(*parent)
+                    {
+                            ASSERT(parent != nullptr);
+                    }
 
                     ~MediaStreamSink() override
                     {
@@ -115,16 +115,7 @@ namespace WPEFramework {
                    _implementation->Register(&_mediaPlayerSink);
                 }
 
-                ~MediaStreamProxy()
-                {
-                    while(_implementation)
-                    {
-                        if(_implementation->Release() == Core::ERROR_DESTRUCTION_SUCCEEDED)
-                        {
-                            _implementation = nullptr;
-                        }
-                    }
-                }
+                virtual ~MediaStreamProxy();
 
                 Exchange::IMediaPlayer::IMediaStream* Stream() {
                     return (_implementation);
@@ -137,16 +128,7 @@ namespace WPEFramework {
                 {
                     _implementation->AddRef();
                 }
-                uint32_t Release()
-                {
-                    if(_implementation->Release() == Core::ERROR_DESTRUCTION_SUCCEEDED)
-                    {
-                        _implementation = nullptr;
-                        delete this;
-                        return Core::ERROR_DESTRUCTION_SUCCEEDED;
-                    }
-                    return Core::ERROR_NONE;
-                }
+                uint32_t Release();
 
                 void OnEvent(const string &eventName, const string &parametersJson)
                 {
