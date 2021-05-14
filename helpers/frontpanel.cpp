@@ -115,6 +115,7 @@ namespace WPEFramework
 
         CFrontPanel::CFrontPanel()
         : m_blinkTimer(this)
+        , m_isBlinking(false)
         , mFrontPanelHelper(new FrontPanelHelper())
         {
         }
@@ -305,6 +306,7 @@ namespace WPEFramework
 
         bool CFrontPanel::powerOnLed(frontPanelIndicator fp_indicator)
         {
+            stopBlinkTimer();
             try
             {
                 if (powerStatus)
@@ -355,6 +357,7 @@ namespace WPEFramework
 
         bool CFrontPanel::powerOffLed(frontPanelIndicator fp_indicator)
         {
+            stopBlinkTimer();
             try
             {
                 switch (fp_indicator)
@@ -624,18 +627,21 @@ namespace WPEFramework
             LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats, m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
+            m_isBlinking = true;
             m_maxNumberOfBlinkRepeats = numberOfBlinkRepeats;
             m_currentBlinkListIndex = 0;
             if (m_blinkList.size() > 0)
             {
                 FrontPanelBlinkInfo blinkInfo = m_blinkList.at(0);
                 setBlinkLed(blinkInfo);
-                blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
+                if (m_isBlinking)
+                    blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
             }
         }
 
         void CFrontPanel::stopBlinkTimer()
         {
+            m_isBlinking = false;
             blinkTimer.Revoke(m_blinkTimer);
         }
 
@@ -656,9 +662,8 @@ namespace WPEFramework
 
             }
             catch (...)
-            {
-                LOGWARN("Exception caught in setBlinkLed for setColor");
-            }
+            {}
+            
             try
             {
                 if (brightness == -1)
@@ -690,7 +695,8 @@ namespace WPEFramework
             {
                 FrontPanelBlinkInfo blinkInfo = m_blinkList.at(m_currentBlinkListIndex);
                 setBlinkLed(blinkInfo);
-                blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
+                if (m_isBlinking)
+                    blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
             }
 
             //if not blink again then the led color should stay on the LAST element in the array as stated in the spec

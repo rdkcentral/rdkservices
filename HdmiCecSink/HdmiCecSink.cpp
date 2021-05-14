@@ -694,7 +694,6 @@ namespace WPEFramework
 						else
 						{
 							HdmiCecSink::_instance->m_currentActiveSource = -1;
-							HdmiCecSink::_instance->sendStandbyMessage();	
 						}
 					}
 			}
@@ -725,7 +724,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 5000);	
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 1000);	
        } 
 
 	   void HdmiCecSink::wakeupFromStandby()
@@ -2242,13 +2241,6 @@ namespace WPEFramework
 						 {
 							_instance->requestActiveSource(); 
 						 }
-						 else
-						 {
-						 	/* send standby message if TV is in Standby */
-						 	_instance->sendStandbyMessage();
-						 }
-
-						 
 
 						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
