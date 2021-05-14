@@ -25,6 +25,46 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        /**
+         * \brief Destructor ensure all references are released.
+         *
+         */
+        FireboltMediaPlayer::MediaStreamProxy::~MediaStreamProxy()
+        {
+            while(_implementation) {
+                auto result = _implementation->Release();
+
+                // If the release wasn't successful then we should stop calling it
+                if (result != Core::ERROR_NONE) {
+                    // Expecting to get destruction succeeded eventually but might encounter an error, e.g out-of-process has been killed
+                    if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
+                        LOGERR("_implementation->Release() returned %d", result);
+                    _implementation = nullptr;
+                }
+            }
+        }
+
+        /**
+         * \brief Release this instance, destroying if necessary.
+         *
+         * \return Whether the underlying instance could be released.
+         *
+         */
+        uint32_t FireboltMediaPlayer::MediaStreamProxy::Release()
+        {
+            auto result = _implementation->Release();
+
+            // If the release wasn't successful then this instance should be destroyed
+            if (result != Core::ERROR_NONE) {
+                // Expecting to get destruction succeeded eventually but might encounter an error, e.g out-of-process has been killed
+                if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
+                    LOGERR("_implementation->Release() unexpectedly returned %d", result);
+                _implementation = nullptr;
+                delete this;
+            }
+            return result;
+        }
+
         SERVICE_REGISTRATION(FireboltMediaPlayer, 1, 0);
 
         FireboltMediaPlayer::FireboltMediaPlayer()
@@ -81,7 +121,8 @@ namespace WPEFramework {
 
             service->Unregister(&_notification);
 
-            if (_aampMediaPlayer->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+            auto const result = _aampMediaPlayer->Release();
+            if (result == Core::ERROR_NONE) {
 
                 ASSERT(_aampMediaPlayerConnectionId != 0);
 
@@ -97,6 +138,8 @@ namespace WPEFramework {
                     connection->Release();
                 }
             }
+            else if (result != Core::ERROR_DESTRUCTION_SUCCEEDED) 
+                LOGERR("_aampMediaPlayer->Release() unexpectedly returned %d", result);
 
             _aampMediaPlayer = nullptr;
             _service = nullptr;
@@ -141,7 +184,7 @@ namespace WPEFramework {
             Unregister(_T("load"));
             Unregister(_T("play"));
             Unregister(_T("pause"));
-            Unregister(_T("setPosition"));
+            Unregister(_T("seekTo"));
             Unregister(_T("stop"));
             Unregister(_T("initConfig"));
             Unregister(_T("initDRMConfig"));
