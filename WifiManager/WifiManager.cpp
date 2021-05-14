@@ -231,38 +231,35 @@ namespace WPEFramework
 
             uint32_t result = wifiWPS.saveSSID(parameters, response);
 
-            /* Supported from Version 2 onwards. */
             /* wpa_cli stores in wpa_supplicant.conf and it does not support retrieving. Hence store in separate file. */
-            if (getApiVersionNumber() >= 2) {
-                /* Get all params to write. Else exit without saving. */
-                if (parameters.HasLabel("ssid") && parameters["ssid"].Content() == Core::JSON::Variant::type::STRING
-                    && parameters.HasLabel("passphrase") && parameters["passphrase"].Content() == Core::JSON::Variant::type::STRING
-                    && parameters.HasLabel("securityMode") && parameters["securityMode"].Content() == Core::JSON::Variant::type::NUMBER) {
-                    /* Use PersistentStorePlugin */
-                    auto accessPersistentStore = Utils::getThunderControllerClient("org.rdk.PersistentStore.1");
-                    uint32_t status;
+            /* Get all params to write. Else exit without saving. */
+            if (parameters.HasLabel("ssid") && parameters["ssid"].Content() == Core::JSON::Variant::type::STRING
+                && parameters.HasLabel("passphrase") && parameters["passphrase"].Content() == Core::JSON::Variant::type::STRING
+                && parameters.HasLabel("securityMode") && parameters["securityMode"].Content() == Core::JSON::Variant::type::NUMBER) {
+                /* Use PersistentStorePlugin */
+                auto accessPersistentStore = Utils::getThunderControllerClient("org.rdk.PersistentStore.1");
+                uint32_t status;
 
-                    if (accessPersistentStore) {
-                        string keys[] = {"ssid", "passphrase", "securityMode"};
-                        JsonObject params, resp;
-                        string sParams, sResp;
+                if (accessPersistentStore) {
+                    string keys[] = {"ssid", "passphrase", "securityMode"};
+                    JsonObject params, resp;
+                    string sParams, sResp;
 
-                        for (auto element : keys) {
-                            params.Clear();
-                            resp.Clear();
-                            params["namespace"] = "wifiStore";
-                            params["key"] = element.c_str();
-                            if (parameters[element.c_str()].Content() == Core::JSON::Variant::type::STRING)
-                                params["value"] = parameters[element.c_str()].String().c_str();
-                            else if (parameters[element.c_str()].Content() == Core::JSON::Variant::type::NUMBER)
-                                params["value"] = parameters[element.c_str()].Number();
+                    for (auto element : keys) {
+                        params.Clear();
+                        resp.Clear();
+                        params["namespace"] = "wifiStore";
+                        params["key"] = element.c_str();
+                        if (parameters[element.c_str()].Content() == Core::JSON::Variant::type::STRING)
+                            params["value"] = parameters[element.c_str()].String().c_str();
+                        else if (parameters[element.c_str()].Content() == Core::JSON::Variant::type::NUMBER)
+                            params["value"] = parameters[element.c_str()].Number();
 
-                            status = accessPersistentStore->Invoke<JsonObject, JsonObject>(1000, "setValue", params, resp);
-                            params.ToString(sParams);
-                            resp.ToString(sResp);
-                            LOGINFO("Invoked 'org.rdk.PersistentStore.1.setValue', with params '%s', status: '%d', result: '%s'\n",
-                                    C_STR(sParams) , status , C_STR(sResp));
-                        }
+                        status = accessPersistentStore->Invoke<JsonObject, JsonObject>(1000, "setValue", params, resp);
+                        params.ToString(sParams);
+                        resp.ToString(sResp);
+                        LOGINFO("Invoked 'org.rdk.PersistentStore.1.setValue', with params '%s', status: '%d', result: '%s'\n",
+                                C_STR(sParams) , status , C_STR(sResp));
                     }
                 }
             }
@@ -341,49 +338,52 @@ namespace WPEFramework
             return result;
         }
 
+        /**
+         * \brief Retrieve saved details from PersistenceStore plugin.
+         *
+         * \param parameters None. '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.Wifi.2.getSavedSSID", "params":{}}'
+         * \param response '"result":{"ssid":"<SSID>","passphrase":"<passphrase>","securityMode":"<Mode>","success":true}'.
+         */
         uint32_t WifiManager::getSavedSSID(const JsonObject& parameters, JsonObject& response)
         {
             bool result = true;
             LOGINFOMETHOD();
 
-            /* Supported from Version 2 onwards. */
-            if (getApiVersionNumber() >= 2) {
-                /* Get details from PersistentStore database. */
-                auto accessPersistentStore = Utils::getThunderControllerClient("org.rdk.PersistentStore.1");
-                uint32_t status;
+            /* Get details from PersistentStore database. */
+            auto accessPersistentStore = Utils::getThunderControllerClient("org.rdk.PersistentStore.1");
+            uint32_t status;
 
-                if (accessPersistentStore) {
-                    string keys[] = {"ssid", "passphrase", "securityMode"};
-                    JsonObject params, resp;
-                    string sParams, sResp;
-                    int i = 0;
+            if (accessPersistentStore) {
+                string keys[] = {"ssid", "passphrase", "securityMode"};
+                JsonObject params, resp;
+                string sParams, sResp;
+                int i = 0;
 
-                    for (auto element : keys) {
-                        params.Clear();
-                        resp.Clear();
-                        params["namespace"] = "wifiStore";
-                        params["key"] = element.c_str();
+                for (auto element : keys) {
+                    params.Clear();
+                    resp.Clear();
+                    params["namespace"] = "wifiStore";
+                    params["key"] = element.c_str();
 
-                        status = accessPersistentStore->Invoke<JsonObject, JsonObject>(1000, "getValue", params, resp);
-                        params.ToString(sParams);
-                        resp.ToString(sResp);
-                        LOGDBG("Invoked 'org.rdk.PersistentStore.1.getValue', with params '%s', status: '%d', result: '%s'\n",
+                    status = accessPersistentStore->Invoke<JsonObject, JsonObject>(1000, "getValue", params, resp);
+                    params.ToString(sParams);
+                    resp.ToString(sResp);
+                    LOGDBG("Invoked 'org.rdk.PersistentStore.1.getValue', with params '%s', status: '%d', result: '%s'\n",
                                 C_STR(sParams), status, C_STR(sResp));
-                        if (Core::ERROR_NONE == status && resp["success"].Boolean()
-                            && resp["value"].Content() == Core::JSON::Variant::type::STRING) {
-                            /* Note: PersistentStore plugin returns all values as STRING. */
-                            /* It returns success TRUE only on finding a match. */
-                            response[element.c_str()] = resp["value"].String().c_str();
-                            i++;
-                        }
+                    if (Core::ERROR_NONE == status && resp["success"].Boolean()
+                        && resp["value"].Content() == Core::JSON::Variant::type::STRING) {
+                        /* Note: PersistentStore plugin returns all values as STRING. */
+                        /* It returns success TRUE only on finding a match. */
+                        response[element.c_str()] = resp["value"].String().c_str();
+                        i++;
                     }
-                    if (i == sizeof(keys)/sizeof(keys[0])) {
-                        LOGDBG("getSavedSSID from PersistentStore returnResponse: true\n");
-                        returnResponse(true);
-                    } else {
-                        LOGDBG("getSavedSSID from PersistentStore returnResponse: false\n");
-                        returnResponse(false);
-                    }
+                }
+                if (i == sizeof(keys)/sizeof(keys[0])) {
+                    LOGDBG("getSavedSSID from PersistentStore returnResponse: true\n");
+                    returnResponse(true);
+                } else {
+                    LOGDBG("getSavedSSID from PersistentStore returnResponse: false\n");
+                    returnResponse(false);
                 }
             }
 
