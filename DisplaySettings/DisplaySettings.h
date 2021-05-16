@@ -124,6 +124,12 @@ namespace WPEFramework {
             uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
+
+	    uint32_t getVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
+
             void InitAudioPorts();
             //End methods
 
