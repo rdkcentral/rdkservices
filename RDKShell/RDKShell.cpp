@@ -372,11 +372,31 @@ namespace WPEFramework {
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
         std::mutex gLaunchDestroyMutex;
+        sem_t gCreateDisplayRequestSemaphore;
+        bool gCreateDisplayResult = false;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
+
+        struct CreateDisplayRequest
+        {
+            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus)
+            {
+            }
+            std::string mClient;
+            std::string mDisplayName;
+            uint32_t mDisplayWidth;
+            uint32_t mDisplayHeight;
+            bool mVirtualDisplayEnabled;
+            uint32_t mVirtualWidth;
+            uint32_t mVirtualHeight;
+            bool mTopmost;
+            bool mFocus;
+        };
+
+        std::vector<CreateDisplayRequest> gCreateDisplayRequests;
 
         void lockRdkShellMutex()
         {
@@ -413,8 +433,12 @@ namespace WPEFramework {
                    if (serviceConfig.HasLabel("clientidentifier"))
                    {
                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                       CreateDisplayRequest request(service->Callsign(), clientidentifier);
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
+                       gCreateDisplayRequests.push_back(request);
+                       gRdkShellMutex.unlock();
+                       sem_wait(&gCreateDisplayRequestSemaphore);
+                       gRdkShellMutex.lock();
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
@@ -724,6 +748,7 @@ namespace WPEFramework {
                 sFactoryModeBlockResidentApp = true;
             }
 
+            sem_init(&gCreateDisplayRequestSemaphore, 0, 0);
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -771,6 +796,13 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
+                  if (gCreateDisplayRequests.size() > 0)
+                  {
+                      CreateDisplayRequest& request = gCreateDisplayRequests.front();
+                      gCreateDisplayResult = CompositorController::createDisplay(request.mClient, request.mDisplayName, request.mDisplayWidth, request.mDisplayHeight, request.mVirtualDisplayEnabled, request.mVirtualWidth, request.mVirtualHeight, request.mTopmost, request.mFocus);
+                      gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
+                      sem_post(&gCreateDisplayRequestSemaphore);
+                  }
                   if (receivedResolutionRequest)
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
@@ -1033,6 +1065,7 @@ namespace WPEFramework {
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
+            sem_destroy(&gCreateDisplayRequestSemaphore);
         }
 
         string RDKShell::Information() const
@@ -2822,8 +2855,10 @@ namespace WPEFramework {
                             std::cout << "lock was acquired via try for create display\n";
                         }
                     }
-                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
+                    CreateDisplayRequest request(callsign, displayName, width, height);
+                    gCreateDisplayRequests.push_back(request);
                     gRdkShellMutex.unlock();
+                    sem_wait(&gCreateDisplayRequestSemaphore);
                 }
 
                 WPEFramework::Core::JSON::String configString;
@@ -4932,8 +4967,12 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
-                virtualDisplay, virtualWidth, virtualHeight);
+            CreateDisplayRequest request(client, displayName, displayWidth, displayHeight, virtualDisplay, virtualWidth, virtualHeight);
+            gCreateDisplayRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            sem_wait(&gCreateDisplayRequestSemaphore);
+            ret = gCreateDisplayResult;
+            lockRdkShellMutex();
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
