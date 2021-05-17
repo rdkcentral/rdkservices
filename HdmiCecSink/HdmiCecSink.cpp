@@ -2674,22 +2674,16 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
 	    return;
 
-            LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d m_ArcUiSettingState %d ",_instance->m_currentArcRoutingState,m_ArcUiSettingState);	    
+            LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d m_ArcUiSettingState %d ",_instance->m_currentArcRoutingState,m_ArcUiSettingState);
             std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 
             if (m_arcStartStopTimer.isActive())
             {
                m_arcStartStopTimer.stop();
             }
-            if(  m_ArcUiSettingState)    	    
+            if(  m_ArcUiSettingState)
             {   
-	           if (m_arcStartStopTimer.isActive())
-                   {
-                      m_arcStartStopTimer.stop();
-                   }
-                    
-	           _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
-	
+	          _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
                   _instance->m_semSignaltoArcRoutingThread.release();
                   LOGINFO("Got : ARC_INITIATED  and notify Device setting");
                   params["status"] = string("success");
@@ -2710,7 +2704,7 @@ namespace WPEFramework
             JsonObject params;
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
 
-            LOGINFO("Command: TERMINATE_ARC current arc state %d m_ArcUiSettingState %d\n",HdmiCecSink::_instance->m_currentArcRoutingState,m_ArcUiSettingState);    	    
+            LOGINFO("Command: TERMINATE_ARC current arc state %d m_ArcUiSettingState %d\n",HdmiCecSink::_instance->m_currentArcRoutingState,m_ArcUiSettingState);
                 if (m_arcStartStopTimer.isActive())
                 {
                       m_arcStartStopTimer.stop();
