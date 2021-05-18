@@ -163,12 +163,23 @@ public:
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
 
-        if (currentResolution == "720p") res = RESOLUTION_720P;
-        else if(currentResolution == "1080i") res = RESOLUTION_1080I;
-        else if(currentResolution == "1080p60") res = RESOLUTION_1080P;
-        else if(currentResolution == "2160p30") res = RESOLUTION_2160P30;
-        else if(currentResolution == "2160p60") res = RESOLUTION_2160P60;
-        else res = RESOLUTION_UNKNOWN;
+        if (_resolutions.find(currentResolution) != _resolutions.end())
+        {
+            res = _resolutions.find(currentResolution)->second;
+        }
+        else
+        {
+            //couldn't find the resolution returned from platform.
+            //It could be the case that the framerate in the retruned
+            //resolution isn't part of the map.
+            //So, try to return the base resolution at least by ignoring
+            //the framerate
+            string baseRes = currentResolution.substr(0, currentResolution.size()-2);
+            if (_resolutions.find(baseRes) != _resolutions.end())
+            {
+                res = _resolutions.find(baseRes)->second;
+            }
+        }
 
         return (Core::ERROR_NONE);
     }
@@ -425,7 +436,51 @@ private:
 private:
     std::list<Exchange::IPlayerProperties::AudioCodec> _audioCodecs;
     std::list<Exchange::IPlayerProperties::VideoCodec> _videoCodecs;
-
+    std::map<string, Exchange::IPlayerProperties::PlaybackResolution> _resolutions =
+    {
+        {"480i24", RESOLUTION_480I24},
+        {"480i25", RESOLUTION_480I25},
+        {"480i30", RESOLUTION_480I30},
+        {"480i50", RESOLUTION_480I50},
+        {"480i", RESOLUTION_480I},
+        {"480p24", RESOLUTION_480P24},
+        {"480p25", RESOLUTION_480P25},
+        {"480p30", RESOLUTION_480P30},
+        {"480p50", RESOLUTION_480P50},
+        {"480p", RESOLUTION_480P},
+        {"576i24", RESOLUTION_576I24},
+        {"576i25", RESOLUTION_576I25},
+        {"576i30", RESOLUTION_576I30},
+        {"576i50", RESOLUTION_576I50},
+        {"576i", RESOLUTION_576I},
+        {"576p24", RESOLUTION_576P24},
+        {"576p25", RESOLUTION_576P25},
+        {"576p30", RESOLUTION_576P30},
+        {"576p50", RESOLUTION_576P50},
+        {"576p", RESOLUTION_576P},
+        {"720p24", RESOLUTION_720P24},
+        {"720p25", RESOLUTION_720P25},
+        {"720p30", RESOLUTION_720P30},
+        {"720p50", RESOLUTION_720P50},
+        {"720p", RESOLUTION_720P},
+        {"1080i24", RESOLUTION_1080I24},
+        {"1080i25", RESOLUTION_1080I25},
+        {"1080i30", RESOLUTION_1080I30},
+        {"1080i50", RESOLUTION_1080I50},
+        {"1080i", RESOLUTION_1080I},
+        {"1080p24", RESOLUTION_1080P24},
+        {"1080p25", RESOLUTION_1080P25},
+        {"1080p30", RESOLUTION_1080P30},
+        {"1080p50", RESOLUTION_1080P50},
+        {"1080p60", RESOLUTION_1080P},
+        {"1080p", RESOLUTION_1080P},
+        {"2160p24", RESOLUTION_2160P24},
+        {"2160p25", RESOLUTION_2160P25},
+        {"2160p50", RESOLUTION_2160P50},
+        {"2160p30", RESOLUTION_2160P30},
+        {"2160p60", RESOLUTION_2160P60},
+        {"2160p", RESOLUTION_2160P}
+    };
     std::list<Exchange::Dolby::IOutput::INotification*> _observers;
     mutable Core::CriticalSection _adminLock;
 public:
