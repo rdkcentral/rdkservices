@@ -136,6 +136,7 @@ namespace WPEFramework
             JsonObject m_preferencesHash;  // is this needed
 
             BlinkInfo m_blinkTimer;
+            bool m_isBlinking;
             std::vector<FrontPanelBlinkInfo> m_blinkList;
             std::list<FrontPanel*> observers_;
 
