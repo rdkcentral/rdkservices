@@ -2986,8 +2986,15 @@ namespace WPEFramework {
                     try
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
-                        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
-                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                        JsonObject aPortConfig;
+                        aPortConfig = getAudioOutputPortConfig();
+                       if(aPortConfig["HDMI_ARC"].Boolean()) {
+                            LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
+                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                       }
+                       else {
+                           LOGINFO("onARCInitiationEventHandler: HDMI_ARC0 Port not enabled. Skip Audio Routing !!!\n");
+                       }
                     }
                     catch (const device::Exception& err)
                     {
