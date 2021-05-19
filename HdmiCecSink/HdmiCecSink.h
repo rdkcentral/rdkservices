@@ -519,6 +519,7 @@ private:
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
+			void systemAudioModeRequest();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
