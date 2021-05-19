@@ -77,6 +77,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_HOLE_PUNCH;
             static const string RDKSHELL_METHOD_GET_LOG_LEVEL;
             static const string RDKSHELL_METHOD_SET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_SHOW_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_HIDE_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
@@ -168,6 +169,7 @@ namespace WPEFramework {
             uint32_t setHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
