@@ -378,6 +378,18 @@ namespace WPEFramework {
 
         static std::thread shellThread;
 
+        void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
+        {
+	    std::thread rdkshellRequestsThread = std::thread([=]() {
+                if (apiRequest.mName.compare("launchfactoryapp") == 0)
+                {
+                    JsonObject result;
+                    launchFactoryAppWrapper(apiRequest.mRequest, result);
+                }
+            });
+            rdkshellRequestsThread.detach();
+        }
+
         void lockRdkShellMutex()
         {
             bool lockAcquired = false;
@@ -1215,39 +1227,57 @@ namespace WPEFramework {
                 std::string invoke = actionObject["invoke"].String();
                 size_t lastPositionOfDot = invoke.find_last_of(".");
                 auto thunderController = getThunderControllerClient();
+                bool isRDKShellPluginRequest = false;
                 if (lastPositionOfDot != -1)
                 {
                     std::string callsign = invoke.substr(0, lastPositionOfDot);
                     std::cout << "callsign will be " << callsign << std::endl;
-                    //get callsign
-                    JsonObject activateParams;
-                    activateParams.Set("callsign",callsign.c_str());
-                    JsonObject activateResult;
-                    int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    if (callsign.compare("org.rdk.RDKShell.1") != 0)
+                    {
+                        //get callsign
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    }
+                    else
+                    {
+                        isRDKShellPluginRequest = true;
+                    }
                 }
 
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
-                uint32_t status = 0;
-                if (actionObject.HasLabel("params"))
+                if (isRDKShellPluginRequest && (invoke.compare("org.rdk.RDKShell.1.launchFactoryApp") == 0))
                 {
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
-                  gRdkShellMutex.lock();
+                    RDKShellApiRequest apiRequest;
+                    apiRequest.mName = "launchfactoryapp";
+                    apiRequest.mRequest = actionObject.HasLabel("params")?actionObject["params"].Object():JsonObject();
+                    mShell.launchRequestThread(apiRequest);
                 }
                 else
                 {
-                  JsonObject joParams;
-                  joParams["params"] = JsonObject();
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
-                  gRdkShellMutex.lock();
-                }
-                if (status > 0)
-                {
-                    std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    uint32_t status = 0;
+                    if (actionObject.HasLabel("params"))
+                    {
+                        // setting wait Time to 2 seconds
+                        gRdkShellMutex.unlock();
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                        gRdkShellMutex.lock();
+                    }
+                    else
+                    {
+                      JsonObject joParams;
+                      joParams["params"] = JsonObject();
+                      // setting wait Time to 2 seconds
+                      gRdkShellMutex.unlock();
+                      status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                      gRdkShellMutex.lock();
+                    }
+                    if (status > 0)
+                    {
+                        std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    }
                 }
               }
             }

@@ -31,6 +31,12 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        struct RDKShellApiRequest
+        {
+            std::string mName;
+            JsonObject mRequest;
+        };
+
         class RDKShell :  public AbstractPlugin {
         public:
             RDKShell();
@@ -134,6 +140,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void launchRequestThread(RDKShellApiRequest apiRequest);
 
         private/*registered methods (wrappers)*/:
 
