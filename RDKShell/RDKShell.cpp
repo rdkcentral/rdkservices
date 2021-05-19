@@ -68,6 +68,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_HOLE_PUNCH = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_HOLE_PUNCH = "setHolePunch";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOG_LEVEL = "getLogLevel";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_LOG_LEVEL = "setLogLevel";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_SPLASH_LOGO = "showSplashLogo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_SPLASH_LOGO = "hideSplashLogo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = "removeAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
@@ -130,6 +131,8 @@ bool receivedResolutionRequest = false;
 bool receivedFullScreenImageRequest= false;
 std::string fullScreenImagePath;
 bool receivedShowWatermarkRequest = false;
+bool receivedShowSplashScreenRequest = false;
+unsigned int gSplashScreenDisplayTime = 0;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 bool gRdkShellSurfaceModeEnabled = false;
@@ -680,6 +683,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_HOLE_PUNCH, &RDKShell::setHolePunchWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOG_LEVEL, &RDKShell::getLogLevelWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_LOG_LEVEL, &RDKShell::setLogLevelWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_SPLASH_LOGO, &RDKShell::showSplashLogoWrapper, this);
             registerMethod(RDKSHELL_METHOD_HIDE_SPLASH_LOGO, &RDKShell::hideSplashLogoWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_ANIMATION, &RDKShell::removeAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
@@ -896,6 +900,12 @@ namespace WPEFramework {
                   {
                     CompositorController::showWatermark();
                     receivedShowWatermarkRequest = false;
+                  }
+                  if (receivedShowSplashScreenRequest)
+                  {
+                    CompositorController::showSplashScreen(gSplashScreenDisplayTime);
+                    gSplashScreenDisplayTime = 0;
+                    receivedShowSplashScreenRequest = false;
                   }
                   if (!sPersistentStorePreLaunchChecked)
                   {
@@ -2491,6 +2501,29 @@ namespace WPEFramework {
                 }
             }
           returnResponse(result);
+        }
+
+        uint32_t RDKShell::showSplashLogoWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("displayTime"))
+            {
+                result = false;
+                response["message"] = "please specify display time parameter";
+            }
+            if (result)
+            {
+                uint32_t displayTime = parameters["displayTime"].Number();
+                lockRdkShellMutex();
+                gSplashScreenDisplayTime = displayTime;
+                receivedShowSplashScreenRequest = true;
+                gRdkShellMutex.unlock();
+                if (false == result) {
+                    response["message"] = "failed to show splash screen";
+                }
+            }
+            returnResponse(result);
         }
 
         uint32_t RDKShell::hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response)
