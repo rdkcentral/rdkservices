@@ -66,7 +66,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARCPORT                               1
-#define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           3000
+#define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -864,6 +864,14 @@ namespace WPEFramework
             JsonObject params;
             params["logicalAddress"] = JsonValue(logicalAddress);
             sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_INFO_UPDATED], params);
+        }
+	void HdmiCecSink::systemAudioModeRequest()
+        {
+            if(!HdmiCecSink::_instance)
+             return;
+             LOGINFO(" Send systemAudioModeRequest ");
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
+
         }
        uint32_t HdmiCecSink::setEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
@@ -2587,6 +2595,7 @@ namespace WPEFramework
                return;
             }
             m_ArcUiSettingState = true;
+            _instance->systemAudioModeRequest();
 	    _instance->requestArcInitiation();
  
           // start initiate ARC timer 3 sec
