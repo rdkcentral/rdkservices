@@ -445,6 +445,7 @@ namespace WPEFramework {
         static bool isClientExists(std::string client)
         {
             bool exist = false;
+            lockRdkShellMutex();
             for (int i=0; i<gCreateDisplayRequests.size(); i++)
             {
               if (gCreateDisplayRequests[i]->mClient.compare(client) == 0)
@@ -453,6 +454,7 @@ namespace WPEFramework {
                 break;
               }
             }
+            gRdkShellMutex.unlock();
 
             if (!exist)
             {
@@ -1141,6 +1143,7 @@ namespace WPEFramework {
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
+            gRdkShellMutex.lock();
             for (int i=0; i<gCreateDisplayRequests.size(); i++)
             {
                 sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
@@ -1153,6 +1156,7 @@ namespace WPEFramework {
                 gKillClientRequests[i] = nullptr;
             }
             gKillClientRequests.clear();
+            gRdkShellMutex.unlock();
         }
 
         string RDKShell::Information() const
