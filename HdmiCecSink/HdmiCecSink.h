@@ -563,6 +563,7 @@ private:
             std::mutex m_pollMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
+	    bool m_ArcUiSettingState;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;
 	    binary_semaphore m_semSignaltoArcRoutingThread;
