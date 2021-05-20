@@ -161,6 +161,8 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
+
+#define RECONNECTION_INITIAL_DELAY_MILLISECONDS 2000
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
 enum FactoryAppLaunchStatus
@@ -642,7 +644,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyTimestamp(0)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -994,11 +996,9 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            if (Core::ERROR_NONE != subscribeForSystemEvent("onSystemPowerStateChanged"))
-            {
-                m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
-                std::cout << "Started SystemServices connection timer" << std::endl;
-            }
+            m_timer.start(RECONNECTION_INITIAL_DELAY_MILLISECONDS);
+            m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            std::cout << "Started SystemServices connection timer" << std::endl;
 
             return "";
         }
@@ -4566,10 +4566,7 @@ namespace WPEFramework {
             if (0 != mLastWakeupKeyTimestamp)
             {
                 JsonObject req, res;
-                gRdkShellMutex.lock();
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                gRdkShellMutex.unlock();
-
                 if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
                 {
                     response["keyCode"] = JsonValue(mLastWakeupKeyCode);
@@ -5634,7 +5631,6 @@ namespace WPEFramework {
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
             int32_t status = Core::ERROR_GENERAL;
-            gRdkShellMutex.lock();
 
             if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
@@ -5678,8 +5674,6 @@ namespace WPEFramework {
             }
             else
                 std::cout << "No Connection to SystemServices" << std::endl;
-
-            gRdkShellMutex.unlock();
 
             return status;
         }
