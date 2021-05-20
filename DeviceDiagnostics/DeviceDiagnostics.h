@@ -19,6 +19,12 @@
 
 #pragma once
 
+#include <thread>
+#include <mutex>
+#ifdef ENABLE_ERM
+#include <essos-resmgr.h>
+#endif
+
 #include "Module.h"
 
 #include "utils.h"
@@ -52,11 +58,26 @@ namespace WPEFramework {
             //End methods
 
             int getConfiguration(const std::string& postData, JsonObject& response);
+            uint32_t getAVDecoderStatus(const JsonObject& parameters, JsonObject& response);
+            int getMostActiveDecoderStatus();
+            void onDecoderStatusChange(int status);
+#ifdef ENABLE_ERM
+            static void *AVPollThread(void *arg);
+#endif
+
+        private:
+#ifdef ENABLE_ERM
+            std::thread m_AVPollThread;
+            std::mutex m_AVDecoderStatusLock;
+            EssRMgr* m_EssRMgr;
+            int m_pollThreadRun;
+#endif
 
         public:
             DeviceDiagnostics();
             virtual ~DeviceDiagnostics();
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual const string Initialize(PluginHost::IShell* service) override;
 
         public:
             static DeviceDiagnostics* _instance;
