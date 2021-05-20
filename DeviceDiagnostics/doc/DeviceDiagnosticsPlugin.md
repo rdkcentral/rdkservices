@@ -85,52 +85,9 @@ DeviceDiagnostics interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getAudioDecoderStatus](#method.getAudioDecoderStatus) | Gets the audio decoder status |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
-| [getVideoDecoderStatus](#method.getVideoDecoderStatus) | Gets the video decoder status |
+| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of any audio/video decoder/pipeline |
 
-
-<a name="method.getAudioDecoderStatus"></a>
-## *getAudioDecoderStatus <sup>method</sup>*
-
-Gets the audio decoder status.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.audioDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DeviceDiagnostics.1.getAudioDecoderStatus"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "audioDecoderStatus": "ACTIVE",
-        "success": true
-    }
-}
-```
 
 <a name="method.getConfiguration"></a>
 ## *getConfiguration <sup>method</sup>*
@@ -191,10 +148,10 @@ Gets the values associated with the corresponding property names.
 }
 ```
 
-<a name="method.getVideoDecoderStatus"></a>
-## *getVideoDecoderStatus <sup>method</sup>*
+<a name="method.getAVDecoderStatus"></a>
+## *getAVDecoderStatus <sup>method</sup>*
 
-Gets the video decoder status.
+Gets the most active status of any audio/video decoder/pipeline.
 
 ### Parameters
 
@@ -205,7 +162,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.videoDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| result.AVDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -216,7 +173,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.DeviceDiagnostics.1.getVideoDecoderStatus"
+    "method": "org.rdk.DeviceDiagnostics.1.getAVDecoderStatus"
 }
 ```
 
@@ -227,7 +184,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "videoDecoderStatus": "ACTIVE",
+        "AVDecoderStatus": "ACTIVE",
         "success": true
     }
 }
@@ -244,54 +201,29 @@ DeviceDiagnostics interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAudioDecoderStatusChanged](#event.onAudioDecoderStatusChanged) | Triggered when the audio decoder status changes |
-| [onVideoDecoderStatusChanged](#event.onVideoDecoderStatusChanged) | Triggered when the video decoder status changes |
+| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of any audio/video decoder/pipeline changes |
 
 
-<a name="event.onAudioDecoderStatusChanged"></a>
-## *onAudioDecoderStatusChanged <sup>event</sup>*
+<a name="event.onAVDecoderStatusChanged"></a>
+## *onAVDecoderStatusChanged <sup>event</sup>*
 
-Triggered when the audio decoder status changes.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.audioDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onAudioDecoderStatusChanged",
-    "params": {
-        "audioDecoderStatus": "ACTIVE"
-    }
-}
-```
-
-<a name="event.onVideoDecoderStatusChanged"></a>
-## *onVideoDecoderStatusChanged <sup>event</sup>*
-
-Triggered when the video decoder status changes.
+Triggered when the most active status of any audio/video decoder/pipeline changes.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| params.AVDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onVideoDecoderStatusChanged",
+    "method": "client.events.1.onAVDecoderStatusChanged",
     "params": {
-        "videoDecoderStatus": "ACTIVE"
+        "AVDecoderStatus": "ACTIVE"
     }
 }
 ```
