@@ -30,6 +30,7 @@
 #include <curl/curl.h>
 #include <utility>
 #include <ctype.h>
+#include <mutex>
 
 #define MAX_STRING_LENGTH 2048
 
@@ -158,8 +159,12 @@ bool Utils::isFileExistsAndOlderThen(const char *pFileName, long age /*= -1*/)
 
 void Utils::SecurityToken::getSecurityToken(std::string& token)
 {
+    static std::mutex mtx;
+    std::unique_lock<std::mutex> lock(mtx);
+
     if(m_sThunderSecurityChecked)
     {
+        token = m_sToken;
         return;
     }
 
@@ -192,6 +197,7 @@ void Utils::SecurityToken::getSecurityToken(std::string& token)
     {
         std::cout << "retrieved token successfully\n";
         token = (char*)buffer;
+        m_sToken = token;
     }
 }
 
@@ -295,9 +301,18 @@ bool Utils::isPluginActivated(const char* callSign)
 {
     string method = "status@" + string(callSign);
     Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-    getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
-    LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
-    bool pluginActivated = joResult[0].JSONState == PluginHost::IShell::ACTIVATED;
+    uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
+    bool pluginActivated = false;
+    if (status == Core::ERROR_NONE)
+    {
+        LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
+        pluginActivated = joResult[0].JSONState == PluginHost::IShell::ACTIVATED;
+    }
+    else
+    {
+        LOGWARN("Getting status for callSign %s, status: %d", callSign, status);
+    }
+
     if(!pluginActivated){
         LOGWARN("Plugin %s is not active", callSign);
     } else {
