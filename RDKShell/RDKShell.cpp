@@ -1821,7 +1821,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             bool result = CompositorController::removeAllKeyListeners();
             gRdkShellMutex.unlock();
             if (false == result) {
@@ -1834,7 +1834,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            gRdkShellMutex.lock();
+            lockRdkShellMutex();
             bool result = CompositorController::removeAllKeyIntercepts();
             gRdkShellMutex.unlock();
             if (false == result) {
