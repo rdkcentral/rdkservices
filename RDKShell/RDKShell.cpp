@@ -5034,18 +5034,7 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                 std::vector<std::string> clientList;
-                CompositorController::getClients(clientList);
-                bool targetFound = false;
-                transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
-                if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
-                {
-                 targetFound = true;
-                }
-               if (targetFound)
-               {
-               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
-               }
+                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
                 gRdkShellMutex.unlock();
             }
             return ret;
