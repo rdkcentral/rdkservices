@@ -56,6 +56,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS;
+            static const string RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS;
             static const string RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_INJECT_KEY;
@@ -149,6 +151,8 @@ namespace WPEFramework {
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAllKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAllKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);

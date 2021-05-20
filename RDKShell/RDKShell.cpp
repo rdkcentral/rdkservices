@@ -48,6 +48,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS = "removeAllKeyIntercepts";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS = "removeAllKeyListeners";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER = "addKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER = "removeKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
@@ -664,6 +666,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS, &RDKShell::removeAllKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS, &RDKShell::removeAllKeyInterceptsWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER, &RDKShell::addKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER, &RDKShell::removeKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
@@ -1809,6 +1813,32 @@ namespace WPEFramework {
                 if (false == result) {
                   response["message"] = "failed to remove key listeners";
                 }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeAllKeyListenersWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            lockRdkShellMutex();
+            bool result = CompositorController::removeAllKeyListeners();
+            gRdkShellMutex.unlock();
+            if (false == result) {
+              response["message"] = "failed to remove all key listeners";
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeAllKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            lockRdkShellMutex();
+            bool result = CompositorController::removeAllKeyIntercepts();
+            gRdkShellMutex.unlock();
+            if (false == result) {
+              response["message"] = "failed to remove all key intercepts";
             }
             returnResponse(result);
         }
