@@ -84,6 +84,8 @@ namespace WPEFramework
                             IARM_BUS_PLAYBACK_DIAG_STATUS_CHANGE_EVENT,
                             DeviceDiagnostics::decoderStatusHandler));
             }
+
+            return "";
         }
 
         void DeviceDiagnostics::Deinitialize(PluginHost::IShell* /* service */)
