@@ -430,6 +430,18 @@ namespace WPEFramework {
         std::vector<std::shared_ptr<CreateDisplayRequest>> gCreateDisplayRequests;
         std::vector<std::shared_ptr<KillClientRequest>> gKillClientRequests;
 
+        void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
+        {
+	    std::thread rdkshellRequestsThread = std::thread([=]() {
+                if (apiRequest.mName.compare("launchfactoryapp") == 0)
+                {
+                    JsonObject result;
+                    launchFactoryAppWrapper(apiRequest.mRequest, result);
+                }
+            });
+            rdkshellRequestsThread.detach();
+        }
+
         void lockRdkShellMutex()
         {
             bool lockAcquired = false;
@@ -850,9 +862,11 @@ namespace WPEFramework {
                                 request["nokillresapp"] = "true";
                             }
                             request["resetagingtime"] = "true";
-                            uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                            RDKShellApiRequest apiRequest;
+                            apiRequest.mName = "launchfactoryapp";
+                            apiRequest.mRequest = request;
+                            rdkshellPlugin->launchRequestThread(apiRequest);
                             gRdkShellMutex.lock();
-                            std::cout << "launch factory app status:" << status << std::endl;
                             CompositorController::hideSplashScreen();
                         }
                         else
@@ -966,9 +980,11 @@ namespace WPEFramework {
                             request["nokillresapp"] = "true";
                         }
                         request["resetagingtime"] = "true";
-                        uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "launchfactoryapp";
+                        apiRequest.mRequest = request;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
                         gRdkShellMutex.lock();
-                        std::cout << "launch factory app status:" << status << std::endl;
                         CompositorController::hideSplashScreen();
                     }
                     else
