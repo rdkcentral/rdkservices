@@ -152,7 +152,7 @@ namespace WPEFramework {
 
         string task_names_foreground[]={
             "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/deviceInitiatedFWDnld.sh 0 1 >> /opt/logs/swupdate.log",
+            "/lib/rdk/swupdate_utility.sh > /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -228,7 +228,7 @@ namespace WPEFramework {
                 LOGINFO("AutoReboot is not present \n");
             }
 
-           LOGINFO("Rebooting the device !!");
+           LOGINFO("Requesting SystemReboot !!");
 
             system(rebootCommand.c_str());
 
