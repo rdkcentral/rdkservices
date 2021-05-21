@@ -158,6 +158,8 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
+#define RECONNECTION_TIME_IN_MILLISECONDS 10000
+
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -450,12 +452,6 @@ namespace WPEFramework {
                         subSystems->Release();
                     }*/
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
-                {
-                   std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".2");
-                   gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
-                }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
                     if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
@@ -569,7 +565,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -639,6 +635,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -886,6 +884,11 @@ namespace WPEFramework {
             {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
+
+            m_timer.start(0);
+            m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            std::cout << "Started SystemServices connection timer" << std::endl;
+
             return "";
         }
 
@@ -1080,11 +1083,20 @@ namespace WPEFramework {
             if (parameters.HasLabel("powerState"))
             {
                 std::string powerState = parameters["powerState"].String();
+                std::string prevState = parameters["currentPowerState"].String();
                 if ((powerState.compare("STANDBY") == 0) || (powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
                     JsonObject request, response;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                }
+ 
+                if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
+                    && powerState == "ON")
+                {
+                    gRdkShellMutex.lock();
+                    CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
+                    gRdkShellMutex.unlock();
                 }
             }
         }
@@ -3877,41 +3889,9 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             sFactoryAppLaunchStatus = STARTED;
-            if (nullptr == gSystemServiceConnection)
-            {
-                std::string serviceCallsign(SYSTEM_SERVICE_CALLSIGN);
-                JsonObject activateParams;
-                activateParams.Set("callsign", serviceCallsign);
-                JsonObject activateResult;
-                auto thunderController = getThunderControllerClient();
-                int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
-                std::cout << "activate system service status: " << activateStatus << std::endl;
-                if (activateStatus > 0)
-                {
-                    std::cout << "trying status one more time...\n";
-                    activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
-                    std::cout << "activate system service status: " << activateStatus << std::endl;
-                    if (activateStatus > 0)
-                    {
-                        std::cout << "unable to activate system service " << std::endl;
-                    }
-                }
-                if (activateStatus == 0)
-                {
-                    serviceCallsign.append(".1");
-                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
-                }
-            }
-            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
-            {
-                std::string eventName("onSystemPowerStateChanged");
-                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
-                if (status == 0)
-                {
-                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
-                    gSystemServiceEventsSubscribed = true;
-                }
-            }
+
+            subscribeForSystemEvent("onSystemPowerStateChanged");
+
             if (parameters.HasLabel("startup"))
             {
                 bool startup = parameters["startup"].Boolean();
@@ -4552,38 +4532,23 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            if (nullptr == gSystemServiceConnection)
-            {
-                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
-                std::cout << "Activated SystemService" << std::endl;
-            }
-
-            if (nullptr != gSystemServiceConnection)
+            if (0 != mLastWakeupKeyTimestamp)
             {
                 JsonObject req, res;
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
                 if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
                 {
-                    gRdkShellMutex.lock();
-                    uint32_t keyCode = 0;
-                    uint32_t modifiers = 0;
-                    uint64_t timestampInSeconds = 0;
-                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
-                    gRdkShellMutex.unlock();
+                    response["keyCode"] = JsonValue(mLastWakeupKeyCode);
+                    response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
 
-                    response["keyCode"] = JsonValue(keyCode);
-                    response["modifiers"] = JsonValue(modifiers);
-                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
-
-                    std::cout << "Got LastWakeupKey, keyCode: " << keyCode << " modifiers: " << modifiers << " timestampInSeconds: " << timestampInSeconds << std::endl;
-
-                    returnResponse(true);
+                    std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
                 }
                 else
-                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+                    mLastWakeupKeyTimestamp = 0;
+
+                returnResponse(true);
             }
-            else
-                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
 
             response["message"] = "No last wakeup key";
             returnResponse(false);
@@ -5505,6 +5470,92 @@ namespace WPEFramework {
             return ret;
         }
 
+        void RDKShell::onTimer()
+        {
+            if (gSystemServiceEventsSubscribed)
+            {
+                if (m_timer.isActive()) {
+                    m_timer.stop();
+                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                }
+            }
+            else
+            {
+                if (Core::ERROR_NONE == subscribeForSystemEvent("onSystemPowerStateChanged"))
+                {  
+                    m_timer.stop();
+                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                }
+            }
+        }
+
+        int32_t RDKShell::subscribeForSystemEvent(std::string event)
+        {
+            int32_t status = Core::ERROR_GENERAL;
+
+            if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
+            {
+                gSystemServiceConnection.reset();
+                gSystemServiceEventsSubscribed = false;
+
+                std::string serviceCallsign(SYSTEM_SERVICE_CALLSIGN);
+                JsonObject activateParams;
+                activateParams.Set("callsign", serviceCallsign);
+                JsonObject activateResult;
+                auto thunderController = getThunderControllerClient();
+                int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                std::cout << "activate system service status: " << activateStatus << std::endl;
+                if (activateStatus > 0)
+                {
+                    std::cout << "trying status one more time...\n";
+                    activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    std::cout << "activate system service status: " << activateStatus << std::endl;
+                    if (activateStatus > 0)
+                    {
+                        std::cout << "unable to activate system service " << std::endl;
+                    }
+                }
+            }
+
+            if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
+            {
+                std::cout << "SystemService is already activated" << std::endl;
+
+                if (nullptr == gSystemServiceConnection)
+                {  
+                    std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
+                    serviceCallsign.append(".2");
+                    gSystemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
+                }
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                if (!gSystemServiceEventsSubscribed)
+                {
+                    std::string eventName("onSystemPowerStateChanged");
+                    status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+
+                    if (Core::ERROR_NONE == status)
+                    {
+                        std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                        gSystemServiceEventsSubscribed = true;
+                    }
+                    else
+                    { 
+                        std::cout << "Subscribe for SystemServices event failed with " << status << std::endl;
+                        gSystemServiceConnection.reset();
+                    }
+
+                }
+                else
+                    std::cout << "Already Subscribed to SystemServices events" << std::endl;
+            }
+            else
+                std::cout << "No Connection to SystemServices" << std::endl;
+
+            return status;
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
