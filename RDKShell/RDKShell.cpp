@@ -5633,6 +5633,7 @@ namespace WPEFramework {
             if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
                 gSystemServiceConnection.reset();
+                gSystemServiceEventsSubscribed = false;
                 Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
                 std::cout << "called activatePlugin for SystemService" << std::endl;
             }
