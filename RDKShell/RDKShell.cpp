@@ -161,8 +161,6 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
-
-#define RECONNECTION_INITIAL_DELAY_MILLISECONDS 2000
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
 enum FactoryAppLaunchStatus
@@ -996,7 +994,7 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            m_timer.start(RECONNECTION_INITIAL_DELAY_MILLISECONDS);
+            m_timer.start(0);
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
             std::cout << "Started SystemServices connection timer" << std::endl;
 
@@ -5634,6 +5632,7 @@ namespace WPEFramework {
 
             if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
+                gSystemServiceConnection.reset();
                 Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
                 std::cout << "called activatePlugin for SystemService" << std::endl;
             }
