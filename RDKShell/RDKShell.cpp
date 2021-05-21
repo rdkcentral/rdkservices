@@ -32,6 +32,7 @@
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <plugins/System.h>
+#include <rdkshell/eastereggs.h>
 
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -47,6 +48,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS = "removeAllKeyIntercepts";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS = "removeAllKeyListeners";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER = "addKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER = "removeKeyMetadataListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_INJECT_KEY = "injectKey";
@@ -93,6 +96,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_EXIT_AGING_MODE = "exitAgingMode";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
@@ -381,51 +385,6 @@ namespace WPEFramework {
 
         static std::thread shellThread;
 
-        struct CreateDisplayRequest
-        {
-            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
-            {
-                sem_init(&mSemaphore, 0, 0);
-            }
-  
-            ~CreateDisplayRequest()
-            {
-                sem_destroy(&mSemaphore);
-            }
-
-            std::string mClient;
-            std::string mDisplayName;
-            uint32_t mDisplayWidth;
-            uint32_t mDisplayHeight;
-            bool mVirtualDisplayEnabled;
-            uint32_t mVirtualWidth;
-            uint32_t mVirtualHeight;
-            bool mTopmost;
-            bool mFocus;
-            sem_t mSemaphore;
-            bool mResult;
-        };
-
-        struct KillClientRequest
-        {
-            KillClientRequest(std::string client): mClient(client), mResult(false)
-            {
-                sem_init(&mSemaphore, 0, 0);
-            }
-  
-            ~KillClientRequest()
-            {
-                sem_destroy(&mSemaphore);
-            }
-
-            std::string mClient;
-            sem_t mSemaphore;
-            bool mResult;
-        };
-
-        std::vector<std::shared_ptr<CreateDisplayRequest>> gCreateDisplayRequests;
-        std::vector<std::shared_ptr<KillClientRequest>> gKillClientRequests;
-
         void lockRdkShellMutex()
         {
             bool lockAcquired = false;
@@ -445,36 +404,6 @@ namespace WPEFramework {
             }*/
         }
 
-        static bool isClientExists(std::string client)
-        {
-            bool exist = false;
-            lockRdkShellMutex();
-            for (int i=0; i<gCreateDisplayRequests.size(); i++)
-            {
-              if (gCreateDisplayRequests[i]->mClient.compare(client) == 0)
-              {
-                exist = true;
-                break;
-              }
-            }
-            gRdkShellMutex.unlock();
-
-            if (!exist)
-            {
-                std::vector<std::string> clientList;
-                lockRdkShellMutex();
-                CompositorController::getClients(clientList);
-                gRdkShellMutex.unlock();
-                std::string newClient(client);
-                transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
-                if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
-                {
-                    exist = true;
-                }
-            }
-            return exist;
-        }
-
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -491,15 +420,8 @@ namespace WPEFramework {
                    if (serviceConfig.HasLabel("clientidentifier"))
                    {
                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
-                       if (!isClientExists(service->Callsign()))
-                       {
-                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(service->Callsign(), clientidentifier);
-                           gRdkShellMutex.lock();
-                           gCreateDisplayRequests.push_back(request);
-                           gRdkShellMutex.unlock();
-                           sem_wait(&request->mSemaphore);
-                       }
                        gRdkShellMutex.lock();
+                       RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
@@ -612,12 +534,8 @@ namespace WPEFramework {
                     if (serviceConfig.HasLabel("clientidentifier"))
                     {
                         std::string clientidentifier = serviceConfig["clientidentifier"].String();
-                        std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
                         gRdkShellMutex.lock();
-                        gKillClientRequests.push_back(request);
-                        gRdkShellMutex.unlock();
-                        sem_wait(&request->mSemaphore);
-                        gRdkShellMutex.lock();
+                        RdkShell::CompositorController::kill(service->Callsign());
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
@@ -662,6 +580,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS, &RDKShell::removeAllKeyListenersWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS, &RDKShell::removeAllKeyInterceptsWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER, &RDKShell::addKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER, &RDKShell::removeKeyMetadataListenerWrapper, this);
             registerMethod(RDKSHELL_METHOD_INJECT_KEY, &RDKShell::injectKeyWrapper, this);
@@ -708,6 +628,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_EXIT_AGING_MODE, &RDKShell::exitAgingModeWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
@@ -861,30 +782,6 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
-                  while (gCreateDisplayRequests.size() > 0)
-                  {
-		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
-                      if (!request)
-                      {
-                          gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
-                          continue;
-                      }
-                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
-                      gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
-                      sem_post(&request->mSemaphore);
-                  }
-                  while (gKillClientRequests.size() > 0)
-                  {
-	              std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
-                      if (!request)
-                      {
-                          gKillClientRequests.erase(gKillClientRequests.begin());
-                          continue;
-                      }
-                      request->mResult = CompositorController::kill(request->mClient);
-                      gKillClientRequests.erase(gKillClientRequests.begin());
-                      sem_post(&request->mSemaphore);
-                  }
                   if (receivedResolutionRequest)
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
@@ -1153,20 +1050,6 @@ namespace WPEFramework {
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
-            gRdkShellMutex.lock();
-            for (int i=0; i<gCreateDisplayRequests.size(); i++)
-            {
-                sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
-                gCreateDisplayRequests[i] = nullptr;
-            }
-            gCreateDisplayRequests.clear();
-            for (int i=0; i<gKillClientRequests.size(); i++)
-            {
-                sem_destroy(&gKillClientRequests[i]->mSemaphore);
-                gKillClientRequests[i] = nullptr;
-            }
-            gKillClientRequests.clear();
-            gRdkShellMutex.unlock();
         }
 
         string RDKShell::Information() const
@@ -1806,6 +1689,32 @@ namespace WPEFramework {
                 if (false == result) {
                   response["message"] = "failed to remove key listeners";
                 }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeAllKeyListenersWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            lockRdkShellMutex();
+            bool result = CompositorController::removeAllKeyListeners();
+            gRdkShellMutex.unlock();
+            if (false == result) {
+              response["message"] = "failed to remove all key listeners";
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeAllKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            lockRdkShellMutex();
+            bool result = CompositorController::removeAllKeyIntercepts();
+            gRdkShellMutex.unlock();
+            if (false == result) {
+              response["message"] = "failed to remove all key intercepts";
             }
             returnResponse(result);
         }
@@ -2979,15 +2888,8 @@ namespace WPEFramework {
                             std::cout << "lock was acquired via try for create display\n";
                         }
                     }
+                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                     gRdkShellMutex.unlock();
-                    if (!isClientExists(callsign))
-                    {
-                        std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
-                        lockRdkShellMutex();
-                        gCreateDisplayRequests.push_back(request);
-                        gRdkShellMutex.unlock();
-                        sem_wait(&request->mSemaphore);
-                    }
                 }
 
                 WPEFramework::Core::JSON::String configString;
@@ -3458,6 +3360,7 @@ namespace WPEFramework {
                 {
                     if (callsign == "factoryapp")
                     {
+                        removeFactoryModeEasterEggs();
                         sFactoryModeStart = false;
                         sFactoryAppLaunchStatus = NOTLAUNCHED;
                     }
@@ -4065,6 +3968,7 @@ namespace WPEFramework {
                     sFactoryAppLaunchStatus = NOTLAUNCHED;
                     returnResponse(false);
                 }
+                addFactoryModeEasterEggs();
                 JsonObject joFactoryModeParams;
                 JsonObject joFactoryModeResult;
                 joFactoryModeParams.Set("namespace","FactoryTest");
@@ -4311,6 +4215,84 @@ namespace WPEFramework {
             {
                 launchFactoryAppWrapper(parameters, response);
             }
+        }
+
+        void RDKShell::addFactoryModeEasterEggs()
+        {
+            RdkShellEasterEggKeyDetails key1(56, 0, 0);
+            RdkShellEasterEggKeyDetails key2(48, 0, 0);
+            RdkShellEasterEggKeyDetails key3(56, 0, 0);
+            RdkShellEasterEggKeyDetails key4(55, 0, 0);
+            std::vector<RdkShellEasterEggKeyDetails> keyDetails;
+            keyDetails.push_back(key1);
+            keyDetails.push_back(key2);
+            keyDetails.push_back(key3);
+            keyDetails.push_back(key4);
+            addEasterEgg(keyDetails, "AGING_MODE_EXIT1", 10, "{\"invoke\":\"org.rdk.RDKShell.1.exitAgingMode\"}");
+
+            keyDetails.clear();
+            RdkShellEasterEggKeyDetails key5(38, 0, 0);
+            RdkShellEasterEggKeyDetails key6(38, 0, 0);
+            RdkShellEasterEggKeyDetails key7(40, 0, 0);
+            RdkShellEasterEggKeyDetails key8(40, 0, 0);
+            keyDetails.push_back(key5);
+            keyDetails.push_back(key6);
+            keyDetails.push_back(key7);
+            keyDetails.push_back(key8);
+            addEasterEgg(keyDetails, "AGING_MODE_EXIT2", 10, "{\"invoke\":\"org.rdk.RDKShell.1.exitAgingMode\"}");
+        }
+
+        void RDKShell::removeFactoryModeEasterEggs()
+        {
+            removeEasterEgg("AGING_MODE_EXIT1");
+            removeEasterEgg("AGING_MODE_EXIT2");
+        }
+
+        uint32_t RDKShell::exitAgingModeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool ret = true;
+            JsonObject joAgingParams;
+            JsonObject joAgingResult;
+            joAgingParams.Set("namespace","FactoryTest");
+            joAgingParams.Set("key","AgingState");
+            std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+            std::cout << "attempting to check aging state flag \n";
+            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "get status: " << status << std::endl;
+
+            if (status > 0)
+            {
+                response["message"] = " unable to check aging flag";
+                returnResponse(false);
+            }
+
+            if (!joAgingResult.HasLabel("value"))
+            {
+                response["message"] = " aging value not found";
+                returnResponse(false);
+            }
+
+            const std::string valueString = joAgingResult["value"].String();
+            if (valueString != "true")
+            {
+                std::cout << "aging value is " << valueString << std::endl;
+                response["message"] = " aging value is not true";
+                returnResponse(false);
+            }
+
+
+            joAgingParams.Set("value","false");
+            std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
+            std::cout << "attempting to set check aging state flag to false\n";
+            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "set status: " << status << std::endl;
+
+            JsonObject request, res;
+            launchResidentAppWrapper(request, res);
+
+            returnResponse(ret);
         }
 
         uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
@@ -5028,11 +5010,8 @@ namespace WPEFramework {
             bool ret = false;
             lockRdkShellMutex();
             RdkShell::CompositorController::removeListener(client, mEventListener);
-            std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(client);
-            gKillClientRequests.push_back(request);
+            ret = CompositorController::kill(client);
             gRdkShellMutex.unlock();
-            sem_wait(&request->mSemaphore);
-            ret = request->mResult;
             return ret;
         }
 
@@ -5261,18 +5240,21 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                 std::vector<std::string> clientList;
-                CompositorController::getClients(clientList);
-                bool targetFound = false;
-                transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
-                if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+		bool targetFound = false;
+                if (keyClient != "")
                 {
-                 targetFound = true;
+                  std::vector<std::string> clientList;
+                  CompositorController::getClients(clientList);
+                  transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
+                  if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                  {
+                    targetFound = true;
+                  }
                 }
-               if (targetFound)
-               {
-               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
-               }
+                if (targetFound || keyClient == "")
+                {
+                  ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                }
                 gRdkShellMutex.unlock();
             }
             return ret;
@@ -5325,20 +5307,9 @@ namespace WPEFramework {
             const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
         {
             bool ret = false;
-            if (!isClientExists(client))
-            {
-                lockRdkShellMutex();
-                std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(client, displayName, displayWidth, displayHeight, virtualDisplay, virtualWidth, virtualHeight);
-                gCreateDisplayRequests.push_back(request);
-                gRdkShellMutex.unlock();
-                sem_wait(&request->mSemaphore);
-                ret = request->mResult;
-            }
-            else
-            {
-                std::cout << "Client " << client  << "already exist " << std::endl;
-            }
             lockRdkShellMutex();
+            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
+                virtualDisplay, virtualWidth, virtualHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;

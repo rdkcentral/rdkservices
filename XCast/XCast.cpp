@@ -519,11 +519,15 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
                                strAddDataUrl.c_str(), url);
         }
 
+
         string strUrl = std::string (url);
-        if (appName == "NetflixApp")
+        if (appName == "Netflix") {
+            appName.assign("NetflixApp");
             urlParam["pluginUrl"]=strUrl;
-        else
+        }
+        else {
             urlParam["url"]=strUrl;
+        }
 
         params["applicationName"]= appName;
         params["parameters"]= urlParam;

@@ -216,6 +216,7 @@ namespace WPEFramework {
 	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
 
 	    m_subscribed = false; //HdmiCecSink event subscription
+	    m_hdmiInAudioDeviceConnected = false;
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
         }
 
@@ -555,7 +556,6 @@ namespace WPEFramework {
 
 		    if(hdmiin_hotplug_port == HDMI_IN_ARC_PORT_ID) { //HDMI ARC/eARC connected
 			bool arc_port_enabled =  false;
-                DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
 
                         JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
 			if (audioOutputPortConfig.HasLabel("HDMI_ARC")) {
@@ -596,6 +596,8 @@ namespace WPEFramework {
                                     }
 
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
+                                        DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = true;
+                                        DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
                                         LOGINFO("dsHdmiEventHandler: Enable eARC\n");
                                         aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
                                     }
@@ -613,6 +615,8 @@ namespace WPEFramework {
                                 }
                                 else { //HDMI ARC/eARC disconnected
                                         LOGINFO("dsHdmiEventHandler: Disable ARC\n");
+                                        DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
+                                        DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
                                         aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
                                 }
                             }
@@ -623,6 +627,28 @@ namespace WPEFramework {
                         }
                         else {
                             LOGINFO("dsHdmiEventHandler: Skip HDMI_ARC Hotplug handling !!! HDMI_ARC port not enabled. \n");
+                            int types = dsAUDIOARCSUPPORT_NONE;
+                           try {
+                                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                               aPort.getSupportedARCTypes(&types);
+                           }
+                           catch (const device::Exception& err){
+                                   LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                           }
+                           if(hdmiin_hotplug_conn) {
+                               if(types & dsAUDIOARCSUPPORT_eARC) {
+                                   DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = true;
+                                   DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
+                               }
+                               else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                   //Dummy ARC intiation request
+                                   DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(true);
+                               }
+                           }
+                           else {
+                                   DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
+                                   DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
+                           }
 	                }
 
 	            }// HDMI_IN_ARC_PORT_ID
@@ -671,6 +697,9 @@ namespace WPEFramework {
                     if (aPort.isConnected())
                     {
                         string portName = aPort.getName();
+                        if((portName == "HDMI_ARC0") && (m_hdmiInAudioDeviceConnected != true)) {
+                            continue;
+                        }
                         vectorSet(connectedAudioPorts, portName);
                     }
                 }
@@ -3118,13 +3147,19 @@ namespace WPEFramework {
                         }
                     }
                     else if(types & dsAUDIOARCSUPPORT_ARC) {
-                        if (!setUpHdmiCecSinkArcRouting (pEnable)) {
-                            LOGERR("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting failed !!!\n");;
-                        }
-                        else {
-                            LOGINFO("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting successful");
-                        }
-	                }
+                       if((m_hdmiInAudioDeviceConnected != true) || (pEnable != true)) {
+                            if (!setUpHdmiCecSinkArcRouting (pEnable)) {
+                                LOGERR("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting failed !!!\n");;
+                            }
+                            else {
+                                LOGINFO("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting successful");
+                            }
+                       }
+                       else {
+                               LOGINFO("DisplaySettings::setEnableAudioPort directly route ARC Audio. CEC handshake with ARC device already successful !!\n");
+                               aPort.enableARC(dsAUDIOARCSUPPORT_ARC, pEnable);
+                       }
+                    }
                     else {
                         LOGWARN("DisplaySettings::setEnableAudioPort Connected device doesn't have ARC/eARC capability \n");
                     }
@@ -3285,6 +3320,8 @@ namespace WPEFramework {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
                         JsonObject aPortConfig;
                         aPortConfig = getAudioOutputPortConfig();
+			m_hdmiInAudioDeviceConnected = true;
+			connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                        if(aPortConfig["HDMI_ARC"].Boolean()) {
                             LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
                             aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
