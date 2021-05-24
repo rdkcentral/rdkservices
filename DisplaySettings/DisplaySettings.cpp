@@ -64,6 +64,7 @@ using namespace std;
 #define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
+#define HDMICECSINK_PLUGIN_ACTIVATION_TIME 2
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
@@ -261,7 +262,6 @@ namespace WPEFramework {
                             m_timer.stop();
                         }
 
-                        Utils::activatePlugin(HDMICECSINK_CALLSIGN);
 
                         //Start the timer only if the device supports HDMI_ARC
                         LOGINFO("Starting the timer");
@@ -310,6 +310,7 @@ namespace WPEFramework {
             {
                 LOGWARN("Current power state %d", m_powerState);
             }
+            LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -3310,9 +3311,19 @@ namespace WPEFramework {
         // 5.
         void DisplaySettings::onTimer()
         {
+            bool isPluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
+
+            if (!isPluginActivated) {
+                /*HDMICECSINK_CALLSIGN plugin activation moved to onTimer.
+                 *To decouple from displyasettings init. Since its time taking*/
+                Utils::activatePlugin(HDMICECSINK_CALLSIGN);
+                LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
+                sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
+            }
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
+            LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
                 if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE))
                 {
