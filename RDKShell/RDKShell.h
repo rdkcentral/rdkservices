@@ -26,6 +26,7 @@
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
+#include "tptimer.h"
 
 namespace WPEFramework {
 
@@ -270,6 +271,8 @@ namespace WPEFramework {
             void invokeStartupThunderApis();
             void enableLogsFlushing(const bool enable);
             void getLogsFlushingEnabled(bool &enabled);
+            int32_t subscribeForSystemEvent(std::string event);
+            void onTimer();
 
             void addFactoryModeEasterEggs();
             void removeFactoryModeEasterEggs();
@@ -348,6 +351,10 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+            uint32_t mLastWakeupKeyCode;
+            uint32_t mLastWakeupKeyModifiers;
+            uint64_t mLastWakeupKeyTimestamp;
+            TpTimer m_timer;
         };
 
         struct PluginData
