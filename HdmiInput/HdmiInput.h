@@ -24,6 +24,7 @@
 #include "Module.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
+#include "dsTypes.h"
 
 namespace WPEFramework {
 
@@ -80,6 +81,9 @@ namespace WPEFramework {
 
             void hdmiInputStatusChange( int port , bool isPresented);
 	    static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+	    void hdmiInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
+	    static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
         public:
             HdmiInput();
