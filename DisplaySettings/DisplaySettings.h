@@ -29,6 +29,7 @@
 #include "irMgr.h"
 #include "pwrMgr.h"
 
+
 namespace WPEFramework {
 
     namespace Plugin {
