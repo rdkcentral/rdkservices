@@ -351,7 +351,8 @@ namespace WPEFramework
            {
                //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
                device::Manager::Initialize();
-               device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+               std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+               device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                if (vPort.isDisplayConnected())
                {
                    vector<uint8_t> edidVec;
@@ -545,7 +546,8 @@ namespace WPEFramework
                 getLogicalAddress();
                 try
                 {
-                   device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                   std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                   device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
                      vector<uint8_t> edidVec;
