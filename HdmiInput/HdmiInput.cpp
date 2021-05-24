@@ -44,6 +44,7 @@
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
+#define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 
 using namespace std;
 
@@ -93,6 +94,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
             }
         }
 
@@ -104,6 +106,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
             }
         }
 
@@ -439,7 +442,113 @@ namespace WPEFramework
 
             sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
-	
+
+        /**
+         * @brief This function is used to translate HDMI input video mode change to
+         * videoStreamInfoUpdate event.
+         *
+         * @param[in] port HDMI In port id.
+         * @param[dsVideoPortResolution_t] video resolution data
+         */
+        void HdmiInput::hdmiInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution)
+        {
+            LOGWARN("hdmiInputVideoModeUpdate [%d]", port);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "hdmiin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+	    switch(resolution.pixelResolution) {
+		    case dsVIDEO_PIXELRES_720x480:
+			params["width"] = 720;
+			params["height"] = 480;
+			break;
+
+		    case dsVIDEO_PIXELRES_720x576:
+                        params["width"] = 720;
+                        params["height"] = 576;
+                        break;
+
+                    case dsVIDEO_PIXELRES_1280x720:
+                        params["width"] = 1280;
+                        params["height"] = 720;
+                        break;
+
+                    case dsVIDEO_PIXELRES_1920x1080:
+                        params["width"] = 1920;
+                        params["height"] = 1080;
+                        break;
+
+                    case dsVIDEO_PIXELRES_3840x2160:
+                        params["width"] = 3840;
+                        params["height"] = 2160;
+                        break;
+
+                    case dsVIDEO_PIXELRES_4096x2160:
+                        params["width"] = 4096;
+                        params["height"] = 2160;
+                        break;
+
+		    default:
+                        params["width"] = 1920;
+                        params["height"] = 1080;
+                        break;
+	    }
+
+	    params["progressive"] = (!resolution.interlaced);
+
+            switch(resolution.frameRate) {
+                    case dsVIDEO_FRAMERATE_24:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_25:
+                        params["frameRateN"] = 25000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_30:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_50:
+                        params["frameRateN"] = 50000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_60:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_23dot98:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_29dot97:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_59dot94:
+                        params["frameRateN"] = 50000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    default:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+            }
+
+            sendNotify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+        }
+
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!HdmiInput::_instance)
@@ -486,6 +595,26 @@ namespace WPEFramework
                 LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
 
                 HdmiInput::_instance->hdmiInputStatusChange(hdmi_in_port, hdmi_in_status);
+
+            }
+        }
+
+        void HdmiInput::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
+		dsVideoPortResolution_t resolution;
+		resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
+		resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
+		resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+
+                HdmiInput::_instance->hdmiInputVideoModeUpdate(hdmi_in_port, resolution);
 
             }
         }
