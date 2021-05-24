@@ -153,10 +153,6 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
             registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
-            registerMethod("setfrmmode", &DisplaySettings::setfrmmode, this);
-            registerMethod("getfrmmode", &DisplaySettings::getfrmmode, this);
-            registerMethod("getDisplayframerate", &DisplaySettings::getDisplayframerate, this);
-            registerMethod("setDisplayframerate", &DisplaySettings::setDisplayframerate, this);
 	    registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
@@ -934,96 +930,6 @@ namespace WPEFramework {
             returnResponse(success);
         }
 	
-	uint32_t DisplaySettings::setfrmmode(const JsonObject& parameters, JsonObject& response)
-        {   
-            LOGINFOMETHOD();
-            returnIfParamNotFound(parameters, "frmmode");
-
-            string sPortId = parameters["frmmode"].String();
-            int frfmode = 0;
-            try {
-                frfmode = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
-            }
-
-            bool success = true;
-            try
-            {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.setFRFMode(frfmode);
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                success = false;
-            }
-            returnResponse(success);
-        }
-	
-	uint32_t DisplaySettings::getfrmmode(const JsonObject& parameters, JsonObject& response)
-        {   
-            LOGINFOMETHOD();
-
-            int frmmode = dsHDRSTANDARD_NONE;
-            bool success = true;
-            try
-            {
-                    device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                    device.getFRFMode(&frmmode);
-            }
-            catch(const device::Exception& err)
-            {
-                    LOG_DEVICE_EXCEPTION0();
-		    success = false;
-            }
-
-            response["auto-frm-mode"] = frmmode;
-            returnResponse(success);
-        }
-	
-	uint32_t DisplaySettings::setDisplayframerate(const JsonObject& parameters, JsonObject& response)
-        {   
-            LOGINFOMETHOD();
-            returnIfParamNotFound(parameters, "framerate");
-
-            string sFramerate = parameters["framerate"].String();
-
-            bool success = true;
-            try
-            {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.setDisplayframerate(sFramerate.c_str());
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(sFramerate);
-                success = false;
-            }
-            returnResponse(success);
-        }
-
-	uint32_t DisplaySettings::getDisplayframerate(const JsonObject& parameters, JsonObject& response)
-        {   
-            LOGINFOMETHOD();
-            char sFramerate[20] ={0};
-            bool success = true;
-            try
-            {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.getCurrentDisframerate(sFramerate);
-            }
-            catch (const device::Exception& err)
-            {
-               LOG_DEVICE_EXCEPTION1(std::string(sFramerate));
-                success = false;
-            }
-
-            response["framerate"] = std::string(sFramerate);
-            returnResponse(success);
-        }
-
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
             LOGINFOMETHOD();

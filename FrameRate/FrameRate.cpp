@@ -26,6 +26,10 @@
 #define METHOD_START_FPS_COLLECTION "startFpsCollection"
 #define METHOD_STOP_FPS_COLLECTION "stopFpsCollection"
 #define METHOD_UPDATE_FPS_COLLECTION "updateFps"
+#define METHOD_SET_FRAME_MODE "setfrmmode"
+#define METHOD_GET_FRAME_MODE "getfrmmode"
+#define METHOD_GET_DISPLAY_FRAME_RATE "getDisplayframerate"
+#define METHOD_SET_DISPLAY_FRAME_RATE "setDisplayframerate"
 
 // Events
 #define EVENT_FPS_UPDATE "onFpsEvent"
@@ -36,6 +40,8 @@
 #define DEFAULT_MIN_FPS_VALUE 60
 #define DEFAULT_MAX_FPS_VALUE -1
 
+const short WPEFramework::Plugin::FrameRate::API_VERSION_NUMBER_MAJOR = 2;
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -45,7 +51,7 @@ namespace WPEFramework
         FrameRate* FrameRate::_instance = nullptr;
 
         FrameRate::FrameRate()
-        : AbstractPlugin()
+        : AbstractPlugin(FrameRate::API_VERSION_NUMBER_MAJOR)
           , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
           , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
           , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
@@ -56,7 +62,11 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-            
+            Register(METHOD_SET_FRAME_MODE, &FrameRate::setfrmmode, this);
+            Register(METHOD_GET_FRAME_MODE, &FrameRate::getfrmmode, this);
+            Register(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayframerate, this, {2});
+            Register(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayframerate, this, {2});
+
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
 
@@ -119,11 +129,110 @@ namespace WPEFramework
             returnResponse(true);
         }
         
+        uint32_t FrameRate::setfrmmode(const JsonObject& parameters, JsonObject& response)
+        {
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "frmmode");
+
+            string sPortId = parameters["frmmode"].String();
+            int frfmode = 0;
+            try {
+                frfmode = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            bool success = true;
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.setFRFMode(frfmode);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t FrameRate::getfrmmode(const JsonObject& parameters, JsonObject& response)
+        {
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            LOGINFOMETHOD();
+
+            int frmmode = dsHDRSTANDARD_NONE;
+            bool success = true;
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.getFRFMode(&frmmode);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+
+            response["auto-frm-mode"] = frmmode;
+            returnResponse(success);
+        }
+
+        uint32_t FrameRate::setDisplayframerate(const JsonObject& parameters, JsonObject& response)
+        {
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "framerate");
+
+            string sFramerate = parameters["framerate"].String();
+
+            bool success = true;
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.setDisplayframerate(sFramerate.c_str());
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(sFramerate);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t FrameRate::getDisplayframerate(const JsonObject& parameters, JsonObject& response)
+        {
+            std::lock_guard<std::mutex> guard(m_callMutex);
+
+            LOGINFOMETHOD();
+            char sFramerate[20] ={0};
+            bool success = true;
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.getCurrentDisframerate(sFramerate);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::string(sFramerate));
+                success = false;
+            }
+
+            response["framerate"] = std::string(sFramerate);
+            returnResponse(success);
+        }
+
+
         /**
-        * @brief This function is used to get the amount of collection interval per milliseconds.
-        *
-        * @return Integer value of Amount of milliseconds per collection interval .
-        */
+         * @brief This function is used to get the amount of collection interval per milliseconds.
+         *
+         * @return Integer value of Amount of milliseconds per collection interval .
+         */
         int FrameRate::getCollectionFrequency()
         {
             return m_fpsCollectionFrequencyInMs;
