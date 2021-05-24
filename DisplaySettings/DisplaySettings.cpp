@@ -219,6 +219,8 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             //LOGINFO("dtor");
+
+            lock_guard<mutex> lck(m_callMutex);
         }
 
         void DisplaySettings::InitAudioPorts() 
