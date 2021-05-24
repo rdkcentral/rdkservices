@@ -64,6 +64,7 @@ using namespace std;
 #define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
+#define HDMICECSINK_PLUGIN_ACTIVATION_TIME 2
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
@@ -135,7 +136,7 @@ namespace WPEFramework {
         IARM_Bus_PWRMgr_PowerState_t DisplaySettings::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
         DisplaySettings::DisplaySettings()
-            : AbstractPlugin()
+            : AbstractPlugin(2)
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
@@ -165,15 +166,15 @@ namespace WPEFramework {
             registerMethod("getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
             registerMethod("getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
 
-            registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this);
+            registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this, {1});
             registerMethod("getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
             registerMethod("isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
             registerMethod("getDRCMode", &DisplaySettings::getDRCMode, this);
-            registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
-            registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this);
+            registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this, {1});
+            registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this, {1});
             registerMethod("setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
             registerMethod("enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
-            registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this);
+            registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this, {1});
             registerMethod("setMISteering", &DisplaySettings::setMISteering, this);
             registerMethod("setGain", &DisplaySettings::setGain, this);
             registerMethod("getGain", &DisplaySettings::getGain, this);
@@ -209,7 +210,13 @@ namespace WPEFramework {
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
 
+	    registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this, {2});
+	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
+	    registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this, {2});
+	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
+
 	    m_subscribed = false; //HdmiCecSink event subscription
+	    m_hdmiInAudioDeviceConnected = false;
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
         }
 
@@ -249,6 +256,16 @@ namespace WPEFramework {
                         else {
                             m_audioOutputPortConfig["HDMI_ARC"] = false;
                         }
+
+                        //Stop timer if its already running
+                        if(m_timer.isActive()) {
+                            m_timer.stop();
+                        }
+
+
+                        //Start the timer only if the device supports HDMI_ARC
+                        LOGINFO("Starting the timer");
+                        m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
                     }
                     else {
                         JsonObject aPortHdmiEnableResult;
@@ -285,14 +302,6 @@ namespace WPEFramework {
         {
             InitializeIARM();
 
-            if(m_timer.isActive()) {
-                m_timer.stop();
-            }
-
-            Utils::activatePlugin(HDMICECSINK_CALLSIGN);
-            LOGINFO("Starting the timer");
-            m_timer.start(RECONNECTION_TIME_IN_MILLISECONDS);
-
             if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
             {
                 InitAudioPorts();
@@ -301,7 +310,7 @@ namespace WPEFramework {
             {
                 LOGWARN("Current power state %d", m_powerState);
             }
-
+            LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -534,7 +543,6 @@ namespace WPEFramework {
 
 		    if(hdmiin_hotplug_port == HDMI_IN_ARC_PORT_ID) { //HDMI ARC/eARC connected
 			bool arc_port_enabled =  false;
-                DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
 
                         JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
 			if (audioOutputPortConfig.HasLabel("HDMI_ARC")) {
@@ -575,6 +583,8 @@ namespace WPEFramework {
                                     }
 
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
+                                        DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = true;
+                                        DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
                                         LOGINFO("dsHdmiEventHandler: Enable eARC\n");
                                         aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
                                     }
@@ -592,6 +602,8 @@ namespace WPEFramework {
                                 }
                                 else { //HDMI ARC/eARC disconnected
                                         LOGINFO("dsHdmiEventHandler: Disable ARC\n");
+                                        DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
+                                        DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
                                         aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
                                 }
                             }
@@ -602,6 +614,28 @@ namespace WPEFramework {
                         }
                         else {
                             LOGINFO("dsHdmiEventHandler: Skip HDMI_ARC Hotplug handling !!! HDMI_ARC port not enabled. \n");
+                            int types = dsAUDIOARCSUPPORT_NONE;
+                           try {
+                                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                               aPort.getSupportedARCTypes(&types);
+                           }
+                           catch (const device::Exception& err){
+                                   LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                           }
+                           if(hdmiin_hotplug_conn) {
+                               if(types & dsAUDIOARCSUPPORT_eARC) {
+                                   DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = true;
+                                   DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
+                               }
+                               else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                   //Dummy ARC intiation request
+                                   DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(true);
+                               }
+                           }
+                           else {
+                                   DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
+                                   DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
+                           }
 	                }
 
 	            }// HDMI_IN_ARC_PORT_ID
@@ -650,6 +684,9 @@ namespace WPEFramework {
                     if (aPort.isConnected())
                     {
                         string portName = aPort.getName();
+                        if((portName == "HDMI_ARC0") && (m_hdmiInAudioDeviceConnected != true)) {
+                            continue;
+                        }
                         vectorSet(connectedAudioPorts, portName);
                     }
                 }
@@ -810,7 +847,7 @@ namespace WPEFramework {
                     }
                 }
 
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "HDMI"))
+                if (Utils::String::stringContains(audioPort, "HDMI0"))
                 {
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
                     int surroundMode = vPort.getDisplay().getSurroundMode();
@@ -832,11 +869,10 @@ namespace WPEFramework {
                         supportedAudioModes.emplace_back("AUTO (Stereo)");
                     }
                 }
-
-                if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF"))
+		else if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF0") || Utils::String::stringContains(audioPort, "HDMI_ARC0"))
                 {
                     if (HAL_hasSurround) {
-                        supportedAudioModes.emplace_back("Surround");
+                        supportedAudioModes.emplace_back("SURROUND");
                     }
                 }
             }
@@ -1023,9 +1059,6 @@ namespace WPEFramework {
 		    }
                     else
                     {
-                        if (mode == device::AudioStereoMode::kSurround)
-                            modeString.append("Surround");
-                        else
                             modeString.append(mode.toString());
                     }
                 }
@@ -1036,7 +1069,7 @@ namespace WPEFramework {
                     * "Stereo" as safe default;
                     */
                     mode = device::AudioStereoMode::kStereo;
-                    modeString.append("AUTO (Stereo)");
+                    modeString.append(mode.toString());
                 }
             }
             catch (const device::Exception& err)
@@ -1047,7 +1080,7 @@ namespace WPEFramework {
                 // "Stereo" as safe default;
                 //
                 mode = device::AudioStereoMode::kStereo;
-                modeString += "AUTO (Stereo)";
+		modeString.append(mode.toString());
             }
 
             LOGWARN("audioPort = %s, mode = %s!", audioPort.c_str(), modeString.c_str());
@@ -1075,15 +1108,15 @@ namespace WPEFramework {
             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
             bool stereoAuto = false;
 
-            if (soundMode == "mono")
+            if (soundMode == "mono" || soundMode == "MONO")
                 mode = device::AudioStereoMode::kMono;
-            else if (soundMode == "stereo")
+            else if (soundMode == "stereo" || soundMode == "STEREO")
                 mode = device::AudioStereoMode::kStereo;
-            else if (soundMode == "surround")
+            else if (soundMode == "surround" || soundMode == "SURROUND")
                 mode = device::AudioStereoMode::kSurround;
-            else if (soundMode == "passthru")
+            else if (soundMode == "passthru" || soundMode == "PASSTHRU")
                 mode = device::AudioStereoMode::kPassThru;
-            else if (soundMode == "auto" || soundMode == "auto ")
+            else if (soundMode == "auto" || soundMode == "auto " || soundMode == "AUTO" || soundMode == "AUTO ")
             {
                 /*
                  * anything after "auto" is only descriptive, and can be ignored.
@@ -1175,6 +1208,10 @@ namespace WPEFramework {
                         }
 
                     }
+		    else {
+			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
+			    success = false;
+		    }
                 }
                 else
                 {
@@ -1542,16 +1579,16 @@ namespace WPEFramework {
 
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
-                int level = 0;
+                dsVolumeLeveller_t leveller;
 
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                                 if (aPort.isConnected())
                                 {
-                                        level= aPort.getVolumeLeveller();
-                                        response["enable"] = (level ? true : false);
-                                        response["level"] = level;
+                                        leveller= aPort.getVolumeLeveller();
+                                        response["enable"] = (leveller.mode ? true : false);
+                                        response["level"] = leveller.level;
                                 }
                 }
                 catch (const device::Exception& err)
@@ -1559,7 +1596,35 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(audioPort);
                         success = false;
                         response["enable"] = false;
-                        response["mode"] = 0;
+                        response["level"] = 0;
+                }
+                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                dsVolumeLeveller_t leveller;
+
+                try
+                {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                                if (aPort.isConnected())
+                                {
+                                        leveller= aPort.getVolumeLeveller();
+                                        response["mode"] = leveller.mode;
+                                        response["level"] = leveller.level;
+                                }
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                        success = false;
+                        response["mode"] = 0; //Off
+                        response["level"] = 0;
                 }
                 returnResponse(success);
         }
@@ -1720,16 +1785,16 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
-                int boost = 0;
+                dsSurroundVirtualizer_t virtualizer;
 
                 try
                 {
                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                                 if (aPort.isConnected())
                                 {
-                                        boost = aPort.getSurroundVirtualizer();
-                                        response["enable"] = boost ? true : false ;
-                                        response["boost"] = boost;
+                                        virtualizer = aPort.getSurroundVirtualizer();
+                                        response["enable"] = virtualizer.mode ? true : false ;
+                                        response["boost"] = virtualizer.boost;
                                 }
                                 else
                                 {
@@ -1745,6 +1810,39 @@ namespace WPEFramework {
                 returnResponse(success);
         }
 
+        uint32_t DisplaySettings::getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                dsSurroundVirtualizer_t virtualizer;
+
+                try
+                {
+                       device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                                if (aPort.isConnected())
+                                {
+                                        virtualizer = aPort.getSurroundVirtualizer();
+                                        response["mode"] = virtualizer.mode;
+                                        response["boost"] = virtualizer.boost;
+                                }
+                                else
+                                {
+                                        LOGERR("aport is not connected!");
+                                        success = false;
+                                }
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                        success = false;
+                        response["mode"] = 0; //Off
+                        response["boost"] = 0;
+
+                }
+                returnResponse(success);
+        }
+	
         uint32_t DisplaySettings::getMISteering(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
@@ -1778,7 +1876,7 @@ namespace WPEFramework {
                 LOGINFOMETHOD();
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
-                int VolumeLeveller = 0;
+                dsVolumeLeveller_t VolumeLeveller;
                 bool isIntiger = Utils::isValidInt ((char*)sVolumeLeveller.c_str());
                 if (false == isIntiger) {
                     LOGWARN("level should be an integer");
@@ -1786,7 +1884,13 @@ namespace WPEFramework {
                 }
 
                 try {
-                        VolumeLeveller = stoi(sVolumeLeveller);
+                        VolumeLeveller.level = stoi(sVolumeLeveller);
+			if(VolumeLeveller.level == 0) {
+				VolumeLeveller.mode = 0; //Off
+			}
+			else {
+				VolumeLeveller.mode = 1; //On
+			}
                 }catch (const device::Exception& err) {
                         LOG_DEVICE_EXCEPTION1(sVolumeLeveller);
                         returnResponse(false);
@@ -1805,6 +1909,56 @@ namespace WPEFramework {
                 }
                 returnResponse(success);
         }
+
+        uint32_t DisplaySettings::setVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "mode");
+		string sMode = parameters["mode"].String();
+                string sLevel = parameters["level"].String();
+                dsVolumeLeveller_t volumeLeveller;
+                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sMode.c_str()) == false)) {
+                    LOGWARN("mode and level should be an integer");
+                    returnResponse(false);
+                }
+
+                try {
+                        int mode = stoi(sMode);
+                        if (mode == 0) {
+                                volumeLeveller.mode = 0; //Off
+				volumeLeveller.level = 0;
+                        }
+                        else if (mode == 1){
+                                volumeLeveller.mode = 1; //On
+				volumeLeveller.level = stoi(sLevel);
+                        }
+			else if (mode == 2) {
+				volumeLeveller.mode = 2; //Auto
+				volumeLeveller.level = 0;
+			}
+			else {
+				LOGERR("Invalid volume leveller mode \n");
+				returnResponse(false);
+			}
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMode);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setVolumeLeveller(volumeLeveller);
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION2(audioPort, sMode);
+                        success = false;
+                }
+                returnResponse(success);
+        }
+
 
         uint32_t DisplaySettings::enableSurroundDecoder(const JsonObject& parameters, JsonObject& response)
         {
@@ -1870,7 +2024,7 @@ namespace WPEFramework {
                LOGINFOMETHOD();
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
-               int surroundVirtualizer = 0;
+               dsSurroundVirtualizer_t surroundVirtualizer;
                bool isIntiger = Utils::isValidInt ((char*)sSurroundVirtualizer.c_str());
                if (false == isIntiger) {
                    LOGWARN("boost should be an integer");
@@ -1878,7 +2032,13 @@ namespace WPEFramework {
                }
 
                try {
-                  surroundVirtualizer = stoi(sSurroundVirtualizer);
+                  surroundVirtualizer.boost = stoi(sSurroundVirtualizer);
+		  if(surroundVirtualizer.boost == 0) {
+			  surroundVirtualizer.mode = 0; //Off
+		  }
+		  else {
+			  surroundVirtualizer.mode = 1; //On
+		  }
                }catch (const device::Exception& err) {
                   LOG_DEVICE_EXCEPTION1(sSurroundVirtualizer);
                               returnResponse(false);
@@ -1896,6 +2056,56 @@ namespace WPEFramework {
                    success = false;
                }
                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "mode");
+                string sMode = parameters["mode"].String();
+                string sBoost = parameters["boost"].String();
+                dsSurroundVirtualizer_t surroundVirtualizer;
+
+                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sBoost.c_str()) == false)) {
+                    LOGWARN("mode and boost value should be an integer");
+                    returnResponse(false);
+                }
+
+                try {
+                        int mode = stoi(sMode);
+                        if (mode == 0) {
+                                surroundVirtualizer.mode = 0; //Off
+                                surroundVirtualizer.boost = 0;
+                        }
+                        else if (mode == 1){
+                                surroundVirtualizer.mode = 1; //On
+                                surroundVirtualizer.boost = stoi(sBoost);
+                        }
+                        else if (mode == 2) {
+                                surroundVirtualizer.mode = 2; //Auto
+                                surroundVirtualizer.boost = 0;
+                        }
+                        else {
+                                LOGERR("Invalid surround virtualizer mode \n");
+                                returnResponse(false);
+                        }
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMode);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setSurroundVirtualizer(surroundVirtualizer);
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION2(audioPort, sMode);
+                        success = false;
+                }
+                returnResponse(success);
         }
 
         uint32_t DisplaySettings::setMISteering(const JsonObject& parameters, JsonObject& response)
@@ -2834,13 +3044,19 @@ namespace WPEFramework {
                         }
                     }
                     else if(types & dsAUDIOARCSUPPORT_ARC) {
-                        if (!setUpHdmiCecSinkArcRouting (pEnable)) {
-                            LOGERR("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting failed !!!\n");;
-                        }
-                        else {
-                            LOGINFO("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting successful");
-                        }
-	                }
+                       if((m_hdmiInAudioDeviceConnected != true) || (pEnable != true)) {
+                            if (!setUpHdmiCecSinkArcRouting (pEnable)) {
+                                LOGERR("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting failed !!!\n");;
+                            }
+                            else {
+                                LOGINFO("DisplaySettings::setEnableAudioPort setUpHdmiCecSinkArcRouting successful");
+                            }
+                       }
+                       else {
+                               LOGINFO("DisplaySettings::setEnableAudioPort directly route ARC Audio. CEC handshake with ARC device already successful !!\n");
+                               aPort.enableARC(dsAUDIOARCSUPPORT_ARC, pEnable);
+                       }
+                    }
                     else {
                         LOGWARN("DisplaySettings::setEnableAudioPort Connected device doesn't have ARC/eARC capability \n");
                     }
@@ -2999,8 +3215,17 @@ namespace WPEFramework {
                     try
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
-                        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
-                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                        JsonObject aPortConfig;
+                        aPortConfig = getAudioOutputPortConfig();
+			m_hdmiInAudioDeviceConnected = true;
+			connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
+                       if(aPortConfig["HDMI_ARC"].Boolean()) {
+                            LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
+                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                       }
+                       else {
+                           LOGINFO("onARCInitiationEventHandler: HDMI_ARC0 Port not enabled. Skip Audio Routing !!!\n");
+                       }
                     }
                     catch (const device::Exception& err)
                     {
@@ -3086,9 +3311,19 @@ namespace WPEFramework {
         // 5.
         void DisplaySettings::onTimer()
         {
+            bool isPluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
+
+            if (!isPluginActivated) {
+                /*HDMICECSINK_CALLSIGN plugin activation moved to onTimer.
+                 *To decouple from displyasettings init. Since its time taking*/
+                Utils::activatePlugin(HDMICECSINK_CALLSIGN);
+                LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
+                sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
+            }
 	    m_callMutex.lock();
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
+            LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
                 if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE))
                 {

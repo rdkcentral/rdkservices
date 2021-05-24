@@ -42,6 +42,7 @@
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
+
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
@@ -110,7 +111,7 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-         case MAINT_PINGTELEMETRY_COMPLETE:
+        case MAINT_PINGTELEMETRY_COMPLETE:
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
             break;
         case MAINT_PINGTELEMETRY_ERROR:
@@ -145,14 +146,16 @@ namespace WPEFramework {
         SERVICE_REGISTRATION(MaintenanceManager,API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR);
         /* Global time variable */
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
-        Maint_notify_status_t MaintenanceManager::g_notify_status=MAINTENANCE_IDLE;
-        string MaintenanceManager::g_epoch_time;
-        std::string MaintenanceManager::g_currentMode = "";
-        string MaintenanceManager::g_is_critical_maintenance="";
-        string MaintenanceManager::g_is_reboot_pending="";
-        string MaintenanceManager::g_lastSuccessful_maint_time="";
-        uint8_t MaintenanceManager::g_task_status=0;
+
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
+        //TODO  this need to moved to a seperate class and vector based.
+
+        string task_names_foreground[]={
+            "/lib/rdk/RFCbase.sh",
+            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/Start_uploadSTBLogs.sh"
+        };
+
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
@@ -160,100 +163,6 @@ namespace WPEFramework {
             :AbstractPlugin()
         {
             MaintenanceManager::_instance = this;
-            /* on boot up we set these things */
-            MaintenanceManager::g_currentMode = FOREGROUND_MODE;
-
-            MaintenanceManager::g_epoch_time="";
-
-            bool skip_task=false;
-
-            int32_t exec_status=E_NOK;
-
-            /* we call dcmscript to get the new start time */
-            if (Utils::fileExists("/lib/rdk/StartDCM_maintaince.sh")) {
-                  exec_status = system("/lib/rdk/StartDCM_maintaince.sh &");
-                  if ( E_OK == exec_status ){
-                      LOGINFO("DBG:Succesfully executed StartDCM_maintaince.sh \n");
-                  }
-                  else {
-                      LOGINFO("DBG:Failed to execute StartDCM_maintaince.sh !! \n");
-                  }
-            }
-            else {
-                LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
-            }
-
-            /* We set the bit to say we have started the maintenance */
-            SET_STATUS(g_task_status,TASKS_STARTED);
-
-            /* we run all the critical maintenance activities */
-            if (Utils::fileExists("/lib/rdk/RFCbase.sh")) {
-                LOGINFO("executing RFCbase.sh\n");
-                exec_status=system("/lib/rdk/RFCbase.sh &");
-                if (exec_status == E_OK) {
-                    LOGINFO("RFCbase execution Success\n");
-                }
-                else {
-                    LOGINFO("Failed to execute RFCbase.sh\n");
-                    skip_task=true;
-                }
-            }
-            else {
-                LOGINFO("RFCbase.sh is not present \n");
-                skip_task=true;
-            }
-
-            if (Utils::fileExists("/lib/rdk/Start_uploadSTBLogs.sh")) {
-                exec_status=system("sh /lib/rdk/Start_uploadSTBLogs.sh &");
-                if (exec_status == E_OK) {
-                    LOGINFO("Successfully executed lib/rdk/Start_uploadSTBLogs.sh \n");
-                }
-                else{
-                    LOGINFO( "Failed to execute /lib/rdk/Start_uploadSTBLogs.sh \n");
-                    skip_task=true;
-                }
-            }
-            else {
-                LOGINFO("Start_uploadSTBLogs.sh is not present \n");
-                skip_task=true;
-            }
-            if (Utils::fileExists("/lib/rdk/deviceInitiatedFWDnld.sh")) {
-                LOGWARN("Checking for new Firmware\n");
-                exec_status=system("/lib/rdk/deviceInitiatedFWDnld.sh 0 1 >> /opt/logs/swupdate.log &");
-                if (exec_status == E_OK) {
-                    LOGINFO("Successfully executed DIFD\n");
-                }
-                else{
-                    LOGINFO( "Failed to execute DIFD \n" );
-                    skip_task=true;
-                }
-            }
-            else {
-                LOGINFO("deviceInitiatedFWDnld is not present \n");
-                skip_task=true;
-            }
-
-            if (Utils::fileExists("/lib/rdk/ping-telemetry.sh")) {
-                exec_status=system("sh /lib/rdk/ping-telemetry.sh &");
-                if (exec_status == E_OK) {
-                    LOGINFO("Successfully executed lib/rdk/ping-telemetry.sh \n");
-                }
-                else{
-                    LOGINFO( "Failed to execute /lib/rdk/ping-telemetry.sh \n");
-                    skip_task=true;
-                }
-            }
-            else {
-                LOGINFO("ping-telemetry.sh is not present \n");
-                skip_task=true;
-            }
-
-
-            if (skip_task){
-                /* we set the corresponding flag to set
-                 * which means one of then skipped */
-                SET_STATUS(g_task_status,TASK_SKIPPED);
-            }
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -265,8 +174,116 @@ namespace WPEFramework {
             registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
             registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
-      }
+        }
 
+
+        string MaintenanceManager::getLastRebootReason(){
+
+            char rebootInfo[1024] = {'\0'};
+            bool retAPIStatus = false;
+            string reboot_reason="";
+            string reason="";
+
+            if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
+                retAPIStatus = getFileContentToCharBuffer(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo );
+            }
+
+            if (retAPIStatus && strlen(rebootInfo)) {
+                string dataBuf(rebootInfo);
+                JsonObject rebootInfoJson;
+                rebootInfoJson.FromString(rebootInfo);
+                reason = rebootInfoJson["reason"].String();
+            }
+
+            reboot_reason = reason;
+            return reboot_reason;
+        }
+
+        bool MaintenanceManager::checkAutoRebootFlag(){
+            LOGINFO("DBG Check AutoReboot Flag");
+            bool ret=false;
+            const string autoreboot_parameter="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable";
+            const string baseCommand = "tr181Set -g ";
+            const string redirection = " 2>&1";
+            string cmdResponse="";
+            string cmdParams = "";
+            cmdParams = baseCommand + autoreboot_parameter + redirection + "\0";
+            LOGINFO("executing %s\n", cmdParams.c_str());
+            cmdResponse = Utils::cRunScript(cmdParams.c_str());
+            LOGINFO("TR181 response is %s",cmdResponse.c_str());
+            if(!(cmdResponse.empty() && !cmdResponse.compare("true"))){
+                    ret=true;
+            }
+            return ret;
+        }
+
+        void MaintenanceManager::requestSystemReboot(){
+            bool result = false;
+
+            string rebootCommand="";
+
+            if (Utils::fileExists("/lib/rdk/AutoReboot.sh")) {
+                rebootCommand = "/lib/rdk/AutoReboot.sh &";
+            } else {
+                LOGINFO("AutoReboot is not present \n");
+            }
+
+           LOGINFO("Requesting SystemReboot !!");
+
+            system(rebootCommand.c_str());
+
+        }
+        void MaintenanceManager::task_execution_thread(){
+            LOGINFO("INSIDE thread task execution");
+            int task_count=3;
+            int i=0;
+
+            /* Check if the last reboot was MAITENANCE REBOOT */
+            string reboot_reason=getLastRebootReason();
+            if (!reboot_reason.compare("MAINTENANCE_REBOOT")){
+                g_is_reboot_pending="false";
+            }
+
+            LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
+
+            string cmd="";
+
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            /*  In an unsolicited maintenance we make sure only after
+             *  after DCM task activities are started.
+             */
+
+            /* we add the task in a loop */
+            std::unique_lock<std::mutex> lck(m_callMutex);
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("UNSOLICITED_MAINTENANCE");
+                for ( i=0;i< task_count ;i++ ){
+                    task_thread.wait(lck);
+                    cmd=task_names_foreground[i].c_str();
+                    cmd+=" &";
+                    cmd+="\0";
+                    system(cmd.c_str());
+                }
+                LOGINFO("Worker Thread Completed");
+            }
+            /* Here in Solicited we start with RFC so no
+             * need to wait for any DCM events */
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type ){
+                    LOGINFO("SOLICITED_MAINTENANCE");
+                    cmd=task_names_foreground[0].c_str();
+                    cmd+=" &";
+                    cmd+="\0";
+                    system(cmd.c_str());
+                    cmd="";
+                    for (i=1;i<task_count;i++){
+                        task_thread.wait(lck);
+                        cmd=task_names_foreground[i].c_str();
+                        cmd+=" &";
+                        cmd+="\0";
+                        system(cmd.c_str());
+                    }
+            }
+        }
 
         MaintenanceManager::~MaintenanceManager()
         {
@@ -300,7 +317,49 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
                 //Register for setMaintenanceStartTime
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT,_MaintenanceMgrEventHandler));
-           }
+
+                maintenanceManagerOnBootup();
+            }
+        }
+
+        void MaintenanceManager::maintenanceManagerOnBootup() {
+            /* on boot up we set these things */
+            MaintenanceManager::g_currentMode = FOREGROUND_MODE;
+
+            MaintenanceManager::g_notify_status=MAINTENANCE_IDLE;
+            MaintenanceManager::g_epoch_time="";
+
+            /* to know the maintenance is solicited or unsolicited */
+            g_maintenance_type=UNSOLICITED_MAINTENANCE;
+
+            MaintenanceManager::g_is_critical_maintenance="false";
+            MaintenanceManager::g_is_reboot_pending="false";
+            MaintenanceManager::g_lastSuccessful_maint_time="";
+            MaintenanceManager::g_task_status=0;
+
+            /* we post just to tell that we are in idle at this moment */
+            MaintenanceManager::_instance->onMaintenanceStatusChange(g_notify_status);
+
+            int32_t exec_status=E_NOK;
+
+            /* we call dcmscript to get the new start time */
+            if (Utils::fileExists("/lib/rdk/StartDCM_maintaince.sh")) {
+                exec_status = system("/lib/rdk/StartDCM_maintaince.sh &");
+                if ( E_OK == exec_status ){
+                    LOGINFO("DBG:Succesfully executed StartDCM_maintaince.sh \n");
+                }
+                else {
+                    LOGINFO("DBG:Failed to execute StartDCM_maintaince.sh !! \n");
+                }
+            }
+            else {
+                LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
+            }
+
+            /* we moved every thing to a thread */
+            /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
+             * Maintenance is started until then we say MAITENANCE_IDLE */
+            m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
 
         void MaintenanceManager::_MaintenanceMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -318,19 +377,18 @@ namespace WPEFramework {
             Maint_notify_status_t m_notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
-            bool task_error=false;
             time_t successfulTime;
             string str_successfulTime="";
 
             LOGINFO("Event-ID = %d \n",eventId);
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
-            LOGINFO("event= %d \n",event);
+            LOGINFO("Maintenance Event= %d \n",event);
 
             if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
                 if ( IARM_BUS_DCM_NEW_START_TIME_EVENT == eventId ) {
                     /* we got a new start time from DCM script */
                     string l_time(module_event_data->data.startTimeUpdate.start_time);
-                    LOGINFO("MaintMGR Start Time %s \n", l_time.c_str());
+                    LOGINFO("DCM_NEW_START_TIME_EVENT Start Time %s \n", l_time.c_str());
                     /* Store it in a Global structure */
                     g_epoch_time=l_time;
                 }
@@ -342,18 +400,22 @@ namespace WPEFramework {
                     switch (module_status) {
                         case MAINT_RFC_COMPLETE :
                             SET_STATUS(g_task_status,RFC_SUCCESS);
+                            SET_STATUS(g_task_status,RFC_COMPLETE);
+                            task_thread.notify_one();
                             break;
                         case MAINT_DCM_COMPLETE :
                             SET_STATUS(g_task_status,DCM_SUCCESS);
+                            SET_STATUS(g_task_status,DCM_COMPLETE);
+                            task_thread.notify_one();
                             break;
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             SET_STATUS(g_task_status,DIFD_SUCCESS);
+                            SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            task_thread.notify_one();
                             break;
-                        case MAINT_PINGTELEMETRY_COMPLETE:
-                            SET_STATUS(g_task_status,PING_TELEMETRY_SUCCESS);
-                            break;
-                        case MAINT_LOGUPLOAD_COMPLETE :
+                       case MAINT_LOGUPLOAD_COMPLETE :
                             SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
+                            SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
@@ -364,42 +426,64 @@ namespace WPEFramework {
                             break;
                         case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
-                            task_error=true;
                             break;
                         case MAINT_DCM_ERROR:
-                        case MAINT_RFC_ERROR:
-                        case MAINT_LOGUPLOAD_ERROR:
-                        case MAINT_PINGTELEMETRY_ERROR:
-                        case MAINT_FWDOWNLOAD_ERROR:
+                            SET_STATUS(g_task_status,DCM_COMPLETE);
+                            task_thread.notify_one();
                             LOGINFO("Error encountered in one of the task \n");
-                            task_error=true;
+                            break;
+                        case MAINT_RFC_ERROR:
+                            SET_STATUS(g_task_status,RFC_COMPLETE);
+                            task_thread.notify_one();
+                            LOGINFO("Error encountered in one of the task \n");
+                            break;
+                        case MAINT_LOGUPLOAD_ERROR:
+                            SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                            LOGINFO("Error encountered in one of the task \n");
+                            break;
+                       case MAINT_FWDOWNLOAD_ERROR:
+                            SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            task_thread.notify_one();
+                            LOGINFO("Error encountered in one of the task \n");
                             break;
                     }
-                    LOGINFO(" BITFIELD Status : %x",g_task_status);
                 }
                 else{
                     LOGINFO("Unknown Maintenance Status!!");
                 }
 
-                /* Send the updated status only if all task started */
-
-                if ( (g_task_status & 0x80 ) == 0x80 ){
-                    if ( (g_task_status & 0x1F) == 0x1F ){
+                LOGINFO(" BITFIELD Status : %x",g_task_status);
+                /* Send the updated status only if all task completes execution
+                 * until that we say maintenance started */
+                if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
+                    if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
                         LOGINFO("DBG:Maintenance Successfully Completed!!");
                         m_notify_status=MAINTENANCE_COMPLETE;
+                        /*  we store the time in persistant location */
                         successfulTime=time(nullptr);
-                        str_successfulTime=to_string(successfulTime);
+                        tm ltime=*localtime(&successfulTime);
+                        time_t epoch_time=mktime(&ltime);
+                        str_successfulTime=to_string(epoch_time);
+                        LOGINFO("last succesful time is :%s", str_successfulTime.c_str());
                         /* Remove any old completion time */
                         m_setting.remove("LastSuccessfulCompletionTime");
-                        m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime.c_str());
+                        m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime);
+
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+                        /* we go for a reboot by check if reboot required is true
+                         * & AutoReboot.Enable is true */
+                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag()){
+                            /* which means reboot is required */
+                                requestSystemReboot();
+                        }
                     }
-                    /* we send only updated notification if one of the
-                     * task returned with error or DIFD encountered abort */
-                    if ( task_error) {
-                        if ((g_task_status & 0x40 ) == 0x40 ){
+                    /* Check other than all success case which means we have errors */
+                    else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
+                        if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
                             LOGINFO("DBG:There are Skipped Task. Incomplete");
                             m_notify_status=MAINTENANCE_INCOMPLETE;
+                            /*Check if there any chance to reboot
+                             * say we receive a reboot required from rfc */
                         }
                         else {
                             LOGINFO("DBG:There are Errors");
@@ -407,7 +491,20 @@ namespace WPEFramework {
                         }
 
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag()){
+                            /* even though we end up in skipped task /error
+                             * check if we have the reboot required is recevied */
+                            requestSystemReboot();
+
+                        }
                     }
+
+                    if(m_thread.joinable()){
+                        m_thread.join();
+                    }
+                }
+                else {
+                    LOGINFO("Still task are not completed!!!! So status is MAINTENANCE_STARTED");
                 }
             }
             else {
@@ -423,6 +520,10 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
                 IARM_CHECK(IARM_Bus_Disconnect());
                 IARM_CHECK(IARM_Bus_Term());
+            }
+
+            if(m_thread.joinable()){
+                m_thread.join();
             }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -460,13 +561,17 @@ namespace WPEFramework {
                     string LastSuccessfulCompletionTime = "NA"; /* TODO : check max size to hold this */
                     string getMaintenanceStatusString = "\0";
 
+                    std::lock_guard<std::mutex> guard(m_callMutex);
+
                     /* Check if we have a critical maintenance */
                     if (!g_is_critical_maintenance.empty()){
                         isCriticalMaintenance=g_is_critical_maintenance;
                     }
+
                     if (!g_is_reboot_pending.empty()){
                         isRebootPending=g_is_reboot_pending;
                     }
+
                     /* Get the last SuccessfulCompletion time from Persistant location */
                     if (m_setting.contains("LastSuccessfulCompletionTime")){
                         LastSuccessfulCompletionTime=m_setting.getValue("LastSuccessfulCompletionTime").String();
@@ -490,38 +595,19 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
+            string starttime="";
+            unsigned long int start_time=0;
             if(!g_epoch_time.empty()) {
-                response["maintenanceStartTime"] = g_epoch_time.c_str();
+
+                response["maintenanceStartTime"] = stoi(g_epoch_time.c_str());
                 result=true;
             }
             else {
-                /* use default time 0300Hrs */
-                time_t start_time=10800;
-                time_t start_epoch;
-                time_t tEpoc = time(nullptr);
-                long int sec;
-                tm ltime = *localtime(&tEpoc);
-                tm lmidnight = ltime;
-                lmidnight.tm_hour = 0;
-                lmidnight.tm_min  = 0;
-                lmidnight.tm_sec  = 0;
-                time_t midnightEpoc = mktime(&lmidnight);
-                /*we add the offset and start time */
-                LOGINFO("midnightEpoc =%ld \n", midnightEpoc);
-                start_epoch=midnightEpoc+start_time+14400;
-                LOGINFO("start_epoch = %ld \n",start_epoch);
-                /*check if it is the same day or not */
-                sec=start_epoch-tEpoc;
-                LOGINFO("sec = %ld",sec);
-                if (sec < 0) {
-                    int secInDay = 23*60*60 + 59*60 + 60;
-                    sec = start_epoch + secInDay;
+                string starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
+                if (!starttime.empty()){
+                    response["maintenanceStartTime"]=stoi(starttime.c_str());
+                    result=true;
                 }
-                else{
-                    sec = start_epoch;
-                }
-                response["maintenanceStartTime"] = to_string(sec);
-                result=true;
             }
 
             returnResponse(result);
@@ -538,46 +624,55 @@ namespace WPEFramework {
 
         uint32_t MaintenanceManager::setMaintenanceMode(const JsonObject& parameters,
                 JsonObject& response)
-                {
-                    bool result = false;
-                    string new_mode = "";
-                    string old_mode = g_currentMode;
-                    string abort_flag = "false";
+        {
+            bool result = false;
+            string new_mode = "";
+            string old_mode = g_currentMode;
+            string bg_flag = "false";
 
-                    /*  we set the default value to FG */
-                    if ( parameters.HasLabel("maintenanceMode") ){
-                        /* Get the value */
-                        new_mode = parameters["maintenanceMode"].String();
+            /*  we set the default value to FG */
+            if ( parameters.HasLabel("maintenanceMode") ){
+                /* Get the value */
+                new_mode = parameters["maintenanceMode"].String();
 
-                        LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
-                        if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
-                            LOGERR("value of new mode is incorrect, therefore \
-                                    current mode '%s' not changed.\n", old_mode.c_str());
-                            returnResponse(false);
-                        }
-                        if ( BACKGROUND_MODE == new_mode ) {
-                            g_currentMode = new_mode;
-                            abort_flag="true";
-                            m_setting.setValue("abort_flag",abort_flag);
-                        }
-                        else {
-                            /* foreground */
-                            g_currentMode =new_mode;
-                            m_setting.remove("abort_flag");
-                            abort_flag="false";
-                            m_setting.setValue("abort_flag",abort_flag);
-                        }
-                        result = true;
+                LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
+                std::lock_guard<std::mutex> guard(m_callMutex);
+                /* check if maintenance is on progress or not */
+                /* if in progress restrict the same */
+                if ( MAINTENANCE_STARTED != g_notify_status ){
+                    if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
+                        LOGERR("value of new mode is incorrect, therefore \
+                                current mode '%s' not changed.\n", old_mode.c_str());
+                        returnResponse(false);
+                    }
+                    if ( BACKGROUND_MODE == new_mode ) {
+                        g_currentMode = new_mode;
+                        bg_flag="true";
+                        m_setting.setValue("background_flag",bg_flag);
                     }
                     else {
-                          /* havent got the correct label */
-                        LOGERR("SetMaintenanceMode Missing Key Values\n");
-                        populateResponseWithError(SysSrv_MissingKeyValues,response);
+                        /* foreground */
+                        g_currentMode =new_mode;
+                        m_setting.remove("background_flag");
+                        bg_flag="false";
+                        m_setting.setValue("background_flag",bg_flag);
                     }
-
-                    returnResponse(result);
+                    result = true;
 
                 }
+                else{
+                    LOGERR("Maintenance is in Progress, Mode change not allowed");
+                    result =false;
+                }
+            }
+            else {
+                /* havent got the correct label */
+                LOGERR("SetMaintenanceMode Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues,response);
+            }
+
+            returnResponse(result);
+        }
 
         /*
          * @brief This function starts the maintenance activity.
@@ -598,100 +693,35 @@ namespace WPEFramework {
                     bool skip_task=false;
                     string abort_flag="";
 
-                    /*reset the status to 0*/
-                    g_task_status=0;
+                    /* only one maintenance at a time */
+                    if ( MAINTENANCE_STARTED != g_notify_status  ){
 
-                    /* check if there is any critical maintenance happening */
-                    if (!(g_is_critical_maintenance.compare("true"))){
-                        /* then run in FG itself */
-                        g_currentMode=FOREGROUND_MODE;
-                        LOGINFO("Critical Maintenance is True. Running in Foreground forcefully \n");
-                    }
+                        /*reset the status to 0*/
+                        g_task_status=0;
+                        g_maintenance_type=SOLICITED_MAINTENANCE;
 
-                    current_mode=g_currentMode;
+                        /* we dont touch the dcm so
+                         * we say DCM is success and complete */
+                        SET_STATUS(g_task_status,DCM_SUCCESS);
+                        SET_STATUS(g_task_status,DCM_COMPLETE);
 
-                    /* notify that we started the maintenance */
-                    MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-                    /* We set the bit to say we have started the maintenance */
-                    SET_STATUS(g_task_status,TASKS_STARTED);
-                    if (Utils::fileExists("/lib/rdk/RFCbase.sh")) {
-                        LOGINFO("executing RFCbase.sh\n");
-                        exec_status=system("/lib/rdk/RFCbase.sh &");
-                        if (exec_status == E_OK) {
-                            LOGINFO("RFCbase execution Success\n");
-                        }
-                        else {
-                            LOGINFO("Failed to execute RFCbase.sh\n");
-                            skip_task=true;
-                        }
+                        /* isRebootPending will be set to true
+                         * irrespective of XConf configuration */
+                        g_is_reboot_pending="true";
+
+                        /* we set this to false */
+                        g_is_critical_maintenance="false";
+
+                        /* notify that we started the maintenance */
+                        MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+
+                        m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
+
+                        result=true;
                     }
                     else {
-                        LOGINFO("RFCbase.sh is not present \n");
-                        skip_task=true;
+                        LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
                     }
-
-                    if (Utils::fileExists("/lib/rdk/Start_uploadSTBLogs.sh")) {
-                        exec_status=system("sh /lib/rdk/Start_uploadSTBLogs.sh &");
-                        if (exec_status == E_OK) {
-                            LOGINFO("Successfully executed lib/rdk/Start_uploadSTBLogs.sh \n");
-                        }
-                        else{
-                            LOGINFO( "Failed to execute /lib/rdk/Start_uploadSTBLogs.sh \n");
-                            skip_task=true;
-                        }
-                    }
-                    else {
-                        LOGINFO("Start_uploadSTBLogs.sh is not present \n");
-                        skip_task=true;
-                    }
-
-                    if (Utils::fileExists("/lib/rdk/ping-telemetry.sh")) {
-                        exec_status=system("sh /lib/rdk/ping-telemetry.sh &");
-                        if (exec_status == E_OK) {
-                            LOGINFO("Successfully executed lib/rdk/ping-telemetry.sh \n");
-                        }
-                        else{
-                            LOGINFO( "Failed to execute /lib/rdk/ping-telemetry.sh \n");
-                            skip_task=true;
-                        }
-                    }
-                    else {
-                        LOGINFO("ping-telemetry.sh is not present \n");
-                        skip_task=true;
-                    }
-
-                    /* check the abort flag is set or not*/
-                    abort_flag=m_setting.getValue("abort_flag").String();
-
-                    LOGINFO("DBG: Abort_flag = %s\n", abort_flag.c_str());
-                    if ( !(abort_flag.compare("false")) || ( abort_flag.empty() ) ) {
-                        if (Utils::fileExists("/lib/rdk/deviceInitiatedFWDnld.sh")) {
-                            LOGWARN("Checking for new Firmware\n");
-                            exec_status=system("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
-                            if (exec_status == E_OK) {
-                                LOGINFO("Successfully executed DIFD\n");
-                            }
-                            else{
-                                LOGINFO( "Failed to execute DIFD \n" );
-                                skip_task=true;
-                            }
-                        }
-                        else {
-                            LOGINFO("deviceInitiatedFWDnld is not present \n");
-                            skip_task=true;
-                        }
-                    }
-                    else {
-                        LOGINFO("SKipping deviceInitiatedFWDnld due to Background Mode \n");
-                        skip_task=true;
-                    }
-
-                    if (skip_task){
-                        /* we set the corresponding flag to set
-                         * which means one of then skipped */
-                        SET_STATUS(g_task_status,TASK_SKIPPED);
-                    }
-                    result=true;
                     returnResponse(result);
                 }
 

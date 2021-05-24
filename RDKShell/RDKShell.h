@@ -26,6 +26,7 @@
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
+#include "tptimer.h"
 
 namespace WPEFramework {
 
@@ -56,6 +57,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
+            static const string RDKSHELL_METHOD_REMOVE_ALL_KEY_INTERCEPTS;
+            static const string RDKSHELL_METHOD_REMOVE_ALL_KEY_LISTENERS;
             static const string RDKSHELL_METHOD_ADD_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_METADATA_LISTENER;
             static const string RDKSHELL_METHOD_INJECT_KEY;
@@ -77,6 +80,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_HOLE_PUNCH;
             static const string RDKSHELL_METHOD_GET_LOG_LEVEL;
             static const string RDKSHELL_METHOD_SET_LOG_LEVEL;
+            static const string RDKSHELL_METHOD_SHOW_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_HIDE_SPLASH_LOGO;
             static const string RDKSHELL_METHOD_ADD_ANIMATION;
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
@@ -101,6 +105,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
+            static const string RDKSHELL_METHOD_EXIT_AGING_MODE;
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
@@ -147,6 +152,8 @@ namespace WPEFramework {
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAllKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeAllKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyMetadataListenerWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t injectKeyWrapper(const JsonObject& parameters, JsonObject& response);
@@ -168,6 +175,7 @@ namespace WPEFramework {
             uint32_t setHolePunchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setLogLevelWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
@@ -193,6 +201,7 @@ namespace WPEFramework {
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t exitAgingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
@@ -263,6 +272,11 @@ namespace WPEFramework {
             void invokeStartupThunderApis();
             void enableLogsFlushing(const bool enable);
             void getLogsFlushingEnabled(bool &enabled);
+            int32_t subscribeForSystemEvent(std::string event);
+            void onTimer();
+
+            void addFactoryModeEasterEggs();
+            void removeFactoryModeEasterEggs();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -338,6 +352,10 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+            uint32_t mLastWakeupKeyCode;
+            uint32_t mLastWakeupKeyModifiers;
+            uint64_t mLastWakeupKeyTimestamp;
+            TpTimer m_timer;
         };
 
         struct PluginData
