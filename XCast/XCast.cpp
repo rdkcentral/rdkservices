@@ -367,27 +367,8 @@ void XCast::onLocateCastTimer()
     if(status != 0)
     {
         locateCastObjectRetryCount++;
-        if(locateCastObjectRetryCount == 1)
-        {
-            LOGINFO("Retry after 5 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 2)
-        {
-            LOGINFO("Retry after 15 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 3)
-        {
-            LOGINFO("Retry after 30 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 4)
-        {
-            LOGINFO("Retry after 60 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
-            m_locateCastTimer.stop();
-        }
+        LOGINFO("Retry after 60 sec...");
+        m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
         return ;
     }// err != RT_OK
     locateCastObjectRetryCount = 0;
