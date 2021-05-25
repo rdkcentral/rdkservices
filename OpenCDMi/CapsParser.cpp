@@ -111,11 +111,15 @@ namespace WPEFramework {
                 if(_lastHash != info_hash) {
                     LOG(eTrace, "Got a new info string %s hash = %ld\n", infoStr.c_str(), info_hash);
                     _lastHash = info_hash;
+                     ::string substring =infoStr.substr(0,5);
 
                     // Parse the data
                     ::string result = FindMarker(infoStr, _mediaTag);
                     if(!result.empty()) {
                         SetMediaType(result);
+                    }
+                    else if(substring.compare("audio")==0||substring.compare("video")== 0){
+                        SetMediaType(substring);
                     }
                     else {
                         LOG(eError, "No result for media type\n");
