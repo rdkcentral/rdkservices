@@ -18,8 +18,10 @@
 **/
 
 #include "FrameRate.h"
-
+#include "host.hpp"
+#include "exception.hpp"
 #include "utils.h"
+#include "dsError.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -40,7 +42,6 @@
 #define DEFAULT_MIN_FPS_VALUE 60
 #define DEFAULT_MAX_FPS_VALUE -1
 
-const short WPEFramework::Plugin::FrameRate::API_VERSION_NUMBER_MAJOR = 2;
 
 namespace WPEFramework
 {
@@ -51,7 +52,7 @@ namespace WPEFramework
         FrameRate* FrameRate::_instance = nullptr;
 
         FrameRate::FrameRate()
-        : AbstractPlugin(FrameRate::API_VERSION_NUMBER_MAJOR)
+        : AbstractPlugin(2)
           , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
           , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
           , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
@@ -62,10 +63,10 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-            Register(METHOD_SET_FRAME_MODE, &FrameRate::setfrmmode, this);
-            Register(METHOD_GET_FRAME_MODE, &FrameRate::getfrmmode, this);
-            Register(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayframerate, this, {2});
-            Register(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayframerate, this, {2});
+            registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setfrmmode, this, {2});
+            registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getfrmmode, this, {2});
+            registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayframerate, this, {2});
+            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayframerate, this, {2});
 
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
