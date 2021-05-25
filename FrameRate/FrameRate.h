@@ -55,10 +55,10 @@ namespace WPEFramework {
             uint32_t startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t stopFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t updateFpsWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t setfrmmode(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getfrmmode(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getDisplayframerate(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setDisplayframerate(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFrmMode(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getFrmMode(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getDisplayFrameRate(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setDisplayFrameRate(const JsonObject& parameters, JsonObject& response);
 	    //End methods
             
             int getCollectionFrequency();

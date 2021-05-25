@@ -28,10 +28,10 @@
 #define METHOD_START_FPS_COLLECTION "startFpsCollection"
 #define METHOD_STOP_FPS_COLLECTION "stopFpsCollection"
 #define METHOD_UPDATE_FPS_COLLECTION "updateFps"
-#define METHOD_SET_FRAME_MODE "setfrmmode"
-#define METHOD_GET_FRAME_MODE "getfrmmode"
-#define METHOD_GET_DISPLAY_FRAME_RATE "getDisplayframerate"
-#define METHOD_SET_DISPLAY_FRAME_RATE "setDisplayframerate"
+#define METHOD_SET_FRAME_MODE "setFrmMode"
+#define METHOD_GET_FRAME_MODE "getFrmMode"
+#define METHOD_GET_DISPLAY_FRAME_RATE "getDisplayFrameRate"
+#define METHOD_SET_DISPLAY_FRAME_RATE "setDisplayFrameRate"
 
 // Events
 #define EVENT_FPS_UPDATE "onFpsEvent"
@@ -63,10 +63,10 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-            registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setfrmmode, this, {2});
-            registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getfrmmode, this, {2});
-            registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayframerate, this, {2});
-            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayframerate, this, {2});
+            registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this, {2});
+            registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this, {2});
+            registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this, {2});
+            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this, {2});
 
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
@@ -130,7 +130,7 @@ namespace WPEFramework
             returnResponse(true);
         }
         
-        uint32_t FrameRate::setfrmmode(const JsonObject& parameters, JsonObject& response)
+        uint32_t FrameRate::setFrmMode(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
@@ -160,7 +160,7 @@ namespace WPEFramework
             returnResponse(success);
         }
 
-        uint32_t FrameRate::getfrmmode(const JsonObject& parameters, JsonObject& response)
+        uint32_t FrameRate::getFrmMode(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
@@ -183,7 +183,7 @@ namespace WPEFramework
             returnResponse(success);
         }
 
-        uint32_t FrameRate::setDisplayframerate(const JsonObject& parameters, JsonObject& response)
+        uint32_t FrameRate::setDisplayFrameRate(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
@@ -206,7 +206,7 @@ namespace WPEFramework
             returnResponse(success);
         }
 
-        uint32_t FrameRate::getDisplayframerate(const JsonObject& parameters, JsonObject& response)
+        uint32_t FrameRate::getDisplayFrameRate(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
