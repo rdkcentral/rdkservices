@@ -1054,9 +1054,9 @@ namespace WPEFramework {
                         else
                             modeString.append(mode.toString());
                     }
-		    else if(aPort.getType().getId() == device::AudioOutputPortType::kARC){
+		    else if((aPort.getType().getId() == device::AudioOutputPortType::kARC) || (aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)){
                         if (aPort.getStereoAuto()) {
-                            LOGINFO("HDMI_ARC0 output mode Auto");
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
                             modeString.append("AUTO");
 			}
 			else{
