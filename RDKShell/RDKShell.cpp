@@ -4543,11 +4543,10 @@ namespace WPEFramework {
                     response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
 
                     std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
+                    returnResponse(true);
                 }
                 else
                     mLastWakeupKeyTimestamp = 0;
-
-                returnResponse(true);
             }
 
             response["message"] = "No last wakeup key";
