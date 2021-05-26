@@ -4574,7 +4574,7 @@ namespace WPEFramework {
         uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            
+
             if (0 != mLastWakeupKeyTimestamp)
             {
                 JsonObject req, res;
@@ -4586,11 +4586,10 @@ namespace WPEFramework {
                     response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
 
                     std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
+                    returnResponse(true);
                 }
                 else
                     mLastWakeupKeyTimestamp = 0;
-
-                returnResponse(true);
             }
 
             response["message"] = "No last wakeup key";
