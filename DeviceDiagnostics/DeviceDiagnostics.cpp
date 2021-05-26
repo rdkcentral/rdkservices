@@ -137,35 +137,27 @@ namespace WPEFramework
         }
         /* Searches m_{video,audio}DecoderStatus for most active decoder.
          * Most active status is "Active" followed by "Paused" and then
-         * "Idle". Key of decoder, that status was returned for, is stored
-         * in m_mast{Video,Audio}DecoderStatus.
+         * "Idle".
          *
          * decoderName can be "video" or "audio"
          *
          * When there are no decoders in map, IDLE state will be returned.
          */
-        std::string DeviceDiagnostics::getMostActiveDecoderStatus(const std::string &decoderName)
+        DeviceDiagnostics::DecoderStatus DeviceDiagnostics::getMostActiveDecoderStatus(const std::string &decoderName)
         {
             std::unordered_map<std::string, DecoderStatusInfo> *decoderStatus;
-            std::string *lastDecoder;
             DecoderStatus mostActiveStatus = DECODER_STATUS_IDLE;
 
-            if (decoderName == "video") {
+            if (decoderName == "video")
                 decoderStatus = &m_videoDecoderStatus;
-                lastDecoder = &m_lastVideoDecoder;
-            } else {
+            else
                 decoderStatus = &m_audioDecoderStatus;
-                lastDecoder = &m_lastAudioDecoder;
-            }
 
-            for (auto const &status: *decoderStatus) {
-                if (status.second.status <= mostActiveStatus) {
+            for (auto const &status: *decoderStatus)
+                if (status.second.status < mostActiveStatus)
                     mostActiveStatus = status.second.status;
-                    *lastDecoder = status.first;
-                }
-            }
 
-            return decoderStatusStr[mostActiveStatus];
+            return mostActiveStatus;
         }
 
         /* Called each time IARM event with decoder status is received from
@@ -189,8 +181,16 @@ namespace WPEFramework
 
             IARM_Bus_Diag_EventData_t *eventData = (IARM_Bus_Diag_EventData_t *)data;
             struct DecoderStatusInfo decoderInfo;
-            std::string *lastDecoder;
             std::unordered_map<std::string, DecoderStatusInfo> *decoderStatus;
+            DecoderStatus mostActiveStatus;
+            DecoderStatus prevMostActiveStatus;
+
+            LOGINFO("new decoder status received");
+            LOGINFO("eventData->pipeline_id: %s", eventData->pipeline_id);
+            LOGINFO("eventData->pipeline_name: %s", eventData->pipeline_name);
+            LOGINFO("eventData->decoder: %s", eventData->decoder);
+            LOGINFO("eventData->status: %s", eventData->status);
+            LOGINFO("eventData->action: %s", eventData->action);
 
             DeviceDiagnostics* t = DeviceDiagnostics::_instance;
             if (t == nullptr)
@@ -198,10 +198,8 @@ namespace WPEFramework
 
             if (strcmp(eventData->decoder, "video") == 0) {
                 decoderStatus = &t->m_videoDecoderStatus;
-                lastDecoder = &t->m_lastVideoDecoder;
             } else if (strcmp(eventData->decoder, "audio") == 0) {
                 decoderStatus = &t->m_audioDecoderStatus;
-                lastDecoder = &t->m_lastAudioDecoder;
             } else {
                 LOGERR("invalid decoder '%s' received on IARM, ignoring event",
                         eventData->decoder);
@@ -212,6 +210,7 @@ namespace WPEFramework
             {
                 /* remove this decoder from map */
                 decoderStatus->erase(std::string(eventData->pipeline_id));
+                LOGINFO("decoder removed");
                 return;
             }
 
@@ -241,22 +240,27 @@ namespace WPEFramework
                 return;
             }
 
+            /* add/update map with new state */
+            prevMostActiveStatus = t->getMostActiveDecoderStatus(eventData->decoder);
             (*decoderStatus)[std::string(eventData->pipeline_id)] = decoderInfo;
-
-            /* this pipeline has been most recently read, send event
-             * to inform caller status has changed */
-            if (strcmp(eventData->pipeline_id, lastDecoder->c_str()) == 0)
+            mostActiveStatus = t->getMostActiveDecoderStatus(eventData->decoder);
+            /* send notify only when most active state has changed,
+             * ie, when both decoders are ACTIVE and one of them goes
+             * to IDLE, notification will not be send since most
+             * active decoder is still ACTIVE */
+            if (prevMostActiveStatus != mostActiveStatus)
                 t->onDecoderStatusChange(eventData->decoder, eventData->status);
+            LOGINFO("decoder updated successfully");
         }
 
         void DeviceDiagnostics::onDecoderStatusChange(const std::string &decoder, const std::string &status)
         {
             JsonObject params;
             if (decoder == "video") {
-                params["videoDecoderStatus"] = status;
+                params["videoDecoderStatusChange"] = status;
                 sendNotify(EVT_ON_VIDEO_DECODER_STATUS_CHANGED, params);
             } else {
-                params["audioDecoderStatus"] = status;
+                params["audioDecoderStatusChange"] = status;
                 sendNotify(EVT_ON_AUDIO_DECODER_STATUS_CHANGED, params);
             }
         }
@@ -264,14 +268,16 @@ namespace WPEFramework
         uint32_t DeviceDiagnostics::getVideoDecoderStatus(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["video"] = getMostActiveDecoderStatus("video");
+            DecoderStatus status = getMostActiveDecoderStatus("video");
+            response["videoDecoderStatus"] = decoderStatusStr[status];
             returnResponse(true);
         }
 
         uint32_t DeviceDiagnostics::getAudioDecoderStatus(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["audio"] = getMostActiveDecoderStatus("audio");
+            DecoderStatus status = getMostActiveDecoderStatus("audio");
+            response["audioDecoderStatus"] = decoderStatusStr[status];
             returnResponse(true);
         }
 
