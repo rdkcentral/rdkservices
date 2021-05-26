@@ -153,7 +153,7 @@ namespace WPEFramework {
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
             registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
-            registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
+	    registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
             registerMethod("setSoundMode", &DisplaySettings::setSoundMode, this);
@@ -932,7 +932,7 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
-
+	
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
             LOGINFOMETHOD();
