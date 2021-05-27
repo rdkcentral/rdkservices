@@ -193,7 +193,7 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipelineConstructionFailures(0),
     m_maxPipelineConstructionFailures(INT_FROM_ENV("MAX_PIPELINE_FAILURE_THRESHOLD", 1)) {
 
-        setenv("GST_DEBUG", "2", 0);
+        setenv("GST_DEBUG", "2,httpsrc:1", 0);
         setenv("GST_REGISTRY_UPDATE", "no", 0);
         setenv("GST_REGISTRY_FORK", "no", 0);
 
@@ -818,7 +818,7 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
     tts_request.append("&text=");
     tts_request.append(sanitizedString);
 
-    TTSLOG_WARNING("Constructured final URL is %s", tts_request.c_str());
+    TTSLOG_TRACE("Constructured final URL is %s", tts_request.c_str());
     return tts_request;
 }
 

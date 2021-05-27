@@ -180,9 +180,25 @@ namespace Plugin {
 
     void TextToSpeech::dispatchJsonEvent(const char *event, const string &data)
     {
-        TTSLOG_WARNING("Notify %s %s", event, data.c_str());
         JsonObject params;
         params.FromString(data);
+        int speechId     = params["speechid"].Number();
+        if(((std::string(event) == "onwillspeak") || (std::string(event) == "onspeechstart") || (std::string(event) == "onspeechcomplete"))) {
+	    switch (TTS::getLogLevel())
+            {
+                case TTS::LogLevel::FATAL_LEVEL :
+                case TTS::LogLevel::ERROR_LEVEL :
+                case TTS::LogLevel::WARNING_LEVEL :
+                case TTS::LogLevel::INFO_LEVEL :
+                case TTS::LogLevel::VERBOSE_LEVEL :
+                    TTSLOG_WARNING("Notify %s speechId : %d", event, speechId);
+                    break;
+                case TTS::LogLevel::TRACE_LEVEL:
+                    TTSLOG_TRACE("Notify %s %s", event, data.c_str());
+	    };
+        }
+        else
+            TTSLOG_WARNING("Notify %s speechId : %d", event, speechId);
         Notify(event, params);
     }
 

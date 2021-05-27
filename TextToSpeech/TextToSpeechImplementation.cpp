@@ -43,6 +43,7 @@ namespace Plugin {
 
     TextToSpeechImplementation::TextToSpeechImplementation() : _adminLock()
     {
+	TTS::logger_init();
         if(!_ttsManager)
             _ttsManager = TTS::TTSManager::create(this);
     }
