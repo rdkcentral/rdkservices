@@ -387,6 +387,18 @@ namespace WPEFramework {
 
         static std::thread shellThread;
 
+        void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
+        {
+	    std::thread rdkshellRequestsThread = std::thread([=]() {
+                if (apiRequest.mName.compare("launchfactoryapp") == 0)
+                {
+                    JsonObject result;
+                    launchFactoryAppWrapper(apiRequest.mRequest, result);
+                }
+            });
+            rdkshellRequestsThread.detach();
+        }
+
         void lockRdkShellMutex()
         {
             bool lockAcquired = false;
@@ -1244,39 +1256,57 @@ namespace WPEFramework {
                 std::string invoke = actionObject["invoke"].String();
                 size_t lastPositionOfDot = invoke.find_last_of(".");
                 auto thunderController = getThunderControllerClient();
+                bool isRDKShellPluginRequest = false;
                 if (lastPositionOfDot != -1)
                 {
                     std::string callsign = invoke.substr(0, lastPositionOfDot);
                     std::cout << "callsign will be " << callsign << std::endl;
-                    //get callsign
-                    JsonObject activateParams;
-                    activateParams.Set("callsign",callsign.c_str());
-                    JsonObject activateResult;
-                    int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    if (callsign.compare("org.rdk.RDKShell.1") != 0)
+                    {
+                        //get callsign
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    }
+                    else
+                    {
+                        isRDKShellPluginRequest = true;
+                    }
                 }
 
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
-                uint32_t status = 0;
-                if (actionObject.HasLabel("params"))
+                if (isRDKShellPluginRequest && (invoke.compare("org.rdk.RDKShell.1.launchFactoryApp") == 0))
                 {
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
-                  gRdkShellMutex.lock();
+                    RDKShellApiRequest apiRequest;
+                    apiRequest.mName = "launchfactoryapp";
+                    apiRequest.mRequest = actionObject.HasLabel("params")?actionObject["params"].Object():JsonObject();
+                    mShell.launchRequestThread(apiRequest);
                 }
                 else
                 {
-                  JsonObject joParams;
-                  joParams["params"] = JsonObject();
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
-                  gRdkShellMutex.lock();
-                }
-                if (status > 0)
-                {
-                    std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    uint32_t status = 0;
+                    if (actionObject.HasLabel("params"))
+                    {
+                        // setting wait Time to 2 seconds
+                        gRdkShellMutex.unlock();
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                        gRdkShellMutex.lock();
+                    }
+                    else
+                    {
+                      JsonObject joParams;
+                      joParams["params"] = JsonObject();
+                      // setting wait Time to 2 seconds
+                      gRdkShellMutex.unlock();
+                      status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                      gRdkShellMutex.lock();
+                    }
+                    if (status > 0)
+                    {
+                        std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    }
                 }
               }
             }
@@ -1945,8 +1975,19 @@ namespace WPEFramework {
                     virtualHeight = parameters["virtualHeight"].Number();
                 }
 
+                bool topmost = false;
+                if (parameters.HasLabel("topmost"))
+                {
+                    topmost = parameters["topmost"].Boolean();
+                }
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
+
                 result = createDisplay(client, displayName, displayWidth, displayHeight,
-                    virtualDisplay, virtualWidth, virtualHeight);
+                    virtualDisplay, virtualWidth, virtualHeight, topmost, focus);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -2697,6 +2738,7 @@ namespace WPEFramework {
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
                 bool topmost = false;
+                bool focus = false;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -2753,40 +2795,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("topmost"))
                 {
                     topmost = parameters["topmost"].Boolean();
-                    if (topmost)
-                    {
-                        std::string topmostClient;
-                        {
-                            bool lockAcquired = false;
-                            double startTime = RdkShell::milliseconds();
-                            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
-                            {
-                                lockAcquired = gRdkShellMutex.try_lock();
-                            }
-                            if (!lockAcquired)
-                            {
-                                std::cout << "unable to get lock for topmost, defaulting to normal lock\n";
-                                gRdkShellMutex.lock();
-                            }
-                            else
-                            {
-                                std::cout << "lock was acquired via try for topmost\n";
-                            }
-                        }
-                        bool topmostResult =  CompositorController::getTopmost(topmostClient);
-                        gRdkShellMutex.unlock();
-                        if (!topmostClient.empty())
-                        {
-                            response["message"] = "failed to launch application.  topmost application already present";
-                            gLaunchMutex.lock();
-                            gLaunchCount = 0;
-                            gLaunchMutex.unlock();
-		            gLaunchDestroyMutex.lock();
-                            gLaunchApplications.erase(appCallsign);
-		            gLaunchDestroyMutex.unlock();
-                            returnResponse(false);
-                        }
-                    }
+                }
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -3213,7 +3225,7 @@ namespace WPEFramework {
                         setFocus(callsign);
                     }
 
-                    bool setTopmostResult = setTopmost(callsign, topmost);
+                    setTopmost(callsign, topmost, focus);
                     JsonObject urlResult;
                     if (!uri.empty())
                     {
@@ -3494,8 +3506,20 @@ namespace WPEFramework {
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
+                    bool topmost = false;
+                    bool focus = false;
+
+                    if (parameters.HasLabel("topmost"))
+                    {
+                        topmost = parameters["topmost"].Boolean();
+                    }
+                    if (parameters.HasLabel("focus"))
+                    {
+                        focus = parameters["focus"].Boolean();
+                    }
+
                     gRdkShellMutex.lock();
-                    result = CompositorController::launchApplication(client, uri, mimeType);
+                    result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus);
                     gRdkShellMutex.unlock();
 
                     if (!result)
@@ -3696,11 +3720,17 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify client or callsign";
             }
-            if (!parameters.HasLabel("topmost"))
+            else if (!parameters.HasLabel("topmost"))
             {
                 result = false;
                 response["message"] = "please specify topmost (topmost = true/false)";
             }
+            else if (!parameters.HasLabel("focus"))
+            {
+                result = false;
+                response["message"] = "please specify focus (focus = true/false)";
+            }
+
             if (result)
             {
                 string client;
@@ -3713,10 +3743,12 @@ namespace WPEFramework {
                     client = parameters["callsign"].String();
                 }
                 const bool topmost = parameters["topmost"].Boolean();
+                const bool focus = parameters["focus"].Boolean();
 
-                result = setTopmost(client, topmost);
-                if (false == result) {
-                  response["message"] = "failed to set topmost";
+                result = setTopmost(client, topmost, focus);
+                if (false == result)
+                {
+                    response["message"] = "failed to set topmost";
                 }
             }
             returnResponse(result);
@@ -4485,7 +4517,7 @@ namespace WPEFramework {
         uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            
+
             if (0 != mLastWakeupKeyTimestamp)
             {
                 JsonObject req, res;
@@ -4497,11 +4529,10 @@ namespace WPEFramework {
                     response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
 
                     std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
+                    returnResponse(true);
                 }
                 else
                     mLastWakeupKeyTimestamp = 0;
-
-                returnResponse(true);
             }
 
             response["message"] = "No last wakeup key";
@@ -5010,12 +5041,12 @@ namespace WPEFramework {
         }
 
         bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight,
-            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
+            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight, const bool topmost, const bool focus)
         {
             bool ret = false;
             lockRdkShellMutex();
             ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
-                virtualDisplay, virtualWidth, virtualHeight);
+                virtualDisplay, virtualWidth, virtualHeight, topmost, focus);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
@@ -5394,11 +5425,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::setTopmost(const string& callsign, const bool topmost)
+        bool RDKShell::setTopmost(const string& callsign, const bool topmost, const bool focus)
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setTopmost(callsign, topmost);
+            ret = CompositorController::setTopmost(callsign, topmost, focus);
             gRdkShellMutex.unlock();
             return ret;
         }

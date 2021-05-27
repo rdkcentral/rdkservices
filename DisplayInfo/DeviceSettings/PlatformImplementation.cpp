@@ -174,7 +174,8 @@ public:
         return (Core::ERROR_NONE);
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             device::AudioStereoMode mode = vPort.getAudioOutputPort().getStereoMode(true);
             if (mode == device::AudioStereoMode::kPassThru)
                 value = true;
@@ -190,7 +191,8 @@ public:
     {
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             connected = vPort.isDisplayConnected();
         }
         catch (const device::Exception& err)
@@ -284,7 +286,8 @@ public:
     {
         try
         {
-            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 std::vector<uint8_t> edidVec;
@@ -313,7 +316,8 @@ public:
     {
         try
         {
-            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 std::vector<uint8_t> edidVec;
@@ -344,7 +348,8 @@ public:
         try
         {
             vector<uint8_t> edidVec2;
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 vPort.getDisplay().getEDIDBytes(edidVec2);
@@ -415,7 +420,8 @@ public:
         int capabilities = static_cast<int>(dsHDRSTANDARD_NONE);
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected()) {
                 vPort.getTVHDRCapabilities(&capabilities);
             }
@@ -475,7 +481,8 @@ public:
         bool isHdr = false;
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected()) {
                 isHdr = vPort.IsOutputHDR();
             }
@@ -508,7 +515,8 @@ private:
         uint32_t ret =  (Core::ERROR_NONE);
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             device::VideoResolution resolution = vPort.getResolution();
             device::PixelResolution pr = resolution.getPixelResolution();
             device::FrameRate fr = resolution.getFrameRate();

@@ -32,6 +32,12 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        struct RDKShellApiRequest
+        {
+            std::string mName;
+            JsonObject mRequest;
+        };
+
         class RDKShell :  public AbstractPlugin {
         public:
             RDKShell();
@@ -139,6 +145,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void launchRequestThread(RDKShellApiRequest apiRequest);
 
         private/*registered methods (wrappers)*/:
 
@@ -234,7 +241,8 @@ namespace WPEFramework {
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0,
-                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0);
+                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0,
+                const bool topmost = false, const bool focus = false);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
@@ -262,7 +270,7 @@ namespace WPEFramework {
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
-            bool setTopmost(const string& callsign, const bool topmost);
+            bool setTopmost(const string& callsign, const bool topmost, const bool focus);
             bool getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight);
             bool setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight);
             bool enableVirtualDisplay(const std::string& client, const bool enable);
