@@ -29,6 +29,7 @@
 #include "irMgr.h"
 #include "pwrMgr.h"
 
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -67,7 +68,7 @@ namespace WPEFramework {
             uint32_t getSupportedAudioModes(const JsonObject& parameters, JsonObject& response);
             uint32_t getZoomSetting(const JsonObject& parameters, JsonObject& response);
             uint32_t setZoomSetting(const JsonObject& parameters, JsonObject& response);
-            uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
             uint32_t setSoundMode(const JsonObject& parameters, JsonObject& response);
@@ -100,6 +101,7 @@ namespace WPEFramework {
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t isConnectedDeviceRepeater(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
