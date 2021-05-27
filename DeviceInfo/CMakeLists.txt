@@ -18,6 +18,9 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_DEVICEINFO_AUTOSTART true CACHE BOOL "Automatically start DeviceInfo plugin")
+
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
