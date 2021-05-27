@@ -117,6 +117,7 @@ public:
         gst_init(0, nullptr);
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
+        Utils::IARM::init();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
@@ -152,7 +153,8 @@ public:
         string currentResolution = "0";
         try
         {
-            device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             currentResolution = vPort.getResolution().getName();
             TRACE(Trace::Information, (_T("Current video playback resolution = %s"), currentResolution));
         }

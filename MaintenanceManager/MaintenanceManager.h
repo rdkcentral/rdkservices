@@ -56,17 +56,30 @@ typedef enum {
     MAINTENANCE_INCOMPLETE
 } Maint_notify_status_t;
 
+typedef enum{
+    SOLICITED_MAINTENANCE,
+    UNSOLICITED_MAINTENANCE
+}Maintenance_Type_t;
+
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
+#define TASKS_COMPLETED                0xAA
+#define ALL_TASKS_SUCCESS              0xFF
+#define MAINTENANCE_TASK_SKIPPED       0x200
+
+
 #define DCM_SUCCESS                     0
-#define RFC_SUCCESS                     1
-#define LOGUPLOAD_SUCCESS               2
-#define DIFD_SUCCESS                    3
-#define PING_TELEMETRY_SUCCESS          4
-#define REBOOT_REQUIRED                 5
-#define TASK_SKIPPED                    6
-#define TASKS_STARTED                   7
+#define DCM_COMPLETE                    1
+#define RFC_SUCCESS                     2
+#define RFC_COMPLETE                    3
+#define LOGUPLOAD_SUCCESS               4
+#define LOGUPLOAD_COMPLETE              5
+#define DIFD_SUCCESS                    6
+#define DIFD_COMPLETE                   7
+#define REBOOT_REQUIRED                 8
+#define TASK_SKIPPED                    9
+#define TASKS_STARTED                   10
 
 #define SET_STATUS(VALUE,N)     ((VALUE) |=  (1<<(N)))
 #define CLEAR_STATUS(VALUE,N)   ((VALUE) &= ~(1<<(N)))
@@ -94,21 +107,45 @@ namespace WPEFramework {
                 typedef Core::JSON::ArrayType<JString> JStringArray;
                 typedef Core::JSON::Boolean JBool;
 
-                static string g_currentMode;
-                static string g_is_critical_maintenance;
-                static string g_is_reboot_pending;
-                static string g_lastSuccessful_maint_time;
-                static IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
-                static Maint_notify_status_t g_notify_status;
-                static cSettings m_setting;
-                static string g_epoch_time;
-                static uint8_t g_task_status;
+                string g_currentMode;
+                string g_is_critical_maintenance;
+                string g_is_reboot_pending;
+                string g_lastSuccessful_maint_time;
+                string g_epoch_time;
 
-                static void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+                IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
+
+                Maint_notify_status_t g_notify_status;
+
+                Maintenance_Type_t g_maintenance_type;
+
+                static cSettings m_setting;
+
+                uint16_t g_task_status;
+
+                std::mutex  m_callMutex;
+                std::condition_variable task_thread;
+                std::thread m_thread;
+
+                void task_execution_thread();
+                void requestSystemReboot();
+                void maintenanceManagerOnBootup();
+                bool checkAutoRebootFlag();
+                string getLastRebootReason();
+                void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
                 // We do not allow this plugin to be copied !!
                 MaintenanceManager(const MaintenanceManager&) = delete;
                 MaintenanceManager& operator=(const MaintenanceManager&) = delete;
+
+            private:
+                class MaintenanceTask{
+                    private:
+                        std::string taskName;
+                        std::string taskScript;
+                    public:
+                        void startTask();
+                };
             public:
                 MaintenanceManager();
                 virtual ~MaintenanceManager();

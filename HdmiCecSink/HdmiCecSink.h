@@ -240,7 +240,7 @@ namespace WPEFramework {
 
 			DeviceNode() {
 				int i;
-				for (i; i < LogicalAddress::UNREGISTERED; i++ )
+				for (i = 0; i < LogicalAddress::UNREGISTERED; i++ )
 				{
 					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
 				}
@@ -519,6 +519,8 @@ private:
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
+			void systemAudioModeRequest();
+                        void SendStandbyMsgEvent(const int logicalAddress);
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -543,8 +545,8 @@ private:
                         uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
-			
-            //End methods
+                        uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+                        //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
@@ -561,6 +563,7 @@ private:
             std::mutex m_pollMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
+	    bool m_ArcUiSettingState;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;
 	    binary_semaphore m_semSignaltoArcRoutingThread;
