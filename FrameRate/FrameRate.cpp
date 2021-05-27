@@ -79,8 +79,11 @@ namespace WPEFramework
             	{
             		int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
 	                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
-        	    	setCollectionFrequency(fpsFrequencyInMilliseconds);
-            		returnResponse(true);
+			if( fpsFrequencyInMilliseconds > = 100) // make sure min freq is 100 and not less than that.
+			{
+        	    		setCollectionFrequency(fpsFrequencyInMilliseconds);
+            			returnResponse(true);
+			}
             	}
 		}
 	     catch(...)
