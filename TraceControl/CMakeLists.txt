@@ -18,6 +18,8 @@
 set(PLUGIN_NAME TraceControl)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_TRACECONTROL_AUTOSTART true CACHE BOOL "Automatically start TraceControl plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
