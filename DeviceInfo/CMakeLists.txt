@@ -18,6 +18,10 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+if(NOT DEFINED PLUGIN_DEVICEINFO_AUTOSTART)
+	set(PLUGIN_DEVICEINFO_AUTOSTART true)
+endif()
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
