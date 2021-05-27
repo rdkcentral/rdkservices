@@ -165,6 +165,8 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
+#define RECONNECTION_TIME_IN_MILLISECONDS 10000
+
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -539,12 +541,6 @@ namespace WPEFramework {
                         subSystems->Release();
                     }*/
                 }
-                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
-                {
-                   std::string serviceCallsign = service->Callsign();
-                   serviceCallsign.append(".2");
-                   gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
-                }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
                     if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
@@ -662,7 +658,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -737,6 +733,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -1018,6 +1016,11 @@ namespace WPEFramework {
             {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
+
+            m_timer.start(0);
+            m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            std::cout << "Started SystemServices connection timer" << std::endl;
+
             return "";
         }
 
@@ -1226,6 +1229,7 @@ namespace WPEFramework {
             if (parameters.HasLabel("powerState"))
             {
                 std::string powerState = parameters["powerState"].String();
+                std::string prevState = parameters["currentPowerState"].String();
                 if ((powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
                     std::cout << "Received power state change to light or deep sleep " << std::endl;
@@ -1244,6 +1248,14 @@ namespace WPEFramework {
                       JsonObject request, response;
                       int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                     }
+                }
+ 
+                if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
+                    && powerState == "ON")
+                {
+                    gRdkShellMutex.lock();
+                    CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
+                    gRdkShellMutex.unlock();
                 }
             }
         }
@@ -1372,39 +1384,57 @@ namespace WPEFramework {
                 std::string invoke = actionObject["invoke"].String();
                 size_t lastPositionOfDot = invoke.find_last_of(".");
                 auto thunderController = getThunderControllerClient();
+                bool isRDKShellPluginRequest = false;
                 if (lastPositionOfDot != -1)
                 {
                     std::string callsign = invoke.substr(0, lastPositionOfDot);
                     std::cout << "callsign will be " << callsign << std::endl;
-                    //get callsign
-                    JsonObject activateParams;
-                    activateParams.Set("callsign",callsign.c_str());
-                    JsonObject activateResult;
-                    int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    if (callsign.compare("org.rdk.RDKShell.1") != 0)
+                    {
+                        //get callsign
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    }
+                    else
+                    {
+                        isRDKShellPluginRequest = true;
+                    }
                 }
 
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
-                uint32_t status = 0;
-                if (actionObject.HasLabel("params"))
+                if (isRDKShellPluginRequest && (invoke.compare("org.rdk.RDKShell.1.launchFactoryApp") == 0))
                 {
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
-                  gRdkShellMutex.lock();
+                    RDKShellApiRequest apiRequest;
+                    apiRequest.mName = "launchfactoryapp";
+                    apiRequest.mRequest = actionObject.HasLabel("params")?actionObject["params"].Object():JsonObject();
+                    mShell.launchRequestThread(apiRequest);
                 }
                 else
                 {
-                  JsonObject joParams;
-                  joParams["params"] = JsonObject();
-                  // setting wait Time to 2 seconds
-                  gRdkShellMutex.unlock();
-                  status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
-                  gRdkShellMutex.lock();
-                }
-                if (status > 0)
-                {
-                    std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    uint32_t status = 0;
+                    if (actionObject.HasLabel("params"))
+                    {
+                        // setting wait Time to 2 seconds
+                        gRdkShellMutex.unlock();
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), actionObject["params"], joResult);
+                        gRdkShellMutex.lock();
+                    }
+                    else
+                    {
+                      JsonObject joParams;
+                      joParams["params"] = JsonObject();
+                      // setting wait Time to 2 seconds
+                      gRdkShellMutex.unlock();
+                      status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, invoke.c_str(), joParams, joResult);
+                      gRdkShellMutex.lock();
+                    }
+                    if (status > 0)
+                    {
+                        std::cout << "failed to invoke " << invoke << "on easter egg.  status: " << status << std::endl;
+                    }
                 }
               }
             }
@@ -2073,8 +2103,19 @@ namespace WPEFramework {
                     virtualHeight = parameters["virtualHeight"].Number();
                 }
 
+                bool topmost = false;
+                if (parameters.HasLabel("topmost"))
+                {
+                    topmost = parameters["topmost"].Boolean();
+                }
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
+
                 result = createDisplay(client, displayName, displayWidth, displayHeight,
-                    virtualDisplay, virtualWidth, virtualHeight);
+                    virtualDisplay, virtualWidth, virtualHeight, topmost, focus);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -2825,6 +2866,7 @@ namespace WPEFramework {
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
                 bool topmost = false;
+                bool focus = false;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -2881,40 +2923,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("topmost"))
                 {
                     topmost = parameters["topmost"].Boolean();
-                    if (topmost)
-                    {
-                        std::string topmostClient;
-                        {
-                            bool lockAcquired = false;
-                            double startTime = RdkShell::milliseconds();
-                            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
-                            {
-                                lockAcquired = gRdkShellMutex.try_lock();
-                            }
-                            if (!lockAcquired)
-                            {
-                                std::cout << "unable to get lock for topmost, defaulting to normal lock\n";
-                                gRdkShellMutex.lock();
-                            }
-                            else
-                            {
-                                std::cout << "lock was acquired via try for topmost\n";
-                            }
-                        }
-                        bool topmostResult =  CompositorController::getTopmost(topmostClient);
-                        gRdkShellMutex.unlock();
-                        if (!topmostClient.empty())
-                        {
-                            response["message"] = "failed to launch application.  topmost application already present";
-                            gLaunchMutex.lock();
-                            gLaunchCount = 0;
-                            gLaunchMutex.unlock();
-		            gLaunchDestroyMutex.lock();
-                            gLaunchApplications.erase(appCallsign);
-		            gLaunchDestroyMutex.unlock();
-                            returnResponse(false);
-                        }
-                    }
+                }
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -3348,7 +3360,7 @@ namespace WPEFramework {
                         setFocus(callsign);
                     }
 
-                    bool setTopmostResult = setTopmost(callsign, topmost);
+                    setTopmost(callsign, topmost, focus);
                     JsonObject urlResult;
                     if (!uri.empty())
                     {
@@ -3629,8 +3641,20 @@ namespace WPEFramework {
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
+                    bool topmost = false;
+                    bool focus = false;
+
+                    if (parameters.HasLabel("topmost"))
+                    {
+                        topmost = parameters["topmost"].Boolean();
+                    }
+                    if (parameters.HasLabel("focus"))
+                    {
+                        focus = parameters["focus"].Boolean();
+                    }
+
                     gRdkShellMutex.lock();
-                    result = CompositorController::launchApplication(client, uri, mimeType);
+                    result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus);
                     gRdkShellMutex.unlock();
 
                     if (!result)
@@ -3823,11 +3847,17 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify client or callsign";
             }
-            if (!parameters.HasLabel("topmost"))
+            else if (!parameters.HasLabel("topmost"))
             {
                 result = false;
                 response["message"] = "please specify topmost (topmost = true/false)";
             }
+            else if (!parameters.HasLabel("focus"))
+            {
+                result = false;
+                response["message"] = "please specify focus (focus = true/false)";
+            }
+
             if (result)
             {
                 string client;
@@ -3840,10 +3870,12 @@ namespace WPEFramework {
                     client = parameters["callsign"].String();
                 }
                 const bool topmost = parameters["topmost"].Boolean();
+                const bool focus = parameters["focus"].Boolean();
 
-                result = setTopmost(client, topmost);
-                if (false == result) {
-                  response["message"] = "failed to set topmost";
+                result = setTopmost(client, topmost, focus);
+                if (false == result)
+                {
+                    response["message"] = "failed to set topmost";
                 }
             }
             returnResponse(result);
@@ -4078,16 +4110,9 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             sFactoryAppLaunchStatus = STARTED;
-            if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
-            {
-                std::string eventName("onSystemPowerStateChanged");
-                int32_t status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
-                if (status == 0)
-                {
-                    std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
-                    gSystemServiceEventsSubscribed = true;
-                }
-            }
+
+            subscribeForSystemEvent("onSystemPowerStateChanged");
+
             if (parameters.HasLabel("startup"))
             {
                 bool startup = parameters["startup"].Boolean();
@@ -4685,38 +4710,22 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            if (nullptr == gSystemServiceConnection)
-            {
-                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
-                std::cout << "Activated SystemService" << std::endl;
-            }
-
-            if (nullptr != gSystemServiceConnection)
+            if (0 != mLastWakeupKeyTimestamp)
             {
                 JsonObject req, res;
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
                 if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
                 {
-                    lockRdkShellMutex();
-                    uint32_t keyCode = 0;
-                    uint32_t modifiers = 0;
-                    uint64_t timestampInSeconds = 0;
-                    CompositorController::getLastKeyPress(keyCode, modifiers, timestampInSeconds);
-                    gRdkShellMutex.unlock();
+                    response["keyCode"] = JsonValue(mLastWakeupKeyCode);
+                    response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
+                    response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
 
-                    response["keyCode"] = JsonValue(keyCode);
-                    response["modifiers"] = JsonValue(modifiers);
-                    response["timestampInSeconds"] = JsonValue((long long)timestampInSeconds);
-
-                    std::cout << "Got LastWakeupKey, keyCode: " << keyCode << " modifiers: " << modifiers << " timestampInSeconds: " << timestampInSeconds << std::endl;
-
+                    std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
                     returnResponse(true);
                 }
                 else
-                    std::cout << "Failed to get Wakeup Reason status:" << status << " reason:'" <<  res["wakeupReason"].String() << "'" << std::endl;
+                    mLastWakeupKeyTimestamp = 0;
             }
-            else
-                std::cout << "Failed to activate gSystemServiceConnection " << std::endl;
 
             response["message"] = "No last wakeup key";
             returnResponse(false);
@@ -5163,18 +5172,21 @@ namespace WPEFramework {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
                 lockRdkShellMutex();
-                 std::vector<std::string> clientList;
-                CompositorController::getClients(clientList);
-                bool targetFound = false;
-                transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
-                if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+		bool targetFound = false;
+                if (keyClient != "")
                 {
-                 targetFound = true;
+                  std::vector<std::string> clientList;
+                  CompositorController::getClients(clientList);
+                  transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
+                  if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                  {
+                    targetFound = true;
+                  }
                 }
-               if (targetFound)
-               {
-               ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
-               }
+                if (targetFound || keyClient == "")
+                {
+                  ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                }
                 gRdkShellMutex.unlock();
             }
             return ret;
@@ -5224,7 +5236,7 @@ namespace WPEFramework {
         }
 
         bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight,
-            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
+            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight, const bool topmost, const bool focus)
         {
             bool ret = false;
             if (!isClientExists(client))
@@ -5619,11 +5631,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::setTopmost(const string& callsign, const bool topmost)
+        bool RDKShell::setTopmost(const string& callsign, const bool topmost, const bool focus)
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setTopmost(callsign, topmost);
+            ret = CompositorController::setTopmost(callsign, topmost, focus);
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -5743,6 +5755,78 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             enabled = Logger::isFlushingEnabled();
             gRdkShellMutex.unlock();
+        }
+
+
+        void RDKShell::onTimer()
+        {
+            if (gSystemServiceEventsSubscribed)
+            {
+                if (m_timer.isActive()) {
+                    m_timer.stop();
+                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                }
+            }
+            else
+            {
+                if (Core::ERROR_NONE == subscribeForSystemEvent("onSystemPowerStateChanged"))
+                {  
+                    m_timer.stop();
+                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                }
+            }
+        }
+
+        int32_t RDKShell::subscribeForSystemEvent(std::string event)
+        {
+            int32_t status = Core::ERROR_GENERAL;
+
+            if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
+            {
+                gSystemServiceConnection.reset();
+                gSystemServiceEventsSubscribed = false;
+                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
+                std::cout << "called activatePlugin for SystemService" << std::endl;
+            }
+
+            if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
+            {
+                std::cout << "SystemService is already activated" << std::endl;
+
+                if (nullptr == gSystemServiceConnection)
+                {  
+                    std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
+                    serviceCallsign.append(".2");
+                    gSystemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
+                }
+            }
+
+            if (nullptr != gSystemServiceConnection)
+            {
+                if (!gSystemServiceEventsSubscribed)
+                {
+                    std::string eventName("onSystemPowerStateChanged");
+                    status = gSystemServiceConnection->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName), &RDKShell::pluginEventHandler, this);
+
+                    if (Core::ERROR_NONE == status)
+                    {
+                        std::cout << "RDKShell subscribed to onSystemPowerStateChanged event " << std::endl;
+                        gSystemServiceEventsSubscribed = true;
+                    }
+                    else
+                    { 
+                        std::cout << "Subscribe for SystemServices event failed with " << status << std::endl;
+                        gSystemServiceConnection.reset();
+                    }
+
+                }
+                else
+                    std::cout << "Already Subscribed to SystemServices events" << std::endl;
+            }
+            else
+                std::cout << "No Connection to SystemServices" << std::endl;
+
+            return status;
         }
 
         // Internal methods end
