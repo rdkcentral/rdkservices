@@ -18,6 +18,10 @@
 set(PLUGIN_NAME DisplayInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_DISPLAYINFO_AUTOSTART true CACHE BOOL "Automatically start DisplayInfo plugin")
+set(PLUGIN_DISPLAYINFO_OUTOFPROCESS false CACHE BOOL "Start DisplayInfo plugin in out of process")
+set(PLUGIN_DISPLAYINFO_MODE "off" CACHE STRING "Set DisplayInfo plugin mode")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
