@@ -72,6 +72,14 @@ if (GSTREAMER_FOUND)
     endif()
 endif ()
 
+find_package(CURL)
+if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+endif (CURL_FOUND)
+
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
