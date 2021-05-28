@@ -32,6 +32,7 @@
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
 #include <plugins/System.h>
+#include <rdkshell/eastereggs.h>
 
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
@@ -92,6 +93,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT = "launchFactoryAppShortcut";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_RESIDENT_APP = "launchResidentApp";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_TOGGLE_FACTORY_APP = "toggleFactoryApp";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_EXIT_AGING_MODE = "exitAgingMode";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_KEYREPEATS = "enableKeyRepeats";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED = "getKeyRepeatsEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_TOPMOST = "setTopmost";
@@ -627,6 +629,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT, &RDKShell::launchFactoryAppShortcutWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_RESIDENT_APP, &RDKShell::launchResidentAppWrapper, this);
             registerMethod(RDKSHELL_METHOD_TOGGLE_FACTORY_APP, &RDKShell::toggleFactoryAppWrapper, this);
+            registerMethod(RDKSHELL_METHOD_EXIT_AGING_MODE, &RDKShell::exitAgingModeWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_KEYREPEATS, &RDKShell::enableKeyRepeatsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED, &RDKShell::getKeyRepeatsEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_TOPMOST, &RDKShell::setTopmostWrapper, this);
@@ -3301,6 +3304,7 @@ namespace WPEFramework {
                 {
                     if (callsign == "factoryapp")
                     {
+                        removeFactoryModeEasterEggs();
                         sFactoryModeStart = false;
                         sFactoryAppLaunchStatus = NOTLAUNCHED;
                     }
@@ -3965,6 +3969,7 @@ namespace WPEFramework {
                     sFactoryAppLaunchStatus = NOTLAUNCHED;
                     returnResponse(false);
                 }
+                addFactoryModeEasterEggs();
                 JsonObject joFactoryModeParams;
                 JsonObject joFactoryModeResult;
                 joFactoryModeParams.Set("namespace","FactoryTest");
@@ -4211,6 +4216,84 @@ namespace WPEFramework {
             {
                 launchFactoryAppWrapper(parameters, response);
             }
+        }
+
+        void RDKShell::addFactoryModeEasterEggs()
+        {
+            RdkShellEasterEggKeyDetails key1(56, 0, 0);
+            RdkShellEasterEggKeyDetails key2(48, 0, 0);
+            RdkShellEasterEggKeyDetails key3(56, 0, 0);
+            RdkShellEasterEggKeyDetails key4(55, 0, 0);
+            std::vector<RdkShellEasterEggKeyDetails> keyDetails;
+            keyDetails.push_back(key1);
+            keyDetails.push_back(key2);
+            keyDetails.push_back(key3);
+            keyDetails.push_back(key4);
+            addEasterEgg(keyDetails, "AGING_MODE_EXIT1", 10, "{\"invoke\":\"org.rdk.RDKShell.1.exitAgingMode\"}");
+
+            keyDetails.clear();
+            RdkShellEasterEggKeyDetails key5(38, 0, 0);
+            RdkShellEasterEggKeyDetails key6(38, 0, 0);
+            RdkShellEasterEggKeyDetails key7(40, 0, 0);
+            RdkShellEasterEggKeyDetails key8(40, 0, 0);
+            keyDetails.push_back(key5);
+            keyDetails.push_back(key6);
+            keyDetails.push_back(key7);
+            keyDetails.push_back(key8);
+            addEasterEgg(keyDetails, "AGING_MODE_EXIT2", 10, "{\"invoke\":\"org.rdk.RDKShell.1.exitAgingMode\"}");
+        }
+
+        void RDKShell::removeFactoryModeEasterEggs()
+        {
+            removeEasterEgg("AGING_MODE_EXIT1");
+            removeEasterEgg("AGING_MODE_EXIT2");
+        }
+
+        uint32_t RDKShell::exitAgingModeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool ret = true;
+            JsonObject joAgingParams;
+            JsonObject joAgingResult;
+            joAgingParams.Set("namespace","FactoryTest");
+            joAgingParams.Set("key","AgingState");
+            std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+
+            std::cout << "attempting to check aging state flag \n";
+            uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "get status: " << status << std::endl;
+
+            if (status > 0)
+            {
+                response["message"] = " unable to check aging flag";
+                returnResponse(false);
+            }
+
+            if (!joAgingResult.HasLabel("value"))
+            {
+                response["message"] = " aging value not found";
+                returnResponse(false);
+            }
+
+            const std::string valueString = joAgingResult["value"].String();
+            if (valueString != "true")
+            {
+                std::cout << "aging value is " << valueString << std::endl;
+                response["message"] = " aging value is not true";
+                returnResponse(false);
+            }
+
+
+            joAgingParams.Set("value","false");
+            std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
+            std::cout << "attempting to set check aging state flag to false\n";
+            status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingParams, joAgingResult);
+            std::cout << "set status: " << status << std::endl;
+
+            JsonObject request, res;
+            launchResidentAppWrapper(request, res);
+
+            returnResponse(ret);
         }
 
         uint32_t RDKShell::getVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response)
