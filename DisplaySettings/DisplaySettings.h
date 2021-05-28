@@ -29,6 +29,7 @@
 #include "irMgr.h"
 #include "pwrMgr.h"
 
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -67,7 +68,7 @@ namespace WPEFramework {
             uint32_t getSupportedAudioModes(const JsonObject& parameters, JsonObject& response);
             uint32_t getZoomSetting(const JsonObject& parameters, JsonObject& response);
             uint32_t setZoomSetting(const JsonObject& parameters, JsonObject& response);
-            uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
             uint32_t setSoundMode(const JsonObject& parameters, JsonObject& response);
@@ -100,6 +101,7 @@ namespace WPEFramework {
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
+            uint32_t isConnectedDeviceRepeater(const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setScartParameter(const JsonObject& parameters, JsonObject& response);
             uint32_t getVolumeLeveller(const JsonObject& parameters, JsonObject& response);
@@ -123,6 +125,12 @@ namespace WPEFramework {
             uint32_t getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
+
+	    uint32_t getVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
+
             void InitAudioPorts();
             //End methods
 
@@ -166,6 +174,7 @@ namespace WPEFramework {
 	    TpTimer m_timer;
             bool m_subscribed;
             std::mutex m_callMutex;
+	    bool m_hdmiInAudioDeviceConnected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
