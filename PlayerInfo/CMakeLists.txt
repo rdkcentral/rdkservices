@@ -23,6 +23,7 @@ set(PLUGIN_PLAYERINFO_MODE "Off" CACHE STRING "Controls if the plugin should run
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -37,6 +38,7 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
 find_package(GSTREAMER REQUIRED)
