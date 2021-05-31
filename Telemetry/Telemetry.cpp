@@ -64,7 +64,17 @@ namespace WPEFramework
 
             JsonArray profiles;
             getProfiles(profiles);
-            response["reportProfiles"] = profiles;
+
+            JsonArray profilesRes;
+            JsonArray::Iterator it = profiles.Elements();
+            while(it.Next())
+            {
+                JsonObject o;
+                o["name"] = it.Current().String();
+                profilesRes.Add(o);
+            }
+
+            response["reportProfiles"] = profilesRes;
 
             returnResponse(true);
         }
