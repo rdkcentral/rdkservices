@@ -99,15 +99,15 @@ namespace Plugin {
             JoinParamsData params;
             params.FromString(parameters);
             auto room = params.Room.Value();
+            SecureType secure = params.Secure.Value();
             const auto& acl = params.Acl;
 
             _adminLock.Lock();
 
-            bool secure = room.rfind("@", 0) == 0;
             auto actualAcl = _roomACL.find(room);
             bool aclSet = actualAcl != _roomACL.end();
 
-            if (!secure) {
+            if (secure != SecureType::SECURE) {
                 result = true;
             } else {
                 bool settingAcl = acl.IsSet();
