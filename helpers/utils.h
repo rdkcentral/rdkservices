@@ -26,7 +26,7 @@
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
 
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
 // IARM
 #include "rdk/iarmbus/libIARM.h"
 #endif
@@ -161,7 +161,7 @@
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
 }
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
 #define IARM_CHECK(FUNC) { \
     if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
         LOGINFO("IARM %s: %s", #FUNC, \
@@ -179,7 +179,7 @@
 
 namespace Utils
 {
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
     struct IARM
     {
         static bool init();
@@ -296,7 +296,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *

@@ -25,7 +25,7 @@
 #include <string.h>
 #include <sstream>
 #include "utils.h"
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
 #include "libIBus.h"
 #endif
 #include <securityagent/SecurityTokenUtil.h>
@@ -37,7 +37,7 @@
 
 using namespace WPEFramework;
 using namespace std;
-#ifdef ENABLE_IARM
+#ifndef DISABLE_IARM
 const char* Utils::IARM::NAME = "Thunder_Plugins";
 
 bool Utils::IARM::init()
