@@ -20,6 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -41,7 +42,6 @@ include_directories(${MEDIAPLAYERS_DIRS})
 target_include_directories(${MODULE_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -53,6 +53,7 @@ target_link_libraries(${MODULE_NAME}
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         -Wl,--whole-archive ${MEDIAPLAYERS_LIBS} -Wl,--no-whole-archive)
 
 install(TARGETS ${MODULE_NAME}

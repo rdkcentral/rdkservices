@@ -18,7 +18,7 @@
  */
 
 #include "AampMediaStream.h"
-
+#include "ocdm/open_cdm.h"
 #include "utils.h"
 
 // Use macros to avoid unnecessary repetition of code. 
@@ -585,6 +585,7 @@ namespace WPEFramework {
             delete _aampPlayer;
             _aampPlayer = nullptr;
             _adminLock.Unlock();
+            opencdm_deinit();
         }
 
         uint32_t AampMediaStream::Load(const string& url, bool autoPlay)
