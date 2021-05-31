@@ -25,7 +25,9 @@
 #include <string.h>
 #include <sstream>
 #include "utils.h"
+#ifdef ENABLE_IARM
 #include "libIBus.h"
+#endif
 #include <securityagent/SecurityTokenUtil.h>
 #include <curl/curl.h>
 
@@ -35,7 +37,7 @@
 
 using namespace WPEFramework;
 using namespace std;
-
+#ifdef ENABLE_IARM
 const char* Utils::IARM::NAME = "Thunder_Plugins";
 
 bool Utils::IARM::init()
@@ -93,7 +95,7 @@ std::string Utils::formatIARMResult(IARM_Result_t result)
             return tmp.str();
     }
 }
-
+#endif
 /***
  * @brief	: Execute shell script and get response
  * @param1[in]	: script to be executed with args

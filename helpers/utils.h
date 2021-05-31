@@ -26,9 +26,10 @@
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
 
+#ifdef ENABLE_IARM
 // IARM
 #include "rdk/iarmbus/libIARM.h"
-
+#endif
 // std
 #include <string>
 
@@ -160,7 +161,7 @@
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
 }
-
+#ifdef ENABLE_IARM
 #define IARM_CHECK(FUNC) { \
     if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
         LOGINFO("IARM %s: %s", #FUNC, \
@@ -174,9 +175,11 @@
         LOGINFO("IARM %s: success", #FUNC); \
     } \
 }
+#endif
 
 namespace Utils
 {
+#ifdef ENABLE_IARM
     struct IARM
     {
         static bool init();
@@ -187,7 +190,7 @@ namespace Utils
     private:
         static bool m_connected;
     };
-
+#endif
     namespace String
     {
         // locale-wise comparison
@@ -293,7 +296,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#ifdef ENABLE_IARM
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -302,7 +305,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
-
+#endif
     /***
      * @brief	: Execute shell script and get response
      * @param1[in]	: script to be executed with args
