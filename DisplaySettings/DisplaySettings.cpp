@@ -3529,7 +3529,9 @@ namespace WPEFramework {
                 }
                 if (!resolution.empty())
                 {
-                    if (Utils::String::stringContains(display,"HDMI"))
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    std::string videoPortName = strVideoPort.substr(0, strVideoPort.size()-1);
+                    if (Utils::String::stringContains(display, videoPortName.c_str()))
                     {
                         // only report first HDMI connected device is HDMI is connected
                         JsonObject params;
