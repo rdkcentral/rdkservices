@@ -165,14 +165,6 @@ void Utils::SecurityToken::getSecurityToken(std::string& token)
 
     // Thunder Security is enabled by Default.
     bool thunderSecurityRFCEnabled = true;
-    RFC_ParamData_t param;
-    if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable", param))
-    {
-        if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",5) == 0))
-        {
-            thunderSecurityRFCEnabled = false;
-        }
-    }
     std::cout << "Thunder Security RFC enabled: " << thunderSecurityRFCEnabled << std::endl;
     if(!isThunderSecurityConfigured() || !thunderSecurityRFCEnabled)
     {
@@ -300,16 +292,6 @@ bool Utils::isPluginActivated(const char* callSign)
         LOGINFO("Plugin %s is active ", callSign);
     }
     return pluginActivated;
-}
-
-bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
-{
-    WDMP_STATUS wdmpStatus = getRFCParameter("RDKShell", paramName, &paramOutput);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        return true;
-    }
-    return false;
 }
 
 std::string Utils::SecurityToken::m_sToken = "";

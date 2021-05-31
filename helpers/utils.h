@@ -25,7 +25,6 @@
 #include <syscall.h>
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
-#include "rfcapi.h"
 
 // IARM
 #include "rdk/iarmbus/libIARM.h"
@@ -342,6 +341,4 @@ namespace Utils
     void activatePlugin(const char* callSign);
 
     bool isPluginActivated(const char* callSign);
-
-    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }
