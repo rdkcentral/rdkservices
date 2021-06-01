@@ -263,6 +263,11 @@ void RtXcastConnector::shutdown()
         m_eventMtrThread.join();    
 
     rtRemoteShutdown(rtEnvironmentGetGlobal());
+    if(RtXcastConnector::_instance != nullptr)
+    {
+        delete RtXcastConnector::_instance;
+        RtXcastConnector::_instance = nullptr;
+    }
 }
 
 int RtXcastConnector::applicationStateChanged( string app, string state, string id, string error)
