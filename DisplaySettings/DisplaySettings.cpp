@@ -2862,7 +2862,7 @@ namespace WPEFramework {
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
                     if (aPort.isConnected()) {
-                        aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                        aPort.getSinkDeviceAtmosCapability (&atmosCapability);
                         response["atmos_capability"] = (int)atmosCapability;
                     }
                     else {
