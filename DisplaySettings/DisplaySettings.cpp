@@ -224,6 +224,8 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             //LOGINFO("dtor");
+
+            lock_guard<mutex> lck(m_callMutex);
         }
 
         void DisplaySettings::InitAudioPorts() 
@@ -1158,9 +1160,9 @@ namespace WPEFramework {
                         else
                             modeString.append(mode.toString());
                     }
-		    else if(aPort.getType().getId() == device::AudioOutputPortType::kARC){
+		    else if((aPort.getType().getId() == device::AudioOutputPortType::kARC) || (aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)){
                         if (aPort.getStereoAuto()) {
-                            LOGINFO("HDMI_ARC0 output mode Auto");
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
                             modeString.append("AUTO");
 			}
 			else{
@@ -1474,6 +1476,7 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
 
@@ -1512,6 +1515,7 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
 
@@ -3534,7 +3538,8 @@ namespace WPEFramework {
             bool isConnectedDeviceRepeater = false;
             try
             {
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected()) {
                     isConnectedDeviceRepeater = vPort.getDisplay().isConnectedDeviceRepeater();
                 }
@@ -3628,7 +3633,9 @@ namespace WPEFramework {
                 }
                 if (!resolution.empty())
                 {
-                    if (Utils::String::stringContains(display,"HDMI"))
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    std::string videoPortName = strVideoPort.substr(0, strVideoPort.size()-1);
+                    if (Utils::String::stringContains(display, videoPortName.c_str()))
                     {
                         // only report first HDMI connected device is HDMI is connected
                         JsonObject params;

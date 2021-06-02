@@ -536,7 +536,7 @@ namespace WPEFramework
                         break;
 
                     case dsVIDEO_FRAMERATE_59dot94:
-                        params["frameRateN"] = 50000;
+                        params["frameRateN"] = 60000;
                         params["frameRateD"] = 1001;
                         break;
 

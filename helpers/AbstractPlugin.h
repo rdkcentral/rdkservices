@@ -20,6 +20,7 @@
 #pragma once
 
 #include <unordered_map>
+#include "utils.h"
 
 namespace WPEFramework {
 
@@ -85,6 +86,16 @@ namespace WPEFramework {
                 } 
             }
 
+            void LOGT2(char* message)
+            {
+                Utils::Telemetry::sendMessage(message);
+            }
+
+            void LOGT2(char *marker, char* message)
+            {
+                Utils::Telemetry::sendMessage(marker, message);
+            }
+
         public:
             AbstractPlugin() : PluginHost::JSONRPC(), m_currVersion(1)
             {
@@ -110,6 +121,8 @@ namespace WPEFramework {
                 }
 
                 registerMethod("getQuirks", &AbstractPlugin::getQuirks, this);
+
+                Utils::Telemetry::init();
             }
 
             virtual ~AbstractPlugin()
