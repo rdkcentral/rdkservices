@@ -30,6 +30,8 @@
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
 #define RFC_REPORT_PROFILE_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry."
 
+#define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -120,14 +122,16 @@ namespace WPEFramework
                         returnResponse(true);
                     }
                 }
+                LOGERR("Didn't find %s in the list of available profiles", reportProfile.c_str());
+                returnResponse(false);
             }
             else
             {
-                LOGERR("No 'status' parameter");
+                LOGERR("No 'reportProfile' or 'status' parameter");
                 returnResponse(false);
             }
 
-            returnResponse(true);
+            returnResponse(false);
         }
 
         uint32_t Telemetry::logApplicationEvent(const JsonObject& parameters, JsonObject& response)
@@ -157,6 +161,34 @@ namespace WPEFramework
         {
             profiles.Clear();
 
+            Core::File file;
+            file = DEFAULT_PROFILES_FILE;
+            file.Open();
+            if (file.IsOpen())
+            {
+                JsonObject defProfilePack;
+                defProfilePack.IElement::FromFile(file);
+
+                if (defProfilePack.HasLabel("profiles"))
+                {
+                    JsonArray defProfiles = defProfilePack["profiles"].Array();
+
+                    JsonArray::Iterator it = defProfiles.Elements();
+
+                    while(it.Next())
+                    {
+                        JsonObject profile = it.Current().Object();
+                        if (profile.HasLabel("name"))
+                            profiles.Add(profile["name"]);
+                        else
+                            LOGERR("Failed to parse profile name from %s", DEFAULT_PROFILES_FILE);
+                    }
+                }
+            }
+            LOGERR("Failed to open %s", DEFAULT_PROFILES_FILE);
+
+            file.Close();
+
             DIR *d = opendir("/opt/.t2persistentfolder/");
 
             if (NULL != d)
@@ -171,7 +203,15 @@ namespace WPEFramework
                     if (0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
                         continue;
 
-                    profiles.Add(de->d_name);
+                    bool exists = false;
+                    JsonArray::Iterator it = profiles.Elements();
+
+                    while(it.Next())
+                        if (it.Current().String() == de->d_name)
+                            exists = true;
+
+                    if (!exists)
+                        profiles.Add(de->d_name);
                 }
 
                 closedir(d);
