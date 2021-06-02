@@ -171,7 +171,6 @@ public:
     {
         uint32_t ret =  (Core::ERROR_NONE);
         value = false;
-        return (Core::ERROR_NONE);
         try
         {
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
