@@ -25,11 +25,11 @@
 #include <syscall.h>
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
-#include "rfcapi.h"
 
+#ifndef DISABLE_IARM
 // IARM
 #include "rdk/iarmbus/libIARM.h"
-
+#endif
 // std
 #include <string>
 
@@ -161,7 +161,7 @@
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
 }
-
+#ifndef DISABLE_IARM
 #define IARM_CHECK(FUNC) { \
     if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
         LOGINFO("IARM %s: %s", #FUNC, \
@@ -175,9 +175,11 @@
         LOGINFO("IARM %s: success", #FUNC); \
     } \
 }
+#endif
 
 namespace Utils
 {
+#ifndef DISABLE_IARM
     struct IARM
     {
         static bool init();
@@ -188,7 +190,7 @@ namespace Utils
     private:
         static bool m_connected;
     };
-
+#endif
     namespace String
     {
         // locale-wise comparison
@@ -294,7 +296,7 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
+#ifndef DISABLE_IARM
     /**
      * @brief Format an IARM_Result_t value for error reporting.
      *
@@ -303,7 +305,7 @@ namespace Utils
      *
      */
     std::string formatIARMResult(IARM_Result_t result);
-
+#endif
     /***
      * @brief	: Execute shell script and get response
      * @param1[in]	: script to be executed with args
@@ -342,6 +344,4 @@ namespace Utils
     void activatePlugin(const char* callSign);
 
     bool isPluginActivated(const char* callSign);
-
-    bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
 }

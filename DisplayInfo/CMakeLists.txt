@@ -20,6 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(BCM_HOST QUIET)
 find_package(NEXUS QUIET)
@@ -42,6 +43,7 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
 if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
@@ -82,6 +84,14 @@ elseif (BCM_HOST_FOUND)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
+
+find_package(CURL)
+if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+endif (CURL_FOUND)
 
 if (BUILD_BROADCOM)
     target_sources(${MODULE_NAME}

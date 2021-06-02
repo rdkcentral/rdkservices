@@ -18,7 +18,7 @@
  */
 
 #include "AampMediaStream.h"
-
+#include "ocdm/open_cdm.h"
 #include "utils.h"
 namespace WPEFramework {
     namespace Plugin {
@@ -86,6 +86,7 @@ namespace WPEFramework {
             delete _aampPlayer;
             _aampPlayer = nullptr;
             _adminLock.Unlock();
+            opencdm_deinit();
         }
 
         uint32_t AampMediaStream::Load(const string& url, bool autoPlay)

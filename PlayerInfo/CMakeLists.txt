@@ -20,6 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -34,6 +35,7 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
 find_package(GSTREAMER REQUIRED)
@@ -69,6 +71,14 @@ if (GSTREAMER_FOUND)
                 GStreamer/PlatformImplementation.cpp)
     endif()
 endif ()
+
+find_package(CURL)
+if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
+else (CURL_FOUND)
+        message ("Curl/libcurl required.")
+endif (CURL_FOUND)
 
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
