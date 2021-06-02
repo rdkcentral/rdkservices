@@ -120,14 +120,16 @@ namespace WPEFramework
                         returnResponse(true);
                     }
                 }
+                LOGERR("Didn't find %s in the list of available profiles", reportProfile.c_str());
+                returnResponse(false);
             }
             else
             {
-                LOGERR("No 'status' parameter");
+                LOGERR("No 'reportProfile' or 'status' parameter");
                 returnResponse(false);
             }
 
-            returnResponse(true);
+            returnResponse(false);
         }
 
         uint32_t Telemetry::logApplicationEvent(const JsonObject& parameters, JsonObject& response)
