@@ -386,7 +386,6 @@ void XCast::onLocateCastTimer()
         {
             LOGINFO("Retry after 60 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
-            m_locateCastTimer.stop();
         }
         return ;
     }// err != RT_OK
@@ -519,11 +518,15 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
                                strAddDataUrl.c_str(), url);
         }
 
+
         string strUrl = std::string (url);
-        if (appName == "NetflixApp")
+        if (appName == "Netflix") {
+            appName.assign("NetflixApp");
             urlParam["pluginUrl"]=strUrl;
-        else
+        }
+        else {
             urlParam["url"]=strUrl;
+        }
 
         params["applicationName"]= appName;
         params["parameters"]= urlParam;

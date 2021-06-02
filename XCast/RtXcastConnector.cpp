@@ -74,8 +74,6 @@ rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const 
         RtNotifier * observer = static_cast<RtNotifier *> (context);
         rtObjectRef appObject = args[0].toObject();
         rtString appName = appObject.get<rtString>("applicationName");
-        if (!strcmp(appName.cString(),"Netflix"))
-            appName = "NetflixApp";
         rtString rtparamIsUrl = appObject.get<rtString>("isUrl");
         if (0 == strcmp(rtparamIsUrl.cString(), "false")) {
 
@@ -89,6 +87,8 @@ rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const 
                                          rtAddDataUrl.cString());
         }
         else {
+            if (!strcmp(appName.cString(),"Netflix"))
+                appName = "NetflixApp";
             rtString rtparams = appObject.get<rtString>("parameters");
             observer->onXcastApplicationLaunchRequest(appName.cString() , rtparams.cString());
         }

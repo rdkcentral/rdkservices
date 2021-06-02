@@ -174,6 +174,7 @@ TTSSpeaker::TTSSpeaker(TTSConfiguration &config) :
     m_pipeline(NULL),
     m_source(NULL),
     m_audioSink(NULL),
+    m_audioVolume(NULL),
     m_main_loop(NULL),
     m_main_context(NULL),
     m_main_loop_thread(NULL),
@@ -491,10 +492,24 @@ void TTSSpeaker::createPipeline() {
 #if defined(PLATFORM_BROADCOM)
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_AMLOGIC)
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
+    m_audioVolume = m_audioSink;
+#elif defined(PLATFORM_REALTEK)
+    GstElement *parse = gst_element_factory_make("mpegaudioparse", NULL);
+    GstElement *decodebin = gst_element_factory_make("omxmp3dec", NULL);
+    GstElement *convert = gst_element_factory_make("audioconvert", NULL);
+    GstElement *resample = gst_element_factory_make("audioresample", NULL);
+    GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
+    m_source = gst_element_factory_make("souphttpsrc", NULL);
+    m_audioVolume = gst_element_factory_make("volume", NULL);
+    m_audioSink = gst_element_factory_make("alsasink", NULL);
+    g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
+    g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
+    g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
 #endif
 
     std::string tts_url =
@@ -535,7 +550,7 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
-    g_object_set(G_OBJECT(m_audioSink), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
 
     // Add elements to pipeline and link
     if(m_pcmAudioEnabled) {
@@ -587,6 +602,11 @@ void TTSSpeaker::createPipeline() {
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, capsfilter, convert, resample, m_audioSink, NULL);
         result = gst_element_link_many (m_source,capsfilter,convert,resample,m_audioSink,NULL);
     }
+#elif defined(PLATFORM_REALTEK)
+    audiocaps = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, "rate", G_TYPE_INT, 48000, NULL);
+    g_object_set( G_OBJECT(audiofilter),  "caps",  audiocaps, NULL );
+    gst_bin_add_many(GST_BIN(m_pipeline), m_source, parse, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
+    gst_element_link_many (m_source, parse, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
 #endif
 
     if(!result) {
@@ -831,7 +851,7 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
-        g_object_set(G_OBJECT(m_audioSink), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 #if defined(PLATFORM_AMLOGIC)
 	//-12db is almost 25%
