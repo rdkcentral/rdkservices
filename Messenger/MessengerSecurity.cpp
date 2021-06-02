@@ -95,21 +95,27 @@ namespace Plugin {
 
         if (method != _T("join")) {
             result = true;
+        } else if (token.empty()) {
+            TRACE(Trace::Warning, (_T("Security ignored: no token")));
+
+            result = true;
         } else {
             JoinParamsData params;
             params.FromString(parameters);
-            auto room = params.Room.Value();
-            SecureType secure = params.Secure.Value();
+            const auto& user = params.User.Value();
+            const auto& room = params.Room.Value();
+            const auto secure = params.Secure.Value();
             const auto& acl = params.Acl;
-
-            _adminLock.Lock();
-
-            auto actualAcl = _roomACL.find(room);
-            bool aclSet = actualAcl != _roomACL.end();
 
             if (secure != SecureType::SECURE) {
                 result = true;
+            } else if (user.empty() || room.empty()) {
+                result = true;
             } else {
+                _adminLock.Lock();
+
+                auto actualAcl = _roomACL.find(room);
+                bool aclSet = actualAcl != _roomACL.end();
                 bool settingAcl = acl.IsSet();
                 Core::JSON::ArrayType<Core::JSON::String>::ConstIterator index = acl.Elements();
                 bool roomExists = _rooms.find(room) != _rooms.end();
@@ -128,6 +134,10 @@ namespace Plugin {
                                                        std::make_tuple(room),
                                                        std::make_tuple());
                         while (index.Next()) {
+                            TRACE(Trace::Information,
+                                  (_T("Adding '%s' to room '%s' ACL"),
+                                          index.Current().Value().c_str(),
+                                          room.c_str()));
                             retval.first->second.emplace_back(index.Current().Value());
                         }
 
@@ -139,16 +149,28 @@ namespace Plugin {
                     if (settingAcl) {
                         TRACE(Trace::Error, (_T("ACL for '%s' already set"), room.c_str()));
                     } else {
-                        result = std::any_of(actualAcl->second.begin(), actualAcl->second.end(),
-                                             [&token](const string &i) {
-                                                 return std::regex_search(GetUrlOrigin(token),
-                                                                          std::regex(CreateUrlRegex(i)));
-                                             });
+                        auto origin = GetUrlOrigin(token);
+                        auto it = std::find_if(actualAcl->second.begin(), actualAcl->second.end(),
+                                              [&origin](const string &i) {
+                                                  return std::regex_search(origin, std::regex(CreateUrlRegex(i)));
+                                              });
+                        if (it == actualAcl->second.end()) {
+                            TRACE(Trace::Warning,
+                                  (_T("Origin '%s' doesn't match room '%s' ACL"), origin.c_str(), room.c_str()));
+                        } else {
+                            TRACE(Trace::Information,
+                                  (_T("Origin '%s' matches '%s' in room '%s' ACL"),
+                                          origin.c_str(),
+                                          it->c_str(),
+                                          room.c_str()));
+
+                            result = true;
+                        }
                     }
                 }
-            }
 
-            _adminLock.Unlock();
+                _adminLock.Unlock();
+            }
         }
 
         return result;
