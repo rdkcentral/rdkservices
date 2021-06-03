@@ -4732,7 +4732,10 @@ namespace WPEFramework {
                         notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
                     }
                 }
-                sleep(1);
+                if (stateList.Length() > 0)
+                {
+                    sleep(1);
+                }
             }
 
             for (int i=0; i<stateList.Length(); i++)
