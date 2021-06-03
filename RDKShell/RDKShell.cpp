@@ -4383,13 +4383,43 @@ namespace WPEFramework {
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
             sForceResidentAppLaunch = true;
+            auto thunderController = getThunderControllerClient();
+            WPEFramework::Core::JSON::String configString;
+
+            int32_t status = 0;
+            string method = "configuration@ResidentApp";
+            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+            status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+
+            std::cout << "config resident app status: " << status << std::endl;
+            std::string updatedUrl;
+            if (status > 0)
+            {
+                std::cout << "trying resident app config status one more time...\n";
+                status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                std::cout << "trying resident app config status: " << status << std::endl;
+            }
+            else
+            {
+                JsonObject configSet;
+                configSet.FromString(configString.Value());
+                updatedUrl = configSet["url"].String();
+                if (updatedUrl.find("?") != -1)
+                {
+                    updatedUrl.append("&adjustPowerStateAtStartup=false");
+                }
+                else
+	        {
+                    updatedUrl.append("?adjustPowerStateAtStartup=false");
+	        }
+            }
+
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
             activateParams.Set("callsign",callsign.c_str());
             JsonObject activateResult;
-            auto thunderController = getThunderControllerClient();
-            int32_t status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+            status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
 
             std::cout << "activate resident app status: " << status << std::endl;
             if (status > 0)
@@ -4407,6 +4437,19 @@ namespace WPEFramework {
                     ret = true;
                 }
             }
+
+            if (!updatedUrl.empty())
+            {
+                WPEFramework::Core::JSON::String urlString;
+                urlString = updatedUrl;
+                status = JSONRPCDirectLink(mCurrentService, "ResidentApp").Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                std::cout << "set url status " << updatedUrl << " " << status << std::endl;
+                if (status > 0)
+                {
+                    std::cout << "failed to set url to " << updatedUrl << " with status code " << status << std::endl;
+                }
+            }
+
             JsonObject joFactoryModeParams;
             JsonObject joFactoryModeResult;
             joFactoryModeParams.Set("namespace","FactoryTest");
