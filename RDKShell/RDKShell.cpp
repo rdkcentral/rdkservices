@@ -3860,11 +3860,6 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify topmost (topmost = true/false)";
             }
-            else if (!parameters.HasLabel("focus"))
-            {
-                result = false;
-                response["message"] = "please specify focus (focus = true/false)";
-            }
 
             if (result)
             {
@@ -3878,8 +3873,11 @@ namespace WPEFramework {
                     client = parameters["callsign"].String();
                 }
                 const bool topmost = parameters["topmost"].Boolean();
-                const bool focus = parameters["focus"].Boolean();
-
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
                 result = setTopmost(client, topmost, focus);
                 if (false == result)
                 {
@@ -4853,7 +4851,10 @@ namespace WPEFramework {
                         notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
                     }
                 }
-                sleep(1);
+                if (stateList.Length() > 0)
+                {
+                    sleep(1);
+                }
             }
 
             for (int i=0; i<stateList.Length(); i++)
