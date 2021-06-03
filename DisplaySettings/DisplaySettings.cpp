@@ -3331,6 +3331,9 @@ namespace WPEFramework {
         // 5.
         void DisplaySettings::onTimer()
         {
+            // lock to prevent: parallel onTimer runs, destruction during onTimer
+            lock_guard<mutex> lck(m_callMutex);
+
             bool isPluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
 
             if (!isPluginActivated) {
@@ -3340,7 +3343,7 @@ namespace WPEFramework {
                 LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
             }
-	    m_callMutex.lock();
+
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
@@ -3395,7 +3398,6 @@ namespace WPEFramework {
                     m_timer.stop();
                 }
             }
-	    m_callMutex.unlock();
         }
          // Event management end
 
