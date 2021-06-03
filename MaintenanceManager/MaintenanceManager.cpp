@@ -593,7 +593,21 @@ namespace WPEFramework {
                     }
 
                     response["maintenanceStatus"] = notifyStatusToString(g_notify_status);
-                    response["LastSuccessfulCompletionTime"] = stoi(LastSuccessfulCompletionTime.c_str());
+                    if(strcmp("NA",LastSuccessfulCompletionTime.c_str())==0)
+                    {
+                       response["LastSuccessfulCompletionTime"] = 0;  // stoi is not able handle "NA"
+                    } 
+                    else
+                    {
+                       try{
+                               response["LastSuccessfulCompletionTime"] = stoi(LastSuccessfulCompletionTime.c_str());
+                          }
+                       catch(exception &err)
+                          {
+                              //exception caught with stoi -- So making "LastSuccessfulCompletionTime" as 0
+                              response["LastSuccessfulCompletionTime"] = 0;
+                          }
+                    }
                     response["isCriticalMaintenance"] = b_criticalMaintenace;
                     response["isRebootPending"] = b_rebootPending;
                     result = true;
