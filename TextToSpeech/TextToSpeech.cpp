@@ -87,10 +87,12 @@ namespace Plugin {
         // Deinitialize what we initialized..
         _service = nullptr;
         _tts = nullptr;
+        m_AclCalled = false;
     }
 
     TextToSpeech::TextToSpeech()
             : AbstractPlugin()
+            , m_AclCalled(false)
             , _apiVersionNumber(API_VERSION_NUMBER)
             , _notification(this)
     {
