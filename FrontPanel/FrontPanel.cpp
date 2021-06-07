@@ -306,10 +306,16 @@ namespace WPEFramework
                             {
                                 device::FrontPanelIndicator::getInstance(fp_ind.c_str()).setBrightness(int(brightness));
                                 ok = true;
-                            }
-                            catch (...)
+			    }
+			    catch (const std::exception & err)
+			    {
+                                ok = false;
+                                LOGERR("Exception while setBrightness : %s", err.what());
+			    }
+			    catch (...)
                             {
                                 ok = false;
+                                LOGERR("Exception while setBrightness");
                             }
                         }
                     }
@@ -373,6 +379,10 @@ namespace WPEFramework
                     try
                     {
                         brightness = device::FrontPanelIndicator::getInstance(fp_ind.c_str()).getBrightness();
+		    }
+		    catch (const std::exception & err)
+                    {
+                        LOGWARN("Exception thrown from ds while calling getBrightness : %s", err.what());
                     }
                     catch (...)
                     {
@@ -573,8 +583,12 @@ namespace WPEFramework
                         lights.push_back(MappedName);
                     }
                 }
-            }
-            catch (...)
+	    }
+            catch (const std::exception & err)
+	    {
+                LOGERR("Exception while getFrontPanelLights : %s", err.what());
+	    }
+	    catch (...)
             {
                 LOGERR("Exception while getFrontPanelLights");
             }
@@ -619,8 +633,12 @@ namespace WPEFramework
             {
                 indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
                 returnResult[CLOCK_LED] = indicatorInfo;
-            }
-            catch (...)
+	    }
+	    catch (const std::exception & err)
+	    {
+                LOGERR("Exception while getFrontPanelLightsInfo : %s",err.what());
+	    }
+	    catch (...)
             {
                 LOGERR("Exception while getFrontPanelLightsInfo");
             }
@@ -824,6 +842,10 @@ namespace WPEFramework
                     }
                 }
             }
+	    catch (const std::exception & err)
+	    {
+                LOGERR("Exception while getTextDisplay : %s", err.what());
+	    }
             catch (...)
             {
                 LOGERR("Exception while getTextDisplay");
