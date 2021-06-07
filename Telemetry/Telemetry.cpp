@@ -185,7 +185,8 @@ namespace WPEFramework
                     }
                 }
             }
-            LOGERR("Failed to open %s", DEFAULT_PROFILES_FILE);
+            else
+                LOGERR("Failed to open %s", DEFAULT_PROFILES_FILE);
 
             file.Close();
 
