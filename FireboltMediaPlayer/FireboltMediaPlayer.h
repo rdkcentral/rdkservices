@@ -65,6 +65,13 @@ namespace WPEFramework {
 
             public:
 
+            /**
+             * @brief A proxy for the out-of-process implementation of IMediaStream.
+             *
+             * The reference count of this instance is effectively the reference count of the out-of-process
+             * instance.
+             *
+             */
             class MediaStreamProxy
             {
 
