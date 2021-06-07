@@ -4,7 +4,6 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 <br><br>
 
 ## Contributing to RDKServices ##
----
 
 ### **License Requirements** ###
 1. Before RDK accepts your code into the project you must sign the RDK [Contributor License Agreement (CLA)](https://developer.rdkcentral.com/source/contribute/contribute/before_you_contribute/).
@@ -29,7 +28,7 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 
 2. At least one reviewer needs to ```review and approve``` the pull request.
 
-3. For tracking and release management purpose, each pull request and all the commits in the pull request shall include ```RDK ticket number(s) or Github issue number(s)``` and “reason for the change”.
+3. For tracking and release management purposes, each pull request and all the commits in the pull request shall include ```RDK ticket number(s) or Github issue number(s)``` and “reason for the change”.
 
 4. Any pull request from Comcast developers should include a link to successful gerrit verification (in the comment section).
 
@@ -39,7 +38,6 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 <br><br>
 
 ## Comcast CI/CD ##
----
 
 ### **RDKServices branches - sprint vs main (Specific to RDKV Builds)** ###
 1. Comcast gerrit sprint branch will point to rdkservices sprint branch.
@@ -70,7 +68,6 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 <br><br>
 
 ## Documentation ##
----
 
 1. Each RDK Service must be fully documented in github or [rdkcentral wiki](https://wiki.rdkcentral.com/pages/viewpage.action?pageId=98961092). 
 
@@ -81,21 +78,21 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 <br><br>
 
 ## Questions? ##
----
+
 If you have any questions or concerns reach out to the RDKServices maintainers - [Vijay Selvaraj](mailto:VijayAnand_Selvaraj@cable.comcast.com) / [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
 
 For a plugin specific question, maintainers might refer you to the plugin owner(s).
 <br><br>
 
 ## Coding Guidelines ##
----
+
 1. **Be Consistent**
 
     * The point of having style guidelines is to have a common vocabulary of coding so people can concentrate on what you’re saying rather than on how you’re saying it.
 
     * If the code you add to a file looks drastically different from the existing code around it, it throws readers out of their rhythm. Avoid this.
 
-    * If you’re editing code, take a few minutes to determine coding style of the component and apply the same style.
+    * If you’re editing code, take a few minutes to determine the coding style of the component and apply the same style.
 
     * To maintain uniformity in all text-editors, set TAB size to 2 or 4 spaces and replace TAB by SPACES
 
@@ -111,7 +108,7 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
 
 3. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
 
-4. All method, parameter and event names must be camelCase and start with a lower case letter.
+4. All method, parameter and event names must be camelCase and start with a lowercase letter.
 
 5. MODULE_NAME
 
