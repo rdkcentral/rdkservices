@@ -215,8 +215,8 @@ namespace WPEFramework
             }
             if (!started)
             {
-                    m_numberOfBlinks = 0;
-                    m_maxNumberOfBlinkRepeats = 0;
+                m_numberOfBlinks = 0;
+                m_maxNumberOfBlinkRepeats = 0;
                 m_currentBlinkListIndex = 0;
                 started = true;
             }
