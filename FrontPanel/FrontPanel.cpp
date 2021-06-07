@@ -306,13 +306,13 @@ namespace WPEFramework
                             {
                                 device::FrontPanelIndicator::getInstance(fp_ind.c_str()).setBrightness(int(brightness));
                                 ok = true;
-			    }
-			    catch (const std::exception & err)
-			    {
+                            }
+                            catch (const std::exception & err)
+                            {
                                 ok = false;
                                 LOGERR("Exception while setBrightness : %s", err.what());
-			    }
-			    catch (...)
+                            }
+                            catch (...)
                             {
                                 ok = false;
                                 LOGERR("Exception while setBrightness");
@@ -379,8 +379,8 @@ namespace WPEFramework
                     try
                     {
                         brightness = device::FrontPanelIndicator::getInstance(fp_ind.c_str()).getBrightness();
-		    }
-		    catch (const std::exception & err)
+                    }
+                    catch (const std::exception & err)
                     {
                         LOGWARN("Exception thrown from ds while calling getBrightness : %s", err.what());
                     }
@@ -429,7 +429,7 @@ namespace WPEFramework
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_RECORD);
             }
-	    else if (fp_ind.compare(POWER_LED) == 0)
+            else if (fp_ind.compare(POWER_LED) == 0)
             {
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_POWER);
@@ -470,7 +470,7 @@ namespace WPEFramework
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_RECORD);
             }
-	    else if (fp_ind.compare(POWER_LED) == 0)
+            else if (fp_ind.compare(POWER_LED) == 0)
             {
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_POWER);
@@ -583,12 +583,12 @@ namespace WPEFramework
                         lights.push_back(MappedName);
                     }
                 }
-	    }
+            }
             catch (const std::exception & err)
-	    {
+            {
                 LOGERR("Exception while getFrontPanelLights : %s", err.what());
-	    }
-	    catch (...)
+            }
+            catch (...)
             {
                 LOGERR("Exception while getFrontPanelLights");
             }
@@ -633,12 +633,12 @@ namespace WPEFramework
             {
                 indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
                 returnResult[CLOCK_LED] = indicatorInfo;
-	    }
-	    catch (const std::exception & err)
-	    {
+            }
+            catch (const std::exception & err)
+            {
                 LOGERR("Exception while getFrontPanelLightsInfo : %s",err.what());
-	    }
-	    catch (...)
+            }
+            catch (...)
             {
                 LOGERR("Exception while getFrontPanelLightsInfo");
             }
@@ -842,10 +842,10 @@ namespace WPEFramework
                     }
                 }
             }
-	    catch (const std::exception & err)
-	    {
+            catch (const std::exception & err)
+            {
                 LOGERR("Exception while getTextDisplay : %s", err.what());
-	    }
+            }
             catch (...)
             {
                 LOGERR("Exception while getTextDisplay");
