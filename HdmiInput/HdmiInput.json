@@ -86,8 +86,39 @@
                 ]
             }
         },
+        "getEdidVersion":{
+            "summary": "(Version 2) Returns the EDID version",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "edidVersion": {
+                        "summary": "The EDID version",
+                        "type": "string",
+                        "example": "HDMI2.0"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "edidVersion",
+                    "success"
+                ]
+            }
+        },
         "getHDMISPD": {
-            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -118,7 +149,7 @@
             }
         },
         "getRawHDMISPD":{
-            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -209,6 +240,29 @@
                     "success"
                 ]
             }            
+        },
+        "setEdidVersion": {
+            "summary": "(Version 2) Sets an HDMI EDID version",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "version":{
+                        "summary": "The EDID version",
+                        "type": "string",
+                        "example": "HDMI2.0"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "version"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         },
         "setVideoRectangle": {
             "summary": "Sets an HDMI Input video window",

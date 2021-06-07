@@ -7,6 +7,17 @@
         "description": "The `FrameRate` plugin allows you to collect FPS data."
     },
     "definitions": {
+        "framerate": {
+            "summary": "The display framerate setting (width x height x framerate)",
+            "type": "string",
+            "example": "3840x2160px48"
+        },
+        "auto-frm-mode": {
+            "summary": "`0` for auto framerate mode disabled, `1` for auto framerate mode enabled",
+            "enum": [ 0, 1 ],
+            "type": "integer",
+            "example": 0
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -25,6 +36,42 @@
         }
     },
     "methods": {
+        "getDisplayFrameRate": {
+            "summary": "(Version 2) Returns the current display frame rate values",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "framerate",
+                    "success"
+                ]
+            }
+        },
+        "getFrmMode": {
+            "summary": "(Version 2) Returns the current auto framerate mode",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "auto-frm-mode": {
+                        "$ref": "#/definitions/auto-frm-mode"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "auto-frm-mode",
+                    "success"
+                ]
+            }
+        },
         "setCollectionFrequency": {
             "summary": "Sets the FPS data collection interval",
             "params": {
@@ -42,14 +89,48 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setDisplayFrameRate": {
+            "summary": "(Version 2) Sets the display framerate values",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "$ref": "#/definitions/framerate"
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFrmMode":{
+            "summary": "(Version 2) Sets the auto framerate mode",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "auto-frm-mode": {
+                        "$ref": "#/definitions/auto-frm-mode"
+                    }
+                },
+                "required": [
+                    "auto-frm-mode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "startFpsCollection":{
-            "summary": "Starts the FPS collection",
+            "summary": "Starts the FPS data collection",
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
         "stopFpsCollection":{
-            "summary": "Stops the FPS collection",
+            "summary": "Stops the FPS data collection",
             "result": {
                 "$ref": "#/definitions/result"
             }

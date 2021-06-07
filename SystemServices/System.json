@@ -134,6 +134,11 @@
             "type": "string",
             "example": "SystemPlugin"
         },
+        "Opt-Out": {
+            "summary": "`true` for opt-out, otherwise `false`",
+            "type": "boolean",
+            "example": false
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -195,7 +200,7 @@
             }
         },
         "fireFirmwarePendingReboot":{
-            "summary": "Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event",
+            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event",
             "events": [
                 "onFirmwarePendingReboot"
             ],
@@ -440,7 +445,7 @@
             }
         },
         "getLastFirmwareFailureReason": {
-            "summary": "Retrieves the last firmware failure reason",
+            "summary": "(Version 2) Retrieves the last firmware failure reason",
             "result": {
                 "type": "object",
                 "properties": {
@@ -571,7 +576,7 @@
             }
         },
         "getPowerStateBeforeReboot":{
-            "summary": "Returns the power state before reboot",
+            "summary": "(Version 2) Returns the power state before reboot",
             "result": {
                 "type": "object",
                 "properties": {
@@ -877,7 +882,7 @@
             }
         },
         "getTimeZones":{
-            "summary": "Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone",
+            "summary": "(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone",
             "result": {
                 "type": "object",
                 "properties": {
@@ -929,7 +934,7 @@
             }
         },
         "getWakeupReason":{
-            "summary": "Returns the reason for the device coming out of deep sleep",
+            "summary": "(Version 2) Returns the reason for the device coming out of deep sleep",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1053,6 +1058,25 @@
                 ]
             }
         },
+        "isOptOutTelemetry": {
+            "summary": "(Version 2) Checks the telemetry opt-out status",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "Opt-Out": {
+                        "$ref": "#/definitions/Opt-Out"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "Opt-Out",
+                    "success"
+                ]
+            }
+
+        },
         "queryMocaStatus":{
             "summary": "Checks whether MOCA is enabled",
             "result": {
@@ -1171,7 +1195,7 @@
             }
         },
         "setFirmwareAutoReboot": {
-            "summary": "Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
+            "summary": "(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1190,7 +1214,7 @@
             }
         },
         "setFirmwareRebootDelay": {
-            "summary": "Delays the firmware reboot",
+            "summary": "(Version 2) Delays the firmware reboot",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1253,6 +1277,23 @@
                 },
                 "required": [
                     "nwStandby"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "SetOptOutTelemetry": {
+            "summary": "Sets the telemetry opt-out status",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "Opt-Out": {
+                        "$ref": "#/definitions/Opt-Out"
+                    }
+                },
+                "required": [
+                    "Opt-Out"
                 ]
             },
             "result": {
@@ -1354,7 +1395,7 @@
     },
     "events": {
         "onFirmwarePendingReboot":{
-            "summary": "Triggered when the `fireFirmwarePendingReboot` method is invoked",
+            "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -1502,6 +1543,9 @@
                     "rebootReason"
                 ]
             }
+        },
+        "onSystemClockSet":{
+            "summary": "Triggered when the clock on the set-top device is updated"
         },
         "onSystemModeChanged":{
             "summary": "Triggered when the device operating mode changes",

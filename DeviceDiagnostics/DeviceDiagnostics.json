@@ -7,6 +7,26 @@
         "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
     },
     "definitions": {
+        "audioDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
+        "videoDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -25,6 +45,24 @@
         }
     },
     "methods": {
+        "getAudioDecoderStatus":{
+            "summary": "Gets the audio decoder status",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "audioDecoderStatus": {
+                        "$ref": "#/definitions/audioDecoderStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioDecoderStatus",
+                    "success"
+                ]
+            }
+        },
         "getConfiguration": {
             "summary": "Gets the values associated with the corresponding property names",
             "params": {
@@ -76,6 +114,54 @@
                 "required": [
                     "paramList",
                     "success"
+                ]
+            }
+        },
+        "getVideoDecoderStatus":{
+            "summary": "Gets the video decoder status",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "videoDecoderStatus": {
+                        "$ref": "#/definitions/videoDecoderStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "videoDecoderStatus",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onAudioDecoderStatusChanged":{
+            "summary": "Triggered when the audio decoder status changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "audioDecoderStatus": {
+                        "$ref": "#/definitions/audioDecoderStatus"
+                    }
+                },
+                "required": [
+                    "audioDecoderStatus"
+                ]
+            }
+        },
+        "onVideoDecoderStatusChanged":{
+            "summary": "Triggered when the video decoder status changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDecoderStatus": {
+                        "$ref": "#/definitions/videoDecoderStatus"
+                    }
+                },
+                "required": [
+                    "videoDecoderStatus"
                 ]
             }
         }

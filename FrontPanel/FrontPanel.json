@@ -13,7 +13,7 @@
             "example": 50
         },
         "index": {
-            "summary": "The index name of a front panel indicator.",
+            "summary": "The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led`",
             "type": "string",
             "example": "power_led"
         },
@@ -248,7 +248,7 @@
             }
         },
         "powerLedOff": {
-            "summary": "Turns off an LED indicator",
+            "summary": "Switches the specified LED off",
             "params": {
                 "type":"object",
                 "properties": {
@@ -265,7 +265,7 @@
             }
         },
         "powerLedOn": {
-            "summary": "Turns on an LED indicator",
+            "summary": "Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -451,12 +451,12 @@
             }
         },
         "setPowerStatus": {
-            "summary": "Sets the power status",
+            "summary": "(Version 2) Sets the power status",
             "params": {
                 "type":"object",
                 "properties": {
                     "power": {
-                        "summary": "The power status",
+                        "summary": "`true` for power state on, or `false` for power state off",
                         "type": "boolean",
                         "example": false
                     }

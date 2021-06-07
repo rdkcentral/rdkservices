@@ -83,6 +83,33 @@
             "type": "boolean",
             "example": true
         },
+        "displayName": {
+            "summary": "A name for the display",
+            "type": "string",
+            "example": "test"
+        },
+        "holePunch":{
+            "summary": "Whether hole punching is enabled (`true`) or disabled (`false`)",
+            "type": "boolean",
+            "example": true
+        },
+        "logLevel": {
+            "summary": "The log level",
+            "enum": [
+                "DEBUG",
+                "INFO",
+                "WARN",
+                "ERROR",
+                "FATAL"
+            ],
+            "type":"string",
+            "example": "INFO"
+        },
+        "ram":{
+            "summary": "The amount of free memory remaining in Kilobytes",
+            "type": "integer",
+            "example": 65536 
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -102,7 +129,7 @@
     },
     "methods": {
         "addAnimation":{
-            "summary": "Performs a set of animations",
+            "summary": "(Version 2) Performs a set of animations",
             "params": {
                 "type":"object",
                 "properties": {
@@ -202,7 +229,7 @@
             }
         },
         "addKeyListener":{
-            "summary": "Adds a key listener to an application.  The keys are bubbled up based on their z-order",
+            "summary": "(Version 2) Adds a key listener to an application.  The keys are bubbled up based on their z-order",
             "params": {
                 "type":"object",
                 "properties": {
@@ -250,8 +277,59 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "createDisplay": {
+            "summary": " Creates a display for the specified client using the configuration parameters",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client"
+                    },
+                    "displayName": {
+                        "$ref": "#/definitions/displayName"
+                    },
+                    "displayWidth": {
+                        "summary": "The width of the display",
+                        "type": "number",
+                        "example": 1920
+                    },
+                    "displayHeight": {
+                        "summary": "The height of the display",
+                        "type": "number",
+                        "example": 1080
+                    },
+                    "virtualDisplay": {
+                        "summary": "Whether to create a virtual display (`true`) or not (`false`)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "virtualWidth": {
+                        "summary": "The width of the virtual display",
+                        "type": "number",
+                        "example": 1920
+                    },
+                    "virtualHeight": {
+                        "summary": "The height of the virtual display",
+                        "type": "number",
+                        "example": 1080
+                    }
+                },
+                "required": [
+                    "client",
+                    "displayName",
+                    "displayWidth",
+                    "displayHeight",
+                    "virtualDisplay",
+                    "virtualWidth",
+                    "virtualHeight"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "destroy":{
-            "summary": "Destroys an application",
+            "summary": "(Version 2) Destroys an application",
             "events": ["onDestroyed"],
             "params": {
                 "type": "object",
@@ -287,8 +365,69 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "enableKeyRepeats": {
+            "summary": "Enables or disables key repeats",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enable": {
+                        "summary": "Whether to enable (`true`) or disable (`false`) key repeats",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "enableLogsFlushing": {
+            "summary": "Enables or disables flushing all logs",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enable": {
+                        "summary": "Whether to enable (`true`) or disable (`false`) log flushing",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "enableVirtualDisplay":{
+            "summary": "Enables or disables a virtual display for the specified client",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"
+                    },
+                    "enable": {
+                        "summary": "Whether to enable (`true`) or disable (`false`) a virtual display",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "client",
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "generateKey": {
-            "summary": "Triggers key events (key press and release)",
+            "summary": "(Version 2) Triggers key events (key press and release)",
             "params": {
                 "type":"object",
                 "properties": {
@@ -330,12 +469,12 @@
             }
         },
         "getAvailableTypes": {
-            "summary": "Returns the list of application types available on the firmware",
+            "summary": "(Version 2) Returns the list of application types available on the firmware",
             "result": {
                 "type": "object",
                 "properties": {
                     "types": {
-                        "summary": "#/definitions/interface",
+                        "summary": "application types",
                         "type":"array",
                         "items": {
                             "type": "string",
@@ -410,6 +549,121 @@
                 ]
             }
         },
+        "getHolePunch": {
+            "summary": "Returns whether video hole punching is enabled or disabled for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "holePunch":{
+                        "$ref": "#/definitions/holePunch"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "holePunch",
+                    "success"
+                ]
+            }            
+        },
+        "getKeyRepeatsEnabled": {
+            "summary": "Returns whether key repeating is enabled or disabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "keyRepeat": {
+                        "summary": "`true` if enabled, otherwise `false`",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "keyRepeat",
+                    "success"
+                ]
+            }
+        },
+        "getLastWakeupKey": {
+            "summary": "Returns the last key press prior to a device wakeup",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "keyCode": {
+                        "$ref": "#/definitions/keyCode"
+                    },
+                    "modifiers": {
+                        "$ref": "#/definitions/modifiers"
+                    },
+                    "timestampInSeconds": {
+                        "summary": "The time, in seconds, of the last wakeup",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "keyCode",
+                    "modifiers",
+                    "timestampInSeconds",
+                    "success"
+                ]
+            }   
+        },
+        "getLogsFlushingEnabled": {
+            "summary": "Returns whether log flushing is enabled or disabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "`true` if enabled, otherwise `false`",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getLogLevel": {
+            "summary": "Returns the currently set logging level",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "logLevel": {
+                        "$ref": "#/definitions/logLevel"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "logLevel",
+                    "success"
+                ]
+            }            
+        },
         "getOpacity":{
             "summary": "Gets the opacity of the specified client",
             "params": {
@@ -440,7 +694,7 @@
             }
         },
         "getScale":{
-            "summary": "Returns the scale of an application",
+            "summary": "(Version 2) Returns the scale of an application",
             "params": {
                 "type":"object",
                 "properties": {
@@ -495,7 +749,7 @@
             }
         },
         "getState":{
-            "summary": "Returns the state of each application",
+            "summary": "(Version 2) Returns the state of all applications",
             "result": {
                 "type": "object",
                 "properties": {
@@ -535,7 +789,7 @@
             }
         },
         "getSystemResourceInfo":{
-            "summary": "Returns system resource information about each application",
+            "summary": "(Version 2) Returns system resource information about each application",
             "result": {
                 "type": "object",
                 "properties": {
@@ -572,6 +826,70 @@
                 },
                 "required": [
                     "runtimes",
+                    "success"
+                ]
+            }
+        },
+        "getVirtualDisplayEnabled":{
+            "summary": "Returns whether virtual display is enabled or disabled for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "`true` if a virtual display is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }            
+        },
+        "getVirtualResolution": {
+            "summary": "Returns whether virtual display is enabled or disabled for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h": {
+                        "$ref": "#/definitions/h"                        
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "w",
+                    "h",
                     "success"
                 ]
             }
@@ -625,6 +943,12 @@
                 ]
             }
         },
+        "hideSplashLogo": {
+            "summary": "Removes the splash screen",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "kill": {
             "summary": "Kills the specified client",
             "params": {
@@ -644,7 +968,7 @@
         },
         "launch":{
             "summary": "Launches an application",
-            "events": ["onLaunched"],
+            "events": ["onApplicationLaunched"],
             "params": {
                 "type": "object",
                 "properties": {
@@ -702,9 +1026,7 @@
                         "example": ""
                     },
                     "displayName":{
-                        "summary": "The name of the display to create",
-                        "type": "string",
-                        "example": ""
+                        "$ref": "#/definitions/displayName"
                     }
                 },
                 "required": [
@@ -774,6 +1096,35 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "removeAllKeyIntercepts": {
+            "summary": "Removes all key intercepts",
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "removeAllKeyListeners": {
+            "summary": "Removes all key listeners",
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "removeAnimation":{
+            "summary": "Removes the current animation for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "removeKeyIntercept": {
             "summary": "Removes a key intercept",
             "params": {
@@ -800,7 +1151,7 @@
             }
         },
         "removeKeyListener": {
-            "summary": "Removes a key listener for an application",
+            "summary": "(Version 2) Removes a key listener for an application",
             "params": {
                 "type":"object",
                 "properties": {
@@ -830,6 +1181,39 @@
                 "required": [
                     "client",
                     "keys"                    
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "scaleToFit": {
+            "summary": "Scales the specified client to fit the current bounds",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "x":{
+                        "$ref": "#/definitions/x"
+                    },
+                    "y":{
+                        "$ref": "#/definitions/y"
+                    },
+                    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    }
+                },
+                "required": [
+                    "client",
+                    "x",
+                    "y",
+                    "w",
+                    "h"
                 ]
             },
             "result": {
@@ -886,6 +1270,27 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setHolePunch": {
+            "summary": "Enables or disables video hole punching for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "holePunch": {
+                        "$ref": "#/definitions/holePunch"
+                    }
+                },
+                "required": [
+                    "client",
+                    "holePunch"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setInactivityInterval": {
             "summary": "Sets the inactivity notification interval",
             "params": {
@@ -904,6 +1309,60 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "setLogLevel":{
+            "summary": "Sets the logging level",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logLevel": {
+                        "$ref": "#/definitions/logLevel"              
+                    }
+                },
+                "required": [
+                    "logLevel"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "setMemoryMonitory":{
+            "summary": "Enables or disables RAM memory monitoring on the device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` to enable memory monitoring or `false` to disable memory monitoring",
+                        "type":"boolean",
+                        "example": true 
+                    },
+                    "interval": {
+                        "summary": "The duration, in seconds, between memory checks",
+                        "type":"number",
+                        "example": 300
+                    },
+                    "lowRam": {
+                        "summary": "The threshold, in Megabytes, after which a low RAM event is generated",
+                        "type":"number",
+                        "example": 128
+                    },
+                    "criticallyLowRam": {
+                        "summary": "The threshold, in Megabytes, after which a critically low RAM event is generated",
+                        "type":"number",
+                        "example": 64
+                    }
+                },
+                "required": [
+                    "enable",
+                    "interval",
+                    "lowRam",
+                    "criticallyLowRam"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
         },
         "setOpacity":{
             "summary": "Sets the opacity of the specified client",
@@ -927,7 +1386,7 @@
             }
         },
         "setScale": {
-            "summary": "Scales an application",
+            "summary": "(Version 2) Scales an application",
             "params": {
                 "type":"object",
                 "properties": {
@@ -973,8 +1432,60 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setTopmost":{
+            "summary": "Sets whether the specified client appears above all other clients on the display",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "topmost":{
+                        "summary": "`true` to set the client as the top most client",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "client",
+                    "topmost"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVirtualResolution": {
+            "summary": "Sets the virtual resolution for the specified client",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"              
+                    },
+                    "width":{
+                        "summary": "The width of the virtual resolution",
+                        "type": "number",
+                        "example": 1920
+                    },
+                    "height":{
+                        "summary": "The height of the virtual resolution",
+                        "type": "number",
+                        "example": 1080
+                    }
+                },
+                "required": [
+                    "client",
+                    "width",
+                    "height"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setVisibility":{
-            "summary": "Sets the visibility of the specified client",
+            "summary": "Sets whether the specified client should be visible",
             "params": {
                 "type":"object",
                 "properties": {
@@ -991,11 +1502,49 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/visible"
+                "$ref": "#/definitions/result"
+            }
+        },
+        "showSplashLogo": {
+            "summary": "Displays the splash screen",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "displayTime": {
+                        "summary": "The amount of the time to show the splash screen",
+                        "type": "number",
+                        "example": 5              
+                    }
+                },
+                "required": [
+                    "displayTime"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "showWatermark": {
+            "summary": "Sets whether a watermark shows on the display",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "show": {
+                        "summary": "`true` to show the watermark or `false` to hide the watermark",
+                        "type": "boolean",
+                        "example": true              
+                    }
+                },
+                "required": [
+                    "show"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
             }
         },
         "suspend": {
-            "summary": "Suspends an application",
+            "summary": "(Version 2) Suspends an application",
             "events": ["onSuspended"],
             "params": {
                 "type":"object",
@@ -1014,6 +1563,118 @@
         }
     },
     "events": {
+        "onApplicationActivated":{
+            "summary": "Triggered when an application is activated",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationConnected":{
+            "summary": "Triggered when a connection to an application succeeds",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationDisconnected":{
+            "summary": "Triggered when an attempt to disconnect from an application succeeds",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationFirstFrame":{
+            "summary": "Triggered when the first frame of an application is loaded",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationLaunched":{
+            "summary": "Triggered when an application launches successfully",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationResumed":{
+            "summary": "Triggered when an application resumes from a suspended state",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationSuspended":{
+            "summary": "Triggered when an application is suspended",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationTerminated":{
+            "summary": "Triggered when an application terminates",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
         "onDestroyed":{
             "summary": "Triggered when a runtime is destroyed",
             "params": {
@@ -1025,6 +1686,62 @@
                 },
                 "required": [
                     "client"
+                ]
+            }
+        },
+        "onDeviceCriticallyLowRamWarning":{
+            "summary": "Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ram":{
+                        "$ref": "#/definitions/ram" 
+                    }
+                },
+                "required": [
+                    "ram"
+                ]
+            }
+        },
+        "onDeviceCriticallyLowRamWarningCleared":{
+            "summary": "Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ram":{
+                        "$ref": "#/definitions/ram" 
+                    }
+                },
+                "required": [
+                    "ram"
+                ]
+            }
+        },
+        "onDeviceLowRamWarning":{
+            "summary": "Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ram":{
+                        "$ref": "#/definitions/ram" 
+                    }
+                },
+                "required": [
+                    "ram"
+                ]
+            }
+        },
+        "onDeviceLowRamWarningCleared":{
+            "summary": "Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ram":{
+                        "$ref": "#/definitions/ram" 
+                    }
+                },
+                "required": [
+                    "ram"
                 ]
             }
         },
@@ -1044,7 +1761,8 @@
                     }
                 },
                 "required": [
-                    "client"
+                    "client",
+                    "launchType"
                 ]
             }
         },
@@ -1075,6 +1793,20 @@
                 },
                 "required": [
                     "minutes"
+                ]
+            }
+        },
+        "onWillDestroy":{
+            "summary": "Triggered when an application is set to be destroyed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign":{
+                        "$ref": "#/definitions/callsign" 
+                    }
+                },
+                "required": [
+                    "callsign"
                 ]
             }
         }

@@ -2,7 +2,7 @@
 <a name="head.FrontPanel_Plugin"></a>
 # FrontPanel Plugin
 
-**Version: 1.0**
+**Version: 2.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -89,15 +89,15 @@ FrontPanel interface methods:
 | [getFrontPanelLights](#method.getFrontPanelLights) | Returns a list of supported Front Panel LEDs and their properties |
 | [getPreferences](#method.getPreferences) | Returns the preferences that are saved in the `/opt/fp_service_preferences |
 | [is24HourClock](#method.is24HourClock) | Gets the currently set clock mode (12 or 24 hour) |
-| [powerLedOff](#method.powerLedOff) | Turns off an LED indicator |
-| [powerLedOn](#method.powerLedOn) | Turns on an LED indicator |
+| [powerLedOff](#method.powerLedOff) | Switches the specified LED off |
+| [powerLedOn](#method.powerLedOn) | Switches the specified LED indicator on |
 | [set24HourClock](#method.set24HourClock) | Sets the clock mode to either 12 or 24 hour |
 | [setBlink](#method.setBlink) | Sets a blinking pattern for a particular LED indicator |
 | [setBrightness](#method.setBrightness) | Sets the brightness of the specified LED indicator |
 | [setClockBrightness](#method.setClockBrightness) | Sets the clock brightness |
 | [setClockTestPattern](#method.setClockTestPattern) | Allows you to set a test pattern on the STB clock (`88 88`) |
 | [setLED](#method.setLED) | Set preferences for the specified Front Panel LED indicator |
-| [setPowerStatus](#method.setPowerStatus) | Sets the power status |
+| [setPowerStatus](#method.setPowerStatus) | (Version 2) Sets the power status |
 | [setPreferences](#method.setPreferences) | Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences |
 
 
@@ -111,7 +111,7 @@ Get the brightness of the specified LED or FrontPanel.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.index | string | The index name of a front panel indicator |
+| params.index | string | The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led` |
 
 ### Result
 
@@ -345,14 +345,14 @@ This method takes no parameters.
 <a name="method.powerLedOff"></a>
 ## *powerLedOff <sup>method</sup>*
 
-Turns off an LED indicator.
+Switches the specified LED off.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.index | string | The index name of a front panel indicator |
+| params.index | string | The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led` |
 
 ### Result
 
@@ -391,14 +391,14 @@ Turns off an LED indicator.
 <a name="method.powerLedOn"></a>
 ## *powerLedOn <sup>method</sup>*
 
-Turns on an LED indicator.
+Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.index | string | The index name of a front panel indicator |
+| params.index | string | The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led` |
 
 ### Result
 
@@ -558,7 +558,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.brightness | integer | A brightness value from 0 - 100 |
-| params?.index | string | <sup>*(optional)*</sup> The index name of a front panel indicator |
+| params?.index | string | <sup>*(optional)*</sup> The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led` |
 
 ### Result
 
@@ -748,14 +748,14 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 <a name="method.setPowerStatus"></a>
 ## *setPowerStatus <sup>method</sup>*
 
-Sets the power status.
+(Version 2) Sets the power status.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.power | boolean | The power status |
+| params.power | boolean | `true` for power state on, or `false` for power state off |
 
 ### Result
 

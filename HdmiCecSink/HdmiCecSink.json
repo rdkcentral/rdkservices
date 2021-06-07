@@ -291,17 +291,21 @@
             }
         },
         "requestActiveSource": {
-            "summary": "Requests for the active source in the network",
+            "summary": "Requests the active source in the network",
             "result": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
+                "$ref": "#/definitions/result"
+            }
+        },
+        "requestShortAudioDescriptor": {
+            "summary": "Sends the CEC Request Short Audio Descriptor (SAD) message as an event. See `shortAudiodesciptorEvent`.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "sendStandbyMessage": {
+            "summary": "Sends a CEC <Standby> message to the logical address of the device.",
+            "result": {
+                "$ref": "#/definitions/result"
             }
         },
         "setActivePath": {
@@ -488,6 +492,20 @@
                 ]
             }
         },
+        "onDeviceInfoUpdated": {
+            "summary": "Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }            
+        },
         "onDeviceRemoved": {
             "summary": "Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.",
             "params": {
@@ -561,6 +579,37 @@
                     "logicalAddress"
                 ]
             }
+        },
+        "sendStandbyMessageEvent":{
+            "summary": "Triggered when the source device changes status to `STANDBY`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "shortAudiodesciptorEvent": {
+            "summary": "Triggered when the CEC Request Short Audio Descriptor (SAD) message is sent. See `requestShortAudioDescriptor`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audiodescriptor": {
+                        "summary": "The SAD information (formatid, audioFormatCode, numberofdescriptor)",
+                        "type": "integer",
+                        "example": [0, 10, 2]
+                    }
+                },
+                "required": [
+                    "audiodescriptor"
+                ]
+            }
         }
+        
     }
 }

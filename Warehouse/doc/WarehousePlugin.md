@@ -2,7 +2,7 @@
 <a name="head.Warehouse_Plugin"></a>
 # Warehouse Plugin
 
-**Version: 1.0**
+**Version: 2.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -85,7 +85,9 @@ Warehouse interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDeviceInfo](#method.getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
+| [ExecuteHardwareTest](#method.ExecuteHardwareTest) | (Version 2) Starts a hardware test on the device |
+| [getDeviceInfo](#method.getDeviceInfo) | (DEPRECATED - Use `getDeviceInfo` from `org |
+| [getHardwareTestResults](#method.getHardwareTestResults) | (Version 2) Returns the results of the last hardware test |
 | [internalReset](#method.internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
 | [isClean](#method.isClean) | Checks the locations on the device where customer data may be stored |
 | [lightReset](#method.lightReset) | Resets the application data |
@@ -93,10 +95,50 @@ Warehouse interface methods:
 | [setFrontPanelState](#method.setFrontPanelState) | Sets the state of the front panel LEDs to indicate the download state of the STB software image |
 
 
+<a name="method.ExecuteHardwareTest"></a>
+## *ExecuteHardwareTest <sup>method</sup>*
+
+(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Warehouse.1.ExecuteHardwareTest"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.getDeviceInfo"></a>
 ## *getDeviceInfo <sup>method</sup>*
 
-Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.
+(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.
 
 ### Parameters
 
@@ -158,6 +200,52 @@ This method takes no parameters.
         "PARAM_SUCCESS": true,
         "success": true,
         "error": ""
+    }
+}
+```
+
+<a name="method.getHardwareTestResults"></a>
+## *getHardwareTestResults <sup>method</sup>*
+
+(Version 2) Returns the results of the last hardware test.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.testResults | string | The test results |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Warehouse.1.getHardwareTestResults",
+    "params": {
+        "testResults": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
     }
 }
 ```

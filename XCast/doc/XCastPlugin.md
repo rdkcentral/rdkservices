@@ -90,6 +90,7 @@ XCast interface methods:
 | [getFriendlyName](#method.getFriendlyName) | Gets the human readable name for the implementation |
 | [getStandbyBehavior](#method.getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
 | [onApplicationStateChanged](#method.onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
+| [registerApplications](#method.registerApplications) | Registers an application |
 | [setEnabled](#method.setEnabled) | Enables or disables xcast |
 | [setFriendlyName](#method.setFriendlyName) | Sets a name for the implementation |
 | [setStandbyBehavior](#method.setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
@@ -323,6 +324,52 @@ provides notification whenever an application changes state (due to user activit
 }
 ```
 
+<a name="method.registerApplications"></a>
+## *registerApplications <sup>method</sup>*
+
+Registers an application.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applications | string | The application name to register |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Xcast.1.registerApplications",
+    "params": {
+        "applications": "NetflixApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setEnabled"></a>
 ## *setEnabled <sup>method</sup>*
 
@@ -472,17 +519,44 @@ XCast interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onApplicationLaunchRequest](#event.onApplicationLaunchRequest) | Triggered when the cast service receives a launch request from a client |
 | [onApplicationHideRequest](#event.onApplicationHideRequest) | Triggered when the cast service receives a hide request from a client |
+| [onApplicationLaunchRequest](#event.onApplicationLaunchRequest) | Triggered when the cast service receives a launch request from a client |
 | [onApplicationResumeRequest](#event.onApplicationResumeRequest) | Triggered when the cast service receives a resume request from a client |
-| [onApplicationStopRequest](#event.onApplicationStopRequest) | Triggered when the cast service receives a stop request from a client |
 | [onApplicationStateRequest](#event.onApplicationStateRequest) | Triggered when the cast service needs an update of the application state |
+| [onApplicationStopRequest](#event.onApplicationStopRequest) | Triggered when the cast service receives a stop request from a client |
 
+
+<a name="event.onApplicationHideRequest"></a>
+## *onApplicationHideRequest <sup>event</sup>*
+
+Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  
+Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applicationName | string | Registered application name |
+| params.applicationId | string | Application instance ID |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onApplicationHideRequest",
+    "params": {
+        "applicationName": "NetflixApp",
+        "applicationId": "1234"
+    }
+}
+```
 
 <a name="event.onApplicationLaunchRequest"></a>
 ## *onApplicationLaunchRequest <sup>event</sup>*
 
-Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context.  If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  
+Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context. If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  
 Upon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).
 
 ### Parameters
@@ -509,38 +583,11 @@ Upon launching the application, the resident application is responsible for call
 }
 ```
 
-<a name="event.onApplicationHideRequest"></a>
-## *onApplicationHideRequest <sup>event</sup>*
-
-Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  
- Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.applicationName | string | Registered application name |
-| params.applicationId | string | Application instance ID |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationHideRequest",
-    "params": {
-        "applicationName": "NetflixApp",
-        "applicationId": "1234"
-    }
-}
-```
-
 <a name="event.onApplicationResumeRequest"></a>
 ## *onApplicationResumeRequest <sup>event</sup>*
 
 Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  
- Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
+Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
 
 ### Parameters
 
@@ -563,38 +610,11 @@ Triggered when the cast service receives a resume request from a client. This is
 }
 ```
 
-<a name="event.onApplicationStopRequest"></a>
-## *onApplicationStopRequest <sup>event</sup>*
-
-Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  
- Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.applicationName | string | Registered application name |
-| params.applicationId | string | Application instance ID |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStopRequest",
-    "params": {
-        "applicationName": "NetflixApp",
-        "applicationId": "1234"
-    }
-}
-```
-
 <a name="event.onApplicationStateRequest"></a>
 ## *onApplicationStateRequest <sup>event</sup>*
 
 Triggered when the cast service needs an update of the application state.  
- The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.
+The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.
 
 ### Parameters
 
@@ -610,6 +630,33 @@ Triggered when the cast service needs an update of the application state.
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.onApplicationStateRequest",
+    "params": {
+        "applicationName": "NetflixApp",
+        "applicationId": "1234"
+    }
+}
+```
+
+<a name="event.onApplicationStopRequest"></a>
+## *onApplicationStopRequest <sup>event</sup>*
+
+Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  
+Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applicationName | string | Registered application name |
+| params.applicationId | string | Application instance ID |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"

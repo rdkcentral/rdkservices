@@ -90,7 +90,9 @@ HdmiCecSink interface methods:
 | [getDeviceList](#method.getDeviceList) | Gets the number of connected source devices and system information for each device |
 | [getEnabled](#method.getEnabled) | Check whether HDMI-CEC sink is enabled |
 | [getVendorId](#method.getVendorId) | Gets the current vendor ID of this sink device |
-| [requestActiveSource](#method.requestActiveSource) | Requests for the active source in the network |
+| [requestActiveSource](#method.requestActiveSource) | Requests the active source in the network |
+| [requestShortAudioDescriptor](#method.requestShortAudioDescriptor) | Sends the CEC Request Short Audio Descriptor (SAD) message as an event |
+| [sendStandbyMessage](#method.sendStandbyMessage) | Sends a CEC <Standby> message to the logical address of the device |
 | [setActivePath](#method.setActivePath) | Sets the source device to active (`setStreamPath`) |
 | [setActiveSource](#method.setActiveSource) | Sets the current active source as TV (physical address 0 |
 | [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC sink |
@@ -369,7 +371,7 @@ This method takes no parameters.
 <a name="method.requestActiveSource"></a>
 ## *requestActiveSource <sup>method</sup>*
 
-Requests for the active source in the network.
+Requests the active source in the network.
 
 ### Parameters
 
@@ -391,6 +393,86 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.HdmiCecSink.1.requestActiveSource"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.requestShortAudioDescriptor"></a>
+## *requestShortAudioDescriptor <sup>method</sup>*
+
+Sends the CEC Request Short Audio Descriptor (SAD) message as an event. See `shortAudiodesciptorEvent`.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiCecSink.1.requestShortAudioDescriptor"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.sendStandbyMessage"></a>
+## *sendStandbyMessage <sup>method</sup>*
+
+Sends a CEC <Standby> message to the logical address of the device.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiCecSink.1.sendStandbyMessage"
 }
 ```
 
@@ -739,11 +821,14 @@ HdmiCecSink interface events:
 | [arcTerminationEvent](#event.arcTerminationEvent) | Triggered when routing though the HDMI ARC port terminates |
 | [onActiveSourceChange](#event.onActiveSourceChange) | Triggered with the active source device changes |
 | [onDeviceAdded](#event.onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
+| [onDeviceInfoUpdated](#event.onDeviceInfoUpdated) | Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus) |
 | [onDeviceRemoved](#event.onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
 | [onImageViewOnMsg](#event.onImageViewOnMsg) | Triggered when an <Image View ON> CEC message is received from the source device |
 | [onInActiveSource](#event.onInActiveSource) | Triggered when the source is no longer active |
 | [onTextViewOnMsg](#event.onTextViewOnMsg) | Triggered when a <Text View ON> CEC message is received from the source device |
 | [onWakeupFromStandby](#event.onWakeupFromStandby) | Triggered when the source device changes status from STANDBY to ON and the <Image View ON> CEC message is received from the source device |
+| [sendStandbyMessageEvent](#event.sendStandbyMessageEvent) | Triggered when the source device changes status to `STANDBY` |
+| [shortAudiodesciptorEvent](#event.shortAudiodesciptorEvent) | Triggered when the CEC Request Short Audio Descriptor (SAD) message is sent |
 
 
 <a name="event.arcInitiationEvent"></a>
@@ -838,6 +923,30 @@ Triggered when an HDMI cable is physically connected to the HDMI port on a TV, o
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.onDeviceAdded",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.onDeviceInfoUpdated"></a>
+## *onDeviceInfoUpdated <sup>event</sup>*
+
+Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDeviceInfoUpdated",
     "params": {
         "logicalAddress": 4
     }
@@ -962,6 +1071,58 @@ Triggered when the source device changes status from STANDBY to ON and the <Imag
     "method": "client.events.1.onWakeupFromStandby",
     "params": {
         "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.sendStandbyMessageEvent"></a>
+## *sendStandbyMessageEvent <sup>event</sup>*
+
+Triggered when the source device changes status to `STANDBY`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.sendStandbyMessageEvent",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.shortAudiodesciptorEvent"></a>
+## *shortAudiodesciptorEvent <sup>event</sup>*
+
+Triggered when the CEC Request Short Audio Descriptor (SAD) message is sent. See `requestShortAudioDescriptor`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audiodescriptor | integer | The SAD information (formatid, audioFormatCode, numberofdescriptor) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.shortAudiodesciptorEvent",
+    "params": {
+        "audiodescriptor": [
+            0,
+            10,
+            2
+        ]
     }
 }
 ```

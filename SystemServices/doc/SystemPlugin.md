@@ -2,7 +2,7 @@
 <a name="head.System_Plugin"></a>
 # System Plugin
 
-**Version: 1.0**
+**Version: 2.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -88,7 +88,7 @@ SystemServices interface methods:
 | [cacheContains](#method.cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#method.clearLastDeepSleepReason) | Clears the last deep sleep reason |
 | [enableMoca](#method.enableMoca) | Enables (or disable) Moca support for the platform |
-| [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event |
+| [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event |
 | [getAvailableStandbyModes](#method.getAvailableStandbyModes) | Queries the available standby modes |
 | [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
@@ -98,13 +98,13 @@ SystemServices interface methods:
 | [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
 | [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
-| [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | Retrieves the last firmware failure reason |
+| [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
 | [getMacAddresses](#method.getMacAddresses) | Gets the MAC address of the device |
 | [getMilestones](#method.getMilestones) | Returns the list of milestones |
 | [getMode](#method.getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
-| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | Returns the power state before reboot |
+| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | (Version 2) Returns the power state before reboot |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
 | [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
 | [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
@@ -115,22 +115,24 @@ SystemServices interface methods:
 | [getSystemVersions](#method.getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#method.getTemperatureThresholds) | Returns temperature threshold values |
 | [getTimeZoneDST](#method.getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
-| [getTimeZones](#method.getTimeZones) | Gets the available timezones from the system's time zone database |
-| [getWakeupReason](#method.getWakeupReason) | Returns the reason for the device coming out of deep sleep |
+| [getTimeZones](#method.getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
+| [getWakeupReason](#method.getWakeupReason) | (Version 2) Returns the reason for the device coming out of deep sleep |
 | [getXconfParams](#method.getXconfParams) | Returns XCONF configuration parameters for the device |
 | [hasRebootBeenRequested](#method.hasRebootBeenRequested) | Checks whether a reboot has been requested |
 | [isGzEnabled](#method.isGzEnabled) | Checks whether GZ is enabled |
+| [isOptOutTelemetry](#method.isOptOutTelemetry) | (Version 2) Checks the telemetry opt-out status |
 | [queryMocaStatus](#method.queryMocaStatus) | Checks whether MOCA is enabled |
 | [reboot](#method.reboot) | Requests that the system performs a reboot of the set-top box |
 | [removeCacheKey](#method.removeCacheKey) | Requests that the system performs a reboot of the set-top box |
 | [requestSystemUptime](#method.requestSystemUptime) | Returns the device uptime |
 | [setCachedValue](#method.setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#method.setDeepSleepTimer) | Sets the deep sleep timeout period |
-| [setFirmwareAutoReboot](#method.setFirmwareAutoReboot) | Enables or disables the AutoReboot Feature |
-| [setFirmwareRebootDelay](#method.setFirmwareRebootDelay) | Delays the firmware reboot |
+| [setFirmwareAutoReboot](#method.setFirmwareAutoReboot) | (Version 2) Enables or disables the AutoReboot Feature |
+| [setFirmwareRebootDelay](#method.setFirmwareRebootDelay) | (Version 2) Delays the firmware reboot |
 | [setGzEnabled](#method.setGzEnabled) | Enables or disables GZ |
 | [setMode](#method.setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
 | [setNetworkStandbyMode](#method.setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
+| [SetOptOutTelemetry](#method.SetOptOutTelemetry) | Sets the telemetry opt-out status |
 | [setPowerState](#method.setPowerState) | Sets the power state of the device |
 | [setPreferredStandbyMode](#method.setPreferredStandbyMode) | Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes) |
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
@@ -273,7 +275,7 @@ Enables (or disable) Moca support for the platform.
 <a name="method.fireFirmwarePendingReboot"></a>
 ## *fireFirmwarePendingReboot <sup>method</sup>*
 
-Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event.
+(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event.
 
 Also see: [onFirmwarePendingReboot](#event.onFirmwarePendingReboot)
 
@@ -732,7 +734,7 @@ This method takes no parameters.
 <a name="method.getLastFirmwareFailureReason"></a>
 ## *getLastFirmwareFailureReason <sup>method</sup>*
 
-Retrieves the last firmware failure reason.
+(Version 2) Retrieves the last firmware failure reason.
 
 ### Parameters
 
@@ -1000,7 +1002,7 @@ This method takes no parameters.
 <a name="method.getPowerStateBeforeReboot"></a>
 ## *getPowerStateBeforeReboot <sup>method</sup>*
 
-Returns the power state before reboot.
+(Version 2) Returns the power state before reboot.
 
 ### Parameters
 
@@ -1504,7 +1506,7 @@ This method takes no parameters.
 <a name="method.getTimeZones"></a>
 ## *getTimeZones <sup>method</sup>*
 
-Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
+(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
 
 ### Parameters
 
@@ -1559,7 +1561,7 @@ This method takes no parameters.
 <a name="method.getWakeupReason"></a>
 ## *getWakeupReason <sup>method</sup>*
 
-Returns the reason for the device coming out of deep sleep.
+(Version 2) Returns the reason for the device coming out of deep sleep.
 
 ### Parameters
 
@@ -1728,6 +1730,48 @@ This method takes no parameters.
     "id": 1234567890,
     "result": {
         "enabled": false,
+        "success": true
+    }
+}
+```
+
+<a name="method.isOptOutTelemetry"></a>
+## *isOptOutTelemetry <sup>method</sup>*
+
+(Version 2) Checks the telemetry opt-out status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.isOptOutTelemetry"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "Opt-Out": false,
         "success": true
     }
 }
@@ -2008,7 +2052,7 @@ Sets the deep sleep timeout period.
 <a name="method.setFirmwareAutoReboot"></a>
 ## *setFirmwareAutoReboot <sup>method</sup>*
 
-Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
+(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
 
 ### Parameters
 
@@ -2054,7 +2098,7 @@ Enables or disables the AutoReboot Feature. This method internally sets the tr18
 <a name="method.setFirmwareRebootDelay"></a>
 ## *setFirmwareRebootDelay <sup>method</sup>*
 
-Delays the firmware reboot.
+(Version 2) Delays the firmware reboot.
 
 ### Parameters
 
@@ -2227,6 +2271,52 @@ Enables or disables the network standby mode of the device. If network standby i
     "method": "org.rdk.System.1.setNetworkStandbyMode",
     "params": {
         "nwStandby": false
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.SetOptOutTelemetry"></a>
+## *SetOptOutTelemetry <sup>method</sup>*
+
+Sets the telemetry opt-out status.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.SetOptOutTelemetry",
+    "params": {
+        "Opt-Out": false
     }
 }
 ```
@@ -2485,11 +2575,12 @@ SystemServices interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
+| [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#event.onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
 | [onMacAddressesRetrieved](#event.onMacAddressesRetrieved) | Triggered when the `getMacAddresses` asynchronous method is invoked |
 | [onRebootRequest](#event.onRebootRequest) | Triggered when an application invokes the reboot method |
+| [onSystemClockSet](#event.onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
@@ -2498,7 +2589,7 @@ SystemServices interface events:
 <a name="event.onFirmwarePendingReboot"></a>
 ## *onFirmwarePendingReboot <sup>event</sup>*
 
-Triggered when the `fireFirmwarePendingReboot` method is invoked.
+(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked.
 
 ### Parameters
 
@@ -2651,6 +2742,24 @@ Triggered when an application invokes the reboot method.
         "requestedApp": "SystemPlugin",
         "rebootReason": "FIRMWARE_FAILURE"
     }
+}
+```
+
+<a name="event.onSystemClockSet"></a>
+## *onSystemClockSet <sup>event</sup>*
+
+Triggered when the clock on the set-top device is updated.
+
+### Parameters
+
+This event carries no parameters.
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onSystemClockSet"
 }
 ```
 

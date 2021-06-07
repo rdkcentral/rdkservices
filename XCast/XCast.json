@@ -160,6 +160,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "registerApplications": {
+            "summary": "Registers an application",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applications": {
+                        "summary": "The application name to register",
+                        "type": "string",
+                        "example": "NetflixApp"
+                    }
+                },
+                "required": [
+                    "applications"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setEnabled":{
             "summary": "Enables or disables xcast",
             "params": {
@@ -213,8 +232,26 @@
         }
     },
     "events": {
+        "onApplicationHideRequest": {
+            "summary": "Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  \nUpon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        },
         "onApplicationLaunchRequest": {
-            "summary": "Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context.  If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  \nUpon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).",
+            "summary": "Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context. If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  \nUpon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).",
             "params": {
                 "type":"object",
                 "properties": {
@@ -239,44 +276,8 @@
                 ]
             }
         },
-        "onApplicationHideRequest": {
-            "summary": "Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  \n Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "applicationName": {
-                        "$ref": "#/definitions/applicationName"
-                    },
-                    "applicationId": {
-                        "$ref": "#/definitions/applicationId"
-                    }
-                },
-                "required": [
-                    "applicationName",
-                    "applicationId"
-                ]
-            }
-        },
         "onApplicationResumeRequest": {
-            "summary": "Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  \n Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "applicationName": {
-                        "$ref": "#/definitions/applicationName"
-                    },
-                    "applicationId": {
-                        "$ref": "#/definitions/applicationId"
-                    }
-                },
-                "required": [
-                    "applicationName",
-                    "applicationId"
-                ]
-            }
-        },
-        "onApplicationStopRequest": {
-            "summary": "Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  \n Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
+            "summary": "Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  \nUpon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -294,7 +295,25 @@
             }
         },
         "onApplicationStateRequest": {
-            "summary": "Triggered when the cast service needs an update of the application state.  \n The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.",
+            "summary": "Triggered when the cast service needs an update of the application state.  \nThe resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applicationName": {
+                        "$ref": "#/definitions/applicationName"
+                    },
+                    "applicationId": {
+                        "$ref": "#/definitions/applicationId"
+                    }
+                },
+                "required": [
+                    "applicationName",
+                    "applicationId"
+                ]
+            }
+        },
+        "onApplicationStopRequest": {
+            "summary": "Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  \nUpon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.",
             "params": {
                 "type":"object",
                 "properties": {

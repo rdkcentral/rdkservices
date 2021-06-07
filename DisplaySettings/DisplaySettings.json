@@ -38,6 +38,11 @@
             "type": "integer",
             "example": 90
         },
+        "mode": {
+            "summary": "Enables or disables volume leveling (`0` = off, `1` = on, `2` = auto)",
+            "type": "integer",
+            "example": 1
+        },
         "compressionLevel":{
             "summary": "Value between 0 and 10, where 0 means no compression and 10 means maximum compression",
             "type": "integer",
@@ -101,19 +106,8 @@
             "type": "string",
             "example": "1080p"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
         "soundMode": {
-            "summary": "Sound mode. Possible values: `AUTO`, `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `Dolby Digital 5.1`, `MONO`, `SURROUND`, `STEREO`.",
+            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
             "type":"string",
             "example":"STEREO"
         },
@@ -124,11 +118,6 @@
                 "type": "string",
                 "example": "none"
             }
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         },
         "supportsHDR": {
             "summary": "Indicates support for HDR",
@@ -160,6 +149,22 @@
             "summary": "Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3`",
             "type": "string",
             "example": "FULL"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
         }
     },
     "methods": {
@@ -372,6 +377,11 @@
                         "summary": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid)",
                         "type": "integer",
                         "example": 0
+                    },
+                    "quantizationRange": {
+                        "summary": "The supported quantization range",
+                        "type": "integer",
+                        "example": 235
                     },
                     "success": {
                         "$ref": "#/definitions/success"
@@ -590,7 +600,7 @@
                         "example": true
                     },
                     "mode": {
-                        "summary": "Graphic Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused)",
+                        "summary": "Graphic Equalizer mode (`0` = mode not set or in case of error, `1` = open, `2` = rich, `3` = focused)",
                         "type": "integer",
                         "example": 2
                     },
@@ -853,7 +863,7 @@
             }
         },
         "getSoundMode":{
-            "summary": "Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as the safe default",
+            "summary": "Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as a safe default",
             "params": {
                 "type": "object",
                 "properties": {
@@ -882,7 +892,7 @@
             }
         },
         "getSupportedAudioModes": {
-            "summary": "Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF port this API always returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
+            "summary": "Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
             "params": {
                 "type":"object",
                 "properties":{
@@ -1087,7 +1097,7 @@
             }
         },
         "getSurroundVirtualizer":{
-            "summary": "Returns the current Surround Virtualizer boost settings",
+            "summary": "Returns the current surround virtualizer boost settings",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1116,6 +1126,39 @@
                 },
                 "required": [
                     "enable",
+                    "boost",
+                    "success"
+                ]
+            }
+        },
+        "getSurroundVirtualizer2":{
+            "summary": "(Version 2) Returns the current surround virtualizer boost settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
                     "boost",
                     "success"
                 ]
@@ -1230,7 +1273,7 @@
             }
         },
         "getVolumeLeveller": {
-            "summary": "Returns the current Volume Leveller level",
+            "summary": "Returns the current Volume Leveller setting",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1259,6 +1302,39 @@
                 },
                 "required": [
                     "enable",
+                    "level",
+                    "success"
+                ]
+            }
+        },
+        "getVolumeLeveller2": {
+            "summary": "(Version 2) Returns the current Volume Leveller setting",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
                     "level",
                     "success"
                 ]
@@ -1596,7 +1672,7 @@
                 "type":"object",
                 "properties": {
                     "intelligentEqualizerMode": {
-                        "summary": "Intelligent Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused)",
+                        "summary": "Intelligent Equalizer mode (`0` = unset, `1` = open, `2` = rich, `3` = focused)",
                         "type": "integer",
                         "example": 2
                     }
@@ -1610,7 +1686,7 @@
             }
         },
         "setMISteering":{
-            "summary": "Enables or Disables Media Intelligent Steering",
+            "summary": "Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audio content and steers the Volume Leveler, the Dialogue Enhancer, the Intelligent Equalizer, and the Speaker Virtualizer, based on the type of audio content.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1739,7 +1815,7 @@
             }
         },
         "setSurroundVirtualizer":{
-            "summary": "Sets the Surround Virtualizer boost",
+            "summary": "Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1751,6 +1827,30 @@
                     }
                 },
                 "required": [
+                    "boost"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSurroundVirtualizer2":{
+            "summary": "(Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    }
+                },
+                "required": [
+                    "mode",
                     "boost"
                 ]
             },
@@ -1835,8 +1935,32 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setVolumeLeveller2":{
+            "summary": "(Version 2) Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mode":{
+                        "$ref": "#/definitions/mode"
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "level"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setZoomSetting": {
-            "summary": "Sets the zoom setting value",
+            "summary": "Sets the current zoom value",
             "params": {
                 "type":"object",
                 "properties":{

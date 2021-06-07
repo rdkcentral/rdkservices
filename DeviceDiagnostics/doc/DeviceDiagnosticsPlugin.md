@@ -14,6 +14,7 @@ org.rdk.DeviceDiagnostics plugin for Thunder framework.
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
 - [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
 <a name="head.Introduction"></a>
 # Introduction
@@ -21,7 +22,7 @@ org.rdk.DeviceDiagnostics plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the org.rdk.DeviceDiagnostics plugin. It includes detailed specification about its configuration and methods provided.
+This document describes purpose and functionality of the org.rdk.DeviceDiagnostics plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -84,8 +85,52 @@ DeviceDiagnostics interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
+| [getAudioDecoderStatus](#method.getAudioDecoderStatus) | Gets the audio decoder status |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
+| [getVideoDecoderStatus](#method.getVideoDecoderStatus) | Gets the video decoder status |
 
+
+<a name="method.getAudioDecoderStatus"></a>
+## *getAudioDecoderStatus <sup>method</sup>*
+
+Gets the audio decoder status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.audioDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DeviceDiagnostics.1.getAudioDecoderStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "audioDecoderStatus": "ACTIVE",
+        "success": true
+    }
+}
+```
 
 <a name="method.getConfiguration"></a>
 ## *getConfiguration <sup>method</sup>*
@@ -142,6 +187,111 @@ Gets the values associated with the corresponding property names.
             }
         ],
         "success": true
+    }
+}
+```
+
+<a name="method.getVideoDecoderStatus"></a>
+## *getVideoDecoderStatus <sup>method</sup>*
+
+Gets the video decoder status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.videoDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DeviceDiagnostics.1.getVideoDecoderStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "videoDecoderStatus": "ACTIVE",
+        "success": true
+    }
+}
+```
+
+<a name="head.Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+
+The following events are provided by the org.rdk.DeviceDiagnostics plugin:
+
+DeviceDiagnostics interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [onAudioDecoderStatusChanged](#event.onAudioDecoderStatusChanged) | Triggered when the audio decoder status changes |
+| [onVideoDecoderStatusChanged](#event.onVideoDecoderStatusChanged) | Triggered when the video decoder status changes |
+
+
+<a name="event.onAudioDecoderStatusChanged"></a>
+## *onAudioDecoderStatusChanged <sup>event</sup>*
+
+Triggered when the audio decoder status changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onAudioDecoderStatusChanged",
+    "params": {
+        "audioDecoderStatus": "ACTIVE"
+    }
+}
+```
+
+<a name="event.onVideoDecoderStatusChanged"></a>
+## *onVideoDecoderStatusChanged <sup>event</sup>*
+
+Triggered when the video decoder status changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.videoDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onVideoDecoderStatusChanged",
+    "params": {
+        "videoDecoderStatus": "ACTIVE"
     }
 }
 ```

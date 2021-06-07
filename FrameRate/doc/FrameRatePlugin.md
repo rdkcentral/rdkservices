@@ -2,7 +2,7 @@
 <a name="head.FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: 1.0**
+**Version: 2.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -85,10 +85,98 @@ FrameRate interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
+| [getDisplayFrameRate](#method.getDisplayFrameRate) | (Version 2) Returns the current display frame rate values |
+| [getFrmMode](#method.getFrmMode) | (Version 2) Returns the current auto framerate mode |
 | [setCollectionFrequency](#method.setCollectionFrequency) | Sets the FPS data collection interval |
-| [startFpsCollection](#method.startFpsCollection) | Starts the FPS collection |
-| [stopFpsCollection](#method.stopFpsCollection) | Stops the FPS collection |
+| [setDisplayFrameRate](#method.setDisplayFrameRate) | (Version 2) Sets the display framerate values |
+| [setFrmMode](#method.setFrmMode) | (Version 2) Sets the auto framerate mode |
+| [startFpsCollection](#method.startFpsCollection) | Starts the FPS data collection |
+| [stopFpsCollection](#method.stopFpsCollection) | Stops the FPS data collection |
 
+
+<a name="method.getDisplayFrameRate"></a>
+## *getDisplayFrameRate <sup>method</sup>*
+
+(Version 2) Returns the current display frame rate values.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.framerate | string | The display framerate setting (width x height x framerate) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.FrameRate.1.getDisplayFrameRate"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "framerate": "3840x2160px48",
+        "success": true
+    }
+}
+```
+
+<a name="method.getFrmMode"></a>
+## *getFrmMode <sup>method</sup>*
+
+(Version 2) Returns the current auto framerate mode.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.auto-frm-mode | integer | `0` for auto framerate mode disabled, `1` for auto framerate mode enabled (must be one of the following: *0*, *1*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.FrameRate.1.getFrmMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "auto-frm-mode": 0,
+        "success": true
+    }
+}
+```
 
 <a name="method.setCollectionFrequency"></a>
 ## *setCollectionFrequency <sup>method</sup>*
@@ -136,10 +224,102 @@ Sets the FPS data collection interval.
 }
 ```
 
+<a name="method.setDisplayFrameRate"></a>
+## *setDisplayFrameRate <sup>method</sup>*
+
+(Version 2) Sets the display framerate values.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.framerate | string | The display framerate setting (width x height x framerate) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.FrameRate.1.setDisplayFrameRate",
+    "params": {
+        "framerate": "3840x2160px48"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setFrmMode"></a>
+## *setFrmMode <sup>method</sup>*
+
+(Version 2) Sets the auto framerate mode.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.auto-frm-mode | integer | `0` for auto framerate mode disabled, `1` for auto framerate mode enabled (must be one of the following: *0*, *1*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.FrameRate.1.setFrmMode",
+    "params": {
+        "auto-frm-mode": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.startFpsCollection"></a>
 ## *startFpsCollection <sup>method</sup>*
 
-Starts the FPS collection.
+Starts the FPS data collection.
 
 ### Parameters
 
@@ -179,7 +359,7 @@ This method takes no parameters.
 <a name="method.stopFpsCollection"></a>
 ## *stopFpsCollection <sup>method</sup>*
 
-Stops the FPS collection.
+Stops the FPS data collection.
 
 ### Parameters
 

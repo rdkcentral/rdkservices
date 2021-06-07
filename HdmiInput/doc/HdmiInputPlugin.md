@@ -2,7 +2,7 @@
 <a name="head.HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: 1.0**
+**Version: 2.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -86,11 +86,13 @@ HdmiInput interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getHDMIInputDevices](#method.getHDMIInputDevices) | Returns an array of available HDMI Input ports |
-| [getHDMISPD](#method.getHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
-| [getRawHDMISPD](#method.getRawHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [getEdidVersion](#method.getEdidVersion) | (Version 2) Returns the EDID version |
+| [getHDMISPD](#method.getHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawHDMISPD](#method.getRawHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
 | [readEDID](#method.readEDID) | Returns the current EDID value |
 | [startHdmiInput](#method.startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
 | [stopHdmiInput](#method.stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
+| [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
 | [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#method.writeEDID) | Changes a current EDID value |
 
@@ -147,10 +149,58 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getEdidVersion"></a>
+## *getEdidVersion <sup>method</sup>*
+
+(Version 2) Returns the EDID version.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.edidVersion | string | The EDID version |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.getEdidVersion",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "edidVersion": "HDMI2.0",
+        "success": true
+    }
+}
+```
+
 <a name="method.getHDMISPD"></a>
 ## *getHDMISPD <sup>method</sup>*
 
-Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
 
 ### Parameters
 
@@ -198,7 +248,7 @@ Returns the Source Data Product Descriptor (SPD) infoFrame packet information fo
 <a name="method.getRawHDMISPD"></a>
 ## *getRawHDMISPD <sup>method</sup>*
 
-Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
 
 ### Parameters
 
@@ -362,6 +412,54 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.HdmiInput.1.stopHdmiInput"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setEdidVersion"></a>
+## *setEdidVersion <sup>method</sup>*
+
+(Version 2) Sets an HDMI EDID version.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.version | string | The EDID version |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.HdmiInput.1.setEdidVersion",
+    "params": {
+        "portId": "0",
+        "version": "HDMI2.0"
+    }
 }
 ```
 

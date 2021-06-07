@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkFrameRate.so",
       "status": "production",
       "description": "The `FrameRate` plugin allows you to collect FPS data.",
-      "version": "1.0"
+      "version": "2.0"
     },
     "interface": {
       "$ref": "FrameRate.json#"
