@@ -26,7 +26,7 @@ namespace WPEFramework {
     namespace Plugin {
 
         /**
-         * \brief Destructor ensure all references are released.
+         * @brief Destructor ensures all references are released.
          *
          */
         FireboltMediaPlayer::MediaStreamProxy::~MediaStreamProxy()
@@ -38,16 +38,16 @@ namespace WPEFramework {
                 if (result != Core::ERROR_NONE) {
                     // Expecting to get destruction succeeded eventually but might encounter an error, e.g out-of-process has been killed
                     if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
-                        LOGERR("_implementation->Release() returned %d", result);
+                        LOGERR("_implementation->Release() unexpectedly returned %d", result);
                     _implementation = nullptr;
                 }
             }
         }
 
         /**
-         * \brief Release this instance, destroying if necessary.
+         * @brief Release this instance, destroying if necessary.
          *
-         * \return Whether the underlying instance could be released.
+         * @return Whether the underlying instance could be released.
          *
          */
         uint32_t FireboltMediaPlayer::MediaStreamProxy::Release()
