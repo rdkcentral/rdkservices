@@ -545,7 +545,7 @@ namespace WPEFramework
                 }
                 catch (...)
                 {
-                    LOGWARN("Exception caught in setLED for setColor. %s", err.what());
+                    LOGWARN("Exception caught in setLED for setColor.");
                     success = false;
                 }
             }
@@ -570,7 +570,7 @@ namespace WPEFramework
                 }
                 catch (...)
                 {
-                    LOGWARN("Exception caught in setLED for setColor. %s", err.what());
+                    LOGWARN("Exception caught in setLED for setColor.");
                     success = false;
                 }
             }
@@ -591,7 +591,7 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception caught in setLED for setBrightness. %s", err.what());
+                LOGWARN("Exception caught in setLED for setBrightness. ");
                 success = false;
             }
             return success;
