@@ -687,11 +687,7 @@ namespace WPEFramework
 					{
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 
-						if ( powerState == DEVICE_POWER_STATE_ON )
-						{
-							HdmiCecSink::_instance->onPowerStateON();
-						}
-						else
+						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
 							HdmiCecSink::_instance->m_currentActiveSource = -1;
 						}
@@ -705,14 +701,6 @@ namespace WPEFramework
            }
        }
 
-	  void HdmiCecSink::onPowerStateON()
-       {
-       		if ( powerState == DEVICE_POWER_STATE_ON )
-       		{
-       			/*while wakeup From Standby, Ask for Active Source*/
-				_instance->requestActiveSource(); 
-       		}
-       }
 
 	  void HdmiCecSink::sendStandbyMessage()
       {
@@ -2238,11 +2226,6 @@ namespace WPEFramework
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 5000);	
-
-						 if ( powerState == DEVICE_POWER_STATE_ON )
-						 {
-							_instance->requestActiveSource(); 
-						 }
 
 						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
