@@ -1796,9 +1796,14 @@ namespace WPEFramework {
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
                 string ver =  getStbVersionString();
-                if(ver != "unknown")
-                {  response["currentFWVersion"] = ver;
-                   retStat = true;
+                if(ver == "unknown")
+                {
+                    response["currentFWVersion"] = "";
+                }
+                else
+                {
+                    response["currentFWVersion"] = ver;
+                    retStat = true;
                 }
 	    }
             else if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
