@@ -1799,6 +1799,7 @@ namespace WPEFramework {
                 if(ver == "unknown")
                 {
                     response["currentFWVersion"] = "";
+                    retStat = false;
                 }
                 else
                 {
