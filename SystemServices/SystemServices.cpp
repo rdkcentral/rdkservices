@@ -1791,11 +1791,15 @@ namespace WPEFramework {
 
 	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
                 //If firmware download file doesn't exist we can still return the current version
-                response["currentFWVersion"] = getStbVersionString();
                 response["downloadedFWVersion"] = downloadedFWVersion;
                 response["downloadedFWLocation"] = downloadedFWLocation;
                 response["isRebootDeferred"] = isRebootDeferred;
                 retStat = true;
+                string ver =  getStbVersionString();
+                if(ver != "unknown")
+                {  response["currentFWVersion"] = ver;
+                   retStat = true;
+                }
 	    }
             else if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
