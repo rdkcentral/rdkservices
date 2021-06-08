@@ -687,11 +687,7 @@ namespace WPEFramework
 					{
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 
-						if ( powerState == DEVICE_POWER_STATE_ON )
-						{
-							HdmiCecSink::_instance->onPowerStateON();
-						}
-						else
+						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
 							HdmiCecSink::_instance->m_currentActiveSource = -1;
 						}
@@ -704,12 +700,6 @@ namespace WPEFramework
                 }
            }
        }
-
-	  void HdmiCecSink::onPowerStateON()
-       {
-		/*NOP*/		
-       }
-
 	  void HdmiCecSink::sendStandbyMessage()
       {
       		if(!HdmiCecSink::_instance)
