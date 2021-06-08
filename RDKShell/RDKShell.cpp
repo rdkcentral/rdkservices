@@ -333,7 +333,6 @@ namespace WPEFramework {
         };
 
         std::map<std::string, StateControlNotification*> gStateNotifications;
-        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > residentAppControllerClient = nullptr;
 
         struct RDKShellStartupConfig
         {
@@ -453,12 +452,12 @@ namespace WPEFramework {
                         {
                             if(sFactoryAppLaunchStatus != NOTLAUNCHED)
                             {
-                                std::cout << "deactivating resident app as factory app launch in progress or completed..." << std::endl;
+                                std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
                                 JsonObject deactivateParams;
                                 deactivateParams.Set("callsign", "ResidentApp");
                                 JsonObject deactivateResult;
-                                residentAppControllerClient = getThunderControllerClient();
-                                int32_t deactivateStatus = residentAppControllerClient->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                                auto thunderController = getThunderControllerClient();
+                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
                                 std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                             }
                         }
@@ -467,12 +466,12 @@ namespace WPEFramework {
                             sResidentAppFirstActivated = true;
                             if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
-                                std::cout << "deactivating resident app as factory mode on start is set..." << std::endl;
+                                std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
                                 JsonObject deactivateParams;
                                 deactivateParams.Set("callsign", "ResidentApp");
                                 JsonObject deactivateResult;
-                                residentAppControllerClient = getThunderControllerClient();
-                                int32_t deactivateStatus = residentAppControllerClient->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                                auto thunderController = getThunderControllerClient();
+                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
                                 std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                                 if (false == sFactoryModeStart)
                                 {
@@ -4555,10 +4554,7 @@ namespace WPEFramework {
                         notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
                     }
                 }
-                if (stateList.Length() > 0)
-                {
-                    sleep(1);
-                }
+                sleep(1);
             }
 
             for (int i=0; i<stateList.Length(); i++)
