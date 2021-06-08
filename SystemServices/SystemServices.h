@@ -99,7 +99,7 @@ namespace WPEFramework {
                 static JsonObject _systemParams;
                 static const string MODEL_NAME;
                 static const string HARDWARE_ID;
-
+        
                 enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
                 // We do not allow this plugin to be copied !!
                 SystemServices(const SystemServices&) = delete;
@@ -134,8 +134,11 @@ namespace WPEFramework {
                 void InitializeIARM();
                 void DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
+                
+                
                 /* Events : Begin */
+               
+                static int FwUpdateState_LatestEvent;
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onSystemModeChanged(string mode);
