@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "ActivityMonitor Plugin",
+      "callsign": "org.rdk.ActivityMonitor",
+      "locator": "libWPEFrameworkActivityMonitor.so",
+      "status": "production",
+      "description": "The `ActivityMonitor` plugin allows you to monitor memory and CPU usage by application.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "ActivityMonitor.json#"
+    }
+}
