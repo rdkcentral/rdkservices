@@ -1,0 +1,1614 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "System API", 
+        "class": "SystemServices",
+        "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
+    },
+    "definitions": {
+        "key": {
+            "summary": "The cache key",
+            "type": "string",
+            "example": "sampleKey"
+        },
+        "GUID": {
+            "summary": "A unique identifier",
+            "type": "string",
+            "example": "1234abcd"
+        },
+        "asyncResponse": {
+            "summary": "Whether the event notification succeeded",
+            "type": "boolean",
+            "example": true
+        },
+        "timestamp": {
+            "summary": "The last reboot time",
+            "type": "string",
+            "example": "20200128083540"
+        },
+        "reason": {
+            "summary": "The reboot reason",
+            "type": "string",
+            "example": "FIRMWARE_FAILURE"
+        },
+        "temperature": {
+            "summary": "The temperature",
+            "type": "number",
+            "example": 48.000000
+        },
+        "enabled": {
+            "summary": "Enabled (`true`) or disabled (`false`)",
+            "type": "boolean",
+            "example": false
+        },
+        "modeInfo": {
+            "summary": "The mode information",
+            "type": "object",
+            "properties": {
+                "mode":{
+                    "$ref": "#/definitions/mode"
+                },
+                "duration":{
+                    "summary": "The duration",
+                    "type":"integer",
+                    "example": 0
+                }
+            },
+            "required": [
+                "mode",
+                "duration"
+            ]
+        },
+        "mode": {
+            "summary": "The mode",
+            "enum": [
+                "NORMAL",
+                "EAS",
+                "WAREHOUSE"
+            ],
+            "type": "string",
+            "example": "NORMAL"
+        },
+        "nwStandby": {
+            "summary": "Whether `WakeOnLAN` and `WakeOnWLAN` is supported (`true`); otherwise, `false`",
+            "type": "boolean",
+            "example": false
+        },
+        "powerState": {
+            "summary": "The power state",
+            "enum": [
+                "STANDBY",
+                "DEEP_SLEEP",
+                "LIGHT_SLEEP",
+                "ON"
+            ],
+            "type": "string",
+            "example": "ON"
+        },
+        "preferredStandbyMode": {
+            "summary": "The standby mode",
+            "enum": [
+                "LIGHT_SLEEP",
+                "DEEP_SLEEP"
+            ],
+            "type": "string",
+            "example": "DEEP_SLEEP"
+        },
+        "WARN": {
+            "summary": "The warning threshold",
+            "type": "string",
+            "example": "100.000000"
+        },
+        "MAX": {
+            "summary": "The max temperature threshold",
+            "type": "string",
+            "example": "110.000000"
+        },
+        "timeZone": {
+            "summary": "The timezone",
+            "type": "string",
+            "example": "America/New_York"
+        },
+        "seconds": {
+            "summary": "The deep sleep timeout in seconds",
+            "type": "integer",
+            "example": 3
+        },
+        "firmwareUpdateState": {
+            "summary": "The state",
+            "enum": [
+                "Uninitialized",
+                "Requesting",
+                "Downloading",
+                "Failed",
+                "DownLoad Complete",
+                "Validation Complete",
+                "Preparing to Reboot"
+            ],
+            "type": "string",
+            "example": "Download Complete"
+        },
+        "source": {
+            "summary": "The source of the reboot",
+            "type": "string",
+            "example": "SystemPlugin"
+        },
+        "Opt-Out": {
+            "summary": "`true` for opt-out, otherwise `false`",
+            "type": "boolean",
+            "example": false
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "cacheContains": {
+            "summary": "Checks if a key is present in the cache",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    }
+                },
+                "required": [
+                    "key"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "clearLastDeepSleepReason":{
+            "summary": "Clears the last deep sleep reason",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "enableMoca":{
+            "summary": "Enables (or disable) Moca support for the platform",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "summary": "`true` to enable Moca support or `false` to disable Moca support.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "value"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "fireFirmwarePendingReboot":{
+            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event",
+            "events": [
+                "onFirmwarePendingReboot"
+            ],
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getAvailableStandbyModes": {
+            "summary": "Queries the available standby modes",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedStandbyModes": {
+                        "summary": "The supported standby modes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "LIGHT_SLEEP"
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedStandbyModes",
+                    "success"
+                ]
+            }
+        },
+        "getCachedValue":{
+            "summary": "Gets the value of a key in the cache",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    }
+                },
+                "required": [
+                    "key"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "sampleKey": {
+                        "summary": "Value for the specified key name",
+                        "type": "string",
+                        "example": "4343.3434"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "sampleKey",
+                    "success"
+                ]
+            }
+        },
+        "getCoreTemperature":{
+            "summary": "Returns the core temperature of the device. Not supported on all devices.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "temperature": {
+                        "$ref": "#/definitions/temperature"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "temperature",
+                    "success"
+                ]
+            }
+        },
+        "getDeviceInfo":{
+            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "params": {
+                        "summary": "A list of supported device keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "estb_mac"
+                        }
+                    }
+                },
+                "required": [
+                    "params"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "estb_mac": {
+                        "summary": "Value for the specified key name",
+                        "type": "string",
+                        "example": "20:F1:9E:EE:62:08"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "estb_mac",
+                    "success"
+                ]
+            }
+        },
+        "getDownloadedFirmwareInfo":{
+            "summary": "Returns information about firmware downloads",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "currentFWVersion": {
+                        "summary": "The current firmware version",
+                        "type": "string",
+                        "example": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
+                    },
+                    "downloadFWVersion": {
+                        "summary": "The downloaded firmware version",
+                        "type": "string",
+                        "example": "AX061AEI_VBN_1911_sprint_20200510040450sdy"
+                    },
+                    "downloadFWLocation": {
+                        "summary": "The location of the downloaded firmware",
+                        "type": "string",
+                        "example": "/tmp"
+                    },
+                    "isRebootDeferred": {
+                        "summary": "Whether the device should be rebooted",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "currentFWVersion",
+                    "downloadedFWVersion",
+                    "downloadedFWLocation",
+                    "isRebootDeferred",
+                    "success"
+                ]
+            }
+        },
+        "getFirmwareDownloadPercent": {
+            "summary": "Gets the current download percentage",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "downloadPercent": {
+                        "summary": "The percentage completed",
+                        "type": "integer",
+                        "example": 25
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "downloadPercent",
+                    "success"
+                ]
+            }
+        },
+        "getFirmwareUpdateInfo":{
+            "summary": "Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event",
+            "events": [
+                "onFirmwareUpdateInfoReceived"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "GUID": {
+                        "$ref": "#/definitions/GUID"
+                    }
+                },
+                "required": [
+                    "GUID"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "asyncResponse": {
+                        "$ref": "#/definitions/asyncResponse"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "asyncResponse",
+                    "success"
+                ]
+            }
+        },
+        "getFirmwareUpdateState":{
+            "summary": "Checks the state of the firmware update",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "firmwareUpdateState": {
+                        "$ref": "#/definitions/firmwareUpdateState"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "firmwareUpdateState",
+                    "success"
+                ]
+            }
+        },
+        "getLastDeepSleepReason":{
+            "summary": "Retrieves the last deep sleep reason",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "lastDeepSleepReason": {
+                        "summary": "The deep sleep reason",
+                        "type": "string",
+                        "example": "thermal_deepsleep_critical_threshold"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "lastDeepSleepReason",
+                    "success"
+                ]
+            }
+        },
+        "getLastFirmwareFailureReason": {
+            "summary": "(Version 2) Retrieves the last firmware failure reason",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "failureReason": {
+                        "summary": "The reason the failure occurred",
+                        "type": "string",
+                        "example": "Image Download Failed - Unable to connect"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "lastDeepSleepReason",
+                    "success"
+                ]
+            }
+
+
+        },
+        "getMacAddresses":{
+            "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.",
+            "events": [
+                "onMACAddressesRetrieved"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "GUID": {
+                        "$ref": "#/definitions/GUID"
+                    }
+                },
+                "required": [
+                    "GUID"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "asyncResponse": {
+                        "$ref": "#/definitions/asyncResponse"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "asyncResponse",
+                    "success"
+                ]
+            }
+        },
+        "getMilestones": {
+            "summary": "Returns the list of milestones",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "milestones": {
+                        "summary": "A string [] of milestones",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service..."
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "milestones",
+                    "success"
+                ]
+            }
+        },
+        "getMode":{
+            "summary": "Returns the currently set mode information",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "modeInfo": {
+                        "$ref": "#/definitions/modeInfo"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "modeInfo",
+                    "success"
+                ]
+            }
+        },
+        "getNetworkStandbyMode": {
+            "summary": "Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "nwStandby": {
+                        "$ref": "#/definitions/nwStandby"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "nwStandby",
+                    "success"
+                ]
+            }
+        },
+        "getPowerState":{
+            "summary": "Returns the power state of the device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "powerState",
+                    "success"
+                ]
+            }
+        },
+        "getPowerStateBeforeReboot":{
+            "summary": "(Version 2) Returns the power state before reboot",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "summary": "The power state",
+                        "type": "string",
+                        "example": "ON"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
+        },
+        "getPreferredStandbyMode":{
+            "summary": "Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "preferredStandbyMode": {
+                        "$ref": "#/definitions/preferredStandbyMode"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "preferredStandbyMode",
+                    "success"
+                ]
+            }
+        },
+        "getPreviousRebootInfo":{
+            "summary": "Returns basic information about a reboot",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "summary": "The last reboot time",
+                        "type": "string",
+                        "example": "20200128083540"
+                    },
+                    "reason": {
+                        "$ref": "#/definitions/reason"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "reason",
+                    "success"
+                ]
+            }
+        },
+        "getPreviousRebootInfo2":{
+            "summary": "Returns detailed information about a reboot",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "rebootInfo" :{
+                        "type": "object",
+                        "properties": {
+                            "timestamp": {
+                                "$ref": "#/definitions/timestamp"
+                            },
+                            "source": {
+                                "$ref": "#/definitions/source"
+                            },
+                            "reason": {
+                                "$ref": "#/definitions/reason"
+                            },
+                            "customReason":{
+                                "summary": "A custom reason",
+                                "type": "string",
+                                "example": "API Validation"
+                            },
+                            "lastHardPowerReset": {
+                                "summary": "The timestamp of the last hard power reset",
+                                "type": "string",
+                                "example": "Tue Jan 28 08:22:22 UTC 2020"
+                            }
+                        },
+                        "required": [
+                            "timestamp",
+                            "source",
+                            "reason",
+                            "customReason",
+                            "lastHardPowerReset"
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "rebootInfo",
+                    "success"
+                ]
+            }
+        },
+        "getPreviousRebootReason":{
+            "summary": "Returns the last reboot reason",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "$ref": "#/definitions/reason"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "reason",
+                    "success"
+                ]
+            }
+        },
+        "getRFCConfig":{
+            "summary": "Returns information that is related to RDK Feature Control (RFC) configurations",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "rfcList": {
+                        "summary": "A list of RFC properties to query",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
+                        }
+                    }
+                },
+                "required": [
+                    "rfcList"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "RFCConfig": {
+                        "summary": "A list of specified RFC properties",
+                        "type": "object",
+                        "properties": {
+                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID": {
+                                "type":"string",
+                                "example": "1181405614235499371"
+                            }
+                        },
+                        "required": [
+                            ""
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "RFCConfig",
+                    "success"
+                ]
+            }
+        },
+        "getSerialNumber":{
+            "summary": "Returns the device serial number",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "serialNumber": {
+                        "summary": "The serial number",
+                        "type": "string",
+                        "example": "M11806TK0024"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "serialNumber",
+                    "success"
+                ]
+            }
+        },
+        "getStateInfo":{
+            "summary": "Queries device state information of various properties",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "param": {
+                        "summary": "The property to query as a string",
+                        "type": "string",
+                        "example": "com.comcast.channel_map"
+                    }
+                },
+                "required": [
+                    "param"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "com.comcast.channel_map": {
+                        "summary": "The specified property",
+                        "type": "number",
+                        "example": 2
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "getSystemVersions":{
+            "summary": "Returns system version details",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "stbVersion": {
+                        "summary": "The STB version",
+                        "type": "string",
+                        "example": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
+                    },
+                    "receiverVersion": {
+                        "summary": "The receiver version",
+                        "type": "string",
+                        "example": "3.14.0.0"
+                    },
+                    "stbTimestamp": {
+                        "summary": "The STB timestamp",
+                        "type": "string",
+                        "example": "Thu 09 Jan 2020 04:04:24 AP UTC"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "stbVersion",
+                    "receiverVersion",
+                    "stbTimestamp",
+                    "success"
+                ]
+            }
+        },
+        "getTemperatureThresholds":{
+            "summary": "Returns temperature threshold values. Not supported on all devices",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "temperatureThresholds" :{
+                        "type": "object",
+                        "properties": {
+                            "WARN": {
+                                "$ref": "#/definitions/WARN"
+                            },
+                            "MAX": {
+                                "$ref": "#/definitions/MAX"
+                            },
+                            "temperature": {
+                                "$ref": "#/definitions/temperature"
+                            }
+                        },
+                        "required": [
+                            "WARN",
+                            "MAX",
+                            "temperature"
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "temperatureThresholds",
+                    "success"
+                ]
+            }
+        },
+        "getTimeZoneDST":{
+            "summary": "Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timeZone": {
+                        "$ref": "#/definitions/timeZone"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "timeZone",
+                    "success"
+                ]
+            }
+        },
+        "getTimeZones":{
+            "summary": "(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "zoneInfo": {
+                        "summary": "A timezone area",
+                        "type": "object",
+                        "properties": {
+                            "America": {
+                                "type": "object",
+                                "properties": {
+                                    "New_York": {
+                                        "type": "string",
+                                        "example": "Thu Nov 5 15:21:17 2020 EST"
+                                    },
+                                    "Los_Angeles": {
+                                        "type": "string",
+                                        "example": "Thu Nov 5 12:21:17 2020 PST"
+                                    }
+                                },
+                                "required": [
+                                    ""
+                                ]
+                            },
+                            "Europe": {
+                                "type": "object",
+                                "properties": {
+                                    "London": {
+                                        "type": "string",
+                                        "example": "Thu Nov 5 14:21:18 2020 CST"
+                                    }
+                                },
+                                "required": [
+                                    ""
+                                ]
+                            }
+                        },
+                        "required": [
+                            ""
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ZoneInfo",
+                    "success"
+                ]
+            }
+        },
+        "getWakeupReason":{
+            "summary": "(Version 2) Returns the reason for the device coming out of deep sleep",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "wakeupReason": {
+                        "summary": "The reason",
+                        "enum": [
+                            "WAKEUP_REASON_IR",
+                            "WAKEUP_REASON_RCU_BT",
+                            "WAKEUP_REASON_RCU_RF4CE",
+                            "WAKEUP_REASON_GPIO",
+                            "WAKEUP_REASON_LAN",
+                            "WAKEUP_REASON_WLAN",
+                            "WAKEUP_REASON_TIMER",
+                            "WAKEUP_REASON_FRONT_PANEL",
+                            "WAKEUP_REASON_WATCHDOG",
+                            "WAKEUP_REASON_SOFTWARE_RESET",
+                            "WAKEUP_REASON_THERMAL_RESET",
+                            "WAKEUP_REASON_WARM_RESET",
+                            "WAKEUP_REASON_COLDBOOT",
+                            "WAKEUP_REASON_STR_AUTH_FAILURE",
+                            "WAKEUP_REASON_CEC",
+                            "WAKEUP_REASON_PRESENCE",
+                            "WAKEUP_REASON_VOICE",
+                            "WAKEUP_REASON_UNKNOWN"
+                        ],
+                        "type": "string",
+                        "example": "WAKEUP_REASON_VOICE"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "wakeupReason",
+                    "success"
+                ]
+            }
+        },
+        "getXconfParams":{
+            "summary": "Returns XCONF configuration parameters for the device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "xconfParams": {
+                        "summary": "A timezone area",
+                        "type": "object",
+                        "properties": {
+                            "env": {
+                                "summary": "The environment",
+                                "type": "string",
+                                "example": "vbn"
+                            },
+                            "eStbMac": {
+                                "summary": "The embedded set-top box MAC address",
+                                "type": "string",
+                                "example": "20:F1:9E:EE:62:08"
+                            },
+                            "model": {
+                                "summary": "The device model number",
+                                "type": "string",
+                                "example": "AX061AEI"
+                            },
+                            "firmwareVersion": {
+                                "summary": "The firmware version",
+                                "type": "string",
+                                "example": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
+                            }
+                        },
+                        "required": [
+                            "env",
+                            "eStbMac",
+                            "model",
+                            "firmwareVersion"
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "xconfParams",
+                    "success"
+                ]
+            }
+        },
+        "hasRebootBeenRequested":{
+            "summary": "Checks whether a reboot has been requested",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "rebootRequested": {
+                        "summary": "`true` if a reboot has been requested, otherwise `false`",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "rebootRequested",
+                    "success"
+                ]
+            }
+        },
+        "isGzEnabled":{
+            "summary": "Checks whether GZ is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "isOptOutTelemetry": {
+            "summary": "(Version 2) Checks the telemetry opt-out status",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "Opt-Out": {
+                        "$ref": "#/definitions/Opt-Out"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "Opt-Out",
+                    "success"
+                ]
+            }
+
+        },
+        "queryMocaStatus":{
+            "summary": "Checks whether MOCA is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mocaEnabled": {
+                        "summary": "`true` if MOCA is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mocaEnabled",
+                    "success"
+                ]
+            }
+        },
+        "reboot":{
+            "summary": "Requests that the system performs a reboot of the set-top box",
+            "events": [
+                "onRebootRequest"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "rebootReason": {
+                        "$ref": "#/definitions/reason"
+                    }
+                },
+                "required": [
+                    "rebootReason"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "removeCacheKey":{
+            "summary": "Requests that the system performs a reboot of the set-top box",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    }
+                },
+                "required": [
+                    "key"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "requestSystemUptime":{
+            "summary": "Returns the device uptime",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "systemUptime": {
+                        "summary": "The uptime, in seconds, of the device",
+                        "type": "string",
+                        "example": "1655.92"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "systemUptime",
+                    "success"
+                ]
+            }
+        },
+        "setCachedValue": {
+            "summary": "Sets the value for a key in the cache",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    },
+                    "value":{
+                        "summary": "The value to set",
+                        "type": "number",
+                        "example": "4343.3434"
+                    }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDeepSleepTimer": {
+            "summary": "Sets the deep sleep timeout period",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "seconds": {
+                        "$ref": "#/definitions/seconds"
+                    }
+                },
+                "required": [
+                    "seconds"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFirmwareAutoReboot": {
+            "summary": "(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` to enable Autoreboot or `false` to disable",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "key"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFirmwareRebootDelay": {
+            "summary": "(Version 2) Delays the firmware reboot",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "delaySeconds": {
+                        "summary": "The reboot delay in seconds",
+                        "type": "integer",
+                        "example": 60
+                    }
+                },
+                "required": [
+                    "delaySeconds"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setGzEnabled": {
+            "summary": "Enables or disables GZ",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMode":{
+            "summary": "Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  \n* `NORMAL` - The set-top box is operating in normal mode.  \n* `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  \n* `WAREHOUSE` - The set-top box is operating in warehouse mode.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "modeInfo": {
+                        "$ref": "#/definitions/modeInfo"
+                    }
+                },
+                "required": [
+                    "modeInfo"                    
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }            
+        },
+        "setNetworkStandbyMode":{
+            "summary": "Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "nwStandby": {
+                        "$ref": "#/definitions/nwStandby"
+                    }
+                },
+                "required": [
+                    "nwStandby"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "SetOptOutTelemetry": {
+            "summary": "Sets the telemetry opt-out status",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "Opt-Out": {
+                        "$ref": "#/definitions/Opt-Out"
+                    }
+                },
+                "required": [
+                    "Opt-Out"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setPowerState":{
+            "summary": "Sets the power state of the device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "standbyReason": {
+                        "summary": "The reason for a standby state",
+                        "type": "string",
+                        "example": "APIUnitTest"
+                    }
+                },
+                "required": [
+                    "powerState",
+                    "standbyReason"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setPreferredStandbyMode":{
+            "summary": "Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "standbyMode": {
+                        "$ref": "#/definitions/preferredStandbyMode"
+                    }
+                },
+                "required": [
+                    "standbyMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setTemperatureThresholds":{
+            "summary": "Sets the temperature threshold values. Not supported on all devices",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "Thresholds" :{
+                        "type": "object",
+                        "properties": {
+                            "WARN": {
+                                "$ref": "#/definitions/WARN"
+                            },
+                            "MAX": {
+                                "$ref": "#/definitions/MAX"
+                            }
+                        },
+                        "required": [
+                            "WARN",
+                            "MAX"
+                        ]
+                    }
+                },
+                "required": [
+                    "Thresholds"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setTimeZoneDST":{
+            "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "timeZone": {
+                        "$ref": "#/definitions/timeZone"
+                    }
+                },
+                "required": [
+                    "timeZone"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "updateFirmware":{
+            "summary": "Initiates a firmware update. This method has no affect if an update is not available",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onFirmwarePendingReboot":{
+            "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "seconds": {
+                        "$ref": "#/definitions/seconds"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "seconds",
+                    "success"
+                ]
+            }               
+        },
+        "onFirmwareUpdateInfoReceived":{
+            "summary": "Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked.  \nUpdate details are:  \n* `0` - A new firmware version is available.  \n* `1` - The firmware version is at the current version.  \n* `2` - XCONF did not return a firmware version (timeout or other XCONF error).  \n* `3` - The device is configured not to update the firmware (`swupdate.conf` exists on the device)",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "status": {
+                        "summary": "The firmware update status",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "responseString":{
+                        "summary": "A custom response",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "firmwareUpdateVersion": {
+                        "summary": "The next firmware update version",
+                        "type": "string",
+                        "example": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
+                    },
+                    "updateAvailable":{
+                        "summary": "The value `false` indicates that there is no update available, either because there was no firmware update version returned from XCONF, or because the version returned from XCONF matches the version already on the device. The value of `true` indicates there is a firmware version available for update.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "updateAvailableEnum":{
+                        "summary": "The update available details",
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3
+                        ],
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "status",
+                    "responseString",
+                    "firmwareUpdateVersion",
+                    "updateAvailable",
+                    "updateAvailableEnum",
+                    "success"
+                ]
+            }
+        },
+        "onFirmwareUpdateStateChange":{
+            "summary": "Triggered when the state of a firmware update changes.  \nState details are:  \n* `0`: Uninitialized - there is no firmware update in progress  \n* `1`: Requesting - requesting firmware update information  \n* `2`: Downloading  \n* `3`: Failed  \n* `4`: Download Complete  \n* `5`: Validation Complete  \n* `6`: Preparing to Reboot",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "firmwareUpdateState": {
+                        "$ref": "#/definitions/firmwareUpdateState"
+                    }
+                },
+                "required": [
+                    "firmwareUpdateState"
+                ]
+            }
+        },
+        "onMacAddressesRetrieved":{
+            "summary": "Triggered when the `getMacAddresses` asynchronous method is invoked",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "ecm_mac":{
+                        "summary": "The embedded cable modem MAC address",
+                        "type": "string",
+                        "example": "A8:11:XX:FD:0C:XX"
+                    },
+                    "estb_mac":{
+                        "summary": "The embedded set-top box MAC address",
+                        "type": "string",
+                        "example": "A8:11:XX:FD:0C:XX"
+                    },
+                    "moca_mac":{
+                        "summary": "The MOCA MAC address",
+                        "type": "string",
+                        "example": "00:15:5F:XX:20:5E:57:XX"
+                    },
+                    "eth_mac": {
+                        "summary": "The Ethernet MAC address",
+                        "type": "string",
+                        "example": "A8:11:XX:FD:0C:XX"
+                    },
+                    "wifi_mac":{
+                        "summary": "The Wifi MAC address",
+                        "type": "string",
+                        "example": "A8:11:XX:FD:0C:XX"
+                    },
+                    "info":{
+                        "summary": "Additional information",
+                        "type": "string",
+                        "example": ""
+                    },                
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ecm_mac",
+                    "estb_mac",
+                    "moca_mac",
+                    "eth_mac",
+                    "wifi_mac",
+                    "info",
+                    "success"
+                ]
+            }            
+        },
+        "onRebootRequest":{
+            "summary": "Triggered when an application invokes the reboot method",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "requestedApp": {
+                        "$ref": "#/definitions/source"
+                    },
+                    "rebootReason": {
+                        "$ref": "#/definitions/reason"
+                    }
+                },
+                "required": [
+                    "requestedApp",
+                    "rebootReason"
+                ]
+            }
+        },
+        "onSystemClockSet":{
+            "summary": "Triggered when the clock on the set-top device is updated"
+        },
+        "onSystemModeChanged":{
+            "summary": "Triggered when the device operating mode changes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    }
+                },
+                "required": [
+                    "mode"
+                ]
+            }
+        },
+        "onSystemPowerStateChanged":{
+            "summary": "Triggered when the power manager detects a device power state change",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "currentPowerState": {
+                        "summary": "The current power state",
+                        "type": "string",
+                        "example": "ON"
+                    }
+                },
+                "required": [
+                    "powerState"
+                ]
+            }
+        },
+        "onTemperatureThresholdChanged":{
+            "summary": "Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`). Not supported on all devices.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "thresholdType": {
+                        "summary": "The exceeded threshold",
+                        "enum": [
+                            "MAX",
+                            "MIN"
+                        ],
+                        "type": "string",
+                        "example": "MAX"
+                    },
+                    "exceeded": {
+                        "summary": "Whether the threshold exceeded the configured value",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "temperature":{
+                        "$ref": "#/definitions/temperature"
+                    }
+                },
+                "required": [
+                    "thresholdType",
+                    "exceeded",
+                    "temperature"
+                ]
+            }
+        }
+    }
+}

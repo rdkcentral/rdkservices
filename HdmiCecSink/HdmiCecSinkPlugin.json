@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "HdmiCecSinkPlugin",
+      "callsign": "org.rdk.HdmiCecSink",
+      "locator": "libWPEFrameworkHdmiCecSink.so",
+      "status": "production",
+      "description": "The `HdmiCecSink` plugin allows you to manage HDMI Consumer Electronics Control (CEC) sink for connected devices.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "HdmiCecSink.json#"
+    }
+}
