@@ -1,0 +1,169 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "FrameRate API", 
+        "class": "FrameRate", 
+        "description": "The `FrameRate` plugin allows you to collect FPS data."
+    },
+    "definitions": {
+        "framerate": {
+            "summary": "The display framerate setting (width x height x framerate)",
+            "type": "string",
+            "example": "3840x2160px48"
+        },
+        "auto-frm-mode": {
+            "summary": "`0` for auto framerate mode disabled, `1` for auto framerate mode enabled",
+            "enum": [ 0, 1 ],
+            "type": "integer",
+            "example": 0
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getDisplayFrameRate": {
+            "summary": "(Version 2) Returns the current display frame rate values",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "framerate",
+                    "success"
+                ]
+            }
+        },
+        "getFrmMode": {
+            "summary": "(Version 2) Returns the current auto framerate mode",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "auto-frm-mode": {
+                        "$ref": "#/definitions/auto-frm-mode"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "auto-frm-mode",
+                    "success"
+                ]
+            }
+        },
+        "setCollectionFrequency": {
+            "summary": "Sets the FPS data collection interval",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "frequency":{
+                        "summary": "The amount of time in milliseconds. The default frequency if no frequency is specified is 10000 milliseconds.",
+                        "type":"integer",
+                        "default": 10000,
+                        "example": 1000 
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDisplayFrameRate": {
+            "summary": "(Version 2) Sets the display framerate values",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "$ref": "#/definitions/framerate"
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFrmMode":{
+            "summary": "(Version 2) Sets the auto framerate mode",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "auto-frm-mode": {
+                        "$ref": "#/definitions/auto-frm-mode"
+                    }
+                },
+                "required": [
+                    "auto-frm-mode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startFpsCollection":{
+            "summary": "Starts the FPS data collection",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopFpsCollection":{
+            "summary": "Stops the FPS data collection",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events":{
+        "onFpsEvent":{
+            "summary": "Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "average": {
+                        "summary": "The average FPS",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "min": {
+                        "summary": "The minimum FPS",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "max": {
+                        "summary": "The maximum FPS",
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "average",
+                    "min",
+                    "max"
+                ]    
+            }
+        }
+    }
+}
