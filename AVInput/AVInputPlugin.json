@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "AVInput Plugin",
+      "callsign": "org.rdk.AVInput",
+      "locator": "libWPEFrameworkAVInput.so",
+      "status": "production",
+      "description": "The `AVInput` plugin facilitates interactions with the Parker STB HDMI input. The HDMI input is presented by using a `VideoResource` whose URL starts with `avin:`. For example: `avin://input1`.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "AVInput.json#"
+    }
+}

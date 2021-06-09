@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "UserPreferences Plugin",
+      "callsign": "org.rdk.UserPreferences",
+      "locator": "libWPEFrameworkUserPreferences.so",
+      "status": "production",
+      "description": "The `UserPreferences` plugin controls user preference settings on a set-top device.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "UserPreferences.json#"
+    }
+}
