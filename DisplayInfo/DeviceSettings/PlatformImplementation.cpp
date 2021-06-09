@@ -381,16 +381,7 @@ public:
         uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
             LOGERR("Size too large to use ToString base64 wpe api");
-        string edidbase64;
-        // Align input string size to multiple of 3
-        int paddingSize = 0;
-        for (; paddingSize < (3-size%3);paddingSize++)
-        {
-            edidVec.push_back(0x00);
-        }
-        size += paddingSize;
         int i = 0;
-
         for (i; i < length && i < size; i++)
         {
             data[i] = edidVec[i];
