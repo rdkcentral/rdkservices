@@ -219,6 +219,8 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             //LOGINFO("dtor");
+
+            lock_guard<mutex> lck(m_callMutex);
         }
 
         void DisplaySettings::InitAudioPorts() 
@@ -1555,13 +1557,14 @@ namespace WPEFramework {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected())
                 {
-                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth;
-                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth);
+                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
+                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
 
                     response["colorSpace"] = colorSpace;
                     response["colorDepth"] = colorDepth;
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
+                    response["quantizationRange"] = quantizationRange;
                 }
                 else
                 {
@@ -3148,6 +3151,9 @@ namespace WPEFramework {
         // 5.
         void DisplaySettings::onTimer()
         {
+            // lock to prevent: parallel onTimer runs, destruction during onTimer
+            lock_guard<mutex> lck(m_callMutex);
+
             bool isPluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
 
             if (!isPluginActivated) {
@@ -3157,7 +3163,7 @@ namespace WPEFramework {
                 LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
             }
-	    m_callMutex.lock();
+
             static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
@@ -3212,7 +3218,6 @@ namespace WPEFramework {
                     m_timer.stop();
                 }
             }
-	    m_callMutex.unlock();
         }
          // Event management end
 
