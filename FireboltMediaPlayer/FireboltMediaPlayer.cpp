@@ -171,10 +171,10 @@ namespace WPEFramework {
             Register(_T("load"), &FireboltMediaPlayer::load, this);
             Register(_T("play"), &FireboltMediaPlayer::play, this);
             Register(_T("pause"), &FireboltMediaPlayer::pause, this);
-            Register(_T("seekTo"), &FireboltMediaPlayer::seekTo, this);
+            Register(_T("seek"), &FireboltMediaPlayer::seek, this);
             Register(_T("stop"), &FireboltMediaPlayer::stop, this);
             Register(_T("initConfig"), &FireboltMediaPlayer::initConfig, this);
-            Register(_T("initDRMConfig"), &FireboltMediaPlayer::initDRMConfig, this);
+            Register(_T("setDRMConfig"), &FireboltMediaPlayer::setDRMConfig, this);
         }
 
         void FireboltMediaPlayer::UnregisterAll()
@@ -184,10 +184,10 @@ namespace WPEFramework {
             Unregister(_T("load"));
             Unregister(_T("play"));
             Unregister(_T("pause"));
-            Unregister(_T("seekTo"));
+            Unregister(_T("seek"));
             Unregister(_T("stop"));
             Unregister(_T("initConfig"));
-            Unregister(_T("initDRMConfig"));
+            Unregister(_T("setDRMConfig"));
         }
 
         uint32_t FireboltMediaPlayer::create(const JsonObject& parameters, JsonObject& response)
@@ -303,7 +303,7 @@ namespace WPEFramework {
             returnResponse(_mediaStreams[id]->Stream()->SetRate(0) == Core::ERROR_NONE);
         }
 
-        uint32_t FireboltMediaPlayer::seekTo(const JsonObject& parameters, JsonObject& response)
+        uint32_t FireboltMediaPlayer::seek(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             const char *keyId = "id";
@@ -340,36 +340,48 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             const char *keyId = "id";
-            const char *keyConfig = "config";
             returnIfStringParamNotFound(parameters, keyId);
-            returnIfParamNotFound(parameters, keyConfig);
             string id = parameters[keyId].String();
-            if(_mediaStreams.find(id) == _mediaStreams.end())
+            MediaStreams::const_iterator it = _mediaStreams.find(id);
+            if (it == _mediaStreams.end())
             {
-                LOGERR("Instace \'%s\' does not exist", id.c_str());
+                LOGERR("Instance '%s' does not exist", id.c_str());
                 returnResponse(false);
             }
 
-            string config = parameters[keyId].Value();
-            returnResponse(_mediaStreams[id]->Stream()->InitConfig(config) == Core::ERROR_NONE);
+            // Ideally I'd like to remove 'id' with Core::JSON::Conainer::Remove but its broken in current release
+            string parametersStr;
+            if (!parameters.ToString(parametersStr)) 
+            {
+                LOGERR("Failed to serialize parameters into a string");
+                returnResponse(false);
+            }
+            returnResponse((*it).second->Stream()->InitConfig(parametersStr) == Core::ERROR_NONE);
         }
 
-        uint32_t FireboltMediaPlayer::initDRMConfig(const JsonObject& parameters, JsonObject& response)
+        uint32_t FireboltMediaPlayer::setDRMConfig(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             const char *keyId = "id";
-            const char *keyConfig = "config";
             returnIfStringParamNotFound(parameters, keyId);
-            returnIfParamNotFound(parameters, keyConfig);
             string id = parameters[keyId].String();
-            if(_mediaStreams.find(id) == _mediaStreams.end())
-            {
-                LOGERR("Instace \'%s\' does not exist", id.c_str());
+            MediaStreams::const_iterator it = _mediaStreams.find(id);
+            if (it == _mediaStreams.end()) {
+                LOGERR("Instance '%s' does not exist", id.c_str());
                 returnResponse(false);
             }
 
-            string config = parameters[keyId].Value();
-            returnResponse(_mediaStreams[id]->Stream()->InitDRMConfig(config) == Core::ERROR_NONE);
+            // Duplicate parameters and remove id
+            JsonObject parametersWithoutId(parameters);
+            parametersWithoutId.Remove(keyId);
+            string parametersWithoutIdStr;
+            if (!parametersWithoutId.ToString(parametersWithoutIdStr)) 
+            {
+                LOGERR("Failed to serialize parameters into a string");
+                returnResponse(false);
+            }
+
+            returnResponse((*it).second->Stream()->InitDRMConfig(parametersWithoutIdStr) == Core::ERROR_NONE);
         }
 
         void FireboltMediaPlayer::onMediaStreamEvent(const string& id, const string &eventName, const string &parametersJson)

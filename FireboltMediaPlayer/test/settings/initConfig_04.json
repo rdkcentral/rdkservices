@@ -1,0 +1,29 @@
+{
+    "jsonrpc": "2.0", 
+    "id": "8004", 
+    "method": "org.rdk.FireboltMediaPlayer.1.initConfig", 
+    "params": { 
+        "id": "mainplayer", 
+
+        "playbackBuffer": 1234,
+        "preferredAudioRendition": "commentary",
+        "preferredAudioCodec": "aac",
+        "drmConfig": {
+            "com.microsoft.playready": "http://test.playready.microsoft.com/service/rightsmanager.asmx",
+            "com.widevine.alpha": "https://widevine-proxy.appspot.com/proxy",
+            "org.w3.clearkey": "",
+            "preferredKeysystem": "com.microsoft.playready"
+        },
+        "asyncTune": true,
+        "useWesterosSink": true,
+        "useNewABR": true,
+        "fragmentRetryLimit": 17,
+        "initRampdownLimit": 19,
+        "segmentInjectFailThreshold": 23,
+        "useNewAdBreaker": true,
+        "ceaFormat": 1,
+        "tuneEventConfig": 0,
+        "onTuneRate": 0,
+        "useAbsoluteTimeline": true
+    }
+}

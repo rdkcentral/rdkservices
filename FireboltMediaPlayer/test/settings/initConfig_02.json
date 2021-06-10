@@ -1,0 +1,9 @@
+{
+    "jsonrpc": "2.0", 
+    "id": "8002", 
+    "method": "org.rdk.FireboltMediaPlayer.1.initConfig", 
+    "params": { 
+        "id": "mainplayer", 
+        "offset": 45
+    }
+}
