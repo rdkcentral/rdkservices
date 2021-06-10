@@ -3875,6 +3875,31 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             sFactoryAppLaunchStatus = STARTED;
+            if (nullptr == gSystemServiceConnection)
+            {
+                std::string serviceCallsign(SYSTEM_SERVICE_CALLSIGN);
+                JsonObject activateParams;
+                activateParams.Set("callsign", serviceCallsign);
+                JsonObject activateResult;
+                auto thunderController = getThunderControllerClient();
+                int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                std::cout << "activate system service status: " << activateStatus << std::endl;
+                if (activateStatus > 0)
+                {
+                    std::cout << "trying status one more time...\n";
+                    activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                    std::cout << "activate system service status: " << activateStatus << std::endl;
+                    if (activateStatus > 0)
+                    {
+                        std::cout << "unable to activate system service " << std::endl;
+                    }
+                }
+                if (activateStatus == 0)
+                {
+                    serviceCallsign.append(".1");
+                    gSystemServiceConnection = getThunderControllerClient(serviceCallsign);
+                }
+            }
             if (!gSystemServiceEventsSubscribed && (nullptr != gSystemServiceConnection))
             {
                 std::string eventName("onSystemPowerStateChanged");
