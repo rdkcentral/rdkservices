@@ -1557,13 +1557,14 @@ namespace WPEFramework {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected())
                 {
-                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth;
-                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth);
+                    int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
+                    vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
 
                     response["colorSpace"] = colorSpace;
                     response["colorDepth"] = colorDepth;
                     response["matrixCoefficients"] = matrixCoefficients;
                     response["videoEOTF"] = videoEOTF;
+                    response["quantizationRange"] = quantizationRange;
                 }
                 else
                 {
