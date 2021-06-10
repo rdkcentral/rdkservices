@@ -153,7 +153,8 @@ public:
         string currentResolution = "0";
         try
         {
-            device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             currentResolution = vPort.getResolution().getName();
             TRACE(Trace::Information, (_T("Current video playback resolution = %s"), currentResolution));
         }

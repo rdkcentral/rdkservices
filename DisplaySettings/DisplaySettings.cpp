@@ -700,7 +700,8 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedResolutions(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"supportedResolutions":["720p","1080i","1080p60"]}
             LOGINFOMETHOD();
-            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : "HDMI0";
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             vector<string> supportedResolutions;
             try
             {
@@ -745,7 +746,8 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedTvResolutions(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"supportedTvResolutions":["480i","480p","576i","720p","1080i","1080p"]}
             LOGINFOMETHOD();
-            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : "HDMI0";
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             vector<string> supportedTvResolutions;
             try
             {
@@ -847,7 +849,8 @@ namespace WPEFramework {
 
                 if (Utils::String::stringContains(audioPort, "HDMI0"))
                 {
-                    device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                     int surroundMode = vPort.getDisplay().getSurroundMode();
                     if (vPort.isDisplayConnected() && surroundMode)
                     {
@@ -931,7 +934,8 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
             LOGINFOMETHOD();
-            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : "HDMI0";
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool success = true;
             try
             {
@@ -990,7 +994,8 @@ namespace WPEFramework {
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
                 if (audioPort.empty())
                 {
-                    if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
                     {
                         audioPort = "HDMI0";
                     }
@@ -1026,7 +1031,8 @@ namespace WPEFramework {
                         if (aPort.getStereoAuto() || mode == device::AudioStereoMode::kSurround)
                         {
                             LOGINFO("HDMI0 is in Auto Mode");
-                            int surroundMode = device::Host::getInstance().getVideoOutputPort("HDMI0").getDisplay().getSurroundMode();
+                            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                            int surroundMode = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).getDisplay().getSurroundMode();
                             if ( surroundMode & dsSURROUNDMODE_DDPLUS)
                             {
                                 LOGINFO("HDMI0 has surround DDPlus");
@@ -1156,7 +1162,8 @@ namespace WPEFramework {
                             aPort.setStereoAuto(stereoAuto, persist);
                             if (stereoAuto)
                             {
-                                if (device::Host::getInstance().getVideoOutputPort("HDMI0").getDisplay().getSurroundMode())
+                                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                                if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).getDisplay().getSurroundMode())
                                     mode = device::AudioStereoMode::kSurround;
                                 else
                                     mode = device::AudioStereoMode::kStereo;
@@ -1245,7 +1252,8 @@ namespace WPEFramework {
             try
             {
                 vector<uint8_t> edidVec2;
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected())
                 {
                     vPort.getDisplay().getEDIDBytes(edidVec2);
@@ -1323,7 +1331,8 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
 
-            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : "HDMI0";
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool active = true;
             try
             {
@@ -1347,7 +1356,8 @@ namespace WPEFramework {
 
             try
             {
-                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected())
                     vPort.getTVHDRCapabilities(&capabilities);
             }
@@ -1543,7 +1553,8 @@ namespace WPEFramework {
             bool success = true;
             try
             {
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected())
                 {
                     int videoEOTF, matrixCoefficients, colorSpace, colorDepth;
@@ -2425,7 +2436,8 @@ namespace WPEFramework {
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
                 if (audioPort.empty())
                 {
-                    if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
                     {
                         audioPort = "HDMI0";
                     }
@@ -2489,7 +2501,8 @@ namespace WPEFramework {
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
                 if (audioPort.empty())
                 {
-                    if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
                         audioPort = "HDMI0";
                     else
                     {
@@ -2539,7 +2552,8 @@ namespace WPEFramework {
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
                 if (audioPort.empty())
                 {
-                    if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
                     {
                         audioPort = "HDMI0";
                     }
@@ -2606,7 +2620,8 @@ namespace WPEFramework {
                 /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
                 if (audioPort.empty())
                 {
-                    if (device::Host::getInstance().getVideoOutputPort("HDMI0").isDisplayConnected())
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
                     {
                         audioPort = "HDMI0";
                     }
@@ -3199,7 +3214,8 @@ namespace WPEFramework {
 			int capabilities = dsHDRSTANDARD_NONE;
             try
             {
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected()) {
                     vPort.getTVHDRCapabilities(&capabilities);
                     response["capabilities"] = capabilities;
@@ -3248,7 +3264,8 @@ namespace WPEFramework {
 			bool success = true;
             try
             {
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected()) {
                     response["defaultResolution"] = vPort.getDefaultResolution().getName();
                 }
@@ -3317,7 +3334,9 @@ namespace WPEFramework {
                 }
                 if (!resolution.empty())
                 {
-                    if (Utils::String::stringContains(display,"HDMI"))
+                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                    std::string videoPortName = strVideoPort.substr(0, strVideoPort.size()-1);
+                    if (Utils::String::stringContains(display, videoPortName.c_str()))
                     {
                         // only report first HDMI connected device is HDMI is connected
                         JsonObject params;
