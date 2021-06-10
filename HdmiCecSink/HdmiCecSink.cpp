@@ -92,6 +92,7 @@ enum {
 	HDMICECSINK_EVENT_ARC_TERMINATION_EVENT,
         HDMICECSINK_EVENT_SHORT_AUDIODESCRIPTOR_EVENT,
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
+	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 };
 
 static char *eventString[] = {
@@ -107,7 +108,8 @@ static char *eventString[] = {
         "arcInitiationEvent",
         "arcTerminationEvent",
         "shortAudiodesciptorEvent",
-        "standbyMessageReceived"
+        "standbyMessageReceived",
+        "setSystemAudioMode"
 };
 	
 
@@ -459,6 +461,14 @@ namespace WPEFramework
              LOGINFO("Command: ReportShortAudioDescriptor %s : %d \n",GetOpName(msg.opCode()),numberofdescriptor);
             HdmiCecSink::_instance->Process_ShortAudioDescriptor_msg(msg);
        }
+
+       void HdmiCecSinkProcessor::process (const SetSystemAudioMode &msg, const Header &header)
+       {
+             printHeader(header);
+             LOGINFO("Command: SetSystemAudioMode  %s audio status %d audio status is  %s \n",GetOpName(msg.opCode()),msg.status.toInt(),msg.status.toString().c_str());
+          HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
+       }
+
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -851,6 +861,16 @@ namespace WPEFramework
 	    }
 	   HdmiCecSink::_instance->Send_ShortAudioDescriptor_Event(audiodescriptor);
         }
+
+        void HdmiCecSink::Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg)
+        {
+            JsonObject params;
+            if(!HdmiCecSink::_instance)
+               return;
+            params["audioMode"] = msg.status.toString().c_str();
+            sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+         }
+
          void  HdmiCecSink::sendDeviceUpdateInfo(const int logicalAddress)
          {
             JsonObject params;
