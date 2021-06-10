@@ -1,0 +1,336 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Warehouse API", 
+        "class": "Warehouse",
+        "description": "The `Warehouse` plugin performs various types of resets (data, warehouse, etc.)."
+    },
+    "definitions": {
+        "error":{
+            "summary": "An error message in case of a failure",
+            "type": "string",
+            "example": ""
+        },
+        "PARAM_SUCCESS": {
+            "summary": "Whether the parameter succeeded",
+            "type": "boolean",
+            "example": true
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods":{
+        "ExecuteHardwareTest": {
+            "summary": "(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getDeviceInfo":{
+            "summary": "(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "deviceInfo": {
+                        "summary": "A hash of properties containing device information",
+                        "type": "object",
+                        "properties": {
+                            "bluetooth_mac":{
+                                "summary": "The bluetooth MAC address",
+                                "type": "string",
+                                "example": "A8:11:XX:FD:0C:XX"
+                            },
+                            "boxIP":{
+                                "summary": "The device IP address",
+                                "type": "string",
+                                "example": "192.168.0.1"
+                            },
+                            "build_type":{
+                                "summary": "The device build type",
+                                "type": "string",
+                                "example": "VBN"
+                            },
+                            "estb_mac":{
+                                "summary": "The embedded set-top box MAC address",
+                                "type": "string",
+                                "example": "A8:11:XX:FD:0C:XX"
+                            },
+                            "eth_mac": {
+                                "summary": "The Ethernet MAC address",
+                                "type": "string",
+                                "example": "A8:11:XX:FD:0C:XX"
+                            },
+                            "imageVersion":{
+                                "summary": "The build image version",
+                                "type": "string",
+                                "example": "AX061AEI_VBN_2003_sprint_20200507224225sdy"
+                            },
+                            "version":{
+                                "summary": "The version",
+                                "type": "string",
+                                "example": "X061AEI_VBN_2003_sprint_20200507224225sdy"
+                            },
+                            "software_version":{
+                                "summary": "The software version",
+                                "type": "string",
+                                "example": "AX061AEI_VBN_2003_sprint_20200507224225sdy"
+                            },
+                            "model_number":{
+                                "summary": "The device model number",
+                                "type": "string",
+                                "example": "AX061AEI"
+                            },
+                            "rf4ce_mac":{
+                                "summary": "The Radio Frequency for Consumer Electronics MAC address",
+                                "type": "string",
+                                "example": "00:15:5F:XX:20:5E:57:XX"
+                            },
+                            "wifi_mac":{
+                                "summary": "The Wifi address",
+                                "type": "string",
+                                "example": "A8:11:XX:FD:0C:XX"
+                            }
+                        },
+                        "required": [
+                            "bluetooth_mac",
+                            "boxIP",
+                            "build_type",
+                            "estb_mac",
+                            "eth_mac",
+                            "imageVersion",
+                            "version",
+                            "software_version",
+                            "model_number",
+                            "rf4ce_mac",
+                            "wifi_mac"
+                        ]
+                    },
+                    "PARAM_SUCCESS": {
+                        "$ref": "#/definitions/PARAM_SUCCESS"         
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "deviceInfo",
+                    "PARAM_SUCCESS",
+                    "success"
+                ]
+            }
+        },
+        "getHardwareTestResults": {
+            "summary": "(Version 2) Returns the results of the last hardware test",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "testResults": {
+                        "summary": "The test results",
+                        "type": "string",
+                        "example": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
+                    }
+                },
+                "required": [
+                    "testResults"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+
+        },
+        "internalReset":{
+            "summary": "Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "passPhrase": {
+                        "summary": "The passphrase for running the internal reset (`FOR TEST PURPOSES ONLY`)",
+                        "type": "string",
+                        "example": "FOR TEST PURPOSES ONLY2"
+                    }
+                },
+                "required": [
+                    "passPhrase"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "isClean":{
+            "summary": "Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clean":{
+                        "summary": "If `true`, then the device has no customer data, otherwise `false`",
+                        "type": "boolean",
+                        "example": false                    
+                    },
+                    "files": {
+                        "summary": "A string [] of file locations for each file that is found that should have been deleted in the cleaning process. If the `clean` property is `true`, then this array is empty or `null`.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "/opt/ctrlm.sql"
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "clean",
+                    "files",
+                    "success"
+                ]
+            }
+        },
+        "lightReset":{
+            "summary": "Resets the application data",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "resetDevice":{
+            "summary": "Resets the STB to the warehouse state. It dispatches a `resetDone` event notification indicating a successful reset or failure.",
+            "events": [
+                "resetDone"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "suppressReboot": {
+                        "summary": "if `true`, the STB should not be rebooted, otherwise `false`. Only the `WAREHOUSE` reset type supports suppressing the reboot",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "resetType": {
+                        "summary": "The reset type. If `resetType` is not specified, then `WAREHOUSE` is the default.",
+                        "enum": [
+                            "WAREHOUSE",
+                            "FACTORY",
+                            "USERFACTORY",
+                            "COLDFACTORY"
+                        ],
+                        "default": "WAREHOUSE",
+                        "type": "string",
+                        "example": "WAREHOUSE"
+                    }
+                },
+                "required": [
+                    "suppressReboot",
+                    "resetType"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "PARAM_SUCCESS": {
+                        "$ref": "#/definitions/PARAM_SUCCESS"       
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "PARAM_SUCCESS",
+                    "success"
+                ]
+            } 
+        },
+        "setFrontPanelState":{
+            "summary": "Sets the state of the front panel LEDs to indicate the download state of the STB software image",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "state": {
+                        "summary": "The front panel state. Possible state values are: `-1` (NONE), `1` (DOWNLOAD IN PROGRESS), `3` (DOWNLOAD FAILED)",
+                        "type": "integer",
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        }
+    },
+    "events":{
+        "resetDone":{
+            "summary": "Notifies subscribers about the status of the warehouse reset operation",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        }
+    }
+}

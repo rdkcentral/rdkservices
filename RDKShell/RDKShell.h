@@ -60,6 +60,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_FOCUS;
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPTS;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
@@ -156,6 +157,7 @@ namespace WPEFramework {
             uint32_t setFocusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
@@ -230,6 +232,7 @@ namespace WPEFramework {
             bool setFocus(const string& client);
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyIntercepts(const JsonArray& intercepts);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);

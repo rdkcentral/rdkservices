@@ -1,0 +1,169 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "DeviceDiagnostics API", 
+        "class": "DeviceDiagnostics", 
+        "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
+    },
+    "definitions": {
+        "audioDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
+        "videoDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getAudioDecoderStatus":{
+            "summary": "Gets the audio decoder status",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "audioDecoderStatus": {
+                        "$ref": "#/definitions/audioDecoderStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioDecoderStatus",
+                    "success"
+                ]
+            }
+        },
+        "getConfiguration": {
+            "summary": "Gets the values associated with the corresponding property names",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "names": {
+                        "summary": "String array of property names",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "Device.X_CISCO_COM_LED.RedPwm"
+                        }
+                    }
+                },
+                "required": [
+                    "names"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "paramList": {
+                        "summary": "An array of JSON objects with the specified properties and their values",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "summary": "The property name",
+                                    "type":"string",
+                                    "example": "Device.X_CISCO_COM_LED.RedPwm"
+                                },
+                                "value": {
+                                    "summary": "The property value",
+                                    "type":"string",
+                                    "example": "123"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "value"
+                            ]                        
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "paramList",
+                    "success"
+                ]
+            }
+        },
+        "getVideoDecoderStatus":{
+            "summary": "Gets the video decoder status",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "videoDecoderStatus": {
+                        "$ref": "#/definitions/videoDecoderStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "videoDecoderStatus",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onAudioDecoderStatusChanged":{
+            "summary": "Triggered when the audio decoder status changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "audioDecoderStatus": {
+                        "$ref": "#/definitions/audioDecoderStatus"
+                    }
+                },
+                "required": [
+                    "audioDecoderStatus"
+                ]
+            }
+        },
+        "onVideoDecoderStatusChanged":{
+            "summary": "Triggered when the video decoder status changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDecoderStatus": {
+                        "$ref": "#/definitions/videoDecoderStatus"
+                    }
+                },
+                "required": [
+                    "videoDecoderStatus"
+                ]
+            }
+        }
+    }
+}

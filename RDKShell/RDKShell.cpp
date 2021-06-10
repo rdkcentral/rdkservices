@@ -45,6 +45,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_BEHIND = "move
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFocus";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPTS = "addKeyIntercepts";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
@@ -671,6 +672,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_FOCUS, &RDKShell::setFocusWrapper, this);
             registerMethod(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPTS, &RDKShell::addKeyInterceptsWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
@@ -1738,6 +1740,28 @@ namespace WPEFramework {
                 result = addKeyIntercept(keyCode, modifiers, client);
                 if (false == result) {
                   response["message"] = "failed to add key intercept";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("intercepts"))
+            {
+                result = false;
+                response["message"] = "please specify intercepts";
+            }
+            if (result)
+            {
+                const JsonArray intercepts = parameters["intercepts"].Array();
+                result = addKeyIntercepts(intercepts);
+                if (false == result)
+                {
+                    response["message"] = "failed to add some key intercepts due to missing parameters or wrong format ";
                 }
             }
             returnResponse(result);
@@ -3852,11 +3876,6 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify topmost (topmost = true/false)";
             }
-            else if (!parameters.HasLabel("focus"))
-            {
-                result = false;
-                response["message"] = "please specify focus (focus = true/false)";
-            }
 
             if (result)
             {
@@ -3870,8 +3889,11 @@ namespace WPEFramework {
                     client = parameters["callsign"].String();
                 }
                 const bool topmost = parameters["topmost"].Boolean();
-                const bool focus = parameters["focus"].Boolean();
-
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
                 result = setTopmost(client, topmost, focus);
                 if (false == result)
                 {
@@ -4385,13 +4407,43 @@ namespace WPEFramework {
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
             sForceResidentAppLaunch = true;
+            auto thunderController = getThunderControllerClient();
+            WPEFramework::Core::JSON::String configString;
+
+            int32_t status = 0;
+            string method = "configuration@ResidentApp";
+            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+            status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+
+            std::cout << "config resident app status: " << status << std::endl;
+            std::string updatedUrl;
+            if (status > 0)
+            {
+                std::cout << "trying resident app config status one more time...\n";
+                status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                std::cout << "trying resident app config status: " << status << std::endl;
+            }
+            else
+            {
+                JsonObject configSet;
+                configSet.FromString(configString.Value());
+                updatedUrl = configSet["url"].String();
+                if (updatedUrl.find("?") != -1)
+                {
+                    updatedUrl.append("&adjustPowerStateAtStartup=false");
+                }
+                else
+	        {
+                    updatedUrl.append("?adjustPowerStateAtStartup=false");
+	        }
+            }
+
             bool ret = true;
             std::string callsign("ResidentApp");
             JsonObject activateParams;
             activateParams.Set("callsign",callsign.c_str());
             JsonObject activateResult;
-            auto thunderController = getThunderControllerClient();
-            int32_t status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+            status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
 
             std::cout << "activate resident app status: " << status << std::endl;
             if (status > 0)
@@ -4409,6 +4461,19 @@ namespace WPEFramework {
                     ret = true;
                 }
             }
+
+            if (!updatedUrl.empty())
+            {
+                WPEFramework::Core::JSON::String urlString;
+                urlString = updatedUrl;
+                status = JSONRPCDirectLink(mCurrentService, "ResidentApp").Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                std::cout << "set url status " << updatedUrl << " " << status << std::endl;
+                if (status > 0)
+                {
+                    std::cout << "failed to set url to " << updatedUrl << " with status code " << status << std::endl;
+                }
+            }
+
             JsonObject joFactoryModeParams;
             JsonObject joFactoryModeResult;
             joFactoryModeParams.Set("namespace","FactoryTest");
@@ -4867,7 +4932,10 @@ namespace WPEFramework {
                         notify(RDKSHELL_EVENT_ON_WILL_DESTROY, params);
                     }
                 }
-                sleep(1);
+                if (stateList.Length() > 0)
+                {
+                    sleep(1);
+                }
             }
 
             for (int i=0; i<stateList.Length(); i++)
@@ -4944,6 +5012,49 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             sem_wait(&request->mSemaphore);
             ret = request->mResult;
+            return ret;
+        }
+
+        bool RDKShell::addKeyIntercepts(const JsonArray& intercepts)
+        {
+            bool ret = true;
+            for (int i=0; i<intercepts.Length(); i++)
+            {
+                if (!(intercepts[i].Content() == JsonValue::type::OBJECT))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to wrong format " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonObject& interceptEntry = intercepts[i].Object();
+                if (!interceptEntry.HasLabel("keys") || !interceptEntry.HasLabel("client"))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to missing client or keys parameter " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonArray& keys = interceptEntry["keys"].Array();
+                std::string client = interceptEntry["client"].String();
+                for (int k=0; k<keys.Length(); k++)
+                {
+                    if (!(keys[k].Content() == JsonValue::type::OBJECT))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonObject& keyEntry = keys[k].Object();
+                    if (!keyEntry.HasLabel("keyCode"))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to missing key code parameter " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonArray modifiers = keyEntry.HasLabel("modifiers") ? keyEntry["modifiers"].Array() : JsonArray();
+                    const uint32_t keyCode = keyEntry["keyCode"].Number();
+                    ret = addKeyIntercept(keyCode, modifiers, client);
+                }
+            }
             return ret;
         }
 
