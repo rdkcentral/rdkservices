@@ -3259,7 +3259,8 @@ namespace WPEFramework {
             bool isConnectedDeviceRepeater = false;
             try
             {
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected()) {
                     isConnectedDeviceRepeater = vPort.getDisplay().isConnectedDeviceRepeater();
                 }
