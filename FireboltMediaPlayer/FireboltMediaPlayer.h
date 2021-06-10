@@ -161,10 +161,10 @@ namespace WPEFramework {
             uint32_t load(const JsonObject& parameters, JsonObject& response);
             uint32_t play(const JsonObject& parameters, JsonObject& response);
             uint32_t pause(const JsonObject& parameters, JsonObject& response);
-            uint32_t seekTo(const JsonObject& parameters, JsonObject& response);
+            uint32_t seek(const JsonObject& parameters, JsonObject& response);
             uint32_t stop(const JsonObject& parameters, JsonObject& response);
             uint32_t initConfig(const JsonObject& parameters, JsonObject& response);
-            uint32_t initDRMConfig(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDRMConfig(const JsonObject& parameters, JsonObject& response);
 
             void onMediaStreamEvent(const string& id, const string &eventName, const string &parameters);
 
@@ -195,6 +195,7 @@ namespace WPEFramework {
             //TODO: consider list of different MediaPlayers
             uint32_t _aampMediaPlayerConnectionId;
             Exchange::IMediaPlayer* _aampMediaPlayer;
+            //* The current MediaStreamProxy instances by name. When their reference count reaches zero they are removed from this map.
             MediaStreams _mediaStreams;
         };
 
