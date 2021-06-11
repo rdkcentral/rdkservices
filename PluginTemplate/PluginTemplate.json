@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkPluginTemplate.so",
+ "classname":"PluginTemplate",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.PluginTemplate",
+ "autostart":false
+}
