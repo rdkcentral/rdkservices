@@ -88,7 +88,7 @@ namespace WPEFramework {
 
             if (Utils::IARM::init())
             {
-                IARM_Result_t resi;
+                IARM_Result_t res;
 		//hdmi event handler through IARM bus
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
