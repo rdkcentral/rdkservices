@@ -18,8 +18,9 @@
 **/
 
 #pragma once
+
 #ifndef MODULE_NAME
-#define MODULE_NAME DisplaySettings
+#define MODULE_NAME XCast
 #endif
 
 #include <plugins/plugins.h>
