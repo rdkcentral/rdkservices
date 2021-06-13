@@ -135,7 +135,7 @@ namespace WPEFramework {
 
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
-                void onSystemPowerStateChanged(string powerState);
+                void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
