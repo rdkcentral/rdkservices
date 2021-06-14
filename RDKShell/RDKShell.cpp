@@ -34,6 +34,10 @@
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
 
+#ifdef RDKSHELL_READ_MAC_ON_STARTUP
+#include "FactoryProtectHal.h"
+#endif //RDKSHELL_READ_MAC_ON_STARTUP
+
 
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
@@ -45,6 +49,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_BEHIND = "move
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFocus";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPTS = "addKeyIntercepts";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
@@ -671,6 +676,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_FOCUS, &RDKShell::setFocusWrapper, this);
             registerMethod(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPTS, &RDKShell::addKeyInterceptsWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
@@ -760,6 +766,29 @@ namespace WPEFramework {
             CompositorController::setEventListener(mEventListener);
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
+            #ifdef RDKSHELL_READ_MAC_ON_STARTUP
+            char* mac = new char[19];
+            tFHError retAPIStatus;
+            std::cout << "calling factory hal init\n";
+            fhal_init();
+            retAPIStatus = getEthernetMAC(&mac);
+            if(retAPIStatus == E_OK)
+            {
+                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching... " << std::endl;
+                    factoryMacMatched = true;
+                }
+                else
+                {
+                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac hal api failed... " << std::endl;
+            }
+            #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
             if (true == macret)
@@ -778,6 +807,7 @@ namespace WPEFramework {
             {
                 std::cout << "reading stb mac rfc failed " << std::endl;
             }
+            #endif //RDKSHELL_READ_MAC_ON_STARTUP
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
@@ -1738,6 +1768,28 @@ namespace WPEFramework {
                 result = addKeyIntercept(keyCode, modifiers, client);
                 if (false == result) {
                   response["message"] = "failed to add key intercept";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("intercepts"))
+            {
+                result = false;
+                response["message"] = "please specify intercepts";
+            }
+            if (result)
+            {
+                const JsonArray intercepts = parameters["intercepts"].Array();
+                result = addKeyIntercepts(intercepts);
+                if (false == result)
+                {
+                    response["message"] = "failed to add some key intercepts due to missing parameters or wrong format ";
                 }
             }
             returnResponse(result);
@@ -4815,6 +4867,27 @@ namespace WPEFramework {
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
+            #ifdef RDKSHELL_READ_MAC_ON_STARTUP
+            char* mac = new char[19];
+            tFHError retAPIStatus;
+            retAPIStatus = getEthernetMAC(&mac);
+            if(retAPIStatus == E_OK)
+            {
+                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
+                {
+                    std::cout << "launching factory app as mac is matching... " << std::endl;
+                    return true;
+                }
+                else
+                {
+                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "reading stb mac via hal failed " << std::endl;
+            }
+            #else
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
             if (true == ret)
@@ -4833,6 +4906,7 @@ namespace WPEFramework {
             {
                 std::cout << "reading stb mac rfc failed " << std::endl;
             }
+            #endif //RDKSHELL_READ_MAC_ON_STARTUP
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
@@ -4988,6 +5062,49 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             sem_wait(&request->mSemaphore);
             ret = request->mResult;
+            return ret;
+        }
+
+        bool RDKShell::addKeyIntercepts(const JsonArray& intercepts)
+        {
+            bool ret = true;
+            for (int i=0; i<intercepts.Length(); i++)
+            {
+                if (!(intercepts[i].Content() == JsonValue::type::OBJECT))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to wrong format " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonObject& interceptEntry = intercepts[i].Object();
+                if (!interceptEntry.HasLabel("keys") || !interceptEntry.HasLabel("client"))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to missing client or keys parameter " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonArray& keys = interceptEntry["keys"].Array();
+                std::string client = interceptEntry["client"].String();
+                for (int k=0; k<keys.Length(); k++)
+                {
+                    if (!(keys[k].Content() == JsonValue::type::OBJECT))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonObject& keyEntry = keys[k].Object();
+                    if (!keyEntry.HasLabel("keyCode"))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to missing key code parameter " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonArray modifiers = keyEntry.HasLabel("modifiers") ? keyEntry["modifiers"].Array() : JsonArray();
+                    const uint32_t keyCode = keyEntry["keyCode"].Number();
+                    ret = addKeyIntercept(keyCode, modifiers, client);
+                }
+            }
             return ret;
         }
 

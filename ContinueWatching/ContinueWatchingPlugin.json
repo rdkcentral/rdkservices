@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "ContinueWatching Plugin",
+      "callsign": "org.rdk.ContinueWatching",
+      "locator": "libWPEFrameworkContinueWatching.so",
+      "status": "production",
+      "description": "Initial version of the `ContinueWatching` API.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "ContinueWatching.json#"
+    }
+}

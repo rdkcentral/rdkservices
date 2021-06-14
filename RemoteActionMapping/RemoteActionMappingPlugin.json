@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "RemoteActionMapping Plugin",
+      "callsign": "org.rdk.RemoteActionMapping",
+      "locator": "libWPEFrameworkRemoteActionMapping.so",
+      "status": "production",
+      "description": "The `RemoteActionMapping` plugin controls and maps remote controllers.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "RemoteActionMapping.json#"
+    }
+}
