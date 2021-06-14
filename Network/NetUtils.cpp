@@ -86,12 +86,12 @@ namespace WPEFramework {
             std::string value;
             if (envGetValue("DEFAULT_MOCA_IFACE_IP", value))
             {
-                LOGERR("%s: value: %s", __FUNCTION__, value.c_str());
+                LOGINFO("%s: value: %s", __FUNCTION__, value.c_str());
                 dummy_ip_list.push_back(value);
             }
             if (envGetValue("DEFAULT_WIFI_IFACE_IP", value))
             {
-                LOGERR("%s: value: %s", __FUNCTION__, value.c_str());
+                LOGINFO("%s: value: %s", __FUNCTION__, value.c_str());
                 dummy_ip_list.push_back(value);
             }
         }
