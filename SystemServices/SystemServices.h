@@ -110,6 +110,8 @@ namespace WPEFramework {
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
 
+                int m_FwUpdateState_LatestEvent;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
