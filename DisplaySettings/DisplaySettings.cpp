@@ -2685,6 +2685,12 @@ namespace WPEFramework {
                 LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
                 returnResponse(false);
             }
+            
+            if ( audioDelayMs < 0 )
+            {
+                LOGERR("audioDelay '%s', Should be a postiive value", sAudioDelayMs.c_str());
+                returnResponse(false);
+            }
 
             bool success = true;
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
