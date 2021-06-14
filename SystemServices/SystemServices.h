@@ -108,8 +108,8 @@ namespace WPEFramework {
                 static std::string m_currentMode;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
-                Utils::ThreadRAII m_getFirmwareInfoThread;
-
+                Utils::ThreadRAII m_getFirmwareInfoThread; 
+                     
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
@@ -135,7 +135,8 @@ namespace WPEFramework {
                 void DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-                /* Events : Begin */
+                /* Events : Begin */ 
+                int FwUpdateState_LatestEvent;
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onSystemModeChanged(string mode);
