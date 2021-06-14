@@ -240,7 +240,7 @@ namespace WPEFramework {
 
 			DeviceNode() {
 				int i;
-				for (i; i < LogicalAddress::UNREGISTERED; i++ )
+				for (i = 0; i < LogicalAddress::UNREGISTERED; i++ )
 				{
 					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
 				}
@@ -592,8 +592,7 @@ private:
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int portId, int connectStatus);
-			void onPowerStateON();
-			void wakeupFromStandby();
+	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);

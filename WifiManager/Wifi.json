@@ -1,0 +1,614 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Wifi API", 
+        "class": "WifiManager",
+        "description": "The `Wifi` plugin is used to manage Wifi network connections on a set-top device."
+    },
+    "definitions": {
+        "result_int":{
+            "summary": "The result of the operation",
+            "enum":[
+                0,
+                1
+            ],
+            "type": "integer",
+            "example": 0
+        },
+        "ssid":{
+            "summary": "The paired SSID",
+            "type": "string",
+            "example": "123412341234"
+        },
+        "bssid":{
+            "summary": "The paired BSSID",
+            "type": "string",
+            "example": "ff:ff:ff:ff:ff:ff"
+        },
+        "state": {
+            "summary": "The Wifi operational state",
+            "type": "integer",
+            "example": 2
+        },
+        "passphrase": {
+            "summary": "The access point password",
+            "type": "string",
+            "example": "password"
+        },
+        "securityMode": {
+            "summary": "The security mode. See `getSupportedSecurityModes`.",
+            "type": "integer",
+            "example": 2
+        },
+        "signalStrength":{
+            "summary": "The RSSI value in dBm",
+            "type": "string",
+            "example": "-27.000000"
+        },
+        "frequency":{
+            "summary": "The supported frequency for this SSID in GHz",
+            "type": "string",
+            "example": "2.442000"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "cancelWPSPairing":{
+            "summary": "Cancels WPS pairing. A `0` value indicates that paring was canceled. A nonzero value indicates that paring was not canceled.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "clearSSID":{
+            "summary": "Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "connect":{
+            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "passphrase": {
+                        "$ref": "#/definitions/passphrase"
+                    },
+                    "securityMode": {
+                        "$ref": "#/definitions/securityMode"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "passphrase",
+                    "securityMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "disconnect":{
+            "summary": "Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "getConnectedSSID":{
+            "summary": "Returns the connected SSID information",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "bssid": {
+                        "$ref": "#/definitions/bssid"
+                    },
+                    "rate":{
+                        "summary": "The physical data rate in Mbps",
+                        "type": "string",
+                        "example": "144.000000"
+                    },
+                    "noise":{
+                        "summary": "The average noise strength in dBm",
+                        "type": "string",
+                        "example": "-121.000000"
+                    },
+                    "security":{
+                        "summary": "The security mode. See the `connect` method",
+                        "type": "string",
+                        "example": "5"
+                    },
+                    "signalStrength": {
+                        "$ref": "#/definitions/signalStrength"
+                    },
+                    "frequency": {
+                        "$ref": "#/definitions/frequency"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "bssid",
+                    "rate",
+                    "noise",
+                    "security",
+                    "signalStrength",
+                    "frequency",
+                    "success"
+                ]
+            }
+        },
+        "getCurrentState": {
+            "summary": "Returns the current Wifi state.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed  \n* `1`: DISABLED - The device is installed (or was just installed) and has not yet been enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
+            
+        },
+        "getPairedSSID":{
+            "summary": "Returns the SSID to which the device is currently paired",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "success"
+                ]
+            }
+        },
+        "getPairedSSIDInfo":{
+            "summary": "Returns the SSID and BSSID to which the device is currently paired",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "bssid": {
+                        "$ref": "#/definitions/bssid"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "bssid",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedSecurityModes":{
+            "summary": "Returns the Wifi security modes that the device supports",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "security_modes": {
+                        "summary": "The supported security modes and its associated integer value.",
+                        "type": "object",
+                        "properties": {
+                            "NET_WIFI_SECURITY_NONE": {
+                                "type": "integer",
+                                "example": 0 
+                            },
+                            "NET_WIFI_SECURITY_WEP_64": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "NET_WIFI_SECURITY_WEP_128": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "NET_WIFI_SECURITY_WPA_PSK_TKIP": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "NET_WIFI_SECURITY_WPA_PSK_AES": {
+                                "type": "integer",
+                                "example": 4
+                            },
+                            "NET_WIFI_SECURITY_WPA2_PSK_TKIP": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "NET_WIFI_SECURITY_WPA2_PSK_AES": {
+                                "type": "integer",
+                                "example": 6
+                            },
+                            "NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP": {
+                                "type": "integer",
+                                "example": 7
+                            },
+                            "NET_WIFI_SECURITY_WPA_ENTERPRISE_AES": {
+                                "type": "integer",
+                                "example": 8
+                            },
+                            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP": {
+                                "type": "integer",
+                                "example": 9
+                            },
+                            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "NET_WIFI_SECURITY_WPA3_SAE": {
+                                "type": "integer",
+                                "example": 14
+                            }
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "security_modes",
+                    "success"
+                ]
+            }
+        },
+        "initiateWPSPairing":{
+            "summary": "Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "isPaired":{
+            "summary": "Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "isSignalThresholdChangeEnabled":{
+            "summary": "Returns whether threshold changes are enabled. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired ). A nonzero value indicates that the device is not paired.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "saveSSID":{
+            "summary": "Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "passphrase": {
+                        "$ref": "#/definitions/passphrase"
+                    },
+                    "securityMode": {
+                        "$ref": "#/definitions/securityMode"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "passphrase",
+                    "securityMode"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "setEnabled":{
+            "summary": "Enables or disables the Wifi adapter for this device",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` to enable or `false` to disable",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSignalThresholdChangeEnabled":{
+            "summary": "Enables `signalThresholdChange` events to be triggered",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "`true` to enable events or `false` to disable events",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "interval": {
+                        "summary": "A time interval, in milliseconds, after which the current signal strength is compared to the previous value to determine if the strength crossed a threshold value",
+                        "type": "integer",
+                        "example": 2000
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "interval"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startScan":{
+            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event",
+            "events": [
+                "onAvailableSSIDs"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "incremental": {
+                        "summary": "If set to `true`, SSIDs are returned in multiple events as the SSIDs are discovered. This may allow the UI to populate faster on screen rather than waiting on the full set of results in one shot.",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "ssid": {
+                        "summary": "The SSIDs to scan. An empty or  `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression.",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "frequency": {
+                        "summary": "The frequency to scan. An empty or `null` value scans all frequencies. If a frequency is specified (2.4 or 5.0), then the results are only returned for matching frequencies.",
+                        "type": "string",
+                        "example": ""
+                    }
+                },
+                "required": [
+                    "incremental",
+                    "ssid",
+                    "frequency"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopScan":{
+            "summary": "Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onWIFIStateChanged":{
+            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    },
+                    "isLNF": {
+                        "summary": "`true` if connected to a LNF SSID, otherwise `false`",
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "required": [
+                    "state",
+                    "isLNF"
+                ]
+            }
+        },
+        "onError":{
+            "summary": "Triggered when a recoverable, unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "code": {
+                        "summary": "The error code",
+                        "type": "integer",
+                        "example": 2
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            }
+        },
+        "onSSIDsChanged":{
+            "summary": "Triggered when a new SSID becomes available or an existing SSID is no longer available"
+        },
+        "onWifiSignalThresholdChanged":{
+            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "signalStrength": {
+                        "$ref": "#/definitions/signalStrength"
+                    },
+                    "strength": {
+                        "summary": "A human readable indicator of strength",
+                        "enum": [
+                            "Excellent",
+                            "Good",
+                            "Fair",
+                            "Weak"
+                        ],
+                        "type": "string",
+                        "example": "Excellent"
+                    }
+                },
+                "required": [
+                    "signalStrength",
+                    "strength"
+                ]
+            }
+        },
+        "onAvailableSSIDs":{
+            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "ssids": {
+                        "summary": "A list of SSIDs and their information",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "ssid": {
+                                    "$ref": "#/definitions/ssid"
+                                },
+                                "security":{
+                                    "$ref": "#/definitions/securityMode"
+                                },
+                                "signalStrength": {
+                                    "$ref": "#/definitions/signalStrength"
+                                },
+                                "frequency": {
+                                    "$ref": "#/definitions/frequency"
+                                }
+                            },
+                            "required": [
+                                "ssid",
+                                "security",
+                                "signalStrength",
+                                "frequency"
+                            ]
+                        }
+                    },
+                    "moreData": {
+                        "summary": "When `true`, scanning is not complete and more SSIDs are returned as separate events",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "ssids",
+                    "moreData"
+                ]
+            }
+        }
+    }
+}

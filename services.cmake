@@ -87,6 +87,9 @@ option(ENABLE_HDCP_PROFILE "ENABLE_HDCP_PROFILE" ON)
 add_definitions (-DPLUGIN_ACTIVITYMONITOR)
 option(PLUGIN_ACTIVITYMONITOR "PLUGIN_ACTIVITYMONITOR" ON)
 
+add_definitions (-DPLUGIN_TELEMETRY)
+option(PLUGIN_TELEMETRY "PLUGIN_TELEMETRY" ON)
+
 #add_definitions (-DCLIENT_VERSION_STRING)=\\\"$(VERSION_FULL_VALUE)\\\"
 #add_definitions (-DSTB_VERSION_STRING)=\\\"$(FULL_VERSION_NAME_VALUE)\\\"
 #add_definitions (-DSTB_TIMESTAMP_STRING)=\\\"$(STB_TIMESTAMP_VALUE)\\\"
@@ -253,6 +256,16 @@ endif()
 if(BUILD_ENABLE_SYSTEM_UPLOAD_LOGS)
     message("Building with System Service uploadLogs")
     add_definitions (-DENABLE_SYSTEM_UPLOAD_LOGS)
+endif()
+
+if(ENABLE_SYSTEM_GET_STORE_DEMO_LINK)
+    message("Building with System Service getStoreDemoLink")
+    add_definitions (-DENABLE_SYSTEM_GET_STORE_DEMO_LINK)
+endif()
+
+if (BUILD_ENABLE_TELEMETRY_LOGGING)
+    message("Building with telemetry logging")
+    add_definitions (-DENABLE_TELEMETRY_LOGGING)
 endif()
 
 if(BUILD_BROADCOM)
