@@ -47,6 +47,19 @@ std::map<int, std::string> ErrCodeMap = {
     {SysSrv_KeyNotFound, "Key not found"}
 };
 
+const char *FIRMWARE_UPDATE_STATE_STR[] = {
+    "UNINITIALIZED",
+    "REQUESTING",
+    "DOWNLOADING",
+    "FAILED",
+    "DOWNLOAD_COMPLETE",
+    "VALIDATION_COMPLETE",
+    "PREPARING_TO_REBOOT",
+    "NO_UPGRADE_NEEDED",
+    NULL
+};
+
+
 std::string getErrorDescription(int errCode)
 {
     std::string errMsg = "Unexpected Error";
