@@ -292,6 +292,9 @@ namespace WPEFramework {
 
                 setMode(mode, response);
             }
+
+            SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -1879,52 +1882,9 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStatus = false;
-            FirmwareUpdateState fwUpdateState = FirmwareUpdateStateUninitialized;
-            std::vector<string> lines;
-            if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-                returnResponse(retStatus);
-            }
-            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
-                for (std::vector<std::string>::const_iterator i = lines.begin();
-                        i != lines.end(); ++i) {
-                    std::string line = *i;
-                    std::size_t found = line.find("FwUpdateState|");
-                    std::string delimiter = "|";
-                    size_t pos = 0;
-                    std::string token;
-                    if (std::string::npos != found) {
-                        while ((pos = line.find(delimiter)) != std::string::npos) {
-                            token = line.substr(0, pos);
-                            line.erase(0, pos + delimiter.length());
-                        }
-                        line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
-
-                        if (!strcmp(line.c_str(), "Requesting")) {
-                            fwUpdateState = FirmwareUpdateStateRequesting;
-                        } else if (!strcmp(line.c_str(), "Downloading")) {
-                            fwUpdateState = FirmwareUpdateStateDownloading;
-                        } else if (!strcmp(line.c_str(), "Failed")) {
-                            fwUpdateState = FirmwareUpdateStateFailed;
-                        } else if (!strcmp(line.c_str(), "Download complete")) {
-                            fwUpdateState = FirmwareUpdateStateDownloadComplete;
-                        } else if (!strcmp(line.c_str(), "Validation complete")) {
-                            fwUpdateState = FirmwareUpdateStateValidationComplete;
-                        } else if (!strcmp(line.c_str(), "Preparing to reboot")) {
-                            fwUpdateState = FirmwareUpdateStatePreparingReboot;
-                        } else if (!strcmp(line.c_str(), "No upgrade needed")) {
-                            fwUpdateState = FirmwareUpdateStateNoUpgradeNeeded;
-                        } else if (!strcmp(line.c_str(), "Uninitialized")){
-                            fwUpdateState = FirmwareUpdateStateUninitialized;
-                        }
-                    }
-                }
-                response["firmwareUpdateState"] = (int)fwUpdateState;
-                retStatus = true;
-            } else {
-                LOGERR("Could not read file %s\n", FWDNLDSTATUS_FILE_NAME);
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-            }
+            FirmwareUpdateState fwUpdateState =(FirmwareUpdateState)m_FwUpdateState_LatestEvent;
+            response["firmwareUpdateState"] = (int)fwUpdateState;
+            retStatus = true;
             returnResponse(retStatus);
         }
 
@@ -1941,6 +1901,7 @@ namespace WPEFramework {
             JsonObject params;
 
             const FirmwareUpdateState firmwareUpdateState = (FirmwareUpdateState)newState;
+            m_FwUpdateState_LatestEvent=(int)firmwareUpdateState;
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
