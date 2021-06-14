@@ -1,0 +1,144 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "AVInput API", 
+        "class": "AVInput", 
+        "description": "The `AVInput` API facilitates interactions with the Parker STB HDMI input. The HDMI input is presented by using a `VideoResource` whose url starts with `avin:`. For example: `avin://input1`."
+    },
+    "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "contentProtected": {
+            "summary": "Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.",
+            "params": {
+                "summary": "An empty parameter object",
+                "type": "object",
+                "properties": {}
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "isContentProtected" : {
+                        "summary": "Whether the HDMI input is protected",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "isContentProtected",
+                    "success"
+                ]           
+            }
+        },
+        "currentVideoMode": {
+            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.",
+            "params": {
+                "summary": "An empty parameter object",
+                "type": "object",
+                "properties": {}
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "currentVideoMode" : {
+                        "summary": "The current video mode",
+                        "type":"string",
+                        "example": "Unknown"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "currentVideoMode",
+                    "success"
+                ]           
+            }
+
+        },
+        "numberOfInputs" : {
+            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
+            "params": {
+                "summary": "An empty parameter object",
+                "type": "object",
+                "properties": {}
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "numberOfInputs" : {
+                        "summary": "The number of inputs that are available for selection",
+                        "type":"number",
+                        "example": 1
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "numberOfInputs",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onAVInputActive":{
+            "summary": "Triggered when an active device is connected to an AVInput port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "url": {
+                        "summary": "The URL of the port with an active device",
+                        "type": "string",
+                        "example": "avin://input0"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            }
+
+        },
+        "onAVInputInActive": {
+            "summary": "Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "url": {
+                        "summary": "The URL of the port with an inactive device",
+                        "type": "string",
+                        "example": "avin://input0"
+                    }
+
+                },
+                "required": [
+                    "url"
+                ]
+                
+            }
+
+        }
+
+    }
+}

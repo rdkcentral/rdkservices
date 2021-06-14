@@ -48,16 +48,14 @@ namespace WPEFramework {
             Telemetry& operator=(const Telemetry&) = delete;
 
             //Begin methods
-            uint32_t getAvailableReportProfiles(const JsonObject& parameters, JsonObject& response);
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
             //End methods
 
-            void getProfiles(JsonArray &profiles);
-
         public:
             Telemetry();
             virtual ~Telemetry();
+            virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:

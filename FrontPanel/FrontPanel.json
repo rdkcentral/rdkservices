@@ -1,0 +1,490 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "FrontPanel API", 
+        "class": "FrontPanel", 
+        "description": "The `FrontPanel` plugin allows you to control brightness and power state for LEDs on a set-top box."
+    },
+    "definitions": {
+        "brightness": {
+            "summary": "A brightness value from 0 - 100",
+            "type": "integer",
+            "example": 50
+        },
+        "index": {
+            "summary": "The index name of a front panel indicator. Possible values: `data_led`, `record_led`, `power_led`",
+            "type": "string",
+            "example": "power_led"
+        },
+        "supportedLights":{
+            "summary": "A string [] of Front Panel lights that can be used as indices in other `FrontPanel` API functions",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "power_led"
+            }
+        },
+        "range": {
+            "summary": "Determines the types of values for the `min` and `max` arguments. Valid values are `boolean`: the `min` and `max` values are 0 (off) or 1 (on), or `int`: the `min` and `max` values are expressed as a brightness range.",
+            "type": "string",
+            "example": "int"
+        },
+        "min": {
+            "summary": "Minimum value (off)",
+            "type": "integer",
+            "example": 0 
+        },
+        "max": {
+            "summary": "Maximum value (LED is the brightest). In the case of a boolean range, 1 indicates that the LED is on",
+            "type": "integer",
+            "example": 100
+        },
+        "step": {
+            "summary": "Available only if the `range` argument is `int`. The Step size of brightness control. For example, an LED may have a range from 0 to 100 but with a step of 20 which means the LED would only support the values of 0, 20, 40, 60, 80, and 100.",
+            "type": "integer",
+            "example": 10
+        },
+        "colorMode": {
+            "summary": "The color mode setting. Valid values are: `0` - the LED color cannot be changed; `1` - the LED can be set to any color (using rgb-hex code); `2` - the LED can be set to an enumeration of colors as specified by the `colors` property",
+            "type": "integer",
+            "example": 2
+        },
+        "colors":{
+            "summary": "A string [] of available colors to set if `colorMode` is set to `2`",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "red"
+            }
+        },
+        "preferences":{
+            "summary": "A list of properties for the LED",
+            "type":"object",
+            "properties": {}
+        },
+        "is24Hour":{
+            "summary": "The mode of the clock. `true` for 24 hour clock, `false` for 12 hour clock.",
+            "type": "boolean",
+            "example": false
+        },
+        "color": {
+            "summary": "The color which should be set if `colorMode` is set to `2` (see `getFrontPanelLights`)",
+            "type": "string",
+            "example": "red"
+        },
+        "red": {
+            "summary": "If `colorMode` is set to `0`, RGB values are used to set LED colors",
+            "type": "integer",
+            "example": 0
+        },
+        "green": {
+            "summary": "If `colorMode` is set to `0`, RGB values are used to set LED colors",
+            "type": "integer",
+            "example": 0
+        },
+        "blue":{
+            "summary": "If `colorMode` is set to `0`, RGB values are used to set LED colors",
+            "type": "integer",
+            "example":  0
+        },
+        "ledIndicator": {
+            "summary": "The index name of an LED indicator (`record_led`, `power_led`, `data_led`)",
+            "type": "string",
+            "example": "power_lead"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getBrightness": {
+            "summary": "Get the brightness of the specified LED or FrontPanel",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index"  
+                    }
+                }
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "brightness":{
+                        "$ref": "#/definitions/brightness"  
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "brightness",
+                    "success"
+                ]
+            }
+        },
+        "getClockBrightness": {
+            "summary": "Returns the current clock brightness value",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "brightness":{
+                        "$ref": "#/definitions/brightness"  
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "brightness",
+                    "success"
+                ]
+            }
+        },
+        "getFrontPanelLights": {
+            "summary": "Returns a list of supported Front Panel LEDs and their properties",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedLights":{
+                        "$ref": "#/definitions/supportedLights"
+                    },
+                    "supportedLightsInfo":{
+                        "summary": "A list of properties for each supported LED",
+                        "type":"object",
+                        "properties": {
+                            "power_led": {
+                                "summary": "A power LED indicator",
+                                "type": "object",
+                                "properties": {
+                                    "range": {
+                                        "$ref": "#/definitions/range"
+                                    },
+                                    "min": {
+                                        "$ref": "#/definitions/min"
+                                    },
+                                    "max": {
+                                        "$ref": "#/definitions/max"
+                                    },
+                                    "step": {
+                                        "$ref": "#/definitions/step"
+                                    },
+                                    "colorMode": {
+                                        "$ref": "#/definitions/colorMode"
+                                    },
+                                    "colors":{
+                                        "$ref": "#/definitions/colors"
+                                    }                                  
+                                },
+                                "required": [
+                                    "range",
+                                    "min",
+                                    "max",
+                                    "step",
+                                    "colorMode"
+                                ]
+                            }
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedLights",
+                    "supportedLightsInfo",
+                    "success"
+                ]
+            }
+        },
+        "getPreferences": {
+            "summary": "Returns the preferences that are saved in the `/opt/fp_service_preferences.json` file",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "preferences": {
+                        "$ref": "#/definitions/preferences"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "preferences",
+                    "success"
+                ]
+            }
+        },        
+        "is24HourClock": {
+            "summary": "Gets the currently set clock mode (12 or 24 hour).  \n**Note:** On Xi6, this method always returns `false` despite having successfully set the clock to 24 hour mode.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "is24Hour": {
+                        "$ref": "#/definitions/is24Hour"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "is24Hour",
+                    "success"
+                ]
+            }
+        },
+        "powerLedOff": {
+            "summary": "Switches the specified LED off",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index"
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "powerLedOn": {
+            "summary": "Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "index":{
+                        "$ref": "#/definitions/index"
+                    }
+                },
+                "required": [
+                    "index"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "set24HourClock": {
+            "summary": "Sets the clock mode to either 12 or 24 hour",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "is24Hour": {
+                        "$ref": "#/definitions/is24Hour"
+                    }
+                },
+                "required":[
+                    "is24Hour"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setBlink": {
+            "summary": "Sets a blinking pattern for a particular LED indicator.  \n**Note:** This API does not currently work nor does it provide a meaningful error status.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ledIndicator":{
+                        "$ref": "#/definitions/ledIndicator"  
+                    },
+                    "iterations":{
+                        "summary": "Defines the number of times to loop through the pattern array: a value of `0` indicates iterating through the array one time and is similar to a `do... while` loop; for values greater than `0`, the pattern is looped the specified amount of times; a value of `-1`, loops indefinitely until either `setLED`, `animate` or `setBrightness` is called or `setBlink` is called again.",
+                        "type": "integer",
+                        "example": 10 
+                    },
+                    "pattern":{
+                        "summary": "An array of blink properties",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "brightness": {
+                                    "$ref": "#/definitions/brightness"
+                                },
+                                "duration": {
+                                    "summary": "Step duration time in milliseconds",
+                                    "type": "integer",
+                                    "example": 100
+                                },
+                                "color": {
+                                    "$ref": "#/definitions/color"
+                                },
+                                "red": {
+                                    "$ref": "#/definitions/red"
+                                },
+                                "green": {
+                                    "$ref": "#/definitions/green"
+                                },
+                                "blue":{
+                                    "$ref": "#/definitions/blue"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "duration"
+                            ]
+                        } 
+                    }
+                },
+                "required": [
+                    "ledIndicator",
+                    "iterations",
+                    "pattern"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setBrightness": {
+            "summary": "Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "brightness":{
+                        "$ref": "#/definitions/brightness"  
+                    },
+                    "index":{
+                        "$ref": "#/definitions/index"  
+                    }
+                },
+                "required": [
+                    "brightness"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setClockBrightness": {
+            "summary": "Sets the clock brightness",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "brightness":{
+                        "$ref": "#/definitions/brightness"  
+                    }
+                },
+                "required": [
+                    "brightness"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setClockTestPattern": {
+            "summary": "Allows you to set a test pattern on the STB clock (`88 88`)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "show":{
+                        "summary": "If `true`, the test pattern is visible for the duration of the `timerInterval` value",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "timeInterval": {
+                        "summary": "The duration, in seconds, indicating how long the test pattern displays",
+                        "type":"integer",
+                        "example": 4
+                    }
+                },
+                "required": [
+                    "show",
+                    "timeInterval"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setLED": {
+            "summary": "Set preferences for the specified Front Panel LED indicator. Data are not validated in this call.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ledIndicator":{
+                        "$ref": "#/definitions/ledIndicator"
+                    },
+                    "brightness":{
+                        "$ref": "#/definitions/brightness"  
+                    },
+                    "color":{
+                        "$ref": "#/definitions/color"  
+                    },
+                    "red":{
+                        "$ref": "#/definitions/red"  
+                    },
+                    "green":{
+                        "$ref": "#/definitions/green"  
+                    },
+                    "blue":{
+                        "$ref": "#/definitions/blue"  
+                    }
+                },
+                "required": [
+                    "ledIndicator",
+                    "brightness"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setPowerStatus": {
+            "summary": "(Version 2) Sets the power status",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "power": {
+                        "summary": "`true` for power state on, or `false` for power state off",
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "required":[
+                    "power"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setPreferences": {
+            "summary": "Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "preferences": {
+                        "$ref": "#/definitions/preferences"
+                    }
+                },
+                "required":[
+                    "preferences"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    }
+}
