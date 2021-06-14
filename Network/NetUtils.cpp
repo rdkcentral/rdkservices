@@ -51,6 +51,7 @@ namespace WPEFramework {
         void NetUtils::InitialiseNetUtils()
         {
             _loadInterfaceDescriptions();
+            _loadDummyIpAddresses();
         }
 
         void NetUtils::_loadInterfaceDescriptions()
@@ -66,6 +67,33 @@ namespace WPEFramework {
 
             for (const auto& e : interface_descriptions)
                 LOGINFO ("%s %s", e.first.c_str(), e.second.c_str());
+        }
+
+        bool NetUtils::isDummyIpAddress(const std::string& address)
+        {
+            for (int i = 0; i < dummy_ip_list.size(); i++)
+            {
+                if (strcmp(dummy_ip_list[i].c_str(), address.c_str()) == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void NetUtils::_loadDummyIpAddresses()
+        {
+            std::string value;
+            if (envGetValue("DEFAULT_MOCA_IFACE_IP", value))
+            {
+                LOGERR("%s: value: %s", __FUNCTION__, value.c_str());
+                dummy_ip_list.push_back(value);
+            }
+            if (envGetValue("DEFAULT_WIFI_IFACE_IP", value))
+            {
+                LOGERR("%s: value: %s", __FUNCTION__, value.c_str());
+                dummy_ip_list.push_back(value);
+            }
         }
 
         const std::string& NetUtils::getInterfaceDescription(const std::string interface)
@@ -274,4 +302,6 @@ namespace WPEFramework {
             return std::find_if(endpoint.begin(), endpoint.end(), _isCharacterIllegal) == endpoint.end();
         }
     } // namespace Plugin
-} // namespace WPEFramework
+}
+
+ // namespace WPEFramework

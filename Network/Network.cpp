@@ -337,8 +337,21 @@ namespace WPEFramework
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
                 {
-                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    result = true;
+                    string ip = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+#ifdef	NO_DUMMY_IP_ADDRESSES
+                    if (m_netUtils.isDummyIpAddress(ip))
+                    {
+                        response["ip"] = "";
+                        result = false;
+                    }
+                    else
+                    {
+#endif
+                        response["ip"] = ip;
+                        result = true;
+#ifdef  NO_DUMMY_IP_ADDRESSES
+                    }
+#endif
                 }
                 else
                 {
@@ -580,7 +593,13 @@ namespace WPEFramework
                 response["interface"] = string(iarmData.interface);
                 response["ipversion"] = string(iarmData.ipversion);
                 response["autoconfig"] = iarmData.autoconfig;
-                response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+                string ip = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+#ifdef	NO_DUMMY_IP_ADDRESSES
+                if (m_netUtils.isDummyIpAddress(ip))
+                    response["ipaddr"] = "";
+                else
+#endif
+                    response["ipaddr"] = ip;
                 response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
                 response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
@@ -737,6 +756,10 @@ namespace WPEFramework
 #ifdef NET_DEFINED_INTERFACES_ONLY
                 if (m_netUtils.getInterfaceDescription(e->interface) == "")
                     break;
+#endif
+#ifdef	NO_DUMMY_IP_ADDRESSES
+                if (m_netUtils.isDummyIpAddress(e->ip_address))
+                        break;
 #endif
                 if (e->is_ipv6)
                 {
