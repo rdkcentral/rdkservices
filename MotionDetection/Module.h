@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME MotionDetection
+#define MODULE_NAME Plugin_MotionDetection
 #endif
 
 #include <plugins/plugins.h>
