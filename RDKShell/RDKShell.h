@@ -89,6 +89,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
+            static const string RDKSHELL_METHOD_RESET_INACTIVITY_TIME;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
             static const string RDKSHELL_METHOD_LAUNCH_APP;
@@ -180,6 +181,7 @@ namespace WPEFramework {
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resetInactivityTimeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
@@ -248,6 +250,7 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const uint32_t interval);
+            bool resetInactivityTime();
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
