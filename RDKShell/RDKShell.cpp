@@ -4833,7 +4833,8 @@ namespace WPEFramework {
             {
                 JsonObject req, res;
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") &&
+                    (res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT" || res["wakeupReason"].String() == "WAKEUP_REASON_IR"))
                 {
                     response["keyCode"] = JsonValue(mLastWakeupKeyCode);
                     response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
