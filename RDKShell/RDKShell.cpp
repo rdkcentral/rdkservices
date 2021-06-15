@@ -82,6 +82,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING = "enableInactivityReporting";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL = "setInactivityInterval";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESET_INACTIVITY_TIME = "resetInactivityTime";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SCALE_TO_FIT = "scaleToFit";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH = "launch";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_APP = "launchApplication";
@@ -714,6 +715,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING, &RDKShell::enableInactivityReportingWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL, &RDKShell::setInactivityIntervalWrapper, this);
+            registerMethod(RDKSHELL_METHOD_RESET_INACTIVITY_TIME, &RDKShell::resetInactivityTimeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SCALE_TO_FIT, &RDKShell::scaleToFitWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH, &RDKShell::launchWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_APP, &RDKShell::launchApplicationWrapper, this);
@@ -2785,6 +2787,25 @@ namespace WPEFramework {
 
                 if (false == result) {
                   response["message"] = "failed to set inactivity interval";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::resetInactivityTimeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (false == mEnableUserInactivityNotification)
+            {
+                result = false;
+                response["message"] = "feature is not enabled";
+            }
+            if (result)
+            {
+                result = resetInactivityTime();
+                if (false == result) {
+                  response["message"] = "failed to reset inactivity time";
                 }
             }
             returnResponse(result);
@@ -5721,6 +5742,22 @@ namespace WPEFramework {
             catch (...) 
             {
               std::cout << "RDKShell unable to set inactivity interval  " << std::endl;
+            }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
+        bool RDKShell::resetInactivityTime()
+        {
+            lockRdkShellMutex();
+            try
+            {
+              CompositorController::resetInactivityTime();
+              std::cout << "RDKShell inactivity time reset" << std::endl;
+            }
+            catch (...)
+            {
+              std::cout << "RDKShell unable to reset inactivity time  " << std::endl;
             }
             gRdkShellMutex.unlock();
             return true;
