@@ -17,11 +17,9 @@
  * limitations under the License.
  */
  
-#ifndef __MODULE_PLUGIN_STREAMER_GENERIC_H
-#define __MODULE_PLUGIN_STREAMER_GENERIC_H
-
+#pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_Streamer
+#define MODULE_NAME Plugin_FireboltMediaPlayer
 #endif
 
 #include <interfaces/IMediaPlayer.h>
@@ -32,5 +30,3 @@
 
 #undef EXTERNAL
 #define EXTERNAL
-
-#endif // __MODULE_PLUGIN_STREAMER_GENERIC_H
