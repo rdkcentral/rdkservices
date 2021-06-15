@@ -2686,7 +2686,7 @@ namespace WPEFramework {
                 LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
                 returnResponse(false);
             }
-            
+
             if ( audioDelayMs < 0 )
             {
                 LOGERR("audioDelay '%s', Should be a postiive value", sAudioDelayMs.c_str());
@@ -3283,6 +3283,9 @@ namespace WPEFramework {
                 if(!value.compare("success")) {
 		    try 
 		    {
+                        m_hdmiInAudioDeviceConnected = false;
+                        connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
                         LOGINFO("onARCTerminationEventHandler: Disable ARC\n");
                         aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
@@ -3348,9 +3351,10 @@ namespace WPEFramework {
             if (parameters.HasLabel("audioMode")) {
                 value = parameters["audioMode"].String();
                 if(!value.compare("On")) {
-                    m_hdmiInAudioDeviceConnected = true;
+// Do not update connection status as it necessarily doesn't mean ARC device connected
+//                    m_hdmiInAudioDeviceConnected = true;
                     LOGINFO("%s :  audioMode ON !!!\n", __FUNCTION__);
-                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
+//                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                 }
 		else if(!value.compare("Off")) {
                     LOGINFO("%s :  audioMode OFF !!!\n", __FUNCTION__);
