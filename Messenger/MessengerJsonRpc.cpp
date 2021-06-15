@@ -75,7 +75,7 @@ namespace Plugin {
         const string& room = params.Room.Value();
 
         if (!user.empty() && !room.empty()) {
-            string roomId = JoinRoom(room, user);
+            string roomId = JoinRoom((room + "_" + string(params.Secure.Data())), user);
             if (!roomId.empty()) {
                 response.Roomid = roomId;
                 result = Core::ERROR_NONE;
@@ -119,7 +119,8 @@ namespace Plugin {
     void Messenger::event_roomupdate(const string& room, const RoomupdateParamsData::ActionType& action)
     {
         RoomupdateParamsData params;
-        params.Room = room;
+        params.Room = room.substr(0, room.rfind('_'));
+        params.Secure = (Core::EnumerateType<SecureType>(room.substr(room.rfind('_') + 1).c_str()).Value());
         params.Action = action;
 
         Notify(_T("roomupdate"), params);
