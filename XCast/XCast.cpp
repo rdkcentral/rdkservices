@@ -386,7 +386,6 @@ void XCast::onLocateCastTimer()
         {
             LOGINFO("Retry after 60 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
-            m_locateCastTimer.stop();
         }
         return ;
     }// err != RT_OK

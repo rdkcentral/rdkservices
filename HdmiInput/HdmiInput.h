@@ -24,6 +24,7 @@
 #include "Module.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
+#include "dsTypes.h"
 
 namespace WPEFramework {
 
@@ -57,6 +58,8 @@ namespace WPEFramework {
             uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getRawHDMISPDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getHDMISPDWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
 
@@ -68,6 +71,8 @@ namespace WPEFramework {
             std::string readEDID(int iPort);
             std::string getRawHDMISPD(int iPort);
             std::string getHDMISPD(int iPort);
+            int setEdidVersion(int iPort, int iEdidVer);
+            int getEdidVersion(int iPort);
 
 
             bool setVideoRectangle(int x, int y, int width, int height);
@@ -80,6 +85,9 @@ namespace WPEFramework {
 
             void hdmiInputStatusChange( int port , bool isPresented);
 	    static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+	    void hdmiInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
+	    static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
         public:
             HdmiInput();

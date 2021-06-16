@@ -1,0 +1,93 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "LoggingPreferences API", 
+        "class": "LoggingPreferences", 
+        "description": "The `LoggingPreferences` plugin allows you to control key press logging on a set-top box."
+    },
+    "definitions": {
+        "keystrokeMaskEnabled_i": {
+            "summary": "Whether keystroke mask is enabled. If `1` (true), then any system that logs keystrokes must mask the actual keystroke being used. Default value is `0` (false).",
+            "type":"integer",
+            "example": 0
+        },
+        "keystrokeMaskEnabled_b": {
+            "summary": "Whether keystroke mask is enabled (`true`) or disabled (`false`). If `true`, then any system that logs keystrokes must mask the actual keystroke being used. Default value is `false`.",
+            "type":"boolean",
+            "example": false
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "isKeystrokeMaskEnabled": {
+            "summary": "Gets logging keystroke mask status (enabled or disabled)",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "keystrokeMaskEnabled": {
+                        "$ref": "#/definitions/keystrokeMaskEnabled_i"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "keystrokeMaskEnabled",
+                    "success"
+                ]
+            }
+        },
+        "setKeystrokeMaskEnabled": {
+            "summary": "Sets the keystroke logging mask property. If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` event.",
+            "events": [
+                "onKeystrokeMaskEnabledChange"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "keystrokeMaskEnabled":{
+                        "$ref": "#/definitions/keystrokeMaskEnabled_b" 
+                    }
+                },
+                "required": [
+                    "keystrokeMaskEnabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onKeystrokeMaskEnabledChange": {
+            "summary": "Triggered when the keystroke mask is changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "keystrokeMaskEnabled":{
+                        "$ref": "#/definitions/keystrokeMaskEnabled_b" 
+                    }
+                },
+                "required": [
+                    "keystrokeMaskEnabled"
+                ]
+            }
+        }
+    }
+}

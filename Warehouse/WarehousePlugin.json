@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "Warehouse Plugin",
+      "callsign": "org.rdk.Warehouse",
+      "locator": "libWPEFrameworkWarehouse.so",
+      "status": "production",
+      "description": "The `Warehouse` plugin performs various types of resets (data, warehouse, etc.).",
+      "version": "2.0"
+    },
+    "interface": {
+      "$ref": "Warehouse.json#"
+    }
+}

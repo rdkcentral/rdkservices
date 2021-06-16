@@ -21,21 +21,14 @@
 
 #include <curl/curl.h>
 #include <libIBus.h>
+#include <time.h>
 
 #include "utils.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
-#define DEVICE_DIAGNOSTICS_METHOD_GET_VIDEO_DECODER_STATUS "getVideoDecoderStatus"
-#define DEVICE_DIAGNOSTICS_METHOD_GET_AUDIO_DECODER_STATUS "getAudioDecoderStatus"
+#define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
 
-#define DEVICE_DIAGNOSTICS_EVT_ON_VIDEO_DECODER_STATUS_CHANGED "onVideoDecoderStatusChanged"
-#define DEVICE_DIAGNOSTICS_EVT_ON_AUDIO_DECODER_STATUS_CHANGED "onAudioDecoderStatusChanged"
-
-#define EVT_ON_VIDEO_DECODER_STATUS_CHANGED "onVideoDecoderStatusChanged"
-#define EVT_ON_AUDIO_DECODER_STATUS_CHANGED "onAudioDecoderStatusChanged"
-
-#define IARM_BUS_PLAYBACK_DIAG_STATUS_CHANGE_EVENT 200
-#define IARM_BUS_PLAYBACK_DIAG_BUS_NAME "PlaybackDiag"
+#define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
 
 namespace WPEFramework
 {
@@ -47,9 +40,9 @@ namespace WPEFramework
 
         const int curlTimeoutInSeconds = 30;
         static const char *decoderStatusStr[] = {
-            "ACTIVE",
-            "PAUSED",
             "IDLE",
+            "PAUSED",
+            "ACTIVE",
             NULL
         };
 
@@ -67,8 +60,7 @@ namespace WPEFramework
             DeviceDiagnostics::_instance = this;
 
             registerMethod(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_VIDEO_DECODER_STATUS, &DeviceDiagnostics::getVideoDecoderStatus, this);
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_AUDIO_DECODER_STATUS, &DeviceDiagnostics::getAudioDecoderStatus, this);
+            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
@@ -77,28 +69,35 @@ namespace WPEFramework
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
         {
-            if (Utils::IARM::init())
+#ifdef ENABLE_ERM
+            int ret;
+
+            if ((m_EssRMgr = EssRMgrCreate()) == NULL)
             {
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_PLAYBACK_DIAG_BUS_NAME,
-                            IARM_BUS_PLAYBACK_DIAG_STATUS_CHANGE_EVENT,
-                            DeviceDiagnostics::decoderStatusHandler));
+                LOGERR("EssRMgrCreate() failed");
+                return "EssRMgrCreate() failed";
             }
+
+            m_pollThreadRun = 1;
+            m_AVPollThread = std::thread(AVPollThread, this);
+#else
+            LOGWARN("ENABLE_ERM is not defined, decoder status will "
+                    "always be reported as IDLE");
+#endif
 
             return "";
         }
 
         void DeviceDiagnostics::Deinitialize(PluginHost::IShell* /* service */)
         {
+#ifdef ENABLE_ERM
+            m_AVDecoderStatusLock.lock();
+            m_pollThreadRun = 0;
+            m_AVDecoderStatusLock.unlock();
+            m_AVPollThread.join();
+            EssRMgrDestroy(m_EssRMgr);
+#endif
             DeviceDiagnostics::_instance = nullptr;
-
-            if (Utils::IARM::isConnected())
-            {
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_PLAYBACK_DIAG_BUS_NAME,
-                            IARM_BUS_PLAYBACK_DIAG_STATUS_CHANGE_EVENT));
-            }
-
         }
 
         uint32_t DeviceDiagnostics::getConfigurationWrapper(const JsonObject& parameters, JsonObject& response)
@@ -135,143 +134,73 @@ namespace WPEFramework
 
             returnResponse(false);
         }
-        /* Searches m_{video,audio}DecoderStatus for most active decoder.
-         * Most active status is "Active" followed by "Paused" and then
-         * "Idle". Key of decoder, that status was returned for, is stored
-         * in m_mast{Video,Audio}DecoderStatus.
-         *
-         * decoderName can be "video" or "audio"
-         *
-         * When there are no decoders in map, IDLE state will be returned.
-         */
-        std::string DeviceDiagnostics::getMostActiveDecoderStatus(const std::string &decoderName)
+
+        /* retrieves most active decoder status from ERM library,
+         * this library keeps state of all decoders and will give
+         * us only the most active status of any decoder */
+        int DeviceDiagnostics::getMostActiveDecoderStatus()
         {
-            std::unordered_map<std::string, DecoderStatusInfo> *decoderStatus;
-            std::string *lastDecoder;
-            DecoderStatus mostActiveStatus = DECODER_STATUS_IDLE;
+            int status = 0;
 
-            if (decoderName == "video") {
-                decoderStatus = &m_videoDecoderStatus;
-                lastDecoder = &m_lastVideoDecoder;
-            } else {
-                decoderStatus = &m_audioDecoderStatus;
-                lastDecoder = &m_lastAudioDecoder;
-            }
-
-            for (auto const &status: *decoderStatus) {
-                if (status.second.status <= mostActiveStatus) {
-                    mostActiveStatus = status.second.status;
-                    *lastDecoder = status.first;
-                }
-            }
-
-            return decoderStatusStr[mostActiveStatus];
+#ifdef ENABLE_ERM
+            EssRMgrGetAVState(m_EssRMgr, &status);
+            LOGINFO("decoder status from essrmgr is: %d", status);
+#endif
+            return status;
         }
 
-        /* Called each time IARM event with decoder status is received from
-         * gstreamer.
-         *
-         * This function will create new, update or delete entry in
-         * m_{video,audio}DecoderStatus, depending on received state
-         * of decoder. If we update decoder that was most recently
-         * read by user via "getDecoderStatus" api, event is emitted
-         * to notify user about decoder status change.
-         */
-        void DeviceDiagnostics::decoderStatusHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        /* periodically polls ERM library for changes in most
+         * active decoder and send thunder event when decoder
+         * status changes. Needs to be done via poll and separate
+         * thread because ERM doesn't support events. */
+#ifdef ENABLE_ERM
+        void *DeviceDiagnostics::AVPollThread(void *arg)
         {
-            typedef struct _IARM_BUS_Diag_EventData_t {
-                char pipeline_id[64];
-                char pipeline_name[64];
-                char decoder[16];
-                char status[16];
-                char action[16];
-            } IARM_Bus_Diag_EventData_t;
-
-            IARM_Bus_Diag_EventData_t *eventData = (IARM_Bus_Diag_EventData_t *)data;
-            struct DecoderStatusInfo decoderInfo;
-            std::string *lastDecoder;
-            std::unordered_map<std::string, DecoderStatusInfo> *decoderStatus;
-
+            struct timespec poll_wait = { .tv_sec = 30, .tv_nsec = 0  };
+            int lastStatus = EssRMgrRes_idle;
+            int status;
             DeviceDiagnostics* t = DeviceDiagnostics::_instance;
-            if (t == nullptr)
-                return;
 
-            if (strcmp(eventData->decoder, "video") == 0) {
-                decoderStatus = &t->m_videoDecoderStatus;
-                lastDecoder = &t->m_lastVideoDecoder;
-            } else if (strcmp(eventData->decoder, "audio") == 0) {
-                decoderStatus = &t->m_audioDecoderStatus;
-                lastDecoder = &t->m_lastAudioDecoder;
-            } else {
-                LOGERR("invalid decoder '%s' received on IARM, ignoring event",
-                        eventData->decoder);
-                return;
-            }
-
-            if (strcmp(eventData->action, "DELETE") == 0)
+            LOGINFO("AVPollThread started");
+            for (;;)
             {
-                /* remove this decoder from map */
-                decoderStatus->erase(std::string(eventData->pipeline_id));
-                return;
+                nanosleep(&poll_wait, NULL);
+                std::unique_lock<std::mutex> lock(t->m_AVDecoderStatusLock);
+                if (t->m_pollThreadRun == 0)
+                    break;
+
+                status = t->getMostActiveDecoderStatus();
+                lock.unlock();
+
+                if (status == lastStatus)
+                    continue;
+
+                lastStatus = status;
+                t->onDecoderStatusChange(status);
             }
 
-            if (strcmp(eventData->action, "UPDATE") == 0) {
-                if (decoderStatus->find(eventData->pipeline_id) == decoderStatus->end()) {
-                    /* trying to update nonexisting pipeline,
-                     * according to RDK-31097 that's an error
-                     */
-                    LOGERR("decoder id '%s' does not exist and action is UPDATE; "
-                            "decoder status ignored", eventData->pipeline_id);
-                    return;
-                }
-            }
-
-            decoderInfo.pipeName = eventData->pipeline_name;
-
-            if (strcmp(eventData->status, "IDLE") == 0)
-                decoderInfo.status = DECODER_STATUS_IDLE;
-            else if (strcmp(eventData->status, "PAUSED") == 0)
-                decoderInfo.status = DECODER_STATUS_PAUSED;
-            else if (strcmp(eventData->status, "ACTIVE") == 0)
-                decoderInfo.status = DECODER_STATUS_ACTIVE;
-            else
-            {
-                LOGERR("invalid decoder status '%s' for pipeline '%s'",
-                        eventData->status, eventData->pipeline_name);
-                return;
-            }
-
-            (*decoderStatus)[std::string(eventData->pipeline_id)] = decoderInfo;
-
-            /* this pipeline has been most recently read, send event
-             * to inform caller status has changed */
-            if (strcmp(eventData->pipeline_id, lastDecoder->c_str()) == 0)
-                t->onDecoderStatusChange(eventData->decoder, eventData->status);
+            return NULL;
         }
+#endif
 
-        void DeviceDiagnostics::onDecoderStatusChange(const std::string &decoder, const std::string &status)
+        void DeviceDiagnostics::onDecoderStatusChange(int status)
         {
             JsonObject params;
-            if (decoder == "video") {
-                params["videoDecoderStatus"] = status;
-                sendNotify(EVT_ON_VIDEO_DECODER_STATUS_CHANGED, params);
-            } else {
-                params["audioDecoderStatus"] = status;
-                sendNotify(EVT_ON_AUDIO_DECODER_STATUS_CHANGED, params);
-            }
+            params["avDecoderStatusChange"] = decoderStatusStr[status];
+            sendNotify(DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED, params);
         }
 
-        uint32_t DeviceDiagnostics::getVideoDecoderStatus(const JsonObject& parameters, JsonObject& response)
+        uint32_t DeviceDiagnostics::getAVDecoderStatus(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["video"] = getMostActiveDecoderStatus("video");
-            returnResponse(true);
-        }
-
-        uint32_t DeviceDiagnostics::getAudioDecoderStatus(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-            response["audio"] = getMostActiveDecoderStatus("audio");
+#ifdef ENABLE_ERM
+            m_AVDecoderStatusLock.lock();
+            int status = getMostActiveDecoderStatus();
+            m_AVDecoderStatusLock.unlock();
+            response["avDecoderStatus"] = decoderStatusStr[status];
+#else
+            response["avDecoderStatus"] = decoderStatusStr[0];
+#endif
             returnResponse(true);
         }
 

@@ -19,6 +19,12 @@
 
 #pragma once
 
+#include <thread>
+#include <mutex>
+#ifdef ENABLE_ERM
+#include <essos-resmgr.h>
+#endif
+
 #include "Module.h"
 
 #include "utils.h"
@@ -52,29 +58,20 @@ namespace WPEFramework {
             //End methods
 
             int getConfiguration(const std::string& postData, JsonObject& response);
-            uint32_t getVideoDecoderStatus(const JsonObject& parameters, JsonObject& response);
-            uint32_t getAudioDecoderStatus(const JsonObject& parameters, JsonObject& response);
-            static void decoderStatusHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-            std::string getMostActiveDecoderStatus(const std::string &decoderName);
-            void onDecoderStatusChange(const std::string &decoder, const std::string &status);
+            uint32_t getAVDecoderStatus(const JsonObject& parameters, JsonObject& response);
+            int getMostActiveDecoderStatus();
+            void onDecoderStatusChange(int status);
+#ifdef ENABLE_ERM
+            static void *AVPollThread(void *arg);
+#endif
 
         private:
-            enum DecoderStatus {
-                DECODER_STATUS_ACTIVE = 0,
-                DECODER_STATUS_PAUSED,
-                DECODER_STATUS_IDLE,
-                DECODER_STATUS_MAX
-            };
-
-            struct DecoderStatusInfo
-            {
-                std::string pipeName;
-                DecoderStatus status;
-            };
-            std::unordered_map<std::string, DecoderStatusInfo> m_videoDecoderStatus;
-            std::unordered_map<std::string, DecoderStatusInfo> m_audioDecoderStatus;
-            std::string m_lastVideoDecoder;
-            std::string m_lastAudioDecoder;
+#ifdef ENABLE_ERM
+            std::thread m_AVPollThread;
+            std::mutex m_AVDecoderStatusLock;
+            EssRMgr* m_EssRMgr;
+            int m_pollThreadRun;
+#endif
 
         public:
             DeviceDiagnostics();

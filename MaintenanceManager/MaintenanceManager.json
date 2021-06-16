@@ -1,0 +1,135 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "MaintenanceManagerPlugin", 
+        "class": "MaintenanceManager", 
+        "description": "The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices."
+    },
+    "definitions": {
+        "maintenanceStatus": {
+            "summary": "The current maintenance status",
+            "type": "string",
+            "example": "MAINTENANCE_STARTED"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getMaintenanceActivityStatus" :{
+            "summary": "Gets the maintenance activity status details.  \n**Maintenance Statuses**  \n* `MAINTENANCE_IDLE` - Sent when the Maintenance service is not executing any activities and until the first maintenance task is started  \n* `MAINTENANCE_STARTED` - Sent immediately on maintenance startup either scheduled or on boot  \n* `MAINTENANCE_ERROR` - Sent after receiving error notification while executing any of the maintenance activities  \n* `MAINTENANCE_COMPLETE` - Sent after receiving `*_COMPLETE` notification from all critical maintenance tasks  \n* `MAINTENANCE_INCOMPLETE` - Sent whenever the Maintenance service doesn't execute one or more of the tasks. `MAINTENANCE_ERROR` is returned even if only one task returns error.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "maintenanceStatus":{
+                        "$ref": "#/definitions/maintenanceStatus" 
+                    },
+                    "lastSuccessfulCompletionTime":{
+                        "summary": "The time the last maintenance completed or `0` if not applicable",
+                        "type": "integer",
+                        "example": 12345678
+                    },
+                    "isCriticalMaintenance":{
+                        "summary": "`true` if the maintenance activity cannot be aborted, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "isRebootPending": {
+                        "summary": "`true` if the device is going to reboot, otherwise `false`",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "maintenanceStatus",
+                    "lastSuccessfulCompletionTime",
+                    "isCriticalMaintenance",
+                    "isRebootPending",
+                    "success"
+                ]
+            }
+        },
+        "getMaintenanceStartTime":{
+            "summary": "Gets the scheduled maintenance start time",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "maintenanceStartTime": {
+                        "summary": "The start time",
+                        "type": "integer",
+                        "example": 12345678
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "maintenanceStartTime",
+                    "success"
+                ]
+            }
+        },
+        "setMaintenanceMode":{
+            "summary": "Sets the maintenance mode",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "maintenanceMode":{
+                        "summary": "The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode runs maintenance tasks that do not impact the user experience.",
+                        "enum": [
+                            "FOREGROUND",
+                            "BACKGROUND"
+                        ],
+                        "type": "string",
+                        "example": "BACKGROUND"
+                    }
+                },
+                "required": [
+                    "maintenanceMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startMaintenance":{
+            "summary": "Starts maintenance activities",
+            "result": {
+                "$ref": "#/definitions/result"
+            }          
+        }
+    },
+    "events": {
+        "onMaintenanceStatusChange":{
+            "summary": "Triggered when the maintenance manager status changes. See `getMaintenanceActivityStatus` for a list of statuses.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "maintenanceStatus":{
+                        "$ref": "#/definitions/maintenanceStatus" 
+                    }
+                },
+                "required": [
+                    "maintenanceStatus"
+                ]
+            }
+        }
+    }
+}

@@ -32,6 +32,12 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        struct RDKShellApiRequest
+        {
+            std::string mName;
+            JsonObject mRequest;
+        };
+
         class RDKShell :  public AbstractPlugin {
         public:
             RDKShell();
@@ -54,6 +60,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_FOCUS;
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPTS;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
@@ -86,6 +93,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
+            static const string RDKSHELL_METHOD_RESET_INACTIVITY_TIME;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
             static const string RDKSHELL_METHOD_LAUNCH_APP;
@@ -139,6 +147,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void launchRequestThread(RDKShellApiRequest apiRequest);
 
         private/*registered methods (wrappers)*/:
 
@@ -149,6 +158,7 @@ namespace WPEFramework {
             uint32_t setFocusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
@@ -181,6 +191,7 @@ namespace WPEFramework {
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resetInactivityTimeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
@@ -223,6 +234,7 @@ namespace WPEFramework {
             bool setFocus(const string& client);
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyIntercepts(const JsonArray& intercepts);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
@@ -234,7 +246,8 @@ namespace WPEFramework {
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0,
-                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0);
+                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0,
+                const bool topmost = false, const bool focus = false);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
@@ -251,6 +264,7 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const uint32_t interval);
+            bool resetInactivityTime();
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
@@ -262,7 +276,7 @@ namespace WPEFramework {
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
-            bool setTopmost(const string& callsign, const bool topmost);
+            bool setTopmost(const string& callsign, const bool topmost, const bool focus);
             bool getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight);
             bool setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight);
             bool enableVirtualDisplay(const std::string& client, const bool enable);

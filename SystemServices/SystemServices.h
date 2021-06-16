@@ -110,6 +110,8 @@ namespace WPEFramework {
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
 
+                int m_FwUpdateState_LatestEvent;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
@@ -228,6 +230,7 @@ namespace WPEFramework {
                 uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
