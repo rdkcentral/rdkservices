@@ -29,6 +29,8 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+
 find_path(FRAMEBUFFER_API_HEADER NAMES framebuffer-api.h)
 if (NOT ${FRAMEBUFFER_API_HEADER} STREQUAL "FRAMEBUFFER_API_HEADER-NOTFOUND")
     message("Found framebuffer-api.h")

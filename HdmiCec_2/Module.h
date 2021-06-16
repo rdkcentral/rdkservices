@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME HdmiCec_2
+#define MODULE_NAME Plugin_HdmiCec_2
 #endif
 
 #include <plugins/plugins.h>

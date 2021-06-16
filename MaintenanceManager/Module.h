@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME MaintenanceManager
+#define MODULE_NAME Plugin_MaintenanceManager
 #endif
 
 #include <plugins/plugins.h>

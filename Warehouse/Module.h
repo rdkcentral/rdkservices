@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Warehouse
+#define MODULE_NAME Plugin_Warehouse
 #endif
 
 #include <plugins/plugins.h>

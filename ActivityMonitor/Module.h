@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME CoPilot
+#define MODULE_NAME Plugin_ActivityMonitor
 #endif
 
 #include <plugins/plugins.h>

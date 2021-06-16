@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Timer
+#define MODULE_NAME Plugin_Timer
 #endif
 
 #include <plugins/plugins.h>
