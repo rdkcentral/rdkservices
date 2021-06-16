@@ -84,6 +84,7 @@ namespace WPEFramework {
                 void process (const InitiateArc &msg, const Header &header);
                 void process (const TerminateArc &msg, const Header &header);
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
+		void process (const SetSystemAudioMode &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -517,6 +518,8 @@ private:
                         void requestShortaudioDescriptor();
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
+			void Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg);
+			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void systemAudioModeRequest();
@@ -563,7 +566,6 @@ private:
             std::mutex m_pollMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
-	    bool m_ArcUiSettingState;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;
 	    binary_semaphore m_semSignaltoArcRoutingThread;
