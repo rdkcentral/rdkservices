@@ -92,6 +92,8 @@ namespace WPEFramework {
             JsonObject _doPing(const std::string& guid, const std::string& endPoint, int packets);
             JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
 
+            bool isDummyAValidSubnet(std::string address, std::string interface);
+
         public:
             Network();
             virtual ~Network();

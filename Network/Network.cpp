@@ -18,6 +18,9 @@
 **/
 
 #include "Network.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <net/if.h>
 
 using namespace std;
@@ -339,7 +342,7 @@ namespace WPEFramework
                 {
                     string ip = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
 #ifdef	NO_DUMMY_IP_ADDRESSES
-                    if (m_netUtils.isDummyIpAddress(ip))
+                    if (m_netUtils.isDummyIpAddress(ip) && !isDummyAValidSubnet(ip))
                     {
                         response["ip"] = "";
                         result = false;
@@ -595,7 +598,7 @@ namespace WPEFramework
                 response["autoconfig"] = iarmData.autoconfig;
                 string ip = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
 #ifdef	NO_DUMMY_IP_ADDRESSES
-                if (m_netUtils.isDummyIpAddress(ip))
+                if (m_netUtils.isDummyIpAddress(ip) && !isDummyAValidSubnet(ip, response["interface"])))
                     response["ipaddr"] = "";
                 else
 #endif
@@ -758,7 +761,7 @@ namespace WPEFramework
                     break;
 #endif
 #ifdef	NO_DUMMY_IP_ADDRESSES
-                if (m_netUtils.isDummyIpAddress(e->ip_address))
+                if (m_netUtils.isDummyIpAddress(e->ip_address) && !isDummyAValidSubnet(ip, string(e->interface))))
                         break;
 #endif
                 if (e->is_ipv6)
@@ -789,6 +792,33 @@ namespace WPEFramework
         /*
          * Internal functions
          */
+
+        bool Network::isDummyAValidSubnet(std::string address, std::string interface)
+        {
+            std:string defaultInterface, gateway;
+            if (_getDefaultInterface(defaultInterface, gateway))
+            {
+                if (defaultInterface == "" || gateway == "")
+                    return false;
+
+                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+                strncpy(iarmData.interface, interface != NULL ? interface.c_str():defaultInterface.c_str(), 16);
+                strncpy(iarmData.ipversion, "ipv4", 16);
+                iarmData.isSupported = true;
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+                {
+                    string ip = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+                    in_addr_t addrn = inet_addr(address.c_str());
+                    in_addr_t ipaddr = inet_addr(ip.c_str());
+                    in_addr_t netmask = inet_addr(iarmData.netmask);
+                    in_addr_t gatewayn = inet_addr(iarmData.gateway);
+                    if ((addrn & netmask) == (gateway & netmask))
+                        return true;
+                }
+            }
+            return false;
+        }
 
         bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
