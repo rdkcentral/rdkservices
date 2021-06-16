@@ -26,10 +26,17 @@
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
 #include "AbstractPlugin.h"
+#include "tptimer.h"
 
 namespace WPEFramework {
 
     namespace Plugin {
+
+        struct RDKShellApiRequest
+        {
+            std::string mName;
+            JsonObject mRequest;
+        };
 
         class RDKShell :  public AbstractPlugin {
         public:
@@ -101,6 +108,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_LAUNCH_FACTORY_APP_SHORTCUT;
             static const string RDKSHELL_METHOD_LAUNCH_RESIDENT_APP;
             static const string RDKSHELL_METHOD_TOGGLE_FACTORY_APP;
+            static const string RDKSHELL_METHOD_EXIT_AGING_MODE;
             static const string RDKSHELL_METHOD_GET_KEYREPEATS_ENABLED;
             static const string RDKSHELL_METHOD_ENABLE_KEYREPEATS;
             static const string RDKSHELL_METHOD_SET_TOPMOST;
@@ -108,6 +116,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION;
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
+            static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -131,6 +140,7 @@ namespace WPEFramework {
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
+            void launchRequestThread(RDKShellApiRequest apiRequest);
 
         private/*registered methods (wrappers)*/:
 
@@ -190,6 +200,7 @@ namespace WPEFramework {
             uint32_t launchFactoryAppShortcutWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t exitAgingModeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getKeyRepeatsEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableKeyRepeatsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setTopmostWrapper(const JsonObject& parameters, JsonObject& response);
@@ -197,6 +208,7 @@ namespace WPEFramework {
             uint32_t setVirtualResolutionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -243,7 +255,7 @@ namespace WPEFramework {
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
-            void killAllApps();
+            void killAllApps(bool enableDestroyEvent=false);
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
@@ -254,6 +266,11 @@ namespace WPEFramework {
             bool getVirtualDisplayEnabled(const std::string& client, bool &enabled);
             void loadStartupConfig();
             void invokeStartupThunderApis();
+            int32_t subscribeForSystemEvent(std::string event);
+            void onTimer();
+
+            void addFactoryModeEasterEggs();
+            void removeFactoryModeEasterEggs();
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -329,6 +346,10 @@ namespace WPEFramework {
             std::shared_ptr<RdkShell::RdkShellEventListener> mEventListener;
             PluginHost::IShell* mCurrentService;
             //std::mutex m_callMutex;
+            uint32_t mLastWakeupKeyCode;
+            uint32_t mLastWakeupKeyModifiers;
+            uint64_t mLastWakeupKeyTimestamp;
+            TpTimer m_timer;
         };
 
         struct PluginData

@@ -37,6 +37,7 @@ namespace Plugin {
         static const string REGEX_BIN;
         static const string REGEX_FILE;
         static const string PATH_DEVICE_PROPERTIES;
+        static const std::list<string> ADDITIONAL_FW_PATHS;
 
     private/*registered methods (wrappers)*/:
 

@@ -167,6 +167,7 @@ namespace WPEFramework {
 	    TpTimer m_timer;
             bool m_subscribed;
             std::mutex m_callMutex;
+	    bool m_hdmiInAudioDeviceConnected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
