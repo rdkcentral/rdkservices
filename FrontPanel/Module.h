@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME FrontPanel
+#define MODULE_NAME Plugin_FrontPanel
 #endif
 
 #include <plugins/plugins.h>
