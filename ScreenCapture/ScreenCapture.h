@@ -22,9 +22,8 @@
 #include <mutex>
 #include <vector>
 
-#include "tptimer.h"
-
 #include "Module.h"
+#include "tptimer.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 

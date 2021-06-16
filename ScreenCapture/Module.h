@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME ScreenCapture
+#define MODULE_NAME Plugin_ScreenCapture
 #endif
 
 #include <plugins/plugins.h>
