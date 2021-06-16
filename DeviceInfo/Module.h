@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 
-#ifndef OPENPLUGIN_DEVICEINFO_MODULE_H
-#define OPENPLUGIN_DEVICEINFO_MODULE_H
+#pragma once
 
 #ifndef MODULE_NAME
 #define MODULE_NAME Plugin_DeviceInfo
@@ -28,5 +27,3 @@
 
 #undef EXTERNAL
 #define EXTERNAL
-
-#endif // OPENPLUGIN_DEVICEINFO_MODULE_H

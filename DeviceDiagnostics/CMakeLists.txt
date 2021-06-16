@@ -38,6 +38,10 @@ target_link_libraries(${MODULE_NAME} PRIVATE
     ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY}
     ${IARMBUS_LIBRARIES})
 
+if(BUILD_ENABLE_ERM)
+    target_link_libraries(${MODULE_NAME} PRIVATE essosrmgr)
+endif()
+
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
