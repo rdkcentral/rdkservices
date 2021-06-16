@@ -92,6 +92,7 @@ enum {
 	HDMICECSINK_EVENT_ARC_TERMINATION_EVENT,
         HDMICECSINK_EVENT_SHORT_AUDIODESCRIPTOR_EVENT,
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
+	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 };
 
 static char *eventString[] = {
@@ -107,7 +108,8 @@ static char *eventString[] = {
         "arcInitiationEvent",
         "arcTerminationEvent",
         "shortAudiodesciptorEvent",
-        "standbyMessageReceived"
+        "standbyMessageReceived",
+        "setSystemAudioModeEvent"
 };
 	
 
@@ -459,6 +461,14 @@ namespace WPEFramework
              LOGINFO("Command: ReportShortAudioDescriptor %s : %d \n",GetOpName(msg.opCode()),numberofdescriptor);
             HdmiCecSink::_instance->Process_ShortAudioDescriptor_msg(msg);
        }
+
+       void HdmiCecSinkProcessor::process (const SetSystemAudioMode &msg, const Header &header)
+       {
+             printHeader(header);
+             LOGINFO("Command: SetSystemAudioMode  %s audio status %d audio status is  %s \n",GetOpName(msg.opCode()),msg.status.toInt(),msg.status.toString().c_str());
+          HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
+       }
+
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -851,6 +861,25 @@ namespace WPEFramework
 	    }
 	   HdmiCecSink::_instance->Send_ShortAudioDescriptor_Event(audiodescriptor);
         }
+
+        void HdmiCecSink::Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg)
+        {
+            JsonObject params;
+            if(!HdmiCecSink::_instance)
+               return;
+	    if ( (msg.status.toInt() == 0x00) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
+            {
+		/* ie system audio mode off -> amplifier goign to standby but still ARC is in initiated state,stop ARC and 
+		 bring the ARC state machine to terminated state*/
+                 LOGINFO("system audio mode off message but arc is not in terminated state so stopping ARC");
+		 stopArc();
+
+            }
+
+            params["audioMode"] = msg.status.toString().c_str();
+            sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+         }
+
          void  HdmiCecSink::sendDeviceUpdateInfo(const int logicalAddress)
          {
             JsonObject params;
@@ -2459,11 +2488,7 @@ namespace WPEFramework
             }
             msgProcessor = new HdmiCecSinkProcessor(*smConnection);
             msgFrameListener = new HdmiCecSinkFrameListener(*msgProcessor);
-
-           /* Get updated in the startArc */
-            m_ArcUiSettingState = false;
             cecEnableStatus = true;
-
             if(smConnection)
             {
            		LOGWARN("Start Thread %p", smConnection );
@@ -2588,7 +2613,6 @@ namespace WPEFramework
                LOGINFO("ARC is either initiation in progress or already initiated");
                return;
             }
-            m_ArcUiSettingState = true;
             _instance->systemAudioModeRequest();
 	    _instance->requestArcInitiation();
  
@@ -2619,7 +2643,6 @@ namespace WPEFramework
             }
             if(!HdmiCecSink::_instance)
                 return;
-           m_ArcUiSettingState = false;
 	    if(m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_TERMINATION || m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED)
             {
                LOGINFO("ARC is either Termination  in progress or already Terminated");
@@ -2657,28 +2680,18 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
 	    return;
 
-            LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d m_ArcUiSettingState %d ",_instance->m_currentArcRoutingState,m_ArcUiSettingState);
+            LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d\n",_instance->m_currentArcRoutingState);
             std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 
             if (m_arcStartStopTimer.isActive())
             {
                m_arcStartStopTimer.stop();
             }
-            if(  m_ArcUiSettingState)
-            {   
 	          _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
                   _instance->m_semSignaltoArcRoutingThread.release();
                   LOGINFO("Got : ARC_INITIATED  and notify Device setting");
                   params["status"] = string("success");
                   sendNotify(eventString[HDMICECSINK_EVENT_ARC_INITIATION_EVENT], params); 
-           }
-           else
-          {
-              LOGINFO(" ARC UI setting is not Enabled so send ARC Terminated event and set the state to ARC_STATE_ARC_TERMINATED");
-             //need to send report ARC Terminated
-                HdmiCecSink::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-                _instance->m_semSignaltoArcRoutingThread.release();
-          }
 	  
 
        }
@@ -2687,7 +2700,7 @@ namespace WPEFramework
             JsonObject params;
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
 
-            LOGINFO("Command: TERMINATE_ARC current arc state %d m_ArcUiSettingState %d\n",HdmiCecSink::_instance->m_currentArcRoutingState,m_ArcUiSettingState);
+            LOGINFO("Command: TERMINATE_ARC current arc state %d \n",HdmiCecSink::_instance->m_currentArcRoutingState);
                 if (m_arcStartStopTimer.isActive())
                 {
                       m_arcStartStopTimer.stop();
