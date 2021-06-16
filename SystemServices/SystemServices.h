@@ -41,6 +41,7 @@
 #include "sysMgr.h"
 #include "cSettings.h"
 #include "cTimer.h"
+#include "rfcapi.h"
 
 /* System Services Triggered Events. */
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
@@ -52,6 +53,7 @@
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
+#define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 
 namespace WPEFramework {
     namespace Plugin {
@@ -142,6 +144,7 @@ namespace WPEFramework {
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
+                void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -220,6 +223,9 @@ namespace WPEFramework {
                 uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
                 uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

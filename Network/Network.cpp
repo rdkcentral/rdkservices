@@ -74,11 +74,11 @@ typedef struct {
     char interface[16];
     char ipversion[16];
     bool autoconfig;
-    char ipaddress[16];
-    char netmask[16];
-    char gateway[16];
-    char primarydns[16];
-    char secondarydns[16];
+    char ipaddress[MAX_IP_ADDRESS_LEN];
+    char netmask[MAX_IP_ADDRESS_LEN];
+    char gateway[MAX_IP_ADDRESS_LEN];
+    char primarydns[MAX_IP_ADDRESS_LEN];
+    char secondarydns[MAX_IP_ADDRESS_LEN];
     bool isSupported;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
@@ -563,30 +563,30 @@ namespace WPEFramework
         uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-
-            if (parameters.HasLabel("interface"))
+            string interface = "";
+            string ipversion = "";
+            if ((parameters.HasLabel("interface")) || (parameters.HasLabel("ipversion")))
             {
-                string interface = "";
                 getStringParameter("interface", interface);
-
-                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-                strncpy(iarmData.interface, interface.c_str(), 16);
-                iarmData.isSupported = true;
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
-                {
-                    response["interface"] = string(iarmData.interface);
-                    response["ipversion"] = string(iarmData.ipversion);
-                    response["autoconfig"] = iarmData.autoconfig;
-                    response["ipaddr"] = string(iarmData.ipaddress);
-                    response["netmask"] = string(iarmData.netmask);
-                    response["gateway"] = string(iarmData.gateway);
-                    response["primarydns"] = string(iarmData.primarydns);
-                    response["secondarydns"] = string(iarmData.secondarydns);
-                    result = true;
-                }
+                getStringParameter("ipversion", ipversion);
             }
+            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+            strncpy(iarmData.interface, interface.c_str(), 16);
+            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+            iarmData.isSupported = true;
 
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+            {
+                response["interface"] = string(iarmData.interface);
+                response["ipversion"] = string(iarmData.ipversion);
+                response["autoconfig"] = iarmData.autoconfig;
+                response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+                response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
+                response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
+                response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
+                response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
+                result = true;
+            }
             returnResponse(result)
         }
 

@@ -37,6 +37,8 @@
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
 #define HDMIINPUT_METHOD_READ_RAWHDMISPD "getRawHDMISPD"
 #define HDMIINPUT_METHOD_READ_HDMISPD "getHDMISPD"
+#define HDMIINPUT_METHOD_SET_EDID_VERSION "setEdidVersion"
+#define HDMIINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
@@ -44,6 +46,7 @@
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
+#define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 
 using namespace std;
 
@@ -69,6 +72,8 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this, {2});
             registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this, {2});
 	    //version2 api end
+            registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this, {2});
+            registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this, {2});
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
@@ -93,6 +98,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
             }
         }
 
@@ -104,6 +110,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
             }
         }
 
@@ -439,7 +446,113 @@ namespace WPEFramework
 
             sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
-	
+
+        /**
+         * @brief This function is used to translate HDMI input video mode change to
+         * videoStreamInfoUpdate event.
+         *
+         * @param[in] port HDMI In port id.
+         * @param[dsVideoPortResolution_t] video resolution data
+         */
+        void HdmiInput::hdmiInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution)
+        {
+            LOGWARN("hdmiInputVideoModeUpdate [%d]", port);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "hdmiin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+	    switch(resolution.pixelResolution) {
+		    case dsVIDEO_PIXELRES_720x480:
+			params["width"] = 720;
+			params["height"] = 480;
+			break;
+
+		    case dsVIDEO_PIXELRES_720x576:
+                        params["width"] = 720;
+                        params["height"] = 576;
+                        break;
+
+                    case dsVIDEO_PIXELRES_1280x720:
+                        params["width"] = 1280;
+                        params["height"] = 720;
+                        break;
+
+                    case dsVIDEO_PIXELRES_1920x1080:
+                        params["width"] = 1920;
+                        params["height"] = 1080;
+                        break;
+
+                    case dsVIDEO_PIXELRES_3840x2160:
+                        params["width"] = 3840;
+                        params["height"] = 2160;
+                        break;
+
+                    case dsVIDEO_PIXELRES_4096x2160:
+                        params["width"] = 4096;
+                        params["height"] = 2160;
+                        break;
+
+		    default:
+                        params["width"] = 1920;
+                        params["height"] = 1080;
+                        break;
+	    }
+
+	    params["progressive"] = (!resolution.interlaced);
+
+            switch(resolution.frameRate) {
+                    case dsVIDEO_FRAMERATE_24:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_25:
+                        params["frameRateN"] = 25000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_30:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_50:
+                        params["frameRateN"] = 50000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_60:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_23dot98:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_29dot97:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_59dot94:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    default:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+            }
+
+            sendNotify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+        }
+
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!HdmiInput::_instance)
@@ -486,6 +599,26 @@ namespace WPEFramework
                 LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
 
                 HdmiInput::_instance->hdmiInputStatusChange(hdmi_in_port, hdmi_in_status);
+
+            }
+        }
+
+        void HdmiInput::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
+		dsVideoPortResolution_t resolution;
+		resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
+		resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
+		resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+
+                HdmiInput::_instance->hdmiInputVideoModeUpdate(hdmi_in_port, resolution);
 
             }
         }
@@ -615,6 +748,107 @@ namespace WPEFramework
                 LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
             }
             return spdbase64;
+        }
+
+        uint32_t HdmiInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            int portId = 0;
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            returnIfParamNotFound(parameters, "version");
+            string sPortId = parameters["portId"].String();
+            string sVersion = parameters["version"].String();
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            int edidVer = -1;
+            if (strcmp (sVersion.c_str(), "HDMI1.4") == 0) {
+                edidVer = HDMI_EDID_VER_14;
+            }
+            else if (strcmp (sVersion.c_str(), "HDMI2.0") == 0) {
+                edidVer = HDMI_EDID_VER_20;
+            }
+
+            if (edidVer < 0) {
+                returnResponse(false);
+            }
+            bool result = setEdidVersion (portId, edidVer);
+            if (result == false) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        int HdmiInput::setEdidVersion(int iPort, int iEdidVer)
+        {
+            bool ret = true;
+            try
+            {
+                device::HdmiInput::getInstance().setEdidVersion (iPort, iEdidVer);
+                LOGWARN("HdmiInput::setEdidVersion EDID Version:%d", iEdidVer);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+                ret = false;
+            }
+            return ret;
+        }
+
+        uint32_t HdmiInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            string sPortId = parameters["portId"].String();
+            int portId = 0;
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            int edidVer = getEdidVersion (portId);
+            switch (edidVer)
+            {
+                case HDMI_EDID_VER_14:
+                    response["edidVersion"] = "HDMI1.4";
+                    break;
+                case HDMI_EDID_VER_20:
+                    response["edidVersion"] = "HDMI2.0";
+                    break;
+            }
+
+            if (edidVer < 0) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        int HdmiInput::getEdidVersion(int iPort)
+        {
+            int edidVersion = -1;
+
+            try
+            {
+                device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
+                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", &edidVersion);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+            }
+            return edidVersion;
         }
 
     } // namespace Plugin
