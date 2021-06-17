@@ -33,52 +33,54 @@ namespace Plugin {
                             public PluginHost::JSONRPC,
                             public PluginHost::IWeb {
     private:
-        class TokenDispatcher {
-        private:
+        class TokenDispatcher : public RPC::Communicator {
+        public:
+            TokenDispatcher() = delete;
             TokenDispatcher(const TokenDispatcher&) = delete;
             TokenDispatcher& operator=(const TokenDispatcher&) = delete;
 
-        private:
-            class Tokenize : public Core::IIPCServer {
-            private:
-                Tokenize(const Tokenize&) = delete;
-                Tokenize& operator=(const Tokenize&) = delete;
-
-            public:
-                Tokenize(PluginHost::IAuthenticate* parent) : _parent(parent)
-                {
+            TokenDispatcher(
+                const Core::NodeId& source,
+                const std::string& proxyStubPath,
+                PluginHost::IAuthenticate* parentInterface,
+                const Core::ProxyType<RPC::InvokeServer>& engine
+                )
+                : RPC::Communicator(source, proxyStubPath, Core::ProxyType<Core::IIPCServer>(engine))
+                , _parentInterface(parentInterface)
+            {   
+                if(_parentInterface != nullptr){
+                    _parentInterface->AddRef();
                 }
-                virtual ~Tokenize()
-                {
-                }
-
-            public:
-                void Procedure(Core::IPCChannel& source, Core::ProxyType<Core::IIPC>& data) override;
-
-            private:
-                PluginHost::IAuthenticate* _parent;
-            };
-
-        public:
-            TokenDispatcher(const Core::NodeId& endPoint, PluginHost::IAuthenticate* officer)
-                : _channel(endPoint, 1024)
-            {
-                Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), endPoint.QualifiedName().c_str());
-
-                _channel.CreateFactory<IPC::SecurityAgent::TokenData>(1);
-                _channel.Register(IPC::SecurityAgent::TokenData::Id(), Core::ProxyType<Core::IIPCServer>(Core::ProxyType<Tokenize>::Create(officer)));
-
-                _channel.Open(0);
+                engine->Announcements(Announcement());
+                Open(Core::infinite);
             }
-            ~TokenDispatcher()
+            ~TokenDispatcher() override
             {
-                _channel.Close(Core::infinite);
-                _channel.Unregister(IPC::SecurityAgent::TokenData::Id());
-                _channel.DestroyFactory<IPC::SecurityAgent::TokenData>();
+                if(_parentInterface != nullptr){
+                    _parentInterface->Release();
+                }
+
+                Close(Core::infinite);
             }
 
         private:
-            Core::IPCChannelClientType<Core::Void, true, true> _channel;
+            void* Aquire(const string&, const uint32_t interfaceId, const uint32_t versionId) override
+            {
+                void* result = nullptr;
+
+                if (((versionId == 1) || (versionId == static_cast<uint32_t>(~0))) && ((interfaceId == PluginHost::IAuthenticate::ID) || (interfaceId == Core::IUnknown::ID))) {
+                    
+                    _parentInterface->AddRef();
+
+
+                    TRACE(Trace::Information, ("SecurityAgent interface(IAuthenticate) aquired => %p", this));
+                    result = _parentInterface;
+                }
+                return (result);
+            }
+
+        private:
+            PluginHost::IAuthenticate* _parentInterface;
         };
 
         class Config : public Core::JSON::Container {
@@ -162,7 +164,8 @@ namespace Plugin {
         uint8_t _secretKey[Crypto::SHA256::Length];
         AccessControlList _acl;
         uint8_t _skipURL;
-        TokenDispatcher* _dispatcher;
+        std::unique_ptr<TokenDispatcher> _dispatcher; 
+        Core::ProxyType<RPC::InvokeServer> _engine;
     };
 
 } // namespace Plugin
