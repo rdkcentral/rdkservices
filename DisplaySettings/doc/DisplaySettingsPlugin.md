@@ -3559,7 +3559,6 @@ DisplaySettings interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [activeInputChanged](#event.activeInputChanged) | Triggered on active input change (RxSense) |
-| [audioMuteStatusChanged](#event.audioMuteStatusChanged) | Triggered when the mute setting changes for the current audio port |
 | [connectedAudioPortUpdated](#event.connectedAudioPortUpdated) | Triggered when the connected audio port is updated |
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
@@ -3587,30 +3586,6 @@ Triggered on active input change (RxSense).
     "method": "client.events.1.activeInputChanged",
     "params": {
         "activeInput": true
-    }
-}
-```
-
-<a name="event.audioMuteStatusChanged"></a>
-## *audioMuteStatusChanged <sup>event</sup>*
-
-Triggered when the mute setting changes for the current audio port.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.muteStatus | boolean | `true` if muted, otherwise `false` |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.audioMuteStatusChanged",
-    "params": {
-        "muteStatus": true
     }
 }
 ```
