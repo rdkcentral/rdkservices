@@ -79,6 +79,9 @@ using namespace std;
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
+#define STORE_DEMO_FILE "/media/apps/store-mode-video/videoFile.mp4"
+#define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -380,6 +383,9 @@ namespace WPEFramework {
             registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
             registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
             registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
+#ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
+            registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
+#endif
         }
 
 
@@ -3511,6 +3517,18 @@ namespace WPEFramework {
 
             response["failReason"] = FwFailReasonToText.at(failReason);
             returnResponse(retStatus);
+        }
+
+        uint32_t SystemServices::getStoreDemoLink(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            if (Utils::fileExists(STORE_DEMO_FILE)) {
+                result = true;
+                response["fileURL"] = STORE_DEMO_LINK;
+            } else {
+                response["error"] = "missing";
+            }
+            returnResponse(result);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
