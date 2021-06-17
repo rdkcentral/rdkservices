@@ -1994,22 +1994,6 @@
                 ]
             }
         },
-        "audioMuteStatusChanged":{
-            "summary": "Triggered when the mute setting changes for the current audio port",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "muteStatus": {
-                        "summary": "`true` if muted, otherwise `false`",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "muteStatus"
-                ]
-            }
-        },
         "connectedAudioPortUpdated":{
             "summary": "Triggered when the connected audio port is updated",
             "params": {
