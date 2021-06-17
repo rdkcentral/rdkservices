@@ -431,6 +431,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
@@ -699,6 +701,15 @@ namespace WPEFramework {
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
+        }
+
+        void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
+        {
+            JsonObject params;
+            params["requestedApp"] = requestedApp;
+            params["rebootReason"] = rebootReason;
+
+            sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
         /**
@@ -3312,6 +3323,17 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     }
+                case  IARM_BUS_PWRMGR_EVENT_REBOOTING:
+                    {
+                        IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;
+
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    }
+
                     break;
             }
         }
