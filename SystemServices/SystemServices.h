@@ -221,6 +221,8 @@ namespace WPEFramework {
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
                 uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
                 uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
