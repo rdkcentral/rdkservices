@@ -255,6 +255,11 @@ if(BUILD_ENABLE_SYSTEM_UPLOAD_LOGS)
     add_definitions (-DENABLE_SYSTEM_UPLOAD_LOGS)
 endif()
 
+if(ENABLE_SYSTEM_GET_STORE_DEMO_LINK)
+    message("Building with System Service getStoreDemoLink")
+    add_definitions (-DENABLE_SYSTEM_GET_STORE_DEMO_LINK)
+endif()
+
 if (BUILD_ENABLE_TELEMETRY_LOGGING)
     message("Building with telemetry logging")
     add_definitions (-DENABLE_TELEMETRY_LOGGING)
