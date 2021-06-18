@@ -867,6 +867,15 @@ namespace WPEFramework
             JsonObject params;
             if(!HdmiCecSink::_instance)
                return;
+	    if ( (msg.status.toInt() == 0x00) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
+            {
+		/* ie system audio mode off -> amplifier goign to standby but still ARC is in initiated state,stop ARC and 
+		 bring the ARC state machine to terminated state*/
+                 LOGINFO("system audio mode off message but arc is not in terminated state so stopping ARC");
+		 stopArc();
+
+            }
+
             params["audioMode"] = msg.status.toString().c_str();
             sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
          }

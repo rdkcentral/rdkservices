@@ -3291,12 +3291,17 @@ namespace WPEFramework {
                 if(!value.compare("success")) {
 		    try 
 		    {
-                        m_hdmiInAudioDeviceConnected = false;
-                        connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			if(m_hdmiInAudioDeviceConnected ==  true) {
+                            m_hdmiInAudioDeviceConnected = false;
+                            connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
 
-                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
-                        LOGINFO("onARCTerminationEventHandler: Disable ARC\n");
-                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+                            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                            LOGINFO("onARCTerminationEventHandler: Disable ARC\n");
+                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+			}
+			else {
+			    LOGINFO("onARCTerminationEventHandler: Skip Disable ARC and not notifying the UI as  m_hdmiInAudioDeviceConnected = false\n");
+			}
 	            }
                     catch (const device::Exception& err)
                     {
@@ -3304,7 +3309,7 @@ namespace WPEFramework {
                     }
                 }
                 else{
-                    LOGERR("CEC ARC Initiaition Failed !!!");
+                    LOGERR("CEC onARCTerminationEventHandler Failed !!!");
                 }
             } else {
                 LOGERR("Field 'status' could not be found in the event's payload.");
@@ -3366,8 +3371,22 @@ namespace WPEFramework {
                 }
 		else if(!value.compare("Off")) {
                     LOGINFO("%s :  audioMode OFF !!!\n", __FUNCTION__);
-		    m_hdmiInAudioDeviceConnected = false;
-		    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+		    try {
+   		        if(m_hdmiInAudioDeviceConnected == true) {
+		            m_hdmiInAudioDeviceConnected = false;
+		            connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+                            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                            LOGINFO("onSystemAudioModeEventHandler: Disable ARC\n");
+                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+		        }
+                        else {
+                            LOGINFO("onSystemAudioModeEventHandler: Skip Disable ARC and not notifying the UI as  m_hdmiInAudioDeviceConnected = false\n");
+                        }
+		    }
+		    catch(const device::Exception& err)
+                    {
+		        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    }
                 }
                 else{
                     LOGERR("%s: Invalid audio mode sent by HdmiCecSink !!!\n",__FUNCTION__);
