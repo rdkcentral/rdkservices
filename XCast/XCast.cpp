@@ -77,6 +77,7 @@ bool XCast::m_xcastEnable= false;
 string XCast::m_friendlyName = "";
 bool XCast::m_standbyBehavior = false;
 bool XCast::m_enableStatus = false;
+string strDyAppConfig = "";
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
@@ -342,9 +343,15 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
 
                _rtConnector->registerApplications (parameters["applications"].String());
 
+               /*Save the config*/
+               strDyAppConfig.assign(parameters["applications"].String());
                /*Reenabling cast service after registering Applications*/
                if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+                   LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                    _rtConnector->enableCastService(m_friendlyName,true);
+               }
+               else {
+                   LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                }
                returnResponse(true);
            }
@@ -391,6 +398,19 @@ void XCast::onLocateCastTimer()
     }// err != RT_OK
     locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
+
+    if ((!strDyAppConfig.empty()) && (NULL != _rtConnector)) {
+        if (_rtConnector->IsDynamicAppListEnabled()) {
+            LOGINFO("XCast::onLocateCastTimer : strDyAppConfig: %s", strDyAppConfig.c_str());
+            _rtConnector->registerApplications (strDyAppConfig);
+        }
+        else {
+            LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
+        }
+    }
+    else {
+        LOGINFO("XCast::onLocateCastTimer : strDyAppConfig: %s _rtConnector: %p", strDyAppConfig.c_str(), _rtConnector);
+    }
     if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
         _rtConnector->enableCastService(m_friendlyName,true);
     }
