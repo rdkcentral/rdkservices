@@ -32,6 +32,16 @@
 #include <ctype.h>
 #include <mutex>
 
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#include <sys/stat.h>
+#include <unistd.h>
+
+
+
 #define MAX_STRING_LENGTH 2048
 
 #define SERVER_DETAILS  "127.0.0.1:9998"
@@ -381,5 +391,25 @@ bool Utils::isValidInt(char* x)
         }
     } while (x[i] != '\0');
     return Checked;
+}
+
+void Utils::writeToTheConfigFile (string configFile, string val) {
+    ofstream outFile(configFile.c_str());
+    outFile << val;
+    outFile.close();
+}
+
+string Utils::readFromTheConfigFile (string configFile) {
+    if (access( configFile.c_str(), F_OK ) != -1) {
+        ifstream inFile(configFile.c_str());
+        std::stringstream strStream;
+        strStream << inFile.rdbuf();
+        string val = strStream.str();;
+        inFile.close();
+        return val;
+    }
+    else {
+        return string ("");
+    }
 }
 

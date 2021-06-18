@@ -62,6 +62,7 @@ using namespace std;
  * The maximum additionalDataUrl length
  */
 #define DIAL_MAX_ADDITIONALURL (1024)
+#define REG_APP_CONFIG_FILE ("/tmp/reg_app.conf")
 
 
 namespace WPEFramework {
@@ -342,9 +343,15 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
 
                _rtConnector->registerApplications (parameters["applications"].String());
 
+               /*Save the config*/
+               Utils::writeToTheConfigFile (REG_APP_CONFIG_FILE, parameters["applications"].String());
                /*Reenabling cast service after registering Applications*/
                if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+                   LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                    _rtConnector->enableCastService(m_friendlyName,true);
+               }
+               else {
+                   LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                }
                returnResponse(true);
            }
@@ -391,6 +398,20 @@ void XCast::onLocateCastTimer()
     }// err != RT_OK
     locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
+
+    string strAppConfig = Utils::readFromTheConfigFile (REG_APP_CONFIG_FILE);
+    if ((!strAppConfig.empty()) && (NULL != _rtConnector)) {
+        if (_rtConnector->IsDynamicAppListEnabled()) {
+            LOGINFO("XCast::onLocateCastTimer : strAppConfig: %s", strAppConfig.c_str());
+            _rtConnector->registerApplications (strAppConfig);
+        }
+        else {
+            LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
+        }
+    }
+    else {
+        LOGINFO("XCast::onLocateCastTimer : strAppConfig: %s _rtConnector: %p", strAppConfig.c_str(), _rtConnector);
+    }
     if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
         _rtConnector->enableCastService(m_friendlyName,true);
     }

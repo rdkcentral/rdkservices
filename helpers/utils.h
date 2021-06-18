@@ -354,6 +354,8 @@ namespace Utils
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
     bool isValidInt(char* x);
+    void writeToTheConfigFile (string configFile, string val);
+    string readFromTheConfigFile (string configFile);
 
     //class for std::thread RAII
     class ThreadRAII 
