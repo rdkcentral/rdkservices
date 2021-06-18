@@ -22,6 +22,7 @@
 #include <mutex>
 #include "Module.h"
 #include "utils.h"
+#include "dsTypes.h"
 #include "tptimer.h"
 #include "AbstractPlugin.h"
 #include "libIBus.h"
@@ -126,6 +127,7 @@ namespace WPEFramework {
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
 
+	    uint32_t getAudioFormat(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
@@ -141,6 +143,7 @@ namespace WPEFramework {
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
+	    void notifyAudioFormatChange(dsAudioFormat_t audioFormat);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
@@ -159,8 +162,10 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	    static void audioFormatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
+	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 

@@ -152,6 +152,7 @@ namespace WPEFramework {
             registerMethod("getSupportedSettopResolutions", &DisplaySettings::getSupportedSettopResolutions, this);
             registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
             registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
+	    registerMethod("getAudioFormat", &DisplaySettings::getAudioFormat, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
             registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
 	    registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
@@ -341,6 +342,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, audioFormatUpdateEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
 
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
@@ -376,6 +378,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
+		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
 
@@ -650,6 +653,28 @@ namespace WPEFramework {
                 //do nothing
                 break;
             }
+        }
+
+        void DisplaySettings::audioFormatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            dsAudioFormat_t audioFormat = dsAUDIO_FORMAT_NONE;
+
+	    LOGINFO("%s \n", __FUNCTION__);
+            switch (eventId) {
+                case IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE:
+                  {
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    audioFormat = eventData->data.AudioFormatInfo.audioFormat;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE. Audio format: %d \n", audioFormat);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifyAudioFormatChange(audioFormat);
+                    }
+		  }
+                  break;
+		default:
+		    LOGERR("Invalid event ID\n");
+		    break;
+           }
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
@@ -1617,6 +1642,81 @@ namespace WPEFramework {
                 }
                 returnResponse(success);
         }
+
+        void DisplaySettings::audioFormatToString(dsAudioFormat_t audioFormat, JsonObject & response)
+        {
+            std::vector<string> supportedAudioFormat = {"NONE", "PCM", "DOLBY AC3", "DOLBY EAC3",
+                                                         "DOLBY AC4", "DOLBY MAT", "DOLBY TRUEHD",
+                                                         "DOLBY EAC3 ATMOS","DOLBY TRUEHD ATMOS",
+                                                         "DOLBY MAT ATMOS","DOLBY AC4 ATMOS"};
+            switch (audioFormat)
+            {
+                   case dsAUDIO_FORMAT_NONE:
+                       response["currentAudioFormat"] = "NONE";
+                       break;
+                   case dsAUDIO_FORMAT_PCM:
+                       response["currentAudioFormat"] = "PCM";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_AC3:
+                       response["currentAudioFormat"] = "DOLBY AC3";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_EAC3:
+                       response["currentAudioFormat"] = "DOLBY EAC3";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_AC4:
+                       response["currentAudioFormat"] = "DOLBY AC4";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_MAT:
+                       response["currentAudioFormat"] = "DOLBY MAT";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_TRUEHD:
+                       response["currentAudioFormat"] = "DOLBY TRUEHD";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_EAC3_ATMOS:
+                       response["currentAudioFormat"] = "DOLBY EAC3 ATMOS";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_TRUEHD_ATMOS:
+                       response["currentAudioFormat"] = "DOLBY TRUEHD ATMOS";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_MAT_ATMOS:
+                       response["currentAudioFormat"] = "DOLBY MAT ATMOS";
+                       break;
+                   case dsAUDIO_FORMAT_DOLBY_AC4_ATMOS:
+                       response["currentAudioFormat"] = "DOLBY AC4 ATMOS";
+                       break;
+                   default:
+                       break;
+            }
+            setResponseArray(response, "supportedAudioFormat", supportedAudioFormat);
+	}
+
+        uint32_t DisplaySettings::getAudioFormat(const JsonObject& parameters, JsonObject& response)
+        {
+             LOGINFOMETHOD();
+	     bool success = true;
+             dsAudioFormat_t audioFormat = dsAUDIO_FORMAT_NONE;
+             try
+             {
+                 device::Host::getInstance().getCurrentAudioFormat(audioFormat);
+                 LOGINFO("current audio format: %d \n", audioFormat);
+                 audioFormatToString(audioFormat, response);
+                 success = true;
+             }
+             catch (const device::Exception& err)
+             {
+                 LOG_DEVICE_EXCEPTION0();
+		 success = false;
+		 audioFormatToString(dsAUDIO_FORMAT_NONE, response);
+             }
+	     returnResponse(success);
+        }
+
+	void DisplaySettings::notifyAudioFormatChange(dsAudioFormat_t audioFormat)
+	{
+	     JsonObject params;
+	     audioFormatToString(audioFormat, params);
+             sendNotify("audioFormatChanged", params);
+	}
 
         uint32_t DisplaySettings::getVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
         {
@@ -2686,7 +2786,7 @@ namespace WPEFramework {
                 LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
                 returnResponse(false);
             }
-            
+
             if ( audioDelayMs < 0 )
             {
                 LOGERR("audioDelay '%s', Should be a postiive value", sAudioDelayMs.c_str());
@@ -3487,6 +3587,7 @@ namespace WPEFramework {
                }
             }
         }
+
          // Event management end
 
         // Thunder plugins communication end
