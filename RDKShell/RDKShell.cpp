@@ -1054,8 +1054,8 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            m_timer.start(8000);
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
 
             return "";
@@ -5984,14 +5984,6 @@ namespace WPEFramework {
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
             int32_t status = Core::ERROR_GENERAL;
-
-            if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
-            {
-                gSystemServiceConnection.reset();
-                gSystemServiceEventsSubscribed = false;
-                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
-                std::cout << "called activatePlugin for SystemService" << std::endl;
-            }
 
             if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
