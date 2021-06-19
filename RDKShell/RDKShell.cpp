@@ -918,8 +918,8 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            m_timer.start(8000);
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
 
             return "";
