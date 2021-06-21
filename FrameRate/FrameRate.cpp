@@ -63,8 +63,6 @@ namespace WPEFramework
         {
             FrameRate::_instance = this;
 
-	    InitializeIARM();
-
             Register(METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
@@ -79,6 +77,12 @@ namespace WPEFramework
 
         FrameRate::~FrameRate()
         {
+        }
+
+	const string FrameRate::Initialize(PluginHost::IShell * /* service */)
+        {
+		InitializeIARM();
+                return "";
         }
 
 	void FrameRate::InitializeIARM()
