@@ -918,8 +918,8 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            m_timer.start(8000);
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
 
             return "";
@@ -5546,30 +5546,6 @@ namespace WPEFramework {
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
             int32_t status = Core::ERROR_GENERAL;
-
-            if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
-            {
-                gSystemServiceConnection.reset();
-                gSystemServiceEventsSubscribed = false;
-
-                std::string serviceCallsign(SYSTEM_SERVICE_CALLSIGN);
-                JsonObject activateParams;
-                activateParams.Set("callsign", serviceCallsign);
-                JsonObject activateResult;
-                auto thunderController = getThunderControllerClient();
-                int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
-                std::cout << "activate system service status: " << activateStatus << std::endl;
-                if (activateStatus > 0)
-                {
-                    std::cout << "trying status one more time...\n";
-                    activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
-                    std::cout << "activate system service status: " << activateStatus << std::endl;
-                    if (activateStatus > 0)
-                    {
-                        std::cout << "unable to activate system service " << std::endl;
-                    }
-                }
-            }
 
             if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
