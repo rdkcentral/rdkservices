@@ -75,9 +75,20 @@ namespace WPEFramework {
             void onReportFpsTimer();
             void onReportFpsTimerTest();
 
+	    void InitializeIARM();
+            void DeinitializeIARM();
+
+            void frameRatePreChange();
+            static void FrameRatePreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+            void frameRatePostChange();
+            void FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+
         public:
             FrameRate();
             virtual ~FrameRate();
+	    virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
 
         public:
