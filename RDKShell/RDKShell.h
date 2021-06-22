@@ -124,6 +124,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
             static const string RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING;
             static const string RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED;
+            static const string RDKSHELL_METHOD_HIDE_ALL_CLIENTS;
+            static const string RDKSHELL_METHOD_IGNORE_KEY_INPUTS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -223,6 +225,8 @@ namespace WPEFramework {
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;

@@ -113,6 +113,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_IGNORE_KEY_INPUTS = "ignoreKeyInputs";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -746,6 +748,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -4873,7 +4877,7 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
         {
-           LOGINFOMETHOD();
+            LOGINFOMETHOD();
 
             bool enabled = false;
             getLogsFlushingEnabled(enabled);
@@ -4881,6 +4885,47 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
+
+        uint32_t RDKShell::hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("hide"))
+            {
+                response["message"] = "please specify hide parameter";
+                returnResponse(false);
+            }
+            bool hide = parameters["hide"].Boolean();
+            lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                bool ret = CompositorController::setVisibility(clientList[i], !hide);
+            }
+            gRdkShellMutex.unlock();
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("ignore"))
+            {
+                response["message"] = "please specify ignore parameter";
+                returnResponse(false);
+            }
+            bool ignoreKeyValue = parameters["ignore"].Boolean();
+            lockRdkShellMutex();
+            bool ret = CompositorController::ignoreKeyInputs(ignoreKeyValue);
+            gRdkShellMutex.unlock();
+            if (!ret)
+            {
+                response["message"] = "key ignore is not allowed";
+            }
+            returnResponse(ret);
+        }
+
         // Registered methods end
 
         // Events begin
