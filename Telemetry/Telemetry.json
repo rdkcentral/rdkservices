@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkTelemetry.so",
+ "classname":"Telemetry",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.Telemetry",
+ "autostart":false
+}

@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef LOCATIONSYNC_MODULE_H
-#define LOCATIONSYNC_MODULE_H
+
+#pragma once
 
 #ifndef MODULE_NAME
 #define MODULE_NAME Plugin_LocationSync
@@ -28,5 +27,3 @@
 
 #undef EXTERNAL
 #define EXTERNAL
-
-#endif // LOCATIONSYNC_MODULE_H

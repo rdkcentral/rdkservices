@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "Wifi Plugin",
+      "callsign": "org.rdk.Wifi",
+      "locator": "libWPEFrameworkWifiManager.so",
+      "status": "production",
+      "description": "The `Wifi` plugin is used to manage Wifi network connections on a set-top device.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "Wifi.json#"
+    }
+}

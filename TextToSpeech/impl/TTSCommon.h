@@ -47,7 +47,8 @@ namespace TTS {
         TTS_OK = 0,
         TTS_FAIL,
         TTS_NOT_ENABLED,
-        TTS_INVALID_CONFIGURATION
+        TTS_INVALID_CONFIGURATION,
+        TTS_NO_ACCESS
     };
 } // namespace TTS
 

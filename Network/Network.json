@@ -1,0 +1,831 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Network API", 
+        "class": "Network", 
+        "description": "The `Network` plugin allows you to manage network interfaces on a set-top box."
+    },
+    "definitions": {
+        "interface":{
+            "summary": "An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces`",
+            "type": "string",
+            "example": "WIFI"
+        },
+        "ipversion": {
+            "summary": "either IPv4 or IPv6",
+            "type": "string",
+            "example": "IPv4"
+        },
+        "autoconfig": {
+            "summary": "`true` if DHCP is used, `false` if IP is configured manually",
+            "type": "boolean",
+            "example": true
+        },
+        "ipaddr": {
+            "summary": "The IP address",
+            "type": "string",
+            "example": "192.168.1.101"
+        },
+        "netmask": {
+            "summary": "The network mask address",
+            "type": "string",
+            "example": "255.255.255.0"
+        },
+        "gateway": {
+            "summary": "The gateway address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "primarydns": {
+            "summary": "The primary DNS address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "secondarydns": {
+            "summary": "The secondary DNS address",
+            "type": "string",
+            "example": "192.168.1.2"
+        },
+        "endpoint":{
+            "summary": "The host name or IP address",
+            "type": "string",
+            "example": "45.57.221.20"                        
+        },
+        "packets": {
+            "summary": "The number of packets to send. Default is 15.",
+            "type": "integer",
+            "example": 10
+        },
+        "target": {
+            "summary": "The target IP address",
+            "type": "string",
+            "example": "45.57.221.20"
+        },
+        "packetsTransmitted": {
+            "summary": "The number of packets sent",
+            "type": "integer",
+            "example": 10
+        },
+        "packetsReceived": {
+            "summary": "The number of packets received",
+            "type": "integer",
+            "example": 10
+        },
+        "packetLoss": {
+            "summary": "The number of packets lost",
+            "type": "string",
+            "example": "0.0"
+        },
+        "tripMin": {
+            "summary": "The minimum amount of time to receive the packets",
+            "type": "string",
+            "example": "61.264"
+        },
+        "tripAvg": {
+            "summary": "The average time to receive the packets",
+            "type": "string",
+            "example": "130.397"
+        },
+        "tripMax": {
+            "summary": "The maximum amount of time to receive the packets",
+            "type": "string",
+            "example": "230.832"
+        },
+        "tripStdDev": {
+            "summary": "The standard deviation for the trip",
+            "type": "string",
+            "example": "80.919"
+        },
+        "error": {
+            "summary": "An error message",
+            "type": "string",
+            "example": ""
+        },
+        "endpointName":{
+            "summary": "An endpoint name returned by `getNamedEndpoints`",
+            "type": "string",
+            "example": "CMTS"                        
+        },
+        "results": {
+            "summary": "The results from `traceroute`",
+            "type": "string",
+            "example": "<<<traceroute command results>>>"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getDefaultInterface":{
+            "summary": "Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "success"
+                ]
+            }
+        },
+        "getInterfaces":{
+            "summary": "Returns a list of interfaces supported by this device including their state",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "Interfaces": {
+                        "summary": "An interface",
+                        "type":"array",
+                        "items": {
+                            "type":"object",
+                            "properties": {
+                                "interface":{
+                                    "$ref": "#/definitions/interface"
+                                },
+                                "macAddress":{
+                                    "summary": "Interface MAC address",
+                                    "type": "string",
+                                    "example": "AA:AA:AA:AA:AA:AA"
+                                },
+                                "enabled":{
+                                    "summary": "Whether the interface is currently enabled",
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "connected":{
+                                    "summary": "Whether the interface is currently connected",
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "required": [
+                                "interface",
+                                "macAddress",
+                                "enabled",
+                                "connected"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "interfaces",
+                    "success"
+                ]
+            }
+        },
+        "getIPSettings":{
+            "summary": "Gets the IP setting for the given interface",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "autoconfig": {
+                        "$ref": "#/definitions/autoconfig"
+                    },
+                    "ipaddr": {
+                        "$ref": "#/definitions/ipaddr"
+                    },
+                    "netmask": {
+                        "$ref": "#/definitions/netmask"
+                    },
+                    "gateway": {
+                        "$ref": "#/definitions/gateway"
+                    },
+                    "primarydns": {
+                        "$ref": "#/definitions/primarydns"
+                    },
+                    "secondarydns": {
+                        "$ref": "#/definitions/secondarydns"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ipversion",
+                    "autoconfig",
+                    "ipaddr",
+                    "netmask",
+                    "gateway",
+                    "primarydns",
+                    "secondarydns",
+                    "success"  
+                ]
+            }
+        },
+        "getNamedEndpoints":{
+            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "endpoints": {
+                        "summary": "A list of supported endpoint names",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "CMTS"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "endpoints",
+                    "success"
+                ]
+            }
+        },
+        "getStbIp":{
+            "summary": "Gets the IP address of the default interface",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ip": {
+                        "summary": "The IP address",
+                        "type": "string",
+                        "example": "192.168.1.101"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ip",
+                    "success"
+                ]
+            }
+        },
+        "getSTBIPFamily":{
+            "summary": "Gets the IP address of the default interface by address family",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "family": {
+                        "summary": "The address family to query",
+                        "type": "string",
+                        "example": "AF_INET"
+                    }
+                },
+                "required": [
+                    "family"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ip": {
+                        "summary": "The IP address",
+                        "type": "string",
+                        "example": "192.168.1.101"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ip",
+                    "success"
+                ]
+            }
+        },
+        "isConnectedToInternet":{
+            "summary": "Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "connectedToInternet": {
+                        "summary": "`true` if internet connectivity is detected, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "connectedToInternet",
+                    "success"
+                ]
+            }
+        },
+        "isInterfaceEnabled":{
+            "summary": "Whether the specified interface is enabled",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "`true` if the interface is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"  
+                ]
+            }
+        },
+        "ping":{
+            "summary": "Pings the specified endpoint with the specified number of packets",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoint":{
+                        "$ref": "#/definitions/endpoint"
+                    },
+                    "packets": {
+                        "$ref": "#/definitions/packets"
+                    }
+                },
+                "required": [
+                    "endpoint",
+                    "packets"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "$ref": "#/definitions/target"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "packetsTransmitted": {
+                        "$ref": "#/definitions/packetsTransmitted"
+                    },
+                    "packetsReceived": {
+                        "$ref": "#/definitions/packetsReceived"
+                    },
+                    "packetLoss": {
+                        "$ref": "#/definitions/packetLoss"
+                    },
+                    "tripMin": {
+                        "$ref": "#/definitions/tripMin"
+                    },
+                    "tripAvg": {
+                        "$ref": "#/definitions/tripAvg"
+                    },
+                    "tripMax": {
+                        "$ref": "#/definitions/tripMax"
+                    },
+                    "tripStdDev": {
+                        "$ref": "#/definitions/tripStdDev"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "target",
+                    "success",
+                    "packetsTransmitted",
+                    "packetsReceived",
+                    "packetLoss",
+                    "tripMin",
+                    "tripAvg",
+                    "tripMax",
+                    "tripStdDev",
+                    "error" 
+                ]
+            }
+        },
+        "pingNamedEndpoint":{
+            "summary": "Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpointName":{
+                        "$ref": "#/definitions/endpointName"
+                    },
+                    "packets": {
+                        "$ref": "#/definitions/packets"
+                    }
+                },
+                "required": [
+                    "endpointName",
+                    "packets"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "$ref": "#/definitions/target"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "packetsTransmitted": {
+                        "$ref": "#/definitions/packetsTransmitted"
+                    },
+                    "packetsReceived": {
+                        "$ref": "#/definitions/packetsReceived"
+                    },
+                    "packetLoss": {
+                        "$ref": "#/definitions/packetLoss"
+                    },
+                    "tripMin": {
+                        "$ref": "#/definitions/tripMin"
+                    },
+                    "tripAvg": {
+                        "$ref": "#/definitions/tripAvg"
+                    },
+                    "tripMax": {
+                        "$ref": "#/definitions/tripMax"
+                    },
+                    "tripStdDev": {
+                        "$ref": "#/definitions/tripStdDev"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    }
+                },
+                "required": [
+                    "target",
+                    "success",
+                    "packetsTransmitted",
+                    "packetsReceived",
+                    "packetLoss",
+                    "tripMin",
+                    "tripAvg",
+                    "tripMax",
+                    "tripStdDev",
+                    "error"
+                ]
+            }
+        },
+        "setConnectivityTestEndpoints":{
+            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoints": {
+                        "summary": "A list of endpoints to test",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "xfinity.com:8080"
+                        }
+                    }
+                },
+                "required": [
+                    "endpoints"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDefaultInterface":{
+            "summary": "Sets the default interface. The call fails if the interface is not enabled.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "persist":{
+                        "summary": "Whether the default interface setting persists after reboot. When `true`, this interface is enabled as the default interface currently AND on the next reboot. When `false`, this interface is only the default during this session.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "persist"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setInterfaceEnabled":{
+            "summary": "Enables the specified interface",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "enabled": {
+                        "summary": "Enables the interface when `true`. Disables the interface when `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "persist":{
+                        "summary": "Whether the interface setting persists after reboot. When `true`, this interface is enabled currently AND on the next reboot. When `false`, this interface is only enabled during this session.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "enabled",
+                    "persist"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setIPSettings":{
+            "summary": "Sets the IP settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "autoconfig": {
+                        "$ref": "#/definitions/autoconfig"
+                    },
+                    "ipaddr": {
+                        "$ref": "#/definitions/ipaddr"
+                    },
+                    "netmask": {
+                        "$ref": "#/definitions/netmask"
+                    },
+                    "gateway": {
+                        "$ref": "#/definitions/gateway"
+                    },
+                    "primarydns": {
+                        "$ref": "#/definitions/primarydns"
+                    },
+                    "secondarydns": {
+                        "$ref": "#/definitions/secondarydns"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ipversion",
+                    "autoconfig",
+                    "ipaddr",
+                    "netmask",
+                    "gateway",
+                    "primarydns",
+                    "secondarydns"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supported":{
+                        "summary": "`true` if setting the IP settings are supported, otherwise `false` if not supported.",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supported",
+                    "success"  
+                ]
+            }
+        },
+        "trace":{
+            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoint":{
+                        "$ref": "#/definitions/endpoint"                       
+                    },
+                    "packets": {
+                        "$ref": "#/definitions/packets"
+                    }
+                },
+                "required": [
+                    "endpoint",
+                    "packets"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "$ref": "#/definitions/target"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    },
+                    "results": {
+                        "$ref": "#/definitions/results"
+                    }
+                },
+                "required": [
+                    "target",
+                    "success",
+                    "error",
+                    "results"  
+                ]
+            }
+        },
+        "traceNamedEndpoint":{
+            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpointName":{
+                        "$ref": "#/definitions/endpointName"
+                    },
+                    "packets": {
+                        "$ref": "#/definitions/packets"
+                    }
+                },
+                "required": [
+                    "endpointName",
+                    "packets"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "$ref": "#/definitions/target"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "$ref": "#/definitions/error"
+                    },
+                    "results": {
+                        "$ref": "#/definitions/results"
+                    }
+                },
+                "required": [
+                    "target",
+                    "success",
+                    "error",
+                    "results"  
+                ]
+            }
+        }
+    },
+    "events": {
+        "onConnectionStatusChanged":{
+            "summary": "Triggered when a connection is made or lost",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "status":{
+                        "summary": "Whether the interface is currently connected or disconnected",
+                        "type": "string",
+                        "enum": ["`CONNECTED`", "`DISCONNECTED`" ],
+                        "example": "CONNECTED"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "status"
+                ]
+            }
+        },
+        "onDefaultInterfaceChanged":{
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through this API",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "oldInterfaceName":{
+                        "summary": "The previous interface that was changed",
+                        "type": "string",
+                        "example": "ETHERNET" 
+                    },
+                    "newInterfaceName":{
+                        "summary": "The current interface",
+                        "type": "string",
+                        "example": "WIFI" 
+                    }
+                },
+                "required": [
+                    "oldInterfaceName",
+                    "newInterfaceName"
+                ]
+            }
+        },
+        "onInterfaceStatusChanged":{
+            "summary": "Triggered when an interface becomes enabled or disabled",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "enabled":{
+                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "enabled"
+                ]
+            }
+        },
+        "onIPAddressStatusChanged":{
+            "summary": "Triggered when an IP Address is assigned or lost",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "ip6Address":{
+                        "summary": "The IPv6 address for the interface",
+                        "type": "string",
+                        "example": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334" 
+                    },
+                    "ip4address":{
+                        "summary": "The IPv4 address for the interface",
+                        "type": "string",
+                        "example": "192.168.1.2" 
+                    },
+                    "status":{
+                        "summary": "Whether IP address was acquired or lost",
+                        "type": "string",
+                        "enum": ["`ACQUIRED`", "`LOST`" ],
+                        "example": "ACQUIRED"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ip6Address",
+                    "ip4address",
+                    "status"
+                ]
+            }
+        }
+
+    }
+}
