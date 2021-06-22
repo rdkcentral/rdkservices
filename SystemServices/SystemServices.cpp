@@ -67,9 +67,22 @@ using namespace std;
 #define SYSSRV_MAJOR_VERSION 1
 #define SYSSRV_MINOR_VERSION 0
 
+#define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
+#define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
+#define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
+#define DEVICE_PROPERTIES_FILE "/etc/device.properties"
+
+#define DEVICE_INFO_SCRIPT "sh /lib/rdk/getDeviceDetails.sh read"
+
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
+
+#define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
+
+#define STORE_DEMO_FILE "/media/apps/store-mode-video/videoFile.mp4"
+#define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
 /**
  * @struct firmwareUpdate
@@ -279,6 +292,9 @@ namespace WPEFramework {
 
                 setMode(mode, response);
             }
+
+            SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -345,6 +361,10 @@ namespace WPEFramework {
                     &SystemServices::getTemperatureThresholds, this);
             registerMethod("setTemperatureThresholds",
                     &SystemServices::setTemperatureThresholds, this);
+	    registerMethod("getOvertempGraceInterval",
+                    &SystemServices::getOvertempGraceInterval, this);
+            registerMethod("setOvertempGraceInterval",
+                    &SystemServices::setOvertempGraceInterval, this);
 #endif /* ENABLE_THERMAL_PROTECTION */
             registerMethod("getPreviousRebootInfo2",
                     &SystemServices::getPreviousRebootInfo2, this);
@@ -369,6 +389,14 @@ namespace WPEFramework {
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
             registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
+            registerMethod("setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
+            registerMethod("isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
+            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
+            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
+            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
+#ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
+            registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
+#endif
         }
 
 
@@ -402,6 +430,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
@@ -440,13 +470,10 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             int32_t nfxResult = E_NOK;
-            string rebootCommand = "";
-            string rebootReason = "";
-            string customReason = "";
-            string otherReason = "";
+            string customReason = "No custom reason provided";
+            string otherReason = "No other reason supplied";
             bool result = false;
 
-            //TODO: Replace system command
             nfxResult = system("pgrep nrdPluginApp");
             if (E_OK == nfxResult) {
                 LOGINFO("SystemService shutting down Netflix...\n");
@@ -459,55 +486,174 @@ namespace WPEFramework {
                             process. nfxResult = %ld\n", (long int)nfxResult);
                 }
             }
-            if (Utils::fileExists("/rebootNow.sh")) {
-                rebootCommand = "/rebootNow.sh";
-            } else if (Utils::fileExists("/lib/rdk/rebootNow.sh")) {
-                rebootCommand = "/lib/rdk/rebootNow.sh";
-            } else {
-                LOGINFO("rebootNow.sh is not present in /lib/rdk or \
-                        /root\n");
+
+            if (parameters.HasLabel("rebootReason")) {
+                customReason = parameters["rebootReason"].String();
+                otherReason = customReason;
             }
 
-            if (!(rebootCommand.empty())) {
-                rebootReason = "System Plugin";
-                customReason = "No custom reason provided";
-                otherReason = "No other reason supplied";
+            IARM_Bus_PWRMgr_RebootParam_t rebootParam;
+            strncpy(rebootParam.requestor, "System Plugin", sizeof(rebootParam.requestor));
+            strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
+            strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
+            LOGINFO("requestSystemReboot: custom reason: %s, other reason: %s\n", rebootParam.reboot_reason_custom,
+                rebootParam.reboot_reason_other);
 
-                if (parameters.HasLabel("rebootReason")) {
-                    customReason = parameters["rebootReason"].String();
-                    otherReason = customReason;
-                }
-
-                rebootCommand += " -s \"" + rebootReason + "\"";
-                rebootCommand += " -r \"" + customReason + "\"";
-                rebootCommand += " -o \"" + otherReason + "\"";
-                rebootCommand += " &";
-
-                LOGINFO("IARM_BUS RunScript: '%s'\n", rebootCommand.c_str());
-                IARM_Bus_SYSMgr_RunScript_t runScriptParam;
-                runScriptParam.return_value = -1;
-                strcpy(runScriptParam.script_path, rebootCommand.c_str());
-                IARM_Result_t iarmcallstatus = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME,
-                        IARM_BUS_SYSMGR_API_RunScript,
-                        &runScriptParam, sizeof(runScriptParam));
-
-                nfxResult = !runScriptParam.return_value;
-                response["IARM_Bus_Call_STATUS"] = nfxResult;
-                result = true;
-
-                /* Trigger rebootRequest event if IARMCALL is success. */
-                if (IARM_RESULT_SUCCESS == iarmcallstatus) {
-                    SystemServices::_instance->onRebootRequest(customReason);
-                } else {
-                    LOGERR("iarmcallstatus = %d; onRebootRequest event will not be fired.\n",
-                            iarmcallstatus);
-                }
-            } else {
-                LOGINFO("Rebooting failed as rebootNow.sh is not present\n");
-                populateResponseWithError(SysSrv_FileNotPresent, response);
+            IARM_Result_t iarmcallstatus = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                    IARM_BUS_PWRMGR_API_Reboot, &rebootParam, sizeof(rebootParam));
+            if(IARM_RESULT_SUCCESS != iarmcallstatus) {
+                LOGWARN("requestSystemReboot: IARM_BUS_PWRMGR_API_Reboot failed with code %d.\n", iarmcallstatus); 
             }
+            response["IARM_Bus_Call_STATUS"] = static_cast <int32_t> (iarmcallstatus);
+            result = true;
             returnResponse(result);
         }//end of requestSystemReboot
+
+        /*
+         * @brief This function delays the reboot in seconds.
+         * This will internally sets the tr181 fwDelayReboot parameter.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareRebootDelay",
+         *                  "params":{"delaySeconds": int seconds}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareRebootDelay(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            uint32_t delay_in_sec = 0;
+
+            if ( parameters.HasLabel("delaySeconds") ){
+                /* get the value */
+                delay_in_sec = static_cast<unsigned int>(parameters["delaySeconds"].Number());
+
+                /* we can delay with max 24 Hrs = 86400 sec */
+                if (delay_in_sec > 0 && delay_in_sec <= MAX_REBOOT_DELAY ){
+
+                    const char * set_rfc_val=(parameters["delaySeconds"].String()).c_str();
+
+                    LOGINFO("set_rfc_value %s\n",set_rfc_val);
+
+                    /*set tr181Set command from here*/
+                    WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                            TR181_FW_DELAY_REBOOT, set_rfc_val, WDMP_INT);
+                    if ( WDMP_SUCCESS == status ){
+                        result=true;
+                        LOGINFO("Success Setting setFirmwareRebootDelay value\n");
+                    }
+                    else {
+                        LOGINFO("Failed Setting setFirmwareRebootDelay value %s\n",getRFCErrorString(status));
+                    }
+                }
+                else {
+                    /* we didnt get a valid Auto Reboot delay */
+                    LOGERR("Invalid setFirmwareRebootDelay Value Max.Value is 86400 sec\n");
+                }
+            }
+            else {
+                /* havent got the correct label */
+                LOGERR("setFirmwareRebootDelay Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues,response);
+            }
+            returnResponse(result);
+        }
+
+        /*
+         * @brief This function Enable/Disable the AutReboot Feature.
+         * This will internally sets the tr181 AutoReboot.Enable to True/False.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.setFirmwareAutoReboot",
+         *                  "params":{"enable": bool }}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::setFirmwareAutoReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            bool enableFwAutoreboot = false;
+
+           if ( parameters.HasLabel("enable") ){
+               /* get the value */
+               enableFwAutoreboot = (parameters["enable"].Boolean());
+               LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
+
+               const char *set_rfc_val = (parameters["enable"].String().c_str());
+
+               /* set tr181Set command from here */
+               WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                       TR181_AUTOREBOOT_ENABLE,set_rfc_val,WDMP_BOOLEAN);
+               if ( WDMP_SUCCESS == status ){
+                   result=true;
+                   LOGINFO("Success Setting the setFirmwareAutoReboot value\n");
+               }
+               else {
+                   LOGINFO("Failed Setting the setFirmwareAutoReboot value %s\n",getRFCErrorString(status));
+               }
+           }
+           else {
+               /* havent got the correct label */
+               LOGERR("setFirmwareAutoReboot Missing Key Values\n");
+               populateResponseWithError(SysSrv_MissingKeyValues,response);
+           }
+           returnResponse(result);
+        }
+
+        /*
+         * @brief This function notifies about pending Reboot.
+         * This will internally set 120 sec and trigger event to application.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.System.2.fireFirmwarePendingReboot",
+         *                  "params":{}}
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":true}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t SystemServices::fireFirmwarePendingReboot(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            int seconds = 600; /* 10 Minutes to Reboot */
+
+            /* trigger event saying we are in Maintenance Window */
+
+            /* check if we have valid instance */
+            if ( _instance ){
+                /* clear any older values, Reset the fwDelayReboot = 0 */
+                LOGINFO("Reset Older FwDelayReboot to 0, if any\n");
+
+                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                        TR181_FW_DELAY_REBOOT,"0", WDMP_INT);
+
+                /* call the event handler if reset SUCCESS */
+                if ( WDMP_SUCCESS == status ){
+                    /* trigger event saying we are in Maintenance Window */
+                    _instance->onFirmwarePendingReboot(seconds);
+                    result=true;
+                }
+                else {
+                    LOGINFO("Failed to reset FwDelayReboot due to %s\n",getRFCErrorString(status));
+                }
+            }
+            else {
+                LOGERR("_instance in fireFirmwarePendingReboot is NULL.\n");
+            }
+
+            returnResponse(result);
+        }
+
+        /*
+         * @brief : send event when system is in maintenance window
+         * @param1[in]  : int seconds
+         */
+
+        void SystemServices::onFirmwarePendingReboot(int seconds)
+        {
+            JsonObject params;
+            params["fireFirmwarePendingReboot"] = seconds;
+            LOGINFO("Notifying onFirmwarePendingReboot received \n");
+            sendNotify(EVT_ONFWPENDINGREBOOT, params);
+        }
 
         /***
          * @brief : send notification when system power state is changed
@@ -524,6 +670,15 @@ namespace WPEFramework {
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
+        }
+
+        void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
+        {
+            JsonObject params;
+            params["requestedApp"] = requestedApp;
+            params["rebootReason"] = rebootReason;
+
+            sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
         /**
@@ -606,30 +761,137 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            string queryParams = parameters["params"].String();
-            removeCharsFromString(queryParams, "[\"]");
+            string queryParams;
+
+            if (parameters.HasLabel("params")) {
+                queryParams = parameters["params"].String();
+                removeCharsFromString(queryParams, "[\"]");
+            }
+
+            string queryOriginal = queryParams;
+
+            // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
+            if (queryParams.empty() || queryParams == "make") {
+
+                if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
+                    populateResponseWithError(SysSrv_FileNotPresent, response);
+                    returnResponse(retAPIStatus);
+                }
+
+                char buf[1024];
+
+                FILE *f = fopen(DEVICE_PROPERTIES_FILE, "r");
+
+                if(!f) {
+                    LOGWARN("failed to open %s:%s", DEVICE_PROPERTIES_FILE, strerror(errno));
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                    returnResponse(retAPIStatus);
+                }
+
+                std::string line;
+                std::string make;
+                while(fgets(buf, sizeof(buf), f) != NULL) {
+                    line = buf;
+                    size_t eq = line.find_first_of("=");
+
+                    if (std::string::npos != eq) {
+                        std::string key = line.substr(0, eq);
+
+                        if (key == "MFG_NAME") {
+                            make = line.substr(eq + 1);
+                            Utils::String::trim(make);
+                            break;
+                        }
+                    }
+                }
+
+                fclose(f);
+
+                if (make.size() > 0) {
+                    response["make"] = make;
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+                if (!queryParams.empty()) {
+                    returnResponse(retAPIStatus);
+                }
+            }
+
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
                 returnResponse(getManufacturerData(queryParams, response));
             }
 #endif
-            string methodType = queryParams;
-            string respBuffer;
-            string fileName = "/tmp/." + methodType;
-            LOGERR("accessing fileName : %s\n", fileName.c_str());
-            if (Utils::fileExists(fileName.c_str())) {
-                respBuffer = collectDeviceInfo(methodType);
-                removeCharsFromString(respBuffer, "\n\r");
-                LOGERR("respBuffer : %s\n", respBuffer.c_str());
-                if (respBuffer.length() <= 0) {
-                    populateResponseWithError(SysSrv_FileAccessFailed, response);
-                } else {
-                    response[methodType.c_str()] = respBuffer;
-                    retAPIStatus = true;
-                }
-            } else {
-                populateResponseWithError(SysSrv_FileNotPresent, response);
+
+            //Since there is no friendly_id available yet, returning hardcoded values based on model_number
+            if (queryParams == "friendly_id") {
+                queryParams = "model_number";
             }
+
+
+            std::string cmd = DEVICE_INFO_SCRIPT;
+            if (!queryParams.empty()) {
+                cmd += " ";
+                cmd += queryParams;
+            }
+
+            std::string res = Utils::cRunScript(cmd.c_str());
+
+            if (res.size() > 0) {
+                std::string model_number;
+                if (queryParams.empty()) {
+                    retAPIStatus = true;
+
+                    std::stringstream ss(res);
+                    std::string line;
+                    while(std::getline(ss, line))
+                    {
+                        size_t eq = line.find_first_of("=");
+
+                        if (std::string::npos != eq)
+                        {
+                            std::string key = line.substr(0, eq);
+                            std::string value = line.substr(eq + 1);
+
+                            response[key.c_str()] = value;
+
+                            // some tweaks for backward compatibility
+                            if (key == "imageVersion") {
+                                response["version"] = value; 
+                                response["software_version"] = value;
+                            }
+                            else if (key == "cableCardVersion") {
+                                response["cable_card_firmware_version"] = value;
+                            }
+                            else if (key == "model_number") {
+                                model_number = value;
+                            }
+                        }
+                    }
+                } else {
+                    retAPIStatus = true;
+
+                    Utils::String::trim(res);
+                    if (queryOriginal == "friendly_id") {
+                        model_number = res;
+                    } else {
+                        response[queryParams.c_str()] = res;
+                    }
+                }
+
+                if (queryParams.empty() || queryOriginal == "friendly_id") {
+                    if (model_number == "PLTL11AEI") {
+                        response["friendly_id"] = "CAD11";
+                    } else if (model_number == "HSTP11MWR") {
+                        response["friendly_id"] = "43A6GX";
+                    } else {
+                        response["friendly_id"] = "";
+                    }
+                }
+            }
+
             returnResponse(retAPIStatus);
         }
 
@@ -1522,11 +1784,24 @@ namespace WPEFramework {
             std::vector<string> lines;
 
 	    if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
-		    populateResponseWithError(SysSrv_FileNotPresent, response);
-		    returnResponse(retStat);
+                //If firmware download file doesn't exist we can still return the current version
+                response["downloadedFWVersion"] = downloadedFWVersion;
+                response["downloadedFWLocation"] = downloadedFWLocation;
+                response["isRebootDeferred"] = isRebootDeferred;
+                retStat = true;
+                string ver =  getStbVersionString();
+                if(ver == "unknown")
+                {
+                    response["currentFWVersion"] = "";
+                    retStat = false;
+                }
+                else
+                {
+                    response["currentFWVersion"] = ver;
+                    retStat = true;
+                }
 	    }
-
-            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
+            else if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
                 for (std::vector<std::string>::const_iterator i = lines.begin();
                         i != lines.end(); ++i) {
                     std::string line = *i;
@@ -1592,52 +1867,9 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStatus = false;
-            FirmwareUpdateState fwUpdateState = FirmwareUpdateStateUninitialized;
-            std::vector<string> lines;
-            if (!Utils::fileExists(FWDNLDSTATUS_FILE_NAME)) {
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-                returnResponse(retStatus);
-            }
-            if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
-                for (std::vector<std::string>::const_iterator i = lines.begin();
-                        i != lines.end(); ++i) {
-                    std::string line = *i;
-                    std::size_t found = line.find("FwUpdateState|");
-                    std::string delimiter = "|";
-                    size_t pos = 0;
-                    std::string token;
-                    if (std::string::npos != found) {
-                        while ((pos = line.find(delimiter)) != std::string::npos) {
-                            token = line.substr(0, pos);
-                            line.erase(0, pos + delimiter.length());
-                        }
-                        line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
-
-                        if (!strcmp(line.c_str(), "Requesting")) {
-                            fwUpdateState = FirmwareUpdateStateRequesting;
-                        } else if (!strcmp(line.c_str(), "Downloading")) {
-                            fwUpdateState = FirmwareUpdateStateDownloading;
-                        } else if (!strcmp(line.c_str(), "Failed")) {
-                            fwUpdateState = FirmwareUpdateStateFailed;
-                        } else if (!strcmp(line.c_str(), "Download complete")) {
-                            fwUpdateState = FirmwareUpdateStateDownloadComplete;
-                        } else if (!strcmp(line.c_str(), "Validation complete")) {
-                            fwUpdateState = FirmwareUpdateStateValidationComplete;
-                        } else if (!strcmp(line.c_str(), "Preparing to reboot")) {
-                            fwUpdateState = FirmwareUpdateStatePreparingReboot;
-                        } else if (!strcmp(line.c_str(), "No upgrade needed")) {
-                            fwUpdateState = FirmwareUpdateStateNoUpgradeNeeded;
-                        } else if (!strcmp(line.c_str(), "Uninitialized")){
-                            fwUpdateState = FirmwareUpdateStateUninitialized;
-                        }
-                    }
-                }
-                response["firmwareUpdateState"] = (int)fwUpdateState;
-                retStatus = true;
-            } else {
-                LOGERR("Could not read file %s\n", FWDNLDSTATUS_FILE_NAME);
-                populateResponseWithError(SysSrv_FileNotPresent, response);
-            }
+            FirmwareUpdateState fwUpdateState =(FirmwareUpdateState)m_FwUpdateState_LatestEvent;
+            response["firmwareUpdateState"] = (int)fwUpdateState;
+            retStatus = true;
             returnResponse(retStatus);
         }
 
@@ -1654,6 +1886,7 @@ namespace WPEFramework {
             JsonObject params;
 
             const FirmwareUpdateState firmwareUpdateState = (FirmwareUpdateState)newState;
+            m_FwUpdateState_LatestEvent=(int)firmwareUpdateState;
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
@@ -2237,7 +2470,7 @@ namespace WPEFramework {
             float high = 0.0;
             float critical = 0.0;
 	    bool resp = false;
-	    if (parameters.HasLabel("thresholds") && parameters.HasLabel("WARN") && parameters.HasLabel("MAX")) {
+	    if (parameters.HasLabel("thresholds")) {
 		    args.FromString(parameters["thresholds"].String());
 		    string warn = args["WARN"].String();
 		    string max = args["MAX"].String();
@@ -2250,6 +2483,49 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+            returnResponse(resp);
+        }
+
+	/***
+         * @brief : To retrieve Overtemparature grace interval value.
+         * @param1[in] : {"params":{}}
+         * @param2[out] : "result":{"graceInterval":"600",},"success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getOvertempGraceInterval(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            int graceInterval = 0;
+            bool resp = CThermalMonitor::instance()->getOvertempGraceInterval(graceInterval);
+            LOGWARN("Got current grace interval: %d ret[resp = %d]\n",
+                    graceInterval, resp);
+            if (resp) {
+                response["graceInterval"] = to_string(graceInterval);
+            }
+            returnResponse(resp);
+        }
+
+	/***
+         * @brief : To set Overtemparature grace interval value.
+         * @param1[in] : {"params":{"graceInterval":"600"}}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setOvertempGraceInterval(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            int graceInterval  = 0;
+            bool resp = false;
+            if (parameters.HasLabel("graceInterval")) {
+                    string grace = parameters["graceInterval"].String();
+
+                    graceInterval = atoi(grace.c_str());
+
+                    resp =  CThermalMonitor::instance()->setOvertempGraceInterval(graceInterval);
+                    LOGWARN("Set Grace Interval : %d\n", graceInterval);
+            } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
             returnResponse(resp);
         }
 #endif /* ENABLE_THERMAL_PROTECTION */
@@ -2953,6 +3229,8 @@ namespace WPEFramework {
 
 			if(eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				curState = "ON";
+            } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                curState = "OFF";
 			} else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
 				   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
 				curState = "LIGHT_SLEEP";
@@ -2964,6 +3242,8 @@ namespace WPEFramework {
 
 			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				newState = "ON";
+            } else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                newState = "OFF";
 			} else if((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
 				  (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
                                 newState = "LIGHT_SLEEP";
@@ -2979,6 +3259,17 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     }
+                case  IARM_BUS_PWRMGR_EVENT_REBOOTING:
+                    {
+                        IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;
+
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    }
+
                     break;
             }
         }
@@ -3230,6 +3521,79 @@ namespace WPEFramework {
 
             response["failReason"] = FwFailReasonToText.at(failReason);
             returnResponse(retStatus);
+        }
+        /***
+         * @brief : To set Telemetry Opt Out Status
+         *
+         * @param1[in]  : {"params":{"Opt-Out":<bool>}}
+         * @param2[out] : "result":{"success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setOptOutTelemetry(
+                const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool optout = false;
+	    bool result = false;
+            ofstream optfile;
+	    if (parameters.HasLabel("Opt-Out")) {
+		    optout = parameters["Opt-Out"].Boolean();
+                    optfile.open(OPTOUT_TELEMETRY_STATUS, ios::out);
+                    if (optfile) {
+                        optfile << (optout ? "true" :"false");
+                        optfile.close();
+                        result = true;
+                        LOGINFO("TelemetryOptOut flag set to %s\n", 
+                                optout ? "true" :"false");
+                    } else {
+                        LOGERR("Couldn't update Telemetry Opt Out flag\n");
+                    }
+	    } else {
+		    populateResponseWithError(SysSrv_MissingKeyValues, response);
+	    }
+            returnResponse(result);
+        } //end of setOptOutTelemetry
+
+        /***
+         * @brief : To check Telemetry Opt Out status
+         *
+         * @param1[in]  : {"params":{}}
+         * @param2[out] : {"result":{"Opt-Out":<bool>,"success":true}}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::isOptOutTelemetry(const JsonObject& parameters,
+                JsonObject& response)
+        {
+		bool optout = false;
+		bool result = true;
+                bool retVal = false;
+                char lines[32] = {'\0'};
+                string optStatus = "";
+
+                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, lines);
+                if (retVal) {
+                    optStatus = strtok(lines," ");
+                    if ("true" == optStatus) {
+                       optout = true;
+                    } else {
+                       optout = false;
+                    }
+                }
+                LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
+		response["Opt-Out"] = optout;
+		returnResponse(result);
+        } //end of isOptOutTelemetry
+
+        uint32_t SystemServices::getStoreDemoLink(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            if (Utils::fileExists(STORE_DEMO_FILE)) {
+                result = true;
+                response["fileURL"] = STORE_DEMO_LINK;
+            } else {
+                response["error"] = "missing";
+            }
+            returnResponse(result);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

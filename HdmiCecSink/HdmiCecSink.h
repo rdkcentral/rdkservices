@@ -83,6 +83,8 @@ namespace WPEFramework {
 	        void process (const Polling &msg, const Header &header);
                 void process (const InitiateArc &msg, const Header &header);
                 void process (const TerminateArc &msg, const Header &header);
+                void process (const ReportShortAudioDescriptor  &msg, const Header &header);
+		void process (const SetSystemAudioMode &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -239,7 +241,7 @@ namespace WPEFramework {
 
 			DeviceNode() {
 				int i;
-				for (i; i < LogicalAddress::UNREGISTERED; i++ )
+				for (i = 0; i < LogicalAddress::UNREGISTERED; i++ )
 				{
 					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
 				}
@@ -513,6 +515,14 @@ private:
                         void Process_InitiateArc();
                         void Process_TerminateArc();
                         void updateArcState();
+                        void requestShortaudioDescriptor();
+                        void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
+		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
+			void Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg);
+			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
+			void sendDeviceUpdateInfo(const int logicalAddress);
+			void systemAudioModeRequest();
+                        void SendStandbyMsgEvent(const int logicalAddress);
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -536,9 +546,9 @@ private:
 			uint32_t requestActiveSourceWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
-
-			
-            //End methods
+                        uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
+                        uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+                        //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
@@ -583,8 +593,7 @@ private:
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int portId, int connectStatus);
-			void onPowerStateON();
-			void wakeupFromStandby();
+	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);

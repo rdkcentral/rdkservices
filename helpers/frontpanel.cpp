@@ -115,6 +115,7 @@ namespace WPEFramework
 
         CFrontPanel::CFrontPanel()
         : m_blinkTimer(this)
+        , m_isBlinking(false)
         , mFrontPanelHelper(new FrontPanelHelper())
         {
         }
@@ -171,6 +172,10 @@ namespace WPEFramework
                         device::FrontPanelIndicator::getInstance("Power").setState(true);
 
                 }
+                catch (const std::exception & err)
+                {
+                    LOGERR("Exception Caught during [CFrontPanel::instance]: %s\r\n", err.what());
+                }
                 catch (...)
                 {
                     LOGERR("Exception Caught during [CFrontPanel::instance]\r\n");
@@ -200,9 +205,13 @@ namespace WPEFramework
                         m_lights.push_back(IndicatorNameIarm);
                 }
             }
+            catch (const std::exception & err)
+            {
+                    LOGERR("Frontpanel Exception Caught during [%s] : %s\r\n", __func__,err.what());
+            }
             catch (...)
             {
-                LOGERR("Frontpanel Exception Caught during [%s]\r\n", __func__);
+                    LOGERR("Frontpanel Exception Caught during [%s]\r\n", __func__);
             }
             if (!started)
             {
@@ -256,6 +265,10 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(fpIndicators.at(i).getName()).setBrightness(globalLedBrightness);
                 }
             }
+            catch (const std::exception & err)
+            {
+                LOGERR("Frontpanel Exception Caught during [%s] : %s\r\n",__func__,err.what());
+            }
             catch (...)
             {
                 LOGERR("Frontpanel Exception Caught during [%s]\r\n",__func__);
@@ -271,6 +284,10 @@ namespace WPEFramework
             {
                 globalLedBrightness = device::FrontPanelIndicator::getInstance("Power").getBrightness();
                 LOGWARN("Power light brightness, %d\n", globalLedBrightness);
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("Frontpanel Exception Caught during [%s] : %s\r\n", __func__, err.what());
             }
             catch (...)
             {
@@ -294,6 +311,10 @@ namespace WPEFramework
             {
                 clockBrightness =  device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
             }
+            catch (const std::exception & err)
+            {
+                LOGERR("FrontPanel Exception Caught during [%s] : %s\r\n", __func__, err.what());
+            }
             catch (...)
             {
                 LOGERR("FrontPanel Exception Caught during [%s]\r\n", __func__);
@@ -305,6 +326,7 @@ namespace WPEFramework
 
         bool CFrontPanel::powerOnLed(frontPanelIndicator fp_indicator)
         {
+            stopBlinkTimer();
             try
             {
                 if (powerStatus)
@@ -339,10 +361,16 @@ namespace WPEFramework
                         device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     case FRONT_PANEL_INDICATOR_POWER:
-                        LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                        //LOGWARN("CFrontPanel::powerOnLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                        device::FrontPanelIndicator::getInstance("Power").setState(true);
                         break;
                     }
                 }
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("FrontPanel Exception Caught during [%s] : %s\r\n", __func__,err.what());
+                return false;
             }
             catch (...)
             {
@@ -354,6 +382,7 @@ namespace WPEFramework
 
         bool CFrontPanel::powerOffLed(frontPanelIndicator fp_indicator)
         {
+            stopBlinkTimer();
             try
             {
                 switch (fp_indicator)
@@ -387,9 +416,15 @@ namespace WPEFramework
                     }
                     break;
                 case FRONT_PANEL_INDICATOR_POWER:
-                    LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                    //LOGWARN("CFrontPanel::powerOffLed() - FRONT_PANEL_INDICATOR_POWER not handled");
+                    device::FrontPanelIndicator::getInstance("Power").setState(false);
                     break;
                 }
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("FrontPanel Exception Caught during [%s] : %s\r\n", __func__, err.what());
+                return false;
             }
             catch (...)
             {
@@ -425,6 +460,11 @@ namespace WPEFramework
                 }
 #endif
             }
+            catch (const std::exception & err)
+            {
+                LOGERR("FrontPanel Exception Caught in remoteLedOn : %s", err.what());
+                return false;
+            }
             catch (...)
             {
                 LOGERR("FrontPanel Exception Caught in remoteLedOn");
@@ -450,6 +490,11 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance("Power").setBrightness((device::FrontPanelIndicator::getInstance("Power").getBrightness()), false);
                 }
 #endif
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("FrontPanel Exception Caught in remoteLedOff : %s", err.what());
+                return false;
             }
             catch (...)
             {
@@ -493,8 +538,14 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(device::FrontPanelIndicator::Color::getInstance(colorString.c_str()), false);
                     success = true;
                 }
+                catch (const std::exception & err)
+                {
+                    LOGWARN("Exception caught in setLED for setColor. %s", err.what());
+                    success = false;
+                }
                 catch (...)
                 {
+                    LOGWARN("Exception caught in setLED for setColor.");
                     success = false;
                 }
             }
@@ -512,8 +563,14 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(color);
                     success = true;
                 }
+                catch (const std::exception & err)
+                {
+                    LOGWARN("Exception caught in setLED for setColor. %s", err.what());
+                    success = false;
+                }
                 catch (...)
                 {
+                    LOGWARN("Exception caught in setLED for setColor.");
                     success = false;
                 }
             }
@@ -527,8 +584,14 @@ namespace WPEFramework
                 device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setBrightness(brightness, false);
                 success = true;
             }
+            catch (const std::exception & err)
+            {
+                LOGWARN("Exception caught in setLED for setBrightness. %s", err.what());
+                success = false;
+            }
             catch (...)
             {
+                LOGWARN("Exception caught in setLED for setBrightness. ");
                 success = false;
             }
             return success;
@@ -622,18 +685,21 @@ namespace WPEFramework
             LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats, m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
+            m_isBlinking = true;
             m_maxNumberOfBlinkRepeats = numberOfBlinkRepeats;
             m_currentBlinkListIndex = 0;
             if (m_blinkList.size() > 0)
             {
                 FrontPanelBlinkInfo blinkInfo = m_blinkList.at(0);
                 setBlinkLed(blinkInfo);
-                blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
+                if (m_isBlinking)
+                    blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
             }
         }
 
         void CFrontPanel::stopBlinkTimer()
         {
+            m_isBlinking = false;
             blinkTimer.Revoke(m_blinkTimer);
         }
 
@@ -652,14 +718,30 @@ namespace WPEFramework
                     device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setColor(device::FrontPanelIndicator::Color::getInstance(blinkInfo.colorName.c_str()), false);
                 }
 
+            }
+            catch (const std::exception & err)
+            {
+                LOGWARN("Exception caught in setBlinkLed for setColor. %s", err.what());
+            }
+            catch (...)
+            {
+                LOGWARN("Exception caught in setBlinkLed for setColor.");
+            }
+
+            try
+            {
                 if (brightness == -1)
                     brightness = device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).getBrightness();
 
                 device::FrontPanelIndicator::getInstance(ledIndicator.c_str()).setBrightness(brightness, false);
             }
+            catch (const std::exception & err)
+            {
+                LOGWARN("Exception caught in setBlinkLed for setBrightness. %s", err.what());
+            }
             catch (...)
             {
-                LOGWARN("Exception caught in setBlinkLed");
+                LOGWARN("Exception caught in setBlinkLed for setBrightness ");
             }
         }
 
@@ -681,7 +763,8 @@ namespace WPEFramework
             {
                 FrontPanelBlinkInfo blinkInfo = m_blinkList.at(m_currentBlinkListIndex);
                 setBlinkLed(blinkInfo);
-                blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
+                if (m_isBlinking)
+                    blinkTimer.Schedule(Core::Time::Now().Add(blinkInfo.durationInMs), m_blinkTimer);
             }
 
             //if not blink again then the led color should stay on the LAST element in the array as stated in the spec
@@ -699,6 +782,10 @@ namespace WPEFramework
                 currentFormat = textDisplay.getCurrentTimeFormat();
                 LOGINFO("set24HourClock - After setting %d - Time zone read from DS is %d", newFormat, currentFormat);
             }
+            catch (const std::exception & err)
+            {
+                LOGERR("Exception Caught during set24HourClock : %s", err.what());
+            }
             catch (...)
             {
                 LOGERR("Exception Caught during set24HourClock");
@@ -714,6 +801,10 @@ namespace WPEFramework
                 int currentFormat = textDisplay.getCurrentTimeFormat();
                 LOGINFO("is24HourClock - Time zone read from DS is %d", currentFormat);
                 is24Hour = currentFormat == device::FrontPanelTextDisplay::kModeClock24Hr;
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("Exception Caught during is24HourClock : %s ", err.what());
             }
             catch (...)
             {

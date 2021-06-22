@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "ScreenCapture Plugin",
+      "callsign": "org.rdk.ScreenCapture",
+      "locator": "libWPEFrameworkScreenCapture.so",
+      "status": "production",
+      "description": "The `ScreenCapture` plugin is used to upload screen captures.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "ScreenCapture.json#"
+    }
+}

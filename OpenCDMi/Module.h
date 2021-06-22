@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 
-#ifndef __MODULE_PLUGIN_OPENCDMI_MODULE_H
-#define __MODULE_PLUGIN_OPENCDMI_MODULE_H
+#pragma once
 
 #ifndef MODULE_NAME
 #define MODULE_NAME Plugin_OCDM
@@ -33,5 +32,3 @@
 
 #undef EXTERNAL
 #define EXTERNAL
-
-#endif // __MODULE_PLUGIN_OPENCDMI_MODULE_H

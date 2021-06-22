@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME RemoteActionMapping
+#define MODULE_NAME Plugin_RemoteActionMapping
 #endif
 
 #include <plugins/plugins.h>

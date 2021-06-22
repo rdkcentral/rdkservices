@@ -62,6 +62,10 @@ if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()
 
+if(PLUGIN_MAINTENANCEMANAGER)
+    add_subdirectory(MaintenanceManager)
+endif()
+
 if(PLUGIN_HOMENETWORKING)
     add_subdirectory(HomeNetworking)
 endif()
@@ -129,6 +133,10 @@ endif()
 
 if(PLUGIN_ACTIVITYMONITOR)
     add_subdirectory(ActivityMonitor)
+endif()
+
+if(PLUGIN_TELEMETRY)
+    add_subdirectory(Telemetry)
 endif()
 
 if(PLUGIN_WAREHOUSE)
@@ -293,6 +301,10 @@ endif()
 
 if(PLUGIN_DTV)
     add_subdirectory(DTV)
+endif()
+
+if(PLUGIN_FIREBOLTMEDIAPLAYER)
+    add_subdirectory(FireboltMediaPlayer)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

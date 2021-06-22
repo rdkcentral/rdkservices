@@ -41,6 +41,7 @@
 #include "sysMgr.h"
 #include "cSettings.h"
 #include "cTimer.h"
+#include "rfcapi.h"
 
 /* System Services Triggered Events. */
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
@@ -52,6 +53,8 @@
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
+#define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
+#define EVT_ONREBOOTREQUEST               "onRebootRequest"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -108,6 +111,8 @@ namespace WPEFramework {
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
 
+                int m_FwUpdateState_LatestEvent;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
@@ -136,12 +141,14 @@ namespace WPEFramework {
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
+                void onPwrMgrReboot(string requestedApp, string rebootReason);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
+                void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -206,6 +213,8 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 uint32_t getTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
+		uint32_t getOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
 #endif /* ENABLE_THERMAL_PROTECTION */
                 uint32_t getPreviousRebootInfo2(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
@@ -218,6 +227,12 @@ namespace WPEFramework {
                 uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
                 uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

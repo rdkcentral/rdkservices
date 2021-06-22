@@ -29,9 +29,18 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+
+find_package(DS)
+find_package(IARMBus)
+
+add_definitions(-DDS_FOUND)
+
+target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} "-ltr181api")
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

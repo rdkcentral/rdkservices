@@ -52,6 +52,7 @@
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
 #define DEV_TYPE_TUNER 1
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
+#define ABORT_REASON_ID 4
 
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData_2.json"
 #define CEC_SETTING_ENABLED "cecEnabled"
@@ -172,30 +173,30 @@ namespace WPEFramework
        void HdmiCec_2Processor::process (const GiveOSDName &msg, const Header &header)
        {
              printHeader(header);
-             LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
-             try
-             { 
-                 conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
-             } 
-             catch(...)
+             if (!(header.from == LogicalAddress(LogicalAddress::UNREGISTERED)))
              {
-                 LOGWARN("Exception while sending SetOSDName");
+                 LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
+                 try
+                 { 
+                     conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
+                 }
+                 catch(...)
+                 {
+                     LOGWARN("Exception while sending SetOSDName");
+                 }
              }
        }
        void HdmiCec_2Processor::process (const GivePhysicalAddress &msg, const Header &header)
        {
              LOGINFO("Command: GivePhysicalAddress\n");
-             if (!(header.from == LogicalAddress(LogicalAddress::BROADCAST)))
+             try
+             { 
+                 LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
+                 conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
+             } 
+             catch(...)
              {
-                 try
-                 { 
-                     LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
-                 } 
-                 catch(...)
-                 {
-                    LOGWARN("Exception while sending ReportPhysicalAddress ");
-                 }
+                LOGWARN("Exception while sending ReportPhysicalAddress ");
              }
        }
        void HdmiCec_2Processor::process (const GiveDeviceVendorID &msg, const Header &header)
@@ -299,6 +300,19 @@ namespace WPEFramework
        void HdmiCec_2Processor::process (const Abort &msg, const Header &header)
        {
              printHeader(header);
+             if (!(header.from == LogicalAddress(LogicalAddress::BROADCAST)))
+             {
+		 LOGINFO("Command: Abort, sending FeatureAbort");
+		 try
+		 { 
+		     conn.sendTo(header.from, MessageEncoder().encode(FeatureAbort(OpCode(msg.opCode()),AbortReason(ABORT_REASON_ID))));
+		 } 
+		 catch(...)
+		 {
+		     LOGWARN("Exception while sending FeatureAbort command");
+		 }
+
+             }
              LOGINFO("Command: Abort\n");
        }
        void HdmiCec_2Processor::process (const Polling &msg, const Header &header)                                 {
@@ -312,11 +326,7 @@ namespace WPEFramework
        HdmiCec_2::HdmiCec_2()
        : AbstractPlugin()
        {
-           LOGWARN("Initlaizing CEC_2");
-           HdmiCec_2::_instance = this;
-           smConnection = NULL;
-           InitializeIARM();
-
+           LOGWARN("ctor");
            registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
@@ -326,6 +336,22 @@ namespace WPEFramework
            registerMethod(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
+
+       }
+
+       HdmiCec_2::~HdmiCec_2()
+       {
+           LOGWARN("dtor");
+       }
+ 
+       const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
+       {
+           LOGWARN("Initlaizing CEC_2");
+           HdmiCec_2::_instance = this;
+           smConnection = NULL;
+           InitializeIARM();
+           //Initialize cecEnableStatus to false in ctor
+           cecEnableStatus = false;
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
@@ -337,7 +363,8 @@ namespace WPEFramework
            {
                //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
                device::Manager::Initialize();
-               device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+               std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+               device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                if (vPort.isDisplayConnected())
                {
                    vector<uint8_t> edidVec;
@@ -378,15 +405,16 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
+
+           // On success return empty, to indicate there is no error text.
+           return (string());
        }
 
-       HdmiCec_2::~HdmiCec_2()
-       {
-       }
 
        void HdmiCec_2::Deinitialize(PluginHost::IShell* /* service */)
        {
            HdmiCec_2::_instance = nullptr;
+           smConnection = NULL;
            DeinitializeIARM();
        }
 
@@ -531,7 +559,8 @@ namespace WPEFramework
                 getLogicalAddress();
                 try
                 {
-                   device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+                   std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                   device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
                      vector<uint8_t> edidVec;
@@ -547,6 +576,25 @@ namespace WPEFramework
                  catch(...)
                  {
                     LOGWARN("Exception in getting edid info .\r\n");
+                 }
+                 if(smConnection)
+                 {
+                     try
+                     {
+                         LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
+                         smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt()))); 
+
+                         LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
+                             (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
+                         if(isLGTvConnected)
+                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                         else 
+                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                     } 
+                     catch(...)
+                     {
+                         LOGWARN("Exception while sending Messages onHdmiHotPlug\n");
+                     }
                  }
             }
             return;
@@ -936,6 +984,12 @@ namespace WPEFramework
                 LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
                 smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
                 isDeviceActiveSource = false;
+                LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
+                                                 (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
+                if(isLGTvConnected)
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                else 
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
             }
             return;
         }
@@ -1043,28 +1097,27 @@ namespace WPEFramework
             bool ret = false; 
             if((true == cecEnableStatus) && (cecOTPSettingEnabled == true))
             {
-                try
-                {
-                    if(tvPowerState.toInt())
+                if (smConnection)  {
+                    try
                     {
-                       LOGINFO("Command: sending ImageViewOn TV \r\n");
-                       smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
-                       usleep(10000);
-                    }
-                    if(!isDeviceActiveSource)
-                    {
+                        LOGINFO("Command: sending ImageViewOn TV \r\n");
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()), 5000);
+                        usleep(10000);
                         LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
                         usleep(10000);
                         isDeviceActiveSource = true;
+                        LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                        ret = true;
                     }
-                    LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
-                    ret = true;
+                    catch(...)
+                    {
+                        LOGWARN("Exception while processing performOTPAction");
+                    }
                 }
-                catch(...)
-                {
-                    LOGWARN("Exception while processing performOTPAction");
+                else {
+                    LOGWARN("smConnection is NULL");
                 }
             }
             else

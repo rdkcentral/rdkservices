@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME systemServiceTestClient
+#define MODULE_NAME SystemServiceTestClient
 #endif
 
 #include <core/core.h>

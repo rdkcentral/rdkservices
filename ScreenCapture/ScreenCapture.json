@@ -1,0 +1,84 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "ScreenCapture API", 
+        "class": "ScreenCapture",
+        "description": "The `ScreenCapture` plugin is used to upload screen captures."
+    },
+    "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }  
+    },
+    "methods":{
+        "uploadScreenCapture":{
+            "summary": "Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded using raw HTTP POST request as binary image/png data. It's the same as running the following command:  \n`wget -d -q -O - --header='Content-Type: application/octet-stream' --post-file=/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nor,  \n`curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nFor implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`",
+            "events": ["uploadCompleted"],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "url":{
+                        "summary": "The upload destination",
+                        "type": "string",
+                        "example": "http://server/cgi-bin/upload.cgi"
+                    },
+                    "callGUID":{
+                        "summary": "A unique identifier of a call. The identifier is used to find a corresponding `uploadComplete` event",
+                        "type": "string",
+                        "example": "12345"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events":{
+        "uploadComplete": {
+            "summary": "Triggered after uploading a screen capture",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "status":{
+                        "summary": "Indicates if the upload was successful",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "summary": "A `Success` value indicates that the upload was successful; otherwise, a description of the failure",
+                        "type": "string",
+                        "example": "Success"
+                    },
+                    "call_guid": {
+                        "summary": "A unique identifier of the call",
+                        "type": "string",
+                        "example": "12345"
+                    }
+                },
+                "required": [
+                    "status",
+                    "message",
+                    "call_guid"
+                ]
+            }
+        }
+    }
+}

@@ -25,6 +25,7 @@
 #include "videoOutputPortConfig.hpp"
 #include "dsMgr.h"
 #include "manager.hpp"
+#include "host.hpp"
 
 #include "utils.h"
 
@@ -105,7 +106,8 @@ namespace WPEFramework
 
             try
             {
-            device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                 hdcpProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
             }
             catch (const std::exception e)
@@ -143,7 +145,8 @@ namespace WPEFramework
 
             try
             {
-                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort("HDMI0");
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                 isConnected        = vPort.isDisplayConnected();
                 hdcpProtocol       = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
                 eHDCPEnabledStatus = vPort.getHDCPStatus();

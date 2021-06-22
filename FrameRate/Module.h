@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME FrameRate
+#define MODULE_NAME Plugin_FrameRate
 #endif
 
 #include <plugins/plugins.h>

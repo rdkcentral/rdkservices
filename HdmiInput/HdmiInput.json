@@ -1,0 +1,393 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "HdmiInput API", 
+        "class": "HdmiInput", 
+        "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box."
+    },
+    "definitions": {
+        "devices":{
+            "summary": "An object [] that describes each HDMI Input port",
+            "type":"array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "connected": {
+                        "$ref": "#/definitions/connected"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "connected"
+                ]
+            }
+        },
+        "id": {
+            "summary": "The port identifier for the HDMI Input",
+            "type": "number",
+            "example": 0
+        },
+        "locator": {
+            "summary": "A URL corresponding to the HDMI Input port",
+            "type": "string",
+            "example": "hdmiin://localhost/deviceid/0"
+        },
+        "connected": {
+            "summary": "Whether a device is currently connected to this HDMI Input port",
+            "type": "boolean",
+            "example": true
+        },
+        "portId":{
+            "summary": "An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method",
+            "type": "string",
+            "example": "0"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getHDMIInputDevices": {
+            "summary": "Returns an array of available HDMI Input ports",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "devices": {
+                        "$ref": "#/definitions/devices"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "devices",
+                    "success"
+                ]
+            }
+        },
+        "getEdidVersion":{
+            "summary": "(Version 2) Returns the EDID version",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "edidVersion": {
+                        "summary": "The EDID version",
+                        "type": "string",
+                        "example": "HDMI2.0"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "edidVersion",
+                    "success"
+                ]
+            }
+        },
+        "getHDMISPD": {
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HDMISPD": {
+                        "summary": "The SPD information",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "HDMISPD",
+                    "success"
+                ]
+            }
+        },
+        "getRawHDMISPD":{
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HDMISPD": {
+                        "summary": "The SPD information as raw bits",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "HDMISPD",
+                    "success"
+                ]
+            }
+        },
+        "readEDID":{
+            "summary": "Returns the current EDID value",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceId": {
+                        "$ref": "#/definitions/id"
+                    }
+                },
+                "required": [
+                    "deviceId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "EDID": {
+                        "summary": "The EDID Value",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "EDID",
+                    "success"
+                ]
+            }
+        },
+        "startHdmiInput": {
+            "summary": "Activates the specified HDMI Input port as the primary video source",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopHdmiInput": {
+            "summary": "Deactivates the HDMI Input port currently selected as the primary video source",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }            
+        },
+        "setEdidVersion": {
+            "summary": "(Version 2) Sets an HDMI EDID version",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "version":{
+                        "summary": "The EDID version",
+                        "type": "string",
+                        "example": "HDMI2.0"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "version"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVideoRectangle": {
+            "summary": "Sets an HDMI Input video window",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "x":{
+                        "summary": "The x-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "y":{
+                        "summary": "The y-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "w":{
+                        "summary": "The width of the video rectangle",
+                        "type": "integer",
+                        "example": 1920
+                    },
+                    "h":{
+                        "summary": "The height of the video rectangle",
+                        "type": "integer",
+                        "example": 1080
+                    }
+                },
+                "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h"                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "writeEDID": {
+            "summary": "Changes a current EDID value",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceId":{
+                        "summary": "The ID of an input device for which the EDID should be changed",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "message":{
+                        "summary": "A new EDID value",
+                        "type": "string",
+                        "example": "EDID"
+                    }
+                },
+                "required": [
+                    "deviceId",
+                    "message"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onDevicesChanged": {
+            "summary": "Triggered whenever a new HDMI device is connected to an HDMI Input",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "devices":{
+                        "$ref": "#/definitions/devices"
+                    }
+                },
+                "required": [
+                    "devices"
+                ]
+            }
+        },
+        "onInputStatusChanged": {
+            "summary": "Triggered whenever the status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "status": {
+                        "summary": "Status of the HDMI Input. Valid values are `started` or `stopped`.",
+                        "type": "string",
+                        "example": "started"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "status"
+                ]
+            }
+        },
+        "onSignalChanged": {
+            "summary": "Triggered whenever the signal status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "signalStatus": {
+                        "summary": "Signal Status of the HDMI Input. Valid values are `noSignal`, `unstableSignal`, `notSupportedSignal`, `stableSignal`.",
+                        "type": "string",
+                        "example": "stableSignal"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "signalStatus"
+                ]                
+            }
+        }
+    }
+}

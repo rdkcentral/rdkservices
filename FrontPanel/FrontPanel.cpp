@@ -48,6 +48,7 @@
 
 #define DATA_LED "data_led"
 #define RECORD_LED "record_led"
+#define POWER_LED "power_led"
 #ifdef CLOCK_BRIGHTNESS_ENABLED
 #define CLOCK_LED "clock_led"
 #define TEXT_LED "Text"
@@ -199,14 +200,43 @@ namespace WPEFramework
 
             DeinitializeIARM();
         }
+        void FrontPanel::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
+               if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
+                   IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
+                   LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
+                               param->data.state.curState, param->data.state.newState);
+                   if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+                   {
+                       LOGINFO("setPowerStatus true");
+                       CFrontPanel::instance()->setPowerStatus(true);
+                   }
+                   else
+                   {
+                       LOGINFO("setPowerStatus false");
+                       CFrontPanel::instance()->setPowerStatus(false);
+                   }
+               }
+            }
+        }
 
         const void FrontPanel::InitializeIARM()
         {
-            Utils::IARM::init();
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
+            }
         }
 
         void FrontPanel::DeinitializeIARM()
         {
+           if (Utils::IARM::isConnected())
+           {
+              IARM_Result_t res;
+              IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+           }
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
@@ -277,9 +307,15 @@ namespace WPEFramework
                                 device::FrontPanelIndicator::getInstance(fp_ind.c_str()).setBrightness(int(brightness));
                                 ok = true;
                             }
+                            catch (const std::exception & err)
+                            {
+                                ok = false;
+                                LOGERR("Exception while setBrightness : %s", err.what());
+                            }
                             catch (...)
                             {
                                 ok = false;
+                                LOGERR("Exception while setBrightness");
                             }
                         }
                     }
@@ -344,6 +380,10 @@ namespace WPEFramework
                     {
                         brightness = device::FrontPanelIndicator::getInstance(fp_ind.c_str()).getBrightness();
                     }
+                    catch (const std::exception & err)
+                    {
+                        LOGWARN("Exception thrown from ds while calling getBrightness : %s", err.what());
+                    }
                     catch (...)
                     {
                         LOGWARN("Exception thrown from ds while calling getBrightness");
@@ -389,6 +429,11 @@ namespace WPEFramework
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_RECORD);
             }
+            else if (fp_ind.compare(POWER_LED) == 0)
+            {
+                LOGWARN("calling powerOnLed");
+                ok = powerLedOn(FRONT_PANEL_INDICATOR_POWER);
+            }
             returnResponse(ok);
         }
 
@@ -424,6 +469,11 @@ namespace WPEFramework
             {
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_RECORD);
+            }
+            else if (fp_ind.compare(POWER_LED) == 0)
+            {
+                LOGWARN("calling powerOffLed");
+                ok = powerLedOff(FRONT_PANEL_INDICATOR_POWER);
             }
             returnResponse(ok);
         }
@@ -534,6 +584,10 @@ namespace WPEFramework
                     }
                 }
             }
+            catch (const std::exception & err)
+            {
+                LOGERR("Exception while getFrontPanelLights : %s", err.what());
+            }
             catch (...)
             {
                 LOGERR("Exception while getFrontPanelLights");
@@ -579,6 +633,10 @@ namespace WPEFramework
             {
                 indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
                 returnResult[CLOCK_LED] = indicatorInfo;
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("Exception while getFrontPanelLightsInfo : %s",err.what());
             }
             catch (...)
             {
@@ -783,6 +841,10 @@ namespace WPEFramework
                         m_savedClockBrightness = -1;
                     }
                 }
+            }
+            catch (const std::exception & err)
+            {
+                LOGERR("Exception while getTextDisplay : %s", err.what());
             }
             catch (...)
             {

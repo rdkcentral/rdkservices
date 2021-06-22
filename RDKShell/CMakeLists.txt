@@ -18,6 +18,9 @@
 set(PLUGIN_NAME RDKShell)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_RDKSHELL_AUTOSTART true CACHE STRING "Automatically start RDKShell plugin")
+set(PLUGIN_RDKSHELL_EXTRA_LIBRARIES "")
+
+option(PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP "PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP" OFF)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
@@ -25,6 +28,7 @@ find_package(IARMBus)
 add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
         Module.cpp
+        ../helpers/tptimer.cpp
         ../helpers/utils.cpp
 )
 
@@ -32,12 +36,19 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+if (PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP)
+  add_definitions("-DRDKSHELL_READ_MAC_ON_STARTUP")
+  set(PLUGIN_RDKSHELL_EXTRA_LIBRARIES "-lFactory-hal")
+endif (PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP)
+
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
 
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil -lrdkshell)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

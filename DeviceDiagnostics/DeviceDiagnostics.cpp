@@ -20,10 +20,15 @@
 #include "DeviceDiagnostics.h"
 
 #include <curl/curl.h>
+#include <libIBus.h>
+#include <time.h>
 
 #include "utils.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
+#define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
+
+#define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
 
 namespace WPEFramework
 {
@@ -34,6 +39,12 @@ namespace WPEFramework
         DeviceDiagnostics* DeviceDiagnostics::_instance = nullptr;
 
         const int curlTimeoutInSeconds = 30;
+        static const char *decoderStatusStr[] = {
+            "IDLE",
+            "PAUSED",
+            "ACTIVE",
+            NULL
+        };
 
         static size_t writeCurlResponse(void *ptr, size_t size, size_t nmemb, std::string stream)
         {
@@ -49,14 +60,43 @@ namespace WPEFramework
             DeviceDiagnostics::_instance = this;
 
             registerMethod(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
+            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
         }
 
+        /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
+        {
+#ifdef ENABLE_ERM
+            int ret;
+
+            if ((m_EssRMgr = EssRMgrCreate()) == NULL)
+            {
+                LOGERR("EssRMgrCreate() failed");
+                return "EssRMgrCreate() failed";
+            }
+
+            m_pollThreadRun = 1;
+            m_AVPollThread = std::thread(AVPollThread, this);
+#else
+            LOGWARN("ENABLE_ERM is not defined, decoder status will "
+                    "always be reported as IDLE");
+#endif
+
+            return "";
+        }
+
         void DeviceDiagnostics::Deinitialize(PluginHost::IShell* /* service */)
         {
+#ifdef ENABLE_ERM
+            m_AVDecoderStatusLock.lock();
+            m_pollThreadRun = 0;
+            m_AVDecoderStatusLock.unlock();
+            m_AVPollThread.join();
+            EssRMgrDestroy(m_EssRMgr);
+#endif
             DeviceDiagnostics::_instance = nullptr;
         }
 
@@ -93,6 +133,75 @@ namespace WPEFramework
                 returnResponse(true);
 
             returnResponse(false);
+        }
+
+        /* retrieves most active decoder status from ERM library,
+         * this library keeps state of all decoders and will give
+         * us only the most active status of any decoder */
+        int DeviceDiagnostics::getMostActiveDecoderStatus()
+        {
+            int status = 0;
+
+#ifdef ENABLE_ERM
+            EssRMgrGetAVState(m_EssRMgr, &status);
+            LOGINFO("decoder status from essrmgr is: %d", status);
+#endif
+            return status;
+        }
+
+        /* periodically polls ERM library for changes in most
+         * active decoder and send thunder event when decoder
+         * status changes. Needs to be done via poll and separate
+         * thread because ERM doesn't support events. */
+#ifdef ENABLE_ERM
+        void *DeviceDiagnostics::AVPollThread(void *arg)
+        {
+            struct timespec poll_wait = { .tv_sec = 30, .tv_nsec = 0  };
+            int lastStatus = EssRMgrRes_idle;
+            int status;
+            DeviceDiagnostics* t = DeviceDiagnostics::_instance;
+
+            LOGINFO("AVPollThread started");
+            for (;;)
+            {
+                nanosleep(&poll_wait, NULL);
+                std::unique_lock<std::mutex> lock(t->m_AVDecoderStatusLock);
+                if (t->m_pollThreadRun == 0)
+                    break;
+
+                status = t->getMostActiveDecoderStatus();
+                lock.unlock();
+
+                if (status == lastStatus)
+                    continue;
+
+                lastStatus = status;
+                t->onDecoderStatusChange(status);
+            }
+
+            return NULL;
+        }
+#endif
+
+        void DeviceDiagnostics::onDecoderStatusChange(int status)
+        {
+            JsonObject params;
+            params["avDecoderStatusChange"] = decoderStatusStr[status];
+            sendNotify(DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED, params);
+        }
+
+        uint32_t DeviceDiagnostics::getAVDecoderStatus(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+#ifdef ENABLE_ERM
+            m_AVDecoderStatusLock.lock();
+            int status = getMostActiveDecoderStatus();
+            m_AVDecoderStatusLock.unlock();
+            response["avDecoderStatus"] = decoderStatusStr[status];
+#else
+            response["avDecoderStatus"] = decoderStatusStr[0];
+#endif
+            returnResponse(true);
         }
 
         int DeviceDiagnostics::getConfiguration(const std::string& postData, JsonObject& out)

@@ -21,9 +21,8 @@
 
 #include <mutex>
 
-#include "tptimer.h"
-
 #include "Module.h"
+#include "tptimer.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 
@@ -55,7 +54,11 @@ namespace WPEFramework {
             uint32_t startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t stopFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t updateFpsWrapper(const JsonObject& parameters, JsonObject& response);
-            //End methods
+            uint32_t setFrmMode(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getFrmMode(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getDisplayFrameRate(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setDisplayFrameRate(const JsonObject& parameters, JsonObject& response);
+	    //End methods
             
             int getCollectionFrequency();
             void setCollectionFrequency(int frequencyInMs);
