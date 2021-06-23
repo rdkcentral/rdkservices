@@ -2973,6 +2973,33 @@ namespace WPEFramework {
                     {
                         setSuspendResumeStateOnLaunch = false;
                     }
+
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby rfc false - launching netflix in local mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Local");
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading netflix dobby rfc failed " << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for netflix container mode " << std::endl;
+#endif
                 }
 
                 if (type == "Cobalt")
