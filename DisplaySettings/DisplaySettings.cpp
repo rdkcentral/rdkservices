@@ -3062,6 +3062,35 @@ namespace WPEFramework {
             return success;
 	}
 
+        bool DisplaySettings::sendHdmiCecSinkAudioDevicePowerOn ()
+        {
+            bool success = true;
+
+            if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
+                auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();
+                if (!hdmiCecSinkPlugin) {
+                    LOGERR("HdmiCecSink Initialisation failed\n");
+                }
+                else {
+                    JsonObject hdmiCecSinkResult;
+                    JsonObject param;
+
+                    LOGINFO("%s: Send Audio Device Power On !!!\n");
+                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                        success = false;
+                        LOGERR("HdmiCecSink Plugin returned error\n");
+                    }
+                }
+            }
+            else {
+                success = false;
+                LOGERR("HdmiCecSink plugin not ready\n");
+            }
+
+            return success;
+        }
+
         bool DisplaySettings::requestShortAudioDescriptor()
         {
             bool success = true;
@@ -3175,6 +3204,9 @@ namespace WPEFramework {
                        if( m_hdmiInAudioDeviceConnected == true ) {
                            if(pEnable) {
                                LOGINFO("%s: CEC ARC handshake already completed. Enable ARC \n",__FUNCTION__);
+			       // For certain ARC devices, we get ARC initiate message even when ARC device is in standby
+			       // Wake up the device always before audio routing
+			       sendHdmiCecSinkAudioDevicePowerOn();
                                aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
 			   }
 			   else {

@@ -57,6 +57,7 @@
 #define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
 #define HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR  "requestShortAudioDescriptor"
 #define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
+#define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -469,6 +470,7 @@ namespace WPEFramework
           HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
        }
 
+
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -505,6 +507,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
+		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
@@ -1256,6 +1259,14 @@ namespace WPEFramework
           sendStandbyMessage();
 	  returnResponse(true);
         }
+
+        uint32_t HdmiCecSink::sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+	    LOGINFO("%s invoked. \n",__FUNCTION__);
+            systemAudioModeRequest();
+	    returnResponse(true);
+        }
+
         bool HdmiCecSink::loadSettings()
         {
             Core::File file;
