@@ -187,15 +187,11 @@
 
 namespace Utils
 {
-    struct IARM
-    {
+    struct IARM {
         static bool init();
-        static bool isConnected() { return m_connected; }
+        static bool isConnected();
 
         static const char* NAME;
-
-    private:
-        static bool m_connected;
     };
 
     namespace String
