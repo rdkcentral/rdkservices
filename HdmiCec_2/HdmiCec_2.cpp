@@ -312,11 +312,7 @@ namespace WPEFramework
        HdmiCec_2::HdmiCec_2()
        : AbstractPlugin()
        {
-           LOGWARN("Initlaizing CEC_2");
-           HdmiCec_2::_instance = this;
-           smConnection = NULL;
-           InitializeIARM();
-
+           LOGWARN("ctor");
            registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
@@ -326,6 +322,22 @@ namespace WPEFramework
            registerMethod(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
+
+       }
+
+       HdmiCec_2::~HdmiCec_2()
+       {
+           LOGWARN("dtor");
+       }
+ 
+       const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
+       {
+           LOGWARN("Initlaizing CEC_2");
+           HdmiCec_2::_instance = this;
+           smConnection = NULL;
+           InitializeIARM();
+           //Initialize cecEnableStatus to false in ctor
+           cecEnableStatus = false;
 
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
@@ -378,11 +390,16 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
+
+           // On success return empty, to indicate there is no error text.
+           return (string());
        }
 
-       HdmiCec_2::~HdmiCec_2()
+
+       void HdmiCec_2::Deinitialize(PluginHost::IShell* /* service */)
        {
            HdmiCec_2::_instance = nullptr;
+           smConnection = NULL;
            DeinitializeIARM();
        }
 
@@ -1039,28 +1056,33 @@ namespace WPEFramework
             bool ret = false; 
             if((true == cecEnableStatus) && (cecOTPSettingEnabled == true))
             {
-                try
-                {
-                    if(tvPowerState.toInt())
+                if (smConnection)  {
+                    try
                     {
-                       LOGINFO("Command: sending ImageViewOn TV \r\n");
-                       smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
-                       usleep(10000);
+                        if(tvPowerState.toInt())
+                        {
+                            LOGINFO("Command: sending ImageViewOn TV \r\n");
+                            smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 5000);
+                            usleep(10000);
+                        }
+                        if(!isDeviceActiveSource)
+                        {
+                            LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
+                            smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                            usleep(10000);
+                            isDeviceActiveSource = true;
+                        }
+                        LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
+                        smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                        ret = true;
                     }
-                    if(!isDeviceActiveSource)
+                    catch(...)
                     {
-                        LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
-                        usleep(10000);
-                        isDeviceActiveSource = true;
+                        LOGWARN("Exception while processing performOTPAction");
                     }
-                    LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
-                    ret = true;
                 }
-                catch(...)
-                {
-                    LOGWARN("Exception while processing performOTPAction");
+                else {
+                    LOGWARN("smConnection is NULL");
                 }
             }
             else
