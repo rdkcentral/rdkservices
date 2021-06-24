@@ -102,6 +102,7 @@ namespace WPEFramework {
         public:
             HdmiCec_2();
             virtual ~HdmiCec_2();
+            virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCec_2* _instance;
         private:
