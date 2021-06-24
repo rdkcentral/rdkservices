@@ -175,6 +175,7 @@ namespace WPEFramework {
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
+	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    void onTimer();
 
 	    TpTimer m_timer;

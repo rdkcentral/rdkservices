@@ -548,6 +548,7 @@ private:
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
