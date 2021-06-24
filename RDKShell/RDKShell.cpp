@@ -113,6 +113,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_UPDATE_WATERMARK = "updateWatermark";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -143,6 +144,9 @@ std::string fullScreenImagePath;
 bool receivedShowWatermarkRequest = false;
 bool receivedShowSplashScreenRequest = false;
 unsigned int gSplashScreenDisplayTime = 0;
+bool receivedUpdateWatermarkRequest = false;
+uint32_t watermarkImageKey;
+uint32_t watermarkImageSize;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 bool gRdkShellSurfaceModeEnabled = false;
@@ -746,7 +750,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
-
+            registerMethod(RDKSHELL_METHOD_UPDATE_WATERMARK, &RDKShell::updateWatermarkWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -962,6 +966,11 @@ namespace WPEFramework {
                     CompositorController::showSplashScreen(gSplashScreenDisplayTime);
                     gSplashScreenDisplayTime = 0;
                     receivedShowSplashScreenRequest = false;
+                  }
+                  if (receivedUpdateWatermarkRequest)
+                  {
+                    CompositorController::updateWatermarkImage(0, watermarkImageKey, watermarkImageSize);
+                    receivedUpdateWatermarkRequest = false;
                   }
                   if (!sPersistentStorePreLaunchChecked)
                   {
@@ -3971,6 +3980,24 @@ namespace WPEFramework {
             {
                 response["message"] = "failed to perform show watermark";
             }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::updateWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool displayWatermark = true;
+            if (!parameters.HasLabel("key") || !parameters.HasLabel("size"))
+            {
+                response["message"] = "either key or size parameter is not present";
+                returnResponse(false);
+            }
+            watermarkImageKey = parameters["key"].Number();
+            watermarkImageSize = parameters["size"].Number();
+            lockRdkShellMutex();
+            receivedUpdateWatermarkRequest = true;
+            gRdkShellMutex.unlock();
             returnResponse(result);
         }
 
