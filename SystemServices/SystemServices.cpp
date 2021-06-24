@@ -81,6 +81,8 @@ using namespace std;
 
 #define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
 
+#define RFC_CALLERID           "SystemServices"
+
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
@@ -2649,8 +2651,6 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             const std::regex re("(\\w|-|\\.)+");
-            const std::string baseCommand = "tr181Set -g ";
-            const std::string redirection = " 2>&1";
             bool retAPIStatus = false;
             JsonObject hash;
             JsonArray jsonRFCList;
@@ -2675,9 +2675,17 @@ namespace WPEFramework {
                         continue;
                     } else {
                         cmdResponse = "";
-                        cmdParams = baseCommand + jsonRFCList[i].String() + redirection + "\0";
-                        LOGINFO("executing %s\n", cmdParams.c_str());
-                        cmdResponse = Utils::cRunScript(cmdParams.c_str());
+
+                        WDMP_STATUS wdmpStatus;
+                        RFC_ParamData_t rfcParam;
+
+                        memset(&rfcParam, 0, sizeof(rfcParam));
+                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+                        if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
+                            cmdResponse = rfcParam.value;
+                        else
+                            LOGERR("Failed to get %s with %d", jsonRFCList[i].String().c_str(), wdmpStatus);
+
                         if (!cmdResponse.empty()) {
                             removeCharsFromString(cmdResponse, "\n\r");
                             hash[jsonRFCList[i].String().c_str()] = cmdResponse;
