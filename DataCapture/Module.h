@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME DataCapture
+#define MODULE_NAME Plugin_DataCapture
 #endif
 
 #include <plugins/plugins.h>

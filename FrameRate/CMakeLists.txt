@@ -23,11 +23,14 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         FrameRate.cpp
         Module.cpp
-        ../helpers/tptimer.cpp)
+        ../helpers/tptimer.cpp
+	../helpers/utils.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
+
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
 find_package(DS)
 find_package(IARMBus)

@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME VrexManager
+#define MODULE_NAME Plugin_ControlService
 #endif
 
 #include <plugins/plugins.h>

@@ -20,7 +20,7 @@
 #pragma once
   
 #ifndef MODULE_NAME
-#define MODULE_NAME JSONRPC_Test
+#define MODULE_NAME StateObserver_Test
 #endif
   
 #include <core/core.h>

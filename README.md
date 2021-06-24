@@ -1,6 +1,6 @@
 # RDK Services #
 
-RDK services are a set of JSON-RPC based RESTful services for accessing various set-top box components. RDK Services are managed and accessed through the [Thunder](https://github.com/rdkcentral/Thunder) framework. Thunder supports both HTTP and Websocket requests, making the services easily accessible to [Lightning](https://github.com/rdkcentral/Lightning), Web, and native client applications. 
+RDK services are a set of JSON-RPC based RESTful services for accessing various set-top box components. RDK Services are managed and accessed through the [Thunder](https://github.com/rdkcentral/Thunder) framework. Thunder supports both HTTP and Websocket requests, making the services easily accessible to [Lightning](https://github.com/rdkcentral/Lightning), Web, and native client applications.
 <br><br>
 
 ## Contributing to RDKServices ##
@@ -69,12 +69,33 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 
 ## Documentation ##
 
-1. Each RDK Service must be fully documented in github or [rdkcentral wiki](https://wiki.rdkcentral.com/pages/viewpage.action?pageId=98961092). 
+RDK services are described using [JSON Schema](https://json-schema.org/). JSON Schema provides a standard approach for describing APIs and ensures consistency across all APIs. The Thunder framework includes two schemas that are used to describe a service:
 
-2. Each RDK Service should have a /doc folder, and contain a markdown file with the same name as the plugin.
+* [plugin.schema.json](https://github.com/rdkcentral/Thunder/blob/master/Tools/JsonGenerator/schemas/plugin.schema.json): A schema for defining a Thunder Plugin.
+* [interface.schema.json](https://github.com/rdkcentral/Thunder/blob/master/Tools/JsonGenerator/schemas/interface.schema.json): A schema for defining the properties, methods, and events of a service.
 
-3. The markdown file should document each of the public methods and events, and any enumerations or other pertinent information required by the API consumer.
-    1. Alternatively, this markdown file can link to the documentation at rdkcentral wiki. For example refer to [DisplaySettings](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/doc/DisplaySettings.md).
+Each RDK service has an instance of these schemas in the root of the service directory. For example, `MyServicePlugin.json` and `MyService.json`. These files are used to generate API documentation as Markdown. Each service has a Markdown file that is written to the `/doc` directory in a service folder. The following demonstrates the folder structure:
+
+```shell
+/rdkservices
+    /MyService
+        /MyService.json
+        /MyServicePlugin.json
+        /doc
+            /doc/MyServicePlugin.md
+```
+
+Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. Scripts are provided for both Linux and Windows. To generate the markdown:
+
+1. Clone the Thunder repository if it is not already on your system.
+2. Change directories to `Thunder/Tools/JsonGenerator`.
+3. Run the `GenerateDocs` script and provide the location of the service JSON plugin file as an argument. For example:
+
+   `./GenerateDocs.sh ../../../rdkservices/MyService/MyServicePlugin.json`
+
+   The `MyServicePlugin.md` file is automatically written to the `/doc` folder.
+
+Use the existing services as a guide when learning the structure of both the plugin and interface schemas.
 <br><br>
 
 ## Questions? ##
