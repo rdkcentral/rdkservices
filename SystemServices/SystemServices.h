@@ -110,6 +110,7 @@ namespace WPEFramework {
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
+                PluginHost::IShell* m_shellService { nullptr };
 
                 int m_FwUpdateState_LatestEvent;
 
@@ -233,6 +234,7 @@ namespace WPEFramework {
                 uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
+                uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

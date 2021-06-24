@@ -397,6 +397,7 @@ namespace WPEFramework {
 #ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
             registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
 #endif
+            registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
         }
 
 
@@ -404,11 +405,13 @@ namespace WPEFramework {
         {       
         }
 
-        const string SystemServices::Initialize(PluginHost::IShell*)
+        const string SystemServices::Initialize(PluginHost::IShell* service)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+            m_shellService = service;
+            m_shellService->AddRef();
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -419,6 +422,8 @@ namespace WPEFramework {
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             SystemServices::_instance = nullptr;
+            m_shellService->Release();
+            m_shellService = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -2082,7 +2087,7 @@ namespace WPEFramework {
 
             if(!p)
             {
-                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                LOGERR("failed to start %s: %s", cmd.c_str(), strerror(errno));
                 zoneInfo = "";
                 return false;
 
@@ -3594,6 +3599,90 @@ namespace WPEFramework {
                 response["error"] = "missing";
             }
             returnResponse(result);
+        }
+
+        /***
+         * @brief : Deletes persistent path associated with a callsign
+         *
+         * @param[in]   : callsign: string - the callsign for which to delete persistent path
+         * @return      : none
+         */
+        uint32_t SystemServices::deletePersistentPath(const JsonObject& parameters, JsonObject& response)
+        {
+          LOGINFOMETHOD();
+
+          bool result = false;
+
+          do
+          {
+            if (m_shellService == nullptr)
+            {
+              response["message"] = "internal: service shell is unavailable";
+              break;
+            }
+
+            if (parameters.HasLabel("callsign") == false && parameters.HasLabel("type") == false)
+            {
+              response["message"] = "no 'callsign' (nor 'type' of execution envirionment) specified";
+              break;
+            }
+
+            std::string callsignOrType = parameters.HasLabel("callsign")
+              ? parameters.Get("callsign").String()
+              : parameters.Get("type").String();
+            if (callsignOrType.empty() == true)
+            {
+              response["message"] = "specified 'callsign' or 'type' is empty";
+              break;
+            }
+
+            PluginHost::IShell* service(m_shellService->QueryInterfaceByCallsign<PluginHost::IShell>(callsignOrType));
+            if (service == nullptr)
+            {
+              response["message"] = "no service found for: '" + callsignOrType + "'";
+              break;
+            }
+
+            std::string persistentPath = service->PersistentPath();
+
+            Core::File file(persistentPath);
+            if (file.Exists() == false)
+            {
+              LOGINFO("persistent path '%s' for '%s' does not exist, return success = true", persistentPath.c_str(), callsignOrType.c_str());
+              result = true;
+              break;
+            }
+
+            if (file.IsDirectory() == true)
+            {
+              Core::Directory dir(persistentPath.c_str());
+              if (dir.Destroy(true) == false)
+              {
+                response["message"] = "failed to delete dir: '" + persistentPath + "'";
+                break;
+              }
+            }
+
+            if (file.Destroy() == false)
+            {
+                response["message"] = "failed to delete: '" + persistentPath + "'";
+                break;
+            }
+
+            // Everything is OK
+            LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
+
+            result = true;
+
+          } while(false);
+
+          if (!result)
+          {
+            std::string errorMessage = response["message"].String();
+            LOGERR("Failed to delete persistent path. Error: %s", errorMessage.c_str());
+          }
+
+          returnResponse(result);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
