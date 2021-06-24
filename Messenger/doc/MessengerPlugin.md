@@ -22,12 +22,12 @@ Messenger plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the Messenger plugin. It includes detailed specification of its configuration, methods provided and notifications sent.
+This document describes purpose and functionality of the Messenger plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -74,7 +74,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *Messenger*) |
 | classname | string | Class name: *Messenger* |
 | locator | string | Library name: *libWPEFrameworkMessenger.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
@@ -88,6 +88,7 @@ Messenger interface methods:
 | [join](#method.join) | Joins a messaging room |
 | [leave](#method.leave) | Leaves a messaging room |
 | [send](#method.send) | Sends a message to a room |
+
 
 <a name="method.join"></a>
 ## *join <sup>method</sup>*
@@ -107,6 +108,9 @@ Also see: [userupdate](#event.userupdate)
 | params | object |  |
 | params.user | string | User name to join the room under (must not be empty) |
 | params.room | string | Name of the room to join (must not be empty) |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
+| params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
+| params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
 
 ### Result
 
@@ -121,6 +125,7 @@ Also see: [userupdate](#event.userupdate)
 | :-------- | :-------- | :-------- |
 | 5 | ```ERROR_ILLEGAL_STATE``` | User name is already taken (i.e. the user has already joined the room) |
 | 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 24 | ```ERROR_PRIVILEGED_REQUEST``` | Room security errors |
 
 ### Example
 
@@ -133,10 +138,15 @@ Also see: [userupdate](#event.userupdate)
     "method": "Messenger.1.join",
     "params": {
         "user": "Bob",
-        "room": "Lounge"
+        "room": "Lounge",
+        "secure": "secure",
+        "acl": [
+            "https://*.github.io"
+        ]
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -148,6 +158,7 @@ Also see: [userupdate](#event.userupdate)
     }
 }
 ```
+
 <a name="method.leave"></a>
 ## *leave <sup>method</sup>*
 
@@ -192,6 +203,7 @@ Also see: [userupdate](#event.userupdate)
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -201,6 +213,7 @@ Also see: [userupdate](#event.userupdate)
     "result": null
 }
 ```
+
 <a name="method.send"></a>
 ## *send <sup>method</sup>*
 
@@ -247,6 +260,7 @@ Also see: [message](#event.message)
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -256,10 +270,11 @@ Also see: [message](#event.message)
     "result": null
 }
 ```
+
 <a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the plugin, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the Messenger plugin:
 
@@ -270,6 +285,7 @@ Messenger interface events:
 | [roomupdate](#event.roomupdate) | Notifies about room status updates |
 | [userupdate](#event.userupdate) | Notifies about user status updates |
 | [message](#event.message) | Notifies about new messages in a room |
+
 
 <a name="event.roomupdate"></a>
 ## *roomupdate <sup>event</sup>*
@@ -286,6 +302,7 @@ Register to this event to be notified about room status updates. Immediately aft
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.room | string | Name of the room this notification relates to |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
 | params.action | string | Specifies the room status change, e.g. created or destroyed (must be one of the following: *created*, *destroyed*) |
 
 ### Example
@@ -296,10 +313,12 @@ Register to this event to be notified about room status updates. Immediately aft
     "method": "client.events.1.roomupdate",
     "params": {
         "room": "Lounge",
+        "secure": "secure",
         "action": "created"
     }
 }
 ```
+
 <a name="event.userupdate"></a>
 ## *userupdate <sup>event</sup>*
 
@@ -331,6 +350,7 @@ Register to this event to be notified about room status updates. Immediately aft
     }
 }
 ```
+
 <a name="event.message"></a>
 ## *message <sup>event</sup>*
 
@@ -362,3 +382,4 @@ Register to this event to be notified about new messages in a room.
     }
 }
 ```
+

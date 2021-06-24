@@ -38,7 +38,9 @@ namespace Plugin {
         Messenger& operator=(const Messenger&) = delete;
 
         Messenger()
-            : _connectionId(0)
+            : PluginHost::JSONRPCSupportsEventStatus(std::bind(&Messenger::CheckToken, this,
+                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+            , _connectionId(0)
             , _service(nullptr)
             , _roomAdmin(nullptr)
             , _roomIds()
@@ -164,6 +166,7 @@ namespace Plugin {
             _adminLock.Lock();
             ASSERT(_rooms.find(roomName) != _rooms.end());
             _rooms.erase(roomName);
+            _roomACL.erase(roomName);
             _adminLock.Unlock();
         }
 
@@ -180,12 +183,14 @@ namespace Plugin {
         void event_roomupdate(const string& room, const JsonData::Messenger::RoomupdateParamsData::ActionType& action);
         void event_userupdate(const string& id, const string& user, const JsonData::Messenger::UserupdateParamsData::ActionType& action);
         void event_message(const string& id, const string& user, const string& message);
+        bool CheckToken(const string& token, const string& method, const string& parameters);
 
         uint32_t _connectionId;
         PluginHost::IShell* _service;
         Exchange::IRoomAdministrator* _roomAdmin;
         std::map<string, Exchange::IRoomAdministrator::IRoom*> _roomIds;
         std::set<string> _rooms;
+        std::map<string, std::list<string>> _roomACL;
         mutable Core::CriticalSection _adminLock;
     }; // class Messenger
 

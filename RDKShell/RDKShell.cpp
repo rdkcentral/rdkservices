@@ -82,6 +82,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_ANIMATION = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_ANIMATION = "addAnimation";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING = "enableInactivityReporting";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL = "setInactivityInterval";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESET_INACTIVITY_TIME = "resetInactivityTime";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SCALE_TO_FIT = "scaleToFit";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH = "launch";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_LAUNCH_APP = "launchApplication";
@@ -714,6 +715,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADD_ANIMATION, &RDKShell::addAnimationWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING, &RDKShell::enableInactivityReportingWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL, &RDKShell::setInactivityIntervalWrapper, this);
+            registerMethod(RDKSHELL_METHOD_RESET_INACTIVITY_TIME, &RDKShell::resetInactivityTimeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SCALE_TO_FIT, &RDKShell::scaleToFitWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH, &RDKShell::launchWrapper, this);
             registerMethod(RDKSHELL_METHOD_LAUNCH_APP, &RDKShell::launchApplicationWrapper, this);
@@ -775,7 +777,7 @@ namespace WPEFramework {
             char* mac = new char[19];
             tFHError retAPIStatus;
             std::cout << "calling factory hal init\n";
-            fhal_init();
+            factorySD1_init();
             retAPIStatus = getEthernetMAC(&mac);
             if(retAPIStatus == E_OK)
             {
@@ -1052,8 +1054,8 @@ namespace WPEFramework {
                 gWillDestroyEventWaitTime = atoi(willDestroyWaitTimeValue); 
             }
 
-            m_timer.start(0);
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
+            m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
 
             return "";
@@ -2785,6 +2787,25 @@ namespace WPEFramework {
 
                 if (false == result) {
                   response["message"] = "failed to set inactivity interval";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::resetInactivityTimeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (false == mEnableUserInactivityNotification)
+            {
+                result = false;
+                response["message"] = "feature is not enabled";
+            }
+            if (result)
+            {
+                result = resetInactivityTime();
+                if (false == result) {
+                  response["message"] = "failed to reset inactivity time";
                 }
             }
             returnResponse(result);
@@ -4812,7 +4833,8 @@ namespace WPEFramework {
             {
                 JsonObject req, res;
                 uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
+                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") &&
+                    (res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT" || res["wakeupReason"].String() == "WAKEUP_REASON_IR"))
                 {
                     response["keyCode"] = JsonValue(mLastWakeupKeyCode);
                     response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
@@ -5726,6 +5748,22 @@ namespace WPEFramework {
             return true;
         }
 
+        bool RDKShell::resetInactivityTime()
+        {
+            lockRdkShellMutex();
+            try
+            {
+              CompositorController::resetInactivityTime();
+              std::cout << "RDKShell inactivity time reset" << std::endl;
+            }
+            catch (...)
+            {
+              std::cout << "RDKShell unable to reset inactivity time  " << std::endl;
+            }
+            gRdkShellMutex.unlock();
+            return true;
+        }
+
         void RDKShell::onLaunched(const std::string& client, const string& launchType)
         {
             std::cout << "RDKShell onLaunched event received for " << client << std::endl;
@@ -5946,14 +5984,6 @@ namespace WPEFramework {
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
             int32_t status = Core::ERROR_GENERAL;
-
-            if (!Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
-            {
-                gSystemServiceConnection.reset();
-                gSystemServiceEventsSubscribed = false;
-                Utils::activatePlugin(SYSTEM_SERVICE_CALLSIGN);
-                std::cout << "called activatePlugin for SystemService" << std::endl;
-            }
 
             if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
             {
