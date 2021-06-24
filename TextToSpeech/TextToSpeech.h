@@ -140,6 +140,8 @@ namespace Plugin {
         TextToSpeech& operator=(const TextToSpeech&) = delete;
 
         void RegisterAll();
+        bool AddToAccessList(const string &key,const string &value);
+        bool HasAccess(const string &method,string &app);
 
         //TTS Global APIS for Resident application
         uint32_t Enable(const JsonObject& parameters, JsonObject& response);
@@ -157,6 +159,7 @@ namespace Plugin {
         uint32_t Resume(const JsonObject& parameters, JsonObject& response);
         uint32_t IsSpeaking(const JsonObject& parameters, JsonObject& response);
         uint32_t GetSpeechState(const JsonObject& parameters, JsonObject& response);
+        uint32_t SetACL(const JsonObject& parameters, JsonObject& response);
 
         //version number API's
         uint32_t getapiversion(const JsonObject& parameters, JsonObject& response);
@@ -171,6 +174,9 @@ namespace Plugin {
         Exchange::ITextToSpeech* _tts;
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
+        bool m_AclCalled;
+        std::map<std::string,std::string> m_AccessList;
+        std::mutex m_AccessMutex;
 
         friend class Notification;
     };
