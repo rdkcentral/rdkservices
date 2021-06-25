@@ -33,6 +33,7 @@
 #include <interfaces/IBrowser.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
+#include <rdkshell/linuxkeys.h>
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
@@ -4231,7 +4232,7 @@ namespace WPEFramework {
 
             uint32_t result;
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
+            if (true)
             {
                 if (parameters.HasLabel("resetagingtime"))
                 {
@@ -4257,7 +4258,14 @@ namespace WPEFramework {
                 JsonObject launchRequest;
                 launchRequest["callsign"] = "factoryapp";
                 launchRequest["type"] = "ResidentApp";
-                launchRequest["uri"] = std::string(factoryAppUrl);
+                if (NULL != factoryAppUrl)
+                {
+                    launchRequest["uri"] = std::string(factoryAppUrl);
+                }
+                else
+                {
+                    launchRequest["uri"] = std::string("http://localhost:50050/factoryui/index.html?cfg=Hisense");
+                }
                 launchRequest["focused"] = true;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
                 result = launchWrapper(launchRequest, response);
@@ -4828,26 +4836,24 @@ namespace WPEFramework {
         uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
-            if (0 != mLastWakeupKeyTimestamp)
+            std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
+            serviceCallsign.append(".2");
+            auto systemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
+            JsonObject req, res;
+            uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
+            if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
             {
-                JsonObject req, res;
-                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") &&
-                    (res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT" || res["wakeupReason"].String() == "WAKEUP_REASON_IR"))
-                {
-                    response["keyCode"] = JsonValue(mLastWakeupKeyCode);
-                    response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
-                    response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
-
-                    std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
-                    returnResponse(true);
-                }
-                else
-                    mLastWakeupKeyTimestamp = 0;
+                unsigned int key = res["wakeupKeyCode"].Number(); 
+                unsigned long flags = 0;
+                uint32_t mappedKeyCode = key, mappedFlags = 0;
+                bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                response["keyCode"] = JsonValue(mappedKeyCode);
+                response["modifiers"] = JsonValue(mappedFlags);
+                std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+                returnResponse(true);
             }
 
-            response["message"] = "No last wakeup key";
+            response["message"] = "unable to get wakeup key from system service";
             returnResponse(false);
         }
 
