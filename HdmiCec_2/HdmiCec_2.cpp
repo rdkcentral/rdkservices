@@ -500,7 +500,6 @@ namespace WPEFramework
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
                         powerState = 0; 
-                        _instance->performOTPAction();
                     }
                     else
                         powerState = 1;
