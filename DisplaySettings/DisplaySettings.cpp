@@ -1243,6 +1243,7 @@ namespace WPEFramework {
                                                || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
                             aPort.setStereoAuto(false, persist);
                             aPort.setStereoMode(mode.toString(), persist);
+			    success = true;
                         }
                         else { //Auto Mode
                             int types = dsAUDIOARCSUPPORT_NONE;
