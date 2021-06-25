@@ -310,9 +310,7 @@ namespace WPEFramework {
         void MaintenanceManager::InitializeIARM()
         {
             if (Utils::IARM::init()) {
-                LOGINFO();
                 IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_Connect());
                 // Register for the Maintenance Notification Events
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
                 //Register for setMaintenanceStartTime
@@ -523,8 +521,6 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE));
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
-                IARM_CHECK(IARM_Bus_Disconnect());
-                IARM_CHECK(IARM_Bus_Term());
             }
 
             if(m_thread.joinable()){
