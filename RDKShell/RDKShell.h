@@ -124,7 +124,11 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
             static const string RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING;
             static const string RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED;
+            static const string RDKSHELL_METHOD_CREATE_WATERMARK;
+            static const string RDKSHELL_METHOD_DELETE_WATERMARK;
+            static const string RDKSHELL_METHOD_ADJUST_WATERMARK;
             static const string RDKSHELL_METHOD_UPDATE_WATERMARK;
+            static const string RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -224,7 +228,11 @@ namespace WPEFramework {
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t createWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t deleteWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t adjustWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t updateWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t alwaysShowWatermarkOnTopWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;

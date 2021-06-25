@@ -113,7 +113,11 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CREATE_WATERMARK = "createWatermark";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DELETE_WATERMARK = "deleteWatermark";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADJUST_WATERMARK = "adjustWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_UPDATE_WATERMARK = "updateWatermark";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP = "alwaysShowWatermarkOnTop";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -142,11 +146,9 @@ bool receivedResolutionRequest = false;
 bool receivedFullScreenImageRequest= false;
 std::string fullScreenImagePath;
 bool receivedShowWatermarkRequest = false;
+bool receivedWatermarkRequest = false;
 bool receivedShowSplashScreenRequest = false;
 unsigned int gSplashScreenDisplayTime = 0;
-bool receivedUpdateWatermarkRequest = false;
-uint32_t watermarkImageKey;
-uint32_t watermarkImageSize;
 unsigned int resolutionWidth = 1280;
 unsigned int resolutionHeight = 720;
 bool gRdkShellSurfaceModeEnabled = false;
@@ -177,6 +179,25 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
+enum WatermarkRequestType
+{
+    CONSTRUCT = 0,
+    ADJUST,
+    UPDATE,
+    DELETE,
+    SHOWONTOP
+};
+
+struct WatermarkRequestData
+{
+    WatermarkRequestType type;
+    uint32_t id;
+    uint32_t zorder;
+    uint32_t key;
+    uint32_t size;
+    bool show;
+};
+
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -194,6 +215,7 @@ enum RDKShellLaunchType
 };
 
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
+std::vector<WatermarkRequestData> sWatermarkRequests;
 
 namespace WPEFramework {
     namespace Plugin {
@@ -503,6 +525,35 @@ namespace WPEFramework {
             return exist;
         }
 
+        void processWatermarkRequests()
+        {
+            for (size_t i=0; i<sWatermarkRequests.size(); i++)
+            {
+                WatermarkRequestData& data = sWatermarkRequests[i];
+                if (data.type == CONSTRUCT)
+                {
+                    CompositorController::createWatermarkImage(data.id, data.zorder);
+                }
+                else if (data.type == UPDATE)
+                {
+                    CompositorController::updateWatermarkImage(data.id, data.key, data.size);
+                }
+                else if (data.type == ADJUST)
+                {
+                    CompositorController::adjustWatermarkImage(data.id, data.zorder);
+                }
+                else if (data.type == DELETE)
+                {
+                    CompositorController::deleteWatermarkImage(data.id);
+                }
+                else if (data.type == SHOWONTOP)
+                {
+                    CompositorController::alwaysShowWatermarkImageOnTop(data.show);
+                }
+            }
+            sWatermarkRequests.clear();
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -750,7 +801,11 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+            registerMethod(RDKSHELL_METHOD_CREATE_WATERMARK, &RDKShell::createWatermarkWrapper, this);
+            registerMethod(RDKSHELL_METHOD_DELETE_WATERMARK, &RDKShell::deleteWatermarkWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADJUST_WATERMARK, &RDKShell::adjustWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_UPDATE_WATERMARK, &RDKShell::updateWatermarkWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP, &RDKShell::alwaysShowWatermarkOnTopWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -967,10 +1022,10 @@ namespace WPEFramework {
                     gSplashScreenDisplayTime = 0;
                     receivedShowSplashScreenRequest = false;
                   }
-                  if (receivedUpdateWatermarkRequest)
+                  if (receivedWatermarkRequest)
                   {
-                    CompositorController::updateWatermarkImage(0, watermarkImageKey, watermarkImageSize);
-                    receivedUpdateWatermarkRequest = false;
+                    processWatermarkRequests();
+                    receivedWatermarkRequest = false;
                   }
                   if (!sPersistentStorePreLaunchChecked)
                   {
@@ -3983,24 +4038,112 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::createWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("id"))
+            {
+                response["message"] = "id parameter is not present";
+                returnResponse(false);
+            }
+            WatermarkRequestData request;
+            request.type = CONSTRUCT;
+            request.id = parameters["id"].Number();
+            if (parameters.HasLabel("zorder"))
+            {
+                request.zorder = parameters["zorder"].Number();
+            }
+            else
+            {
+                //make it topmost 
+                request.zorder = 65536;
+            }
+            lockRdkShellMutex();
+            receivedWatermarkRequest = true;
+            sWatermarkRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::deleteWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("id"))
+            {
+                response["message"] = "id parameter is not present";
+                returnResponse(false);
+            }
+            WatermarkRequestData request;
+            request.type = DELETE;
+            request.id = parameters["id"].Number();
+            lockRdkShellMutex();
+            receivedWatermarkRequest = true;
+            sWatermarkRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::adjustWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            if (!parameters.HasLabel("id") || !parameters.HasLabel("zorder"))
+            {
+                response["message"] = "either id or zorder parameter is not present";
+                returnResponse(false);
+            }
+            WatermarkRequestData request;
+            request.type = ADJUST;
+            request.id = parameters["id"].Number();
+            request.zorder = parameters["zorder"].Number();
+            lockRdkShellMutex();
+            receivedWatermarkRequest = true;
+            sWatermarkRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::updateWatermarkWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool result = true;
-            bool displayWatermark = true;
             if (!parameters.HasLabel("key") || !parameters.HasLabel("size"))
             {
                 response["message"] = "either key or size parameter is not present";
                 returnResponse(false);
             }
-            watermarkImageKey = parameters["key"].Number();
-            watermarkImageSize = parameters["size"].Number();
+            WatermarkRequestData request;
+            request.type = UPDATE;
+            request.id = parameters["id"].Number();
+            request.key = parameters["key"].Number();
+            request.size = parameters["size"].Number();
             lockRdkShellMutex();
-            receivedUpdateWatermarkRequest = true;
+            receivedWatermarkRequest = true;
+            sWatermarkRequests.push_back(request);
             gRdkShellMutex.unlock();
             returnResponse(result);
         }
 
+        uint32_t RDKShell::alwaysShowWatermarkOnTopWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool show = true;
+            if (parameters.HasLabel("show"))
+            {
+                show = parameters["show"].Boolean();
+            }
+            WatermarkRequestData request;
+            request.type = SHOWONTOP;
+            request.show = show;
+            lockRdkShellMutex();
+            receivedWatermarkRequest = true;
+            sWatermarkRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
         uint32_t RDKShell::showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
