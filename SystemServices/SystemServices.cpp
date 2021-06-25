@@ -385,6 +385,7 @@ namespace WPEFramework {
             registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
+            registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this, {2});
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
 
@@ -1556,6 +1557,39 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
+
+         /***
+          * @brief Returns the deepsleep wakeup keycode.
+          * @param1[in]  : {"params":{"appName":"abc"}}
+          * @param2[out] : {"result":{"wakeupKeycode":<int>","success":<bool>}}
+          * @return      : Core::<StatusCode>
+          */
+
+         uint32_t SystemServices::getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response)
+         {
+              bool status = false;
+              IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t param;
+              uint32_t wakeupKeyCode = 0;
+
+              IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+                         IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode, (void *)&param,
+                         sizeof(param));
+              if (IARM_RESULT_SUCCESS == res)
+              {
+                  status = true;
+                  wakeupKeyCode = param.keyCode;
+              }
+              else
+              {
+                  status = false;
+              }
+
+              LOGWARN("WakeupKeyCode : %d\n", wakeupKeyCode);
+              response["wakeupKeyCode"] = wakeupKeyCode;
+
+              returnResponse(status);
+         }
+
 #endif
 
         /***
