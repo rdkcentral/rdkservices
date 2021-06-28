@@ -1157,10 +1157,10 @@ namespace WPEFramework {
                 }
 
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+		mode = aPort.getStereoMode();
 
                 if (aPort.isConnected())
                 {
-                    mode = aPort.getStereoMode();
 
                     if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                     {
@@ -1212,6 +1212,16 @@ namespace WPEFramework {
                     mode = device::AudioStereoMode::kStereo;
                     modeString.append(mode.toString());
                 }
+		if(aPort.getType().getId() == device::AudioOutputPortType::kARC){
+                    if (aPort.getStereoAuto()) {
+                        LOGINFO("HDMI_ARC0 output mode Auto");
+                        modeString.append("AUTO");
+                    }
+                    else{
+                        modeString.append(mode.toString());
+                    }
+                }
+
             }
             catch (const device::Exception& err)
             {
@@ -1354,6 +1364,33 @@ namespace WPEFramework {
 			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
 			    success = false;
 		    }
+		    if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+                        if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru)
+                                               || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
+                            aPort.setStereoAuto(false, persist);
+                            aPort.setStereoMode(mode.toString(), persist);
+                            success = true;
+                        }
+                        else { //Auto Mode
+                            int types = dsAUDIOARCSUPPORT_NONE;
+                            aPort.getSupportedARCTypes(&types);
+
+                            if(types & dsAUDIOARCSUPPORT_eARC) {
+                                aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
+                            }
+                            else if (types & dsAUDIOARCSUPPORT_ARC) {
+                                if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                    success = false;
+                                    LOGERR("setSoundMode Auto: requestShortAudioDescriptor failed !!!\n");;
+                                }
+                                else {
+                                    LOGINFO("setSoundMode Auto: requestShortAudioDescriptor successful\n");
+                                    success = true;
+                                }
+                            }
+                        }
+                    }
+
                 }
                 else
                 {
