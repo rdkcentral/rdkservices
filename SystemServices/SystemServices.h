@@ -189,6 +189,7 @@ namespace WPEFramework {
                 uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_DEEP_SLEEP
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
