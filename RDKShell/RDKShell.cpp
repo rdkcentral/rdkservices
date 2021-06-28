@@ -33,6 +33,7 @@
 #include <rdkshell/logger.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
+#include <rdkshell/linuxkeys.h>
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
@@ -4584,27 +4585,26 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFOMETHOD();
+             LOGINFOMETHOD();
+             std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
+             serviceCallsign.append(".2");
+             auto systemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
+             JsonObject req, res;
+             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
+             if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+             {
+                 unsigned int key = res["wakeupKeyCode"].Number();
+                 unsigned long flags = 0;
+                 uint32_t mappedKeyCode = key, mappedFlags = 0;
+                 bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                 response["keyCode"] = JsonValue(mappedKeyCode);
+                 response["modifiers"] = JsonValue(mappedFlags);
+                 std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+                 returnResponse(true);
+             }
 
-            if (0 != mLastWakeupKeyTimestamp)
-            {
-                JsonObject req, res;
-                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") && res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT")
-                {
-                    response["keyCode"] = JsonValue(mLastWakeupKeyCode);
-                    response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
-                    response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
-
-                    std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
-                    returnResponse(true);
-                }
-                else
-                    mLastWakeupKeyTimestamp = 0;
-            }
-
-            response["message"] = "No last wakeup key";
-            returnResponse(false);
+             response["message"] = "unable to get wakeup key from system service";
+             returnResponse(false);
         }
         // Registered methods end
 
