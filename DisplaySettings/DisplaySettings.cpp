@@ -230,6 +230,26 @@ namespace WPEFramework {
             lock_guard<mutex> lck(m_callMutex);
         }
 
+        void DisplaySettings::AudioPortsReInitialize()
+        {
+            LOGINFO("Entering DisplaySettings::AudioPortsReInitialize");
+            uint32_t ret = Core::ERROR_NONE;
+            try
+            {
+                device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                for (size_t i = 0; i < aPorts.size(); i++)
+                {
+                     device::AudioOutputPort &vPort = aPorts.at(i);
+                     vPort.reInitializeAudioOutputPort();
+                 }
+            }
+            catch(const device::Exception& err)
+            {
+                LOGWARN("Audio Port : AudioPortsReInitialize failed\n");
+                LOG_DEVICE_EXCEPTION0();
+            }
+        }
+     
         void DisplaySettings::InitAudioPorts() 
         {   //sample servicemanager response: {"success":true,"supportedAudioPorts":["HDMI0"]}
             //LOGINFOMETHOD();
@@ -344,7 +364,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, audioFormatUpdateEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
-
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
+ 
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 if (res == IARM_RESULT_SUCCESS)
                 {
@@ -380,6 +401,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE) );
             }
 
             try
@@ -676,7 +698,36 @@ namespace WPEFramework {
 		    break;
            }
         }
-
+        
+        void DisplaySettings::audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            dsAudioPortState_t audioPortState = dsAUDIOPORT_STATE_UNINITIALIZED;
+            LOGINFO("%s \n", __FUNCTION__);
+            switch (eventId) {
+                case IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE:
+                {
+                   IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                   audioPortState = eventData->data.AudioPortStateInfo.audioPortState;
+                   LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE. Audio Port Init State: %d \n", audioPortState);
+                   try
+                   {   if( audioPortState == dsAUDIOPORT_STATE_INITIALIZED)
+                       {
+                           DisplaySettings::_instance->AudioPortsReInitialize();
+                           DisplaySettings::_instance->InitAudioPorts();
+                       }
+                  }
+                  catch(const device::Exception& err)
+                  {
+                     LOG_DEVICE_EXCEPTION0();
+                  }
+                }
+                break;
+                default:
+                  LOGERR("Invalid event ID\n");
+                  break;
+           }  
+        }  
+ 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
         {
             JsonArray arr;
