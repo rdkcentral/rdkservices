@@ -85,6 +85,7 @@ namespace WPEFramework {
                 void process (const TerminateArc &msg, const Header &header);
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
 		void process (const SetSystemAudioMode &msg, const Header &header);
+		void process (const ReportAudioStatus &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -483,6 +484,11 @@ private:
 		        ARC_STATE_ARC_TERMINATED,
 			ARC_STATE_ARC_EXIT
 		     };
+		enum {
+                        VOLUME_UP = 0x41,
+			VOLUME_DOWN = 0x42,
+					MUTE        = 0x43,
+		      };
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
@@ -523,6 +529,10 @@ private:
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void systemAudioModeRequest();
                         void SendStandbyMsgEvent(const int logicalAddress);
+            void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);
+            void sendKeyPressEvent(const int logicalAddress, int keyCode);
+            void sendKeyReleaseEvent(const int logicalAddress);
+			void sendgiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -549,6 +559,8 @@ private:
                         uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
+                        uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
+	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
