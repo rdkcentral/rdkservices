@@ -20,6 +20,7 @@
 #pragma once
 
 #include <mutex>
+#include <condition_variable>
 #include "Module.h"
 #include "utils.h"
 #include "dsTypes.h"
@@ -175,15 +176,32 @@ namespace WPEFramework {
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
+	    bool sendHdmiCecSinkAudioDevicePowerOn();
+	    static void  cecArcRoutingThread();
 	    void onTimer();
 
 	    TpTimer m_timer;
             bool m_subscribed;
             std::mutex m_callMutex;
+	    std::thread m_arcRoutingThread;
+	    std::mutex m_arcRoutingStateMutex;
+	    bool m_cecArcRoutingThreadRun; 
+	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
+        bool m_arcAudioEnabled;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
+
+            enum {
+                ARC_STATE_REQUEST_ARC_INITIATION,
+                ARC_STATE_ARC_INITIATED,
+                ARC_STATE_REQUEST_ARC_TERMINATION,
+                ARC_STATE_ARC_TERMINATED,
+                ARC_STATE_ARC_EXIT
+            };
+
+            int m_currentArcRoutingState; 
 
         public:
             static DisplaySettings* _instance;
