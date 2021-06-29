@@ -22,6 +22,12 @@ set(PLUGIN_STATEOBSERVER_AUTOSTART true CACHE STRING "Automatically start StateO
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+find_path(RECEIVER_IARM NAMES receiverMgr.h PATH_SUFFIXES rdk/iarmmgrs/receiver)
+if (NOT ${RECEIVER_IARM} STREQUAL "RECEIVER_IARM-NOTFOUND")
+    message("Found receiverMgr.h")
+add_definitions (-DHAS_RECEIVER_IARM)
+endif()
+
 add_library(${MODULE_NAME} SHARED
         StateObserver.cpp
         Module.cpp
