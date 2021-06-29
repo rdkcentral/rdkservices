@@ -114,7 +114,7 @@ static char *eventString[] = {
         "shortAudiodesciptorEvent",
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
-        "reportAudioStatus"
+        "reportAudioStatusEvent"
 };
 	
 
@@ -945,7 +945,7 @@ namespace WPEFramework
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
 
         }
-         void HdmiCecSink::sendgiveAudioStatusMsg()
+         void HdmiCecSink::sendGiveAudioStatusMsg()
         {
             if(!HdmiCecSink::_instance)
              return;
@@ -1334,13 +1334,13 @@ namespace WPEFramework
 			sendKeyReleaseEvent(tologicalAddress);
 			if((remoteKey == VOLUME_UP) || (remoteKey == VOLUME_DOWN) || (remoteKey == MUTE) )
 			{
-			   sendgiveAudioStatusMsg();
+			   sendGiveAudioStatusMsg();
 			}
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
            {
-	      sendgiveAudioStatusMsg();
+	      sendGiveAudioStatusMsg();
 	      returnResponse(true);
 	   }
         bool HdmiCecSink::loadSettings()

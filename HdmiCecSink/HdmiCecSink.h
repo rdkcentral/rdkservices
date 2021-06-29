@@ -532,7 +532,7 @@ private:
             void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);
             void sendKeyPressEvent(const int logicalAddress, int keyCode);
             void sendKeyReleaseEvent(const int logicalAddress);
-			void sendgiveAudioStatusMsg();
+			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
