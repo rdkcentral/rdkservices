@@ -135,6 +135,7 @@ namespace WPEFramework {
 	    uint32_t setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
 
             void InitAudioPorts();
+            void AudioPortsReInitialize();
             //End methods
 
             //Begin events
@@ -165,6 +166,7 @@ namespace WPEFramework {
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 	    static void audioFormatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            static void audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             bool checkPortName(std::string& name) const;
