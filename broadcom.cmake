@@ -177,6 +177,7 @@ if (BUILD_XG1V3)
     add_definitions (-DENABLE_CONTROL_SERVICE)
     add_definitions (-DRF4CE_API)
     add_definitions (-DENABLE_FRONT_PANEL_API_V4)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
 	# added for Iarmbus support
 	if (USE_IARM) 
@@ -286,6 +287,7 @@ if (BUILD_XI3)
     add_definitions (-DENABLE_VREX_SERVICE)
     add_definitions (-DRF4CE_API)
     add_definitions (-DDPLUGIN_STATEOBSERVER)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 endif()
 
 if(SCREEN_CAPTURE)
