@@ -137,6 +137,12 @@
         }
     },
     "events":{
+        "onDisplayFrameRateChanging":{
+            "summary": "Triggered before the framerate changes"
+        },
+        "onDisplayFrameRateChanged":{
+            "summary": "Triggered when the user changes the framerate"
+        },
         "onFpsEvent":{
             "summary": "Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached.",
             "params": {
