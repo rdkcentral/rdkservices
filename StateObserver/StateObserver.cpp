@@ -34,10 +34,15 @@
 #include <algorithm>
 
 #include "StateObserver.h"
+#include "StateObserverHelper.h"
 #include "libIARM.h"
 #include "libIBus.h"
 #include "iarmUtil.h"
 #include "sysMgr.h"
+
+#ifdef HAS_RECEIVER_IARM
+#include "receiverMgr.h"
+#endif
 
 
 #define STATEOBSERVER_MAJOR_VERSION 1
@@ -343,6 +348,22 @@ namespace WPEFramework {
 					devProp["error"]=err_str;
 					response_arr.Add(devProp);
 				}
+				else if(*it  == SYSTEM_MINI_DIAGNOSTICS)
+				{
+					devProp["propertyName"] = *it;
+#ifdef HAS_RECEIVER_IARM
+					IARM_Bus_Receiver_Param_t param;
+
+					if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_RECEIVER_NAME, IARM_RECEIVER_IS_MINI_DIAGNOSTICS_ENABLED, &param, sizeof(param)))
+						devProp["value"] = param.data.isMiniDiagnosticsEnabled ? 1 : 0;
+					else
+						devProp["error"] = "Failed to get MiniDiagnostics state from the Receiver";
+
+#else
+					devProp["error"] = "No support for IARM call to get MiniDiagnostics state from the Receiver";
+#endif
+					response_arr.Add(devProp);
+				}
 				else if(*it  == SYSTEM_EXIT_OK)
 				{
 					devProp["propertyName"]=SYSTEM_EXIT_OK;
@@ -454,7 +475,7 @@ namespace WPEFramework {
 				{
 					LOGWARN("%s PropertyName: %s Time source state: %d, time source error: %d",
 						__FUNCTION__,
-						SYSTEM_TIME_SOURCE.c_str(),
+						SYSTEM_TIME_SOURCE,
 						param.time_source.state,
 						param.time_source.error);
 
