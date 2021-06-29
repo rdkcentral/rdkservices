@@ -407,8 +407,46 @@ FrameRate interface events:
 
 | Event | Description |
 | :-------- | :-------- |
+| [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging) | Triggered before the framerate changes |
+| [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged) | Triggered when the user changes the framerate |
 | [onFpsEvent](#event.onFpsEvent) | Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached |
 
+
+<a name="event.onDisplayFrameRateChanging"></a>
+## *onDisplayFrameRateChanging <sup>event</sup>*
+
+Triggered before the framerate changes.
+
+### Parameters
+
+This event carries no parameters.
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDisplayFrameRateChanging"
+}
+```
+
+<a name="event.onDisplayFrameRateChanged"></a>
+## *onDisplayFrameRateChanged <sup>event</sup>*
+
+Triggered when the user changes the framerate.
+
+### Parameters
+
+This event carries no parameters.
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDisplayFrameRateChanged"
+}
+```
 
 <a name="event.onFpsEvent"></a>
 ## *onFpsEvent <sup>event</sup>*
