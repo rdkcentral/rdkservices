@@ -33,6 +33,7 @@
 #include <interfaces/IBrowser.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
+#include <rdkshell/linuxkeys.h>
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
@@ -118,6 +119,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DELETE_WATERMARK = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADJUST_WATERMARK = "adjustWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_UPDATE_WATERMARK = "updateWatermark";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP = "alwaysShowWatermarkOnTop";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_IGNORE_KEY_INPUTS = "ignoreKeyInputs";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -806,6 +809,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADJUST_WATERMARK, &RDKShell::adjustWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_UPDATE_WATERMARK, &RDKShell::updateWatermarkWrapper, this);
             registerMethod(RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP, &RDKShell::alwaysShowWatermarkOnTopWrapper, this);
+            registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
+
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -4997,28 +5003,26 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFOMETHOD();
+             LOGINFOMETHOD();
+             std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
+             serviceCallsign.append(".2");
+             auto systemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
+             JsonObject req, res;
+             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
+             if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+             {
+                 unsigned int key = res["wakeupKeyCode"].Number();
+                 unsigned long flags = 0;
+                 uint32_t mappedKeyCode = key, mappedFlags = 0;
+                 bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                 response["keyCode"] = JsonValue(mappedKeyCode);
+                 response["modifiers"] = JsonValue(mappedFlags);
+                 std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+                 returnResponse(true);
+             }
 
-            if (0 != mLastWakeupKeyTimestamp)
-            {
-                JsonObject req, res;
-                uint32_t status = gSystemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", req, res);
-                if (Core::ERROR_NONE == status && res.HasLabel("wakeupReason") &&
-                    (res["wakeupReason"].String() == "WAKEUP_REASON_RCU_BT" || res["wakeupReason"].String() == "WAKEUP_REASON_IR"))
-                {
-                    response["keyCode"] = JsonValue(mLastWakeupKeyCode);
-                    response["modifiers"] = JsonValue(mLastWakeupKeyModifiers);
-                    response["timestampInSeconds"] = JsonValue((long long)mLastWakeupKeyTimestamp);
-
-                    std::cout << "Got LastWakeupKey, keyCode: " << mLastWakeupKeyCode << " modifiers: " << mLastWakeupKeyModifiers << " timestampInSeconds: " << mLastWakeupKeyTimestamp << std::endl;
-                    returnResponse(true);
-                }
-                else
-                    mLastWakeupKeyTimestamp = 0;
-            }
-
-            response["message"] = "No last wakeup key";
-            returnResponse(false);
+             response["message"] = "unable to get wakeup key from system service";
+             returnResponse(false);
         }
 
         uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
@@ -5043,7 +5047,7 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
         {
-           LOGINFOMETHOD();
+            LOGINFOMETHOD();
 
             bool enabled = false;
             getLogsFlushingEnabled(enabled);
@@ -5051,6 +5055,47 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
+
+        uint32_t RDKShell::hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("hide"))
+            {
+                response["message"] = "please specify hide parameter";
+                returnResponse(false);
+            }
+            bool hide = parameters["hide"].Boolean();
+            lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                bool ret = CompositorController::setVisibility(clientList[i], !hide);
+            }
+            gRdkShellMutex.unlock();
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("ignore"))
+            {
+                response["message"] = "please specify ignore parameter";
+                returnResponse(false);
+            }
+            bool ignoreKeyValue = parameters["ignore"].Boolean();
+            lockRdkShellMutex();
+            bool ret = CompositorController::ignoreKeyInputs(ignoreKeyValue);
+            gRdkShellMutex.unlock();
+            if (!ret)
+            {
+                response["message"] = "key ignore is not allowed";
+            }
+            returnResponse(ret);
+        }
+
         // Registered methods end
 
         // Events begin

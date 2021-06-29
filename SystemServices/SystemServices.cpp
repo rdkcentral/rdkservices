@@ -81,7 +81,9 @@ using namespace std;
 
 #define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
 
-#define STORE_DEMO_FILE "/media/apps/store-mode-video/videoFile.mp4"
+#define RFC_CALLERID           "SystemServices"
+
+#define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
 /**
@@ -383,6 +385,7 @@ namespace WPEFramework {
             registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
 #ifdef ENABLE_DEEP_SLEEP
 	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
+            registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this, {2});
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
 
@@ -397,6 +400,7 @@ namespace WPEFramework {
 #ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
             registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
 #endif
+            registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
         }
 
 
@@ -404,11 +408,13 @@ namespace WPEFramework {
         {       
         }
 
-        const string SystemServices::Initialize(PluginHost::IShell*)
+        const string SystemServices::Initialize(PluginHost::IShell* service)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+            m_shellService = service;
+            m_shellService->AddRef();
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -419,6 +425,8 @@ namespace WPEFramework {
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             SystemServices::_instance = nullptr;
+            m_shellService->Release();
+            m_shellService = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -1549,6 +1557,39 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
+
+         /***
+          * @brief Returns the deepsleep wakeup keycode.
+          * @param1[in]  : {"params":{"appName":"abc"}}
+          * @param2[out] : {"result":{"wakeupKeycode":<int>","success":<bool>}}
+          * @return      : Core::<StatusCode>
+          */
+
+         uint32_t SystemServices::getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response)
+         {
+              bool status = false;
+              IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t param;
+              uint32_t wakeupKeyCode = 0;
+
+              IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+                         IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode, (void *)&param,
+                         sizeof(param));
+              if (IARM_RESULT_SUCCESS == res)
+              {
+                  status = true;
+                  wakeupKeyCode = param.keyCode;
+              }
+              else
+              {
+                  status = false;
+              }
+
+              LOGWARN("WakeupKeyCode : %d\n", wakeupKeyCode);
+              response["wakeupKeyCode"] = wakeupKeyCode;
+
+              returnResponse(status);
+         }
+
 #endif
 
         /***
@@ -2082,7 +2123,7 @@ namespace WPEFramework {
 
             if(!p)
             {
-                LOGERR("failed to start %s: %s", cmd, strerror(errno));
+                LOGERR("failed to start %s: %s", cmd.c_str(), strerror(errno));
                 zoneInfo = "";
                 return false;
 
@@ -2644,8 +2685,6 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             const std::regex re("(\\w|-|\\.)+");
-            const std::string baseCommand = "tr181Set -g ";
-            const std::string redirection = " 2>&1";
             bool retAPIStatus = false;
             JsonObject hash;
             JsonArray jsonRFCList;
@@ -2670,9 +2709,17 @@ namespace WPEFramework {
                         continue;
                     } else {
                         cmdResponse = "";
-                        cmdParams = baseCommand + jsonRFCList[i].String() + redirection + "\0";
-                        LOGINFO("executing %s\n", cmdParams.c_str());
-                        cmdResponse = Utils::cRunScript(cmdParams.c_str());
+
+                        WDMP_STATUS wdmpStatus;
+                        RFC_ParamData_t rfcParam;
+
+                        memset(&rfcParam, 0, sizeof(rfcParam));
+                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+                        if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
+                            cmdResponse = rfcParam.value;
+                        else
+                            LOGERR("Failed to get %s with %d", jsonRFCList[i].String().c_str(), wdmpStatus);
+
                         if (!cmdResponse.empty()) {
                             removeCharsFromString(cmdResponse, "\n\r");
                             hash[jsonRFCList[i].String().c_str()] = cmdResponse;
@@ -3594,6 +3641,90 @@ namespace WPEFramework {
                 response["error"] = "missing";
             }
             returnResponse(result);
+        }
+
+        /***
+         * @brief : Deletes persistent path associated with a callsign
+         *
+         * @param[in]   : callsign: string - the callsign for which to delete persistent path
+         * @return      : none
+         */
+        uint32_t SystemServices::deletePersistentPath(const JsonObject& parameters, JsonObject& response)
+        {
+          LOGINFOMETHOD();
+
+          bool result = false;
+
+          do
+          {
+            if (m_shellService == nullptr)
+            {
+              response["message"] = "internal: service shell is unavailable";
+              break;
+            }
+
+            if (parameters.HasLabel("callsign") == false && parameters.HasLabel("type") == false)
+            {
+              response["message"] = "no 'callsign' (nor 'type' of execution envirionment) specified";
+              break;
+            }
+
+            std::string callsignOrType = parameters.HasLabel("callsign")
+              ? parameters.Get("callsign").String()
+              : parameters.Get("type").String();
+            if (callsignOrType.empty() == true)
+            {
+              response["message"] = "specified 'callsign' or 'type' is empty";
+              break;
+            }
+
+            PluginHost::IShell* service(m_shellService->QueryInterfaceByCallsign<PluginHost::IShell>(callsignOrType));
+            if (service == nullptr)
+            {
+              response["message"] = "no service found for: '" + callsignOrType + "'";
+              break;
+            }
+
+            std::string persistentPath = service->PersistentPath();
+
+            Core::File file(persistentPath);
+            if (file.Exists() == false)
+            {
+              LOGINFO("persistent path '%s' for '%s' does not exist, return success = true", persistentPath.c_str(), callsignOrType.c_str());
+              result = true;
+              break;
+            }
+
+            if (file.IsDirectory() == true)
+            {
+              Core::Directory dir(persistentPath.c_str());
+              if (dir.Destroy(true) == false)
+              {
+                response["message"] = "failed to delete dir: '" + persistentPath + "'";
+                break;
+              }
+            }
+
+            if (file.Destroy() == false)
+            {
+                response["message"] = "failed to delete: '" + persistentPath + "'";
+                break;
+            }
+
+            // Everything is OK
+            LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
+
+            result = true;
+
+          } while(false);
+
+          if (!result)
+          {
+            std::string errorMessage = response["message"].String();
+            LOGERR("Failed to delete persistent path. Error: %s", errorMessage.c_str());
+          }
+
+          returnResponse(result);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

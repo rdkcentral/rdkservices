@@ -356,21 +356,21 @@ bool RtXcastConnector::getEntryFromAppLaunchParamList (const char* appName, RegA
         if (0 == strcmp (regAppLaunchParam.appName, appName)) {
             isEntryFound = true;
             int iNameLen = strlen (regAppLaunchParam.appName);
-            reqParam->appName = (char*) malloc (iNameLen);
-            memset (reqParam->appName, '\0', iNameLen);
+            reqParam->appName = (char*) malloc (iNameLen+1);
+            memset (reqParam->appName, '\0', iNameLen+1);
             strcpy (reqParam->appName, regAppLaunchParam.appName);
 
             if (regAppLaunchParam.query) {
                 int iQueryLen = strlen (regAppLaunchParam.query);
-                reqParam->query = (char*) malloc (iQueryLen);
-                memset (reqParam->query, '\0', iQueryLen);
+                reqParam->query = (char*) malloc (iQueryLen+1);
+                memset (reqParam->query, '\0', iQueryLen+1);
                 strcpy (reqParam->query, regAppLaunchParam.query);
             }
 
             if (regAppLaunchParam.payload) {
                 int iPayLoad = strlen (regAppLaunchParam.payload);
-                reqParam->payload = (char*) malloc (iPayLoad);
-                memset (reqParam->payload, '\0', iPayLoad);
+                reqParam->payload = (char*) malloc (iPayLoad+1);
+                memset (reqParam->payload, '\0', iPayLoad+1);
                 strcpy (reqParam->payload, regAppLaunchParam.payload);
             }
             break;

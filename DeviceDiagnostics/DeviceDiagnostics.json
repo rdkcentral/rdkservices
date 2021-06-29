@@ -17,7 +17,7 @@
             "type": "string",
             "example": "ACTIVE"
         },
-        "videoDecoderStatus":{
+        "AVDecoderStatus":{
             "summary": "The status",
             "enum": [
                 "ACTIVE",
@@ -45,24 +45,6 @@
         }
     },
     "methods": {
-        "getAudioDecoderStatus":{
-            "summary": "Gets the audio decoder status",
-            "result":{
-                "type":"object",
-                "properties": {
-                    "audioDecoderStatus": {
-                        "$ref": "#/definitions/audioDecoderStatus"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "audioDecoderStatus",
-                    "success"
-                ]
-            }
-        },
         "getConfiguration": {
             "summary": "Gets the values associated with the corresponding property names",
             "params": {
@@ -117,51 +99,37 @@
                 ]
             }
         },
-        "getVideoDecoderStatus":{
-            "summary": "Gets the video decoder status",
+        "getAVDecoderStatus":{
+            "summary": "Gets the most active status of any audio/video decoder/pipeline.",
             "result":{
                 "type":"object",
                 "properties": {
-                    "videoDecoderStatus": {
-                        "$ref": "#/definitions/videoDecoderStatus"
+                    "AVDecoderStatus": {
+                        "$ref": "#/definitions/AVDecoderStatus"
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "videoDecoderStatus",
+                    "AVDecoderStatus",
                     "success"
                 ]
             }
         }
     },
     "events": {
-        "onAudioDecoderStatusChanged":{
-            "summary": "Triggered when the audio decoder status changes",
+        "onAVDecoderStatusChanged":{
+            "summary": "Triggered when the most active status of any audio/video decoder/pipeline changes.",
             "params": {
                 "type": "object",
                 "properties": {
-                    "audioDecoderStatus": {
-                        "$ref": "#/definitions/audioDecoderStatus"
+                    "AVDecoderStatus": {
+                        "$ref": "#/definitions/AVDecoderStatus"
                     }
                 },
                 "required": [
-                    "audioDecoderStatus"
-                ]
-            }
-        },
-        "onVideoDecoderStatusChanged":{
-            "summary": "Triggered when the video decoder status changes",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "videoDecoderStatus": {
-                        "$ref": "#/definitions/videoDecoderStatus"
-                    }
-                },
-                "required": [
-                    "videoDecoderStatus"
+                    "AVDecoderStatus"
                 ]
             }
         }

@@ -57,6 +57,7 @@
 #define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
 #define HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR  "requestShortAudioDescriptor"
 #define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
+#define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -469,6 +470,7 @@ namespace WPEFramework
           HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
        }
 
+
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -505,6 +507,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
+		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
@@ -689,7 +692,13 @@ namespace WPEFramework
 					}
                     else
                    	{
-                        powerState = DEVICE_POWER_STATE_OFF;
+                            powerState = DEVICE_POWER_STATE_OFF;
+                            if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
+                            {
+                                LOGINFO("%s: Stop ARC \n",__FUNCTION__);
+                                _instance->stopArc();
+			    }
+
                    	}
                         if (_instance->cecEnableStatus)
 		        {
@@ -1256,6 +1265,14 @@ namespace WPEFramework
           sendStandbyMessage();
 	  returnResponse(true);
         }
+
+        uint32_t HdmiCecSink::sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+	    LOGINFO("%s invoked. \n",__FUNCTION__);
+            systemAudioModeRequest();
+	    returnResponse(true);
+        }
+
         bool HdmiCecSink::loadSettings()
         {
             Core::File file;
@@ -2608,11 +2625,8 @@ namespace WPEFramework
            if(!HdmiCecSink::_instance)
             return;
 
-            if(m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION || m_currentArcRoutingState == ARC_STATE_ARC_INITIATED)
-            {
-               LOGINFO("ARC is either initiation in progress or already initiated");
-               return;
-            }
+             LOGINFO("Current ARC State : %d\n", m_currentArcRoutingState);
+
             _instance->systemAudioModeRequest();
 	    _instance->requestArcInitiation();
  

@@ -74,6 +74,14 @@ else (CURL_FOUND)
 	message ("Curl/libcurl required.")
 endif (CURL_FOUND)
 
+find_package(RFC)
+if (RFC_FOUND)
+	target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS})
+	target_link_libraries(${MODULE_NAME} PRIVATE ${RFC_LIBRARIES})
+else (RFC_FOUND)
+	message ("RFC lib required.")
+endif (RFC_FOUND)
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 

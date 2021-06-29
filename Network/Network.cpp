@@ -45,6 +45,7 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -172,16 +173,35 @@ namespace WPEFramework
 
         const string Network::Initialize(PluginHost::IShell* /* service */)
         {
+            string msg;
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+                
+                char c;
+                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+
+                if(retVal != IARM_RESULT_SUCCESS)
+                {
+                    msg = "NetSrvMgr is not available";
+                    LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin");
+                }
+                else {
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                    LOGINFO("Successfully activated Network Plugin");
+                }
+            }
+            else
+            {
+                msg = "IARM bus is not available";
+                LOGERR("IARM bus is not available. Failed to activate Network Plugin");
             }
 
-            return string();
+            return msg;
         }
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
