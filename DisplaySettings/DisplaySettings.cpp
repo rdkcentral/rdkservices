@@ -1208,10 +1208,10 @@ namespace WPEFramework {
                 }
 
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+		mode = aPort.getStereoMode();
 
                 if (aPort.isConnected())
                 {
-                    mode = aPort.getStereoMode();
 
                     if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                     {
@@ -1240,7 +1240,7 @@ namespace WPEFramework {
                         else
                             modeString.append(mode.toString());
                     }
-		    else if((aPort.getType().getId() == device::AudioOutputPortType::kARC) || (aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)){
+		    else if((aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)){
                         if (aPort.getStereoAuto()) {
                             LOGINFO("%s output mode Auto", audioPort.c_str());
                             modeString.append("AUTO");
@@ -1262,6 +1262,15 @@ namespace WPEFramework {
                     */
                     mode = device::AudioStereoMode::kStereo;
                     modeString.append(mode.toString());
+                }
+		if((aPort.getType().getId() == device::AudioOutputPortType::kARC)){
+                    if (aPort.getStereoAuto()) {
+                        LOGINFO("%s output mode Auto", audioPort.c_str());
+                        modeString.append("AUTO");
+                    }
+                    else{
+                        modeString.append(mode.toString());
+                    }
                 }
             }
             catch (const device::Exception& err)
@@ -1402,8 +1411,20 @@ namespace WPEFramework {
 
                     }
 		    else {
-			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
-			    success = false;
+		        if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+                            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru)
+                                                    || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
+                                aPort.setStereoAuto(false, persist);
+                                aPort.setStereoMode(mode.toString(), persist);
+                            }
+                            else { //Auto Mode
+                                aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
+                            }
+                        }
+                        else {
+                                LOGERR("setSoundMode failed !! Device Not Connected...\n");
+                                success = false;
+                        }
 		    }
                 }
                 else
