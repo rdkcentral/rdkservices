@@ -485,9 +485,9 @@ private:
 			ARC_STATE_ARC_EXIT
 		     };
 		enum {
-                        VOLUME_UP = 0x41,
-			VOLUME_DOWN = 0x42,
-					MUTE        = 0x43,
+                        VOLUME_UP     = 0x41,
+			VOLUME_DOWN   = 0x42,
+			MUTE          = 0x43,
 		      };
         public:
             HdmiCecSink();
