@@ -178,9 +178,11 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 IARM_Result_t retVal = IARM_RESULT_SUCCESS;
-                
+
+#ifndef NET_DISABLE_NETSRVMGR_CHECK
                 char c;
                 retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+#endif
 
                 if(retVal != IARM_RESULT_SUCCESS)
                 {
