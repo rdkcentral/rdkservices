@@ -403,6 +403,7 @@ namespace WPEFramework
                catch(...)
                {
                    LOGWARN("Exception while enabling CEC settings .\r\n");
+		   return (string("Exception Caught"));
                }
             }
 
@@ -914,18 +915,25 @@ namespace WPEFramework
         {
            LOGINFO("Entered setEnabled ");
 
+           try{
+               if(true == enabled)
+               {
+                   CECEnable();
+               }
+               else
+               {
+                   CECDisable();
+               }
+           }
+           catch (const std::exception e)
+           {
+               LOGWARN("CEC exception caught in set Enable : %s",e.what());
+               return;
+           }
            if (cecSettingEnabled != enabled)
            {
                persistSettings(enabled);
                cecSettingEnabled = enabled;
-           }
-           if(true == enabled)
-           {
-               CECEnable();
-           }
-           else
-           {
-               CECDisable();
            }
            return;
         }
@@ -958,38 +966,47 @@ namespace WPEFramework
                 }
                 catch (const std::exception e)
                 {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init() :%s",e.what());
+                    throw e;
                 }
             }
             libcecInitStatus++;
           
 
             //Acquire CEC Addresses
-            getPhysicalAddress();
-            getLogicalAddress();
+                try{
+                    getPhysicalAddress();
+                    getLogicalAddress();
 
-            smConnection = new Connection(logicalAddress.toInt(),false,"ServiceManager::Connection::");
-            smConnection->open();
-            msgProcessor = new HdmiCec_2Processor(*smConnection);
-            msgFrameListener = new HdmiCec_2FrameListener(*msgProcessor);
-            smConnection->addFrameListener(msgFrameListener);
+                    smConnection = new Connection(logicalAddress.toInt(),false,"ServiceManager::Connection::");
+                    smConnection->open();
+                    msgProcessor = new HdmiCec_2Processor(*smConnection);
+                    msgFrameListener = new HdmiCec_2FrameListener(*msgProcessor);
+                    smConnection->addFrameListener(msgFrameListener);
 
-            cecEnableStatus = true;
+                    cecEnableStatus = true;
 
-            if(smConnection)
-            {
-                LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
-                LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
-                smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
-                isDeviceActiveSource = false;
-                LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
-                                                 (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
-                if(isLGTvConnected)
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
-                else 
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                    if(smConnection)
+                    {
+                           LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
+                           smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                           LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
+                           smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RequestActiveSource()), 5000);
+                           isDeviceActiveSource = false;
+                           LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
+                                    (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
+                           if(isLGTvConnected)
+                                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                           else 
+                                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                    }
             }
+            catch (const std::exception e)
+            {
+                LOGWARN("CEC exception caught in cecEnable : %s",e.what());
+                throw e;
+            }
+
             return;
         }
 
@@ -1043,6 +1060,7 @@ namespace WPEFramework
             catch (const std::exception e)
             {
                 LOGWARN("exception caught from getPhysicalAddress");
+		throw e;
             }
             return;
         }
@@ -1068,6 +1086,7 @@ namespace WPEFramework
             catch (const std::exception e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
+		throw e;
             }
             return;
         }
