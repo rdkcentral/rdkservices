@@ -570,11 +570,6 @@ namespace WPEFramework {
                    {
                        return;
                    }
-                   if ((service->Callsign() == RESIDENTAPP_CALLSIGN) && sFactoryModeStart && sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
-                   {
-                      std::cout << "skip create display for resident app if FTA is set to launch"<<std::endl;
-                      return;
-                   }
                    JsonObject serviceConfig = JsonObject(configLine.c_str());
                    if (serviceConfig.HasLabel("clientidentifier"))
                    {
