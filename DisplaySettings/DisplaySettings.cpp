@@ -1256,13 +1256,25 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    /*
-                    * VideoDisplay is not connected. Its audio mode is unknown. Return
-                    * "Stereo" as safe default;
-                    */
-                    mode = device::AudioStereoMode::kStereo;
-                    modeString.append(mode.toString());
-                }
+		    if((aPort.getType().getId() == device::AudioOutputPortType::kARC)){
+                        if (aPort.getStereoAuto()) {
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
+                            modeString.append("AUTO");
+                        }
+                        else{
+			    mode = aPort.getStereoMode();
+                            modeString.append(mode.toString());
+                        }
+                    }
+                    else {
+                        /*
+                        * VideoDisplay is not connected. Its audio mode is unknown. Return
+                        * "Stereo" as safe default;
+                        */
+                        mode = device::AudioStereoMode::kStereo;
+                        modeString.append(mode.toString());
+                    }
+		}
             }
             catch (const device::Exception& err)
             {
@@ -1367,7 +1379,7 @@ namespace WPEFramework {
                             aPort.setStereoMode(mode.toString(), persist);
                         }
 			else if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
-		            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
+		            if(((mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
 				    aPort.setStereoAuto(false, persist);
 				    aPort.setStereoMode(mode.toString(), persist);
 		            }
@@ -1402,8 +1414,19 @@ namespace WPEFramework {
 
                     }
 		    else {
+			if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+                            if(((mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) 
+					                                     && (stereoAuto == false)) {
+                                aPort.setStereoAuto(false, persist);
+                                aPort.setStereoMode(mode.toString(), persist);
+                            }
+                            else { //Auto Mode
+		                aPort.setStereoAuto(stereoAuto, persist);
+                            }
+			} else {
 			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
 			    success = false;
+			}
 		    }
                 }
                 else
