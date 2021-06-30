@@ -345,19 +345,25 @@ namespace WPEFramework {
 				if(result != SEC_RESULT_SUCCESS)
 					throw "Failure to get SecAPI Processor Instance!";
 
-				if(!SecKey_IsProvisioned(sec_proc, mSecObjectId)) {
-					result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+				SEC_BOOL IsProvisioned = SecKey_IsProvisioned(sec_proc, mSecObjectId);
+
+				for(int tries = 0; tries < 2; tries++)
+				{
+					if(!IsProvisioned) {
+						result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+						if(result != SEC_RESULT_SUCCESS)
+							throw "Failure to generate new key!";
+					}
+					result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
 					if(result != SEC_RESULT_SUCCESS)
-						throw "Failure to generate new key!";
+						throw "Failure to get SecAPI key handle!";
+
+					result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
+					if(result != SEC_RESULT_SUCCESS && tries > 0)
+						throw "Failure to get SecAPI cipher handler!";
+					//SecKey_IsProvisioned can return true even if there's no key, so if this fails, retry after generating one.
+					IsProvisioned = 0;
 				}
-
-				result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
-				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI key handle!";
-
-				result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
-				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI cipher handler!";
 
 				result = SecCipher_Process(sec_cipher, clearData, clearDataLength, 1, protectedData, protectedDataLength, (SEC_SIZE*)&bytesWritten);
 				if(result != SEC_RESULT_SUCCESS)
