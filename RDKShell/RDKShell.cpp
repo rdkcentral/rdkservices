@@ -173,6 +173,7 @@ static bool sRunning = true;
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
+#define RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME 5
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -967,7 +968,8 @@ namespace WPEFramework {
                             apiRequest.mRequest = request;
                             rdkshellPlugin->launchRequestThread(apiRequest);
                             gRdkShellMutex.lock();
-                            CompositorController::hideSplashScreen();
+                            gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
+                            receivedShowSplashScreenRequest = true;
                         }
                         else
                         {
@@ -1090,7 +1092,8 @@ namespace WPEFramework {
                         apiRequest.mRequest = request;
                         rdkshellPlugin->launchRequestThread(apiRequest);
                         gRdkShellMutex.lock();
-                        CompositorController::hideSplashScreen();
+                        gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
+                        receivedShowSplashScreenRequest = true;
                     }
                     else
                     {
