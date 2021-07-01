@@ -2231,11 +2231,6 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
 
-                if (false == muted && IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
-                        LOGWARN("Ignoring the setMuted(false) request based on the power state");
-                        returnResponse(false);
-                }
-
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 LOGWARN("DisplaySettings::setMuted called Audio Port :%s muted:%d\n", audioPort.c_str(), muted);
@@ -2264,12 +2259,6 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(sLevel);
                         returnResponse(false);
                 }
-
-                if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
-                        LOGWARN("Ignoring the setVolumeLevel(%s) request based on the power state", sLevel.c_str());
-                        returnResponse(false);
-                }
-
 
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
