@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "AbstractPlugin.h"
 
+#include <thread>
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -29,8 +31,10 @@ namespace Plugin {
         static const string METHOD_GET_AVAILABLE_FIRMWARE_FILES;
         static const string METHOD_GET_MOUNTED;
         static const string METHOD_UPDATE_FIRMWARE;
+        static const string METHOD_ARCHIVE_LOGS;
         //events
         static const string EVT_ON_USB_MOUNT_CHANGED;
+        static const string EVT_ON_ARCHIVE_LOGS;
         //other
         static const string LINK_URL_HTTP;
         static const string LINK_PATH;
@@ -38,6 +42,17 @@ namespace Plugin {
         static const string REGEX_FILE;
         static const string PATH_DEVICE_PROPERTIES;
         static const std::list<string> ADDITIONAL_FW_PATHS;
+        static const string ARCHIVE_LOGS_SCRIPT;
+        enum ArchiveLogsError
+        {
+            ScriptError = -1,
+            None,
+            Locked,
+            NoUSB,
+            WritingError,
+        };
+        typedef std::map<ArchiveLogsError, string> ArchiveLogsErrorMap;
+        static const ArchiveLogsErrorMap ARCHIVE_LOGS_ERRORS;
 
     private/*registered methods (wrappers)*/:
 
@@ -48,6 +63,7 @@ namespace Plugin {
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
+        uint32_t archiveLogs(const JsonObject& parameters, JsonObject& response);
 
     private/*iarm*/:
         void InitializeIARM();
@@ -69,6 +85,10 @@ namespace Plugin {
 
         static bool getFileList(const string& path, FileList& files, const string& fileRegex, bool includeFolders);
         static bool getMounted(std::list<string>& paths);
+
+        void archiveLogsInternal();
+        void onArchiveLogs(ArchiveLogsError error);
+        std::thread archiveLogsThread;
     };
 
 } // namespace Plugin
