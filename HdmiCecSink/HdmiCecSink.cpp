@@ -58,6 +58,8 @@
 #define HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR  "requestShortAudioDescriptor"
 #define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
+#define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
+#define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -94,6 +96,7 @@ enum {
         HDMICECSINK_EVENT_SHORT_AUDIODESCRIPTOR_EVENT,
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
+	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
 };
 
 static char *eventString[] = {
@@ -110,7 +113,8 @@ static char *eventString[] = {
         "arcTerminationEvent",
         "shortAudiodesciptorEvent",
         "standbyMessageReceived",
-        "setSystemAudioModeEvent"
+        "setSystemAudioModeEvent",
+        "reportAudioStatusEvent"
 };
 	
 
@@ -469,8 +473,12 @@ namespace WPEFramework
              LOGINFO("Command: SetSystemAudioMode  %s audio status %d audio status is  %s \n",GetOpName(msg.opCode()),msg.status.toInt(),msg.status.toString().c_str());
           HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
        }
-
-
+      void HdmiCecSinkProcessor::process (const ReportAudioStatus &msg, const Header &header)
+       {
+             printHeader(header);
+             LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+             HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
+       }
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -508,6 +516,8 @@ namespace WPEFramework
                    registerMethod(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
                    registerMethod(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
+		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
+		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            
@@ -888,7 +898,39 @@ namespace WPEFramework
             params["audioMode"] = msg.status.toString().c_str();
             sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
          }
+         void HdmiCecSink::Process_ReportAudioStatus_msg(const ReportAudioStatus msg)
+         {
+            JsonObject params;
+            if(!HdmiCecSink::_instance)
+               return;
+			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+            params["muteStatus"]  = msg.status.getAudioMuteStatus();
+            params["volumeLevel"] = msg.status.getAudioVolume();
+            sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
 
+         }
+		 void HdmiCecSink::sendKeyPressEvent(const int logicalAddress, int keyCode)
+		 {
+		    LOGINFO(" sendKeyPressEvent logicalAddress 0x%x keycode 0x%x\n",logicalAddress,keyCode);
+                    switch(keyCode)
+                   {
+                       case VOLUME_UP:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),1100);
+			   break;
+		       case VOLUME_DOWN:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 1100);
+                          break;
+		       case MUTE:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 1100);
+			   break;
+
+                   }
+		 }
+		 void HdmiCecSink::sendKeyReleaseEvent(const int logicalAddress)
+		 {
+		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 1000);
+
+		 }
          void  HdmiCecSink::sendDeviceUpdateInfo(const int logicalAddress)
          {
             JsonObject params;
@@ -903,7 +945,14 @@ namespace WPEFramework
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
 
         }
+         void HdmiCecSink::sendGiveAudioStatusMsg()
+        {
+            if(!HdmiCecSink::_instance)
+             return;
+             LOGINFO(" Send GiveAudioStatus ");
+	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 11000);
 
+        }
         void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
         {
             JsonObject params;
@@ -1272,7 +1321,28 @@ namespace WPEFramework
             systemAudioModeRequest();
 	    returnResponse(true);
         }
-
+		uint32_t HdmiCecSink::sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response)
+		{
+            returnIfParamNotFound(parameters, "logicalAddress");
+			returnIfParamNotFound(parameters, "keyCode");
+			string logicalAddress = parameters["logicalAddress"].String();
+			string keyCode = parameters["keyCode"].String();
+			int tologicalAddress = stoi(logicalAddress);
+			int remoteKey        = stoi(keyCode);
+		        LOGINFO("sendRemoteKeyPressWrapper : 0x%x 0x%x \n",tologicalAddress,remoteKey);
+			sendKeyPressEvent(tologicalAddress,remoteKey);
+			sendKeyReleaseEvent(tologicalAddress);
+			if((remoteKey == VOLUME_UP) || (remoteKey == VOLUME_DOWN) || (remoteKey == MUTE) )
+			{
+			   sendGiveAudioStatusMsg();
+			}
+			returnResponse(true);
+		}
+	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
+           {
+	      sendGiveAudioStatusMsg();
+	      returnResponse(true);
+	   }
         bool HdmiCecSink::loadSettings()
         {
             Core::File file;
