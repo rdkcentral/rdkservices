@@ -91,10 +91,10 @@ DTV interface methods:
 | :-------- | :-------- |
 | [addLnb](#method.addLnb) | Add a new LNB to the database |
 | [addSatellite](#method.addSatellite) | Add a new satellite to the database |
+| [finishServiceSearch](#method.finishServiceSearch) | Finishes a service search |
+| [startPlaying](#method.startPlaying) | Starts playing the specified service |
 | [startServiceSearch](#method.startServiceSearch) | Starts a service search |
-| [finishServiceSearch](#method.finishServiceSearch) | Finish a service search |
-| [startPlaying](#method.startPlaying) | Start playing given service |
-| [stopPlaying](#method.stopPlaying) | Stop playing given service |
+| [stopPlaying](#method.stopPlaying) | Stops playing the specified service |
 
 
 <a name="method.addLnb"></a>
@@ -213,6 +213,96 @@ Add a new satellite to the database.
 }
 ```
 
+<a name="method.finishServiceSearch"></a>
+## *finishServiceSearch <sup>method</sup>*
+
+Finishes a service search.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.tunertype | string |  (must be one of the following: *none*, *dvbs*, *dvbt*, *dvbc*) |
+| params.savechanges | boolean | true if the services found during the search should be saved |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | boolean | false if the tunertype isn't valid, true otherwise |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "DTV.1.finishServiceSearch",
+    "params": {
+        "tunertype": "none",
+        "savechanges": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": true
+}
+```
+
+<a name="method.startPlaying"></a>
+## *startPlaying <sup>method</sup>*
+
+Starts playing the specified service.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.dvburi | string | <sup>*(optional)*</sup> DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal |
+| params?.lcn | number | <sup>*(optional)*</sup> LCN of the service to be tuned to |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | number | The play handle assigned to play the given service. Will be -1 if the service can't be played |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "DTV.1.startPlaying",
+    "params": {
+        "dvburi": "2.2041.9212",
+        "lcn": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": 0
+}
+```
+
 <a name="method.startServiceSearch"></a>
 ## *startServiceSearch <sup>method</sup>*
 
@@ -290,100 +380,10 @@ Also see: [searchstatus](#event.searchstatus)
 }
 ```
 
-<a name="method.finishServiceSearch"></a>
-## *finishServiceSearch <sup>method</sup>*
-
-Finish a service search.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.tunertype | string |  (must be one of the following: *none*, *dvbs*, *dvbt*, *dvbc*) |
-| params.savechanges | boolean | true if the services found during the search should be saved |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | boolean | false if the tunertype isn't valid, true otherwise |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "DTV.1.finishServiceSearch",
-    "params": {
-        "tunertype": "none",
-        "savechanges": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": true
-}
-```
-
-<a name="method.startPlaying"></a>
-## *startPlaying <sup>method</sup>*
-
-Start playing given service.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.dvburi | string | <sup>*(optional)*</sup> DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal |
-| params?.lcn | number | <sup>*(optional)*</sup> LCN of the service to be tuned to |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | number | The play handle assigned to play the given service. Will be -1 if the service can't be played |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "DTV.1.startPlaying",
-    "params": {
-        "dvburi": "2.2041.9212",
-        "lcn": 0
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": 0
-}
-```
-
 <a name="method.stopPlaying"></a>
 ## *stopPlaying <sup>method</sup>*
 
-Stop playing given service.
+Stops playing the specified service.
 
 ### Parameters
 
@@ -430,15 +430,15 @@ DTV interface properties:
 | Property | Description |
 | :-------- | :-------- |
 | [numberOfCountries](#property.numberOfCountries) <sup>RO</sup> | Number of country configurations available |
-| [countryList](#property.countryList) <sup>RO</sup> | Returns an array containing the name and 3 character ISO country code for all the available country configurations |
-| [country](#property.country) | Get and set the configured country using the ISO 3-character country code |
-| [lnbList](#property.lnbList) <sup>RO</sup> | Returns the array of LNBs defined in the database |
-| [satelliteList](#property.satelliteList) <sup>RO</sup> | Returns the array of satellites defined in the database |
-| [numberOfServices](#property.numberOfServices) <sup>RO</sup> | Returns the total number of services in the service database |
-| [serviceList](#property.serviceList) <sup>RO</sup> | Returns the list of services for the given type of tuner, or all services if no tuner is defined |
-| [nowNextEvents](#property.nowNextEvents) <sup>RO</sup> | Get the now and next events (EITp/f) for the given service |
-| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Get the schedule events (EITsched) for the given service |
-| [status](#property.status) <sup>RO</sup> | Returns information related to the play handle defined by the index |
+| [countryList](#property.countryList) <sup>RO</sup> | Array containing the name and 3 character ISO country code for all the available country configurations |
+| [country](#property.country) | Country configuration using the ISO 3-character country code |
+| [lnbList](#property.lnbList) <sup>RO</sup> | Array of LNBs defined in the database |
+| [satelliteList](#property.satelliteList) <sup>RO</sup> | Array of satellites defined in the database |
+| [numberOfServices](#property.numberOfServices) <sup>RO</sup> | Total number of services in the service database |
+| [serviceList](#property.serviceList) <sup>RO</sup> | List of services for the given type of tuner or all services if no tuner is defined |
+| [nowNextEvents](#property.nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
+| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Schedule events (EITsched) for the given service |
+| [status](#property.status) <sup>RO</sup> | Information related to the play handle defined by the index |
 
 
 <a name="property.numberOfCountries"></a>
@@ -479,7 +479,7 @@ Provides access to the number of country configurations available.
 <a name="property.countryList"></a>
 ## *countryList <sup>property</sup>*
 
-Provides access to the returns an array containing the name and 3 character ISO country code for all the available country configurations.
+Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
 
 > This property is **read-only**.
 
@@ -522,7 +522,7 @@ Provides access to the returns an array containing the name and 3 character ISO 
 <a name="property.country"></a>
 ## *country <sup>property</sup>*
 
-Provides access to the get and set the configured country using the ISO 3-character country code.
+Provides access to the country configuration using the ISO 3-character country code.
 
 ### Value
 
@@ -576,7 +576,7 @@ Provides access to the get and set the configured country using the ISO 3-charac
 <a name="property.lnbList"></a>
 ## *lnbList <sup>property</sup>*
 
-Provides access to the returns the array of LNBs defined in the database.
+Provides access to the array of LNBs defined in the database.
 
 > This property is **read-only**.
 
@@ -584,7 +584,7 @@ Provides access to the returns the array of LNBs defined in the database.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | Returns the array of LNBs defined in the database |
+| (property) | array | Array of LNBs defined in the database |
 | (property)[#] | object |  |
 | (property)[#].name | string |  |
 | (property)[#].type | string |  (must be one of the following: *single*, *universal*, *unicable*) |
@@ -643,7 +643,7 @@ Provides access to the returns the array of LNBs defined in the database.
 <a name="property.satelliteList"></a>
 ## *satelliteList <sup>property</sup>*
 
-Provides access to the returns the array of satellites defined in the database.
+Provides access to the array of satellites defined in the database.
 
 > This property is **read-only**.
 
@@ -651,7 +651,7 @@ Provides access to the returns the array of satellites defined in the database.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | Returns the array of satellites defined in the database |
+| (property) | array | Array of satellites defined in the database |
 | (property)[#] | object |  |
 | (property)[#].name | string |  |
 | (property)[#].longitude | number | Longitudinal location of the satellite in 1/10ths of a degree, with an east coordinate given as a positive value and a west coordinate as negative. Astra 28.2E would be defined as 282 and Eutelsat 5.0W would be -50 |
@@ -688,7 +688,7 @@ Provides access to the returns the array of satellites defined in the database.
 <a name="property.numberOfServices"></a>
 ## *numberOfServices <sup>property</sup>*
 
-Provides access to the returns the total number of services in the service database.
+Provides access to the total number of services in the service database.
 
 > This property is **read-only**.
 
@@ -696,7 +696,7 @@ Provides access to the returns the total number of services in the service datab
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | number | Returns the total number of services in the service database |
+| (property) | number | Total number of services in the service database |
 
 ### Example
 
@@ -723,7 +723,7 @@ Provides access to the returns the total number of services in the service datab
 <a name="property.serviceList"></a>
 ## *serviceList <sup>property</sup>*
 
-Provides access to the returns the list of services for the given type of tuner, or all services if no tuner is defined.
+Provides access to the list of services for the given type of tuner or all services if no tuner is defined.
 
 > This property is **read-only**.
 
@@ -731,7 +731,7 @@ Provides access to the returns the list of services for the given type of tuner,
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | Returns the list of services for the given type of tuner, or all services if no tuner is defined |
+| (property) | array | List of services for the given type of tuner or all services if no tuner is defined |
 | (property)[#] | object |  |
 | (property)[#].shortname | string | Service name as given by the service descriptor in the SDT |
 | (property)[#].dvburi | string | DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal |
@@ -770,7 +770,7 @@ Provides access to the returns the list of services for the given type of tuner,
 <a name="property.nowNextEvents"></a>
 ## *nowNextEvents <sup>property</sup>*
 
-Provides access to the get the now and next events (EITp/f) for the given service.
+Provides access to the now and next events (EITp/f) for the given service.
 
 > This property is **read-only**.
 
@@ -778,7 +778,7 @@ Provides access to the get the now and next events (EITp/f) for the given servic
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | Get the now and next events (EITp/f) for the given service |
+| (property) | object | Now and next events (EITp/f) for the given service |
 | (property)?.now | object | <sup>*(optional)*</sup> EIT event information |
 | (property)?.now.name | string | Name of the DVB event as defined in the short event descriptor |
 | (property)?.now.starttime | number | UTC start time of the event in seconds |
@@ -834,7 +834,7 @@ Provides access to the get the now and next events (EITp/f) for the given servic
 <a name="property.scheduleEvents"></a>
 ## *scheduleEvents <sup>property</sup>*
 
-Provides access to the get the schedule events (EITsched) for the given service.
+Provides access to the schedule events (EITsched) for the given service.
 
 > This property is **read-only**.
 
@@ -842,7 +842,7 @@ Provides access to the get the schedule events (EITsched) for the given service.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | Get the schedule events (EITsched) for the given service |
+| (property) | array | Schedule events (EITsched) for the given service |
 | (property)[#] | object | EIT event information |
 | (property)[#].name | string | Name of the DVB event as defined in the short event descriptor |
 | (property)[#].starttime | number | UTC start time of the event in seconds |
@@ -885,7 +885,7 @@ Provides access to the get the schedule events (EITsched) for the given service.
 <a name="property.status"></a>
 ## *status <sup>property</sup>*
 
-Provides access to the returns information related to the play handle defined by the index.
+Provides access to the information related to the play handle defined by the index.
 
 > This property is **read-only**.
 
@@ -893,7 +893,7 @@ Provides access to the returns information related to the play handle defined by
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | Returns information related to the play handle defined by the index |
+| (property) | object | Information related to the play handle defined by the index |
 | (property).tuner | number | The tuner id used by the play handle |
 | (property).demux | number | The demux id used by the play handle |
 | (property).pmtpid | number | The PMT PID of the service being played |
@@ -941,13 +941,13 @@ DTV interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [searchstatus](#event.searchstatus) | Used to notify about events during the course of a service search |
+| [searchstatus](#event.searchstatus) | Triggered during the course of a service search |
 
 
 <a name="event.searchstatus"></a>
 ## *searchstatus <sup>event</sup>*
 
-Used to notify about events during the course of a service search.
+Triggered during the course of a service search.
 
 ### Parameters
 

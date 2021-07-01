@@ -1,38 +1,14 @@
 {
-  "$schema": "interface.schema.json",
-  "jsonrpc": "2.0",
-  "info": {
-    "title": "Device Identification API",
-    "class": "DeviceIdentification",
-    "description": "DeviceIdentification JSON-RPC interface"
-  },
-  "properties": {
-    "deviceidentification": {
-      "summary": "Device paltform specific information",
-      "readonly": true,
-      "params": {
-        "type": "object",
-        "properties": {
-          "firmwareversion": {
-            "description": "Version of the device firmware",
-            "example": "1.0.0",
-            "type": "string"
-          },
-          "chipset": {
-            "description": "Chipset used for this device",
-            "example": "BCM2711",
-            "type": "string"
-          },
-          "identifier": {
-            "description": "Device unique identifier",
-            "type": "string"
-          }
-        },
-        "required": [
-          "firmwareversion",
-          "chipset"
-        ]
-      }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "DeviceIdentification Plugin",
+        "callsign": "DeviceIdentification",
+        "locator": "libWPEFrameworkDeviceIdentification.so",
+        "status": "production",
+        "description": "The `DeviceIdentification` plugin allows you to retrieve various device-related information",
+        "version": "1.0"
+    },
+    "interface": {
+        "$ref": "DeviceIdentification.json#"
     }
-  }
 }

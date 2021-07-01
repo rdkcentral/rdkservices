@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "CompositeInput Plugin",
+      "callsign": "org.rdk.CompositeInput",
+      "locator": "libWPEFrameworkCompositeInput.so",
+      "status": "production",
+      "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device",
+      "version": "2.0"
+    },
+    "interface": {
+      "$ref": "CompositeInput.json#"
+    }
+}

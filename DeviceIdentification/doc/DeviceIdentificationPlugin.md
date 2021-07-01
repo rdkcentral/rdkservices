@@ -1,10 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Device_Identification_API"></a>
-# Device Identification API
+<a name="head.DeviceIdentification_Plugin"></a>
+# DeviceIdentification Plugin
 
 **Version: 1.0**
 
-**Status: :black_circle::white_circle::white_circle:**
+**Status: :black_circle::black_circle::black_circle:**
 
 DeviceIdentification plugin for Thunder framework.
 
@@ -21,12 +21,12 @@ DeviceIdentification plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the DeviceIdentification plugin. It includes detailed specification of its configuration and properties provided.
+This document describes purpose and functionality of the DeviceIdentification plugin. It includes detailed specification about its configuration and properties provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-DeviceIdentification JSON-RPC interface
+The `DeviceIdentification` plugin allows you to retrieve various device-related information.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -70,8 +70,10 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
+| callsign | string | Plugin instance name (default: *DeviceIdentification*) |
 | classname | string | Class name: *DeviceIdentification* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| locator | string | Library name: *libWPEFrameworkDeviceIdentification.so* |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Properties"></a>
 # Properties
@@ -82,12 +84,13 @@ DeviceIdentification interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [deviceidentification](#property.deviceidentification) <sup>RO</sup> | Device paltform specific information |
+| [deviceidentification](#property.deviceidentification) <sup>RO</sup> | Device platform specific information |
+
 
 <a name="property.deviceidentification"></a>
 ## *deviceidentification <sup>property</sup>*
 
-Provides access to the device paltform specific information.
+Provides access to the device platform specific information.
 
 > This property is **read-only**.
 
@@ -95,7 +98,7 @@ Provides access to the device paltform specific information.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | Device paltform specific information |
+| (property) | object | Device platform specific information |
 | (property).firmwareversion | string | Version of the device firmware |
 | (property).chipset | string | Chipset used for this device |
 | (property)?.identifier | string | <sup>*(optional)*</sup> Device unique identifier |
@@ -111,6 +114,7 @@ Provides access to the device paltform specific information.
     "method": "DeviceIdentification.1.deviceidentification"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -120,7 +124,8 @@ Provides access to the device paltform specific information.
     "result": {
         "firmwareversion": "1.0.0",
         "chipset": "BCM2711",
-        "identifier": ""
+        "identifier": "WPEuCfrLF45"
     }
 }
 ```
+

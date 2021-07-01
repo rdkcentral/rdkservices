@@ -1,0 +1,106 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "DisplayInfo API",
+        "class": "DisplayInfo",
+        "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information"
+    },
+    "properties": {
+        "totalgpuram": {
+            "summary": "Total GPU DRAM memory (in bytes)",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "size": 64,
+                "example": 381681664
+            }
+        },
+        "freegpuram": {
+            "summary": "Free GPU DRAM memory (in bytes)",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "size": 64,
+                "example": 358612992
+            }
+        },
+        "audiopassthrough": {
+            "summary": "current audio passthrough status on HDMI",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "connected": {
+            "summary": "Current HDMI connection status",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "width": {
+            "summary": "Horizontal resolution of the TV",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "size": 32,
+                "example": 1280
+            }
+        },
+        "height": {
+            "summary": "Vertical resolution of the TV",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "size": 32,
+                "example": 720
+            }
+            
+        },
+        "hdcpprotection": {
+            "summary": "HDCP protocol used for transmission",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ "Unencrypted", "HDCP1x", "HDCP2x"],
+                "example": "HDCP1x"
+            }
+        },
+        "hdrtype": {
+            "summary": "HDR format in use",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ "HDROff", "HDR10", "HDR10Plus", "HDRDolbyVision", "HDRTechnicolor" ],
+                "example": "HDROff"
+            }            
+        }
+    },
+    "events": {
+        "updated": {
+            "summary": "Triggered when the connection changes or is updated",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "events": {
+                        "summary": "The type of change",
+                        "enum": [
+                            "PreResolutionChange",
+                            "PostResolutionChange",
+                            "HdmiChange",
+                            "HdcpChange"                            
+                        ],
+                        "type": "string",
+                        "example": "HdmiChange"
+                    }
+                },
+                "required": [
+                    "events"
+                ]
+            }
+        }
+    }
+}

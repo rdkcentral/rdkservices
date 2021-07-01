@@ -1,14 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Display Info Plugin",
-    "callsign": "DisplayInfo",
-    "locator": "libWPEFrameworkDisplayInfo.so",
-    "status": "production",
-    "description": "The DisplayInfo plugin allows retrieving of various display-related information.",
-    "version": "1.0"
-  },
-  "interface": {
-    "$cppref": "{cppinterfacedir}/IDisplayInfo.h"
-  }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "DisplayInfo Plugin",
+        "callsign": "DisplayInfo",
+        "locator": "libWPEFrameworkDisplayInfo.so",
+        "status": "production",
+        "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information",
+        "version": "1.0"
+    },
+    "interface": {
+        "$ref": "DisplayInfo.json#"
+    }
 }

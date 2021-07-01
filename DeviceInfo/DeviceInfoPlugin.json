@@ -1,14 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
   "info": {
-    "title": "Device Info Plugin",
+    "title": "DeviceInfo Plugin",
     "callsign": "DeviceInfo",
     "locator": "libWPEFrameworkDeviceInfo.so",
     "status": "production",
-    "description": "The DeviceInfo plugin allows retrieving of various device-related information.",
+    "description": "The `DeviceInfo` plugin allows retrieving of various device-related information.",
     "version": "1.0"
   },
   "interface": {
-    "$ref": "{interfacedir}/DeviceInfo.json#"
+    "$ref": "DeviceInfo.json#"
   }
 }
