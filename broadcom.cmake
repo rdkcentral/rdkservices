@@ -126,6 +126,7 @@ if (BUILD_XG1)
 
     add_definitions (-DUSE_UPNP_DISCOVERY)
     add_definitions (-DENABLE_VREX_SERVICE)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
     # added for Arris Xone
     if (USE_IARM)
@@ -219,6 +220,7 @@ if (BUILD_XG2)
     #add_definitions (-DENABLE_UPDATE_MANAGER_SERVICE)
     add_definitions (-DENABLE_REMOTE_ACTION_MAPPING_SERVICE)
     add_definitions (-DENABLE_CONTROL_SERVICE)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
     # added for Iarmbus support
     if (USE_IARM)
