@@ -425,13 +425,13 @@ namespace Plugin {
                     Core::NodeId::ClearIPV6Enabled();
                 }
 
-                TRACE(Trace::Information, (_T("Network connectivity established on %s. ip: %s, tz: %s, country: %s"),
+                TRACE(Trace::Fatal, (_T("Network connectivity established on %s. ip: %s, tz: %s, country: %s"),
                     node.Type() == Core::NodeId::TYPE_IPV4 ? _T("IPv4") : _T("IP6"),
                     _publicIPAddress.c_str(),
                     _timeZone.c_str(),
                     _country.c_str()));
 
-                TRACE(Trace::Information, (_T("LocationSync: Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
+                TRACE(Trace::Fatal, (_T("LocationSync: Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
                 _callback->Dispatch();
             }
 
@@ -441,7 +441,7 @@ namespace Plugin {
 
             _adminLock.Unlock();
         } else {
-            TRACE(Trace::Information, (_T("Got a response but had an empty body. %d"), __LINE__));
+            TRACE(Trace::Fatal, (_T("Got a response but had an empty body. %d"), __LINE__));
         }
 
         // Finish the cycle..
@@ -491,7 +491,7 @@ namespace Plugin {
 
                 if (remote.IsValid() == false) {
 
-                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %d"), _tryInterval, _retries));
+                    TRACE(Trace::Fatal, (_T("DNS resolving failed. Sleep for %d mS for attempt %d"), _tryInterval, _retries));
 
                     // Name resolving does not even work. Retry this after a few seconds, if we still can..
                     if (_retries-- == 0)
@@ -502,19 +502,19 @@ namespace Plugin {
                     Link().LocalNode(remote.AnyInterface());
                     Link().RemoteNode(remote);
 
-                    TRACE(Trace::Information, (_T("Probing [%s:%d] on [%s]"), remote.HostAddress().c_str(), remote.PortNumber(), remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPV6") : _T("IPv4")));
+                    TRACE(Trace::Fatal, (_T("Probing [%s:%d] on [%s]"), remote.HostAddress().c_str(), remote.PortNumber(), remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPV6") : _T("IPv4")));
                     _state = (remote.Type() == Core::NodeId::TYPE_IPV6 ? IPV6_INPROGRESS : IPV4_INPROGRESS);
 
                     uint32_t status = Open(0);
 
                     if ((status == Core::ERROR_NONE) || (status == Core::ERROR_INPROGRESS)) {
 
-                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+                        TRACE(Trace::Fatal, (_T("Sending out a network package on %s. Attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // We need to get a response in the given time..
                         result = _tryInterval;
                     } else {
-                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+                        TRACE(Trace::Fatal, (_T("Failed on network %s. Reschedule for the next attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // Seems we could not open this connection, move on to the next attempt.
                         Close(0);
