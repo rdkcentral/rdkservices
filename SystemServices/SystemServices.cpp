@@ -79,7 +79,7 @@ using namespace std;
 
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
-#define STORE_DEMO_FILE "/media/apps/store-mode-video/videoFile.mp4"
+#define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
 /**
