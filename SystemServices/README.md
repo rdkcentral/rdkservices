@@ -250,6 +250,11 @@
     Uploads the logs to the specified URL or the default url if none were provided. returns success=true for Platco and Llama. Returns success=false, reason=unsupported for other platforms and does not upload logs.  
   _**Request payload:**_ `"params":{"url":"<URL>"}`  
   _**Response payload:**_ `{"result":{"success":<bool>}}`
+  - **deletePersistentPath**
+
+    Deletes persistent path associated with a callsign.  
+  _**Request payload:**_ `"params":{"callsign":"<HtmlApp|LightnigApp|Netflix|Cobalt|etc.>"}`  
+  _**Response payload:**_ `{"result":{"success":<bool>}}`
 ## System Thunder Plugin Events
   - **onFirmwareUpdateInfoReceived**
 

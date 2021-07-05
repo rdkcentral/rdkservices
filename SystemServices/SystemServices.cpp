@@ -3685,6 +3685,29 @@ namespace WPEFramework {
               break;
             }
 
+            // Special case for Netflix
+            if (service->ClassName().compare(0, 7, "Netflix") == 0)
+            {
+              Core::File file(string("/opt/netflix"));
+              if (file.Exists())
+              {
+                if (file.IsDirectory() == true)
+                {
+                  Core::Directory dir(file.Name().c_str());
+                  if (dir.Destroy(true) == false)
+                  {
+                    response["message"] = "failed to delete dir: '" + file.Name() + "'";
+                    break;
+                  }
+                }
+                if (file.Destroy() == false)
+                {
+                  response["message"] = "failed to delete: '" + file.Name() + "'";
+                  break;
+                }
+              }
+            }
+
             std::string persistentPath = service->PersistentPath();
 
             Core::File file(persistentPath);

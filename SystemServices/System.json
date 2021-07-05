@@ -1391,6 +1391,25 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "deletePersistentPath": {
+            "summary": "(Version 2) Deletes persistent path associated with a callsign",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
