@@ -41,46 +41,44 @@ using namespace std;
 
 const char* Utils::IARM::NAME = "Thunder_Plugins";
 
-bool Utils::IARM::init()
-{
-    string memberName = NAME;
-    LOGINFO("%s", memberName.c_str());
-
+bool Utils::IARM::isConnected() {
     IARM_Result_t res;
     int isRegistered = 0;
-    IARM_CHECK(IARM_Bus_IsConnected(memberName.c_str(), &isRegistered));
+    res = IARM_Bus_IsConnected(NAME, &isRegistered);
+    LOGINFO("IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
 
-    m_connected = false;
-    if (isRegistered > 0)
-    {
-        LOGINFO("%s has already connected with IARM", memberName.c_str());
-        m_connected = true;
-        return true;
-    }
-
-    IARM_CHECK( IARM_Bus_Init(memberName.c_str()));
-    if (res == IARM_RESULT_SUCCESS)
-    {
-        IARM_CHECK(IARM_Bus_Connect());
-        if (res != IARM_RESULT_SUCCESS)
-        {
-            LOGERR("IARM_Bus_Connect failure");
-            IARM_CHECK(IARM_Bus_Term());
-            return false;
-        }
-    }
-    else
-    {
-        LOGERR("IARM_Bus_Init failure");
-        return false;
-    }
-
-    LOGINFO("%s inited and connected with IARM", memberName.c_str());
-    m_connected = true;
-    return true;
+    return (isRegistered == 1);
 }
 
-bool Utils::IARM::m_connected = false;
+bool Utils::IARM::init() {
+    IARM_Result_t res;
+    bool result = false;
+
+    if (isConnected()) {
+        LOGINFO("IARM already connected");
+        result = true;
+    } else {
+        res = IARM_Bus_Init(NAME);
+        LOGINFO("IARM_Bus_Init: %d", res);
+        if (res == IARM_RESULT_SUCCESS ||
+            res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+
+            res = IARM_Bus_Connect();
+            LOGINFO("IARM_Bus_Connect: %d", res);
+            if (res == IARM_RESULT_SUCCESS ||
+                res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
+
+                result = isConnected();
+            } else {
+                LOGERR("IARM_Bus_Connect failure: %d", res);
+            }
+        } else {
+            LOGERR("IARM_Bus_Init failure: %d", res);
+        }
+    }
+
+    return result;
+}
 
 std::string Utils::formatIARMResult(IARM_Result_t result)
 {
