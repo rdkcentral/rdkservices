@@ -1256,12 +1256,24 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    /*
-                    * VideoDisplay is not connected. Its audio mode is unknown. Return
-                    * "Stereo" as safe default;
-                    */
-                    mode = device::AudioStereoMode::kStereo;
-                    modeString.append(mode.toString());
+		    if((aPort.getType().getId() == device::AudioOutputPortType::kARC)){
+                        if (aPort.getStereoAuto()) {
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
+                            modeString.append("AUTO");
+                        }
+                        else{
+                            mode = aPort.getStereoMode();
+                            modeString.append(mode.toString());
+                        }
+                    }
+                    else {
+                        /*
+                        * VideoDisplay is not connected. Its audio mode is unknown. Return
+                        * "Stereo" as safe default;
+                        */
+                        mode = device::AudioStereoMode::kStereo;
+                        modeString.append(mode.toString());
+                    }
                 }
             }
             catch (const device::Exception& err)
@@ -1402,8 +1414,18 @@ namespace WPEFramework {
 
                     }
 		    else {
-			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
-			    success = false;
+                        if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+                            if(((mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo) || (mode == device::AudioStereoMode::kSurround)) && (stereoAuto == false)) {
+                                aPort.setStereoAuto(false, persist);
+                                aPort.setStereoMode(mode.toString(), persist);
+                            }
+                            else { //Auto Mode
+                                aPort.setStereoAuto(stereoAuto, persist);
+                            }
+                        } else {
+                            LOGERR("setSoundMode failed !! Device Not Connected...\n");
+                            success = false;
+                        }
 		    }
                 }
                 else
@@ -2450,11 +2472,6 @@ namespace WPEFramework {
                         returnResponse(false);
                 }
 
-                if (false == muted && IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
-                        LOGWARN("Ignoring the setMuted(false) request based on the power state");
-                        returnResponse(false);
-                }
-
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 LOGWARN("DisplaySettings::setMuted called Audio Port :%s muted:%d\n", audioPort.c_str(), muted);
@@ -2483,12 +2500,6 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(sLevel);
                         returnResponse(false);
                 }
-
-                if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == getSystemPowerState()) {
-                        LOGWARN("Ignoring the setVolumeLevel(%s) request based on the power state", sLevel.c_str());
-                        returnResponse(false);
-                }
-
 
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
