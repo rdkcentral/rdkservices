@@ -262,6 +262,8 @@ namespace Plugin {
 
         if(status == TTS::TTS_OK)
             response["speechid"] = (int) speechId;
+        else
+            response["speechid"] = (int) -1;
 
         logResponse(status, response);
         returnResponse(status == TTS::TTS_OK);

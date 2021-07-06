@@ -84,6 +84,8 @@ namespace WPEFramework {
                 void process (const InitiateArc &msg, const Header &header);
                 void process (const TerminateArc &msg, const Header &header);
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
+		void process (const SetSystemAudioMode &msg, const Header &header);
+		void process (const ReportAudioStatus &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -482,6 +484,11 @@ private:
 		        ARC_STATE_ARC_TERMINATED,
 			ARC_STATE_ARC_EXIT
 		     };
+		enum {
+                        VOLUME_UP     = 0x41,
+			VOLUME_DOWN   = 0x42,
+			MUTE          = 0x43,
+		      };
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
@@ -517,10 +524,15 @@ private:
                         void requestShortaudioDescriptor();
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
+			void Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void systemAudioModeRequest();
                         void SendStandbyMsgEvent(const int logicalAddress);
+            void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);
+            void sendKeyPressEvent(const int logicalAddress, int keyCode);
+            void sendKeyReleaseEvent(const int logicalAddress);
+			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
         private:
             // We do not allow this plugin to be copied !!
@@ -546,6 +558,9 @@ private:
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
+                        uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
+	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
@@ -563,7 +578,6 @@ private:
             std::mutex m_pollMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
-	    bool m_ArcUiSettingState;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;
 	    binary_semaphore m_semSignaltoArcRoutingThread;
@@ -592,8 +606,7 @@ private:
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int portId, int connectStatus);
-			void onPowerStateON();
-			void wakeupFromStandby();
+	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);

@@ -60,6 +60,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_FOCUS;
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPTS;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
@@ -92,6 +93,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_ANIMATION;
             static const string RDKSHELL_METHOD_ENABLE_INACTIVITY_REPORTING;
             static const string RDKSHELL_METHOD_SET_INACTIVITY_INTERVAL;
+            static const string RDKSHELL_METHOD_RESET_INACTIVITY_TIME;
             static const string RDKSHELL_METHOD_SCALE_TO_FIT;
             static const string RDKSHELL_METHOD_LAUNCH;
             static const string RDKSHELL_METHOD_LAUNCH_APP;
@@ -122,6 +124,13 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
             static const string RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING;
             static const string RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED;
+            static const string RDKSHELL_METHOD_CREATE_WATERMARK;
+            static const string RDKSHELL_METHOD_DELETE_WATERMARK;
+            static const string RDKSHELL_METHOD_ADJUST_WATERMARK;
+            static const string RDKSHELL_METHOD_UPDATE_WATERMARK;
+            static const string RDKSHELL_METHOD_ALWAYS_SHOW_WATERMARK_ON_TOP;
+            static const string RDKSHELL_METHOD_HIDE_ALL_CLIENTS;
+            static const string RDKSHELL_METHOD_IGNORE_KEY_INPUTS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -156,6 +165,7 @@ namespace WPEFramework {
             uint32_t setFocusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
@@ -188,6 +198,7 @@ namespace WPEFramework {
             uint32_t removeAnimationWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInactivityReportingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setInactivityIntervalWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t resetInactivityTimeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t scaleToFitWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t launchWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t suspendWrapper(const JsonObject& parameters, JsonObject& response);
@@ -219,6 +230,13 @@ namespace WPEFramework {
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t createWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t deleteWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t adjustWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t updateWatermarkWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t alwaysShowWatermarkOnTopWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -230,6 +248,7 @@ namespace WPEFramework {
             bool setFocus(const string& client);
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyIntercepts(const JsonArray& intercepts);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
@@ -259,6 +278,7 @@ namespace WPEFramework {
             bool addAnimationList(const JsonArray& animations);
             bool enableInactivityReporting(const bool enable);
             bool setInactivityInterval(const uint32_t interval);
+            bool resetInactivityTime();
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);

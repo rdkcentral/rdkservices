@@ -37,6 +37,8 @@
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
 #define HDMIINPUT_METHOD_READ_RAWHDMISPD "getRawHDMISPD"
 #define HDMIINPUT_METHOD_READ_HDMISPD "getHDMISPD"
+#define HDMIINPUT_METHOD_SET_EDID_VERSION "setEdidVersion"
+#define HDMIINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
@@ -70,6 +72,8 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this, {2});
             registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this, {2});
 	    //version2 api end
+            registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this, {2});
+            registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this, {2});
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
@@ -536,7 +540,7 @@ namespace WPEFramework
                         break;
 
                     case dsVIDEO_FRAMERATE_59dot94:
-                        params["frameRateN"] = 50000;
+                        params["frameRateN"] = 60000;
                         params["frameRateD"] = 1001;
                         break;
 
@@ -744,6 +748,107 @@ namespace WPEFramework
                 LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
             }
             return spdbase64;
+        }
+
+        uint32_t HdmiInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            int portId = 0;
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            returnIfParamNotFound(parameters, "version");
+            string sPortId = parameters["portId"].String();
+            string sVersion = parameters["version"].String();
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            int edidVer = -1;
+            if (strcmp (sVersion.c_str(), "HDMI1.4") == 0) {
+                edidVer = HDMI_EDID_VER_14;
+            }
+            else if (strcmp (sVersion.c_str(), "HDMI2.0") == 0) {
+                edidVer = HDMI_EDID_VER_20;
+            }
+
+            if (edidVer < 0) {
+                returnResponse(false);
+            }
+            bool result = setEdidVersion (portId, edidVer);
+            if (result == false) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        int HdmiInput::setEdidVersion(int iPort, int iEdidVer)
+        {
+            bool ret = true;
+            try
+            {
+                device::HdmiInput::getInstance().setEdidVersion (iPort, iEdidVer);
+                LOGWARN("HdmiInput::setEdidVersion EDID Version:%d", iEdidVer);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+                ret = false;
+            }
+            return ret;
+        }
+
+        uint32_t HdmiInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            string sPortId = parameters["portId"].String();
+            int portId = 0;
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            try {
+                portId = stoi(sPortId);
+            }catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                returnResponse(false);
+            }
+
+            int edidVer = getEdidVersion (portId);
+            switch (edidVer)
+            {
+                case HDMI_EDID_VER_14:
+                    response["edidVersion"] = "HDMI1.4";
+                    break;
+                case HDMI_EDID_VER_20:
+                    response["edidVersion"] = "HDMI2.0";
+                    break;
+            }
+
+            if (edidVer < 0) {
+                returnResponse(false);
+            }
+            else {
+                returnResponse(true);
+            }
+        }
+
+        int HdmiInput::getEdidVersion(int iPort)
+        {
+            int edidVersion = -1;
+
+            try
+            {
+                device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
+                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", &edidVersion);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+            }
+            return edidVersion;
         }
 
     } // namespace Plugin

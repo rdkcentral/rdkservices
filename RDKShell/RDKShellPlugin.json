@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "RDKShell Plugin",
+      "callsign": "org.rdk.RDKShell",
+      "locator": "libWPEFrameworkRDKShell.so",
+      "status": "production",
+      "description": "The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling.",
+      "version": "2.0"
+    },
+    "interface": {
+      "$ref": "RDKShell.json#"
+    }
+}

@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME ramTestClient
+#define MODULE_NAME RemoteActionMapping_Test
 #endif
 
 #include <core/core.h>

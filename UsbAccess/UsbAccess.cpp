@@ -22,14 +22,24 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_AVAILABLE_FIRMWARE_FILES = "getAvailableFirmwareFiles";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
 const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
+const string WPEFramework::Plugin::UsbAccess::METHOD_ARCHIVE_LOGS = "ArchiveLogs";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
+const string WPEFramework::Plugin::UsbAccess::EVT_ON_ARCHIVE_LOGS = "onArchiveLogs";
 const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
-        "[\\w-]*\\.{0,1}[\\w-]*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc)";
+        "[\\w-]*\\.{0,1}[\\w-]*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc|ts)";
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 const std::list<string> WPEFramework::Plugin::UsbAccess::ADDITIONAL_FW_PATHS {"UsbTestFWUpdate", "UsbProdFWUpdate"};
+const string WPEFramework::Plugin::UsbAccess::ARCHIVE_LOGS_SCRIPT = "/lib/rdk/usbLogUpload.sh";
+const WPEFramework::Plugin::UsbAccess::ArchiveLogsErrorMap WPEFramework::Plugin::UsbAccess::ARCHIVE_LOGS_ERRORS = {
+        {ScriptError,  "script error"},
+        {None,         "none"},
+        {Locked,       "Locked"},
+        {NoUSB,        "No USB"},
+        {WritingError, "Writing Error"}
+};
 
 namespace WPEFramework {
 namespace Plugin {
@@ -117,11 +127,15 @@ namespace Plugin {
         registerMethod(METHOD_GET_AVAILABLE_FIRMWARE_FILES, &UsbAccess::getAvailableFirmwareFilesWrapper, this, {2});
         registerMethod(METHOD_GET_MOUNTED, &UsbAccess::getMountedWrapper, this, {2});
         registerMethod(METHOD_UPDATE_FIRMWARE, &UsbAccess::updateFirmware, this, {2});
+        registerMethod(METHOD_ARCHIVE_LOGS, &UsbAccess::archiveLogs, this, {2});
     }
 
     UsbAccess::~UsbAccess()
     {
         UsbAccess::_instance = nullptr;
+
+        if (archiveLogsThread.joinable())
+            archiveLogsThread.join();
     }
 
     const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
@@ -298,6 +312,48 @@ namespace Plugin {
         response["mounted"] = arr;
 
         returnResponse(result);
+    }
+
+    uint32_t UsbAccess::archiveLogs(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+
+        if (archiveLogsThread.joinable())
+            archiveLogsThread.join();
+
+        archiveLogsThread = std::thread(&UsbAccess::archiveLogsInternal, this);
+
+        returnResponse(true);
+    }
+
+    void UsbAccess::archiveLogsInternal()
+    {
+        ArchiveLogsError error = ScriptError;
+
+        std::list<string> paths;
+        getMounted(paths);
+        if (paths.empty())
+            error = NoUSB;
+        else
+        {
+            string script = (ARCHIVE_LOGS_SCRIPT + " " + *paths.begin());
+            int rc = runScript(script.c_str());
+            LOGINFO("'%s' exit code: %d", script.c_str(), rc);
+            error = static_cast<ArchiveLogsError>(rc);
+        }
+
+        onArchiveLogs(error);
+    }
+
+    void UsbAccess::onArchiveLogs(ArchiveLogsError error)
+    {
+        JsonObject params;
+        auto it = ARCHIVE_LOGS_ERRORS.find(error);
+        if (it == ARCHIVE_LOGS_ERRORS.end())
+            it = ARCHIVE_LOGS_ERRORS.find(ScriptError);
+        params["error"] = it->second;
+        params["success"] = (error == None);
+        sendNotify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
     }
 
     // iarm

@@ -64,6 +64,8 @@ using namespace std;
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 
+#define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+
 string notifyStatusToString(Maint_notify_status_t &status)
 {
     string ret_status="";
@@ -196,24 +198,22 @@ namespace WPEFramework {
             }
 
             reboot_reason = reason;
+            LOGINFO("Previous Reboot Reason: %s", reason.c_str());
             return reboot_reason;
         }
 
         bool MaintenanceManager::checkAutoRebootFlag(){
-            LOGINFO("DBG Check AutoReboot Flag");
             bool ret=false;
-            const string autoreboot_parameter="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable";
-            const string baseCommand = "tr181Set -g ";
-            const string redirection = " 2>&1";
-            string cmdResponse="";
-            string cmdParams = "";
-            cmdParams = baseCommand + autoreboot_parameter + redirection + "\0";
-            LOGINFO("executing %s\n", cmdParams.c_str());
-            cmdResponse = Utils::cRunScript(cmdParams.c_str());
-            LOGINFO("TR181 response is %s",cmdResponse.c_str());
-            if(!(cmdResponse.empty() && !cmdResponse.compare("true"))){
-                    ret=true;
+            RFC_ParamData_t param;
+            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),TR181_AUTOREBOOT_ENABLE, &param);
+            if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
+                if( param.type == WDMP_BOOLEAN ){
+                    if(strncasecmp(param.value,"true",4) == 0 ){
+                        ret=true;
+                    }
+                }
             }
+            LOGINFO(" AutoReboot.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
             return ret;
         }
 
@@ -310,9 +310,7 @@ namespace WPEFramework {
         void MaintenanceManager::InitializeIARM()
         {
             if (Utils::IARM::init()) {
-                LOGINFO();
                 IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_Connect());
                 // Register for the Maintenance Notification Events
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
                 //Register for setMaintenanceStartTime
@@ -472,9 +470,12 @@ namespace WPEFramework {
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
                         /* we go for a reboot by check if reboot required is true
                          * & AutoReboot.Enable is true */
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag()){
+                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true ){
                             /* which means reboot is required */
                                 requestSystemReboot();
+                        }
+                        else {
+                            LOGINFO("Reboot not required!!");
                         }
                     }
                     /* Check other than all success case which means we have errors */
@@ -491,11 +492,13 @@ namespace WPEFramework {
                         }
 
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag()){
+                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true){
                             /* even though we end up in skipped task /error
                              * check if we have the reboot required is recevied */
                             requestSystemReboot();
-
+                        }
+                        else {
+                            LOGINFO("Reboot Not Required !!");
                         }
                     }
 
@@ -504,7 +507,7 @@ namespace WPEFramework {
                     }
                 }
                 else {
-                    LOGINFO("Still task are not completed!!!! So status is MAINTENANCE_STARTED");
+                    LOGINFO("Still tasks are not completed!!!!");
                 }
             }
             else {
@@ -518,8 +521,6 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE));
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
-                IARM_CHECK(IARM_Bus_Disconnect());
-                IARM_CHECK(IARM_Bus_Term());
             }
 
             if(m_thread.joinable()){
@@ -560,6 +561,8 @@ namespace WPEFramework {
                     string isRebootPending = "false";
                     string LastSuccessfulCompletionTime = "NA"; /* TODO : check max size to hold this */
                     string getMaintenanceStatusString = "\0";
+                    bool b_criticalMaintenace=false;
+                    bool b_rebootPending=false;
 
                     std::lock_guard<std::mutex> guard(m_callMutex);
 
@@ -577,10 +580,32 @@ namespace WPEFramework {
                         LastSuccessfulCompletionTime=m_setting.getValue("LastSuccessfulCompletionTime").String();
                     }
 
+                    if (!isCriticalMaintenance.compare("true")){
+                        b_criticalMaintenace=true;
+                    }
+
+                    if(!isRebootPending.compare("true")){
+                        b_rebootPending=true;
+                    }
+
                     response["maintenanceStatus"] = notifyStatusToString(g_notify_status);
-                    response["LastSuccessfulCompletionTime"] = LastSuccessfulCompletionTime;
-                    response["isCriticalMaintenance"] = isCriticalMaintenance;
-                    response["isRebootPending"] = isRebootPending;
+                    if(strcmp("NA",LastSuccessfulCompletionTime.c_str())==0)
+                    {
+                       response["LastSuccessfulCompletionTime"] = 0;  // stoi is not able handle "NA"
+                    } 
+                    else
+                    {
+                       try{
+                               response["LastSuccessfulCompletionTime"] = stoi(LastSuccessfulCompletionTime.c_str());
+                          }
+                       catch(exception &err)
+                          {
+                              //exception caught with stoi -- So making "LastSuccessfulCompletionTime" as 0
+                              response["LastSuccessfulCompletionTime"] = 0;
+                          }
+                    }
+                    response["isCriticalMaintenance"] = b_criticalMaintenace;
+                    response["isRebootPending"] = b_rebootPending;
                     result = true;
 
                     returnResponse(result);

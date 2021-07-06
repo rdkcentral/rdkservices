@@ -22,6 +22,9 @@
 #include "exception.hpp"
 #include "utils.h"
 #include "dsError.h"
+#include "dsMgr.h"
+#include "libIBus.h"
+#include "libIBusDaemon.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -35,6 +38,8 @@
 
 // Events
 #define EVENT_FPS_UPDATE "onFpsEvent"
+#define EVENT_FRAMERATE_PRECHANGE  "onDisplayFrameRateChanging"
+#define EVENT_FRAMERATE_POSTCHANGE    "onDisplayFrameRateChanged"
 
 //Defines
 #define DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS 10000
@@ -75,9 +80,38 @@ namespace WPEFramework
         {
         }
 
+	const string FrameRate::Initialize(PluginHost::IShell * /* service */)
+        {
+		InitializeIARM();
+                return "";
+        }
+
+	void FrameRate::InitializeIARM()
+        {
+            LOGWARN("FrameRate::InitializeIARM");
+	    if(Utils::IARM::init())
+	    {
+
+		    IARM_Result_t res;
+		    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE, FrameRatePreChange) );
+		    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, FrameRatePostChange) );
+	    }
+	}
+
+	void FrameRate::DeinitializeIARM()
+	{
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE) );
+            }
+        }
+
         void FrameRate::Deinitialize(PluginHost::IShell* /* service */)
         {
-            FrameRate::_instance = nullptr;
+		DeinitializeIARM();
+    		FrameRate::_instance = nullptr;
         }
 
         uint32_t FrameRate::setCollectionFrequencyWrapper(const JsonObject& parameters, JsonObject& response)
@@ -386,6 +420,33 @@ namespace WPEFramework
                 m_numberOfFpsUpdates = 0;
             }
         }
+
+	void FrameRate::FrameRatePreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(FrameRate::_instance)
+            {
+                FrameRate::_instance->frameRatePreChange();
+            }
+        }
+
+        void FrameRate::frameRatePreChange()
+        {
+            sendNotify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+        }
+
+        void FrameRate::FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(FrameRate::_instance)
+            {
+                FrameRate::_instance->frameRatePostChange();
+            }
+        }
+
+        void FrameRate::frameRatePostChange()
+        {
+            sendNotify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+        }
+
         
     } // namespace Plugin
 } // namespace WPEFramework

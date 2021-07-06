@@ -126,6 +126,7 @@ if (BUILD_XG1)
 
     add_definitions (-DUSE_UPNP_DISCOVERY)
     add_definitions (-DENABLE_VREX_SERVICE)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
     # added for Arris Xone
     if (USE_IARM)
@@ -177,6 +178,7 @@ if (BUILD_XG1V3)
     add_definitions (-DENABLE_CONTROL_SERVICE)
     add_definitions (-DRF4CE_API)
     add_definitions (-DENABLE_FRONT_PANEL_API_V4)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
 	# added for Iarmbus support
 	if (USE_IARM) 
@@ -218,6 +220,7 @@ if (BUILD_XG2)
     #add_definitions (-DENABLE_UPDATE_MANAGER_SERVICE)
     add_definitions (-DENABLE_REMOTE_ACTION_MAPPING_SERVICE)
     add_definitions (-DENABLE_CONTROL_SERVICE)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 
     # added for Iarmbus support
     if (USE_IARM)
@@ -286,6 +289,7 @@ if (BUILD_XI3)
     add_definitions (-DENABLE_VREX_SERVICE)
     add_definitions (-DRF4CE_API)
     add_definitions (-DDPLUGIN_STATEOBSERVER)
+    add_definitions (-DNET_DISABLE_NETSRVMGR_CHECK)
 endif()
 
 if(SCREEN_CAPTURE)

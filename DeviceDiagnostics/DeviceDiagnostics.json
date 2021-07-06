@@ -1,0 +1,137 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "DeviceDiagnostics API", 
+        "class": "DeviceDiagnostics", 
+        "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
+    },
+    "definitions": {
+        "audioDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
+        "AVDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getConfiguration": {
+            "summary": "Gets the values associated with the corresponding property names",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "names": {
+                        "summary": "String array of property names",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "Device.X_CISCO_COM_LED.RedPwm"
+                        }
+                    }
+                },
+                "required": [
+                    "names"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "paramList": {
+                        "summary": "An array of JSON objects with the specified properties and their values",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "summary": "The property name",
+                                    "type":"string",
+                                    "example": "Device.X_CISCO_COM_LED.RedPwm"
+                                },
+                                "value": {
+                                    "summary": "The property value",
+                                    "type":"string",
+                                    "example": "123"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "value"
+                            ]                        
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "paramList",
+                    "success"
+                ]
+            }
+        },
+        "getAVDecoderStatus":{
+            "summary": "Gets the most active status of any audio/video decoder/pipeline.",
+            "result":{
+                "type":"object",
+                "properties": {
+                    "AVDecoderStatus": {
+                        "$ref": "#/definitions/AVDecoderStatus"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "AVDecoderStatus",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onAVDecoderStatusChanged":{
+            "summary": "Triggered when the most active status of any audio/video decoder/pipeline changes.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "AVDecoderStatus": {
+                        "$ref": "#/definitions/AVDecoderStatus"
+                    }
+                },
+                "required": [
+                    "AVDecoderStatus"
+                ]
+            }
+        }
+    }
+}

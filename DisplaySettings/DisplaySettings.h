@@ -20,8 +20,10 @@
 #pragma once
 
 #include <mutex>
+#include <condition_variable>
 #include "Module.h"
 #include "utils.h"
+#include "dsTypes.h"
 #include "tptimer.h"
 #include "AbstractPlugin.h"
 #include "libIBus.h"
@@ -126,12 +128,14 @@ namespace WPEFramework {
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
 
+	    uint32_t getAudioFormat(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
 
             void InitAudioPorts();
+            void AudioPortsReInitialize();
             //End methods
 
             //Begin events
@@ -141,9 +145,11 @@ namespace WPEFramework {
             void activeInputChanged(bool activeInput);
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
+	    void notifyAudioFormatChange(dsAudioFormat_t audioFormat);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
+	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
@@ -158,8 +164,11 @@ namespace WPEFramework {
             static void ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	    static void audioFormatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            static void audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
+	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
@@ -169,15 +178,32 @@ namespace WPEFramework {
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
+	    bool sendHdmiCecSinkAudioDevicePowerOn();
+	    static void  cecArcRoutingThread();
 	    void onTimer();
 
 	    TpTimer m_timer;
             bool m_subscribed;
             std::mutex m_callMutex;
+	    std::thread m_arcRoutingThread;
+	    std::mutex m_arcRoutingStateMutex;
+	    bool m_cecArcRoutingThreadRun; 
+	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
+        bool m_arcAudioEnabled;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
+
+            enum {
+                ARC_STATE_REQUEST_ARC_INITIATION,
+                ARC_STATE_ARC_INITIATED,
+                ARC_STATE_REQUEST_ARC_TERMINATION,
+                ARC_STATE_ARC_TERMINATED,
+                ARC_STATE_ARC_EXIT
+            };
+
+            int m_currentArcRoutingState; 
 
         public:
             static DisplaySettings* _instance;
