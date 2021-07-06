@@ -606,8 +606,7 @@ private:
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int portId, int connectStatus);
-			void onPowerStateON();
-			void wakeupFromStandby();
+	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);
