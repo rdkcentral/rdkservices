@@ -47,9 +47,11 @@
 #define HDMICEC2_METHOD_SET_VENDOR_ID "setVendorId"
 #define HDMICEC2_METHOD_GET_VENDOR_ID "getVendorId"
 #define HDMICEC2_METHOD_PERFORM_OTP_ACTION "performOTPAction"
+#define HDMICEC2_METHOD_SEND_STANDBY_MESSAGE "sendStandbyMessage"
 
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
+#define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
 #define DEV_TYPE_TUNER 1
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define ABORT_REASON_ID 4
@@ -141,11 +143,9 @@ namespace WPEFramework
        void HdmiCec_2Processor::process (const Standby &msg, const Header &header)
        {
              printHeader(header);
-             if(header.from.toInt() == LogicalAddress::TV)
-             {
-                 tvPowerState = 1; 
-                 LOGINFO("Command: Standby  tvPowerState :%s \n",(tvPowerState.toInt())?"OFF":"ON");
-             }  
+             LOGINFO("Command: Standby from %s\n", header.from.toString().c_str());
+             HdmiCec_2::_instance->SendStandbyMsgEvent(header.from.toInt());
+
        }
        void HdmiCec_2Processor::process (const GetCECVersion &msg, const Header &header)
        {
@@ -336,6 +336,7 @@ namespace WPEFramework
            registerMethod(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
+           registerMethod(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
 
        }
 
@@ -417,6 +418,51 @@ namespace WPEFramework
            smConnection = NULL;
            DeinitializeIARM();
        }
+
+       void HdmiCec_2::SendStandbyMsgEvent(const int logicalAddress)
+       {
+           JsonObject params;
+           params["logicalAddress"] = JsonValue(logicalAddress);
+           sendNotify(HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED, params);
+       }
+ 
+       uint32_t HdmiCec_2::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
+       {
+	   if(sendStandbyMessage())
+	   { 
+               returnResponse(true);
+	   }  
+	   else
+	   {
+	       returnResponse(false);
+	   } 
+       }
+ 
+       bool HdmiCec_2::sendStandbyMessage()
+       {
+            bool ret = false;
+            if(true == cecEnableStatus)
+            {
+                if (smConnection){
+                   try
+                   {
+                       smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 5000);
+		       ret = true;
+                   }
+                   catch(...)
+                   {
+                       LOGWARN("Exception while sending CEC StandBy Message");
+                   }
+                }
+                else {
+                    LOGWARN("smConnection is NULL");
+                }
+            }
+            else
+                LOGWARN("cecEnableStatus=false");
+	    return ret;
+       }
+
 
        const void HdmiCec_2::InitializeIARM()
        {
