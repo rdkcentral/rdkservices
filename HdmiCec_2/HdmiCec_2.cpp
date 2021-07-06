@@ -428,31 +428,31 @@ namespace WPEFramework
  
        uint32_t HdmiCec_2::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
        {
-           if(sendStandbyMessage())
-           {		  
+	   if(sendStandbyMessage())
+	   {		  
                returnResponse(true);
 	   }    
 	   else
-           {		  
+	   {
 	       returnResponse(false);
 	   }    
        }
  
-        bool HdmiCec_2::sendStandbyMessage()
-        {
-	    bool ret = false;
+       bool HdmiCec_2::sendStandbyMessage()
+       {
+            bool ret = false;
             if(true == cecEnableStatus)
             {
-                if (smConnection) {
-                    try
+                if (smConnection){
+                   try
                    {
                        smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 5000);
 		       ret = true;
-                    }
-                    catch(...)
-                    {
+                   }
+                   catch(...)
+                   {
                        LOGWARN("Exception while sending CEC StandBy Message");
-                    }
+                   }
                 }
                 else {
                     LOGWARN("smConnection is NULL");
@@ -461,7 +461,7 @@ namespace WPEFramework
             else
                 LOGWARN("cecEnableStatus=false");
 	    return ret;
-         }
+       }
 
 
        const void HdmiCec_2::InitializeIARM()
