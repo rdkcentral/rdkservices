@@ -36,6 +36,7 @@ namespace Plugin {
         ASSERT(_roomAdmin == nullptr);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
+        ASSERT(_roomACL.empty() == true);
 
         _service = service;
         _service->AddRef();
@@ -67,6 +68,8 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
+
+        _roomACL.clear();
     }
 
     // Web request handlers
