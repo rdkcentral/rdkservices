@@ -431,6 +431,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
@@ -469,13 +471,10 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             int32_t nfxResult = E_NOK;
-            string rebootCommand = "";
-            string rebootReason = "";
-            string customReason = "";
-            string otherReason = "";
+            string customReason = "No custom reason provided";
+            string otherReason = "No other reason supplied";
             bool result = false;
 
-            //TODO: Replace system command
             nfxResult = system("pgrep nrdPluginApp");
             if (E_OK == nfxResult) {
                 LOGINFO("SystemService shutting down Netflix...\n");
@@ -488,53 +487,26 @@ namespace WPEFramework {
                             process. nfxResult = %ld\n", (long int)nfxResult);
                 }
             }
-            if (Utils::fileExists("/rebootNow.sh")) {
-                rebootCommand = "/rebootNow.sh";
-            } else if (Utils::fileExists("/lib/rdk/rebootNow.sh")) {
-                rebootCommand = "/lib/rdk/rebootNow.sh";
-            } else {
-                LOGINFO("rebootNow.sh is not present in /lib/rdk or \
-                        /root\n");
+
+            if (parameters.HasLabel("rebootReason")) {
+                customReason = parameters["rebootReason"].String();
+                otherReason = customReason;
             }
 
-            if (!(rebootCommand.empty())) {
-                rebootReason = "System Plugin";
-                customReason = "No custom reason provided";
-                otherReason = "No other reason supplied";
+            IARM_Bus_PWRMgr_RebootParam_t rebootParam;
+            strncpy(rebootParam.requestor, "System Plugin", sizeof(rebootParam.requestor));
+            strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
+            strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
+            LOGINFO("requestSystemReboot: custom reason: %s, other reason: %s\n", rebootParam.reboot_reason_custom,
+                rebootParam.reboot_reason_other);
 
-                if (parameters.HasLabel("rebootReason")) {
-                    customReason = parameters["rebootReason"].String();
-                    otherReason = customReason;
-                }
-
-                rebootCommand += " -s \"" + rebootReason + "\"";
-                rebootCommand += " -r \"" + customReason + "\"";
-                rebootCommand += " -o \"" + otherReason + "\"";
-                rebootCommand += " &";
-
-                LOGINFO("IARM_BUS RunScript: '%s'\n", rebootCommand.c_str());
-                IARM_Bus_SYSMgr_RunScript_t runScriptParam;
-                runScriptParam.return_value = -1;
-                strcpy(runScriptParam.script_path, rebootCommand.c_str());
-                IARM_Result_t iarmcallstatus = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME,
-                        IARM_BUS_SYSMGR_API_RunScript,
-                        &runScriptParam, sizeof(runScriptParam));
-
-                nfxResult = !runScriptParam.return_value;
-                response["IARM_Bus_Call_STATUS"] = nfxResult;
-                result = true;
-
-                /* Trigger rebootRequest event if IARMCALL is success. */
-                if (IARM_RESULT_SUCCESS == iarmcallstatus) {
-                    SystemServices::_instance->onRebootRequest(customReason);
-                } else {
-                    LOGERR("iarmcallstatus = %d; onRebootRequest event will not be fired.\n",
-                            iarmcallstatus);
-                }
-            } else {
-                LOGINFO("Rebooting failed as rebootNow.sh is not present\n");
-                populateResponseWithError(SysSrv_FileNotPresent, response);
+            IARM_Result_t iarmcallstatus = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                    IARM_BUS_PWRMGR_API_Reboot, &rebootParam, sizeof(rebootParam));
+            if(IARM_RESULT_SUCCESS != iarmcallstatus) {
+                LOGWARN("requestSystemReboot: IARM_BUS_PWRMGR_API_Reboot failed with code %d.\n", iarmcallstatus); 
             }
+            response["IARM_Bus_Call_STATUS"] = static_cast <int32_t> (iarmcallstatus);
+            result = true;
             returnResponse(result);
         }//end of requestSystemReboot
 
@@ -699,6 +671,15 @@ namespace WPEFramework {
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
+        }
+
+        void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
+        {
+            JsonObject params;
+            params["requestedApp"] = requestedApp;
+            params["rebootReason"] = rebootReason;
+
+            sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
         /**
@@ -3312,6 +3293,17 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     }
+                case  IARM_BUS_PWRMGR_EVENT_REBOOTING:
+                    {
+                        IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;
+
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    }
+
                     break;
             }
         }
