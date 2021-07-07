@@ -119,15 +119,34 @@ namespace WPEFramework
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
+	    bool retValue = false;
+            try{
+            	if (parameters.HasLabel("frequency"))
+            	{
+            		int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
+	                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
+			if( fpsFrequencyInMilliseconds >= 100) // make sure min freq is 100 and not less than that.
+			{
+        	    		setCollectionFrequency(fpsFrequencyInMilliseconds);
+            			retValue = true;
+			}
+			else{
+                            LOGWARN("Minimum FrameRate is 100.");
+                            retValue = false;
+                        }
+            	}
+		else{
+                     LOGWARN("Please enter valid FrameRate Parameter name.");
+                     retValue = false;
+                    }
+	     }
+	     catch(...)
+	     {
+		LOGERR("Please enter valid FrameRate value");
+                retValue = false;
+ 	     }	
             
-            int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
-            if (parameters.HasLabel("frequency"))
-            {
-                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
-            }
-            setCollectionFrequency(fpsFrequencyInMilliseconds);
-            
-            returnResponse(true);
+             returnResponse(retValue);
         }
         
         uint32_t FrameRate::startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response)

@@ -138,6 +138,7 @@ SystemServices interface methods:
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
+| [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 
 
 <a name="method.cacheContains"></a>
@@ -2549,6 +2550,52 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.System.1.updateFirmware"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.deletePersistentPath"></a>
+## *deletePersistentPath <sup>method</sup>*
+
+(Version 2) Deletes persistent path associated with a callsign.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | Callsign of the service to delete persistent path |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.deletePersistentPath",
+    "params": {
+        "callsign": "HtmlApp"
+    }
 }
 ```
 
