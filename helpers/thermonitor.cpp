@@ -125,6 +125,49 @@ namespace WPEFramework {
             return result;
         }
 
+	bool CThermalMonitor::getOvertempGraceInterval(int& graceInterval) const
+        {
+            bool result = false;
+            IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t param;
+
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                    IARM_BUS_PWRMGR_API_GetOvertempGraceInterval,
+                    (void *)&param,
+                    sizeof(param));
+
+            if (res == IARM_RESULT_SUCCESS) {
+                graceInterval = param.graceInterval;
+                LOGWARN("Got current overtemparature grace inetrval: %d", graceInterval);
+                result = true;
+            } else {
+                graceInterval = 0;
+                LOGWARN("[%s] IARM Call failed.", __FUNCTION__);
+            }
+
+            return result;
+        }
+
+	bool CThermalMonitor::setOvertempGraceInterval(int graceInterval) const
+        {
+            bool result = false;
+            IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t param;
+            param.graceInterval = graceInterval;
+
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                    IARM_BUS_PWRMGR_API_SetOvertempGraceInterval,
+                    (void *)&param,
+                    sizeof(param));
+
+            if (res == IARM_RESULT_SUCCESS) {
+                LOGWARN("Set new overtemparature grace interval: %d", graceInterval);
+                result = true;
+            } else {
+                LOGWARN("[%s] IARM Call failed.", __FUNCTION__);
+            }
+
+            return result;
+        }
+
         void CThermalMonitor::emitTemperatureThresholdChange(std::string thresholdType, bool isAboveThreshold, float temperature)
         {
             LOGWARN("emitTemperatureThresholdChange invoked.");
