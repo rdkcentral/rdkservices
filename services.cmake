@@ -275,6 +275,9 @@ elseif(BUILD_AMLOGIC)
     include(amlogic.cmake)
 endif()
 
+if(BUILD_ENABLE_ERM)
+	add_definitions(-DENABLE_ERM)
+endif()
 
 
 
