@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <thread>
+#include <unordered_map>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -126,6 +127,9 @@ namespace WPEFramework {
                 std::mutex  m_callMutex;
                 std::condition_variable task_thread;
                 std::thread m_thread;
+
+                std::unordered_map<string, bool> m_task_map;    
+                        
 
                 void task_execution_thread();
                 void requestSystemReboot();
