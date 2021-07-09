@@ -32,12 +32,16 @@ namespace Plugin {
     {
         ASSERT(service != nullptr);
         ASSERT(_player == nullptr);
+        ASSERT(_service == nullptr);
 
         string message;
         Config config;
         config.FromString(service->ConfigLine());
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
+        _connectionId = 0;
+        _service = service;
+        _service->Register(&_rcnotification);
         _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 2000, _T("PlayerInfoImplementation"));
 
         if (_player != nullptr) {
@@ -85,19 +89,58 @@ namespace Plugin {
         return message;
     }
 
+    void PlayerInfo::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        if (connection->Id() == _connectionId) {
+            ASSERT(_service != nullptr);
+            // This can potentially be called on a socket thread, so the deactivation (wich in turn kills this object) must be done
+            // on a seperate thread. Also make sure this call-stack can be unwound before we are totally destructed.
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
+        }
+    }
+
     /* virtual */ void PlayerInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_player != nullptr);
-        if (_player != nullptr) {
-            Exchange::JPlayerProperties::Unregister(*this);
-            _player->Release();
-        }
+        ASSERT(_audioCodecs != nullptr);
+        ASSERT(_videoCodecs != nullptr);
+        ASSERT(service == _service);
+
+        _service->Unregister(&_rcnotification);
+
         if (_dolbyOut != nullptr)
         {
              _notification.Deinitialize();
             Exchange::Dolby::JOutput::Unregister(*this);
+
+            _dolbyOut->Release();
+            _dolbyOut = nullptr;
+
         }
+
+        _audioCodecs->Release();
+        _audioCodecs = nullptr;
+        _videoCodecs->Release();
+        _videoCodecs = nullptr;
+
+        Exchange::JPlayerProperties::Unregister(*this);
+        auto const result = _player->Release();
+
+        if (result != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+
+            // The process can disappear in the meantime...
+            if (connection != nullptr) {
+
+                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                connection->Terminate();
+                connection->Release();
+            }
+        }
+
         _connectionId = 0;
+        _service = nullptr;
+        _player == nullptr;
     }
 
     /* virtual */ string PlayerInfo::Information() const
