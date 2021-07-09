@@ -158,6 +158,8 @@ namespace WPEFramework {
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
+
+
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
@@ -176,7 +178,15 @@ namespace WPEFramework {
             registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
             registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
-        }
+        
+                  
+            MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
+            MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
+            MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
+            MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
+         
+
+         }
 
 
         string MaintenanceManager::getLastRebootReason(){
@@ -262,6 +272,8 @@ namespace WPEFramework {
                     cmd=task_names_foreground[i].c_str();
                     cmd+=" &";
                     cmd+="\0";
+                    m_task_map[task_names_foreground[i].c_str()]=true; 
+                    LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                     system(cmd.c_str());
                 }
                 LOGINFO("Worker Thread Completed");
@@ -273,6 +285,8 @@ namespace WPEFramework {
                     cmd=task_names_foreground[0].c_str();
                     cmd+=" &";
                     cmd+="\0";
+                    m_task_map[task_names_foreground[0].c_str()]=true;
+                    LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                     system(cmd.c_str());
                     cmd="";
                     for (i=1;i<task_count;i++){
@@ -280,6 +294,8 @@ namespace WPEFramework {
                         cmd=task_names_foreground[i].c_str();
                         cmd+=" &";
                         cmd+="\0";
+                        m_task_map[task_names_foreground[i].c_str()]=true;  
+                        LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
             }
@@ -345,6 +361,7 @@ namespace WPEFramework {
                 exec_status = system("/lib/rdk/StartDCM_maintaince.sh &");
                 if ( E_OK == exec_status ){
                     LOGINFO("DBG:Succesfully executed StartDCM_maintaince.sh \n");
+                    m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=true;
                 }
                 else {
                     LOGINFO("DBG:Failed to execute StartDCM_maintaince.sh !! \n");
@@ -377,6 +394,10 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
+            auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
+            auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
             LOGINFO("Event-ID = %d \n",eventId);
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
@@ -397,23 +418,48 @@ namespace WPEFramework {
                     LOGINFO("MaintMGR Status %s \n", status_string.c_str());
                     switch (module_status) {
                         case MAINT_RFC_COMPLETE :
-                            SET_STATUS(g_task_status,RFC_SUCCESS);
-                            SET_STATUS(g_task_status,RFC_COMPLETE);
-                            task_thread.notify_one();
+                            if(task_status_RFC->second != true) {
+                                 LOGINFO("Ignoring Event RFC_COMPLETE");    
+                            }
+                            else {  
+                                 SET_STATUS(g_task_status,RFC_SUCCESS);
+                                 SET_STATUS(g_task_status,RFC_COMPLETE);
+                                 task_thread.notify_one();
+                                 m_task_map[task_names_foreground[0].c_str()]=false; 
+                            }   
                             break;
                         case MAINT_DCM_COMPLETE :
-                            SET_STATUS(g_task_status,DCM_SUCCESS);
-                            SET_STATUS(g_task_status,DCM_COMPLETE);
-                            task_thread.notify_one();
+                            if(task_status_DCM->second != true) {
+                                 LOGINFO("Ignoring Event DCM_COMPLETE");
+                            }
+                            else { 
+                                SET_STATUS(g_task_status,DCM_SUCCESS);
+                                SET_STATUS(g_task_status,DCM_COMPLETE);
+                                task_thread.notify_one();
+                                m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
+                            }
                             break;
                         case MAINT_FWDOWNLOAD_COMPLETE :
-                            SET_STATUS(g_task_status,DIFD_SUCCESS);
-                            SET_STATUS(g_task_status,DIFD_COMPLETE);
-                            task_thread.notify_one();
+                            if(task_status_FWDLD->second != true) {
+                                 LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
+                            }
+                            else {
+                                SET_STATUS(g_task_status,DIFD_SUCCESS);
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                task_thread.notify_one();
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+                            }
                             break;
                        case MAINT_LOGUPLOAD_COMPLETE :
-                            SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
-                            SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                            if(task_status_LOGUPLD->second != true) {
+                                 LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
+                            }
+                            else {
+                                SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+                            }
+
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
@@ -426,24 +472,72 @@ namespace WPEFramework {
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             break;
                         case MAINT_DCM_ERROR:
-                            SET_STATUS(g_task_status,DCM_COMPLETE);
-                            task_thread.notify_one();
-                            LOGINFO("Error encountered in one of the task \n");
+                            if(task_status_DCM->second != true) {
+                                 LOGINFO("Ignoring Event DCM_ERROR");
+                            }
+                            else {    
+                                SET_STATUS(g_task_status,DCM_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("Error encountered in DCM script task \n");
+                                m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
+                            }                                        
                             break;
                         case MAINT_RFC_ERROR:
-                            SET_STATUS(g_task_status,RFC_COMPLETE);
-                            task_thread.notify_one();
-                            LOGINFO("Error encountered in one of the task \n");
+                            if(task_status_RFC->second != true) {
+                                 LOGINFO("Ignoring Event RFC_ERROR");
+                            }
+                            else {
+                                 SET_STATUS(g_task_status,RFC_COMPLETE);
+                                 task_thread.notify_one();     
+                                 LOGINFO("Error encountered in RFC script task \n");
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+                            }
+
                             break;
                         case MAINT_LOGUPLOAD_ERROR:
-                            SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                            LOGINFO("Error encountered in one of the task \n");
+                            if(task_status_LOGUPLD->second != true) {
+                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
+                            }
+                            else {
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                LOGINFO("Error encountered in LOGUPLOAD script task \n");
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+                            }
+
                             break;
                        case MAINT_FWDOWNLOAD_ERROR:
-                            SET_STATUS(g_task_status,DIFD_COMPLETE);
-                            task_thread.notify_one();
-                            LOGINFO("Error encountered in one of the task \n");
+                            if(task_status_FWDLD->second != true) {
+                                 LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
+                            }
+                            else {   
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("Error encountered in SWUPDATE script task \n");
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+                            }
                             break;
+                       case MAINT_DCM_INPROGRESS:
+                            m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=true;
+                            /*will be set to false once COMEPLETE/ERROR received for DCM*/
+                            LOGINFO(" DCM already IN PROGRESS -> setting m_task_map of DCM to true \n");
+                            break;
+                       case MAINT_RFC_INPROGRESS:
+                            m_task_map[task_names_foreground[0].c_str()]=true;
+                            /*will be set to false once COMEPLETE/ERROR received for RFC*/
+                            LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
+                            break;
+                       case MAINT_FWDOWNLOAD_INPROGRESS:
+                            m_task_map[task_names_foreground[1].c_str()]=true;
+                            /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
+                            LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
+                            break;
+                       case MAINT_LOGUPLOAD_INPROGRESS:
+                            m_task_map[task_names_foreground[2].c_str()]=true;
+                            /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
+                            LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
+                            break;
+
+                                 
                     }
                 }
                 else{
@@ -592,7 +686,7 @@ namespace WPEFramework {
                     if(strcmp("NA",LastSuccessfulCompletionTime.c_str())==0)
                     {
                        response["LastSuccessfulCompletionTime"] = 0;  // stoi is not able handle "NA"
-                    }
+                    } 
                     else
                     {
                        try{
