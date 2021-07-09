@@ -46,6 +46,7 @@
 #endif
 
 #define FP_SETTINGS_FILE_JSON "/opt/fp_service_preferences.json"
+#define FP_MAX_NUM_BLINK_EXCEPTIONS (6)
 
 /*
 Requirement now
@@ -73,6 +74,7 @@ namespace WPEFramework
         static bool powerStatus = false;     //Check how this works on xi3 and rng's
         static bool started = false;
         static int m_numberOfBlinks = 0;
+        static int m_numberOfBlinkExeceptions = 0;
         static int m_maxNumberOfBlinkRepeats = 0;
         static int m_currentBlinkListIndex = 0;
         static std::vector<std::string> m_lights;
@@ -207,6 +209,7 @@ namespace WPEFramework
             }
             if (!started)
             {
+                m_numberOfBlinkExeceptions = 0;
                 m_numberOfBlinks = 0;
                 m_maxNumberOfBlinkRepeats = 0;
                 m_currentBlinkListIndex = 0;
@@ -627,6 +630,7 @@ namespace WPEFramework
             LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats, m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
+            m_numberOfBlinkExeceptions = 0;
             m_isBlinking = true;
             m_maxNumberOfBlinkRepeats = numberOfBlinkRepeats;
             m_currentBlinkListIndex = 0;
@@ -663,7 +667,10 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception caught in setBlinkLed for setColor");
+                m_numberOfBlinkExeceptions ++;
+                if (m_numberOfBlinkExeceptions < FP_MAX_NUM_BLINK_EXCEPTIONS) {
+                    LOGWARN("setBlinkLed for setColor API failed");
+                }
             }
             try
             {
@@ -674,7 +681,10 @@ namespace WPEFramework
             }
             catch (...)
             {
-                LOGWARN("Exception caught in setBlinkLed for setBrightness ");
+                m_numberOfBlinkExeceptions ++;
+                if (m_numberOfBlinkExeceptions < FP_MAX_NUM_BLINK_EXCEPTIONS) {
+                    LOGWARN("setBlinkLed for setBrightness API failed");
+                }
             }
         }
 
