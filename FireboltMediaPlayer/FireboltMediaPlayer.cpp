@@ -31,10 +31,6 @@ namespace WPEFramework {
          */
         FireboltMediaPlayer::MediaStreamProxy::~MediaStreamProxy()
         {
-            LOGINFO();
-            if (_implementation) {
-                _implementation->Unregister(&_mediaPlayerSink);
-            }
             while(_implementation) {
                 auto result = _implementation->Release();
 
@@ -56,8 +52,6 @@ namespace WPEFramework {
          */
         uint32_t FireboltMediaPlayer::MediaStreamProxy::Release()
         {
-            LOGINFO();
-            _implementation->Unregister(&_mediaPlayerSink);
             auto result = _implementation->Release();
 
             // If the release wasn't successful then this instance should be destroyed
