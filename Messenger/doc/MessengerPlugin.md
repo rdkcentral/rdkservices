@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The Messenger allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room the client receives a unique token (room ID) to be used for sending and receiving the messages.
+The `Messenger` plugin allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room, the client receives a unique token (room ID) to be used for sending and receiving the messages.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -97,7 +97,7 @@ Joins a messaging room.
 
 ### Description
 
-Use this method to join a room. If the specified room does not exist, then it will be created.
+Use this method to join a room. If the specified room does not exist, then it is created.
 
 Also see: [userupdate](#event.userupdate)
 
@@ -106,11 +106,8 @@ Also see: [userupdate](#event.userupdate)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.user | string | User name to join the room under (must not be empty) |
-| params.room | string | Name of the room to join (must not be empty) |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
-| params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
-| params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
+| params.user | string | The user name to join the room under (must not be empty) |
+| params.room | string | The name of the room to join (must not be empty) |
 
 ### Result
 
@@ -125,7 +122,6 @@ Also see: [userupdate](#event.userupdate)
 | :-------- | :-------- | :-------- |
 | 5 | ```ERROR_ILLEGAL_STATE``` | User name is already taken (i.e. the user has already joined the room) |
 | 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
-| 24 | ```ERROR_PRIVILEGED_REQUEST``` | Room security errors |
 
 ### Example
 
@@ -138,11 +134,7 @@ Also see: [userupdate](#event.userupdate)
     "method": "Messenger.1.join",
     "params": {
         "user": "Bob",
-        "room": "Lounge",
-        "secure": "secure",
-        "acl": [
-            "https://*.github.io"
-        ]
+        "room": "Lounge"
     }
 }
 ```
@@ -302,7 +294,6 @@ Register to this event to be notified about room status updates. Immediately aft
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.room | string | Name of the room this notification relates to |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
 | params.action | string | Specifies the room status change, e.g. created or destroyed (must be one of the following: *created*, *destroyed*) |
 
 ### Example
@@ -313,7 +304,6 @@ Register to this event to be notified about room status updates. Immediately aft
     "method": "client.events.1.roomupdate",
     "params": {
         "room": "Lounge",
-        "secure": "secure",
         "action": "created"
     }
 }

@@ -21,12 +21,12 @@ Packager plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the Packager plugin. It includes detailed specification of its configuration and methods provided.
+This document describes purpose and functionality of the Packager plugin. It includes detailed specification about its configuration and methods provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The Packager plugin allows installation of OPKG, IPKG and DEB packages to the system from a remote repository.
+The `Packager` plugin allows installation of OPKG, IPKG, and DEB packages to the system from a remote repository.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -73,7 +73,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *Packager*) |
 | classname | string | Class name: *Packager* |
 | locator | string | Library name: *libWPEFrameworkPackager.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
@@ -84,20 +84,21 @@ Packager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [install](#method.install) | Installs a package given by a name, an URL or a file path |
-| [synchronize](#method.synchronize) | Synchronizes repository manifest with a repository |
+| [install](#method.install) | Installs a package given by a name, a URL, or a file path |
+| [synchronize](#method.synchronize) | Synchronizes the repository manifest with a repository |
+
 
 <a name="method.install"></a>
 ## *install <sup>method</sup>*
 
-Installs a package given by a name, an URL or a file path.
+Installs a package given by a name, a URL, or a file path.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.package | string | A name, an URL or a file path of the package to install |
+| params.package | string | A name, a URL, or a file path of the package to install |
 | params?.version | string | <sup>*(optional)*</sup> Version of the package to install |
 | params?.architecture | string | <sup>*(optional)*</sup> Architecture of the package to install |
 
@@ -111,7 +112,7 @@ Installs a package given by a name, an URL or a file path.
 
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
-| 12 | ```ERROR_INPROGRESS``` | Returned when the function is called while other installation/synchronization is already in progress. |
+| 12 | ```ERROR_INPROGRESS``` | Returned when the function is called while other installation/synchronization is already in progress |
 
 ### Example
 
@@ -129,6 +130,7 @@ Installs a package given by a name, an URL or a file path.
     }
 }
 ```
+
 #### Response
 
 ```json
@@ -138,10 +140,11 @@ Installs a package given by a name, an URL or a file path.
     "result": null
 }
 ```
+
 <a name="method.synchronize"></a>
 ## *synchronize <sup>method</sup>*
 
-Synchronizes repository manifest with a repository.
+Synchronizes the repository manifest with a repository.
 
 ### Parameters
 
@@ -170,6 +173,7 @@ This method takes no parameters.
     "method": "Packager.1.synchronize"
 }
 ```
+
 #### Response
 
 ```json
@@ -179,3 +183,4 @@ This method takes no parameters.
     "result": null
 }
 ```
+

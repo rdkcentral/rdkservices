@@ -6,7 +6,7 @@
         "class": "DTV",
         "description": "The `DTV` plugin provides access to DVB services provided by a DVB stack."
     },
-    "definitions": {
+    "common": {
         "errors": {
             "general": {
                 "code": 1,
@@ -189,10 +189,14 @@
             }
         },
         "results": {
-            "description": "Always null",
-            "type": "null",
-            "default": null 
-        },
+            "void": {
+              "type": "null",
+              "default": null,
+              "description": "Always null"
+            }
+        }
+    },
+    "definitions": {
         "countrycode": {
             "description": "3-character ISO code for the country",
             "type": "number",
@@ -866,7 +870,7 @@
                 "example": 0
             },
             "result": {
-                "$ref": "#/definitions/results"
+                "$ref": "#/common/results/void"
             }
         }
     },

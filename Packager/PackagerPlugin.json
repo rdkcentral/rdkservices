@@ -1,16 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Packager Plugin",
-    "callsign": "Packager",
-    "locator": "libWPEFrameworkPackager.so",
-    "status": "alpha",
-    "description": [
-      "The Packager plugin allows installation of OPKG, IPKG and DEB packages to the system from a remote repository."
-    ],
-    "version": "1.0"
-  },
-  "interface": {
-    "$ref": "{interfacedir}/Packager.json"
-  }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "Packager Plugin",
+        "callsign": "Packager",
+        "locator": "libWPEFrameworkPackager.so",
+        "status": "alpha",
+        "description": "The `Packager` plugin allows installation of OPKG, IPKG, and DEB packages to the system from a remote repository.",
+        "version": "1.0"
+    },
+    "interface": {
+      "$ref": "Packager.json#"
+    }
 }
