@@ -35,6 +35,8 @@
 
 #include <vector>
 
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 #define SYSSRV_CALLSIGN "org.rdk.RemoteActionMapping.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
