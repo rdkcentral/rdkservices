@@ -54,6 +54,7 @@
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
+#define EVT_ONREBOOTREQUEST               "onRebootRequest"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -140,6 +141,7 @@ namespace WPEFramework {
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
+                void onPwrMgrReboot(string requestedApp, string rebootReason);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
