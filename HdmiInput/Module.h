@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME HdmiInput
+#define MODULE_NAME Plugin_HdmiInput
 #endif
 
 #include <plugins/plugins.h>

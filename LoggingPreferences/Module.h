@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME LoggingPreferences
+#define MODULE_NAME Plugin_LoggingPreferences
 #endif
 
 #include <plugins/plugins.h>

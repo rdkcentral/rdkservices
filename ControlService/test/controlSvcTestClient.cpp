@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+
 #define SYSSRV_CALLSIGN "org.rdk.ControlService.1"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 

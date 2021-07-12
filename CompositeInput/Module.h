@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME CompositeInput
+#define MODULE_NAME Plugin_CompositeInput
 #endif
 
 #include <plugins/plugins.h>

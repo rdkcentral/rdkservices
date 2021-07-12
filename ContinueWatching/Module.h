@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME ContinueWatching
+#define MODULE_NAME Plugin_ContinueWatching
 #endif
 
 #include <plugins/plugins.h>

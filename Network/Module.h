@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Network
+#define MODULE_NAME Plugin_Network
 #endif
 
 #include <plugins/plugins.h>

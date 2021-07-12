@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME AVInput
+#define MODULE_NAME Plugin_AVInput
 #endif
 
 #include <plugins/plugins.h>

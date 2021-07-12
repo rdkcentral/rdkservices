@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME DeviceDiagnostics
+#define MODULE_NAME Plugin_DeviceDiagnostics
 #endif
 
 #include <plugins/plugins.h>
