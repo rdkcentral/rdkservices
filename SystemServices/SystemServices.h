@@ -214,6 +214,8 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 uint32_t getTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
+		uint32_t getOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
 #endif /* ENABLE_THERMAL_PROTECTION */
                 uint32_t getPreviousRebootInfo2(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);

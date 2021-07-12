@@ -361,6 +361,10 @@ namespace WPEFramework {
                     &SystemServices::getTemperatureThresholds, this);
             registerMethod("setTemperatureThresholds",
                     &SystemServices::setTemperatureThresholds, this);
+	    registerMethod("getOvertempGraceInterval",
+                    &SystemServices::getOvertempGraceInterval, this);
+            registerMethod("setOvertempGraceInterval",
+                    &SystemServices::setOvertempGraceInterval, this);
 #endif /* ENABLE_THERMAL_PROTECTION */
             registerMethod("getPreviousRebootInfo2",
                     &SystemServices::getPreviousRebootInfo2, this);
@@ -2500,7 +2504,7 @@ namespace WPEFramework {
             float high = 0.0;
             float critical = 0.0;
 	    bool resp = false;
-	    if (parameters.HasLabel("thresholds") && parameters.HasLabel("WARN") && parameters.HasLabel("MAX")) {
+	    if (parameters.HasLabel("thresholds")) {
 		    args.FromString(parameters["thresholds"].String());
 		    string warn = args["WARN"].String();
 		    string max = args["MAX"].String();
@@ -2513,6 +2517,49 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+            returnResponse(resp);
+        }
+
+	/***
+         * @brief : To retrieve Overtemparature grace interval value.
+         * @param1[in] : {"params":{}}
+         * @param2[out] : "result":{"graceInterval":"600",},"success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getOvertempGraceInterval(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            int graceInterval = 0;
+            bool resp = CThermalMonitor::instance()->getOvertempGraceInterval(graceInterval);
+            LOGWARN("Got current grace interval: %d ret[resp = %d]\n",
+                    graceInterval, resp);
+            if (resp) {
+                response["graceInterval"] = to_string(graceInterval);
+            }
+            returnResponse(resp);
+        }
+
+	/***
+         * @brief : To set Overtemparature grace interval value.
+         * @param1[in] : {"params":{"graceInterval":"600"}}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setOvertempGraceInterval(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            int graceInterval  = 0;
+            bool resp = false;
+            if (parameters.HasLabel("graceInterval")) {
+                    string grace = parameters["graceInterval"].String();
+
+                    graceInterval = atoi(grace.c_str());
+
+                    resp =  CThermalMonitor::instance()->setOvertempGraceInterval(graceInterval);
+                    LOGWARN("Set Grace Interval : %d\n", graceInterval);
+            } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
             returnResponse(resp);
         }
 #endif /* ENABLE_THERMAL_PROTECTION */
