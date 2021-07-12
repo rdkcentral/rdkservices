@@ -317,6 +317,8 @@ namespace WPEFramework {
                                 }
 
                                 //Connected Audio Ports status update is necessary on bootup / power state transitions
+				sendHdmiCecSinkAudioDevicePowerOn();
+				LOGINFO("%s: Audio Port : [HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n", __FUNCTION__);
                                 try {
                                     int types = dsAUDIOARCSUPPORT_NONE;
                                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");

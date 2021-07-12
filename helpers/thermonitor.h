@@ -51,6 +51,8 @@ namespace WPEFramework {
                 void emitTemperatureThresholdChange(std::string thresholdType, bool isAboveThreshold, float temperature);
                 bool getCoreTempThresholds(float& high, float& critical) const;
                 bool setCoreTempThresholds(float high, float critical) const;
+		bool getOvertempGraceInterval(int& graceInterval) const;
+		bool setOvertempGraceInterval(int graceInterval) const;
                 void reportTemperatureThresholdChange(std::string thresholdType, bool isAboveThreshold, float temperature);
         };
     }
