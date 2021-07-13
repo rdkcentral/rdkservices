@@ -29,6 +29,39 @@ namespace Plugin {
 
     class PlayerInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
     private:
+            class RemoteConnectionNotification : public RPC::IRemoteConnection::INotification {
+            private:
+                RemoteConnectionNotification() = delete;
+                RemoteConnectionNotification(const RemoteConnectionNotification&) = delete;
+                RemoteConnectionNotification& operator=(const RemoteConnectionNotification&) = delete;
+
+            public:
+                explicit RemoteConnectionNotification(PlayerInfo* parent)
+                : _parent(*parent)
+                {
+                    ASSERT(parent != nullptr);
+                }
+                virtual ~RemoteConnectionNotification()
+                {
+                }
+
+            public:
+                virtual void Activated(RPC::IRemoteConnection* connection)
+                {
+                }
+                virtual void Deactivated(RPC::IRemoteConnection* connection)
+                {
+                    _parent.Deactivated(connection);
+                }
+
+                BEGIN_INTERFACE_MAP(RemoteConnectionNotification)
+                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+                END_INTERFACE_MAP
+
+            private:
+                PlayerInfo& _parent;
+            };
+
         class Notification : protected Exchange::Dolby::IOutput::INotification {
         private:
             Notification() = delete;
@@ -83,6 +116,8 @@ namespace Plugin {
             , _audioCodecs(nullptr)
             , _videoCodecs(nullptr)
             , _notification(this)
+            , _service(nullptr)
+            , _rcnotification(this)
         {
         }
 
@@ -111,6 +146,8 @@ namespace Plugin {
 
     private:
 
+        void Deactivated(RPC::IRemoteConnection* connection);
+
         uint32_t get_playerinfo(JsonData::PlayerInfo::CodecsData&) const;
         void Info(JsonData::PlayerInfo::CodecsData&) const;
 
@@ -126,6 +163,9 @@ namespace Plugin {
         Exchange::IPlayerProperties::IVideoCodecIterator* _videoCodecs;
         Exchange::Dolby::IOutput* _dolbyOut;
         Core::Sink<Notification> _notification;
+
+        PluginHost::IShell* _service;
+        Core::Sink<RemoteConnectionNotification> _rcnotification;
     };
 
 } // namespace Plugin
