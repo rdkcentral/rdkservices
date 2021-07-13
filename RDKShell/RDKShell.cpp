@@ -417,6 +417,7 @@ namespace WPEFramework {
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
         std::mutex gLaunchDestroyMutex;
+        std::mutex gDestroyMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
@@ -3682,6 +3683,7 @@ namespace WPEFramework {
                 joParams.Set("callsign",callsign.c_str());
                 JsonObject joResult;
                 auto thunderController = getThunderControllerClient();
+                gDestroyMutex.lock();
                 uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
                 if (status > 0)
                 {
@@ -3698,6 +3700,7 @@ namespace WPEFramework {
                     }
                     onDestroyed(callsign);
                 }
+                gDestroyMutex.unlock();
 		gLaunchDestroyMutex.lock();
                 gDestroyApplications.erase(callsign);
 		gLaunchDestroyMutex.unlock();
@@ -5769,7 +5772,19 @@ namespace WPEFramework {
             }
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-
+            
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setvisibility for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
             std::map<std::string, PluginData> activePluginsData;
             gPluginDataMutex.lock();
             activePluginsData = gActivePluginsData;
@@ -5781,6 +5796,7 @@ namespace WPEFramework {
                 if (pluginData.mClassName.compare("WebKitBrowser") == 0)
                 {
                     std::cout << "setting the visiblity of " << client << " to " << visible << std::endl;
+                    gDestroyMutex.lock();
                     uint32_t status = 0;
                     Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
                     if (browser != NULL)
@@ -5792,9 +5808,10 @@ namespace WPEFramework {
                     {
                         status = 1;
                     }
+                    gDestroyMutex.unlock();
                     if (status > 0)
                     {
-                        std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                        std::cout << "failed to set visibility property to browser " << client << " with status code " << status << std::endl;
                     }
                 }
             }
