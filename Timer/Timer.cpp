@@ -130,12 +130,7 @@ namespace WPEFramework
                 minTimeout = TIMER_ACCURACY;
 
             if (minTimeout < 100000)
-            {
-                if (!m_timer.isActive())
-                    m_timer.start(int(minTimeout * 1000));
-                else
-                    m_timer.setInterval(int(minTimeout * 1000));
-            }
+                m_timer.start(int(minTimeout * 1000));
             else
                 m_timer.stop();
         }
