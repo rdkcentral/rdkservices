@@ -2925,7 +2925,7 @@ namespace WPEFramework {
 			string reason = parameters["standbyReason"].String();
 			/* Power state defaults standbyReason is "application". */
 			reason = ((reason.length()) ? reason : "application");
-
+			LOGERR("SystemServices::setDevicePowerState state: %s\n", state.c_str());
 			if (state == "STANDBY") {
 				if (SystemServices::_instance) {
 					SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
@@ -2950,7 +2950,6 @@ namespace WPEFramework {
 				}
 			} else {
 				retVal = CPowerState::instance()->setPowerState(state);
-				LOGERR("this platform has no API System and/or Powerstate\n");
 			}
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
