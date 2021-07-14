@@ -22,7 +22,6 @@
 
 #include <stdint.h>
 #include <thread>
-#include <unordered_map>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -53,9 +52,18 @@ typedef enum {
     MAINTENANCE_IDLE,
     MAINTENANCE_STARTED,
     MAINTENANCE_ERROR,
-    MAINTENANCE_COMPLETE,
-    MAINTENANCE_INCOMPLETE
-} Maint_notify_status_t;
+    MAINTENANCE_INCOMPLETE,
+    MAINTENANCE_COMPLETE
+} MAINTENANCE_STATUS;
+
+typedef enum {
+    TASK_IDLE,
+    TASK_STARTED,
+    TASK_ERROR,
+    TASK_SKIPPED,
+	TASK_INCOMPLETE,
+    TASK_COMPLETE
+}TASK_STATUS;
 
 typedef enum{
     SOLICITED_MAINTENANCE,
@@ -65,30 +73,78 @@ typedef enum{
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
-#define TASKS_COMPLETED                0xAA
-#define ALL_TASKS_SUCCESS              0xFF
-#define MAINTENANCE_TASK_SKIPPED       0x200
-
-
-#define DCM_SUCCESS                     0
-#define DCM_COMPLETE                    1
-#define RFC_SUCCESS                     2
-#define RFC_COMPLETE                    3
-#define LOGUPLOAD_SUCCESS               4
-#define LOGUPLOAD_COMPLETE              5
-#define DIFD_SUCCESS                    6
-#define DIFD_COMPLETE                   7
-#define REBOOT_REQUIRED                 8
-#define TASK_SKIPPED                    9
-#define TASKS_STARTED                   10
-
-#define SET_STATUS(VALUE,N)     ((VALUE) |=  (1<<(N)))
-#define CLEAR_STATUS(VALUE,N)   ((VALUE) &= ~(1<<(N)))
-#define CHECK_STATUS(VALUE,N)   ((VALUE) & (1<<(N)))
-
 namespace WPEFramework {
     namespace Plugin {
 
+		class MaintenanceTask{
+			private:
+				std::mutex statusMutex;
+				std::string taskName;
+				std::string taskScript;
+				TASK_STATUS taskStatus = TASK_IDLE; // represents task status part of current maintenance activity
+				bool taskExecStatus = false; // represents whether this task has been executed part of current maintenance activity
+
+			public:
+				MaintenanceTask(const std::string &name, const std::string &script): taskName(name), taskScript(script){
+					LOGINFO("Constructor: %s\n",taskName.c_str());
+					taskStatus = TASK_IDLE;
+				}
+				~MaintenanceTask(){
+					LOGINFO("Destructor: %s\n",taskName.c_str());
+				}
+//				MaintenanceTask(const MaintenanceTask&) = delete;
+//				MaintenanceTask& operator=(const MaintenanceTask&) = delete;
+				bool startTask()
+				{
+					//WARNING:::This method shouldn't block as this mutex is used in setStatus also. setStaus is called from IARM on event which should never block
+					std::lock_guard<std::mutex> guard(statusMutex);
+					LOGINFO("Starting %s\n",taskName.c_str());
+					if(!taskExecStatus && taskStatus != TASK_STARTED)
+					{
+						string cmd=taskScript.append(" &\0");
+						int ret = system(cmd.c_str());
+						LOGINFO("System command execution status - %d\n", ret);
+						if(ret != 0) //TODO: Confirm if system return 0 always on success
+						{
+							LOGINFO("Failed to start %s\n", taskName.c_str());
+							taskExecStatus = true;
+							taskStatus = TASK_SKIPPED;
+							return false;
+						}
+					}
+					else
+					{
+						LOGINFO("Task %s is already running\n",taskName.c_str());
+					}
+					taskExecStatus = true;
+					taskStatus = TASK_STARTED;
+					return true;
+				}
+				bool setStatus(TASK_STATUS status){
+					std::lock_guard<std::mutex> guard(statusMutex);
+					LOGINFO("Set status %d for Task :%s \n",status, taskName.c_str());
+					if(taskExecStatus) //update taskStatus only if already started by MM
+					{
+						taskStatus = status;
+						return true;
+					}
+					else if(status == TASK_ERROR || status == TASK_SKIPPED || status == TASK_COMPLETE)
+					{
+						taskStatus = TASK_IDLE;
+						return false;
+					}
+					else
+						taskStatus = status;
+					return false;
+				}
+				TASK_STATUS getStatus(){
+					std::lock_guard<std::mutex> guard(statusMutex);
+					return taskStatus;
+				}
+				string getTaskName(){
+					return taskName;
+				}
+		};
         // This is a server for a JSONRPC communication channel.
         // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
         // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
@@ -104,52 +160,44 @@ namespace WPEFramework {
 
         class MaintenanceManager : public AbstractPlugin {
             private:
+
                 typedef Core::JSON::String JString;
                 typedef Core::JSON::ArrayType<JString> JStringArray;
                 typedef Core::JSON::Boolean JBool;
 
-                string g_currentMode;
-                string g_is_critical_maintenance;
-                string g_is_reboot_pending;
-                string g_lastSuccessful_maint_time;
-                string g_epoch_time;
-
-                IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
-
-                Maint_notify_status_t g_notify_status;
-
-                Maintenance_Type_t g_maintenance_type;
+                string maintenanceMode;
+                bool isCriticalMaintenance;
+                bool isRebootPending;
+                MAINTENANCE_STATUS maintenanceStatus;
+                string maintenanceStartTimeInEpoch;
 
                 static cSettings m_setting;
+                std::mutex  apiMutex;
+                std::mutex  taskThreadMutex;
+                std::condition_variable taskThreadCV;
+                std::thread taskThread;
+                Maintenance_Type_t maintenanceType;
+                bool maintenanceInProgress;
+                bool stopMaintenanceFlag;
+                std::list<std::shared_ptr<MaintenanceTask>> taskList;
 
-                uint16_t g_task_status;
-
-                std::mutex  m_callMutex;
-                std::condition_variable task_thread;
-                std::thread m_thread;
-
-                std::unordered_map<string, bool> m_task_map;    
-                        
-
-                void task_execution_thread();
-                void requestSystemReboot();
-                void maintenanceManagerOnBootup();
-                bool checkAutoRebootFlag();
-                string getLastRebootReason();
+                IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
                 // We do not allow this plugin to be copied !!
                 MaintenanceManager(const MaintenanceManager&) = delete;
                 MaintenanceManager& operator=(const MaintenanceManager&) = delete;
+                void task_execution_thread();
+                void initMaintenanceTasks(Maintenance_Type_t maintType);
+                void runMaintenance(Maintenance_Type_t maintType);
+                std::shared_ptr<MaintenanceTask> findMaintenanceTask(const char *taskName);
+                MAINTENANCE_STATUS getMaintenanceCompletionStatus();
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+                bool InitializeIARM();
+                void DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-            private:
-                class MaintenanceTask{
-                    private:
-                        std::string taskName;
-                        std::string taskScript;
-                    public:
-                        void startTask();
-                };
+
             public:
                 MaintenanceManager();
                 virtual ~MaintenanceManager();
@@ -157,28 +205,21 @@ namespace WPEFramework {
                 static MaintenanceManager* _instance;
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
-                static int runScript(const std::string& script,
-                        const std::string& args, string *output = NULL,
-                        string *error = NULL, int timeout = 30000);
-
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-                void InitializeIARM();
-                void DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
                 /* Events : Begin */
-                void onMaintenanceStatusChange(Maint_notify_status_t status);
+                void onMaintenanceStatusChange(MAINTENANCE_STATUS status);
                 /* Events : End */
 
                 /* Methods : Begin */
 #ifdef DEBUG
                 uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
 #endif /* DEBUG */
-
                 uint32_t getMaintenanceActivityStatus(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceStartTime(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMaintenanceMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
+#ifndef DEBUG
+                uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
+#endif
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */
