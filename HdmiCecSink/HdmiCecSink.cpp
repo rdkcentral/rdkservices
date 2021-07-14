@@ -2711,9 +2711,10 @@ namespace WPEFramework
         }
         void  HdmiCecSink::requestArcInitiation()
         {
-
+	  {
            std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
            m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
+	  }
           LOGINFO("requestArcInitiation release sem");
           _instance->m_semSignaltoArcRoutingThread.release();
 
@@ -2747,9 +2748,10 @@ namespace WPEFramework
         }
         void HdmiCecSink::requestArcTermination()
         {  
-
+	  {
            std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
            m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_TERMINATION;
+	  }
            LOGINFO("requestArcTermination release sem");
            _instance->m_semSignaltoArcRoutingThread.release();
 
@@ -2765,13 +2767,15 @@ namespace WPEFramework
 	    return;
 
             LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d\n",_instance->m_currentArcRoutingState);
-            std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 
             if (m_arcStartStopTimer.isActive())
             {
                m_arcStartStopTimer.stop();
             }
+		{
+            	  std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 	          _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
+		}
                   _instance->m_semSignaltoArcRoutingThread.release();
                   LOGINFO("Got : ARC_INITIATED  and notify Device setting");
                   params["status"] = string("success");
@@ -2782,14 +2786,16 @@ namespace WPEFramework
        void HdmiCecSink::Process_TerminateArc()
        {
             JsonObject params;
-            std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
 
             LOGINFO("Command: TERMINATE_ARC current arc state %d \n",HdmiCecSink::_instance->m_currentArcRoutingState);
                 if (m_arcStartStopTimer.isActive())
                 {
                       m_arcStartStopTimer.stop();
                 }
-                HdmiCecSink::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		{
+            		std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+                	HdmiCecSink::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		}
                 _instance->m_semSignaltoArcRoutingThread.release();
             	  
                 // trigger callback to Device setting informing to TERMINATE_ARC
@@ -2816,14 +2822,14 @@ namespace WPEFramework
 			   
 			   
 		   
-			  
+		{ 
                    LOGINFO(" threadArcRouting Got semaphore"); 
  		   std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 			   
 		   currentArcRoutingState = _instance->m_currentArcRoutingState;
 	   
 		   LOGINFO(" threadArcRouting  Got Sem arc state %d",currentArcRoutingState);
-			   
+		}	   
 			   
 		  switch (currentArcRoutingState) 
 		  {   
