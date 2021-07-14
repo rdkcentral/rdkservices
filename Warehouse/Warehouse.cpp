@@ -80,7 +80,7 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(Warehouse, 2, 0);
-
+        Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
         : AbstractPlugin(2)
 #ifdef HAS_FRONT_PANEL
@@ -88,6 +88,8 @@ namespace WPEFramework
         , m_ledInfo(this)
 #endif
         {
+            LOGWARN ("Ctor:%d", __LINE__);
+            Warehouse::_instance = this;
             registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
             registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this, {1}); // org.rdk.System.1.getDeviceInfo should be used instead on later versions
             registerMethod(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
@@ -100,27 +102,39 @@ namespace WPEFramework
 
         Warehouse::~Warehouse()
         {
+	    LOGWARN ("Dtor:%d", __LINE__);
         }
 
         const string Warehouse::Initialize(PluginHost::IShell* /* service */)
         {
             InitializeIARM();
+            LOGWARN ("Warehouse::Initialize finished line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
+            LOGWARN ("Entering Warehouse::Deinitialize line:%d", __LINE__);
+            Warehouse::_instance = nullptr;
             DeinitializeIARM();
+            LOGWARN ("Warehouse::Deinitialize finished line:%d", __LINE__);
         }
 
         void Warehouse::InitializeIARM()
         {
-            Utils::IARM::init();
+            if (Utils::IARM::init()) {
+               IARM_Result_t res;
+	       IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
+            }
         }
 
         void Warehouse::DeinitializeIARM()
         {
+            if (Utils::IARM::isConnected()) {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+            }
         }
 
         /**
@@ -214,6 +228,7 @@ namespace WPEFramework
                 err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
             }
 
+
             bool ok = true;
 
             // If SuppressReboot is false ie device is rebooted, IARMBus daemon will also be stopped.
@@ -224,20 +239,23 @@ namespace WPEFramework
                 ok = (err == IARM_RESULT_SUCCESS);
             }
             
-            JsonObject params;
+            if (resetType.compare("COLD") == 0 ||
+                resetType.compare("FACTORY") == 0 ||
+                resetType.compare("USERFACTORY") == 0 ||
+                false == suppressReboot) {
+                JsonObject params;
+                params[PARAM_SUCCESS] = ok;
 
-            params[PARAM_SUCCESS] = ok;
-
-            if (!ok)
-            {
-                LOGWARN("%s", C_STR(Utils::formatIARMResult(err)));
-                params[PARAM_ERROR] = "Reset failed";
+                if (!ok)
+                {
+                    LOGWARN("%s", C_STR(Utils::formatIARMResult(err)));
+                    params[PARAM_ERROR] = "Reset failed";
+                }
+                string json;
+                params.ToString(json);
+                LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
+                wh->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
-
-            string json;
-            params.ToString(json);
-            LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
-            wh->Notify(WAREHOUSE_EVT_RESET_DONE, params);
         }
 
         static bool RunScriptIARM(const std::string& script, std::string& error)
@@ -907,7 +925,32 @@ namespace WPEFramework
             return(result);
         }
 #endif
-
+        void Warehouse::dsWareHouseOpnStatusChanged(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (NULL == Warehouse::_instance) {
+                return;
+            }
+            if (IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED == eventId)
+            {
+		IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *eventData = (IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *) data;
+		if (NULL == eventData) {
+                    LOGWARN("dsWareHouseOpnStatusChanged eventData is NULL. exiting");
+		    //Unexpected case
+		    return;
+		}
+		JsonObject params;
+		if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
+                    params[PARAM_SUCCESS] = 0;
+		}
+		else {
+                    params[PARAM_ERROR] = "Reset failed";
+		}
+                string json;
+		params.ToString(json);
+		LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
+		Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
+        }
 
     } // namespace Plugin
 } // namespace WPEFramework
