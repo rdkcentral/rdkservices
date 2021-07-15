@@ -1,19 +1,19 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Player_Info_Plugin"></a>
-# Player Info Plugin
+<a name="head.Telemetry_Plugin"></a>
+# Telemetry Plugin
 
 **Version: 1.0**
 
-**Status: :black_circle::black_circle::white_circle:**
+**Status: :black_circle::black_circle::black_circle:**
 
-PlayerInfo plugin for Thunder framework.
+org.rdk.Telemetry plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Properties](#head.Properties)
+- [Methods](#head.Methods)
 
 <a name="head.Introduction"></a>
 # Introduction
@@ -21,7 +21,7 @@ PlayerInfo plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the PlayerInfo plugin. It includes detailed specification about its configuration and properties provided.
+This document describes purpose and functionality of the org.rdk.Telemetry plugin. It includes detailed specification about its configuration and methods provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `PlayerInfo` plugin helps to get system supported audio and video codecs.
+The `Telemetry` plugin allows you to persist event data for monitoring applications.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -70,65 +70,114 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *PlayerInfo*) |
-| classname | string | Class name: *PlayerInfo* |
-| locator | string | Library name: *libWPEPlayerInfo.so* |
+| callsign | string | Plugin instance name (default: *org.rdk.Telemetry*) |
+| classname | string | Class name: *org.rdk.Telemetry* |
+| locator | string | Library name: *libWPEFrameworkTelemetry.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Properties"></a>
-# Properties
+<a name="head.Methods"></a>
+# Methods
 
-The following properties are provided by the PlayerInfo plugin:
+The following methods are provided by the org.rdk.Telemetry plugin:
 
-PlayerInfo interface properties:
+Telemtry interface methods:
 
-| Property | Description |
+| Method | Description |
 | :-------- | :-------- |
-| [playerinfo](#property.playerinfo) <sup>RO</sup> | Player general information |
+| [setReportProfileStatus](#method.setReportProfileStatus) | Sets the status of telemetry reporting |
+| [logApplicationEvent](#method.logApplicationEvent) | Logs an application event |
 
 
-<a name="property.playerinfo"></a>
-## *playerinfo <sup>property</sup>*
+<a name="method.setReportProfileStatus"></a>
+## *setReportProfileStatus <sup>method</sup>*
 
-Provides access to the player general information.
+Sets the status of telemetry reporting.
 
-> This property is **read-only**.
-
-### Value
+### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | Player general information |
-| (property).audio | array |  |
-| (property).audio[#] | string | Audio Codec supported by the platform (must be one of the following: *Undefined*, *AAC*, *AC3*, *AC3Plus*, *DTS*, *MPEG1*, *MPEG2*, *MPEG3*, *MPEG4*, *OPUS*, *VorbisOGG*, *WAV*) |
-| (property).video | array |  |
-| (property).video[#] | string | Video Codec supported by the platform (must be one of the following: *Undefined*, *H263*, *H264*, *H265*, *H26510*, *MPEG*, *VP8*, *VP9*, *VP10*) |
+| params | object |  |
+| params.status | string | The report status (must be one of the following: *STARTED*, *COMPLETE*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
 
 ### Example
 
-#### Get Request
+#### Request
 
 ```json
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "PlayerInfo.1.playerinfo"
+    "method": "org.rdk.Telemetry.1.setReportProfileStatus",
+    "params": {
+        "status": "STARTED"
+    }
 }
 ```
 
-#### Get Response
+#### Response
 
 ```json
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "audio": [
-            "AudioAAC"
-        ],
-        "video": [
-            "VideoH264"
-        ]
+        "success": true
+    }
+}
+```
+
+<a name="method.logApplicationEvent"></a>
+## *logApplicationEvent <sup>method</sup>*
+
+Logs an application event.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.eventName | string | The event name |
+| params.eventValue | string | The event value |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Telemetry.1.logApplicationEvent",
+    "params": {
+        "eventName": "",
+        "eventValue": ""
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
     }
 }
 ```

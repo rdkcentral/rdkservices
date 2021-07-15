@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "Telemetry Plugin",
+      "callsign": "org.rdk.Telemetry",
+      "locator": "libWPEFrameworkTelemetry.so",
+      "status": "production",
+      "description": "The `Telemetry` plugin allows you to persist event data for monitoring applications.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "Telemetry.json#"
+    }
+}
