@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "OCIContainer Plugin",
+      "callsign": "org.rdk.OCIContainer",
+      "locator": "libWPEFrameworkOCIContainer.so",
+      "status": "production",
+      "description": "The `OCIContainer` plugin allows for control of OCI containers using the Dobby hypervisor",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "OCIContainer.json#"
+    }
+  }

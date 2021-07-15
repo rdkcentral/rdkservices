@@ -1,0 +1,230 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "UsbAccess API",
+        "class": "UsbAccess",
+        "description": "The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs."
+    },
+    "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "clearLink": {
+            "summary": "Clears or removes the symbolic link created by the `createLink` method",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    },
+                    "error":{
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "could not remove symlink"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "createLink": {
+            "summary": "Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "baseURL": {
+                        "summary": "The URL of the web server that points to this location",
+                        "type": "string",
+                        "example": "http://localhost/usbdrive"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "could not create symlink"
+                    }
+                },
+                "required": [
+                    "baseURL",
+                    "success"
+                ]
+            }
+        },
+        "getAvailableFirmwareFiles": {
+            "summary": "(Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  \nFirmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "availableFirmwareFiles": {
+                        "summary": "The list of firmware files including the full path name",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "/tmp/usbmnts/sda1/HSTP11MWR_4.11p5s1_VBN_sdy.bin"
+                            
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "availableFirmwareFiles",
+                    "success"
+                ]
+            }
+        },
+        "getFileList": {
+            "summary": "Gets a list of files and folders from the specified directory or path",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "path": {
+                        "summary": "The directory name for which the contents are listed. If no value is specified, then the contents of the root folder is listed",
+                        "type": "string",
+                        "example": ""
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "contents": {
+                        "summary": "A list of files and directories (empty if there are no results)",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "summary": "the name of the file or directory",
+                                    "type": "string",
+                                    "example": "img1.jpg"
+                                },
+                                "t": {
+                                    "summary": "The type. Either `d` for directory or `f` for file",
+                                    "type": "string",
+                                    "example": "f"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "t"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "no disk"
+                    }
+                },
+                "required": [
+                    "contents",
+                    "success"
+                ]
+            }
+        },
+        "getMounted": {
+            "summary": "(Version 2) Returns a list of mounted USB devices",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mounted": {
+                        "summary": "The list of file paths where USB devices are mounted",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "/tmp/usbmnts/sda"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mounted",
+                    "success"
+                ]
+            }
+        },
+        "updateFirmware": {
+            "summary": "(Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "fileName": {
+                        "summary": "The firmware file path to use for the update",
+                        "type": "string",
+                        "example": "/tmp/usbmnts/sda/this_is_test.bin"
+                    }
+                },
+                "required": [
+                    "filename"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "error": {
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "invalid filename"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onUsbMountChanged": {
+            "summary": "(Version 2) Triggered when a USB drive is mounted or unmounted",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "mounted":{
+                        "summary": "`true` when the USB device is mounted or `false` when the USB device is unmounted",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "device": {
+                        "summary": "The location where the device is mounted",
+                        "type": "string",
+                        "example": "/dev/sda1"
+                    }
+                },
+                "required": [
+                    "mounted",
+                    "device"
+                ]
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 {
-  "$schema": "plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
   "info": {
     "title": "DTV Plugin",
     "callsign": "DTV",
@@ -28,6 +28,6 @@
     }
   },
   "interface": {
-    "$ref": "{interfacedir}/DTV.json#"
+    "$ref": "DTV.json#"
   }
 }

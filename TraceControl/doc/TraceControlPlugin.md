@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Trace_Control_Plugin"></a>
-# Trace Control Plugin
+<a name="head.TraceControl_Plugin"></a>
+# TraceControl Plugin
 
 **Version: 1.0**
 
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The Trace Control plugin provides ability to disable/enable trace output an set its verbosity level.
+The `TraceControl` plugin provides ability to disable/enable trace output an set its verbosity level.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -80,7 +80,7 @@ The table below lists configuration options of the plugin.
 | configuration?.abbreviated | boolean | <sup>*(optional)*</sup> Enable abbreviated logging |
 | configuration?.remotes | object | <sup>*(optional)*</sup>  |
 | configuration?.remotes?.port | number | <sup>*(optional)*</sup> Port |
-| configuration?.remotes?.bindig | bindig | <sup>*(optional)*</sup> Binding |
+| configuration?.remotes?.binding | string | <sup>*(optional)*</sup> Binding |
 
 <a name="head.Methods"></a>
 # Methods
@@ -91,41 +91,88 @@ TraceControl interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [status](#method.status) | Retrieves general information |
 | [set](#method.set) | Sets traces |
+| [status](#method.status) | Retrieves the actual trace status information for the specified module and category, if a category or module is not specified, all information is returned |
 
+
+<a name="method.set"></a>
+## *set <sup>method</sup>*
+
+Sets traces.
+
+### Description
+
+Enables or disables all or select category traces for the specified module.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | Trace information |
+| params.module | string | The module name |
+| params.category | string | The category name |
+| params.state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | Always null |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "TraceControl.1.set",
+    "params": {
+        "module": "Plugin_Monitor",
+        "category": "Information",
+        "state": "disabled"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": null
+}
+```
 
 <a name="method.status"></a>
 ## *status <sup>method</sup>*
 
-Retrieves general information.
-
-### Description
-
-Retrieves the actual trace status information for targeted module and category, if either category nor module is given, all information is returned. It will retrieves the details about console status and remote address(port and binding address), if these are configured.
+Retrieves the actual trace status information for the specified module and category, if a category or module is not specified, all information is returned. It retrieves the details about the console status and remote address (port and binding) if these are configured.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.module | string | Module name |
-| params.category | string | Category name |
+| params.module | string | The module name |
+| params.category | string | The category name |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.console | boolean | Config attribute (Console) |
-| result.remote | object |  |
-| result.remote.port | number | Config attribute (port) |
-| result.remote.binding | string | Config attribute (binding) |
+| result.console | boolean | `true` if a console, otherwise `false` |
+| result.remote | object | The remote address |
+| result.remote.port | number | The port number |
+| result.remote.binding | string | The binding address |
 | result.settings | array |  |
-| result.settings[#] | object |  |
-| result.settings[#].module | string | Module name |
-| result.settings[#].category | string | Category name |
-| result.settings[#].state | string | State value (must be one of the following: *enabled*, *disabled*, *tristated*) |
+| result.settings[#] | object | Trace information |
+| result.settings[#].module | string | The module name |
+| result.settings[#].category | string | The category name |
+| result.settings[#].state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
 
 ### Example
 
@@ -163,57 +210,6 @@ Retrieves the actual trace status information for targeted module and category, 
             }
         ]
     }
-}
-```
-
-<a name="method.set"></a>
-## *set <sup>method</sup>*
-
-Sets traces.
-
-### Description
-
-Disables/enables all/select category traces for particular module.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.module | string | Module name |
-| params.category | string | Category name |
-| params.state | string | State value (must be one of the following: *enabled*, *disabled*, *tristated*) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | null | Always null |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "TraceControl.1.set",
-    "params": {
-        "module": "Plugin_Monitor",
-        "category": "Information",
-        "state": "disabled"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": null
 }
 ```
 
