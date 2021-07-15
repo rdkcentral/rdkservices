@@ -178,13 +178,13 @@ namespace WPEFramework {
             registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
             registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
-        
-                  
+
+
             MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
-         
+
 
          }
 
@@ -272,7 +272,7 @@ namespace WPEFramework {
                     cmd=task_names_foreground[i].c_str();
                     cmd+=" &";
                     cmd+="\0";
-                    m_task_map[task_names_foreground[i].c_str()]=true; 
+                    m_task_map[task_names_foreground[i].c_str()]=true;
                     LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                     system(cmd.c_str());
                 }
@@ -294,7 +294,7 @@ namespace WPEFramework {
                         cmd=task_names_foreground[i].c_str();
                         cmd+=" &";
                         cmd+="\0";
-                        m_task_map[task_names_foreground[i].c_str()]=true;  
+                        m_task_map[task_names_foreground[i].c_str()]=true;
                         LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
@@ -419,20 +419,20 @@ namespace WPEFramework {
                     switch (module_status) {
                         case MAINT_RFC_COMPLETE :
                             if(task_status_RFC->second != true) {
-                                 LOGINFO("Ignoring Event RFC_COMPLETE");    
+                                 LOGINFO("Ignoring Event RFC_COMPLETE");
                             }
-                            else {  
+                            else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
-                                 m_task_map[task_names_foreground[0].c_str()]=false; 
-                            }   
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+                            }
                             break;
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
                             }
-                            else { 
+                            else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
                                 task_thread.notify_one();
@@ -475,12 +475,12 @@ namespace WPEFramework {
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
                             }
-                            else {    
+                            else {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in DCM script task \n");
                                 m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
-                            }                                        
+                            }
                             break;
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
@@ -488,7 +488,7 @@ namespace WPEFramework {
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
-                                 task_thread.notify_one();     
+                                 task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
                                  m_task_map[task_names_foreground[0].c_str()]=false;
                             }
@@ -509,7 +509,7 @@ namespace WPEFramework {
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
                             }
-                            else {   
+                            else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
@@ -537,7 +537,7 @@ namespace WPEFramework {
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
 
-                                 
+
                     }
                 }
                 else{
@@ -830,9 +830,6 @@ namespace WPEFramework {
 
                         /* we set this to false */
                         g_is_critical_maintenance="false";
-
-                        /* notify that we started the maintenance */
-                        MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 
