@@ -680,16 +680,25 @@ namespace WPEFramework {
 					}
 					else if (types & dsAUDIOARCSUPPORT_ARC) {
                                             if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
-                                                LOGERR("dsHdmiEventHandler (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                                LOGERR("dsHdmiEventHandler (ARC Auto mode): requestShortAudioDescriptor failed !!!\n");;
                                             }
                                             else {
-                                                LOGINFO("dsHdmiEventHandler (ARC): requestShortAudioDescriptor successful\n");
+                                                LOGINFO("dsHdmiEventHandler (ARC Auto Mode): requestShortAudioDescriptor successful\n");
                                             }
+					    aPort.setStereoAuto(true,true);
 					}
                                     }
                                     else{
                                         device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                                         mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+					if(mode == device::AudioStereoMode::kPassThru){
+                                            if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                                LOGERR("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor failed !!!\n");;
+                                            }
+                                            else {
+                                                LOGINFO("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor successful\n");
+                                            }
+                                        }
                                         aPort.setStereoMode(mode.toString(), true);
                                     }
 
@@ -1381,18 +1390,30 @@ namespace WPEFramework {
                             aPort.setStereoMode(mode.toString(), persist);
                         }
 			else if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+
+                            int types = dsAUDIOARCSUPPORT_NONE;
+                            aPort.getSupportedARCTypes(&types);
+
 		            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
 				    aPort.setStereoAuto(false, persist);
+
+				    if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC) && (m_hdmiInAudioDeviceConnected == true)) {
+                                        if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                            success = false;
+                                            LOGERR("setSoundMode Passthru: requestShortAudioDescriptor failed !!!\n");;
+                                        }
+                                        else {
+                                            LOGINFO("setSoundMode Passthru: requestShortAudioDescriptor successful\n");
+                                        }
+                                    }
 				    aPort.setStereoMode(mode.toString(), persist);
 		            }
 			    else { //Auto Mode
-			        int types = dsAUDIOARCSUPPORT_NONE;
-                                aPort.getSupportedARCTypes(&types);
 
 				if(types & dsAUDIOARCSUPPORT_eARC) {
 				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
 				}
-				else if (types & dsAUDIOARCSUPPORT_ARC) {
+				else if ((types & dsAUDIOARCSUPPORT_ARC) && (m_hdmiInAudioDeviceConnected == true)) {
                                     if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                         success = false;
                                         LOGERR("setSoundMode Auto: requestShortAudioDescriptor failed !!!\n");;
@@ -1400,6 +1421,7 @@ namespace WPEFramework {
                                     else {
                                         LOGINFO("setSoundMode Auto: requestShortAudioDescriptor successful\n");
                                     }
+				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
 				}
 			   }
 			}
@@ -3768,7 +3790,14 @@ namespace WPEFramework {
                         }
 
 		        aPort.setSAD(sad_list);
-			aPort.setStereoAuto(true,true);
+                        if(aPort.getStereoAuto() == true) {
+                            aPort.setStereoAuto(true,true);
+                        }
+                        else{
+                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            aPort.setStereoMode(mode.toString(), true);
+                        }
                     }
                     catch (const device::Exception& err)
                     {
