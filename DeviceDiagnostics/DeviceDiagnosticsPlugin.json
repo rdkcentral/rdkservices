@@ -1,5 +1,5 @@
 {
-    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
     "info": {
       "title": "DeviceDiagnostics Plugin",
       "callsign": "org.rdk.DeviceDiagnostics",
