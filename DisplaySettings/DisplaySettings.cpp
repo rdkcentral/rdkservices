@@ -379,11 +379,12 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-
+	   {
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
             m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 	    m_cecArcRoutingThreadRun = true;
             arcRoutingCV.notify_one();
+	   }
 
             try
             {
@@ -684,9 +685,9 @@ namespace WPEFramework {
                                     }
                                     else if(types & dsAUDIOARCSUPPORT_ARC)  {
                                       {
-                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send ARC initiation request... \n", __FUNCTION__);
+                                            std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
@@ -728,9 +729,9 @@ namespace WPEFramework {
                                    else if (types & dsAUDIOARCSUPPORT_ARC) {
                                        //Dummy ARC intiation request
                                       {
-                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
+                                            std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
@@ -3332,17 +3333,19 @@ namespace WPEFramework {
             if(!DisplaySettings::_instance)
                  return;
 	    
-	    std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 	    while(1) {
 
 		LOGINFO("%s: Debug:  ARC Routing Thread wait \n",__FUNCTION__);
+		{
+	    	std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 		DisplaySettings::_instance->arcRoutingCV.wait(lock, []{return (DisplaySettings::_instance->m_cecArcRoutingThreadRun == true);});
-
+		arcState = DisplaySettings::_instance->m_currentArcRoutingState;
+		}
                 if(threadExit == true) {
                     break;
 		}
 
-		arcState = DisplaySettings::_instance->m_currentArcRoutingState;
+		
 
 		switch(arcState) {
 
@@ -3366,6 +3369,7 @@ namespace WPEFramework {
 			break;
 		}
 
+	    std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 		DisplaySettings::_instance->m_cecArcRoutingThreadRun = false;
 	    }
 
@@ -3571,9 +3575,9 @@ namespace WPEFramework {
 //                    m_hdmiInAudioDeviceConnected = true;
 //                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                     LOGINFO("%s :  audioMode ON !!!\n", __FUNCTION__);
+                    std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
                     if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false)) {
-			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__);
-                        std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__); 
     		        m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
 			m_cecArcRoutingThreadRun = true;
 		        arcRoutingCV.notify_one();
