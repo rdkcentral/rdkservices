@@ -101,6 +101,7 @@ namespace WPEFramework {
             uint32_t getHardwareTestResultsWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
+	    static void dsWareHouseOpnStatusChanged(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         public:
             Warehouse();
             virtual ~Warehouse();
@@ -124,6 +125,8 @@ namespace WPEFramework {
             int m_ledTimerIteration;
             int m_ledState;
 #endif
+        public:
+            static Warehouse* _instance;
         };
 	} // namespace Plugin
 } // namespace WPEFramework

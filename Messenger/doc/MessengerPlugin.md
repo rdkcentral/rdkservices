@@ -106,8 +106,11 @@ Also see: [userupdate](#event.userupdate)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.user | string | The user name to join the room under (must not be empty) |
-| params.room | string | The name of the room to join (must not be empty) |
+| params.user | string | User name to join the room under (must not be empty) |
+| params.room | string | Name of the room to join (must not be empty) |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
+| params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
+| params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
 
 ### Result
 
@@ -122,6 +125,7 @@ Also see: [userupdate](#event.userupdate)
 | :-------- | :-------- | :-------- |
 | 5 | ```ERROR_ILLEGAL_STATE``` | User name is already taken (i.e. the user has already joined the room) |
 | 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 24 | ```ERROR_PRIVILEGED_REQUEST``` | Room security errors |
 
 ### Example
 
@@ -134,7 +138,11 @@ Also see: [userupdate](#event.userupdate)
     "method": "Messenger.1.join",
     "params": {
         "user": "Bob",
-        "room": "Lounge"
+        "room": "Lounge",
+        "secure": "secure",
+        "acl": [
+            "https://*.github.io"
+        ]
     }
 }
 ```
@@ -294,6 +302,7 @@ Register to this event to be notified about room status updates. Immediately aft
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.room | string | Name of the room this notification relates to |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
 | params.action | string | Specifies the room status change, e.g. created or destroyed (must be one of the following: *created*, *destroyed*) |
 
 ### Example
@@ -304,6 +313,7 @@ Register to this event to be notified about room status updates. Immediately aft
     "method": "client.events.1.roomupdate",
     "params": {
         "room": "Lounge",
+        "secure": "secure",
         "action": "created"
     }
 }

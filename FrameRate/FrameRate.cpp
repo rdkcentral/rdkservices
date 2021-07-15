@@ -68,10 +68,10 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-            registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this, {2});
+	    registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this, {2});
             registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this, {2});
             registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this, {2});
-            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this, {2});
+            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this, {2});		
 
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
@@ -183,7 +183,7 @@ namespace WPEFramework
             returnResponse(true);
         }
         
-        uint32_t FrameRate::setFrmMode(const JsonObject& parameters, JsonObject& response)
+	uint32_t FrameRate::setFrmMode(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
@@ -280,7 +280,6 @@ namespace WPEFramework
             response["framerate"] = std::string(sFramerate);
             returnResponse(success);
         }
-
 
         /**
          * @brief This function is used to get the amount of collection interval per milliseconds.

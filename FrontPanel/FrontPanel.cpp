@@ -429,7 +429,7 @@ namespace WPEFramework
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_RECORD);
             }
-            else if (fp_ind.compare(POWER_LED) == 0)
+	    else if (fp_ind.compare(POWER_LED) == 0)
             {
                 LOGWARN("calling powerOnLed");
                 ok = powerLedOn(FRONT_PANEL_INDICATOR_POWER);
@@ -470,7 +470,7 @@ namespace WPEFramework
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_RECORD);
             }
-            else if (fp_ind.compare(POWER_LED) == 0)
+	    else if (fp_ind.compare(POWER_LED) == 0)
             {
                 LOGWARN("calling powerOffLed");
                 ok = powerLedOff(FRONT_PANEL_INDICATOR_POWER);

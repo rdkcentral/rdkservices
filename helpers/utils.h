@@ -187,15 +187,11 @@
 
 namespace Utils
 {
-    struct IARM
-    {
+    struct IARM {
         static bool init();
-        static bool isConnected() { return m_connected; }
+        static bool isConnected();
 
         static const char* NAME;
-
-    private:
-        static bool m_connected;
     };
 
     namespace String
@@ -384,7 +380,9 @@ namespace Utils
 
         static void sendMessage(char* message)
         {
+#ifdef ENABLE_TELEMETRY_LOGGING
             t2_event_s("THUNDER_MESSAGE", message);
+#endif
         };
 
         static void sendMessage(char *marker, char* message)

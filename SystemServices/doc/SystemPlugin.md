@@ -138,7 +138,10 @@ SystemServices interface methods:
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
+<<<<<<< HEAD
 | [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
+=======
+>>>>>>> upstream/sprint/2105
 
 
 <a name="method.cacheContains"></a>
@@ -2565,6 +2568,7 @@ This method takes no parameters.
 }
 ```
 
+<<<<<<< HEAD
 <a name="method.deletePersistentPath"></a>
 ## *deletePersistentPath <sup>method</sup>*
 
@@ -2611,6 +2615,8 @@ This method takes no parameters.
 }
 ```
 
+=======
+>>>>>>> upstream/sprint/2105
 <a name="head.Notifications"></a>
 # Notifications
 

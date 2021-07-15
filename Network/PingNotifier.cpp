@@ -109,6 +109,8 @@ namespace WPEFramework
                 char linearray[1000]={0x0};
                 while(fgets(linearray, sizeof(linearray), fp) != NULL)
                 {
+                    // remove newline from linearray
+                    linearray[strcspn(linearray, "\n")] = '\0';
                     string line(linearray);
                     LOGINFO("ping result: %s", line.c_str());
 

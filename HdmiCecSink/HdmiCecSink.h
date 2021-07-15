@@ -525,8 +525,8 @@ private:
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
 			void Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg);
-			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void sendDeviceUpdateInfo(const int logicalAddress);
+			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void systemAudioModeRequest();
                         void SendStandbyMsgEvent(const int logicalAddress);
             void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);

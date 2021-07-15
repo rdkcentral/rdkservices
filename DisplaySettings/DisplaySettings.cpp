@@ -155,7 +155,7 @@ namespace WPEFramework {
 	    registerMethod("getAudioFormat", &DisplaySettings::getAudioFormat, this);
             registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
             registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
-	    registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
+            registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
             registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
             registerMethod("setSoundMode", &DisplaySettings::setSoundMode, this);
@@ -317,6 +317,8 @@ namespace WPEFramework {
                                 }
 
                                 //Connected Audio Ports status update is necessary on bootup / power state transitions
+				sendHdmiCecSinkAudioDevicePowerOn();
+				LOGINFO("%s: Audio Port : [HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n", __FUNCTION__);
                                 try {
                                     int types = dsAUDIOARCSUPPORT_NONE;
                                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
@@ -402,11 +404,12 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-
+	   {
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
             m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 	    m_cecArcRoutingThreadRun = true;
             arcRoutingCV.notify_one();
+	   }
 
             try
             {
@@ -678,16 +681,25 @@ namespace WPEFramework {
 					}
 					else if (types & dsAUDIOARCSUPPORT_ARC) {
                                             if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
-                                                LOGERR("dsHdmiEventHandler (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                                LOGERR("dsHdmiEventHandler (ARC Auto mode): requestShortAudioDescriptor failed !!!\n");;
                                             }
                                             else {
-                                                LOGINFO("dsHdmiEventHandler (ARC): requestShortAudioDescriptor successful\n");
+                                                LOGINFO("dsHdmiEventHandler (ARC Auto Mode): requestShortAudioDescriptor successful\n");
                                             }
+					    aPort.setStereoAuto(true,true);
 					}
                                     }
                                     else{
                                         device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                                         mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+					if(mode == device::AudioStereoMode::kPassThru){
+                                            if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                                LOGERR("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor failed !!!\n");;
+                                            }
+                                            else {
+                                                LOGINFO("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor successful\n");
+                                            }
+                                        }
                                         aPort.setStereoMode(mode.toString(), true);
                                     }
 
@@ -700,9 +712,9 @@ namespace WPEFramework {
                                     }
                                     else if(types & dsAUDIOARCSUPPORT_ARC)  {
                                       {
-                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send ARC initiation request... \n", __FUNCTION__);
+                                            std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
@@ -744,9 +756,9 @@ namespace WPEFramework {
                                    else if (types & dsAUDIOARCSUPPORT_ARC) {
                                        //Dummy ARC intiation request
                                       {
-                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
+                                            std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
@@ -1256,24 +1268,12 @@ namespace WPEFramework {
                 }
                 else
                 {
-		    if((aPort.getType().getId() == device::AudioOutputPortType::kARC)){
-                        if (aPort.getStereoAuto()) {
-                            LOGINFO("%s output mode Auto", audioPort.c_str());
-                            modeString.append("AUTO");
-                        }
-                        else{
-                            mode = aPort.getStereoMode();
-                            modeString.append(mode.toString());
-                        }
-                    }
-                    else {
-                        /*
-                        * VideoDisplay is not connected. Its audio mode is unknown. Return
-                        * "Stereo" as safe default;
-                        */
-                        mode = device::AudioStereoMode::kStereo;
-                        modeString.append(mode.toString());
-                    }
+                    /*
+                    * VideoDisplay is not connected. Its audio mode is unknown. Return
+                    * "Stereo" as safe default;
+                    */
+                    mode = device::AudioStereoMode::kStereo;
+                    modeString.append(mode.toString());
                 }
             }
             catch (const device::Exception& err)
@@ -1379,18 +1379,30 @@ namespace WPEFramework {
                             aPort.setStereoMode(mode.toString(), persist);
                         }
 			else if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
+
+                            int types = dsAUDIOARCSUPPORT_NONE;
+                            aPort.getSupportedARCTypes(&types);
+
 		            if(((mode == device::AudioStereoMode::kSurround) || (mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo)) && (stereoAuto == false)) {
 				    aPort.setStereoAuto(false, persist);
+
+				    if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC) && (m_hdmiInAudioDeviceConnected == true)) {
+                                        if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                            success = false;
+                                            LOGERR("setSoundMode Passthru: requestShortAudioDescriptor failed !!!\n");;
+                                        }
+                                        else {
+                                            LOGINFO("setSoundMode Passthru: requestShortAudioDescriptor successful\n");
+                                        }
+                                    }
 				    aPort.setStereoMode(mode.toString(), persist);
 		            }
 			    else { //Auto Mode
-			        int types = dsAUDIOARCSUPPORT_NONE;
-                                aPort.getSupportedARCTypes(&types);
 
 				if(types & dsAUDIOARCSUPPORT_eARC) {
 				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
 				}
-				else if (types & dsAUDIOARCSUPPORT_ARC) {
+				else if ((types & dsAUDIOARCSUPPORT_ARC) && (m_hdmiInAudioDeviceConnected == true)) {
                                     if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                         success = false;
                                         LOGERR("setSoundMode Auto: requestShortAudioDescriptor failed !!!\n");;
@@ -1398,6 +1410,7 @@ namespace WPEFramework {
                                     else {
                                         LOGINFO("setSoundMode Auto: requestShortAudioDescriptor successful\n");
                                     }
+				    aPort.setStereoAuto(stereoAuto, persist); //setStereoAuto true
 				}
 			   }
 			}
@@ -1414,18 +1427,8 @@ namespace WPEFramework {
 
                     }
 		    else {
-                        if (aPort.getType().getId() == device::AudioOutputPortType::kARC) {
-                            if(((mode == device::AudioStereoMode::kPassThru) || (mode == device::AudioStereoMode::kStereo) || (mode == device::AudioStereoMode::kSurround)) && (stereoAuto == false)) {
-                                aPort.setStereoAuto(false, persist);
-                                aPort.setStereoMode(mode.toString(), persist);
-                            }
-                            else { //Auto Mode
-                                aPort.setStereoAuto(stereoAuto, persist);
-                            }
-                        } else {
-                            LOGERR("setSoundMode failed !! Device Not Connected...\n");
-                            success = false;
-                        }
+			    LOGERR("setSoundMode failed !! Device Not Connected...\n");
+			    success = false;
 		    }
                 }
                 else
@@ -1578,7 +1581,7 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
-            if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
+	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
 
@@ -1617,7 +1620,7 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
-            if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
+	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
 
@@ -1822,6 +1825,34 @@ namespace WPEFramework {
                 returnResponse(success);
         }
 
+        uint32_t DisplaySettings::getVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                dsVolumeLeveller_t leveller;
+
+                try
+                {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                                if (aPort.isConnected())
+                                {
+                                        leveller= aPort.getVolumeLeveller();
+                                        response["mode"] = leveller.mode;
+                                        response["level"] = leveller.level;
+                                }
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                        success = false;
+                        response["mode"] = 0; //Off
+                        response["level"] = 0;
+                }
+                returnResponse(success);
+        }
+
         void DisplaySettings::audioFormatToString(dsAudioFormat_t audioFormat, JsonObject & response)
         {
             std::vector<string> supportedAudioFormat = {"NONE", "PCM", "DOLBY AC3", "DOLBY EAC3",
@@ -1896,34 +1927,6 @@ namespace WPEFramework {
 	     audioFormatToString(audioFormat, params);
              sendNotify("audioFormatChanged", params);
 	}
-
-        uint32_t DisplaySettings::getVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
-        {
-                LOGINFOMETHOD();
-
-                bool success = true;
-                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
-                dsVolumeLeveller_t leveller;
-
-                try
-                {
-                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                                if (aPort.isConnected())
-                                {
-                                        leveller= aPort.getVolumeLeveller();
-                                        response["mode"] = leveller.mode;
-                                        response["level"] = leveller.level;
-                                }
-                }
-                catch (const device::Exception& err)
-                {
-                        LOG_DEVICE_EXCEPTION1(audioPort);
-                        success = false;
-                        response["mode"] = 0; //Off
-                        response["level"] = 0;
-                }
-                returnResponse(success);
-        }
 
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
@@ -2355,6 +2358,56 @@ namespace WPEFramework {
         }
 
         uint32_t DisplaySettings::setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "mode");
+                string sMode = parameters["mode"].String();
+                string sBoost = parameters["boost"].String();
+                dsSurroundVirtualizer_t surroundVirtualizer;
+
+                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sBoost.c_str()) == false)) {
+                    LOGWARN("mode and boost value should be an integer");
+                    returnResponse(false);
+                }
+
+                try {
+                        int mode = stoi(sMode);
+                        if (mode == 0) {
+                                surroundVirtualizer.mode = 0; //Off
+                                surroundVirtualizer.boost = 0;
+                        }
+                        else if (mode == 1){
+                                surroundVirtualizer.mode = 1; //On
+                                surroundVirtualizer.boost = stoi(sBoost);
+                        }
+                        else if (mode == 2) {
+                                surroundVirtualizer.mode = 2; //Auto
+                                surroundVirtualizer.boost = 0;
+                        }
+                        else {
+                                LOGERR("Invalid surround virtualizer mode \n");
+                                returnResponse(false);
+                        }
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMode);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setSurroundVirtualizer(surroundVirtualizer);
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION2(audioPort, sMode);
+                        success = false;
+                }
+                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setMISteering(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
                 returnIfParamNotFound(parameters, "mode");
@@ -2952,6 +3005,12 @@ namespace WPEFramework {
                 audioDelayMs = stoi(sAudioDelayMs);
             } catch (const std::exception &err) {
                 LOGERR("Failed to parse audioDelay '%s'", sAudioDelayMs.c_str());
+                returnResponse(false);
+            }
+            
+            if ( audioDelayMs < 0 )
+            {
+                LOGERR("audioDelay '%s', Should be a postiive value", sAudioDelayMs.c_str());
                 returnResponse(false);
             }
 
@@ -3560,17 +3619,19 @@ namespace WPEFramework {
             if(!DisplaySettings::_instance)
                  return;
 	    
-	    std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 	    while(1) {
 
 		LOGINFO("%s: Debug:  ARC Routing Thread wait \n",__FUNCTION__);
+		{
+	    	std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 		DisplaySettings::_instance->arcRoutingCV.wait(lock, []{return (DisplaySettings::_instance->m_cecArcRoutingThreadRun == true);});
-
+		arcState = DisplaySettings::_instance->m_currentArcRoutingState;
+		}
                 if(threadExit == true) {
                     break;
 		}
 
-		arcState = DisplaySettings::_instance->m_currentArcRoutingState;
+		
 
 		switch(arcState) {
 
@@ -3594,6 +3655,7 @@ namespace WPEFramework {
 			break;
 		}
 
+	    std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 		DisplaySettings::_instance->m_cecArcRoutingThreadRun = false;
 	    }
 
@@ -3766,7 +3828,14 @@ namespace WPEFramework {
                         }
 
 		        aPort.setSAD(sad_list);
-			aPort.setStereoAuto(true,true);
+                        if(aPort.getStereoAuto() == true) {
+                            aPort.setStereoAuto(true,true);
+                        }
+                        else{
+                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
+                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            aPort.setStereoMode(mode.toString(), true);
+                        }
                     }
                     catch (const device::Exception& err)
                     {
@@ -3792,9 +3861,9 @@ namespace WPEFramework {
 //                    m_hdmiInAudioDeviceConnected = true;
 //                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                     LOGINFO("%s :  audioMode ON !!!\n", __FUNCTION__);
+                    std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
                     if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false)) {
-			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__);
-                        std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__); 
     		        m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
 			m_cecArcRoutingThreadRun = true;
 		        arcRoutingCV.notify_one();
