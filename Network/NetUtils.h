@@ -38,6 +38,7 @@ namespace WPEFramework {
         class NetUtils {
         private:
             void _loadInterfaceDescriptions();
+            void _loadDummyIpAddresses();
 
         public:
             NetUtils();
@@ -57,6 +58,7 @@ namespace WPEFramework {
 
             static void getTmpFilename(const char *in, std::string &out);
             static bool isValidEndpointURL(const std::string& endpoint);
+            bool isDummyIpAddress(const std::string& address);
 
         private:
             static bool _isCharacterIllegal(const int& c);
@@ -64,6 +66,7 @@ namespace WPEFramework {
             static unsigned int     m_counter;
             static std::mutex       m_counterProtect;
             std::map<std::string, std::string> interface_descriptions;
+            std::vector<std::string> dummy_ip_list;
         };
     } // namespace Plugin
 } // namespace WPEFramework
