@@ -1,0 +1,13 @@
+{
+    "jsonrpc": "2.0", 
+    "id": "8003", 
+    "method": "org.rdk.FireboltMediaPlayer.1.initConfig", 
+    "params": { 
+        "id": "mainplayer", 
+        "PreferredAudioLanguage": "incorrect case",
+        "preferedAudioLanguage": "wrong spelling",
+        "networkProxy": true,
+        "licenseProxy": 1234,
+        "initialBitrate": false
+    }
+}
