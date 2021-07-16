@@ -487,11 +487,12 @@ namespace WPEFramework {
             }
 
             if (!(rebootCommand.empty())) {
-                rebootReason = "System Plugin";
+                rebootReason = "SystemServices";
                 customReason = "No custom reason provided";
                 otherReason = "No other reason supplied";
 
                 if (parameters.HasLabel("rebootReason")) {
+                    rebootReason = "SystemServices";
                     customReason = parameters["rebootReason"].String();
                     otherReason = customReason;
                 }
