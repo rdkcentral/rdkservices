@@ -40,11 +40,11 @@ namespace
     {
         err_t ret = OK;
         string mac = Utils::cRunScript(". /lib/rdk/utils.sh && getMacAddressOnly");
-        removeCharsFromString(mac, "\n\r: ");
+        removeCharsFromString(mac, "\n\r ");
         if (mac.empty())
             ret = FilenameFail;
         else
-            filename = mac + "_Logs_" + currentDateTimeUtc("+%m-%d-%y-%I-%M%p") + ".tgz";
+            filename = mac + "_Logs_" + currentDateTimeUtc("%m-%d-%y-%I-%M%p") + ".tgz";
         return ret;
     }
 
