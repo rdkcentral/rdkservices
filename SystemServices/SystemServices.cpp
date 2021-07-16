@@ -499,7 +499,7 @@ namespace WPEFramework {
             }
 
             IARM_Bus_PWRMgr_RebootParam_t rebootParam;
-            strncpy(rebootParam.requestor, "System Plugin", sizeof(rebootParam.requestor));
+            strncpy(rebootParam.requestor, "SystemServices", sizeof(rebootParam.requestor));
             strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
             strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
             LOGINFO("requestSystemReboot: custom reason: %s, other reason: %s\n", rebootParam.reboot_reason_custom,
