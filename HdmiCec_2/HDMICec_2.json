@@ -1,0 +1,195 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "HdmiCec_2 API", 
+        "class": "HdmiCec_2", 
+        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box"
+    },
+    "definitions": {
+        "vendorid": {
+            "summary": "The vendor ID. The default value is `0019FB` if no value is set. If the device is connected to an LG TV, then `00E091` is used as the vendor ID.",
+            "type": "string",
+            "example": "0x0019FB"
+        },
+        "name": {
+            "summary": "The OSD name. The default value is `TV Box` id no value is set.",
+            "type": "string",
+            "example": "Sky TV"
+        },
+        "enabled": {
+            "summary": "Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`). The default value is `true` if the parameter has not been set before.",
+            "type":"boolean",
+            "example": false
+        },
+        "enabled_otp": {
+            "summary": "Indicates whether HDMI-CEC OTP is enabled (`true`) or disabled (`false`). The default value is `true` if the parameter has not been set before.",
+            "type":"boolean",
+            "example": false
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getEnabled": {
+            "summary": "Returns whether HDMI-CEC is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getOSDName":{
+            "summary": "Returns the OSD name used by device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "name",
+                    "success"
+                ]
+            }
+        },
+        "getOTPEnabled":{
+            "summary": "Returns whether HDMI-CEC OPT option is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled_otp"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getVendorId":{
+            "summary": "Returns the vendor ID used by the device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "name",
+                    "success"
+                ]
+            }
+        },
+        "performOTPAction":{
+            "summary": "Turns on the TV and takes back the input to the device",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setEnabled":{
+            "summary": "Enables or disables HDMI-CEC",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled" 
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setOSDName":{
+            "summary": "Sets the OSD name",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setOTPEnabled":{
+            "summary": "Enables or disables HDMI-CEC OPT option",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled_otp"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVendorId":{
+            "summary": "Sets the vendor ID used by the device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"
+                    }
+                },
+                "required": [
+                    "vendorid"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }        
+    }
+}

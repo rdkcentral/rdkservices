@@ -1,67 +1,70 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "OpenCDMi Plugin",
-    "callsign": "OCDM",
-    "locator": "libWPEFrameworkOCDM.so",
-    "status": "production",
-    "version": "1.0"
-  },
-  "configuration": {
-    "type": "object",
-    "properties": {
-      "configuration": {
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "OpenCDMi Plugin",
+        "callsign": "OCDM",
+        "locator": "libWPEFrameworkOCDM.so",
+        "status": "production",
+        "description": "The `OpenCDMi` plugin allows you view Open Content Decryption Module (OCDM) properties",
+        "version": "1.0"
+    },
+    "configuration": {
+        "summary": "Configuration for the OpenCDMi plugin",
         "type": "object",
-        "required": [],
         "properties": {
-          "location": {
-            "type": "string",
-            "description": "Location."
-          },
-          "connector": {
-            "type": "string",
-            "description": "Connector."
-          },
-          "sharepath": {
-            "type": "string",
-            "description": "Sharepath."
-          },
-          "sharesize": {
-            "type": "string",
-            "description": "Sharesize."
-          },
-          "systems": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "description": "System properties.",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Name"
-                },
-                "designators": {
-                  "type": "array",
-                  "items": {
-                      "type": "object",
-                      "description": "designator",
-                      "properties": {
-                        "name": {
-                          "type": "string"
-
+            "configuration": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "location": {
+                        "description": "The location",
+                        "type": "string"
+                    },
+                    "connector": {
+                        "description": "The connector",
+                        "type": "string"
+                    },
+                    "sharepath": {
+                        "description": "The sharepath",
+                        "type": "string"                        
+                    },
+                    "sharesize": {
+                        "description": "The sharesize",
+                        "type": "string"
+                    },
+                    "systems": {
+                        "description": "A list of key systems",
+                        "type": "array",
+                        "items": {
+                            "description": "System properties",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Property name",
+                                    "type": "string"
+                                },
+                                "designators": {
+                                    "description": "designator",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "System properties",
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Property name",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                  }
+                    }            
                 }
-              }
-            },
-            "description": "List of key systems."
-          }
+            }
         }
-      }
+    },
+    "interface": {
+        "$ref": "OpenCDMi.json#"
     }
-  },
-  "interface": {
-    "$ref": "{interfacedir}/OCDM.json#"
-  }
 }

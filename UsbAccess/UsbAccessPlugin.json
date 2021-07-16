@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "UsbAccess Plugin",
+        "callsign": "org.rdk.UsbAccess",
+        "locator": "libWPEFrameworkUsbAccess.so",
+        "status": "production",
+        "description": "The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs.",
+        "version": "1.0"
+    },
+    "interface": {
+        "$ref": "UsbAccess.json#"
+    }
+}
