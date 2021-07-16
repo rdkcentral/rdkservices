@@ -487,9 +487,16 @@ namespace WPEFramework {
             }
 
             if (!(rebootCommand.empty())) {
-                rebootReason = "System Plugin";
+                rebootReason = "SystemServices";
                 customReason = "No custom reason provided";
                 otherReason = "No other reason supplied";
+            
+            IARM_Bus_PWRMgr_RebootParam_t rebootParam;
+            strncpy(rebootParam.requestor, "SystemServices", sizeof(rebootParam.requestor));
+            strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
+            strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
+            LOGINFO("requestSystemReboot: custom reason: %s, other reason: %s\n", rebootParam.reboot_reason_custom,
+                rebootParam.reboot_reason_other);
 
                 if (parameters.HasLabel("rebootReason")) {
                     customReason = parameters["rebootReason"].String();
