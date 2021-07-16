@@ -35,6 +35,7 @@ namespace Plugin {
     {
         ASSERT(_service == nullptr);
 
+        TTS::logger_init();
         _connectionId = 0;
         _service = service;
         _skipURL = static_cast<uint8_t>(_service->WebPrefix().length());

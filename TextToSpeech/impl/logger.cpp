@@ -100,8 +100,13 @@ namespace TTS {
     {
         sync_stdout();
         const char* level = getenv("TTS_DEFAULT_LOG_LEVEL");
-        if (level)
+        if ((level != NULL) && (level[0] != '\0'))
             gDefaultLogLevel = static_cast<LogLevel>(atoi(level));
+    }
+
+    int getLogLevel()
+    {
+        return gDefaultLogLevel;
     }
 
     void log(LogLevel level,

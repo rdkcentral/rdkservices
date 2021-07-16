@@ -54,6 +54,11 @@ void logger_init();
     } while (0)
 
 /**
+ * @brief returns the LogLevel
+ */
+int getLogLevel();
+
+/**
  * @brief Log a message
  * The function is defined by logging backend.
  * Currently 2 variants are supported: TTS_logger (USE_TTS_LOGGER),
