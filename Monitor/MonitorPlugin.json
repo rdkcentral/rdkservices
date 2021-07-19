@@ -1,14 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Monitor Plugin",
-    "callsign": "Monitor",
-    "locator": "libWPEFrameworkMonitor.so",
-    "status": "production",
-    "description": "The Monitor plugin provides a watchdog-like functionality for framework processes.",
-    "version": "1.0"
-  },
-  "interface": {
-    "$ref": "{interfacedir}/Monitor.json#"
-  }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "Monitor Plugin",
+        "callsign": "Monitor",
+        "locator": "libWPEFrameworkMonitor.so",
+        "status": "production",
+        "description": "The `Monitor` plugin provides a watchdog-like functionality for framework processes",
+        "version": "1.0"
+    },
+    "interface": {
+        "$ref": "Monitor.json#"
+    }
 }

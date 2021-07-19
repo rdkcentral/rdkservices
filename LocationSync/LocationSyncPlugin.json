@@ -1,40 +1,40 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Location Sync Plugin",
-    "callsign": "LocationSync",
-    "locator": "libWPELocationSync.so",
-    "status": "production",
-    "description": "The LocationSync plugin provides geo-location functionality.",
-    "version": "1.0"
-  },
-  "configuration": {
-    "type": "object",
-    "properties": {
-      "configuration": {
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "Location Sync Plugin",
+        "callsign": "LocationSync",
+        "locator": "libWPELocationSync.so",
+        "status": "production",
+        "description": "The `LocationSync` plugin provides geo-location functionality.",
+        "version": "1.0"
+    },
+    "configuration": {
         "type": "object",
-        "required": [],
         "properties": {
-          "interval": {
-            "type": "number",
-            "size": 16,
-            "description": "Maximum time duration between each request to the Location Server (default: 10)."
-          },
-          "retries": {
-            "type": "number",
-            "size": 8,
-            "description": "Maximum number of request reties to the Location Server (default:20)."
-          },
-          "source": {
-            "type": "string",
-            "size": 16,
-            "description": "URI of the Location Server (default:\"http://jsonip.metrological.com/?maf=true\")."
-          }
+            "configuration": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "interval": {
+                        "type": "number",
+                        "size": 16,
+                        "description": "Maximum time duration between each request to the Location Server (default: 10)."
+                    },
+                    "retries": {
+                        "type": "number",
+                        "size": 8,
+                        "description": "Maximum number of request reties to the Location Server (default:20)."
+                    },
+                    "source": {
+                        "type": "string",
+                        "size": 16,
+                        "description": "URI of the Location Server (default:\"http://jsonip.metrological.com/?maf=true\")."
+                    }
+                }
+            }
         }
-      }
+    },
+    "interface": {
+        "$ref": "LocationSync.json#"
     }
-  },
-  "interface": {
-    "$ref": "{interfacedir}/LocationSync.json#"
-  }
 }

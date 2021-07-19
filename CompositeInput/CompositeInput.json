@@ -1,9 +1,241 @@
 {
- "locator":"libWPEFrameworkCompositeInput.so",
- "classname":"CompositeInput",
- "precondition":[
-  "Platform"
- ],
- "callsign":"org.rdk.CompositeInput",
- "autostart":false
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "CompositeInput API", 
+        "class": "CompositeInput",
+        "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device"
+    },
+    "definitions": {
+        "id": {
+            "summary": "The ID of the composite input source",
+            "type": "number",
+            "example": 0
+        },
+        "locator": {
+            "summary": "The location of the input source on the device",
+            "type": "string",
+            "example": "cvbsin://localhost/deviceid/0" 
+        },
+        "connected": {
+            "summary": "`true` if the input source is connected, otherwise `false`",
+            "type": "boolean",
+            "example": true
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getCompositeInputDevices" :{
+            "summary": "returns a list of composite input devices",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "devices": {
+                        "summary": "An object array that lists the composite input ports on the device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "$ref": "#definitions/id"
+                                },
+                                "locator": {
+                                    "$ref": "#definitions/locator"
+                                },
+                                "connected": {
+                                    "$ref": "#definitions/connected"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "locator",
+                                "connected"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#definitions/success"
+                    }
+                }, 
+                "required": [
+                    "devices",
+                    "success"
+                ]               
+            }
+        },
+        "setVideoRectangle":{
+            "summary": "Sets the composite input video window",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "x": {
+                        "summary": "The x-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 900
+                    },
+                    "y":{
+                        "summary": "The y-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 500
+                    },
+                    "w":{
+                        "summary": "The width of the video rectangle",
+                        "type": "integer",
+                        "example": 1920
+                    },
+                    "h":{
+                        "summary": "The height of the video rectangle",
+                        "type": "integer",
+                        "example": 1080
+                    }
+                },
+                "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+
+        },
+        "startCompositeInput":{
+            "summary": "Activates the specified composite input as the primary video source",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId": {
+                        "summary": "The id of a composite input source as returned by `getCompositeInputDevices`",
+                        "type": "number",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "portId"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopCompositeInput":{
+            "summary": "Deactivates the current composite input source that is the primary video source",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onDeviceChanged":{
+            "summary": "Triggered when the composite input device changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "devices": {
+                        "summary": "An object array that lists the composite input ports on the device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "$ref": "#definitions/id"
+                                },
+                                "locator": {
+                                    "$ref": "#definitions/locator"
+                                },
+                                "connected": {
+                                    "$ref": "#definitions/connected"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "locator",
+                                "connected"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "devices"
+                ]
+            }
+        },
+        "onInputStatusChanged":{
+            "summary": "Triggered when the status of the composite input changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "status": {
+                        "summary": "The status of the composite input source.",
+                        "type": "string",
+                        "enum": [
+                            "started",
+                            "stopped"
+                        ],
+                        "example": "started"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "status"
+                ]
+            }
+        },
+        "onSignalChanged":{
+            "summary": "Triggered when the status of the composite input signal changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "signalStatus": {
+                        "summary": "The status of the composite input source signal.",
+                        "type": "string",
+                        "enum": [
+                            "noSignal",
+                            "unstableSignal",
+                            "notSupportedSignal",
+                            "stableSignal",
+                            "none"
+                        ],
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "signalStatus"
+                ]
+            }
+        }
+    }
 }
+    

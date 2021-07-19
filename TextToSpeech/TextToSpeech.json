@@ -1,0 +1,628 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "TextToSpeech API",
+        "class": "TextToSpeech",
+        "description": "The `TextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application."
+    },
+    "definitions": {
+        "speechid":{
+            "summary": "The speech ID",
+            "type": "number",
+            "example": "1"
+        },
+        "TTS_Status": {
+            "type": "number",
+            "enum": [
+                "TTS_OK",
+                "TTS_FAIL",
+                "TTS_NOT_ENABLED",
+                "TTS_INVALID_CONFIGURATION"
+            ],
+            "example": "0"                   
+        },
+        "ttsendpoint": {
+            "summary": "The TTS engine URL",
+            "type": "string",
+            "example": "http://url_for_the_text_to_speech_processing_unit"
+        },
+        "ttsendpointsecured": {
+            "summary": "The TTS engine secured URL",
+            "type": "string",
+            "example": "https://url_for_the_text_to_speech_processing_unit"
+        },
+        "language": {
+            "summary": "The TTS language",
+            "type": "string",
+            "example": "en-US"
+        },
+        "voice": {
+            "summary": "The TTS Voice",
+            "type": "string",
+            "example": "carol"
+        },
+        "volume": {
+            "summary": "The TTS volume",
+            "type": "string",
+            "example": "100.000000"
+        },
+        "rate":{
+            "summary": "The TTS rate",
+            "type": "number",
+            "example": 50
+        },
+        "text":{
+            "summary": "The text input",
+            "type": "string",
+            "example": "speech_1"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "cancel": {
+            "summary": "Cancels the speech",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            },
+            "events": [
+                "onspeechinterrupted"
+            ],
+            "result": {
+                "type": "object",
+                "properties": {
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "enabletts": {
+            "summary": "(For Resident App) Enables or disables TTS conversion processing",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabletts":{
+                        "summary": "`true` to enable TTS or `false` to disable TTS",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabletts"
+                ]
+            },
+            "events": [
+                "onttsstatechanged"
+            ],
+            "result": {
+                "type": "object",
+                "properties": {
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "getapiversion":{
+            "summary": "Gets the apiversion",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "summary": "Indicates the current API version",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "version",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "getspeechstate":{
+            "summary": "Returns the current state of the speech request",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "speechstate": {
+                        "summary": "The speech state",
+                        "type": "string",
+                        "enum": [
+                            "SPEECH_PENDING",
+                            "SPEECH_IN_PROGRESS",
+                            "SPEECH_PAUSED",
+                            "SPEECH_NOT_FOUND"
+                        ],
+                        "example": "SPEECH_IN_PROGRESS"
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "speechstate",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "getttsconfiguration": {
+            "summary": "Gets the current TTS configuration",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ttsendpoint": {
+                        "$ref": "#/definitions/ttsendpoint"
+                    },
+                    "ttsendpointsecured": {
+                        "$ref": "#/definitions/ttsendpointsecured"
+                    },
+                    "language": {
+                        "$ref": "#/definitions/language"
+                    },
+                    "voice": {
+                        "$ref": "#/definitions/voice"
+                    },
+                    "volume": {
+                        "$ref": "#/definitions/volume"
+                    },
+                    "rate":{
+                        "$ref": "#/definitions/rate"
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },                    
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ttsendpoint",
+                    "ttsendpointsecured",
+                    "language",
+                    "voice",
+                    "volume",
+                    "rate",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "isspeaking": {
+            "summary": "Checks if speech is in progress",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "speaking": {
+                        "summary": "`true` if the passed speech is in progress (that is, audio was playing), otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "speaking",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "isttsenabled": {
+            "summary": "Returns whether the TTS engine is enabled or disabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "isenabled": {
+                        "summary": "`true` if the TTS engine is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "isenabled",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "listvoices": {
+            "summary": "Lists the available voices for the specified language",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "$ref": "#/definitions/language"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "voices": {
+                        "summary": "The available voice",
+                        "type": "string",
+                        "example": "carol"
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "voices",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "pause": {
+            "summary": "Pauses the speech",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            },
+            "events": [
+                "onspeechpause"
+            ],
+            "result": {
+                "type": "object",
+                "properties": {
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "resume": {
+            "summary": "Resumes the speech",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            },
+            "events": [
+                "onspeechresume"
+            ],
+            "result": {
+                "type": "object",
+                "properties": {
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "setttsconfiguration": {
+            "summary": "Sets the TTS configuration",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ttsendpoint": {
+                        "$ref": "#/definitions/ttsendpoint"
+                    },
+                    "ttsendpointsecured": {
+                        "$ref": "#/definitions/ttsendpointsecured"
+                    },
+                    "language": {
+                        "$ref": "#/definitions/language"
+                    },
+                    "voice": {
+                        "$ref": "#/definitions/voice"
+                    },
+                    "volume": {
+                        "$ref": "#/definitions/volume"
+                    },
+                    "rate":{
+                        "$ref": "#/definitions/rate"
+                    }
+                },
+                "required": [
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        },
+        "speak": {
+            "summary": "Starts a speech. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "text":{
+                        "$ref": "#/definitions/text"
+                    }
+                },
+                "required": [
+                    "text"
+                ]
+            },
+            "events": [
+                "onspeechstart",
+                "onspeechinterrupted"
+            ],
+            "result": {
+                "type": "object",
+                "properties": {
+                    "speechid":{
+                        "$ref": "#/definitions/speechid"
+                    },
+                    "TTS_Status": {
+                        "$ref": "#/definitions/TTS_Status"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "speechid",
+                    "TTS_Status",
+                    "success"
+                ]
+            }
+        }
+    },
+    "events": {
+        "onnetworkerror": {
+            "summary": "Triggered when a network error occurs while fetching the audio from the endpoint",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            }
+        },
+        "onplaybackerror": {
+            "summary": "Triggered when an error occurs during playback including pipeline failures",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            }
+        },
+        "onspeechcomplete": {
+            "summary": "Triggered when the speech completes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    },
+                    "text": {
+                        "$ref": "#/definitions/text"
+                    }                    
+                },
+                "required": [
+                    "speechid",
+                    "text"
+                ]
+            }
+        },
+        "onspeechinterrupted":  {
+            "summary": "Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            }
+        },
+        "onspeechpause": {
+            "summary": "Triggered when the ongoing speech pauses",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            }
+        },
+        "onspeechresume": {
+            "summary": "Triggered when any paused speech resumes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    }
+                },
+                "required": [
+                    "speechid"
+                ]
+            }
+        },
+        "onspeechstart": {
+            "summary": "Triggered when the speech starts",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "speechid": {
+                        "$ref": "#/definitions/speechid"
+                    },
+                    "text": {
+                        "$ref": "#/definitions/text"
+                    }                    
+                },
+                "required": [
+                    "speechid",
+                    "text"
+                ]
+            }
+        },
+        "onttsstatechanged": {
+            "summary": "Triggered when TTS is enabled or disabled",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "state": {
+                        "summary": "`true` if TTS is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            }
+        },
+        "onvoicechanged": {
+            "summary": "Triggered when the configured voice changes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "voice": {
+                        "$ref": "#/definitions/voice"
+                    }
+                },
+                "required": [
+                    "voice"
+                ]
+            }
+        }
+    }
+}

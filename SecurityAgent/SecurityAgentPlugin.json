@@ -1,33 +1,33 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Security Agent Plugin",
-    "callsign": "SecurityAgent",
-    "locator": "libWPEFrameworkSecurityAgent.so",
-    "status": "production",
-    "description": "Security Agent of thunder is responsible to allow or block access to the Thunder API.",
-    "version": "1.0"
-  },
-  "configuration": {
-    "type": "object",
-    "properties": {
-      "configuration": {
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "SecurityAgent Plugin",
+        "callsign": "SecurityAgent",
+        "locator": "libWPEFrameworkSecurityAgent.so",
+        "status": "production",
+        "description": "The `SecurityAgent` plugin is responsible for allowing or blocking access to the Thunder APIs",
+        "version": "1.0"
+    },
+    "configuration": {
         "type": "object",
-        "required": [],
         "properties": {
-          "acl": {
-            "type": "string",
-            "description": "ACL"
-          },
-          "connector": {
-            "type": "string",
-            "description": "Connector"
-          }
+            "configuration": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "acl": {
+                        "description": "ACL",
+                        "type": "string"
+                    },
+                    "connector": {
+                        "description": "Connector",
+                        "type": "string"
+                    }
+                }
+            }
         }
-      }
+    },
+    "interface": {
+        "$ref": "SecurityAgent.json#"
     }
-  },
-  "interface": {
-    "$ref": "{interfacedir}/SecurityAgent.json#"
-  }
 }

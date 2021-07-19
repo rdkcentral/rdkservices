@@ -1,53 +1,52 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Trace Control Plugin",
-    "callsign": "TraceControl",
-    "locator": "libWPEFrameworkTraceControl.so",
-    "status": "production",
-    "description": "The Trace Control plugin provides ability to disable/enable trace output an set its verbosity level.",
-    "version": "1.0"
-  },
-  "configuration": {
-    "type": "object",
-    "properties": {
-      "configuration": {
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "TraceControl Plugin",
+        "callsign": "TraceControl",
+        "locator": "libWPEFrameworkTraceControl.so",
+        "status": "production",
+        "description": "The `TraceControl` plugin provides ability to disable/enable trace output an set its verbosity level.",
+        "version": "1.0"
+    },
+    "configuration": {
         "type": "object",
-        "required": [],
         "properties": {
-          "console": {
-            "type": "boolean",
-            "description": "Enable console."
-          },
-          "syslog": {
-            "type": "boolean",
-            "description": "Enable SysLog."
-          },
-          "abbreviated": {
-            "type": "boolean",
-            "description": "Enable abbreviated logging."
-          },
-          "remotes": {
-            "type": "object",
-            "required": [],
-            "properties": {
-              "port" : {
-                "type": "number",
-                "size": "16",
-                "description": "Port."
-              },
-              "bindig" : {
-                "type": "bindig",
-                "size": "string",
-                "description": "Binding."
-              }
+            "configuration": {
+                "type": "object",
+                "properties": {
+                    "console": {
+                        "description": "Enable console",
+                        "type": "boolean"
+                    },
+                    "syslog": {
+                        "description": "Enable SysLog",
+                        "type": "boolean"
+                    },
+                    "abbreviated": {
+                        "description": "Enable abbreviated logging",
+                        "type": "boolean"                         
+                    },
+                    "remotes": {
+                        "type": "object",
+                        "properties": {
+                            "port" : {
+                                "description": "Port",
+                                "type": "number",
+                                "size": "16"                                
+                            },
+                            "binding" : {
+                                "description": "Binding",
+                                "type": "string"
+                            }
+                        },
+                        "required": []
+                    }
+                },
+                "required": []
             }
-          }
         }
-      }
+    },
+    "interface": {
+        "$ref": "TraceControl.json#"
     }
-  },
-  "interface": {
-    "$ref": "{interfacedir}/TraceControl.json#"
-  }
 }

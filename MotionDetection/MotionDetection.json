@@ -1,5 +1,5 @@
 {
-    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "MotionDetection API", 

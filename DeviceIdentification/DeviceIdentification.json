@@ -1,0 +1,39 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "DeviceIdentification API",
+        "class": "DeviceIdentification",
+        "description": "The `DeviceIdentification` allows you to retrieve various device-related information"
+    },
+    "properties": {
+        "deviceidentification": {
+            "summary": "Device platform specific information",
+            "readonly": true,
+            "params": {
+                "type": "object",
+                "properties": {
+                    "firmwareversion": {
+                        "summary": "Version of the device firmware",
+                        "type": "string",
+                        "example": "1.0.0"              
+                    },
+                    "chipset": {
+                        "summary": "Chipset used for this device",
+                        "type": "string",
+                        "example": "BCM2711"              
+                    },
+                    "identifier": {
+                        "summary": "Device unique identifier",
+                        "type": "string",
+                        "example": "WPEuCfrLF45"
+                    }
+                },
+                "required": [
+                    "firmwareversion",
+                    "chipset"
+                ]
+            }
+        }
+    }
+}

@@ -1,9 +1,445 @@
 {
- "locator":"libWPEFrameworkOCIContainer.so",
- "classname":"OCIContainer",
- "precondition":[
-  "Platform"
- ],
- "callsign":"org.rdk.OCIContainer",
- "autostart":true
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+      "title": "OCIContainer API",
+      "class": "OCIContainer",
+      "description": "The `OCIContainer` plugin allows for control of OCI containers using the Dobby hypervisor"
+    },
+    "definitions": {
+        "containerId": {
+            "summary": "The ID of a container as returned by `listContainers`",
+            "type": "string",
+            "example": "com.bskyb.epgui"
+        },
+        "state": {
+            "summary": "The container state",
+            "enum": [
+                "Invalid",
+                "Starting",
+                "Running",
+                "Stopped",
+                "Paused"
+            ],
+            "type": "string",
+            "example": "Running"
+        },
+        "Descriptor": {
+            "summary": "The container descriptor",
+            "type": "integer",
+            "example": 91
+        },
+        "command": {
+            "summary": "Command to execute",
+            "type": "string",
+            "example": "command"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "execCommand":{
+            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "options": {
+                        "summary": "Global options for crun `exec` command",
+                        "type": "string",
+                        "example": "--cwd=PATH"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "command"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getContainerInfo":{
+            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    }
+                },
+                "required": [
+                    "containerId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "info": {
+                        "summary": "Information about the specified container",
+                        "type": "object",
+                        "properties": {
+                            "cpu": {
+                                "summary": "CPU information",
+                                "type": "object",
+                                "properties": {
+                                    "usage": {
+                                        "summary": "The amount of CPU usage",
+                                        "type": "object",
+                                        "properties": {
+                                            "percpu": {
+                                                "summary": "The usage for each CPU",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "example": 83134464184
+                                                }
+                                            },
+                                            "total": {
+                                                "summary": "The combined usage for all CPUs",
+                                                "type": "integer",
+                                                "example": 224025108679
+                                            }
+                                        },
+                                        "required": [
+                                            "percpu",
+                                            "total"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "usage"        
+                                ]
+                            },                        
+                            "id": {
+                                "$ref": "#/definitions/containerId"
+                            },
+                            "memory": {
+                                "summary": "The amount of memory being used by the container",
+                                "type": "object",
+                                "properties": {
+                                    "user": {
+                                        "summary": "User memory statistics",
+                                        "type": "object",
+                                        "properties": {
+                                            "failcnt": {
+                                                "summary": "The fail count; the number of times that the usage counter hit its limit",
+                                                "type": "integer",
+                                                "example": 0
+                                            },
+                                            "limit": {
+                                                "summary": "The memory limit",
+                                                "type": "integer",
+                                                "example": 230686720
+                                            },
+                                            "max": {
+                                                "summary": "The maximum amount of memory used",
+                                                "type": "integer",
+                                                "example": 38555648
+                                            },
+                                            "usage": {
+                                                "summary": "The current memory being used",
+                                                "type": "integer",
+                                                "example": 28655616
+                                            }
+                                        },
+                                        "required": [
+                                            "failcnt",
+                                            "limit",
+                                            "max",
+                                            "usage"
+                                        ]   
+                                    }
+                                },
+                                "required": [
+                                    "user"
+                                ]
+                            },
+                            "pids": {
+                                "summary": "A list of container process IDs",
+                                "type": "array",
+                                "items": {
+                                    "type": "integer",
+                                    "example": 7644
+                                }
+                            },
+                            "state": {
+                                "$ref": "#/definitions/state"
+                            },
+                            "timestamp": {
+                                "summary": "The timestamp for container information",
+                                "type": "integer",
+                                "example": 6849968158125
+                            }
+                        },
+                        "required": [
+                            "cpu",
+                            "id",
+                            "memory",
+                            "pids",
+                            "state",
+                            "timestamp"
+                        ]
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "info",
+                    "success"
+                ]
+            }
+        },
+        "getContainerState":{
+            "summary": "Gets the state of a currently running container",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    }
+                },
+                "required": [
+                    "containerId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "state": {
+                        "summary": "The container state",
+                        "enum": [
+                            "Invalid",
+                            "Starting",
+                            "Running",
+                            "Stopped",
+                            "Paused"
+                        ],
+                        "type": "string",
+                        "example": "Running"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "state",
+                    "success"
+                ]
+            }
+        },
+        "listContainers":{
+            "summary": "Lists all running OCI containers Dobby knows about",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "containers": {
+                        "summary": "A list of running containers",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "Descriptor": {
+                                    "$ref": "#/definitions/Descriptor"
+                                },
+                                "Id": {
+                                    "summary": "The container Id",
+                                    "type": "string",
+                                    "example": "com.bskyb.epgui"
+                                }
+                            },
+                            "required": [
+                                "Descriptor",
+                                "Id"
+                            ]
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "containers",
+                    "success"
+                ]
+            } 
+        },
+        "pauseContainer":{
+            "summary": "Pauses a currently running container",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    }
+                },
+                "required": [
+                    "containerId"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "resumeContainer":{
+            "summary": "Resumes a previously paused container",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    }
+                },
+                "required": [
+                    "containerId"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "startContainer":{
+            "summary": "Starts a new container from an existing OCI bundle",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "bundlePath": {
+                        "summary": "Path to the OCI bundle containing the rootfs and config to use to create the container",
+                        "type": "string",
+                        "example": "/containers/myBundle"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    },
+                    "westerosSocket":{
+                        "summary": "Path to a Westeros socket to mount inside the container",
+                        "type": "string",
+                        "example": "/usr/mySocket"
+                    },
+                    "envvar": {
+                        "summary": "A list of environment variables to add to the container",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "FOO=BAR"
+                        }
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "bundlePath"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "descriptor": {
+                        "$ref": "#/definitions/Descriptor"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "descriptor",
+                    "success"
+                ]
+            }
+        },
+        "startContainerFromDobbySpec":{
+            "summary": "Starts a new container from a legacy Dobby JSON specification",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "dobbySpec": {
+                        "summary": "Dobby specification to use for the container",
+                        "type": "string",
+                        "example": "/containers/dobbySpec"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "dobbySpec"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "descriptor": {
+                        "$ref": "#/definitions/Descriptor"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "descriptor",
+                    "success"
+                ]
+            }
+
+        },
+        "stopContainer":{
+            "summary": "Stops a currently running container",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "force": {
+                        "summary": "If `true`, force stop the container using the `SIGKILL` signal). Otherwise, use the `SIGTERM` signal. The default value if no value is specified is `false`.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "dobbySpec"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    }
 }
+
+
+
+
+
+

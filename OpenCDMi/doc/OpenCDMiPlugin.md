@@ -11,6 +11,7 @@ OCDM plugin for Thunder framework.
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
+- [Description](#head.Description)
 - [Configuration](#head.Configuration)
 - [Properties](#head.Properties)
 
@@ -55,6 +56,13 @@ The table below provides and overview of terms and abbreviations used in this do
 | <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
 | <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
+<a name="head.Description"></a>
+# Description
+
+The `OpenCDMi` plugin allows you view Open Content Decryption Module (OCDM) properties.
+
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+
 <a name="head.Configuration"></a>
 # Configuration
 
@@ -67,16 +75,16 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkOCDM.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 | configuration | object | <sup>*(optional)*</sup>  |
-| configuration?.location | string | <sup>*(optional)*</sup> Location |
-| configuration?.connector | string | <sup>*(optional)*</sup> Connector |
-| configuration?.sharepath | string | <sup>*(optional)*</sup> Sharepath |
-| configuration?.sharesize | string | <sup>*(optional)*</sup> Sharesize |
-| configuration?.systems | array | <sup>*(optional)*</sup> List of key systems |
+| configuration?.location | string | <sup>*(optional)*</sup> The location |
+| configuration?.connector | string | <sup>*(optional)*</sup> The connector |
+| configuration?.sharepath | string | <sup>*(optional)*</sup> The sharepath |
+| configuration?.sharesize | string | <sup>*(optional)*</sup> The sharesize |
+| configuration?.systems | array | <sup>*(optional)*</sup> A list of key systems |
 | configuration?.systems[#] | object | <sup>*(optional)*</sup> System properties |
-| configuration?.systems[#]?.name | string | <sup>*(optional)*</sup> Name |
-| configuration?.systems[#]?.designators | array | <sup>*(optional)*</sup>  |
-| configuration?.systems[#]?.designators[#] | object | <sup>*(optional)*</sup> designator |
-| configuration?.systems[#]?.designators[#].name | string |  |
+| configuration?.systems[#]?.name | string | <sup>*(optional)*</sup> Property name |
+| configuration?.systems[#]?.designators | array | <sup>*(optional)*</sup> designator |
+| configuration?.systems[#]?.designators[#] | object | <sup>*(optional)*</sup> System properties |
+| configuration?.systems[#]?.designators[#].name | string | Property name |
 
 <a name="head.Properties"></a>
 # Properties
@@ -104,9 +112,9 @@ Provides access to the supported DRM systems.
 | :-------- | :-------- | :-------- |
 | (property) | array | Supported DRM systems |
 | (property)[#] | object |  |
-| (property)[#].name | string | Name of the DRM |
+| (property)[#].name | string | The name of the DRM system |
 | (property)[#].keysystems | array |  |
-| (property)[#].keysystems[#] | string | Identifier of a key system |
+| (property)[#].keysystems[#] | string | An identifier of a key system |
 
 ### Example
 
@@ -149,7 +157,7 @@ Provides access to the DRM key systems.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | array | DRM key systems |
-| (property)[#] | string | Identifier of a key system |
+| (property)[#] | string | An identifier of a key system |
 
 > The *drm system* shall be passed as the index to the property, e.g. *OCDM.1.keysystems@PlayReady*.
 

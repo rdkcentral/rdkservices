@@ -1,14 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "Player Info Plugin",
-    "callsign": "PlayerInfo",
-    "locator": "libWPEPlayerInfo.so",
-    "status": "beta",
-    "description": "The PlayerInfo plugin helps to get system supported Audio Video codecs",
-    "version": "1.0"
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "Player Info Plugin",
+        "callsign": "PlayerInfo",
+        "locator": "libWPEPlayerInfo.so",
+        "status": "beta",
+        "description": "The `PlayerInfo` plugin helps to get system supported audio and video codecs",
+        "version": "1.0"
   },
-  "interface": {
-    "$cppref": "{cppinterfacedir}/IPlayerInfo.h"
-  }
+    "interface": {
+        "$ref": "PlayerInfo.json#"
+    }
 }
