@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Device_Info_Plugin"></a>
-# Device Info Plugin
+<a name="head.DeviceInfo_Plugin"></a>
+# DeviceInfo Plugin
 
 **Version: 1.0**
 
@@ -21,12 +21,12 @@ DeviceInfo plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the DeviceInfo plugin. It includes detailed specification of its configuration and properties provided.
+This document describes purpose and functionality of the DeviceInfo plugin. It includes detailed specification about its configuration and properties provided.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
 
-All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
 <a name="head.Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The DeviceInfo plugin allows retrieving of various device-related information.
+The `DeviceInfo` plugin allows retrieving of various device-related information.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -73,7 +73,7 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *DeviceInfo*) |
 | classname | string | Class name: *DeviceInfo* |
 | locator | string | Library name: *libWPEFrameworkDeviceInfo.so* |
-| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Properties"></a>
 # Properties
@@ -84,14 +84,15 @@ DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
+| [systeminfo](#property.systeminfo) <sup>RO</sup> | Provides access to system general information |
 | [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
 | [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
+
 
 <a name="property.systeminfo"></a>
 ## *systeminfo <sup>property</sup>*
 
-Provides access to the system general information.
+Provides access to the provides access to system general information.
 
 > This property is **read-only**.
 
@@ -99,15 +100,15 @@ Provides access to the system general information.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | object | System general information |
+| (property) | object | Provides access to system general information |
+| (property).time | string | Current system date and time |
 | (property).version | string | Software version (in form *version#hashtag*) |
 | (property).uptime | number | System uptime (in seconds) |
-| (property).totalram | number | Total installed system RAM memory (in bytes) |
 | (property).freeram | number | Free system RAM memory (in bytes) |
+| (property).totalram | number | Total installed system RAM memory (in bytes) |
 | (property).devicename | string | Host name |
 | (property).cpuload | string | Current CPU load (percentage) |
 | (property).serialnumber | string | Device serial number |
-| (property).time | string | Current system date and time |
 
 ### Example
 
@@ -120,6 +121,7 @@ Provides access to the system general information.
     "method": "DeviceInfo.1.systeminfo"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -127,17 +129,18 @@ Provides access to the system general information.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
+        "time": "Mon, 11 Mar 2019 14:38:18",
         "version": "1.0#14452f612c3747645d54974255d11b8f3b4faa54",
         "uptime": 120,
-        "totalram": 655757312,
         "freeram": 563015680,
+        "totalram": 655757312,
         "devicename": "buildroot",
         "cpuload": "2",
-        "serialnumber": "WPEuCfrLF45",
-        "time": "Mon, 11 Mar 2019 14:38:18"
+        "serialnumber": "WPEuCfrLF45"
     }
 }
 ```
+
 <a name="property.addresses"></a>
 ## *addresses <sup>property</sup>*
 
@@ -167,6 +170,7 @@ Provides access to the network interface addresses.
     "method": "DeviceInfo.1.addresses"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -184,6 +188,7 @@ Provides access to the network interface addresses.
     ]
 }
 ```
+
 <a name="property.socketinfo"></a>
 ## *socketinfo <sup>property</sup>*
 
@@ -196,11 +201,11 @@ Provides access to the socket information.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Socket information |
-| (property)?.total | number | <sup>*(optional)*</sup>  |
-| (property)?.open | number | <sup>*(optional)*</sup>  |
-| (property)?.link | number | <sup>*(optional)*</sup>  |
-| (property)?.exception | number | <sup>*(optional)*</sup>  |
-| (property)?.shutdown | number | <sup>*(optional)*</sup>  |
+| (property)?.total | number | <sup>*(optional)*</sup> Total number of sockets |
+| (property)?.open | number | <sup>*(optional)*</sup> Number of open sockets |
+| (property)?.link | number | <sup>*(optional)*</sup> Number of links |
+| (property)?.exception | number | <sup>*(optional)*</sup> Number of exceptions |
+| (property)?.shutdown | number | <sup>*(optional)*</sup> Number of sockets that were shutdown |
 | (property).runs | number | Number of runs |
 
 ### Example
@@ -214,6 +219,7 @@ Provides access to the socket information.
     "method": "DeviceInfo.1.socketinfo"
 }
 ```
+
 #### Get Response
 
 ```json
@@ -230,3 +236,4 @@ Provides access to the socket information.
     }
 }
 ```
+
