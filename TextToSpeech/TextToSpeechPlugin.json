@@ -1,17 +1,14 @@
 {
-  "$schema": "plugin.schema.json",
-  "info": {
-    "title": "TextToSpeech Plugin",
-    "callsign": "org.rdk.TextToSpeech",
-    "locator": "libWPEFrameworkTextToSpeech.so",
-    "status": "production",
-    "autostart":true,
-    "description": [
-      "The TextToSpeech plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application."
-    ],
-    "version": "1.0"
-  },
-  "interface": {
-    "$ref": "{interfacedir}/TextToSpeech.json#"
-  }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "TextToSpeech Plugin",
+        "callsign": "org.rdk.TextToSpeech",
+        "locator": "libWPEFrameworkTextToSpeech.so",
+        "status": "production",
+        "description": "The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application.",
+        "version": "1.0"
+    },
+    "interface": {
+        "$ref": "TextToSpeech.json#"
+    }
 }

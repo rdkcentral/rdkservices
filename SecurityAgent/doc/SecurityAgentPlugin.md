@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Security_Agent_Plugin"></a>
-# Security Agent Plugin
+<a name="head.SecurityAgent_Plugin"></a>
+# SecurityAgent Plugin
 
 **Version: 1.0**
 
@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-Security Agent of thunder is responsible to allow or block access to the Thunder API.
+The `SecurityAgent` plugin is responsible for allowing or blocking access to the Thunder APIs.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -87,27 +87,27 @@ SecurityAgent interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [createtoken](#method.createtoken) | Creates Token |
+| [createtoken](#method.createtoken) | Creates a Token |
 | [validate](#method.validate) | Validates Token |
 
 
 <a name="method.createtoken"></a>
 ## *createtoken <sup>method</sup>*
 
-Creates Token.
+Creates a Token.
 
 ### Description
 
-Create a signed JsonWeb token from provided payload.
+Create a signed JsonWeb token with the specified parameters
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.url | string | <sup>*(optional)*</sup> Url of application origin |
-| params?.user | string | <sup>*(optional)*</sup> Username |
-| params?.hash | string | <sup>*(optional)*</sup> Random hash |
+| params.url | string | Url of application origin |
+| params.user | string | The user name |
+| params.hash | string | A random hash |
 
 ### Result
 
@@ -158,21 +158,21 @@ Validates Token.
 
 ### Description
 
-Checks whether the token is valid and properly signed.
+Checks whether the token is valid and properly signed
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.token | string | Token that will be validated |
+| params.token | string | Token to validate |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.valid | boolean | Tells whether token is signature is correct |
+| result.valid | boolean | Whether the token is signature is correct |
 
 ### Errors
 
