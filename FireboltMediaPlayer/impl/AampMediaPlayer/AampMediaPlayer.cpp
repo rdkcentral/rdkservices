@@ -33,7 +33,7 @@ namespace WPEFramework {
             //temporary back door for AAMP configuration
             Core::SystemInfo::SetEnvironment(_T("AAMP_ENABLE_OPT_OVERRIDE"), _T("1"));
             //TODO: should be set accordingly to platform set-up
-            Core::SystemInfo::SetEnvironment(_T("AAMP_ENABLE_WESTEROS_SINK"), _T("1"));
+            Core::SystemInfo::SetEnvironment(_T("AAMP_ENABLE_WESTEROS_SINK"), _T("1"), false);
         }
 
         AampMediaPlayer::~AampMediaPlayer()
