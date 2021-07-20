@@ -96,6 +96,8 @@ namespace WPEFramework {
             uint32_t setEventResponseWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getMediaTrackInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response);
             // Registered methods end
 
         private: /*internal methods*/
@@ -120,6 +122,11 @@ namespace WPEFramework {
             bool setEventResponse(long long int  deviceID, const string &eventType, const string &respValue);
             JsonObject getDeviceInfo(long long int deviceID);
             JsonObject getMediaTrackInfo(long long int deviceID);
+            bool setDeviceVolumeMuteProperties(long long int  deviceID, const string &deviceProfile, unsigned char ui8volume, unsigned char mute);
+            JsonObject getDeviceVolumeMuteProperties(long long int  deviceID, const string &deviceProfile);
+            BTRMGR_DeviceOperationType_t btmgrDeviceOperationTypeFromString(const string &deviceProfile);
+
+
         public:
             static const short API_VERSION_NUMBER_MAJOR;
             static const short API_VERSION_NUMBER_MINOR;
@@ -145,6 +152,8 @@ namespace WPEFramework {
             static const string METHOD_GET_DEVICE_INFO;
             static const string METHOD_GET_AUDIO_INFO;
             static const string METHOD_GET_API_VERSION_NUMBER;
+            static const string METHOD_GET_DEVICE_VOLUME_MUTE_INFO;
+            static const string METHOD_SET_DEVICE_VOLUME_MUTE_INFO;
             static const string EVT_STATUS_CHANGED;
             static const string EVT_PAIRING_REQUEST;
             static const string EVT_REQUEST_FAILED;
@@ -205,6 +214,7 @@ namespace WPEFramework {
             static const string CMD_AUDIO_CTRL_VOLUME_UP;
             static const string CMD_AUDIO_CTRL_VOLUME_DOWN;
             static const string CMD_AUDIO_CTRL_MUTE;
+            static const string CMD_AUDIO_CTRL_UNMUTE;
 
             uint32_t m_apiVersionNumber;
             // Assuming that there will be only one threaded call at a time (which is the case for Bluetooth)

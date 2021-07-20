@@ -56,6 +56,8 @@ const string WPEFramework::Plugin::Bluetooth::METHOD_SET_EVENT_RESPONSE = "respo
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_DEVICE_INFO = "getDeviceInfo";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_AUDIO_INFO = "getAudioInfo";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
+const string WPEFramework::Plugin::Bluetooth::METHOD_GET_DEVICE_VOLUME_MUTE_INFO = "getDeviceVolumeMuteInfo";
+const string WPEFramework::Plugin::Bluetooth::METHOD_SET_DEVICE_VOLUME_MUTE_INFO = "setDeviceVolumeMuteInfo";
 
 const string WPEFramework::Plugin::Bluetooth::EVT_STATUS_CHANGED = "onStatusChanged";
 const string WPEFramework::Plugin::Bluetooth::EVT_PAIRING_REQUEST = "onPairingRequest";
@@ -106,6 +108,7 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_RESTART = "RESTART"
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_UP = "VOLUME_UP";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_DOWN = "VOLUME_DOWN";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_MUTE = "AUDIO_MUTE";
+const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNMUTE";
 
 namespace WPEFramework
 {
@@ -155,6 +158,8 @@ namespace WPEFramework
             registerMethod(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
             registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
             registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
+            registerMethod(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
+            registerMethod(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
 
             Utils::IARM::init();
 
@@ -633,8 +638,12 @@ namespace WPEFramework
                 /* could manipulate this action with skip track by setting Repeat - To confirm */
             } //TODO
             else if (audioCtrlCmd == CMD_AUDIO_CTRL_MUTE) {
-                rc = BTRMGR_RESULT_GENERIC_FAILURE;
-                /* release data path and reacquire on unmute - to confirm */
+                    LOGERR(" mute set calling ");
+                    rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_MUTE);
+            }
+            else if (audioCtrlCmd == CMD_AUDIO_CTRL_UNMUTE) {
+                     LOGERR(" un mute set calling ");
+                     rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_UNMUTE);
             }
             else if (audioCtrlCmd == CMD_AUDIO_CTRL_VOLUME_UP) {
                     rc = BTRMGR_MediaControl (0, deviceHandle, BTRMGR_MEDIA_CTRL_VOLUMEUP);
@@ -651,6 +660,68 @@ namespace WPEFramework
             }
 
             return BTRMGR_RESULT_SUCCESS == rc;
+        }
+
+        BTRMGR_DeviceOperationType_t Bluetooth::btmgrDeviceOperationTypeFromString(const string &deviceProfile)
+        {
+             BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
+
+             if (Utils::String::contains(deviceProfile, "LOUDSPEAKER") ||
+                 Utils::String::contains(deviceProfile, "HEADPHONES") ||
+                 Utils::String::contains(deviceProfile, "WEARABLE HEADSET") ||
+                 Utils::String::contains(deviceProfile, "HIFI AUDIO DEVICE")) {
+                 lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
+             }
+             else if (Utils::String::contains(deviceProfile, "SMARTPHONE") ||
+                      Utils::String::contains(deviceProfile, "TABLET")) {
+                      lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_INPUT;
+             }
+             else if (Utils::String::contains(deviceProfile, "KEYBOARD") ||
+                      Utils::String::contains(deviceProfile, "MOUSE") ||
+                      Utils::String::contains(deviceProfile, "JOYSTICK")) {
+                      lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_HID;
+             }
+             else if (Utils::String::contains(deviceProfile, "LE TILE") ||
+                      Utils::String::contains(deviceProfile, "LE")) {
+                      lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_LE;
+             }
+             else if (Utils::String::contains(deviceProfile, "DEFAULT")) {
+                      lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_UNKNOWN;
+             }
+
+             return lenDevOpDiscType;
+        }
+
+        bool Bluetooth::setDeviceVolumeMuteProperties(long long int  deviceID, const string &deviceProfile, unsigned char ui8volume, unsigned char mute)
+        {
+             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
+             BTRMgrDeviceHandle deviceHandle = (BTRMgrDeviceHandle) deviceID;
+             BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
+
+             lenDevOpDiscType = btmgrDeviceOperationTypeFromString(deviceProfile);
+             rc = BTRMGR_SetDeviceVolumeMute (0, deviceHandle, lenDevOpDiscType, ui8volume, mute);
+             return BTRMGR_RESULT_SUCCESS == rc;
+        }
+
+        JsonObject Bluetooth::getDeviceVolumeMuteProperties(long long int  deviceID, const string &deviceProfile)
+        {
+             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
+             BTRMgrDeviceHandle deviceHandle = (BTRMgrDeviceHandle) deviceID;
+             BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
+             unsigned char ui8volume;
+             unsigned char mute;
+             JsonObject volumeInfo;
+
+             lenDevOpDiscType = btmgrDeviceOperationTypeFromString(deviceProfile);
+             rc = BTRMGR_GetDeviceVolumeMute (0, deviceHandle, lenDevOpDiscType, &ui8volume, &mute);
+             if (BTRMGR_RESULT_SUCCESS != rc) {
+                 LOGERR("Failed to get the volume info %d", rc);
+             } else {
+	         volumeInfo ["volume"] = std::to_string(ui8volume);
+	         volumeInfo ["mute"]   = mute ? true : false ;
+	     }
+
+             return volumeInfo;
         }
 
         bool Bluetooth::setEventResponse(long long int  deviceID, const string &eventType, const string &respValue)
@@ -1436,6 +1507,95 @@ namespace WPEFramework
                 successFlag = setAudioControlCommand(deviceID, audioCtrlCmd);
             } else {
                 LOGERR("Please specify parameters. Example: \"params\": {\"deviceID\": \"271731989589742\", \"command\": \"PLAY\"}");
+                successFlag = false;
+            }
+            returnResponse(successFlag);
+        }
+
+
+        uint32_t Bluetooth::getDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool successFlag;
+            string deviceIDStr;
+            long long int deviceID = 0;
+            bool deviceIDDefined = false;
+            string deviceTypeStr;
+            bool deviceTypeDefined = false;
+            char ui8volume = 0;
+	    char mute;
+
+
+            if (parameters.HasLabel("deviceID"))
+            {
+                getStringParameter("deviceID", deviceIDStr);
+                deviceID = stoll(deviceIDStr);
+                deviceIDDefined = true;
+            }
+            if (parameters.HasLabel("deviceType"))
+            {
+                getStringParameter("deviceType", deviceTypeStr);
+                deviceTypeDefined = true;
+            }
+            if (deviceIDDefined && deviceTypeDefined)
+            {
+                LOGINFO("Making a call with deviceID=%llu ", deviceID);
+                response ["volumeinfo"] = getDeviceVolumeMuteProperties(deviceID, deviceTypeStr);
+                successFlag = true;
+            } else {
+                LOGERR("Please specify parameters. Example: \"params\": {\"deviceID\": \"271731989589742\", \"deviceType\": \"HEADPHONES\"}");
+                successFlag = false;
+            }
+            returnResponse(successFlag);
+        }
+
+        uint32_t Bluetooth::setDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool successFlag;
+            string deviceIDStr;
+            long long int deviceID = 0;
+            bool deviceIDDefined = false;
+            string deviceTypeStr;
+            bool deviceTypeDefined = false;
+            unsigned char ui8volume = 0;
+            int ivolume = 0;
+            bool volumeDefined = false;
+            unsigned char mute;
+            int imute = 0;
+            bool muteDefined = false;
+
+
+            if (parameters.HasLabel("deviceID"))
+            {
+                getStringParameter("deviceID", deviceIDStr);
+                deviceID = stoll(deviceIDStr);
+                deviceIDDefined = true;
+            }
+            if (parameters.HasLabel("deviceType"))
+            {
+                getStringParameter("deviceType", deviceTypeStr);
+                deviceTypeDefined = true;
+            }
+            if (parameters.HasLabel("volume"))
+            {
+                getNumberParameterObject(parameters, "volume", ivolume);
+                ui8volume = static_cast<unsigned char>(ivolume);
+                volumeDefined = true;
+            }
+            if (parameters.HasLabel("mute"))
+            {
+                getNumberParameterObject(parameters, "mute", imute);
+                mute = static_cast<unsigned char>(imute);
+                muteDefined = true;
+            }
+
+            if (deviceIDDefined && deviceTypeDefined && volumeDefined && muteDefined)
+            {
+                LOGINFO("Making a call with deviceID=%llu ", deviceID);
+                successFlag = setDeviceVolumeMuteProperties(deviceID, deviceTypeStr, ui8volume, mute);
+            } else {
+                LOGERR("Please specify parameters. Example: \"params\": {\"deviceID\": \"271731989589742\", \"deviceType\": \"HEADPHONES\", \"volume\": \"0-255\", \"mute\": \"0-1\"}");
                 successFlag = false;
             }
             returnResponse(successFlag);
