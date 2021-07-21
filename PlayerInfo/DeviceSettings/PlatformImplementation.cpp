@@ -33,6 +33,8 @@
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
 
+#include "manager.hpp"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -118,6 +120,7 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
+        device::Manager::Initialize();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
