@@ -33,6 +33,8 @@
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
 
+#include "manager.hpp"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -118,6 +120,7 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
+        device::Manager::Initialize();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
@@ -132,6 +135,9 @@ public:
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE) );
         PlayerInfoImplementation::_instance = nullptr;
+
+        // Note: the DeviceSettings uninitialization is not called intentionally to not harm plugins runnnig in the same process.
+        // device::Manager::DeInitialize();
     }
 
 public:
