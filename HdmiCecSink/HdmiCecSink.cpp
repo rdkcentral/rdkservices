@@ -487,6 +487,7 @@ namespace WPEFramework
        	   int err;
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
+           smConnection=NULL;
 		   cecEnableStatus = false;
 		   m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
 		   m_currentActiveSource = -1;
@@ -735,7 +736,8 @@ namespace WPEFramework
       {
       		if(!HdmiCecSink::_instance)
 				return;
-
+          if(!(HdmiCecSink::_instance->smConnection))
+              return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -911,6 +913,8 @@ namespace WPEFramework
          }
 		 void HdmiCecSink::sendKeyPressEvent(const int logicalAddress, int keyCode)
 		 {
+                    if(!(_instance->smConnection))
+                        return;
 		    LOGINFO(" sendKeyPressEvent logicalAddress 0x%x keycode 0x%x\n",logicalAddress,keyCode);
                     switch(keyCode)
                    {
@@ -928,6 +932,8 @@ namespace WPEFramework
 		 }
 		 void HdmiCecSink::sendKeyReleaseEvent(const int logicalAddress)
 		 {
+                    if(!(_instance->smConnection))
+                        return;
 		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 1000);
 
 		 }
@@ -941,6 +947,8 @@ namespace WPEFramework
         {
             if(!HdmiCecSink::_instance)
              return;
+            if(!(_instance->smConnection))
+                return;
              LOGINFO(" Send systemAudioModeRequest ");
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
 
@@ -949,6 +957,8 @@ namespace WPEFramework
         {
             if(!HdmiCecSink::_instance)
              return;
+            if(!(_instance->smConnection))
+                return;
              LOGINFO(" Send GiveAudioStatus ");
 	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 11000);
 
@@ -1664,6 +1674,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
 				LOGERR("Logical Address NOT Allocated");
 				return;
@@ -1678,6 +1690,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
 				LOGERR("Logical Address NOT Allocated");
 				return;
@@ -1714,6 +1728,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
 				LOGERR("Logical Address NOT Allocated");
 				return;
@@ -1790,6 +1806,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
 				LOGERR("Logical Address NOT Allocated");
 				return;
@@ -1804,6 +1822,8 @@ namespace WPEFramework
 
                        if(!HdmiCecSink::_instance)
                                return;
+                       if(!(_instance->smConnection))
+                           return;
 		       LOGINFO(" Sending FeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
                        _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 1000);
                  }
@@ -1813,6 +1833,8 @@ namespace WPEFramework
 
 			if(!HdmiCecSink::_instance)
                 return;
+                if(!(_instance->smConnection))
+                    return;
 
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
 				LOGERR("Logical Address NOT Allocated");
@@ -1918,6 +1940,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 		
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -1947,6 +1971,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 		
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -1977,6 +2003,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -2039,6 +2067,8 @@ namespace WPEFramework
 				}
 			}
 			
+                        if(!(_instance->smConnection))
+                            return;
 			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RoutingChange(oldPhyAddr, newPhyAddr)), 5000); 
 		}
 
@@ -2093,6 +2123,8 @@ namespace WPEFramework
 			
 			if(!HdmiCecSink::_instance)
 				return;
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED + TEST_ADD ){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -2106,6 +2138,8 @@ namespace WPEFramework
 			
 			if(!HdmiCecSink::_instance)
 				return;
+                        if(!(_instance->smConnection))
+                            return;
 			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED + TEST_ADD ){
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
@@ -2302,6 +2336,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
                 return;
 
+                if(!(_instance->smConnection))
+                    return;
                LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d isExit %d _instance->m_pollThreadState %d  _instance->m_pollNextState %d",_instance->m_pollThreadExit,isExit,_instance->m_pollThreadState,_instance->m_pollNextState );
 			_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 
@@ -2497,6 +2533,8 @@ namespace WPEFramework
         	bool gotLogicalAddress = false;
 			int addr = LogicalAddress::TV;
 			int i;
+                if(!(_instance->smConnection))
+                    return;
 			
 			for ( i =0; i<HDMICECSINK_NUMBER_TV_ADDR; i++ )
 			{
@@ -2877,6 +2915,8 @@ namespace WPEFramework
 	{
            if(!HdmiCecSink::_instance)
 	     return;
+           if(!(_instance->smConnection))
+               return;
           LOGINFO(" Send_Request_Arc_Initiation_Message ");
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcInitiation()), 1100);
 
@@ -2885,6 +2925,8 @@ namespace WPEFramework
         {   
             if(!HdmiCecSink::_instance)
 	    return;
+            if(!(_instance->smConnection))
+               return;
             _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcInitiation()), 1000);
 
         }
@@ -2893,6 +2935,8 @@ namespace WPEFramework
 
             if(!HdmiCecSink::_instance)
 	     return;
+            if(!(_instance->smConnection))
+               return;
             _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcTermination()), 1100);
         }
 
@@ -2900,6 +2944,8 @@ namespace WPEFramework
        {
             if(!HdmiCecSink::_instance)
 		return;
+            if(!(_instance->smConnection))
+               return;
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 1000);
 
        }
