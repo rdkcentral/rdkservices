@@ -121,7 +121,7 @@ namespace Plugin {
                 _engine.Release();
             } else {
                 if (subSystem != nullptr) {
-                    Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), config.Connector.Value(), true);
+                    Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), _dispatcher->Connector().c_str(), true);
                     Core::Sink<SecurityCallsign> information(service->Callsign());
 
                     if (subSystem->IsActive(PluginHost::ISubSystem::SECURITY) != false) {
