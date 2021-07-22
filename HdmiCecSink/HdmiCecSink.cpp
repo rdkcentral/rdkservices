@@ -945,6 +945,12 @@ namespace WPEFramework
         }
 	void HdmiCecSink::systemAudioModeRequest()
         {
+	     if ( cecEnableStatus != true  )
+	     {
+               LOGINFO("systemAudioModeRequest: Cec is disabled-> EnableCEC first");
+              return;
+             } 
+
             if(!HdmiCecSink::_instance)
              return;
             if(!(_instance->smConnection))
@@ -1803,7 +1809,13 @@ namespace WPEFramework
 
                 void HdmiCecSink::requestShortaudioDescriptor()
 	        {
-			if(!HdmiCecSink::_instance)
+		        if ( cecEnableStatus != true  )
+                        {
+                             LOGINFO("requestShortaudioDescriptor: cec is disabled-> EnableCEC first");
+                             return;
+                        }
+
+		        if(!HdmiCecSink::_instance)
 				return;
 
                         if(!(_instance->smConnection))
