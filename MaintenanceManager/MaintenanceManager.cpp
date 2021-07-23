@@ -340,7 +340,7 @@ namespace WPEFramework {
             /* on boot up we set these things */
             MaintenanceManager::g_currentMode = FOREGROUND_MODE;
 
-            MaintenanceManager::g_notify_status=MAINTENANCE_IDLE;
+            MaintenanceManager::m_notify_status=MAINTENANCE_IDLE;
             MaintenanceManager::g_epoch_time="";
 
             /* to know the maintenance is solicited or unsolicited */
@@ -352,7 +352,7 @@ namespace WPEFramework {
             MaintenanceManager::g_task_status=0;
 
             /* we post just to tell that we are in idle at this moment */
-            MaintenanceManager::_instance->onMaintenanceStatusChange(g_notify_status);
+            MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
 
             int32_t exec_status=E_NOK;
 
@@ -374,6 +374,7 @@ namespace WPEFramework {
             /* we moved every thing to a thread */
             /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
              * Maintenance is started until then we say MAITENANCE_IDLE */
+
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
 
@@ -389,7 +390,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            Maint_notify_status_t m_notify_status=MAINTENANCE_STARTED;
+            Maint_notify_status_t notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
@@ -536,8 +537,6 @@ namespace WPEFramework {
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
-
-
                     }
                 }
                 else{
@@ -550,7 +549,7 @@ namespace WPEFramework {
                 if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
                     if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
                         LOGINFO("DBG:Maintenance Successfully Completed!!");
-                        m_notify_status=MAINTENANCE_COMPLETE;
+                        notify_status=MAINTENANCE_COMPLETE;
                         /*  we store the time in persistant location */
                         successfulTime=time(nullptr);
                         tm ltime=*localtime(&successfulTime);
@@ -561,47 +560,30 @@ namespace WPEFramework {
                         m_setting.remove("LastSuccessfulCompletionTime");
                         m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime);
 
-                        MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-                        /* we go for a reboot by check if reboot required is true
-                         * & AutoReboot.Enable is true */
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true ){
-                            /* which means reboot is required */
-                                requestSystemReboot();
-                        }
-                        else {
-                            LOGINFO("Reboot not required!!");
-                        }
                     }
                     /* Check other than all success case which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
                             LOGINFO("DBG:There are Skipped Task. Incomplete");
-                            m_notify_status=MAINTENANCE_INCOMPLETE;
+                            notify_status=MAINTENANCE_INCOMPLETE;
                             /*Check if there any chance to reboot
                              * say we receive a reboot required from rfc */
                         }
                         else {
                             LOGINFO("DBG:There are Errors");
-                            m_notify_status=MAINTENANCE_ERROR;
+                            notify_status=MAINTENANCE_ERROR;
                         }
 
-                        MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true){
-                            /* even though we end up in skipped task /error
-                             * check if we have the reboot required is recevied */
-                            requestSystemReboot();
-                        }
-                        else {
-                            LOGINFO("Reboot Not Required !!");
-                        }
                     }
-
+                    LOGINFO("ENDING MAINTENANCE CYCLE"); 
                     if(m_thread.joinable()){
                         m_thread.join();
                     }
+                    MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
                     LOGINFO("Still tasks are not completed!!!!");
+
                 }
             }
             else {
@@ -682,7 +664,7 @@ namespace WPEFramework {
                         b_rebootPending=true;
                     }
 
-                    response["maintenanceStatus"] = notifyStatusToString(g_notify_status);
+                    response["maintenanceStatus"] = notifyStatusToString(m_notify_status);
                     if(strcmp("NA",LastSuccessfulCompletionTime.c_str())==0)
                     {
                        response["LastSuccessfulCompletionTime"] = 0;  // stoi is not able handle "NA"
@@ -716,17 +698,11 @@ namespace WPEFramework {
             bool result = false;
             string starttime="";
             unsigned long int start_time=0;
-            if(!g_epoch_time.empty()) {
 
-                response["maintenanceStartTime"] = stoi(g_epoch_time.c_str());
-                result=true;
-            }
-            else {
-                string starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
-                if (!starttime.empty()){
-                    response["maintenanceStartTime"]=stoi(starttime.c_str());
-                    result=true;
-                }
+            starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
+            if (!starttime.empty()){
+                  response["maintenanceStartTime"]=stoi(starttime.c_str());
+                  result=true;
             }
 
             returnResponse(result);
@@ -758,7 +734,7 @@ namespace WPEFramework {
                 std::lock_guard<std::mutex> guard(m_callMutex);
                 /* check if maintenance is on progress or not */
                 /* if in progress restrict the same */
-                if ( MAINTENANCE_STARTED != g_notify_status ){
+                if ( MAINTENANCE_STARTED != m_notify_status ){
                     if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
                         LOGERR("value of new mode is incorrect, therefore \
                                 current mode '%s' not changed.\n", old_mode.c_str());
@@ -813,7 +789,9 @@ namespace WPEFramework {
                     string abort_flag="";
 
                     /* only one maintenance at a time */
-                    if ( MAINTENANCE_STARTED != g_notify_status  ){
+                    /* Lock so that m_notify_status will not be updated  further */
+                    m_statusMutex.lock();
+                    if ( MAINTENANCE_STARTED != m_notify_status  ){
 
                         /*reset the status to 0*/
                         g_task_status=0;
@@ -838,13 +816,16 @@ namespace WPEFramework {
                     else {
                         LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
                     }
+                    m_statusMutex.unlock();
                     returnResponse(result);
                 }
 
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
             JsonObject params;
             /* we store the updated value as well */
-            g_notify_status=status;
+            m_statusMutex.lock();
+            m_notify_status=status;
+            m_statusMutex.unlock();
             params["maintenanceStatus"]=notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
         }
