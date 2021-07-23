@@ -726,6 +726,7 @@ namespace WPEFramework {
             array.Add("DELIA-43686");
             array.Add("RDK-28767");
             array.Add("RDK-31263");
+            array.Add("RDK-32347");
             response["quirks"] = array;
             returnResponse(true);
         }
@@ -1125,11 +1126,11 @@ namespace WPEFramework {
             }
             else if (m_numOfBindRemotes > 0)
             {
-                LOGINFO("Number of bound remotes is %d.", m_numOfBindRemotes);
+                LOGINFO("Number of bound remotes is %d.\n", m_numOfBindRemotes);
 
                 for (int i = 0; i < m_numOfBindRemotes; i++)
                 {
-                    infoArray.Add(m_remoteInfo[i]);
+                    infoArray.Add((JsonObject)m_remoteInfo[i]);
                 }
                 response["remoteData"] = infoArray;
             }
@@ -1997,6 +1998,7 @@ namespace WPEFramework {
             remoteInfo["howRemoteIsPaired"]         = std::string(getPairingType(ctrlStatus.status.binding_type));
             remoteInfo["pairingTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_binding * 1000LL));
             remoteInfo["batteryLevelLoaded"]        = JsonValue(std::to_string(ctrlStatus.status.battery_voltage_loaded));  // TODO: Fix problem with FP parameters
+            remoteInfo["batteryLevelUnloaded"]      = JsonValue(std::to_string(ctrlStatus.status.battery_voltage_unloaded));  // TODO: Fix problem with FP parameters
             remoteInfo["batteryLevelPercentage"]    = JsonValue((int)ctrlStatus.status.battery_level_percent);
             remoteInfo["batteryLastEvent"]          = JsonValue((int)ctrlStatus.status.battery_event);
             remoteInfo["batteryLastEventTimestamp"] = JsonValue((long long)(ctrlStatus.status.time_battery_update * 1000LL));
@@ -2039,32 +2041,46 @@ namespace WPEFramework {
             remoteInfo["securityType"]              = JsonValue((int)ctrlStatus.status.security_type);
 
             remoteInfo["bHasBattery"]                       = JsonValue((bool)ctrlStatus.status.has_battery);
-            remoteInfo["batteryChangedTimestamp"]           = JsonValue((long long)(ctrlStatus.status.time_battery_changed * 1000LL));
-            remoteInfo["batteryChangedActualPercentage"]    = JsonValue((int)ctrlStatus.status.battery_changed_actual_percentage);
-            remoteInfo["battery75PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_75_percent * 1000LL));
-            remoteInfo["battery75PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_75_percent_actual_percentage);
-            remoteInfo["battery50PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_50_percent * 1000LL));
-            remoteInfo["battery50PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_50_percent_actual_percentage);
-            remoteInfo["battery25PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_25_percent * 1000LL));
-            remoteInfo["battery25PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_25_percent_actual_percentage);
-            remoteInfo["battery5PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_5_percent * 1000LL));
-            remoteInfo["battery5PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_5_percent_actual_percentage);
-            remoteInfo["battery0PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_0_percent * 1000LL));
-            remoteInfo["battery0PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_0_percent_actual_percentage);
+            if((bool)ctrlStatus.status.has_battery)
+            {
+                remoteInfo["batteryChangedTimestamp"]           = JsonValue((long long)(ctrlStatus.status.time_battery_changed * 1000LL));
+                remoteInfo["batteryChangedActualPercentage"]    = JsonValue((int)ctrlStatus.status.battery_changed_actual_percentage);
+                remoteInfo["batteryChangedUnloadedVoltage"]     = JsonValue(std::to_string(ctrlStatus.status.battery_changed_unloaded_voltage));
+                remoteInfo["battery75PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_75_percent * 1000LL));
+                remoteInfo["battery75PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_75_percent_actual_percentage);
+                remoteInfo["battery75PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_75_percent_unloaded_voltage));
+                remoteInfo["battery50PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_50_percent * 1000LL));
+                remoteInfo["battery50PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_50_percent_actual_percentage);
+                remoteInfo["battery50PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_50_percent_unloaded_voltage));
+                remoteInfo["battery25PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_25_percent * 1000LL));
+                remoteInfo["battery25PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_25_percent_actual_percentage);
+                remoteInfo["battery25PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_25_percent_unloaded_voltage));
+                remoteInfo["battery5PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_5_percent * 1000LL));
+                remoteInfo["battery5PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_5_percent_actual_percentage);
+                remoteInfo["battery5PercentUnloadedVoltage"]    = JsonValue(std::to_string(ctrlStatus.status.battery_5_percent_unloaded_voltage));
+                remoteInfo["battery0PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_0_percent * 1000LL));
+                remoteInfo["battery0PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_0_percent_actual_percentage);
+                remoteInfo["battery0PercentUnloadedVoltage"]    = JsonValue(std::to_string(ctrlStatus.status.battery_0_percent_unloaded_voltage));
+                remoteInfo["batteryVoltageLargeJumpCounter"]    = JsonValue((int)ctrlStatus.status.battery_voltage_large_jump_counter);
+                remoteInfo["batteryVoltageLargeDeclineDetected"] = JsonValue((bool)ctrlStatus.status.battery_voltage_large_decline_detected);
+            }
 
             remoteInfo["bHasDSP"]                        = JsonValue((bool)ctrlStatus.status.has_dsp);
-            remoteInfo["averageTimeInPrivacyMode"]       = JsonValue((long long)ctrlStatus.status.average_time_in_privacy_mode);
-            remoteInfo["bInPrivacyMode"]                 = JsonValue((bool)ctrlStatus.status.in_privacy_mode);
-            remoteInfo["averageSNR"]                     = JsonValue((int)ctrlStatus.status.average_snr);
-            remoteInfo["averageKeywordConfidence"]       = JsonValue((int)ctrlStatus.status.average_keyword_confidence);
-            remoteInfo["totalNumberOfMicsWorking"]       = JsonValue((int)ctrlStatus.status.total_number_of_mics_working);
-            remoteInfo["totalNumberOfSpeakersWorking"]   = JsonValue((int)ctrlStatus.status.total_number_of_speakers_working);
-            remoteInfo["endOfSpeechInitialTimeoutCount"] = JsonValue((int)ctrlStatus.status.end_of_speech_initial_timeout_count);
-            remoteInfo["endOfSpeechTimeoutCount"]        = JsonValue((int)ctrlStatus.status.end_of_speech_timeout_count);
-            remoteInfo["uptimeStartTime"]                = JsonValue((long long)ctrlStatus.status.time_uptime_start * 1000LL);
-            remoteInfo["uptimeInSeconds"]                = JsonValue((long long)ctrlStatus.status.uptime_seconds);
-            remoteInfo["privacyTimeInSeconds"]           = JsonValue((long long)ctrlStatus.status.privacy_time_seconds);
-            remoteInfo["versionDSPBuildId"]              = std::string(ctrlStatus.status.version_dsp_build_id);
+            if((bool)ctrlStatus.status.has_dsp)
+            {
+                remoteInfo["averageTimeInPrivacyMode"]       = JsonValue((long long)ctrlStatus.status.average_time_in_privacy_mode);
+                remoteInfo["bInPrivacyMode"]                 = JsonValue((bool)ctrlStatus.status.in_privacy_mode);
+                remoteInfo["averageSNR"]                     = JsonValue((int)ctrlStatus.status.average_snr);
+                remoteInfo["averageKeywordConfidence"]       = JsonValue((int)ctrlStatus.status.average_keyword_confidence);
+                remoteInfo["totalNumberOfMicsWorking"]       = JsonValue((int)ctrlStatus.status.total_number_of_mics_working);
+                remoteInfo["totalNumberOfSpeakersWorking"]   = JsonValue((int)ctrlStatus.status.total_number_of_speakers_working);
+                remoteInfo["endOfSpeechInitialTimeoutCount"] = JsonValue((int)ctrlStatus.status.end_of_speech_initial_timeout_count);
+                remoteInfo["endOfSpeechTimeoutCount"]        = JsonValue((int)ctrlStatus.status.end_of_speech_timeout_count);
+                remoteInfo["uptimeStartTime"]                = JsonValue((long long)ctrlStatus.status.time_uptime_start * 1000LL);
+                remoteInfo["uptimeInSeconds"]                = JsonValue((long long)ctrlStatus.status.uptime_seconds);
+                remoteInfo["privacyTimeInSeconds"]           = JsonValue((long long)ctrlStatus.status.privacy_time_seconds);
+                remoteInfo["versionDSPBuildId"]              = std::string(ctrlStatus.status.version_dsp_build_id);
+            }
 
             LOGINFO("controller_id: %d, type: %s, SW version: %s, HW version: %s, time_last_key: %lu.",
                     (int)ctrlStatus.controller_id, ctrlStatus.status.type,
