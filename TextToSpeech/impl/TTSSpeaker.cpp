@@ -19,6 +19,7 @@
 
 #include "TTSSpeaker.h"
 
+#include <cmath>
 #include <curl/curl.h>
 #include <unistd.h>
 #include <regex>
@@ -845,18 +846,30 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
 void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
     m_isEOS = false;
     m_duration = 0;
+    static double preVol= 0; //We do not allow 0 volume
 
     if(m_pipeline && !m_pipelineError && !m_flushed) {
         m_currentSpeech = &data;
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
+#ifndef PLATFORM_AMLOGIC
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
-        gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-#if defined(PLATFORM_AMLOGIC)
+#else //AMLOGIC
+        if(preVol != data.client->configuration()->volume()) {
+            double volGain = data.client->configuration()->volume()/100;
+            //convert voltage gain/loss to db
+            double dbOut = round(1000000*20*(std::log(volGain)/std::log(10)))/1000000;
+            setMixGain(MIXGAIN_SYS,round(dbOut));
+            TTSLOG_VERBOSE("Pre vol=%0.5f Cur vol=%0.5f volGain=%0.5f dbOut =%0.5f", preVol,data.client->configuration()->volume(), 
+		   volGain,dbOut);
+            preVol = data.client->configuration()->volume();
+        }
 	//-12db is almost 25%
 	setMixGain(MIXGAIN_PRIM,-12);
+
 #endif
+        gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
         //Wait for EOS with a timeout incase EOS never comes
