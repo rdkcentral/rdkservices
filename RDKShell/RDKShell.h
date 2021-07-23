@@ -120,6 +120,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
+            static const string RDKSHELL_METHOD_HIDE_ALL_CLIENTS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -215,6 +216,7 @@ namespace WPEFramework {
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
