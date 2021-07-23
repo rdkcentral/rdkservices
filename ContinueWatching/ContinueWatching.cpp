@@ -111,6 +111,16 @@ namespace WPEFramework {
 			bool ret=false;
 			string tokenData = getAppToken(appName.c_str());
 			if(!(tokenData.empty())){
+                                //Form a json string from the saved token by prepending: "application_token : " & adding quotes if necessary
+                                int i=0;
+                                while(isspace(tokenData[i]))
+                                        i++;
+                                if(tokenData[i] == '{')
+                                        tokenData = "{\"application_token\" : " + tokenData + " }";
+                                else
+                                        tokenData = "{\"application_token\" : \"" + tokenData + "\" }";
+
+                                LOGINFO("tokenData: %s\n", tokenData.c_str());
 				if (!token.FromString(tokenData, error)) {
         	        		LOGERR("getApplicationToken :Failed to parse tokendata");      
 				}
