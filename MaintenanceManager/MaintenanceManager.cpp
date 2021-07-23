@@ -536,8 +536,6 @@ namespace WPEFramework {
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
-
-
                     }
                 }
                 else{
@@ -562,15 +560,6 @@ namespace WPEFramework {
                         m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime);
 
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-                        /* we go for a reboot by check if reboot required is true
-                         * & AutoReboot.Enable is true */
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true ){
-                            /* which means reboot is required */
-                                requestSystemReboot();
-                        }
-                        else {
-                            LOGINFO("Reboot not required!!");
-                        }
                     }
                     /* Check other than all success case which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
@@ -586,22 +575,15 @@ namespace WPEFramework {
                         }
 
                         MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-                        if ( !g_is_reboot_pending.compare("true") && checkAutoRebootFlag() == true){
-                            /* even though we end up in skipped task /error
-                             * check if we have the reboot required is recevied */
-                            requestSystemReboot();
-                        }
-                        else {
-                            LOGINFO("Reboot Not Required !!");
-                        }
                     }
-
+                    LOGINFO("ENDING MAINTENANCE CYCLE"); 
                     if(m_thread.joinable()){
                         m_thread.join();
                     }
                 }
                 else {
                     LOGINFO("Still tasks are not completed!!!!");
+
                 }
             }
             else {
