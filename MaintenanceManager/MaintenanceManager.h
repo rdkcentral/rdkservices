@@ -127,6 +127,10 @@ namespace WPEFramework {
                 std::condition_variable task_thread;
                 std::thread m_thread;
 
+                std::unordered_map<string, bool> m_task_map;    
+                        
+
+                bool isDeviceOnline();
                 void task_execution_thread();
                 void requestSystemReboot();
                 void maintenanceManagerOnBootup();

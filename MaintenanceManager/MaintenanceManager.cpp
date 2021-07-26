@@ -63,6 +63,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
+#define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 
@@ -237,6 +238,7 @@ namespace WPEFramework {
             LOGINFO("INSIDE thread task execution");
             int task_count=3;
             int i=0;
+            string cmd="";
 
             /* Check if the last reboot was MAITENANCE REBOOT */
             string reboot_reason=getLastRebootReason();
@@ -246,7 +248,7 @@ namespace WPEFramework {
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
-            string cmd="";
+            bool internetConnectStatus = isDeviceOnline();
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
             /*  In an unsolicited maintenance we make sure only after
@@ -255,7 +257,7 @@ namespace WPEFramework {
 
             /* we add the task in a loop */
             std::unique_lock<std::mutex> lck(m_callMutex);
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("UNSOLICITED_MAINTENANCE");
                 for ( i=0;i< task_count ;i++ ){
                     task_thread.wait(lck);
@@ -268,7 +270,7 @@ namespace WPEFramework {
             }
             /* Here in Solicited we start with RFC so no
              * need to wait for any DCM events */
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type ){
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                     LOGINFO("SOLICITED_MAINTENANCE");
                     cmd=task_names_foreground[0].c_str();
                     cmd+=" &";
@@ -283,6 +285,47 @@ namespace WPEFramework {
                         system(cmd.c_str());
                     }
             }
+            if (false == internetConnectStatus) {
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                LOGINFO("Maintenance completed as it is offline mode");
+            }
+        }
+
+        bool MaintenanceManager::isDeviceOnline()
+        {
+            LOGINFO("Checking device has network connectivity\n");
+
+            if (false == Utils::isPluginActivated("org.rdk.Network")) {
+               sleep(30);
+               if (false == Utils::isPluginActivated("org.rdk.Network")) {
+                   LOGINFO("Network plugin is not activated and considered as offline\n");
+                   return false;
+               }
+            }
+
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            std::string callsign = "org.rdk.Network.1";
+	    std::string token;
+            Utils::SecurityToken::getSecurityToken(token);
+
+            string query = "token=" + token;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            if (thunder_client != nullptr) {
+                uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
+                if (status > 0) {
+                    LOGINFO("%s call failed %d", callsign.c_str(), status);
+                    return false;
+                } else if (joGetResult.HasLabel("connectedToInternet")) {
+                    LOGINFO("connectedToInternet status %d", joGetResult["connectedToInternet"].Boolean());
+                    return joGetResult["connectedToInternet"].Boolean();
+                } else {
+                    return false;
+                }
+	    }
+            LOGINFO("thunder client failed");
+            return false;
         }
 
         MaintenanceManager::~MaintenanceManager()
