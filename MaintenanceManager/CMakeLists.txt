@@ -41,11 +41,11 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(IARMBus)
 if (IARMBus_FOUND)
     target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
-    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil ${IARMBUS_LIBRARIES})
 else (IARMBus_FOUND)
     message ("Module IARMBus required.")
     target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
-    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil ${IARMBUS_LIBRARIES})
 endif(IARMBus_FOUND)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
@@ -54,4 +54,4 @@ target_include_directories(${MODULE_NAME} PRIVATE ./)
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+write_config($iPLUGIN_NAME})
