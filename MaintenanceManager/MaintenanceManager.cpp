@@ -741,17 +741,11 @@ namespace WPEFramework {
             bool result = false;
             string starttime="";
             unsigned long int start_time=0;
-            if(!g_epoch_time.empty()) {
 
-                response["maintenanceStartTime"] = stoi(g_epoch_time.c_str());
-                result=true;
-            }
-            else {
-                string starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
-                if (!starttime.empty()){
-                    response["maintenanceStartTime"]=stoi(starttime.c_str());
-                    result=true;
-                }
+            starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
+            if (!starttime.empty()){
+                  response["maintenanceStartTime"]=stoi(starttime.c_str());
+                  result=true;
             }
 
             returnResponse(result);
