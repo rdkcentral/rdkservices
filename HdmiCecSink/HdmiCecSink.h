@@ -608,6 +608,7 @@ private:
             void onHdmiHotPlug(int portId, int connectStatus);
 	    void wakeupFromStandby();
             bool loadSettings();
+            void syncPersistFile (char* strFileToFlush);
             void persistSettings(bool enableStatus);
             void persistOTPSettings(bool enableStatus);
             void persistOSDName(const char *name);
