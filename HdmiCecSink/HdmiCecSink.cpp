@@ -1097,7 +1097,7 @@ namespace WPEFramework
                 std::string osd = parameters["name"].String();
                 LOGINFO("setOSDNameWrapper osdName: %s",osd.c_str());
                 osdName = osd.c_str();
-                persistOSDName(osd.c_str());
+                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_OSD_NAME, JsonValue(osd.c_str()));
             }
             else
             {
@@ -1280,7 +1280,7 @@ namespace WPEFramework
                 appVendorId = {(uint8_t)(vendorID >> 16 & 0xff),(uint8_t)(vendorID>> 8 & 0xff),(uint8_t) (vendorID & 0xff)};
                 LOGINFO("appVendorId : %s  vendorID :%x \n",appVendorId.toString().c_str(), vendorID );
 
-                persistVendorId(vendorID);
+                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_VENDOR_ID, JsonValue(vendorID));
             }
             else
             {
@@ -1459,76 +1459,13 @@ namespace WPEFramework
             return cecSettingEnabled;
         }
 
-        void HdmiCecSink::persistSettings(bool enableStatus)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_ENABLED] = enableStatus;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
-        void HdmiCecSink::persistOSDName(const char *name)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_OSD_NAME] = name;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
-        void HdmiCecSink::persistVendorId(unsigned int vendorId)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_VENDOR_ID] = vendorId;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
         void HdmiCecSink::setEnabled(bool enabled)
         {
            LOGINFO("Entered setEnabled: %d  cecSettingEnabled :%d ",enabled, cecSettingEnabled);
 
            if (cecSettingEnabled != enabled)
            {
-               persistSettings(enabled);
+               Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(enabled));
                cecSettingEnabled = enabled;
            }
            if(true == enabled)

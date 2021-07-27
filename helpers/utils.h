@@ -348,6 +348,7 @@ namespace Utils
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
     bool isValidInt(char* x);
+    void persistJsonSettings(string strFileName, string strKey, JsonValue jsValue);
 
     //class for std::thread RAII
     class ThreadRAII 
