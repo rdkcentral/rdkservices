@@ -1459,6 +1459,18 @@ namespace WPEFramework
             return cecSettingEnabled;
         }
 
+        void HdmiCecSink::syncPersistFile (char* strFileToFlush) {
+            FILE * fp = NULL;
+            fp = fopen(strFileToFlush, "r");
+            if (fp == NULL) {
+                printf("fopen NULL\n");
+                return;
+            }
+            fflush(fp);
+            fsync(fileno(fp));
+            fclose(fp);
+        }
+
         void HdmiCecSink::persistSettings(bool enableStatus)
         {
             Core::File file;
@@ -1476,7 +1488,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
-
+            syncPersistFile (CEC_SETTING_ENABLED_FILE);
             return;
         }
 
@@ -1497,6 +1509,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
+            syncPersistFile (CEC_SETTING_ENABLED_FILE);
 
             return;
         }
@@ -1518,6 +1531,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
+            syncPersistFile (CEC_SETTING_ENABLED_FILE);
 
             return;
         }
