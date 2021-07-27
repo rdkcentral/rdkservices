@@ -381,3 +381,14 @@ bool Utils::isValidInt(char* x)
     return Checked;
 }
 
+void Utils::syncPersistFile (char* strFileToFlush) {
+    FILE * fp = NULL;
+    fp = fopen(strFileToFlush, "r");
+    if (fp == NULL) {
+        printf("fopen NULL\n");
+        return;
+    }
+    fflush(fp);
+    fsync(fileno(fp));
+    fclose(fp);
+}

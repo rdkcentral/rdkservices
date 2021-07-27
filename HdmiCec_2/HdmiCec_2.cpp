@@ -831,6 +831,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
+            Utils::syncPersistFile (CEC_SETTING_ENABLED_FILE);
 
             return;
         }
@@ -852,6 +853,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
+            Utils::syncPersistFile (CEC_SETTING_ENABLED_FILE);
 
             return;
         }
@@ -873,6 +875,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
+            Utils::syncPersistFile (CEC_SETTING_ENABLED_FILE);
 
             return;
         }
@@ -894,7 +897,7 @@ namespace WPEFramework
             cecSetting.IElement::ToFile(file);
 
             file.Close();
-
+            Utils::syncPersistFile (CEC_SETTING_ENABLED_FILE);
             return;
         }
 

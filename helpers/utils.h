@@ -350,6 +350,7 @@ namespace Utils
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
     bool isValidInt(char* x);
+    void syncPersistFile (char* strFileToFlush);
 
     //class for std::thread RAII
     class ThreadRAII 
