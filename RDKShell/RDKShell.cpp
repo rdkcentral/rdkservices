@@ -3381,7 +3381,18 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    setVisibility(callsign, false);
+                    bool isApplicationBeingDestroyed = false;
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+                    {
+                        isApplicationBeingDestroyed = true;
+                        std::cout << "skip setVisibility as "<< callsign << " is being destroyed." << std::endl;
+                    }
+                    gLaunchDestroyMutex.unlock();
+                    if (false == isApplicationBeingDestroyed)
+                    {
+                        setVisibility(callsign, false);
+                    }
                     onSuspended(callsign);
                 }
             }
