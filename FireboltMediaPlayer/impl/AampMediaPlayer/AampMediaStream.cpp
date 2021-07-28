@@ -336,6 +336,41 @@ namespace {
             ADD_SETTER_LICENSESERVERURL(com.microsoft.playready, eDRM_PlayReady)
             ADD_SETTER_LICENSESERVERURL(com.widevine.alpha, eDRM_WideVine)
             ADD_SETTER_LICENSESERVERURL(org.w3.clearkey, eDRM_ClearKey)
+            m_setters["customHeaderLicense"] = [] (PlayerInstanceAAMP* aamp, string const& label, Variant const& value) {
+                string setting;
+                if (!extractSetting(label, value, setting))
+                    return false;
+                LOGINFO("customHeaderLicense setup: %s", setting.c_str());
+                if(!setting.empty())
+                {
+                    char* token = NULL;
+                    char* tokenHeader = NULL;
+                    char* str = (char*) setting.c_str();
+                    // following format from aamp configuration eAAMPConfig_CustomHeaderLicense
+                    // it is possible to setup multiple headers ";" separated
+                    while ((token = strtok_r(str, ";", &str)))
+                    {
+                        int headerTokenIndex = 0;
+                        std::string headerName;
+                        std::vector<std::string> headerValue;
+                        while ((tokenHeader = strtok_r(token, ":", &token)))
+                        {
+                            if(headerTokenIndex == 0)
+                                headerName = tokenHeader;
+                            else if(headerTokenIndex == 1)
+                                headerValue.push_back(std::string(tokenHeader));
+                            else
+                                break;
+                            headerTokenIndex++;
+                        }
+                        if(!headerName.empty() && !headerValue.empty())
+                        {
+                            LOGINFO("Invoking PlayerInstanceAAMP::AddCustomHTTPHeader() headerName=%s headerValue=%s", headerName.c_str(), headerValue[0].c_str());
+                            aamp->AddCustomHTTPHeader(headerName, headerValue, true);
+                        }
+                    }
+                }
+            };
             m_setters["preferredKeysystem"] = [] (PlayerInstanceAAMP* aamp, string const& label, Variant const& value) {
                 string setting;
                 if (!extractSetting(label, value, setting))
