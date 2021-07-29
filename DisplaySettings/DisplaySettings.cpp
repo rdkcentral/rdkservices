@@ -3379,16 +3379,24 @@ namespace WPEFramework {
                             }
                             else if (types & dsAUDIOARCSUPPORT_ARC) {
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
-                                    LOGERR("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor failed !!!\n");;
+                                    LOGERR("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor failed !!!\n");;
                                 }
                                 else {
-                                    LOGINFO("DisplaySettings::setEnableAudioPort (ARC): requestShortAudioDescriptor successful\n");
+                                    LOGINFO("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor successful\n");
                                 }
                             }
                         }
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            if(mode == device::AudioStereoMode::kPassThru){
+                                if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
+                                    LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
+                                }
+                                else {
+                                    LOGINFO("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor successful\n");
+                                }
+                            }
                             aPort.setStereoMode(mode.toString(), true);
                         }
                     }		    
