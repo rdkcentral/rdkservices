@@ -607,6 +607,7 @@ namespace WPEFramework
             m_preferencesHash.IElement::ToFile(file);
 
             file.Close();
+            Utils::syncPersistFile (FP_SETTINGS_FILE_JSON);
         }
 
         void CFrontPanel::loadPreferences()
@@ -662,9 +663,8 @@ namespace WPEFramework
 
             }
             catch (...)
-            {
-                LOGWARN("Exception caught in setBlinkLed for setColor");
-            }
+            {}
+
             try
             {
                 if (brightness == -1)

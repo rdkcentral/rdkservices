@@ -398,6 +398,15 @@ namespace WPEFramework {
                     JsonObject result;
                     launchFactoryAppWrapper(apiRequest.mRequest, result);
                 }
+		else if (apiRequest.mName.compare("deactivateresidentapp") == 0)
+                {
+                    auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                    JsonObject deactivateParams;
+                    deactivateParams.Set("callsign", "ResidentApp");
+                    JsonObject deactivateResult;
+                    int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                    std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                }
             });
             rdkshellRequestsThread.detach();
         }
@@ -472,12 +481,10 @@ namespace WPEFramework {
                             if(sFactoryAppLaunchStatus != NOTLAUNCHED)
                             {
                                 std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
-                                JsonObject deactivateParams;
-                                deactivateParams.Set("callsign", "ResidentApp");
-                                JsonObject deactivateResult;
-                                auto thunderController = getThunderControllerClient();
-                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
-                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
                             }
                         }
                         else
@@ -486,12 +493,10 @@ namespace WPEFramework {
                             if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
                                 std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
-                                JsonObject deactivateParams;
-                                deactivateParams.Set("callsign", "ResidentApp");
-                                JsonObject deactivateResult;
-                                auto thunderController = getThunderControllerClient();
-                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
-                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
                                 if (false == sFactoryModeStart)
                                 {
                                   // reached scenario where persistent store loaded late and conditions matched
@@ -3376,7 +3381,18 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    setVisibility(callsign, false);
+                    bool isApplicationBeingDestroyed = false;
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+                    {
+                        isApplicationBeingDestroyed = true;
+                        std::cout << "skip setVisibility as "<< callsign << " is being destroyed." << std::endl;
+                    }
+                    gLaunchDestroyMutex.unlock();
+                    if (false == isApplicationBeingDestroyed)
+                    {
+                        setVisibility(callsign, false);
+                    }
                     onSuspended(callsign);
                 }
             }
