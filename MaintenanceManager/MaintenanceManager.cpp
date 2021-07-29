@@ -260,7 +260,6 @@ namespace WPEFramework {
 
 #if defined (SKY_BUILD) || defined (BUILD_LLAMA)
             bool internetConnectStatus = true;
-            bool internetConnectStatus = isDeviceOnline();
 #else
             bool internetConnectStatus = isDeviceOnline();
 #endif
