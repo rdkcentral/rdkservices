@@ -133,6 +133,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
+            static const string RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;

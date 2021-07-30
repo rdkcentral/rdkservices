@@ -122,6 +122,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_ACTIVATED = "
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED = "onPluginSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING = "onDeviceLowRamWarning";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
@@ -336,7 +337,7 @@ namespace WPEFramework {
             {
                 JsonObject params;
                 params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
             }            
           }
 
@@ -5605,7 +5606,7 @@ namespace WPEFramework {
             {
                 JsonObject params;
                 params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
             }
         }
 
