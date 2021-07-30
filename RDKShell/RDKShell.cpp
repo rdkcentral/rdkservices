@@ -50,6 +50,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_BEHIND = "move
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFocus";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPTS = "addKeyIntercepts";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT = "removeKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_LISTENER = "addKeyListener";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_KEY_LISTENER = "removeKeyListener";
@@ -109,6 +110,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -390,6 +392,51 @@ namespace WPEFramework {
 
         static std::thread shellThread;
 
+        struct CreateDisplayRequest
+        {
+            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
+            {
+                sem_init(&mSemaphore, 0, 0);
+            }
+  
+            ~CreateDisplayRequest()
+            {
+                sem_destroy(&mSemaphore);
+            }
+
+            std::string mClient;
+            std::string mDisplayName;
+            uint32_t mDisplayWidth;
+            uint32_t mDisplayHeight;
+            bool mVirtualDisplayEnabled;
+            uint32_t mVirtualWidth;
+            uint32_t mVirtualHeight;
+            bool mTopmost;
+            bool mFocus;
+            sem_t mSemaphore;
+            bool mResult;
+        };
+
+        struct KillClientRequest
+        {
+            KillClientRequest(std::string client): mClient(client), mResult(false)
+            {
+                sem_init(&mSemaphore, 0, 0);
+            }
+  
+            ~KillClientRequest()
+            {
+                sem_destroy(&mSemaphore);
+            }
+
+            std::string mClient;
+            sem_t mSemaphore;
+            bool mResult;
+        };
+
+        std::vector<std::shared_ptr<CreateDisplayRequest>> gCreateDisplayRequests;
+        std::vector<std::shared_ptr<KillClientRequest>> gKillClientRequests;
+
         void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
         {
 	    std::thread rdkshellRequestsThread = std::thread([=]() {
@@ -421,6 +468,36 @@ namespace WPEFramework {
             }*/
         }
 
+        static bool isClientExists(std::string client)
+        {
+            bool exist = false;
+            lockRdkShellMutex();
+            for (int i=0; i<gCreateDisplayRequests.size(); i++)
+            {
+              if (gCreateDisplayRequests[i]->mClient.compare(client) == 0)
+              {
+                exist = true;
+                break;
+              }
+            }
+            gRdkShellMutex.unlock();
+
+            if (!exist)
+            {
+                std::vector<std::string> clientList;
+                lockRdkShellMutex();
+                CompositorController::getClients(clientList);
+                gRdkShellMutex.unlock();
+                std::string newClient(client);
+                transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+                if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+                {
+                    exist = true;
+                }
+            }
+            return exist;
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -437,8 +514,15 @@ namespace WPEFramework {
                    if (serviceConfig.HasLabel("clientidentifier"))
                    {
                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                       if (!isClientExists(service->Callsign()))
+                       {
+                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(service->Callsign(), clientidentifier);
+                           gRdkShellMutex.lock();
+                           gCreateDisplayRequests.push_back(request);
+                           gRdkShellMutex.unlock();
+                           sem_wait(&request->mSemaphore);
+                       }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::createDisplay(service->Callsign(), clientidentifier);
                        RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
@@ -545,8 +629,12 @@ namespace WPEFramework {
                     if (serviceConfig.HasLabel("clientidentifier"))
                     {
                         std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                        std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
                         gRdkShellMutex.lock();
-                        RdkShell::CompositorController::kill(service->Callsign());
+                        gKillClientRequests.push_back(request);
+                        gRdkShellMutex.unlock();
+                        sem_wait(&request->mSemaphore);
+                        gRdkShellMutex.lock();
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
@@ -588,6 +676,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_FOCUS, &RDKShell::setFocusWrapper, this);
             registerMethod(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_KEY_INTERCEPTS, &RDKShell::addKeyInterceptsWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT, &RDKShell::removeKeyInterceptWrapper, this);
             registerMethod(RDKSHELL_METHOD_ADD_KEY_LISTENER, &RDKShell::addKeyListenersWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_KEY_LISTENER, &RDKShell::removeKeyListenersWrapper, this);
@@ -647,6 +736,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -798,9 +888,11 @@ namespace WPEFramework {
                                 request["nokillresapp"] = "true";
                             }
                             request["resetagingtime"] = "true";
-                            uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                            RDKShellApiRequest apiRequest;
+                            apiRequest.mName = "launchfactoryapp";
+                            apiRequest.mRequest = request;
+                            rdkshellPlugin->launchRequestThread(apiRequest);
                             gRdkShellMutex.lock();
-                            std::cout << "launch factory app status:" << status << std::endl;
                             gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
                             receivedShowSplashScreenRequest = true;
                         }
@@ -817,6 +909,30 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
+                  while (gCreateDisplayRequests.size() > 0)
+                  {
+		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
+                      if (!request)
+                      {
+                          gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
+                          continue;
+                      }
+                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
+                      gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
+                      sem_post(&request->mSemaphore);
+                  }
+                  while (gKillClientRequests.size() > 0)
+                  {
+	              std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
+                      if (!request)
+                      {
+                          gKillClientRequests.erase(gKillClientRequests.begin());
+                          continue;
+                      }
+                      request->mResult = CompositorController::kill(request->mClient);
+                      gKillClientRequests.erase(gKillClientRequests.begin());
+                      sem_post(&request->mSemaphore);
+                  }
                   if (receivedResolutionRequest)
                   {
                     CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
@@ -891,9 +1007,11 @@ namespace WPEFramework {
                             request["nokillresapp"] = "true";
                         }
                         request["resetagingtime"] = "true";
-                        uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "launchfactoryapp";
+                        apiRequest.mRequest = request;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
                         gRdkShellMutex.lock();
-                        std::cout << "launch factory app status:" << status << std::endl;
                         gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
                         receivedShowSplashScreenRequest = true;
                     }
@@ -1091,6 +1209,20 @@ namespace WPEFramework {
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
+            gRdkShellMutex.lock();
+            for (int i=0; i<gCreateDisplayRequests.size(); i++)
+            {
+                sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
+                gCreateDisplayRequests[i] = nullptr;
+            }
+            gCreateDisplayRequests.clear();
+            for (int i=0; i<gKillClientRequests.size(); i++)
+            {
+                sem_destroy(&gKillClientRequests[i]->mSemaphore);
+                gKillClientRequests[i] = nullptr;
+            }
+            gKillClientRequests.clear();
+            gRdkShellMutex.unlock();
         }
 
         string RDKShell::Information() const
@@ -1628,6 +1760,28 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("intercepts"))
+            {
+                result = false;
+                response["message"] = "please specify intercepts";
+            }
+            if (result)
+            {
+                const JsonArray intercepts = parameters["intercepts"].Array();
+                result = addKeyIntercepts(intercepts);
+                if (false == result)
+                {
+                    response["message"] = "failed to add some key intercepts due to missing parameters or wrong format ";
+                }
+            }
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -1962,8 +2116,19 @@ namespace WPEFramework {
                     virtualHeight = parameters["virtualHeight"].Number();
                 }
 
+                bool topmost = false;
+                if (parameters.HasLabel("topmost"))
+                {
+                    topmost = parameters["topmost"].Boolean();
+                }
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
+
                 result = createDisplay(client, displayName, displayWidth, displayHeight,
-                    virtualDisplay, virtualWidth, virtualHeight);
+                    virtualDisplay, virtualWidth, virtualHeight, topmost, focus);
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
@@ -2734,6 +2899,7 @@ namespace WPEFramework {
                 bool setSuspendResumeStateOnLaunch = true;
                 bool holePunch = true;
                 bool topmost = false;
+                bool focus = false;
 
                 if (parameters.HasLabel("type"))
                 {
@@ -2790,40 +2956,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("topmost"))
                 {
                     topmost = parameters["topmost"].Boolean();
-                    if (topmost)
-                    {
-                        std::string topmostClient;
-                        {
-                            bool lockAcquired = false;
-                            double startTime = RdkShell::milliseconds();
-                            while (!lockAcquired && (RdkShell::milliseconds() - startTime) < RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS)
-                            {
-                                lockAcquired = gRdkShellMutex.try_lock();
-                            }
-                            if (!lockAcquired)
-                            {
-                                std::cout << "unable to get lock for topmost, defaulting to normal lock\n";
-                                gRdkShellMutex.lock();
-                            }
-                            else
-                            {
-                                std::cout << "lock was acquired via try for topmost\n";
-                            }
-                        }
-                        bool topmostResult =  CompositorController::getTopmost(topmostClient);
-                        gRdkShellMutex.unlock();
-                        if (!topmostClient.empty())
-                        {
-                            response["message"] = "failed to launch application.  topmost application already present";
-                            gLaunchMutex.lock();
-                            gLaunchCount = 0;
-                            gLaunchMutex.unlock();
-		            gLaunchDestroyMutex.lock();
-                            gLaunchApplications.erase(appCallsign);
-		            gLaunchDestroyMutex.unlock();
-                            returnResponse(false);
-                        }
-                    }
+                }
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -2932,8 +3068,15 @@ namespace WPEFramework {
                             std::cout << "lock was acquired via try for create display\n";
                         }
                     }
-                    RdkShell::CompositorController::createDisplay(callsign, displayName, width, height);
                     gRdkShellMutex.unlock();
+                    if (!isClientExists(callsign))
+                    {
+                        std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
+                        lockRdkShellMutex();
+                        gCreateDisplayRequests.push_back(request);
+                        gRdkShellMutex.unlock();
+                        sem_wait(&request->mSemaphore);
+                    }
                 }
 
                 WPEFramework::Core::JSON::String configString;
@@ -3245,7 +3388,7 @@ namespace WPEFramework {
                         setFocus(callsign);
                     }
 
-                    bool setTopmostResult = setTopmost(callsign, topmost);
+                    setTopmost(callsign, topmost, focus);
                     JsonObject urlResult;
                     if (!uri.empty())
                     {
@@ -3526,8 +3669,20 @@ namespace WPEFramework {
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
+                    bool topmost = false;
+                    bool focus = false;
+
+                    if (parameters.HasLabel("topmost"))
+                    {
+                        topmost = parameters["topmost"].Boolean();
+                    }
+                    if (parameters.HasLabel("focus"))
+                    {
+                        focus = parameters["focus"].Boolean();
+                    }
+
                     gRdkShellMutex.lock();
-                    result = CompositorController::launchApplication(client, uri, mimeType);
+                    result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus);
                     gRdkShellMutex.unlock();
 
                     if (!result)
@@ -3720,11 +3875,12 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify client or callsign";
             }
-            if (!parameters.HasLabel("topmost"))
+            else if (!parameters.HasLabel("topmost"))
             {
                 result = false;
                 response["message"] = "please specify topmost (topmost = true/false)";
             }
+
             if (result)
             {
                 string client;
@@ -3737,10 +3893,15 @@ namespace WPEFramework {
                     client = parameters["callsign"].String();
                 }
                 const bool topmost = parameters["topmost"].Boolean();
-
-                result = setTopmost(client, topmost);
-                if (false == result) {
-                  response["message"] = "failed to set topmost";
+                bool focus = false;
+                if (parameters.HasLabel("focus"))
+                {
+                    focus = parameters["focus"].Boolean();
+                }
+                result = setTopmost(client, topmost, focus);
+                if (false == result)
+                {
+                    response["message"] = "failed to set topmost";
                 }
             }
             returnResponse(result);
@@ -4637,6 +4798,27 @@ namespace WPEFramework {
              response["message"] = "unable to get wakeup key from system service";
              returnResponse(false);
         }
+
+	uint32_t RDKShell::hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("hide"))
+            {
+                response["message"] = "please specify hide parameter";
+                returnResponse(false);
+            }
+            bool hide = parameters["hide"].Boolean();
+            lockRdkShellMutex();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                bool ret = CompositorController::setVisibility(clientList[i], !hide);
+            }
+            gRdkShellMutex.unlock();
+            returnResponse(true);
+        }
         // Registered methods end
 
         // Events begin
@@ -4837,8 +5019,54 @@ namespace WPEFramework {
             bool ret = false;
             lockRdkShellMutex();
             RdkShell::CompositorController::removeListener(client, mEventListener);
-            ret = CompositorController::kill(client);
+            std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(client);
+            gKillClientRequests.push_back(request);
             gRdkShellMutex.unlock();
+            sem_wait(&request->mSemaphore);
+            ret = request->mResult;
+            return ret;
+        }
+
+        bool RDKShell::addKeyIntercepts(const JsonArray& intercepts)
+        {
+            bool ret = true;
+            for (int i=0; i<intercepts.Length(); i++)
+            {
+                if (!(intercepts[i].Content() == JsonValue::type::OBJECT))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to wrong format " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonObject& interceptEntry = intercepts[i].Object();
+                if (!interceptEntry.HasLabel("keys") || !interceptEntry.HasLabel("client"))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to missing client or keys parameter " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonArray& keys = interceptEntry["keys"].Array();
+                std::string client = interceptEntry["client"].String();
+                for (int k=0; k<keys.Length(); k++)
+                {
+                    if (!(keys[k].Content() == JsonValue::type::OBJECT))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonObject& keyEntry = keys[k].Object();
+                    if (!keyEntry.HasLabel("keyCode"))
+                    {
+                        std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to missing key code parameter " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonArray modifiers = keyEntry.HasLabel("modifiers") ? keyEntry["modifiers"].Array() : JsonArray();
+                    const uint32_t keyCode = keyEntry["keyCode"].Number();
+                    ret = addKeyIntercept(keyCode, modifiers, client);
+                }
+            }
             return ret;
         }
 
@@ -5041,25 +5269,34 @@ namespace WPEFramework {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
                 const JsonObject& keyInputInfo = keyInputs[i].Object();
-                if (keyInputInfo.HasLabel("keyCode"))
+                uint32_t keyCode, flags=0;
+                std::string virtualKey("");
+                if (keyInputInfo.HasLabel("key"))
                 {
-                  const uint32_t keyCode = keyInputInfo["keyCode"].Number();
-                  const uint32_t delay = keyInputInfo["delay"].Number();
-                  sleep(delay);
+                  virtualKey = keyInputInfo["key"].String();
+                }
+                else if (keyInputInfo.HasLabel("keyCode"))
+                {
+                  keyCode = keyInputInfo["keyCode"].Number();
                   const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
-                  std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
-                  if (keyClient.empty())
-                  {
-                    keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
-                  }
-                  uint32_t flags = 0;
                   for (int k=0; k<modifiers.Length(); k++) {
                     flags |= getKeyFlag(modifiers[k].String());
                   }
-                  gRdkShellMutex.lock();
-                  ret = CompositorController::generateKey(keyClient, keyCode, flags);
-                  gRdkShellMutex.unlock();
                 }
+                else
+                {
+                  continue;
+                }
+                const uint32_t delay = keyInputInfo["delay"].Number();
+                sleep(delay);
+                std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
+                if (keyClient.empty())
+                {
+                  keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
+                }
+                gRdkShellMutex.lock();
+                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                gRdkShellMutex.unlock();
             }
             return ret;
         }
@@ -5108,12 +5345,23 @@ namespace WPEFramework {
         }
 
         bool RDKShell::createDisplay(const string& client, const string& displayName, const uint32_t displayWidth, const uint32_t displayHeight,
-            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight)
+            const bool virtualDisplay, const uint32_t virtualWidth, const uint32_t virtualHeight, const bool topmost, const bool focus)
         {
             bool ret = false;
+            if (!isClientExists(client))
+            {
+                lockRdkShellMutex();
+                std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(client, displayName, displayWidth, displayHeight, virtualDisplay, virtualWidth, virtualHeight);
+                gCreateDisplayRequests.push_back(request);
+                gRdkShellMutex.unlock();
+                sem_wait(&request->mSemaphore);
+                ret = request->mResult;
+            }
+            else
+            {
+                std::cout << "Client " << client  << "already exist " << std::endl;
+            }
             lockRdkShellMutex();
-            ret = CompositorController::createDisplay(client, displayName, displayWidth, displayHeight,
-                virtualDisplay, virtualWidth, virtualHeight);
             RdkShell::CompositorController::addListener(client, mEventListener);
             gRdkShellMutex.unlock();
             return ret;
@@ -5480,11 +5728,11 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool RDKShell::setTopmost(const string& callsign, const bool topmost)
+        bool RDKShell::setTopmost(const string& callsign, const bool topmost, const bool focus)
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setTopmost(callsign, topmost);
+            ret = CompositorController::setTopmost(callsign, topmost, focus);
             gRdkShellMutex.unlock();
             return ret;
         }
