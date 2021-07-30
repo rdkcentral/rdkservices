@@ -258,7 +258,11 @@ namespace WPEFramework {
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
+#if defined (SKY_BUILD) || defined (BUILD_LLAMA)
+            bool internetConnectStatus = true;
+#else
             bool internetConnectStatus = isDeviceOnline();
+#endif
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
             /*  In an unsolicited maintenance we make sure only after
