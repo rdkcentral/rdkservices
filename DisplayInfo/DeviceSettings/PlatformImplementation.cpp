@@ -223,18 +223,18 @@ public:
                 edid_parser::edid_data_t data_ptr;
                 edid_parser::EDID_Parse(edidbytes, edidLen, &data_ptr);
                 value = data_ptr.res.refresh;
-                LOGINFO("Vertical frequency = %d", value);
+                TRACE(Trace::Information, (_T("Vertical frequency = %d"), value));
             }
             else
             {
-                LOGERR("EDID Verification failed");
+                TRACE(Trace::Information, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
             delete edidbytes;
         }
         else
         {
-            LOGERR("HDMI not connected");
+            TRACE(Trace::Information, (_T("HDMI not connected")));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -289,7 +289,6 @@ public:
                 if(!vPort.SetHdmiPreference(hdcpversion))
                 {
                     TRACE(Trace::Information, (_T("HDCPProtection: SetHdmiPreference failed")));
-                    LOGERR("SetHdmiPreference failed");
                 }
             }
             catch(const device::Exception& err)
@@ -319,7 +318,7 @@ public:
             }
             else
             {
-                LOGWARN("Failed to get Display Size!\n");
+                TRACE(Trace::Information, (_T("Failed to get Display Size!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
@@ -345,7 +344,7 @@ public:
                 }
                 else
                 {
-                    LOGWARN("Failed to get Display Size!\n");
+                    TRACE(Trace::Information, (_T("Failed to get Display Size!")));
                 }
             }
         }
@@ -372,7 +371,7 @@ public:
             }
             else
             {
-                LOGWARN("failure: HDMI0 not connected!");
+                TRACE(Trace::Information, (_T("failure: HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
@@ -424,11 +423,12 @@ public:
         int ret = Core::ERROR_NONE;
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 int _cs = vPort.getColorSpace();
-                LOGINFO("colour space = %d", _cs);
+                TRACE(Trace::Information, (_T("colour space = %d"), _cs ));
                 switch(_cs)
                 {
                     case dsDISPLAY_COLORSPACE_RGB:
@@ -448,13 +448,13 @@ public:
             }
             else
             {
-                LOGERR("HDMI0 not connected!");
+                TRACE(Trace::Information, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
-            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            TRACE(Trace::Information, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -467,7 +467,8 @@ public:
         uint32_t ret =  (Core::ERROR_NONE);
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             device::VideoResolution resolution = vPort.getResolution();
             device::PixelResolution pr = resolution.getPixelResolution();
             device::FrameRate fr = resolution.getFrameRate();
@@ -501,15 +502,15 @@ public:
 
     uint32_t ColourDepth(ColourDepthType& colour /* @out */) const override
     {
-        LOGINFO();
         int ret = Core::ERROR_NONE;
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 int _colour = vPort.getColorDepth();
-                LOGINFO("colour depth = %d", _colour);
+                TRACE(Trace::Information, (_T("colour depth = %d"),_colour));
                 switch(_colour)
                 {
                     case 8:
@@ -525,13 +526,13 @@ public:
             }
             else
             {
-                LOGERR("HDMI0 not connected!");
+                TRACE(Trace::Error, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
-            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            TRACE(Trace::Error, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -539,15 +540,15 @@ public:
 
     uint32_t QuantizationRange(QuantizationRangeType& qr /* @out */) const override
     {
-        LOGINFO();
         int ret = Core::ERROR_NONE;
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 int _qr = vPort.getQuantizationRange();
-                LOGINFO("quantization range = %d", _qr);
+                TRACE(Trace::Information, (_T("quantization range = %d"),_qr));
                 switch (_qr)
                 {
                     case dsDISPLAY_QUANTIZATIONRANGE_LIMITED:
@@ -561,13 +562,13 @@ public:
             }
             else
             {
-                LOGERR("HDMI0 not connected!");
+                TRACE(Trace::Error, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
-            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            TRACE(Trace::Error, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -575,7 +576,6 @@ public:
 
     uint32_t Colorimetry(IColorimetryIterator*& colorimetry /* @out */) const override
     {
-        LOGINFO();
         std::list<Exchange::IDisplayProperties::ColorimetryType> colorimetryCaps;
         vector<uint8_t> edidVec;
         uint32_t ret = GetEdidBytes(edidVec);
@@ -589,7 +589,7 @@ public:
                 edid_parser::edid_data_t data_ptr;
                 edid_parser::EDID_Parse(edidbytes, edidLen, &data_ptr);
                 uint32_t colorimetry_info = data_ptr.colorimetry_info;
-                LOGINFO("colorimetry = %d", colorimetry_info);
+                TRACE(Trace::Information, (_T("colorimetry = %d"),colorimetry_info));
                 if (!colorimetry_info) colorimetryCaps.push_back(COLORIMETRY_UNKNOWN);
                 if (colorimetry_info & edid_parser::COLORIMETRY_INFO_XVYCC601) colorimetryCaps.push_back(COLORIMETRY_XVYCC601);
                 if (colorimetry_info & edid_parser::COLORIMETRY_INFO_XVYCC709) colorimetryCaps.push_back(COLORIMETRY_XVYCC709);
@@ -602,14 +602,14 @@ public:
             }
             else
             {
-                LOGERR("EDID Verification failed");
+                TRACE(Trace::Error, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
             delete edidbytes;
         }
         else
         {
-            LOGERR("HDMI not connected");
+            TRACE(Trace::Error, (_T("HDMI not connected!")));
             ret = Core::ERROR_GENERAL;
         }
         colorimetry = Core::Service<ColorimetryIteratorImplementation>::Create<Exchange::IDisplayProperties::IColorimetryIterator>(colorimetryCaps);
@@ -618,15 +618,15 @@ public:
 
     uint32_t EOTF(EotfType& eotf /* @out */) const override
     {
-        LOGINFO();
         int ret = Core::ERROR_NONE;
         try
         {
-            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort("HDMI0");
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             if (vPort.isDisplayConnected())
             {
                 int _eotf = vPort.getVideoEOTF();
-                LOGINFO("videoEOTF = %d", _eotf);
+                TRACE(Trace::Information, (_T("videoEOTF = %d"),_eotf));
                 switch (_eotf)
                 {
                     /* bt1886 = sdr; smpte2084 = hdr10; bt2100 = HLG*/
@@ -640,13 +640,13 @@ public:
             }
             else
             {
-                LOGERR("HDMI0 not connected!");
+                TRACE(Trace::Error, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
-            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            TRACE(Trace::Error, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -668,7 +668,7 @@ public:
                 vPort.getTVHDRCapabilities(&capabilities);
             }
             else {
-                TRACE(Trace::Error, (_T("getTVHDRCapabilities failure: HDMI0 not connected!")));
+                TRACE(Trace::Error, (_T("getTVHDRCapabilities failure: HDMI not connected!")));
             }
         }
         catch(const device::Exception& err)
@@ -730,7 +730,7 @@ public:
             }
             else
             {
-                TRACE(Trace::Information, (_T("IsOutputHDR failure: HDMI0 not connected!")));
+                TRACE(Trace::Information, (_T("IsOutputHDR failure: HDMI not connected!")));
             }
         }
         catch(const device::Exception& err)
@@ -769,14 +769,14 @@ private:
             }
             else
             {
-                LOGERR("HDMI0 not connected!");
+                TRACE(Trace::Error, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
 
         }
         catch (const device::Exception& err)
         {
-            LOGINFO("caught an exception: %d, %s", err.getCode(), err.what());
+            TRACE(Trace::Error, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
 
