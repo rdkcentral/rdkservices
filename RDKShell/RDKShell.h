@@ -60,6 +60,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_FOCUS;
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
+            static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPTS;
             static const string RDKSHELL_METHOD_REMOVE_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_LISTENER;
             static const string RDKSHELL_METHOD_REMOVE_KEY_LISTENER;
@@ -119,6 +120,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
+            static const string RDKSHELL_METHOD_HIDE_ALL_CLIENTS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -153,6 +155,7 @@ namespace WPEFramework {
             uint32_t setFocusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeKeyListenersWrapper(const JsonObject& parameters, JsonObject& response);
@@ -213,6 +216,7 @@ namespace WPEFramework {
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideAllClientsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -224,6 +228,7 @@ namespace WPEFramework {
             bool setFocus(const string& client);
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
+            bool addKeyIntercepts(const JsonArray& intercepts);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
@@ -235,7 +240,8 @@ namespace WPEFramework {
             bool setMimeType(const string& client, const string& mimeType);
             bool getMimeType(const string& client, string& mimeType);
             bool createDisplay(const string& client, const string& displayName, const uint32_t displayWidth = 0, const uint32_t displayHeight = 0,
-                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0);
+                const bool virtualDisplay = false, const uint32_t virtualWidth = 0, const uint32_t virtualHeight = 0,
+                const bool topmost = false, const bool focus = false);
             bool getClients(JsonArray& clients);
             bool getZOrder(JsonArray& clients);
             bool getBounds(const string& client, JsonObject& bounds);
@@ -264,7 +270,7 @@ namespace WPEFramework {
             bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
-            bool setTopmost(const string& callsign, const bool topmost);
+            bool setTopmost(const string& callsign, const bool topmost, const bool focus);
             bool getVirtualResolution(const std::string& client, uint32_t &virtualWidth, uint32_t &virtualHeight);
             bool setVirtualResolution(const std::string& client, const uint32_t virtualWidth, const uint32_t virtualHeight);
             bool enableVirtualDisplay(const std::string& client, const bool enable);
