@@ -5294,8 +5294,22 @@ namespace WPEFramework {
                 {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
-                gRdkShellMutex.lock();
-                ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                lockRdkShellMutex();
+		bool targetFound = false;
+                if (keyClient != "")
+                {
+                  std::vector<std::string> clientList;
+                  CompositorController::getClients(clientList);
+                  transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
+                  if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                  {
+                    targetFound = true;
+                  }
+                }
+                if (targetFound || keyClient == "")
+                {
+                  ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                }
                 gRdkShellMutex.unlock();
             }
             return ret;
@@ -5499,7 +5513,19 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setOpacity(client, opacity);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            std::string newClient(client);
+            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+            {
+              targetFound = true;
+            }
+            if (targetFound)
+            {
+              ret = CompositorController::setOpacity(newClient, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -5517,7 +5543,19 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setScale(client, scaleX, scaleY);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            std::string newClient(client);
+            bool targetFound = false;
+            transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+            {
+              targetFound = true;
+            }
+            if (targetFound)
+            {
+              ret = CompositorController::setScale(newClient, scaleX, scaleY);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
