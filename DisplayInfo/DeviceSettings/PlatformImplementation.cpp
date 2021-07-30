@@ -758,7 +758,6 @@ private:
 private:
     uint32_t GetEdidBytes(vector<uint8_t> &edid) const
     {
-        rate = 0;
         uint32_t ret = Core::ERROR_NONE;
         try
         {
