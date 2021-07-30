@@ -65,7 +65,10 @@ using namespace std;
 #define API_VERSION_NUMBER_MINOR 0
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
+
+#define PROC_DIR "/proc"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+#define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -121,10 +124,10 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
             ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
             break;
         case MAINT_FWDOWNLOAD_COMPLETE:
-            ret_status="MAINTENANCE_FWDONLOAD_COMPLETE";
+            ret_status="MAINTENANCE_FWDOWNLOAD_COMPLETE";
             break;
         case MAINT_FWDOWNLOAD_ERROR:
-            ret_status="MAINTENANCE_FWDONLOAD_ERROR";
+            ret_status="MAINTENANCE_FWDOWNLOAD_ERROR";
             break;
         case MAINT_REBOOT_REQUIRED:
             ret_status="MAINTENANCE_REBOOT_REQUIRED";
@@ -159,7 +162,12 @@ namespace WPEFramework {
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
-
+        string script_names[]={
+            "DCMscript_maintaince.sh",
+            "RFCbase.sh",
+            "deviceInitiatedFWDnld.sh",
+            "uploadSTBLogs.sh"
+        };
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
@@ -179,6 +187,7 @@ namespace WPEFramework {
             registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
             registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
+            registerMethod("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
 
 
             MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
@@ -250,12 +259,6 @@ namespace WPEFramework {
             int i=0;
             string cmd="";
 
-            /* Check if the last reboot was MAITENANCE REBOOT */
-            string reboot_reason=getLastRebootReason();
-            if (!reboot_reason.compare("MAINTENANCE_REBOOT")){
-                g_is_reboot_pending="false";
-            }
-
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
 #if defined (SKY_BUILD)
@@ -280,9 +283,10 @@ namespace WPEFramework {
                     cmd+="\0";
                     m_task_map[task_names_foreground[i].c_str()]=true;
                     LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
-                    system(cmd.c_str());
+                    if (!m_abort_flag){
+                        system(cmd.c_str());
+                    }
                 }
-                LOGINFO("Worker Thread Completed");
             }
             /* Here in Solicited we start with RFC so no
              * need to wait for any DCM events */
@@ -302,9 +306,14 @@ namespace WPEFramework {
                         cmd+="\0";
                         m_task_map[task_names_foreground[i].c_str()]=true;
                         LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-                        system(cmd.c_str());
+                        if (!m_abort_flag){
+                            system(cmd.c_str());
+                        }
                     }
             }
+
+            m_abort_flag=false;
+            LOGINFO("Worker Thread Completed");
             if (false == internetConnectStatus) {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 LOGINFO("Maintenance completed as it is offline mode");
@@ -397,6 +406,7 @@ namespace WPEFramework {
             MaintenanceManager::g_is_reboot_pending="false";
             MaintenanceManager::g_lastSuccessful_maint_time="";
             MaintenanceManager::g_task_status=0;
+            MaintenanceManager::m_abort_flag=false;
 
             /* we post just to tell that we are in idle at this moment */
             MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
@@ -625,7 +635,7 @@ namespace WPEFramework {
                         }
 
                     }
-                    LOGINFO("ENDING MAINTENANCE CYCLE"); 
+                    LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
                     }
@@ -672,10 +682,10 @@ namespace WPEFramework {
         /*
          * @brief This function returns the status of the current
          * or previous maintenance activity.
-         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.2.GetMaintenanceActivityStatus",
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceActivityStatus",
          *                  "params":{}}''
          * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"status":MAINTENANCE_IDLE,"LastSuccessfulCompletionTime":
-                              -1,"isCriticalMaintenance":true,"isRebootPending":true,}}
+                              -1,"isCriticalMaintenance":true,"isRebootPending":true}}
          * @return: Core::<StatusCode>
          */
 
@@ -738,8 +748,8 @@ namespace WPEFramework {
                 }
         /*
          * @brief This function returns the start time of the maintenance activity.
-         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.2.GetMaintenanceStartTime","params":{}}''
-         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"time":03:45","success":true}}
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceStartTime","params":{}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"maintenanceStartTime":12345678,"success":true}}
          * @return: Core::<StatusCode>
          */
         uint32_t MaintenanceManager::getMaintenanceStartTime (const JsonObject& parameters,
@@ -761,7 +771,7 @@ namespace WPEFramework {
         /*
          * @brief This function returns the current status of the current
          * or previous maintenance activity.
-         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.2.SetMaintenanceMode",
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.setMaintenanceMode",
          *                  "params":{"Mode":FOREGROUND}}''
          * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return: Core::<StatusCode>
@@ -821,7 +831,7 @@ namespace WPEFramework {
 
         /*
          * @brief This function starts the maintenance activity.
-         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.2.StartMaintenance",
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.startMaintenance",
          *                  "params":{}}''
          * @param2[out]:{"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return: Core::<StatusCode>
@@ -836,7 +846,6 @@ namespace WPEFramework {
                     /* check what mode we currently have */
                     string current_mode="";
                     bool skip_task=false;
-                    string abort_flag="";
 
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
@@ -846,6 +855,8 @@ namespace WPEFramework {
                         /*reset the status to 0*/
                         g_task_status=0;
                         g_maintenance_type=SOLICITED_MAINTENANCE;
+
+                        m_abort_flag=false;
 
                         /* we dont touch the dcm so
                          * we say DCM is success and complete */
@@ -873,6 +884,166 @@ namespace WPEFramework {
                     m_statusMutex.unlock();
                     returnResponse(result);
                 }
+
+        /*
+         * @brief This function stops the maintenance activity.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.stopMaintenance",
+         *                  "params":{}}''
+         * @param2[out]:{"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
+         * @return: Core::<StatusCode>
+         */
+
+        uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
+                JsonObject& response){
+
+            pid_t pid_num=-1;
+
+            int k_ret=EINVAL;
+            int i=0,record=-1;
+            int32_t exec_status=E_NOK;
+
+            bool task_status[4]={false};
+            bool result=false;
+            bool task_incomplete=false;
+
+            /* only based on RFC */
+            if( checkAbortFlag() ){
+
+                /* run only when the maintenance status is MAINTENANCE_STARTED */
+                m_statusMutex.lock();
+                if ( MAINTENANCE_STARTED == m_notify_status  ){
+
+                    // Set the condition flag m_abort_flag to true
+                    m_abort_flag = true;
+
+                    auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
+                    auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+                    auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+                    auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+
+                    task_status[0] = task_status_DCM->second;
+                    task_status[1] = task_status_RFC->second;
+                    task_status[2] = task_status_FWDLD->second;
+                    task_status[3] = task_status_LOGUPLD->second;
+
+                    for (i=0;i<4;i++)
+                        LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                    for (i=0;i<4;i++){
+                        if(task_status[i]){
+                            record = i;
+                            LOGINFO("Checking the Task PID\n");
+                            pid_num=getTaskPID(script_names[i].c_str());
+                            LOGINFO("PID of script_name [%d] = %s is %d \n", i,script_names[i].c_str(),pid_num);
+                            if( pid_num != -1){
+                                /* send the signal to task to terminate */
+                                k_ret=kill(pid_num,SIGABRT);
+                                if (k_ret == 0){
+                                    LOGINFO(" %s Termimated\n",script_names[i].c_str());
+                                    /*this means we killed the task currently running */
+                                    task_incomplete = true;
+                                }
+                                else{
+                                    LOGINFO("Failed to terminate with error %d \n",script_names[i].c_str(),k_ret);
+                                }
+                            }
+                            else {
+                                LOGINFO("Didnt find PID for %s\n",script_names[i].c_str());
+                            }
+
+                            /* No need to loop again */
+                            break;
+                        }
+                        else{
+                            LOGINFO("Task[%d] is false \n",i);
+                        }
+                    }
+
+                    /* if we still didnt get the pid but we still know which task is running */
+                    if ( !task_incomplete ){
+
+                        char cmd[128] = {'\0'};
+                        if (Utils::fileExists("/lib/rdk/maintenanceTrapEventNotifier.sh")){
+                            /* send the arg to the trap notifier */
+                            snprintf(cmd, 127, "/lib/rdk/maintenanceTrapEventNotifier.sh %i &", record);
+                            exec_status=system(cmd);
+                            if ( E_OK == exec_status ){
+                                LOGINFO("DBG:Succesfully executed maintenanceTrapEventNotifier.sh \n");
+                            }
+                            else{
+                                LOGERR("Failed to execute maintenanceTrapEventNotifier.sh \n");
+                            }
+                        }
+                        else {
+                            LOGINFO("Failed to locate maintenanceTrapEventNotifier.sh \n");
+                        }
+                    }
+                    result=true;
+                }
+                else {
+                    LOGERR("Failed to stopMaintenance without starting maintenance \n");
+                }
+                m_statusMutex.unlock();
+            }
+            else {
+                LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
+            }
+            returnResponse(result);
+        }
+
+        bool MaintenanceManager::checkAbortFlag(){
+            bool ret=false;
+            RFC_ParamData_t param;
+            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),TR181_STOP_MAINTENANCE, &param);
+            if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
+                if( param.type == WDMP_BOOLEAN ){
+                    if(strncasecmp(param.value,"true",4) == 0 ){
+                        ret=true;
+                    }
+                }
+            }
+            LOGINFO(" StopMaintenance.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
+            return ret;
+        }
+
+        /* Helper function to find the Script/Task PID*/
+        pid_t MaintenanceManager::getTaskPID(const char* taskname){
+
+            DIR* dir=opendir(PROC_DIR);
+            struct dirent* ent;
+            char* endptr;
+            char buf[512];
+            char *ch =0;
+
+            while((ent = readdir(dir)) != NULL) {
+                long lpid = strtol(ent->d_name, &endptr, 10);
+                if (*endptr != '\0') {
+                    continue;
+                }
+                /* Get the PID */
+                snprintf(buf, sizeof(buf), "/proc/%ld/cmdline", lpid);
+
+                /* Open the cmdline and read */
+                FILE* fp = fopen(buf, "r");
+                if (fp) {
+                    char *arg = 0;
+                    size_t size = 0;
+                    while(getdelim(&arg, &size, 0,fp) != -1){
+                        printf("%s\n",arg);
+                        char* first = strstr(arg, taskname);
+                        if (first != NULL){
+                            free(arg);
+                            fclose(fp);
+                            closedir(dir);
+                            return (pid_t)lpid;
+                        }
+                    }
+                    free(arg);
+                    fclose(fp);
+                }
+            }
+            closedir(dir);
+            return -1;
+        }
 
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
             JsonObject params;
