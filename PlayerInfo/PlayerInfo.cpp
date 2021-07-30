@@ -42,7 +42,7 @@ namespace Plugin {
         _connectionId = 0;
         _service = service;
         _service->Register(&_rcnotification);
-        _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 2000, _T("PlayerInfoImplementation"));
+        _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 6000, _T("PlayerInfoImplementation"));
 
         if (_player != nullptr) {
             Exchange::JPlayerProperties::Register(*this, _player);

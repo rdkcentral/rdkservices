@@ -38,7 +38,7 @@ namespace Plugin {
         config.FromString(service->ConfigLine());
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-        _connectionProperties = service->Root<Exchange::IConnectionProperties>(_connectionId, 2000, _T("DisplayInfoImplementation"));
+        _connectionProperties = service->Root<Exchange::IConnectionProperties>(_connectionId, 6000, _T("DisplayInfoImplementation"));
         if (_connectionProperties != nullptr) {
 
             _graphicsProperties = _connectionProperties->QueryInterface<Exchange::IGraphicsProperties>();
