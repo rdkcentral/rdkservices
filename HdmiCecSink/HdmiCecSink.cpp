@@ -2747,7 +2747,6 @@ namespace WPEFramework
 
              LOGINFO("Current ARC State : %d\n", m_currentArcRoutingState);
 
-            _instance->systemAudioModeRequest();
 	    _instance->requestArcInitiation();
  
           // start initiate ARC timer 3 sec
@@ -2887,6 +2886,7 @@ namespace WPEFramework
 			     case ARC_STATE_REQUEST_ARC_INITIATION :
                              { 
 				 
+                                 _instance->systemAudioModeRequest();
 				 _instance->Send_Request_Arc_Initiation_Message();
 				   
 			     }
