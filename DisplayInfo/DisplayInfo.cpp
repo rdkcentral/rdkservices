@@ -59,7 +59,7 @@ namespace Plugin {
         _service->Register(&_notification);
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-        _connectionProperties = service->Root<Exchange::IConnectionProperties>(_connectionId, 2000, _T("DisplayInfoImplementation"));
+        _connectionProperties = service->Root<Exchange::IConnectionProperties>(_connectionId, 6000, _T("DisplayInfoImplementation"));
         if (_connectionProperties != nullptr) {
             _connectionProperties->Register(&_notification);
             Exchange::JConnectionProperties::Register(*this, _connectionProperties);
