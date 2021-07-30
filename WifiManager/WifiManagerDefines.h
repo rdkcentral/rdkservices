@@ -37,10 +37,9 @@ namespace WPEFramework {
             WPA2_ENTERPRISE_AES,
             WPA_WPA2_PSK,
             WPA_WPA2_ENTERPRISE,
-            WPA2_PSK_AES_PREAUTH,
-            WPA2_PSK_TKIP_PREAUTH,
-            WPA2_PSK_AES_TKIP_PREAUTH,
-            NOT_SUPPORTED
+            WPA3_PSK_AES,
+            WPA3_SAE,
+            NOT_SUPPORTED=99
         };
 
         /**
