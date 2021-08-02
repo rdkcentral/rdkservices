@@ -2961,6 +2961,10 @@ namespace WPEFramework {
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
+                if (parameters.HasLabel("type"))
+                {
+                    type = parameters["type"].String();
+                }
                 string version = "0.0";
                 string uri;
                 int32_t x = 0;
@@ -2972,7 +2976,25 @@ namespace WPEFramework {
                 bool focused = true;
                 string configuration;
                 string behind;
-                string displayName = "wst-" + callsign;
+
+                // Ensure cloned plugin displays are in a sub-dir based on
+                // plugin classname
+                string displayName;
+                if (type.empty())
+                {
+                    displayName = "wst-" + callsign;
+                }
+                else
+                {
+                    string xdgDir;
+                    Core::SystemInfo::GetEnvironment(_T("XDG_RUNTIME_DIR"), xdgDir);
+                    string displaySubdir = xdgDir + "/" + type;
+                    Core::Directory(displaySubdir.c_str()).CreatePath();
+
+                    // don't add XDG_RUNTIME_DIR to display name
+                    displayName = type + "/" + "wst-" + callsign;
+                }
+
                 if (gRdkShellSurfaceModeEnabled)
                 {
                     displayName = "rdkshell_display";
