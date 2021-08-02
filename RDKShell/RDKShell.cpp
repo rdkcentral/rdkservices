@@ -34,6 +34,7 @@
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
 #include <rdkshell/linuxkeys.h>
+#include "base64.h"
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
@@ -109,6 +110,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -129,6 +131,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNI
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
 
 using namespace std;
 using namespace RdkShell;
@@ -154,6 +157,7 @@ bool sFactoryModeStart = false;
 bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
+bool needsScreenshot = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -652,7 +656,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
-            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -909,6 +914,28 @@ namespace WPEFramework {
                     }
                   }
                   RdkShell::draw();
+                  if (needsScreenshot)
+                  {
+                      uint8_t* data = nullptr;
+                      size_t size;
+                      string screenshotBase64;
+                      CompositorController::screenShot(data, size);
+                      size_t encodedImageSize = b64_get_encoded_buffer_size(size);
+                      uint8_t *encodedImage = (uint8_t*)malloc(encodedImageSize);
+                      b64_encode(&data[0], size, encodedImage);
+                      std::stringstream list1;
+                      for (unsigned int i=0; i<encodedImageSize; ++i){
+                         list1 << encodedImage[i];
+                      }
+                      screenshotBase64 = list1.str();
+                      std::cout << "Screenshot success size:" << size << std::endl;
+                      JsonObject params;
+                      params["imageData"] = screenshotBase64;
+                      notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+                      free(encodedImage);
+                      free(data);
+                      needsScreenshot = false;
+                  }
                   RdkShell::update();
                   isRunning = sRunning;
                   gRdkShellMutex.unlock();
@@ -4680,6 +4707,16 @@ namespace WPEFramework {
 
              response["message"] = "unable to get wakeup key from system service";
              returnResponse(false);
+        }
+
+        uint32_t RDKShell::getScreenshotWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            lockRdkShellMutex();
+            needsScreenshot = true;
+            gRdkShellMutex.unlock();
+            returnResponse(result);
         }
         // Registered methods end
 
