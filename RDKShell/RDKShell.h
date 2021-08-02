@@ -287,7 +287,6 @@ namespace WPEFramework {
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
             void killAllApps(bool enableDestroyEvent=false);
-            bool checkForBootupFactoryAppLaunch();
             bool enableKeyRepeats(const bool enable);
             bool getKeyRepeatsEnabled(bool& enable);
             bool setTopmost(const string& callsign, const bool topmost, const bool focus);

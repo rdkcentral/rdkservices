@@ -166,6 +166,9 @@ bool sFactoryModeStart = false;
 bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
+static double sLastDrawTime = 0.0;
+static bool sWaitForPersistentStore = false;
+static bool sFactoryMacMatched = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -174,6 +177,8 @@ static bool sRunning = true;
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
 #define RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME 5
+#define RDKSHELL_HANGDETECTOR_MONITOR_INTERVAL 5
+#define RDKSHELL_HANGDETECTOR_THRESHOLD 30
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -181,7 +186,12 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
+#define ENABLE_RDKSHELL_HANGDETECTOR
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
+#ifdef ENABLE_RDKSHELL_HANGDETECTOR
+static unsigned int sHangDetectorThreshold = RDKSHELL_HANGDETECTOR_THRESHOLD;
+static unsigned int sHangDetectorMonitorInterval = RDKSHELL_HANGDETECTOR_MONITOR_INTERVAL;
+#endif
 
 enum WatermarkRequestType
 {
@@ -224,6 +234,8 @@ std::vector<WatermarkRequestData> sWatermarkRequests;
 namespace WPEFramework {
     namespace Plugin {
 
+        static PluginHost::IShell* sPluginService = nullptr;
+        bool checkForBootupFactoryAppLaunch();
 
         struct JSONRPCDirectLink
         {
@@ -422,7 +434,9 @@ namespace WPEFramework {
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
-
+#ifdef ENABLE_RDKSHELL_HANGDETECTOR
+        static std::thread hangDetectorThread;
+#endif
         struct CreateDisplayRequest
         {
             CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
@@ -558,6 +572,208 @@ namespace WPEFramework {
             sWatermarkRequests.clear();
         }
 
+        static void
+        cleanup_handler(void *arg)
+        {
+            printf("Called clean-up handler\n"); fflush(stdout);
+            gRdkShellMutex.unlock();
+            gRdkShellMutex.lock();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            for (int i=0; i<clientList.size(); i++)
+            {
+                CompositorController::kill(clientList[i]);
+            }		    
+	    clientList.clear();
+            RdkShell::terminate();
+            gRdkShellMutex.unlock();
+        }
+
+        void rdkshellRenderer(bool restart)
+        {
+            bool isRunning = true;
+            pthread_cleanup_push(cleanup_handler, NULL);
+            gRdkShellMutex.lock();
+            RdkShell::initialize(restart);
+            if (!restart && !sWaitForPersistentStore)
+            {
+                PluginHost::ISubSystem* subSystems(sPluginService->SubSystems());
+                if (subSystems != nullptr)
+                {
+                    std::cout << "setting platform and graphics\n";
+                    fflush(stdout);
+                    RDKShell* rdkshellPlugin = RDKShell::_instance;
+                    //if (sFactoryMacMatched || ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch())))
+                    if (sFactoryMacMatched || checkForBootupFactoryAppLaunch())
+                    {
+                        sFactoryModeStart = true;
+                    }
+                    subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                    subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                    subSystems->Release();
+                    if (sFactoryModeStart) 
+                    {
+                        JsonObject request, response;
+                        std::cout << "about to launch factory app on start without persistent store wait\n";
+                        gRdkShellMutex.unlock();
+                        if (sFactoryModeBlockResidentApp)
+                        {
+                            request["nokillresapp"] = "true";
+                        }
+                        request["resetagingtime"] = "true";
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "launchfactoryapp";
+                        apiRequest.mRequest = request;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                        gRdkShellMutex.lock();
+                        CompositorController::hideSplashScreen();
+                    }
+                    else
+                    {
+                      std::cout << "not launching factory app as conditions not matched\n";
+                    }
+                }
+            }
+            isRunning = sRunning;
+            gRdkShellMutex.unlock();
+            gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
+            while(isRunning)
+            {
+              const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
+              double startFrameTime = RdkShell::microseconds();
+              gRdkShellMutex.lock();
+              while (gCreateDisplayRequests.size() > 0)
+              {
+	          std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
+                  if (!request)
+                  {
+                      gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
+                      continue;
+                  }
+                  request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
+                  gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
+                  sem_post(&request->mSemaphore);
+                   if (!restart) {                  sleep(100);  }
+              }
+              while (gKillClientRequests.size() > 0)
+              {
+	          std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
+                  if (!request)
+                  {
+                      gKillClientRequests.erase(gKillClientRequests.begin());
+                      continue;
+                  }
+                  request->mResult = CompositorController::kill(request->mClient);
+                  gKillClientRequests.erase(gKillClientRequests.begin());
+                  sem_post(&request->mSemaphore);
+              }
+              if (receivedResolutionRequest)
+              {
+                CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
+                receivedResolutionRequest = false;
+              }
+              if (receivedFullScreenImageRequest)
+              {
+                CompositorController::showFullScreenImage(fullScreenImagePath);
+                fullScreenImagePath = "";
+                receivedFullScreenImageRequest = false;
+              }
+              if (receivedShowWatermarkRequest)
+              {
+                CompositorController::showWatermark();
+                receivedShowWatermarkRequest = false;
+              }
+              if (receivedShowSplashScreenRequest)
+              {
+                CompositorController::showSplashScreen(gSplashScreenDisplayTime);
+                gSplashScreenDisplayTime = 0;
+                receivedShowSplashScreenRequest = false;
+              }
+              if (receivedWatermarkRequest)
+              {
+                processWatermarkRequests();
+                receivedWatermarkRequest = false;
+              }
+              if (!sPersistentStorePreLaunchChecked)
+              {
+                  if (!sPersistentStoreFirstActivated)
+                  {
+                      Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+                      auto thunderController = getThunderControllerClient();
+                      int32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
+                      JsonArray stateArray;
+                      for (uint16_t i = 0; i < joResult.Length(); i++)
+                      {
+                          PluginHost::MetaData::Service service = joResult[i];
+                          std::string callsign;
+                          service.Callsign.ToString(callsign);
+                          if (callsign.find(PERSISTENT_STORE_CALLSIGN) != std::string::npos)
+                          {
+                            if (service.JSONState == PluginHost::MetaData::Service::state::ACTIVATED)
+                            {
+                              sPersistentStoreFirstActivated = true;
+                            }
+                            break;
+                          } 
+                      }
+                  }
+                  sPersistentStorePreLaunchChecked = true;
+              }
+
+              if (sWaitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
+              {
+                PluginHost::ISubSystem* subSystems(sPluginService->SubSystems());
+                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                if (subSystems != nullptr)
+                {
+                    //if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
+                    if (checkForBootupFactoryAppLaunch())
+                    {
+                        sFactoryModeStart = true;
+                    }
+                    std::cout << "setting platform and graphics after wait\n";
+                    subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                    subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                    subSystems->Release();
+                }
+                sPersistentStoreWaitProcessed = true;
+                if (sFactoryModeStart)
+                {
+                    JsonObject request, response;
+                    std::cout << "about to launch factory app after persistent store wait\n";
+                    gRdkShellMutex.unlock();
+                    if (sFactoryModeBlockResidentApp)
+                    {
+                        request["nokillresapp"] = "true";
+                    }
+                    request["resetagingtime"] = "true";
+                    RDKShellApiRequest apiRequest;
+                    apiRequest.mName = "launchfactoryapp";
+                    apiRequest.mRequest = request;
+                    rdkshellPlugin->launchRequestThread(apiRequest);
+                    gRdkShellMutex.lock();
+                    CompositorController::hideSplashScreen();
+                }
+                else
+                {
+                    std::cout << "not launching factory app as conditions not matched\n";
+                }
+              }
+              RdkShell::draw();
+              RdkShell::update();
+              isRunning = sRunning;
+              gRdkShellMutex.unlock();
+              sLastDrawTime = RdkShell::seconds();
+              double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
+              if (frameTime < maxSleepTime)
+              {
+                  int sleepTime = (int)maxSleepTime-(int)frameTime;
+                  usleep(sleepTime);
+              }
+            }
+            pthread_cleanup_pop(0);
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -627,7 +843,7 @@ namespace WPEFramework {
                         else
                         {
                             sResidentAppFirstActivated = true;
-                            if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
+                            if (sFactoryModeStart || checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
                                 std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
                                 JsonObject deactivateParams;
@@ -832,7 +1048,6 @@ namespace WPEFramework {
 
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
-            bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             char* mac = new char[19];
@@ -845,7 +1060,7 @@ namespace WPEFramework {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
                 {
                     std::cout << "launching factory app as mac is matching... " << std::endl;
-                    factoryMacMatched = true;
+                    sFactoryMacMatched = true;
                 }
                 else
                 {
@@ -864,7 +1079,7 @@ namespace WPEFramework {
                 if (strncasecmp(macparam.value,"00:00:00:00:00:00",17) == 0)
                 {
                     std::cout << "launching factory app as mac is matching " << std::endl;
-                    factoryMacMatched = true;
+                    sFactoryMacMatched = true;
                 }
                 else
                 {
@@ -907,19 +1122,18 @@ namespace WPEFramework {
             Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
             service->Register(mClientsMonitor);
 
-            static PluginHost::IShell* pluginService = nullptr;
-            pluginService = service;
+            sPluginService = service;
 
-            bool waitForPersistentStore = false;
+            sWaitForPersistentStore = false;
             char* waitValue = getenv("RDKSHELL_WAIT_FOR_PERSISTENT_STORE");
             if (NULL != waitValue)
             {
                 std::cout << "waiting for persistent store\n";
-                waitForPersistentStore = true;
+                sWaitForPersistentStore = true;
             }
-            if (factoryMacMatched)
+            if (sFactoryMacMatched)
             {
-                waitForPersistentStore = false;
+                sWaitForPersistentStore = false;
             }
 
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
@@ -929,185 +1143,43 @@ namespace WPEFramework {
                 sFactoryModeBlockResidentApp = true;
             }
 
-            shellThread = std::thread([=]() {
+#ifdef ENABLE_RDKSHELL_HANGDETECTOR
+            char* hangDetectorThreshold = getenv("RDKSHELL_HANGDETECTOR_THRESHOLD");
+            if (NULL != hangDetectorThreshold)
+            {
+                std::cout << "hang detector monitor value is " << sHangDetectorThreshold << std::endl;
+                sHangDetectorThreshold = atoi(hangDetectorThreshold);
+            }
+
+            char* hangDetectorMonitorInterval = getenv("RDKSHELL_HANGDETECTOR_MONITOR_INTERVAL");
+            if (NULL != hangDetectorMonitorInterval)
+            {
+                std::cout << "hang detector monitor value is " << sHangDetectorMonitorInterval << std::endl;
+                sHangDetectorMonitorInterval = atoi(hangDetectorMonitorInterval);
+            }
+            hangDetectorThread = std::thread([=]() {
                 bool isRunning = true;
-                gRdkShellMutex.lock();
-                RdkShell::initialize();
-                if (!waitForPersistentStore)
-                {
-                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
-                    if (subSystems != nullptr)
+                double currentTime;
+                shellThread = std::thread(rdkshellRenderer, false);
+                while(isRunning)
+		{
+                    currentTime = RdkShell::seconds();
+                    if ((sLastDrawTime != 0 ) && ((currentTime - sLastDrawTime) > sHangDetectorThreshold))
                     {
-                        std::cout << "setting platform and graphics\n";
-                        fflush(stdout);
-                        RDKShell* rdkshellPlugin = RDKShell::_instance;
-                        if (factoryMacMatched || ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch())))
-                        {
-                            sFactoryModeStart = true;
-                        }
-                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
-                        if (sFactoryModeStart) 
-                        {
-                            JsonObject request, response;
-                            std::cout << "about to launch factory app on start without persistent store wait\n";
-                            gRdkShellMutex.unlock();
-                            if (sFactoryModeBlockResidentApp)
-                            {
-                                request["nokillresapp"] = "true";
-                            }
-                            request["resetagingtime"] = "true";
-                            RDKShellApiRequest apiRequest;
-                            apiRequest.mName = "launchfactoryapp";
-                            apiRequest.mRequest = request;
-                            rdkshellPlugin->launchRequestThread(apiRequest);
-                            gRdkShellMutex.lock();
-                            gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                            receivedShowSplashScreenRequest = true;
-                        }
-                        else
-                        {
-                          std::cout << "not launching factory app as conditions not matched\n";
-                        }
+                        pthread_t handle = shellThread.native_handle();
+                        pthread_cancel(handle);
+                        shellThread.join();
+                        sLastDrawTime = 0;
+                        shellThread = std::thread(rdkshellRenderer, true);
                     }
+                    sleep(sHangDetectorMonitorInterval);
+                    isRunning = sRunning;
                 }
-                isRunning = sRunning;
-                gRdkShellMutex.unlock();
-                gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
-                while(isRunning) {
-                  const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
-                  double startFrameTime = RdkShell::microseconds();
-                  gRdkShellMutex.lock();
-                  while (gCreateDisplayRequests.size() > 0)
-                  {
-		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
-                      if (!request)
-                      {
-                          gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
-                          continue;
-                      }
-                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
-                      gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
-                      sem_post(&request->mSemaphore);
-                  }
-                  while (gKillClientRequests.size() > 0)
-                  {
-	              std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
-                      if (!request)
-                      {
-                          gKillClientRequests.erase(gKillClientRequests.begin());
-                          continue;
-                      }
-                      request->mResult = CompositorController::kill(request->mClient);
-                      gKillClientRequests.erase(gKillClientRequests.begin());
-                      sem_post(&request->mSemaphore);
-                  }
-                  if (receivedResolutionRequest)
-                  {
-                    CompositorController::setScreenResolution(resolutionWidth, resolutionHeight);
-                    receivedResolutionRequest = false;
-                  }
-                  if (receivedFullScreenImageRequest)
-                  {
-                    CompositorController::showFullScreenImage(fullScreenImagePath);
-                    fullScreenImagePath = "";
-                    receivedFullScreenImageRequest = false;
-                  }
-                  if (receivedShowWatermarkRequest)
-                  {
-                    CompositorController::showWatermark();
-                    receivedShowWatermarkRequest = false;
-                  }
-                  if (receivedShowSplashScreenRequest)
-                  {
-                    CompositorController::showSplashScreen(gSplashScreenDisplayTime);
-                    gSplashScreenDisplayTime = 0;
-                    receivedShowSplashScreenRequest = false;
-                  }
-                  if (receivedWatermarkRequest)
-                  {
-                    processWatermarkRequests();
-                    receivedWatermarkRequest = false;
-                  }
-                  if (!sPersistentStorePreLaunchChecked)
-                  {
-                      if (!sPersistentStoreFirstActivated)
-                      {
-                          Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                          auto thunderController = getThunderControllerClient();
-                          int32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
-                          JsonArray stateArray;
-                          for (uint16_t i = 0; i < joResult.Length(); i++)
-                          {
-                              PluginHost::MetaData::Service service = joResult[i];
-                              std::string callsign;
-                              service.Callsign.ToString(callsign);
-                              if (callsign.find(PERSISTENT_STORE_CALLSIGN) != std::string::npos)
-                              {
-                                if (service.JSONState == PluginHost::MetaData::Service::state::ACTIVATED)
-                                {
-                                  sPersistentStoreFirstActivated = true;
-                                }
-                                break;
-                              } 
-                          }
-                      }
-                      sPersistentStorePreLaunchChecked = true;
-                  }
-
-                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
-                  {
-                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
-                    RDKShell* rdkshellPlugin = RDKShell::_instance;
-                    if (subSystems != nullptr)
-                    {
-                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
-                        {
-                            sFactoryModeStart = true;
-                        }
-                        std::cout << "setting platform and graphics after wait\n";
-                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
-                    }
-                    sPersistentStoreWaitProcessed = true;
-                    if (sFactoryModeStart)
-                    {
-                        JsonObject request, response;
-                        std::cout << "about to launch factory app after persistent store wait\n";
-                        gRdkShellMutex.unlock();
-                        if (sFactoryModeBlockResidentApp)
-                        {
-                            request["nokillresapp"] = "true";
-                        }
-                        request["resetagingtime"] = "true";
-                        RDKShellApiRequest apiRequest;
-                        apiRequest.mName = "launchfactoryapp";
-                        apiRequest.mRequest = request;
-                        rdkshellPlugin->launchRequestThread(apiRequest);
-                        gRdkShellMutex.lock();
-                        gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                        receivedShowSplashScreenRequest = true;
-                    }
-                    else
-                    {
-                        std::cout << "not launching factory app as conditions not matched\n";
-                    }
-                  }
-                  RdkShell::draw();
-                  RdkShell::update();
-                  isRunning = sRunning;
-                  gRdkShellMutex.unlock();
-                  double frameTime = (int)RdkShell::microseconds() - (int)startFrameTime;
-                  if (frameTime < maxSleepTime)
-                  {
-                      int sleepTime = (int)maxSleepTime-(int)frameTime;
-                      usleep(sleepTime);
-                  }
-                }
+                shellThread.join();
             });
-
+#else
+            shellThread = std::thread(rdkshellRenderer, false);
+#endif
             service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
             if (NULL != thunderAccessValue)
@@ -1274,7 +1346,11 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             sRunning = false;
             gRdkShellMutex.unlock();
+#ifdef ENABLE_RDKSHELL_HANGDETECTOR
+            hangDetectorThread.join();
+#else
             shellThread.join();
+#endif
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
