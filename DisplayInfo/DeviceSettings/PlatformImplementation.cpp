@@ -419,7 +419,6 @@ public:
 
     uint32_t ColorSpace(ColourSpaceType& cs /* @out */) const override
     {
-        LOGINFO();
         int ret = Core::ERROR_NONE;
         try
         {
@@ -448,13 +447,13 @@ public:
             }
             else
             {
-                TRACE(Trace::Information, (_T("HDMI not connected!")));
+                TRACE(Trace::Error, (_T("HDMI not connected!")));
                 ret = Core::ERROR_GENERAL;
             }
         }
         catch (const device::Exception& err)
         {
-            TRACE(Trace::Information, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
+            TRACE(Trace::Error, (_T("caught an exception: %d, %s"),err.getCode(), err.what()));
             ret = Core::ERROR_GENERAL;
         }
         return ret;
@@ -462,7 +461,6 @@ public:
 
     uint32_t FrameRate(FrameRateType& rate /* @out */) const override
     {
-        LOGINFO();
         rate = FRAMERATE_UNKNOWN;
         uint32_t ret =  (Core::ERROR_NONE);
         try
