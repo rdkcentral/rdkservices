@@ -34,6 +34,7 @@
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
 #include <rdkshell/linuxkeys.h>
+#include "base64.h"
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
@@ -109,6 +110,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_VIRTUAL_RESOLUT
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY = "enableVirtualDisplay";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -122,12 +124,14 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_ACTIVATED = "
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED = "onPluginSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING = "onDeviceLowRamWarning";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
 
 using namespace std;
 using namespace RdkShell;
@@ -153,6 +157,7 @@ bool sFactoryModeStart = false;
 bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
+bool needsScreenshot = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -336,7 +341,7 @@ namespace WPEFramework {
             {
                 JsonObject params;
                 params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
             }            
           }
 
@@ -397,6 +402,15 @@ namespace WPEFramework {
                 {
                     JsonObject result;
                     launchFactoryAppWrapper(apiRequest.mRequest, result);
+                }
+		else if (apiRequest.mName.compare("deactivateresidentapp") == 0)
+                {
+                    auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                    JsonObject deactivateParams;
+                    deactivateParams.Set("callsign", "ResidentApp");
+                    JsonObject deactivateResult;
+                    int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
+                    std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                 }
             });
             rdkshellRequestsThread.detach();
@@ -472,12 +486,10 @@ namespace WPEFramework {
                             if(sFactoryAppLaunchStatus != NOTLAUNCHED)
                             {
                                 std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
-                                JsonObject deactivateParams;
-                                deactivateParams.Set("callsign", "ResidentApp");
-                                JsonObject deactivateResult;
-                                auto thunderController = getThunderControllerClient();
-                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
-                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
                             }
                         }
                         else
@@ -486,12 +498,10 @@ namespace WPEFramework {
                             if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
                                 std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
-                                JsonObject deactivateParams;
-                                deactivateParams.Set("callsign", "ResidentApp");
-                                JsonObject deactivateResult;
-                                auto thunderController = getThunderControllerClient();
-                                int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
-                                std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
                                 if (false == sFactoryModeStart)
                                 {
                                   // reached scenario where persistent store loaded late and conditions matched
@@ -646,7 +656,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_SET_VIRTUAL_RESOLUTION, &RDKShell::setVirtualResolutionWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY, &RDKShell::enableVirtualDisplayWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
-            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -903,6 +914,28 @@ namespace WPEFramework {
                     }
                   }
                   RdkShell::draw();
+                  if (needsScreenshot)
+                  {
+                      uint8_t* data = nullptr;
+                      size_t size;
+                      string screenshotBase64;
+                      CompositorController::screenShot(data, size);
+                      size_t encodedImageSize = b64_get_encoded_buffer_size(size);
+                      uint8_t *encodedImage = (uint8_t*)malloc(encodedImageSize);
+                      b64_encode(&data[0], size, encodedImage);
+                      std::stringstream list1;
+                      for (unsigned int i=0; i<encodedImageSize; ++i){
+                         list1 << encodedImage[i];
+                      }
+                      screenshotBase64 = list1.str();
+                      std::cout << "Screenshot success size:" << size << std::endl;
+                      JsonObject params;
+                      params["imageData"] = screenshotBase64;
+                      notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+                      free(encodedImage);
+                      free(data);
+                      needsScreenshot = false;
+                  }
                   RdkShell::update();
                   isRunning = sRunning;
                   gRdkShellMutex.unlock();
@@ -3376,7 +3409,18 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    setVisibility(callsign, false);
+                    bool isApplicationBeingDestroyed = false;
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+                    {
+                        isApplicationBeingDestroyed = true;
+                        std::cout << "skip setVisibility as "<< callsign << " is being destroyed." << std::endl;
+                    }
+                    gLaunchDestroyMutex.unlock();
+                    if (false == isApplicationBeingDestroyed)
+                    {
+                        setVisibility(callsign, false);
+                    }
                     onSuspended(callsign);
                 }
             }
@@ -4664,6 +4708,16 @@ namespace WPEFramework {
              response["message"] = "unable to get wakeup key from system service";
              returnResponse(false);
         }
+
+        uint32_t RDKShell::getScreenshotWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            lockRdkShellMutex();
+            needsScreenshot = true;
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
         // Registered methods end
 
         // Events begin
@@ -5589,7 +5643,7 @@ namespace WPEFramework {
             {
                 JsonObject params;
                 params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_SUSPENDED, params);
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
             }
         }
 
