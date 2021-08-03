@@ -62,10 +62,9 @@ namespace Plugin {
         }
 
         int runScript(const char *command) {
-            int result = -1;
-            FILE *pipe = nullptr;
-            if ((pipe = popen(command, "r"))) {
-                result = pclose(pipe);
+            int result = system(command);
+            if (result != -1 && WIFEXITED(result)) {
+                result = WEXITSTATUS(result);
             }
             return result;
         }
