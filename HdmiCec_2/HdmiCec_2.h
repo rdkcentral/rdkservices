@@ -125,6 +125,7 @@ namespace WPEFramework {
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
+            bool IsCecMgrActivated;
             Connection *smConnection;
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
