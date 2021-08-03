@@ -760,7 +760,7 @@ int main(int argc, char** argv)
                                 {
                                     array.Add(JsonValue(KEDKeyNames[i]));               // Clear mappings for all keys
                                 }
-                                params["keyNames"] = JsonValue(array);
+                                params["keyNames"] = array;
 
                                 ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                                     _T("clearKeyActionMapping"), params, result);
