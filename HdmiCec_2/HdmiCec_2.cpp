@@ -327,6 +327,7 @@ namespace WPEFramework
        : AbstractPlugin()
        {
            LOGWARN("ctor");
+           IsCecMgrActivated = false;
            registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
            registerMethod(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
@@ -341,78 +342,104 @@ namespace WPEFramework
 
        HdmiCec_2::~HdmiCec_2()
        {
+           IsCecMgrActivated = false;
            LOGWARN("dtor");
        }
  
        const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
        {
            LOGWARN("Initlaizing CEC_2");
+           string msg;
            HdmiCec_2::_instance = this;
            smConnection = NULL;
-           InitializeIARM();
-           //Initialize cecEnableStatus to false in ctor
-           cecEnableStatus = false;
+           IsCecMgrActivated = false;
+           if (Utils::IARM::init()) {
 
-           logicalAddressDeviceType = "None";
-           logicalAddress = 0xFF;
 
-           // load persistence setting
-           loadSettings();
+               //Initialize cecEnableStatus to false in ctor
+               cecEnableStatus = false;
 
-           try
-           {
-               //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
-               device::Manager::Initialize();
-               std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-               device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-               if (vPort.isDisplayConnected())
-               {
-                   vector<uint8_t> edidVec;
-                   vPort.getDisplay().getEDIDBytes(edidVec);
-                   //Set LG vendor id if connected with LG TV
-                   if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
-                   {
-                      isLGTvConnected = true;
-                   }
-                   LOGINFO("manufacturer byte from edid :%x: %x  isLGTvConnected :%d",edidVec.at(8),edidVec.at(9),isLGTvConnected);
+               logicalAddressDeviceType = "None";
+               logicalAddress = 0xFF;
+
+
+               char c;
+               IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+               retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+               if(retVal != IARM_RESULT_SUCCESS) {
+                   msg = "IARM_BUS_CECMGR is not available";
+                   LOGINFO("CECMGR is not available. Failed to activate HdmiCec_2 Plugin");
+                   return msg;
+               } else {
+                   LOGINFO("CECMGR is available. Activate HdmiCec_2 Plugin. IsCecMgrActivated: %d", IsCecMgrActivated);
+                   IsCecMgrActivated = true;
                }
-            }
-            catch(...)
-            {
-                LOGWARN("Exception in getting edid info .\r\n");
-            }
 
-            // get power state:
-            IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-            int err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+               //CEC plugin functionalities will only work if CECmgr is available. If plugin Initialize failure upper layer will call dtor directly.
+               InitializeIARM();
+
+               // load persistence setting
+               loadSettings();
+
+               try
+               {
+                   //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
+                   device::Manager::Initialize();
+                   std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                   device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+                   if (vPort.isDisplayConnected())
+                   {
+                       vector<uint8_t> edidVec;
+                       vPort.getDisplay().getEDIDBytes(edidVec);
+                       //Set LG vendor id if connected with LG TV
+                       if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
+                       {
+                           isLGTvConnected = true;
+                       }
+                       LOGINFO("manufacturer byte from edid :%x: %x  isLGTvConnected :%d",edidVec.at(8),edidVec.at(9),isLGTvConnected);
+                   }
+                }
+                catch(...)
+                {
+                    LOGWARN("Exception in getting edid info .\r\n");
+                }
+
+                // get power state:
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                int err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
                             IARM_BUS_PWRMGR_API_GetPowerState,
                             (void *)&param,
                             sizeof(param));
-            if(err == IARM_RESULT_SUCCESS)
-            {
-                powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)?0:1 ;
-                LOGINFO("Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
-            }
+                if(err == IARM_RESULT_SUCCESS)
+                {
+                    powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)?0:1 ;
+                    LOGINFO("Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
+                }
             
-            if (cecSettingEnabled)
-            {
-               try
-               {
-                   CECEnable();
-               }
-               catch(...)
-               {
-                   LOGWARN("Exception while enabling CEC settings .\r\n");
-               }
-            }
+                if (cecSettingEnabled)
+                {
+                   try
+                   {
+                       CECEnable();
+                   }
+                   catch(...)
+                   {
+                       LOGWARN("Exception while enabling CEC settings .\r\n");
+                   }
+                }
+           } else {
+               msg = "IARM bus is not available";
+               LOGERR("IARM bus is not available. Failed to activate HdmiCec_2 Plugin");
+           }
 
            // On success return empty, to indicate there is no error text.
-           return (string());
+           return msg;
        }
 
 
        void HdmiCec_2::Deinitialize(PluginHost::IShell* /* service */)
        {
+           LOGWARN("Deinitialize CEC_2");
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
            DeinitializeIARM();
@@ -420,14 +447,11 @@ namespace WPEFramework
 
        const void HdmiCec_2::InitializeIARM()
        {
-            if (Utils::IARM::init())
-            {
-                IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
-           }
+            IARM_Result_t res;
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
        }
 
        void HdmiCec_2::DeinitializeIARM()
@@ -512,7 +536,9 @@ namespace WPEFramework
        {
             if(true == getEnabled())
             {
+                LOGINFO("%s %d. Calling setEnabled false", __func__, __LINE__);
                 setEnabled(false);
+                LOGINFO("%s %d. Calling setEnabled true", __func__, __LINE__);
                 setEnabled(true);
             }
             else
@@ -523,6 +549,10 @@ namespace WPEFramework
 
        void HdmiCec_2::cecStatusUpdated(void *evtStatus)
        {
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            }
             IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = (IARM_Bus_CECMgr_Status_Updated_Param_t *)evtStatus;
             if(evtData)
             {
@@ -551,6 +581,10 @@ namespace WPEFramework
 
        void HdmiCec_2::onHdmiHotPlug(int connectStatus)
        {
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            }
             if (HDMI_HOT_PLUG_EVENT_CONNECTED == connectStatus)
             {
                 LOGINFO ("onHdmiHotPlug Status : %d ", connectStatus);
@@ -914,6 +948,12 @@ namespace WPEFramework
         {
            LOGINFO("Entered setEnabled ");
 
+           if (!IsCecMgrActivated) {
+               LOGWARN("CEC Mgr not activated CEC communication is not possible");
+               return;
+           } else {
+               LOGWARN("CEC Mgr activated. proceeding with %s", __func__);
+           }
            if (cecSettingEnabled != enabled)
            {
                persistSettings(enabled);
@@ -932,6 +972,10 @@ namespace WPEFramework
 
         void HdmiCec_2::setOTPEnabled(bool enabled)
         {
+           if (!IsCecMgrActivated) {
+               LOGWARN("CEC Mgr not activated CEC communication is not possible");
+               return;
+           }
            if (cecOTPSettingEnabled != enabled)
            {
                LOGINFO("persist setOTPEnabled ");
@@ -944,6 +988,10 @@ namespace WPEFramework
         void HdmiCec_2::CECEnable(void)
         {
             LOGINFO("Entered CECEnable");
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            }
             if (cecEnableStatus)
             {
                 LOGWARN("CEC Already Enabled");
@@ -997,6 +1045,12 @@ namespace WPEFramework
         {
             LOGINFO("Entered CECDisable ");
 
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            } else {
+                LOGWARN("CEC Mgr activated. proceeding with %s", __func__);
+            }
             if(!cecEnableStatus)
             {
                 LOGWARN("CEC Already Disabled ");
@@ -1034,6 +1088,10 @@ namespace WPEFramework
             LOGINFO("Entered getPhysicalAddress ");
 
             uint32_t physAddress = 0x0F0F0F0F;
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            }
 
             try {
                     LibCCEC::getInstance().getPhysicalAddress(&physAddress);
@@ -1051,6 +1109,10 @@ namespace WPEFramework
         {
             LOGINFO("Entered getLogicalAddress ");
 
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return;
+            }
             try{
                 LogicalAddress addr = LibCCEC::getInstance().getLogicalAddress(DEV_TYPE_TUNER);
 
@@ -1074,11 +1136,8 @@ namespace WPEFramework
 
         bool HdmiCec_2::getEnabled()
         {
-            if(true == cecEnableStatus)
-                return true;
-            else
-                return false;
             LOGINFO("getEnabled :%d ",cecEnableStatus);
+            return cecEnableStatus;
         }
 
         bool HdmiCec_2::getOTPEnabled()
@@ -1094,6 +1153,10 @@ namespace WPEFramework
         {
             LOGINFO("performOTPAction ");
             bool ret = false; 
+            if (!IsCecMgrActivated) {
+                LOGWARN("CEC Mgr not activated CEC communication is not possible");
+                return ret;
+            }
             if((true == cecEnableStatus) && (cecOTPSettingEnabled == true))
             {
                 if (smConnection)  {
