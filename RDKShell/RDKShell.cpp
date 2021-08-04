@@ -1392,6 +1392,14 @@ namespace WPEFramework {
             lastPowerKeyTime = RdkShell::seconds();
         }
 
+        void RDKShell::RdkShellListener::onSizeChangeComplete(const std::string& client)
+        {
+            std::cout << "RDKShell onSizeChangeComplete event received ..." << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            mShell.notify(RDKSHELL_EVENT_SIZE_CHANGE_COMPLETE, params);
+        }
+
         // Registered methods (wrappers) begin
         uint32_t RDKShell::moveToFrontWrapper(const JsonObject& parameters, JsonObject& response)
         {
