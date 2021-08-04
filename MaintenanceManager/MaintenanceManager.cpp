@@ -421,6 +421,9 @@ namespace WPEFramework {
             /* we moved every thing to a thread */
             /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
              * Maintenance is started until then we say MAITENANCE_IDLE */
+            if(m_thread.joinable()){
+                     m_thread.join();
+             }
 
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -855,6 +858,10 @@ namespace WPEFramework {
 
                         /* we set this to false */
                         g_is_critical_maintenance="false";
+
+                        if(m_thread.joinable()){
+                               m_thread.join();
+                        }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 
