@@ -97,7 +97,7 @@ namespace WPEFramework
             else
             {
                 setEnabled(false);
-                persistSettings(false);
+                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(false));
             }
         }
 
@@ -307,32 +307,13 @@ namespace WPEFramework
             return cecSettingEnabled;
         }
 
-        void HdmiCec::persistSettings(bool enableStatus)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting[CEC_SETTING_ENABLED] = enableStatus;
-
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
         void HdmiCec::setEnabled(bool enabled)
         {
            LOGWARN("Entered setEnabled ");
 
            if (cecSettingEnabled != enabled)
            {
-               persistSettings(enabled);
+               Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(enabled));
            }
            if(true == enabled)
            {
