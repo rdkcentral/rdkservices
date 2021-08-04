@@ -251,7 +251,7 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const GivePhysicalAddress &msg, const Header &header)
        {
              LOGINFO("Command: GivePhysicalAddress\n");
-             if (!(header.from == LogicalAddress(LogicalAddress::BROADCAST)))
+             if (!(header.to == LogicalAddress(LogicalAddress::BROADCAST)))
              {
                  try
                  { 
@@ -719,7 +719,8 @@ namespace WPEFramework
 
 						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
-							HdmiCecSink::_instance->m_currentActiveSource = -1;
+						   /*  set the current active source to TV on going to standby */
+                                                   HdmiCecSink::_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 						}
 					}
 			}
@@ -1647,8 +1648,7 @@ namespace WPEFramework
 			}
 		
 			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 5000);	
-
+										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 1000);
 			_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 		}
 
@@ -2318,6 +2318,9 @@ namespace WPEFramework
 						_instance->m_numberOfDevices = 0;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
+                                                _instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
+                                                _instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
+                                                _instance->deviceList[_instance->m_logicalAddressAllocated].m_isActiveSource = true;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
