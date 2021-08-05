@@ -344,15 +344,8 @@ namespace WPEFramework
                     LOGERR("Size too large to use ToString base64 wpe api");
                     return edidbase64;
                 }
-                // Align input string size to multiple of 3
-                int paddingSize = 0;
-                for (; paddingSize < (3-size%3);paddingSize++)
-                {
-                    edidVec.push_back(0x00);
-                }
-                size += paddingSize;
 
-                Core::ToString((uint8_t*)&edidVec[0], size, false, edidbase64);
+                Core::ToString((uint8_t*)&edidVec[0], size, true, edidbase64);
 
             }
             catch (const device::Exception& err)
