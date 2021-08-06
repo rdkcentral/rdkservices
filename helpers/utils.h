@@ -385,6 +385,13 @@ namespace Utils
 #endif
         };
 
+        static void sendMessage(char *marker, char* message)
+        {
+#ifdef ENABLE_TELEMETRY_LOGGING
+            t2_event_s(marker, message);
+#endif
+        };
+
         static void sendError(char* format, ...)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
