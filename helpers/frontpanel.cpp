@@ -662,9 +662,7 @@ namespace WPEFramework
 
             }
             catch (...)
-            {
-                LOGWARN("Exception caught in setBlinkLed for setColor");
-            }
+            {}
             try
             {
                 if (brightness == -1)
