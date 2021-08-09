@@ -212,6 +212,7 @@ namespace WPEFramework {
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
+            registerMethod("setMS12ProfileSetttingsOverride", &DisplaySettings::setMS12ProfileSetttingsOverride,this);
 
 	    registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this, {2});
 	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
@@ -2856,6 +2857,38 @@ namespace WPEFramework {
             }
 
 	    returnResponse(success);
+        }
+        
+        uint32_t DisplaySettings::setMS12ProfileSetttingsOverride(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "operation");
+            string audioProfileState = parameters["operation"].String();
+
+            returnIfParamNotFound(parameters, "profileName");
+            string audioProfileName = parameters["profileName"].String();
+
+            returnIfParamNotFound(parameters, "ms12SettingsName");
+            string audioProfileSettingsName = parameters["ms12SettingsName"].String();
+
+            returnIfParamNotFound(parameters, "ms12SettingsValue");
+            string audioProfileSettingValue = parameters["ms12SettingsValue"].String();
+
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setMS12AudioProfileSetttingsOverride(audioProfileState,audioProfileName,audioProfileSettingsName, audioProfileSettingValue);
+            }
+            catch (const device::Exception& err)
+            {
+                success = false;
+            }
+
+            returnResponse(success);
         }
 
 
