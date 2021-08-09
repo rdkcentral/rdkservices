@@ -26,6 +26,7 @@ add_library(${MODULE_NAME} SHARED
     SecurityAgent.cpp
     SecurityContext.cpp
     SecurityAgentJsonRpc.cpp
+    SecapiToken.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -35,7 +36,9 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME} 
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${SECAPI_LIB}
+        )
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
