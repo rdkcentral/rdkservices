@@ -287,6 +287,10 @@ if(PLUGIN_TEXTTOSPEECH)
     add_subdirectory(TextToSpeech)
 endif()
 
+if(PLUGIN_SYSTEMAUDIOPLAYER)
+    add_subdirectory(SystemAudioPlayer)
+endif()
+
 if(PLUGIN_PERSISTENTSTORE)
     add_subdirectory(PersistentStore)
 endif()
