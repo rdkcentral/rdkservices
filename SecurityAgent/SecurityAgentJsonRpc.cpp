@@ -19,6 +19,7 @@
  
 #include "Module.h"
 #include "SecurityAgent.h"
+#include "SecapiToken.h"
 #include <interfaces/json/JsonData_SecurityAgent.h>
 
 namespace WPEFramework {
@@ -81,7 +82,7 @@ namespace Plugin {
         const string& token = params.Token.Value();
         response.Valid = false;
 
-        Web::JSONWebToken webToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+        JWTSecApi webToken;
         uint16_t load = webToken.PayloadLength(token);
 
         // Validate the token

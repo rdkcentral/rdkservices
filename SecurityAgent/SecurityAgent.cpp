@@ -19,6 +19,7 @@
  
 #include "SecurityAgent.h"
 #include "SecurityContext.h"
+#include "SecapiToken.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -77,10 +78,6 @@ namespace Plugin {
     SecurityAgent::SecurityAgent() : _dispatcher(nullptr)
     {
         RegisterAll();
-
-        for (uint8_t index = 0; index < sizeof(_secretKey); index++) {
-            Crypto::Random(_secretKey[index]);
-        }
     }
 
     /* virtual */ SecurityAgent::~SecurityAgent()
@@ -167,7 +164,7 @@ namespace Plugin {
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
         // Generate the token from the buffer coming in...
-        Web::JSONWebToken newToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+        JWTSecApi newToken;
 
         return (newToken.Encode(token, length, buffer) > 0 ? Core::ERROR_NONE : Core::ERROR_UNAVAILABLE);
     }
@@ -176,7 +173,7 @@ namespace Plugin {
     {
         PluginHost::ISecurity* result = nullptr;
 
-        Web::JSONWebToken webToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+        JWTSecApi webToken;
         uint16_t load = webToken.PayloadLength(token);
 
         // Validate the token
@@ -238,7 +235,7 @@ namespace Plugin {
                 result->Message = _T("Missing token");
 
                 if (request.WebToken.IsSet()) {
-                    Web::JSONWebToken webToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+                    JWTSecApi webToken;
                     const string& token = request.WebToken.Value().Token();
                     uint16_t load = webToken.PayloadLength(token);
 
