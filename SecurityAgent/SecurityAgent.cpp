@@ -19,7 +19,7 @@
  
 #include "SecurityAgent.h"
 #include "SecurityContext.h"
-#include "SecapiToken.h"
+#include "TokenFactory.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -164,24 +164,24 @@ namespace Plugin {
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
         // Generate the token from the buffer coming in...
-        JWTSecApi newToken;
+        auto newToken = JWTFactory::Instance().Element();
 
-        return (newToken.Encode(token, length, buffer) > 0 ? Core::ERROR_NONE : Core::ERROR_UNAVAILABLE);
+        return (newToken->Encode(token, length, buffer) > 0 ? Core::ERROR_NONE : Core::ERROR_UNAVAILABLE);
     }
 
     /* virtual */ PluginHost::ISecurity* SecurityAgent::Officer(const string& token)
     {
         PluginHost::ISecurity* result = nullptr;
 
-        JWTSecApi webToken;
-        uint16_t load = webToken.PayloadLength(token);
+        auto webToken = JWTFactory::Instance().Element();
+        uint16_t load = webToken->PayloadLength(token);
 
         // Validate the token
         if (load != static_cast<uint16_t>(~0)) {
             // It is potentially a valid token, extract the payload.
             uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-            load = webToken.Decode(token, load, payload);
+            load = webToken->Decode(token, load, payload);
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
@@ -235,16 +235,16 @@ namespace Plugin {
                 result->Message = _T("Missing token");
 
                 if (request.WebToken.IsSet()) {
-                    JWTSecApi webToken;
+                    auto webToken = JWTFactory::Instance().Element();
                     const string& token = request.WebToken.Value().Token();
-                    uint16_t load = webToken.PayloadLength(token);
+                    uint16_t load = webToken->PayloadLength(token);
 
                     // Validate the token
                     if (load != static_cast<uint16_t>(~0)) {
                         // It is potentially a valid token, extract the payload.
                         uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-                        load = webToken.Decode(token, load, payload);
+                        load = webToken->Decode(token, load, payload);
 
                         if (load == static_cast<uint16_t>(~0)) {
                             result->ErrorCode = Web::STATUS_FORBIDDEN;

@@ -19,8 +19,9 @@
  
 #include "Module.h"
 #include "SecurityAgent.h"
-#include "SecapiToken.h"
 #include <interfaces/json/JsonData_SecurityAgent.h>
+
+#include "TokenFactory.h"
 
 namespace WPEFramework {
 
@@ -82,15 +83,15 @@ namespace Plugin {
         const string& token = params.Token.Value();
         response.Valid = false;
 
-        JWTSecApi webToken;
-        uint16_t load = webToken.PayloadLength(token);
+        auto webToken = JWTFactory::Instance().Element();
+        uint16_t load = webToken->PayloadLength(token);
 
         // Validate the token
         if (load != static_cast<uint16_t>(~0)) {
             // It is potentially a valid token, extract the payload.
             uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-            load = webToken.Decode(token, load, payload);
+            load = webToken->Decode(token, load, payload);
 
              if (load != static_cast<uint16_t>(~0)) {
                 response.Valid = true;
