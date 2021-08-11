@@ -31,7 +31,7 @@
 using namespace std;
 using namespace WPEFramework;
 
-const char* JWTSecApi::MacGenerator::StorageDir = "/tmp/thunder_sec_key/";
+const char* JWTSecApi::MacGenerator::StorageDir = nullptr;
 
 JWTSecApi::SecApi::SecApi(const char* storage)
   : secProcHandle(nullptr) {
