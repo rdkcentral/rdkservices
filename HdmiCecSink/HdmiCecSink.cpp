@@ -251,7 +251,7 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const GivePhysicalAddress &msg, const Header &header)
        {
              LOGINFO("Command: GivePhysicalAddress\n");
-             if (!(header.from == LogicalAddress(LogicalAddress::BROADCAST)))
+             if (!(header.to == LogicalAddress(LogicalAddress::BROADCAST)))
              {
                  try
                  { 
@@ -719,7 +719,8 @@ namespace WPEFramework
 
 						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
-							HdmiCecSink::_instance->m_currentActiveSource = -1;
+						   /*  set the current active source to TV on going to standby */
+                                                   HdmiCecSink::_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 						}
 					}
 			}
@@ -1097,7 +1098,7 @@ namespace WPEFramework
                 std::string osd = parameters["name"].String();
                 LOGINFO("setOSDNameWrapper osdName: %s",osd.c_str());
                 osdName = osd.c_str();
-                persistOSDName(osd.c_str());
+                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_OSD_NAME, JsonValue(osd.c_str()));
             }
             else
             {
@@ -1280,7 +1281,7 @@ namespace WPEFramework
                 appVendorId = {(uint8_t)(vendorID >> 16 & 0xff),(uint8_t)(vendorID>> 8 & 0xff),(uint8_t) (vendorID & 0xff)};
                 LOGINFO("appVendorId : %s  vendorID :%x \n",appVendorId.toString().c_str(), vendorID );
 
-                persistVendorId(vendorID);
+                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_VENDOR_ID, JsonValue(vendorID));
             }
             else
             {
@@ -1459,76 +1460,13 @@ namespace WPEFramework
             return cecSettingEnabled;
         }
 
-        void HdmiCecSink::persistSettings(bool enableStatus)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_ENABLED] = enableStatus;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
-        void HdmiCecSink::persistOSDName(const char *name)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_OSD_NAME] = name;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
-        void HdmiCecSink::persistVendorId(unsigned int vendorId)
-        {
-            Core::File file;
-            file = CEC_SETTING_ENABLED_FILE;
-
-            file.Open(false);
-            if (!file.IsOpen())
-                file.Create();
-
-            JsonObject cecSetting;
-            cecSetting.IElement::FromFile(file);
-            file.Destroy();
-            file.Create();
-            cecSetting[CEC_SETTING_VENDOR_ID] = vendorId;
-            cecSetting.IElement::ToFile(file);
-
-            file.Close();
-
-            return;
-        }
-
         void HdmiCecSink::setEnabled(bool enabled)
         {
            LOGINFO("Entered setEnabled: %d  cecSettingEnabled :%d ",enabled, cecSettingEnabled);
 
            if (cecSettingEnabled != enabled)
            {
-               persistSettings(enabled);
+               Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(enabled));
                cecSettingEnabled = enabled;
            }
            if(true == enabled)
@@ -1710,8 +1648,7 @@ namespace WPEFramework
 			}
 		
 			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 5000);	
-
+										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 1000);
 			_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 		}
 
@@ -2381,6 +2318,9 @@ namespace WPEFramework
 						_instance->m_numberOfDevices = 0;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
+                                                _instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
+                                                _instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
+                                                _instance->deviceList[_instance->m_logicalAddressAllocated].m_isActiveSource = true;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);

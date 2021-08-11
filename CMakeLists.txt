@@ -287,6 +287,10 @@ if(PLUGIN_TEXTTOSPEECH)
     add_subdirectory(TextToSpeech)
 endif()
 
+if(PLUGIN_SYSTEMAUDIOPLAYER)
+    add_subdirectory(SystemAudioPlayer)
+endif()
+
 if(PLUGIN_PERSISTENTSTORE)
     add_subdirectory(PersistentStore)
 endif()
@@ -305,6 +309,10 @@ endif()
 
 if(PLUGIN_FIREBOLTMEDIAPLAYER)
     add_subdirectory(FireboltMediaPlayer)
+endif()
+
+if(PLUGIN_WEBBRIDGE)
+    add_subdirectory(WebBridge)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
