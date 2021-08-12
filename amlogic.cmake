@@ -89,6 +89,7 @@ endif()
 if (SKY_BUILD)
     message("Building for SKY variant")
     add_definitions (-DSKY_BUILD)
+endif()
 
 if (BUILD_LLAMA)
     message("Building for LLAMA")
