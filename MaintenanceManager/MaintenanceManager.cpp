@@ -258,7 +258,7 @@ namespace WPEFramework {
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
-#if defined (SKY_BUILD) || defined (BUILD_LLAMA)
+#if defined (SKY_BUILD)
             bool internetConnectStatus = true;
 #else
             bool internetConnectStatus = isDeviceOnline();
