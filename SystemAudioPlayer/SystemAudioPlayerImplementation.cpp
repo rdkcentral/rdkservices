@@ -183,7 +183,9 @@ namespace Plugin {
             if(player->getSourceType() == SourceType::FILESRC)
             {
                 if(!extractFileProtocol(url))
+                {
                     returnResponse(false);
+                }
             }
             player->Play(url);
             returnResponse(true);
