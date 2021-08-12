@@ -1092,6 +1092,17 @@ namespace WPEFramework
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice?true:false;
 
+		    if (eventMsg.m_pairedDevice.m_isLastConnectedDevice) {
+                        if ((eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_WEARABLE_HEADSET)   ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HANDSFREE)          ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_LOUDSPEAKER)        ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HEADPHONES)         ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_PORTABLE_AUDIO)     ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_CAR_AUDIO)          ||
+                            (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HIFI_AUDIO_DEVICE)) {
+                        BTRMGR_StartAudioStreamingOut(0, eventMsg.m_pairedDevice.m_deviceHandle,BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT);
+                        }
+                    }
                     eventId = EVT_DEVICE_FOUND;
                     break;
 
