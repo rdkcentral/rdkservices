@@ -156,3 +156,9 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
     * Any client facing changes (like Removing or Adding an API) to RDKServices should be made by incrementing the version to the next whole number (2,3,4...). This will ensure that clients using existing versions are not affected.
     
     * Use the AbstractPlugin [registerMethod](https://github.com/rdkcentral/rdkservices/blob/main/helpers/AbstractPlugin.h#L76) helper function to register APIs to specific versions. Here is an [example](https://github.com/rdkcentral/rdkservices/commit/3692632373e8e82dba92bec56f9e6082b430a829#diff-f6cd28bb8911a0253a4601f823d3777089aecd54eb214bc6cdc227961da7b13f).
+
+7. Initialization and Cleanup
+
+    * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
+    
+    * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](https://github.com/rdkcentral/rdkservices/blob/sprint/2103/helpers/utils.h#L359) class for creating threads which will ensure that the thread gets joined before destruction.

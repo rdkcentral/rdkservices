@@ -40,15 +40,13 @@ namespace WPEFramework {
             ScreenShotJob& operator=(const ScreenShotJob& RHS) = delete;
 
         public:
-            ScreenShotJob(WPEFramework::Plugin::ScreenCapture* tpt, std::string _url, std::string _callGUID) : m_screenCapture(tpt), url(_url), callGUID(_callGUID) { }
-            ScreenShotJob(const ScreenShotJob& copy) : m_screenCapture(copy.m_screenCapture), url(copy.url), callGUID(copy.callGUID) { }
+            ScreenShotJob(WPEFramework::Plugin::ScreenCapture* tpt) : m_screenCapture(tpt) { }
+            ScreenShotJob(const ScreenShotJob& copy) : m_screenCapture(copy.m_screenCapture) { }
             ~ScreenShotJob() {}
 
             inline bool operator==(const ScreenShotJob& RHS) const
             {
                 return(m_screenCapture == RHS.m_screenCapture);
-                return(url == RHS.url);
-                return(callGUID == RHS.callGUID);
             }
 
         public:
@@ -56,8 +54,6 @@ namespace WPEFramework {
 
         private:
             WPEFramework::Plugin::ScreenCapture* m_screenCapture;
-            std::string url;
-            std::string callGUID;
         };
 
         // This is a server for a JSONRPC communication channel.
@@ -79,6 +75,9 @@ namespace WPEFramework {
             ScreenCapture(const ScreenCapture&) = delete;
             ScreenCapture& operator=(const ScreenCapture&) = delete;
 
+#if defined(PLATFORM_AMLOGIC)
+            void pluginEventHandler(const JsonObject& parameters);
+#endif
             //Begin methods
             uint32_t uploadScreenCapture(const JsonObject& parameters, JsonObject& response);
             //End methods
@@ -97,8 +96,9 @@ namespace WPEFramework {
             #endif
 
             bool saveToPng(unsigned char *bytes, int w, int h, std::vector<unsigned char> &png_out_data);
-            bool uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str);
-            bool doUploadScreenCapture(std::string url, std::string callGUID);
+            bool uploadDataToUrl(const std::vector<unsigned char> &data, const char *url, std::string &error_str);
+            bool getScreenShot();
+            bool doUploadScreenCapture(const std::vector<unsigned char> &png_data, bool got_screenshot);
 
         public:
             ScreenCapture();
@@ -112,9 +112,17 @@ namespace WPEFramework {
 
             WPEFramework::Core::TimerType<ScreenShotJob> *screenShotDispatcher;
 
+            std::string url;
+            std::string callGUID;
+
             #ifdef PLATFORM_BROADCOM
             bool inNexus;
             #endif
+
+#if defined(PLATFORM_AMLOGIC)
+            size_t screenWidth;
+            size_t screenHeight;
+#endif   
 
             friend class ScreenShotJob;
         };

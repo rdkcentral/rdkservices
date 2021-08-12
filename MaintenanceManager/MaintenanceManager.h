@@ -116,7 +116,7 @@ namespace WPEFramework {
 
                 IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
 
-                Maint_notify_status_t g_notify_status;
+                Maint_notify_status_t m_notify_status;
 
                 Maintenance_Type_t g_maintenance_type;
 
@@ -125,12 +125,14 @@ namespace WPEFramework {
                 uint16_t g_task_status;
 
                 std::mutex  m_callMutex;
+                std::mutex  m_statusMutex;
                 std::condition_variable task_thread;
                 std::thread m_thread;
 
                 std::unordered_map<string, bool> m_task_map;    
                         
 
+                bool isDeviceOnline();
                 void task_execution_thread();
                 void requestSystemReboot();
                 void maintenanceManagerOnBootup();

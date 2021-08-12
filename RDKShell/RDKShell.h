@@ -119,6 +119,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_VIRTUAL_DISPLAY;
             static const string RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED;
             static const string RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY;
+            static const string RDKSHELL_METHOD_GET_SCREENSHOT;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -133,12 +134,14 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
+            static const string RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING;
             static const string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED;
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
             static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
+            static const string RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
@@ -213,6 +216,7 @@ namespace WPEFramework {
             uint32_t enableVirtualDisplayWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVirtualDisplayEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLastWakeupKeyWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getScreenshotWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -311,6 +315,7 @@ namespace WPEFramework {
                 virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
                 virtual void onPowerKey();
+                virtual void onSizeChangeComplete(const std::string& client);
 
               private:
                   RDKShell& mShell;
