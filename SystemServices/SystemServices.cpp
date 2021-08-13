@@ -3281,6 +3281,7 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     }
+                    break;
                 case  IARM_BUS_PWRMGR_EVENT_REBOOTING:
                     {
                         IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;
