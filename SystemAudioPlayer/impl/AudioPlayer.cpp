@@ -384,7 +384,10 @@ gboolean AudioPlayer::PushDataAppSrc()
              if(!appsrc_firstpacket)
              {
 	         //event -->Underflow
-                 m_callback->onSAPEvent(getObjectIdentifier(),NEED_DATA);
+                 if(sourceType == DATA)
+                 { 
+                     m_callback->onSAPEvent(getObjectIdentifier(),NEED_DATA);
+                 }
              }
         }
         size_t maxBytes = AUDIO_GST_FRAGMENT_MAX_SIZE;
@@ -555,6 +558,12 @@ bool AudioPlayer::handleMessage(GstMessage *message)
 			   
 			    SAPLOG_INFO("moved to playing state id:%d\n",getObjectIdentifier());
 			    state = PLAYING;
+                            //Fix audio delay for web socket
+                            if(sourceType == WEBSOCKET && !webClient)
+                            {                     
+                                webClient = new WebSocketClient(this);
+                                webClient->connect(m_url);
+                            }
                             if(sourceType != WEBSOCKET && sourceType != DATA)
                             {
                                 if(m_isPaused)
@@ -686,11 +695,6 @@ void AudioPlayer::Play(std::string url)
         if(sourceType == HTTPSRC || sourceType == FILESRC)
         {
             g_object_set(G_OBJECT(m_source), "location", m_url.c_str(), NULL);
-        }
-        if(sourceType == WEBSOCKET)
-        { 
-            webClient = new WebSocketClient(this);
-            webClient->connect(m_url);
         } 
         SAPLOG_INFO("SAP: PLAYING GLOBAL primary Volume=%d player Volume=%d",m_primVolume  , m_thisVolume ); 
         //TODO setAppSysPlayingSate(true)
