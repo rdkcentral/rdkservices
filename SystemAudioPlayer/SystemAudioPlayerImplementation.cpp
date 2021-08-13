@@ -93,7 +93,8 @@ namespace Plugin {
     }
 
     uint32_t SystemAudioPlayerImplementation::Open(const string &input, string &output)
-    {
+    {   
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Open request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("audiotype");
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("sourcetype");
@@ -129,6 +130,7 @@ namespace Plugin {
 
      uint32_t SystemAudioPlayerImplementation::Config(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Config request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("id");
         int id, rate, channels;
@@ -166,6 +168,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Play(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Play request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("id");
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("url");
@@ -183,7 +186,9 @@ namespace Plugin {
             if(player->getSourceType() == SourceType::FILESRC)
             {
                 if(!extractFileProtocol(url))
+                {
                     returnResponse(false);
+                }
             }
             player->Play(url);
             returnResponse(true);
@@ -193,6 +198,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::PlayBuffer(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got PlayBuffer request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         AudioPlayer *player;
         int id;
@@ -222,6 +228,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Stop(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Stop request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         AudioPlayer *player;
         int id;
@@ -240,6 +247,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Close(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Close request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         int id;
         getNumberParameter("id", id);
@@ -266,6 +274,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::SetMixerLevels(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got SetMixerLevels request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("id");
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("primaryVolume");
@@ -296,6 +305,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Pause(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Pause request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         AudioPlayer *player;
         int id;
@@ -313,6 +323,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Resume(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got Resume request :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
         AudioPlayer *player;
         int id;
