@@ -176,7 +176,7 @@ namespace WPEFramework
                 }
             }
             else
-                LOGERR("Failed to establish connection to RSKShell");
+                LOGERR("Failed to establish connection to RDKShell");
 
             if(gRDKSHellEventSubscribed)
             {
