@@ -251,8 +251,6 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const GivePhysicalAddress &msg, const Header &header)
        {
              LOGINFO("Command: GivePhysicalAddress\n");
-             if (!(header.to == LogicalAddress(LogicalAddress::BROADCAST)))
-             {
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
@@ -262,7 +260,6 @@ namespace WPEFramework
                  {
                     LOGWARN("Exception while sending ReportPhysicalAddress ");
                  }
-             }
        }
        void HdmiCecSinkProcessor::process (const GiveDeviceVendorID &msg, const Header &header)
        {
