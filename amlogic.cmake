@@ -86,6 +86,11 @@ if (AMLOGIC_E2)
     add_definitions (-DAMLOGIC_E2)
 endif()
 
+if (SKY_BUILD)
+    message("Building for SKY variant")
+    add_definitions (-DSKY_BUILD)
+endif()
+
 if (BUILD_LLAMA)
     message("Building for LLAMA")
     add_definitions (-DBUILD_LLAMA)
