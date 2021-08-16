@@ -440,12 +440,29 @@ namespace WPEFramework {
         void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
         {
 	    std::thread rdkshellRequestsThread = std::thread([=]() {
-                if (apiRequest.mName.compare("launchfactoryapp") == 0)
+                JsonObject result;
+                std::string requestName = apiRequest.mName;
+                if (requestName.compare("launchFactoryApp") == 0)
                 {
-                    JsonObject result;
                     launchFactoryAppWrapper(apiRequest.mRequest, result);
                 }
-		else if (apiRequest.mName.compare("deactivateresidentapp") == 0)
+		        else if (requestName.compare("launchResidentApp") == 0)
+                {
+                    launchResidentAppWrapper(apiRequest.mRequest, result);
+                }
+		        else if (requestName.compare("toggleFactoryApp") == 0)
+                {
+                    toggleFactoryAppWrapper(apiRequest.mRequest, result);
+                }
+		        else if (requestName.compare("exitAgingMode") == 0)
+                {
+                    exitAgingModeWrapper(apiRequest.mRequest, result);
+                }
+                else if (requestName.compare("launchFactoryAppShortcut") == 0)
+                {
+                    launchFactoryAppShortcutWrapper(apiRequest.mRequest, result);
+                }
+		        else if (requestName.compare("deactivateresidentapp") == 0)
                 {
                     auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
                     JsonObject deactivateParams;
@@ -454,6 +471,12 @@ namespace WPEFramework {
                     int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
                     std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                 }
+                else
+                {
+                    auto thunderController = getThunderControllerClient();
+                    JsonObject joResult;
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, requestName.c_str(), apiRequest.mRequest, joResult);
+                } 
             });
             rdkshellRequestsThread.detach();
         }
@@ -894,7 +917,7 @@ namespace WPEFramework {
                             }
                             request["resetagingtime"] = "true";
                             RDKShellApiRequest apiRequest;
-                            apiRequest.mName = "launchfactoryapp";
+                            apiRequest.mName = "launchFactoryApp";
                             apiRequest.mRequest = request;
                             rdkshellPlugin->launchRequestThread(apiRequest);
                             gRdkShellMutex.lock();
@@ -1013,7 +1036,7 @@ namespace WPEFramework {
                         }
                         request["resetagingtime"] = "true";
                         RDKShellApiRequest apiRequest;
-                        apiRequest.mName = "launchfactoryapp";
+                        apiRequest.mName = "launchFactoryApp";
                         apiRequest.mRequest = request;
                         rdkshellPlugin->launchRequestThread(apiRequest);
                         gRdkShellMutex.lock();
@@ -1427,10 +1450,10 @@ namespace WPEFramework {
 
                 std::cout << "invoking method " << invoke.c_str() << std::endl;
                 JsonObject joResult;
-                if (isRDKShellPluginRequest && (invoke.compare("org.rdk.RDKShell.1.launchFactoryApp") == 0))
+                if (isRDKShellPluginRequest)
                 {
                     RDKShellApiRequest apiRequest;
-                    apiRequest.mName = "launchfactoryapp";
+                    apiRequest.mName = invoke.substr(19);
                     apiRequest.mRequest = actionObject.HasLabel("params")?actionObject["params"].Object():JsonObject();
                     mShell.launchRequestThread(apiRequest);
                 }
@@ -4508,6 +4531,8 @@ namespace WPEFramework {
         uint32_t RDKShell::toggleFactoryAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            bool ret = true;
+            uint32_t status = 0;
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
@@ -4519,13 +4544,15 @@ namespace WPEFramework {
             if (isFactoryAppRunning)
             {
                 sForceResidentAppLaunch = true;
-                launchResidentAppWrapper(parameters, response);
+                status = launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
-                launchFactoryAppWrapper(parameters, response);
+                status = launchFactoryAppWrapper(parameters, response);
             }
+            ret = response.HasLabel("success")?response["success"].Boolean():false;
+            returnResponse(ret);
         }
 
         void RDKShell::addFactoryModeEasterEggs()
