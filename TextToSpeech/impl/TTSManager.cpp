@@ -99,7 +99,15 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
     m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
     updated |= m_defaultConfiguration.setLanguage(configuration.language);
-    updated |= m_defaultConfiguration.setVoice(configuration.voice);
+    /* Set default voice for the language only if XRE does not set the voice */
+    std::string defaultVoice = configuration.voice;
+    if(configuration.voice.empty())
+    {
+        std::vector<std::string> voices;
+        listVoices(configuration.language, voices);
+        defaultVoice = voices.front();
+    }
+    updated |= m_defaultConfiguration.setVoice(defaultVoice);
     updated |= m_defaultConfiguration.setVolume(configuration.volume);
     updated |= m_defaultConfiguration.setRate(configuration.rate);
 
