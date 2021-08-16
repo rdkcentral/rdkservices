@@ -163,14 +163,17 @@ namespace WPEFramework
 
             if (nullptr != gRSKShellConnection)
             {
-                int32_t status = Core::ERROR_GENERAL;
-                std::string eventName("onScreenshotComplete");
-                status = gRSKShellConnection->Subscribe<JsonObject>(SCREENCAPTURE_THUNDER_TIMEOUT, _T(eventName), &ScreenCapture::pluginEventHandler, this);
-
-                if(Core::ERROR_NONE == status)
-                    gRDKSHellEventSubscribed = true; 
-                else
-                    LOGERR("Failed to Subscribe for %s", eventName.c_str());
+                if(!gRDKSHellEventSubscribed)
+                {
+                    int32_t status = Core::ERROR_GENERAL;
+                    std::string eventName("onScreenshotComplete");
+                    status = gRSKShellConnection->Subscribe<JsonObject>(SCREENCAPTURE_THUNDER_TIMEOUT, _T(eventName), &ScreenCapture::pluginEventHandler, this);
+    
+                    if(Core::ERROR_NONE == status)
+                        gRDKSHellEventSubscribed = true; 
+                    else
+                        LOGERR("Failed to Subscribe for %s", eventName.c_str());
+                }
             }
             else
                 LOGERR("Failed to establish connection to RSKShell");
@@ -193,6 +196,9 @@ namespace WPEFramework
                 if(Core::ERROR_NONE != status)
                     LOGERR("Failed to call getScreenshot: %d", status);
             }
+            else
+                LOGERR("Not subscribed to onScreenshotComplete event");
+
 #else
             screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this) );
 #endif
