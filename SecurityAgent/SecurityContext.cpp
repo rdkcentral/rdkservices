@@ -56,7 +56,7 @@ namespace Plugin {
         : _token(string(reinterpret_cast<const TCHAR*>(payload), length))
         , _accessControlList(nullptr)
     {
-        _context.FromString(_token);
+        _context.URL = _token;
 
         if ( (_context.URL.IsSet() == true) && (acl != nullptr) ) {
             _accessControlList = acl->FilterMapFromURL(_context.URL.Value());
@@ -87,7 +87,11 @@ namespace Plugin {
     //! Allow a JSONRPC message to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Core::JSONRPC::Message& message) const /* override */ 
     {
-        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
+        bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
+        if(!bAllowed)
+            SYSLOG(Logging::Notification, ("Access for token url [%s], plugin [%s], method [%s] not allowed", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
+        
+        return bAllowed;
     }
 
     string SecurityContext::Token() const /* override */
