@@ -17,6 +17,19 @@
             "type": "string",
             "example": "0"
         },
+        "supportedAudioFormat": {
+            "summary": "A list of supported audio formats",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
+            }
+        },
+        "currentAudioFormat": {
+            "summary": "The currently set audio format",
+            "type": "string",
+            "example": "PCM"
+        },
         "audioPort0": {
             "summary": "Audio port name. An error returns if no port is specified.",
             "type": "string",
@@ -273,6 +286,28 @@
                 },
                 "required": [
                     "audioDelayOffset",
+                    "success"
+                ]
+            }
+        },
+        "getAudioFormat": {
+            "summary": "Returns the currently set audio format",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedAudioFormat": {
+                        "$ref": "#/definitions/supportedAudioFormat"
+                    },
+                    "currentAudioFormat": {
+                        "$ref": "#/definitions/currentAudioFormat"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedAudioFormat",
+                    "currentAudioFormat",
                     "success"
                 ]
             }
@@ -1991,6 +2026,24 @@
                 },
                 "required": [
                     "activeInput"
+                ]
+            }
+        },
+        "audioFormatChanged": {
+            "summary": "Triggered when the configured audio format changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "supportedAudioFormat": {
+                        "$ref": "#/definitions/supportedAudioFormat"
+                    },
+                    "currentAudioFormat": {
+                        "$ref": "#/definitions/currentAudioFormat"
+                    }
+                },
+                "required": [
+                    "supportedAudioFormat",
+                    "currentAudioFormat"
                 ]
             }
         },
