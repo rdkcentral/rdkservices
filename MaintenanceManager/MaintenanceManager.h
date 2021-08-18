@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 #include <thread>
-#include <unordered_map>
+#include <map>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -122,6 +122,8 @@ namespace WPEFramework {
 
                 static cSettings m_setting;
 
+                bool m_abort_flag;
+
                 uint16_t g_task_status;
 
                 std::mutex  m_callMutex;
@@ -129,14 +131,16 @@ namespace WPEFramework {
                 std::condition_variable task_thread;
                 std::thread m_thread;
 
-                std::unordered_map<string, bool> m_task_map;    
-                        
+                std::map<string, bool> m_task_map;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
                 void requestSystemReboot();
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
+                bool checkAbortFlag();
+                pid_t getTaskPID(const char*);
+
                 string getLastRebootReason();
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
@@ -181,6 +185,7 @@ namespace WPEFramework {
                 uint32_t getMaintenanceStartTime(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMaintenanceMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
+                uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */
