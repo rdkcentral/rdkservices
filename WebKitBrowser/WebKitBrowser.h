@@ -22,11 +22,12 @@
 
 #include "Module.h"
 #include <interfaces/IBrowser.h>
-
+#include <interfaces/IApplication.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/json/JsonData_Browser.h>
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
+#include <interfaces/json/JWebBrowser.h>
 
 namespace WPEFramework {
 
@@ -146,6 +147,7 @@ namespace Plugin {
             , _service(nullptr)
             , _browser(nullptr)
             , _memory(nullptr)
+            , _application(nullptr)
             , _notification(this)
             , _jsonBodyDataFactory(2)
         {
@@ -174,6 +176,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(PluginHost::IStateControl, _browser)
         INTERFACE_AGGREGATE(Exchange::IBrowser, _browser)
+        INTERFACE_AGGREGATE(Exchange::IApplication, _application)
         INTERFACE_AGGREGATE(Exchange::IWebBrowser, _browser)
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
         END_INTERFACE_MAP
@@ -219,36 +222,15 @@ namespace Plugin {
         // JsonRpc
         void RegisterAll();
         void UnregisterAll();
-        uint32_t get_url(Core::JSON::String& response) const; // Browser
-        uint32_t set_url(const Core::JSON::String& param); // Browser
-        uint32_t get_visibility(Core::JSON::EnumType<JsonData::Browser::VisibilityType>& response) const; // Browser
-        uint32_t set_visibility(const Core::JSON::EnumType<JsonData::Browser::VisibilityType>& param); // Browser
-        uint32_t get_fps(Core::JSON::DecUInt32& response) const; // Browser
         uint32_t get_state(Core::JSON::EnumType<JsonData::StateControl::StateType>& response) const; // StateControl
         uint32_t set_state(const Core::JSON::EnumType<JsonData::StateControl::StateType>& param); // StateControl
         uint32_t endpoint_delete(const JsonData::Browser::DeleteParamsData& params);
-        uint32_t delete_dir(const string& path);
-        void event_urlchange(const string& url, const bool& loaded); // Browser
-        void event_visibilitychange(const bool& hidden); // Browser
-        void event_pageclosure(); // Browser
-        void event_statechange(const bool& suspended); // StateControl
-
-        uint32_t get_useragent(Core::JSON::String& response) const;
-        uint32_t set_useragent(const Core::JSON::String& param);
         uint32_t get_languages(Core::JSON::ArrayType<Core::JSON::String>& response) const;
         uint32_t set_languages(const Core::JSON::ArrayType<Core::JSON::String>& param);
         uint32_t get_headers(Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& response) const;
         uint32_t set_headers(const Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& param);
-        uint32_t endpoint_bridgereply(const Core::JSON::String& params);
-        uint32_t endpoint_bridgeevent(const Core::JSON::String& params);
-        uint32_t get_localstorageenabled(Core::JSON::Boolean& response) const;
-        uint32_t set_localstorageenabled(const Core::JSON::Boolean& param);
-        uint32_t get_httpcookieacceptpolicy(Core::JSON::EnumType<JsonData::WebKitBrowser::HttpcookieacceptpolicyType>& response) const;
-        uint32_t set_httpcookieacceptpolicy(const Core::JSON::EnumType<JsonData::WebKitBrowser::HttpcookieacceptpolicyType>& param);
-
-        void event_loadfinished(const string& url, const int32_t& httpstatus);
-        void event_loadfailed(const string& url);
         void event_bridgequery(const string& message);
+        void event_statechange(const bool& suspended); // StateControl
 
     private:
         uint8_t _skipURL;
@@ -256,6 +238,7 @@ namespace Plugin {
         PluginHost::IShell* _service;
         Exchange::IWebBrowser* _browser;
         Exchange::IMemory* _memory;
+        Exchange::IApplication* _application;
         Core::Sink<Notification> _notification;
         Core::ProxyPoolType<Web::JSONBodyType<WebKitBrowser::Data>> _jsonBodyDataFactory;
         string _persistentStoragePath;
