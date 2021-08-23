@@ -5558,7 +5558,7 @@ namespace WPEFramework {
                     Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
                     if (browser != NULL)
                     {
-                        status = browser->Visible(visible);
+                        status = browser->Visibility(visible ? Exchange::IWebBrowser::VisibilityType::VISIBLE : Exchange::IWebBrowser::VisibilityType::HIDDEN);
                         browser->Release();
                     }
                     else
