@@ -576,6 +576,7 @@ private:
 			bool m_pollThreadExit;
 			uint32_t m_sleepTime;
             std::mutex m_pollMutex;
+            std::mutex m_enableMutex;
             /* ARC related */
             std::thread m_arcRoutingThread;
 	    uint32_t m_currentArcRoutingState;

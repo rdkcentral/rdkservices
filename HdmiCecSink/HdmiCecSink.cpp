@@ -2529,6 +2529,7 @@ namespace WPEFramework
 
         void HdmiCecSink::CECEnable(void)
         {
+            std::lock_guard<std::mutex> lock(m_enableMutex);
             LOGINFO("Entered CECEnable");
             if (cecEnableStatus)
             {
@@ -2565,7 +2566,6 @@ namespace WPEFramework
             }
             msgProcessor = new HdmiCecSinkProcessor(*smConnection);
             msgFrameListener = new HdmiCecSinkFrameListener(*msgProcessor);
-            cecEnableStatus = true;
             if(smConnection)
             {
            		LOGWARN("Start Thread %p", smConnection );
@@ -2573,12 +2573,14 @@ namespace WPEFramework
                             m_pollThreadExit = false;
 				m_pollThread = std::thread(threadRun);
             }
- 
+            cecEnableStatus = true;
+
             return;
         }
 
         void HdmiCecSink::CECDisable(void)
         {
+            std::lock_guard<std::mutex> lock(m_enableMutex);
             LOGINFO("Entered CECDisable ");
             if(!cecEnableStatus)
             {
