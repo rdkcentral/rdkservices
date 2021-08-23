@@ -329,8 +329,14 @@ public:
 
     uint32_t SoundMode(Exchange::Dolby::IOutput::SoundModes& mode /* @out */) const override
     {
+        /* For implementation details, please refer to Flow diagram attached in RDKTV-10066*/
 
-        string audioPort = "HDMI0" ;
+        string audioPort;
+        if (device::Host::getInstance().isHDMIOutPortPresent())
+            audioPort = "HDMI0"; //this device has an HDMI out port. This is an STB device
+        else
+            audioPort = "SPEAKER0"; // This device is likely to be TV. Default audio outport are speakers.
+
         device::AudioStereoMode soundmode = device::AudioStereoMode::kStereo;
         mode = UNKNOWN;
 
@@ -342,7 +348,14 @@ public:
             for (size_t i = 0; i < aPorts.size(); i++)
             {
                 device::AudioOutputPort &aPort = aPorts.at(i);
-                if(aPort.getName().find("HDMI_ARC") != std::string::npos)
+                /* Does this device have an SPDIF port and is it connected? If so, lets set the AudioPort to that, as SPDIF has precedence
+                   over the deafault audio output port. But keep searching if the device has an HDMI_ARC connected, as ARC is highest precedence*/
+                if (aPort.getName().find("SPDIF") != std::string::npos && device::Host::getInstance().getAudioOutputPort("SPDIF0").isConnected())
+                {
+                    audioPort = "SPDIF0";
+                }
+                /* Does this device support HDMI_ARC output and is the port connected? If yes, then that the audio port whose sound mode we'll return */
+                if(aPort.getName().find("HDMI_ARC") != std::string::npos && device::Host::getInstance().getAudioOutputPort("HDMI_ARC0").isConnected())
                 {
                     //the platform supports HDMI_ARC. Get the sound mode of the ARC port
                     LOGINFO(" HDMI ARC port detected on platform");
@@ -350,6 +363,8 @@ public:
                     break;
                 }
             }
+
+            /*When we reach here, we have determined the audio output port correctly. Now, check the sound mode on that port */
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
             if (aPort.isConnected())
             {
