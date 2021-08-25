@@ -393,6 +393,8 @@ namespace WPEFramework {
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
 
+        std::mutex gTimerMutex;
+
         static std::thread shellThread;
 
         void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
@@ -1124,6 +1126,8 @@ namespace WPEFramework {
             mEventListener = nullptr;
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
+            m_timer.stop();
+            lock_guard<mutex> lck(gTimerMutex);
         }
 
         string RDKShell::Information() const
@@ -5705,6 +5709,8 @@ namespace WPEFramework {
 
         void RDKShell::onTimer()
         {
+            lock_guard<mutex> lck(gTimerMutex);
+
             if (gSystemServiceEventsSubscribed)
             {
                 if (m_timer.isActive()) {
