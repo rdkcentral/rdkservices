@@ -85,11 +85,30 @@ Each RDK service has an instance of these schemas in the root of the service dir
             /doc/MyServicePlugin.md
 ```
 
-Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. Scripts are provided for both Linux and Windows. To generate the markdown:
+Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. Scripts are provided for both Linux and Windows.
+
+The generator requires:
+
+* Python 3.5 or higher
+* The `jsonref` library
+  
+Verify your Python version:
+
+```Shell
+$ python --version
+```
+
+Install `jsonref` if it is not already installed:
+
+```Shell
+$ pip install jsonref
+```
+
+To generate the markdown:
 
 1. Clone the Thunder repository if it is not already on your system.
 2. Change directories to `Thunder/Tools/JsonGenerator`.
-3. Run the `GenerateDocs` script and provide the location of the service JSON plugin file as an argument. For example:
+3. Run the `GenerateDocs` script and provide the location of the service JSON plugin file as an argument. Make certain that you are pointing to the plugin definition and not the interface definition. For example:
 
    `./GenerateDocs.sh ../../../rdkservices/MyService/MyServicePlugin.json`
 
