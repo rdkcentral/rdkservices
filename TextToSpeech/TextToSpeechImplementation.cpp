@@ -538,6 +538,8 @@ namespace Plugin {
         config["language"] = ttsConfig.language();
         config.IElement::ToFile(file);
         file.Close();
+       //Sync the settings
+       Utils::syncPersistFile (filename);
         return true;
     }
 
