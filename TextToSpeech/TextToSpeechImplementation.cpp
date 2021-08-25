@@ -19,6 +19,7 @@
 
 #include "TextToSpeechImplementation.h"
 #include <sys/prctl.h>
+#include "utils.h"
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
