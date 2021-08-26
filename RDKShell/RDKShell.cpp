@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -132,6 +133,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_FOCUS = "onFocus";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_BLUR = "onBlur";
 
 using namespace std;
 using namespace RdkShell;
@@ -4937,9 +4940,20 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
+            std::string previousFocusedClient;
             lockRdkShellMutex();
+            CompositorController::getFocused(previousFocusedClient);
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
+
+            std::string clientLower = client;
+            std::transform(clientLower.begin(), clientLower.end(), clientLower.begin(), [](unsigned char c){ return std::tolower(c); });
+
+            if (previousFocusedClient != clientLower)
+            {
+                onBlur(previousFocusedClient);
+                onFocus(client);
+            }
             return ret;
         }
 
@@ -5544,6 +5558,22 @@ namespace WPEFramework {
             JsonObject params;
             params["client"] = client;
             notify(RDKSHELL_EVENT_ON_DESTROYED, params);
+        }
+
+        void RDKShell::onFocus(const std::string& client)
+        {
+            std::cout << "RDKShell onFocus event received for " << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            notify(RDKSHELL_EVENT_ON_FOCUS, params);
+        }
+
+        void RDKShell::onBlur(const std::string& client)
+        {
+            std::cout << "RDKShell onBlur event received for " << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            notify(RDKSHELL_EVENT_ON_BLUR, params);
         }
 
         bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
