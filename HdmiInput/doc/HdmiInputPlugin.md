@@ -438,7 +438,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
-| params.version | string | The EDID version |
+| params.edidVersion | string | The EDID version |
 
 ### Result
 
@@ -458,7 +458,7 @@ This method takes no parameters.
     "method": "org.rdk.HdmiInput.1.setEdidVersion",
     "params": {
         "portId": "0",
-        "version": "HDMI2.0"
+        "edidVersion": "HDMI2.0"
     }
 }
 ```
