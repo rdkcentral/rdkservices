@@ -19,7 +19,6 @@
 
 #include "TextToSpeechImplementation.h"
 #include <sys/prctl.h>
-#include "utils.h"
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
@@ -539,9 +538,17 @@ namespace Plugin {
         config["language"] = ttsConfig.language();
         config.IElement::ToFile(file);
         file.Close();
-       //Sync the settings
-       Utils::syncPersistFile (filename);
-        return true;
+       //hack to sync file as Thunder does not support
+       FILE * fp = NULL;
+       fp = fopen(filename.c_str(), "r");
+       if (fp == NULL) {
+          TTSLOG_WARNING("Unable to do sync %s",filename.c_str());
+          return false;
+      }
+      fflush(fp);
+      fsync(fileno(fp));
+      fclose(fp);
+      return true;
     }
 
 } // namespace Plugin
