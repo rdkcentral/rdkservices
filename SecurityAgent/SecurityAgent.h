@@ -161,7 +161,6 @@ namespace Plugin {
 
 
     private:
-        uint8_t _secretKey[Crypto::SHA256::Length];
         AccessControlList _acl;
         uint8_t _skipURL;
         std::unique_ptr<TokenDispatcher> _dispatcher; 
