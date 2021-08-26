@@ -14,7 +14,6 @@ add_library(${MODULE_NAME} SHARED
         impl/TTSManager.cpp
         impl/TTSSpeaker.cpp
         impl/logger.cpp
-        ../helpers/utils.cpp
         )
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
