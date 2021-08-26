@@ -249,7 +249,7 @@
                     "portId":{
                         "$ref": "#/definitions/portId"
                     },
-                    "version":{
+                    "edidVersion":{
                         "summary": "The EDID version",
                         "type": "string",
                         "example": "HDMI2.0"
@@ -257,7 +257,7 @@
                 },
                 "required": [
                     "portId",
-                    "version"
+                    "edidVersion"
                 ]
             },
             "result": {
