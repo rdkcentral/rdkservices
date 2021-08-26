@@ -756,9 +756,9 @@ namespace WPEFramework
 
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
-            returnIfParamNotFound(parameters, "version");
+            returnIfParamNotFound(parameters, "edidVersion");
             string sPortId = parameters["portId"].String();
-            string sVersion = parameters["version"].String();
+            string sVersion = parameters["edidVersion"].String();
             try {
                 portId = stoi(sPortId);
             }catch (const device::Exception& err) {
