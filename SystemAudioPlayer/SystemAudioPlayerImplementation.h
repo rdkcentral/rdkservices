@@ -130,7 +130,8 @@ namespace Plugin {
 
         void dispatchEvent(Event, JsonObject &params);
         void Dispatch(Event event, string data);
-        bool OpenMapping(AudioType audioType,SourceType sourceType,PlayMode mode,int &playerid);
+        void OpenMapping(AudioType audioType,SourceType sourceType,PlayMode mode,int &playerid);
+        bool SameModeNotPlaying(AudioPlayer*,int &playerid);
         bool CloseMapping(int key);
 
     public:
