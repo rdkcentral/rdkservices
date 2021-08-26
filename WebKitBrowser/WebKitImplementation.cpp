@@ -1763,6 +1763,8 @@ static GSourceFuncs _handlerIntervention =
 
                         TRACE_GLOBAL(Trace::Information, (_T("Internal Suspend Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
+                        object->CheckWebProcess();
+
                         return FALSE;
                     },
                     this);
@@ -2290,6 +2292,27 @@ static GSourceFuncs _handlerIntervention =
                 SYSLOG(Logging::Notification, (_T("WebProcess is unresponsive, pid=%u, reply num=%d(max=%d), url=%s\n"),
                                             webprocessPID, _unresponsiveReplyNum, kWebProcessUnresponsiveReplyDefaultLimit,
                                             activeURL.c_str()));
+            }
+
+            if (!isWebProcessResponsive && _state == PluginHost::IStateControl::SUSPENDED)
+            {
+                SYSLOG(Logging::Notification, (_T("Killing unresponsive suspended WebProcess, pid=%u, reply num=%d(max=%d), url=%s\n"),
+                                            webprocessPID, _unresponsiveReplyNum, kWebProcessUnresponsiveReplyDefaultLimit,
+                                            activeURL.c_str()));
+                if (_unresponsiveReplyNum <= kWebProcessUnresponsiveReplyDefaultLimit)
+                {
+                    _unresponsiveReplyNum = kWebProcessUnresponsiveReplyDefaultLimit;
+                    Logging::DumpSystemFiles(webprocessPID);
+                    if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
+                    {
+                        SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    }
+                }
+                else
+                {
+                    DeactivateBrowser(PluginHost::IShell::FAILURE);
+                }
+                return;
             }
 
             if (_unresponsiveReplyNum == kWebProcessUnresponsiveReplyDefaultLimit)
