@@ -59,8 +59,7 @@ namespace Plugin {
     };
 
     SecurityAgent::SecurityAgent()
-        : _secretKey()
-        , _acl()
+        : _acl()
         , _dispatcher(nullptr)
         , _engine()
     {
