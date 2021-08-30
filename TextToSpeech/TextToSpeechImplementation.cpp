@@ -537,6 +537,7 @@ namespace Plugin {
         config["voice"] = ttsConfig.voice();
         config["language"] = ttsConfig.language();
         config.IElement::ToFile(file);
+        fsync((int)file);
         file.Close();
         return true;
     }
