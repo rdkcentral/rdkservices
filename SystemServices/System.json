@@ -139,6 +139,113 @@
             "type": "boolean",
             "example": false
         },
+        "accountInfo": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "summary": "Account Id",
+                    "type": "string",
+                    "example": "1000000000000000000"
+                },
+                "x1DeviceId": {
+                    "summary": "X1 Device Id",
+                    "type": "string",
+                    "example": "1000000000000000000"
+                },
+                "XCALSessionTokenAvailable": {
+                    "type": "boolean"
+                },
+                "experience": {
+                    "summary": "Experience",
+                    "type": "string",
+                    "example": "X1"
+                },
+                "deviceMACAddress": {
+                    "summary": "Device MAC Address",
+                    "type": "string",
+                    "example": "44:AA:F5:39:D3:42"
+                },
+                "firmwareUpdateDisabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "webBrowser": {
+            "type": "object",
+            "properties": {
+                "browserType": {
+                    "type": "string",
+                    "example": "WPE"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1.0.0.0"
+                },
+                "userAgent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
+                }
+            },
+            "required": [
+                "browserType",
+                "userAgent",
+                "version"
+            ]
+        },
+        "deviceInfo": {
+            "type": "object",
+            "properties": {
+                "quirks": {
+                    "summary": "The list of installed \"quirks\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "example": "XRE-4621"
+                    }
+                },
+                "mimeTypeExclusions": {
+                    "type": "object",
+                    "properties": {
+                    }
+                },
+                "features": {
+                    "type": "object",
+                    "properties": {
+                    }
+                },
+                "mimeTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "example": "audio/mpeg"
+                    }
+                },
+                "model": {
+                    "type": "string",
+                    "example": "PX051AEI"
+                },
+                "deviceType": {
+                    "type": "string",
+                    "example": "IpStb"
+                },
+                "supportsTrueSD": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "webBrowser": {
+                    "$ref": "#/definitions/webBrowser"
+                },
+                "HdrCapability": {
+                    "summary": "e.g. HDR10,Dolby Vision,Technicolor Prime",
+                    "type": "string",
+                    "example": "none"
+                },
+                "canMixPCMWithSurround": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -1427,6 +1534,35 @@
             },
             "result": {
                 "$ref": "#/definitions/result"
+            }
+        },
+        "getPlatformConfiguration": {
+            "summary": "(Version 2) Returns the supported features and device/account info",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
+                        "type": "string"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "AccountInfo": {
+                        "$ref": "#/definitions/accountInfo"
+                    },
+                    "DeviceInfo": {
+                        "$ref": "#/definitions/deviceInfo"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
             }
         }
     },
