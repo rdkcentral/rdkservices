@@ -2447,12 +2447,19 @@ static GSourceFuncs _handlerIntervention =
                 SYSLOG(Logging::Notification, (_T("Killing unresponsive suspended WebProcess, pid=%u, reply num=%d(max=%d), url=%s\n"),
                                             webprocessPID, _unresponsiveReplyNum, kWebProcessUnresponsiveReplyDefaultLimit,
                                             activeURL.c_str()));
-                Logging::DumpSystemFiles(webprocessPID);
-                if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
+                if (_unresponsiveReplyNum <= kWebProcessUnresponsiveReplyDefaultLimit)
                 {
-                    SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    _unresponsiveReplyNum = kWebProcessUnresponsiveReplyDefaultLimit;
+                    Logging::DumpSystemFiles(webprocessPID);
+                    if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1)
+                    {
+                        SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    }
                 }
-                DeactivateBrowser(PluginHost::IShell::FAILURE);
+                else
+                {
+                    DeactivateBrowser(PluginHost::IShell::FAILURE);
+                }
                 return;
             }
 
