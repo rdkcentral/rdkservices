@@ -117,15 +117,10 @@ namespace Plugin {
         }
         int id;
         _adminLock.Lock();      
-        if(OpenMapping(audioType,sourceType,playMode,id))
-        {
-            _adminLock.Unlock();
-            response["id"] = (int) id;
-            returnResponse(true);
-        }
+        OpenMapping(audioType,sourceType,playMode,id);        
         _adminLock.Unlock();
-        response["message"] = "Hardware resource already acquired by session with  id "+ std::to_string(id);
-        returnResponse(false);
+        response["id"] = (int) id;
+        returnResponse(true);
     }
 
      uint32_t SystemAudioPlayerImplementation::Config(const string &input, string &output)
@@ -190,8 +185,16 @@ namespace Plugin {
                     returnResponse(false);
                 }
             }
-            player->Play(url);
-            returnResponse(true);
+            _adminLock.Lock();
+            if(SameModeNotPlaying(player,id))
+            {
+                _adminLock.Unlock();
+                player->Play(url);
+                returnResponse(true);
+            }
+            _adminLock.Unlock();
+            response["message"] = "Hardware resource already acquired by session with  id "+ std::to_string(id);
+            returnResponse(false);
         }
         returnResponse(false);
     }
@@ -378,24 +381,37 @@ namespace Plugin {
         dispatchEvent(ONSAPEVENT, params);
     }
     
-    bool SystemAudioPlayerImplementation::OpenMapping(AudioType audioType,SourceType sourceType,PlayMode mode,int &playerid)
+    void SystemAudioPlayerImplementation::OpenMapping(AudioType audioType,SourceType sourceType,PlayMode mode,int &playerid)
     {
-        std::map<int,AudioPlayer*>::iterator it = objectMap.begin();
-        while (it != objectMap.end())
-        {
-            AudioPlayer *player = it->second;
-            if(player->getPlayMode() == mode)
-            {
-                playerid = player->getObjectIdentifier();
-                SAPLOG_ERROR("SAP: SystemAudioPlayerImplementation OpenMapping Failed\n");
-                return false;
-            }
-            it++;
-        }
         playerid= nextId();
         AudioPlayer *obj=new AudioPlayer(audioType,sourceType,mode,playerid);
         objectMap[playerid] = obj;
         SAPLOG_INFO("SAP: SystemAudioPlayerImplementation New player created\n");
+    }
+
+    /*
+    If the same mode( app/system) player is playing already, do not allow play back for this player. Otherwise cleanup previous player's state and allow this player.
+    */
+    bool SystemAudioPlayerImplementation::SameModeNotPlaying(AudioPlayer *player,int &playerid)
+    {
+        std::map<int,AudioPlayer*>::iterator it = objectMap.begin();
+        while (it != objectMap.end())
+        {
+            AudioPlayer *iplayer = it->second;
+            if((player->getObjectIdentifier() != iplayer->getObjectIdentifier()) &&
+               (player->getPlayMode() == iplayer->getPlayMode()))        
+            {
+                if(iplayer->isPlaying())
+                {
+                    SAPLOG_INFO("SystemAudioPlayerImplementation play request rejected access for id %d",player->getObjectIdentifier());
+                    playerid = iplayer->getObjectIdentifier();
+                    return false;
+                }
+                iplayer->Stop();
+            }
+            it++;        
+        }
+        SAPLOG_INFO("SystemAudioPlayerImplementation play request granded access for id %d",player->getObjectIdentifier());
         return true;
     }
 

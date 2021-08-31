@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -28,6 +29,7 @@
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <interfaces/IFocus.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -132,6 +134,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_FOCUS = "onFocus";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_BLUR = "onBlur";
 
 using namespace std;
 using namespace RdkShell;
@@ -165,7 +169,6 @@ bool needsScreenshot = false;
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
-#define RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME 5
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -433,6 +436,13 @@ namespace WPEFramework {
             {
                 std::cout << "lock was acquired via try\n";
             }*/
+        }
+
+        std::string toLower(const std::string& clientName)
+        {
+            std::string displayName = clientName;
+            std::transform(displayName.begin(), displayName.end(), displayName.begin(), [](unsigned char c){ return std::tolower(c); });
+            return displayName;
         }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
@@ -812,8 +822,6 @@ namespace WPEFramework {
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
-                            gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                            receivedShowSplashScreenRequest = true;
                         }
                         else
                         {
@@ -905,8 +913,6 @@ namespace WPEFramework {
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
-                        gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                        receivedShowSplashScreenRequest = true;
                     }
                     else
                     {
@@ -2755,6 +2761,10 @@ namespace WPEFramework {
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
+                if (parameters.HasLabel("type"))
+                {
+                    type = parameters["type"].String();
+                }
                 string version = "0.0";
                 string uri;
                 int32_t x = 0;
@@ -2766,7 +2776,25 @@ namespace WPEFramework {
                 bool focused = true;
                 string configuration;
                 string behind;
-                string displayName = "wst-" + callsign;
+
+                // Ensure cloned plugin displays are in a sub-dir based on
+                // plugin classname
+                string displayName;
+                if (type.empty())
+                {
+                    displayName = "wst-" + callsign;
+                }
+                else
+                {
+                    string xdgDir;
+                    Core::SystemInfo::GetEnvironment(_T("XDG_RUNTIME_DIR"), xdgDir);
+                    string displaySubdir = xdgDir + "/" + type;
+                    Core::Directory(displaySubdir.c_str()).CreatePath();
+
+                    // don't add XDG_RUNTIME_DIR to display name
+                    displayName = type + "/" + "wst-" + callsign;
+                }
+
                 if (gRdkShellSurfaceModeEnabled)
                 {
                     displayName = "rdkshell_display";
@@ -4915,9 +4943,59 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
+            std::string previousFocusedClient;
             lockRdkShellMutex();
+            CompositorController::getFocused(previousFocusedClient);
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
+
+            std::string clientLower = toLower(client);
+
+            if (previousFocusedClient != clientLower)
+            {
+                onBlur(previousFocusedClient);
+                onFocus(client);
+                std::map<std::string, PluginData> activePluginsData;
+                gPluginDataMutex.lock();
+                activePluginsData = gActivePluginsData;
+                gPluginDataMutex.unlock();
+
+                if (!previousFocusedClient.empty())
+                {
+                    std::map<std::string, PluginData>::iterator previousFocusedIterator;
+
+                    for (previousFocusedIterator = activePluginsData.begin(); previousFocusedIterator != activePluginsData.end(); previousFocusedIterator++)
+                    {
+                        std::string compositorName = toLower(previousFocusedIterator->first);
+                        if (compositorName == previousFocusedClient)
+                        {
+                            std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
+                            Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
+                            if (focusedCallsign != NULL)
+                            {
+                                uint32_t status = focusedCallsign->Focused(false);
+                                std::cout << "result of set focus to false: " << status << std::endl;
+                                focusedCallsign->Release();
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                std::map<std::string, PluginData>::iterator focusedEntry = activePluginsData.find(client);
+                if (focusedEntry != activePluginsData.end())
+                {
+                    PluginData& pluginData = focusedEntry->second;
+                    std::cout << "setting the focus of " << client << " to true " << std::endl;
+                    Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(client);
+                    if (focusedCallsign != NULL)
+                    {
+                        uint32_t status = focusedCallsign->Focused(true);
+                        focusedCallsign->Release();
+                        std::cout << "result of set focus to true: " << status << std::endl;
+                    }
+                }
+            }
             return ret;
         }
 
@@ -5522,6 +5600,22 @@ namespace WPEFramework {
             JsonObject params;
             params["client"] = client;
             notify(RDKSHELL_EVENT_ON_DESTROYED, params);
+        }
+
+        void RDKShell::onFocus(const std::string& client)
+        {
+            std::cout << "RDKShell onFocus event received for " << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            notify(RDKSHELL_EVENT_ON_FOCUS, params);
+        }
+
+        void RDKShell::onBlur(const std::string& client)
+        {
+            std::cout << "RDKShell onBlur event received for " << client << std::endl;
+            JsonObject params;
+            params["client"] = client;
+            notify(RDKSHELL_EVENT_ON_BLUR, params);
         }
 
         bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)

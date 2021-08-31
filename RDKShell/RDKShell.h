@@ -142,6 +142,8 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
             static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
             static const string RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE;
+            static const string RDKSHELL_EVENT_ON_FOCUS;
+            static const string RDKSHELL_EVENT_ON_BLUR;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
@@ -260,6 +262,8 @@ namespace WPEFramework {
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
+            void onFocus(const std::string& client);
+            void onBlur(const std::string& client);
             bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
