@@ -25,6 +25,7 @@ set(PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP "${PLUGIN_WEBKITBROWSER_RESIDENT_A
 set(PLUGIN_MONITOR_WEBKITBROWSER_UX "${PLUGIN_WEBKITBROWSER_UX}" CACHE BOOL "Enable monitor for the WebKitBrowser UX plugin")
 set(PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE "${PLUGIN_WEBKITBROWSER_YOUTUBE}" CACHE BOOL "Enable monitor for the WebKitBrowser Youtube plugin")
 set(PLUGIN_MONITOR_OPENCDMI "${PLUGIN_OPENCDMI}" CACHE BOOL "Enable monitor for the OpenCDMI plugin")
+set(PLUGIN_MONITOR_SYSTEMAUDIOPLAYER "${PLUGIN_SYSTEMAUDIOPLAYER}" CACHE BOOL "Enable monitor for the SystemAudioPlayer plugin")
 
 # Plugins built from outside of this repository have to be enabled manually
 set(PLUGIN_MONITOR_COBALT OFF CACHE BOOL "Enable monitor for the Cobalt plugin")
