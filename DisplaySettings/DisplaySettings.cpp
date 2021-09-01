@@ -2602,7 +2602,7 @@ namespace WPEFramework {
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                compressionlevel = aPort.getCompression();
+                compressionlevel = aPort.getCompression2();
                 response["compressionlevel"] = compressionlevel;
                                response["enable"] = (compressionlevel ? true : false);
             }

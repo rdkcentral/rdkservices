@@ -1,0 +1,2089 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "LgiDisplaySettings API", 
+        "class": "LgiDisplaySettings", 
+        "description": "The `DisplaySetting` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more."
+    },
+    "definitions": {
+        "audioDelay": {
+            "summary": "Delay (in ms) on the selected audio port",
+            "type": "string",
+            "example": "0"
+        },
+        "audioDelayOffset": {
+            "summary": "Delay offset (in ms) on the selected audio port",
+            "type": "string",
+            "example": "0"
+        },
+        "audioPort0": {
+            "summary": "Audio port name. An error returns if no port is specified.",
+            "type": "string",
+            "example": "HDMI0"
+        },
+        "audioPort1": {
+            "summary": "Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified.",
+            "default": "HDMI0",
+            "type": "string",
+            "example": "SPEAKER0"
+        },
+        "bassBoost": {
+            "summary": "Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost",
+            "type": "integer",
+            "example": 50
+        },
+        "boost": {
+            "summary": "Value between 0 and 96, where 0 means no boost and 96 means maximum boost",
+            "type": "integer",
+            "example": 90
+        },
+        "mode": {
+            "summary": "Enables or disables volume leveling (`0` = off, `1` = on, `2` = auto)",
+            "type": "integer",
+            "example": 1
+        },
+        "compressionLevel":{
+            "summary": "Value between 0 and 10, where 0 means no compression and 10 means maximum compression",
+            "type": "integer",
+            "example": 5
+        },
+        "connectedVideoDisplays": {
+            "summary": "A string [] of connected video display port names",
+            "type": "array",
+            "items": {
+                "type":"string",
+                "example": "HDMI0"
+            }
+        },
+        "dolbyVolumeMode": {
+            "summary": "Whether Dolby Volume mode is enabled (`true`) or disabled (`false`)",
+            "type":"boolean",
+            "example": true
+        },
+        "EDID": {
+            "summary": "A base64 encoded byte array string representing the EDID",
+            "type": "string",
+            "example": "AP///////wAQrMLQVEJTMQUdAQOANR546q11qVRNnSYPUFSlSwCBALMA0QBxT6lAgYDRwAEBVl4AoKCgKVAwIDUADighAAAaAAAA/wBNWTNORDkxVjFTQlQKAAAA/ABERUxMIFAyNDE4RAogAAAA/QAxVh1xHAAKICAgICAgARsCAxuxUJAFBAMCBxYBBhESFRMUHyBlAwwAEAACOoAYcTgtQFgsRQAOKCEAAB4BHYAYcRwWIFgsJQAOKCEAAJ6/FgCggDgTQDAgOgAOKCEAABp+OQCggDgfQDAgOgAOKCEAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2A"
+        },
+        "enhancerlevel": {
+            "summary": "Value between 0 and 16, where 0 means no enhancement and 16 means maximum enhancement",
+            "type":"integer",
+            "example": 0
+        },
+        "gain": {
+            "summary": "Value between 0 and 100, where 0 means no gain and 100 means maximum gain",
+            "type": "number",
+            "example": "10.000000"
+        },
+        "level": {
+            "summary": "Value between 0 and 10, where 0 means no level and 10 means maximum level",
+            "type": "integer",
+            "example": 9
+        },
+        "MISteeringEnable": {
+            "summary": "Whether Media Intelligence Steering is enabled (`true`) or disabled (`false`)",
+            "type": "boolean",
+            "example": true
+        },
+        "ms12AudioProfile": {
+            "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
+            "type": "string",
+            "example": "Game"
+        },
+        "muted": {
+            "summary": "mute or unmute audio",
+            "type": "boolean",
+            "example": true
+        },
+        "portName": {
+            "summary": "Video port name",
+            "type":"string",
+            "example": "HDMI0"
+        },
+        "resolution": {
+            "summary": "Video display resolution",
+            "type": "string",
+            "example": "1080p"
+        },
+        "soundMode": {
+            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
+            "type":"string",
+            "example":"STEREO"
+        },
+        "standards": {
+            "summary": "A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `Dolby Vision`, `Technicolor Prime`",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "none"
+            }
+        },
+        "supportsHDR": {
+            "summary": "Indicates support for HDR",
+            "type":"boolean",
+            "example": true
+        },
+        "surroundDecoderEnable": {
+            "summary": "Whether Surround Decoder is is enabled (`true`) or disabled (`false`)",
+            "type": "boolean",
+            "example": true
+        },
+        "videoDisplay": {
+            "summary": "Video display port name. The default port is `HDMI0` if no port is specified",
+            "default": "HDMI0",
+            "type": "string",
+            "example": "HDMI0"
+        },
+        "videoDisplayType": {
+            "summary": "Type of video display (port)",
+            "type": "string",
+            "example": "HDMI0"
+        },
+        "volumeLevel": {
+            "summary": "Value between 0 and 100, where 0 means no level and 100 means maximum level",
+            "type": "number",
+            "example": 50
+        },
+        "zoomSetting": {
+            "summary": "Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3`",
+            "type": "string",
+            "example": "FULL"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "enableSurroundDecoder":{
+            "summary": "Enables or disables Surround Decoder capability. The Surround Decoder is an upmixer that takes stereo music content, or surround-encoded two-channel movie content, and creates a high-quality multichannel upmix. If the Surround Decoder is enabled, two-channel signals and 5.1-channel signals are upmixed to 5.1.2",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "surroundDecoderEnable": {
+                        "$ref": "#/definitions/surroundDecoderEnable"
+                    }
+                },
+                "required": [
+                    "surroundDecoderEnable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getActiveInput":{
+            "summary": "Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`). If the STB does not support `RxSense`, this API always returns `true`. Specifically:  \n`true`  \n* STB is connected to the TV's active Input, or  \n* Unable to determine if STB is connected to the TV's active input or not (because STB does not support `RxSense`)  \n  \n`false`  \n* STB is not connected to the TV's active input, or  \n* TV is OFF",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required": [
+                    "videoDisplay"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "activeInput": {
+                        "summary": "Determines whether selected input is active or not",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "activeInput",
+                    "success"
+                ]
+            }
+        },
+        "getAudioDelay":{
+            "summary": "Returns the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    }
+                },
+                "required": [
+                    "audioPort"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "audioDelay": {
+                        "$ref": "#/definitions/audioDelay"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioDelay",
+                    "success"
+                ]
+            }
+        },
+        "getAudioDelayOffset":{
+            "summary": "Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    }
+                },
+                "required": [
+                    "audioPort"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "audioDelayOffset": {
+                        "$ref": "#/definitions/audioDelayOffset"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioDelayOffset",
+                    "success"
+                ]
+            }
+        },
+        "getBassEnhancer":{
+            "summary": "Returns the current status of the Bass Enhancer settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Bass Enhancer is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "bassBoost": {
+                        "$ref": "#/definitions/bassBoost"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "bassBoost",
+                    "success"
+                ]
+            }
+        },
+        "getConnectedAudioPorts":{
+            "summary": "Returns connected audio output ports (a subset of the ports supported on the device). SPDIF port is always considered connected. HDMI port may or may not be connected.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "connectedAudioPorts": {
+                        "summary": "A string [] of connected audio port names",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "HDMI0"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "connectedAudioPorts",
+                    "success"
+                ]
+            }
+        },
+        "getConnectedVideoDisplays":{
+            "summary": "Returns connected video displays",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "connectedVideoDisplays": {
+                        "$ref": "#/definitions/connectedVideoDisplays"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "connectedVideoDisplays",
+                    "success"
+                ]
+            }
+        },
+        "getCurrentOutputSettings":{
+            "summary": "Returns current output settings",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "colorSpace": {
+                        "summary": "The color space. Possible values: `0` (dsDISPLAY_COLORSPACE_UNKNOWN), `1` (sDISPLAY_COLORSPACE_RGB, `2` (dsDISPLAY_COLORSPACE_YCbCr422), `3` (dsDISPLAY_COLORSPACE_YCbCr444), `4` (dsDISPLAY_COLORSPACE_YCbCr420), `5` (dsDISPLAY_COLORSPACE_AUTO).",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "colorDepth": {
+                        "summary": "The color depth. The value that is returned from `dsGetCurrentOutputSettings`",
+                        "type": "integer",
+                        "example": 0 
+                    },
+                    "matrixCoefficients": {
+                        "summary": "matrix coefficients. Possible values: `0` (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), `1` (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), `2` (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), `3` (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), `4` (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), `5` (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), `6` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), `7` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL)",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "videoEOTF": {
+                        "summary": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid)",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "quantizationRange": {
+                        "summary": "The supported quantization range",
+                        "type": "integer",
+                        "example": 235
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "colorSpace",
+                    "colorDepth",
+                    "matrixCoefficients",
+                    "videoEOTF",
+                    "success"
+                ]
+            }
+        },
+        "getCurrentResolution":{
+            "summary": "Returns the current resolution on the selected video display port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required":[
+                    "videoDisplay"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "resolution": {
+                        "$ref": "#/definitions/resolution"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "resolution",
+                    "success"
+                ]
+            }
+        },
+        "getDefaultResolution":{
+            "summary": "Gets the default resolution supported by the HDMI0 video output port",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "defaultResolution": {
+                        "summary": "Default resolution supported by the HDMI0 video output port",
+                        "type":"string",
+                        "example":"720p"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "defaultResolution",
+                    "success"
+                ]
+            }
+        },
+        "getDialogEnhancement":{
+            "summary": "Returns the current Dialog Enhancer level (port HDMI0)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Dialog Enhancer Mode is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "enhancerlevel": {
+                        "$ref": "#/definitions/enhancerlevel"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "enhancerlevel",
+                    "success"
+                ]
+            }
+        },
+        "getDolbyVolumeMode":{
+            "summary": "Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "dolbyVolumeMode": {
+                        "$ref": "#/definitions/dolbyVolumeMode"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "dolbyVolumeMode",
+                    "success"
+                ]
+            }
+        },
+        "getDRCMode":{
+            "summary": "Returns the current Dynamic Range Control mode",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "DRCMode": {
+                        "summary": "The DRC Mode value: either `line` or `RF`",
+                        "type": "string",
+                        "example": "line"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "DRCMode",
+                    "success"
+                ]
+            }
+        },
+        "getEnableAudioPort": {
+            "summary": " Returns the current status of the specified input audio port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    }
+                },
+                "required": [
+                    "audioPort"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if the audio port is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "success"
+                ]
+            }
+        },
+        "getGain":{
+            "summary": "Returns the current gain value",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "gain": {
+                        "$ref": "#/definitions/gain"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "gain",
+                    "success"
+                ]
+            }
+        },
+        "getGraphicEqualizerMode":{
+            "summary": "Returns the current Graphic Equalizer Mode setting (port HDMI0)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Graphic Equalizer Mode is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "mode": {
+                        "summary": "Graphic Equalizer mode (`0` = mode not set or in case of error, `1` = open, `2` = rich, `3` = focused)",
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "mode",
+                    "success"
+                ]
+            }
+        },
+        "getIntelligentEqualizerMode":{
+            "summary": "Returns the current Intelligent Equalizer Mode setting (port HDMI0)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Intelligent Equalizer Mode is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "mode": {
+                        "summary": "Intelligent Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused)",
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "mode",
+                    "success"
+                ]
+            }
+        },
+        "getMISteering":{
+            "summary": "Returns the current status of Media Intelligence Steering settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "MISteeringEnable": {
+                        "$ref": "#/definitions/MISteeringEnable"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "MISteering",
+                    "success"
+                ]
+            }
+        },
+        "getMS12AudioCompression":{
+            "summary": "Returns the current audio compression settings",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if audio compression is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "compressionLevel":{
+                        "$ref": "#/definitions/compressionLevel"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "compressionLevel",
+                    "success"
+                ]
+            }
+        },
+        "getMS12AudioProfile":{
+            "summary": "Returns the current MS12 audio profile settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "ms12AudioProfile": {
+                        "$ref": "#/definitions/ms12AudioProfile"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ms12AudioProfile",
+                    "success"
+                ]
+            }
+        },
+        "getMuted":{
+            "summary": "Returns whether audio is muted on a given port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "muted": {
+                        "$ref": "#/definitions/muted"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "muted",
+                    "success"
+                ]
+            }
+        },
+        "getSettopAudioCapabilities":{
+            "summary": "Returns the set-top audio capabilities for the specified audio port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "audioCapabilities": {
+                        "summary": "A string [] of audio capabilities",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "DOLBY DIGITAL"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioCapabilities",
+                    "success"
+                ]
+            }
+        },
+        "getSettopHDRSupport":{
+            "summary": "Returns an HDR support object (list of standards that the STB supports)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "standards": {
+                        "$ref": "#/definitions/standards"
+                    },
+                    "supportsHDR": {
+                        "$ref": "#/definitions/supportsHDR"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "standards",
+                    "supportsHDR",
+                    "success"
+                ]
+            }
+        },
+        "getSettopMS12Capabilities":{
+            "summary": "Returns the set-top MS12 audio capabilities for the specified audio port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "ms12Capabilities": {
+                        "summary": "A string [] of MS12 audio capabilities",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Dolby Volume"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ms12Capabilities",
+                    "success"
+                ]
+            }
+        },
+        "getSinkAtmosCapability":{
+            "summary": "Returns the ATMOS capability of the sink (HDMI0)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "atmos_capability": {
+                        "summary": "ATMOS Capability (`0` = off, `1` = open, `2` = rich, `3` = focused)",
+                        "type": "integer",
+                        "example": "2"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "atmosCapability",
+                    "success"
+                ]
+            }
+        },
+        "getSoundMode":{
+            "summary": "Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as a safe default",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    }
+                },
+                "required": [
+                    "audioPort"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "soundMode": {
+                        "$ref": "#/definitions/soundMode"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "soundMode",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedAudioModes": {
+            "summary": "Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "audioPort":{
+                        "$ref": "#/definitions/audioPort0"
+                    }
+                },
+                "required":[
+                    "audioPort"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedAudioModes": {
+                        "summary": "A string [] of supported audio modes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "STEREO"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedAudioPorts",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedAudioPorts": {
+            "summary": "Returns all audio ports supported on the device (all ports that are physically present)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedAudioPorts": {
+                        "summary": "A string [] of supported audio ports",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "HDMI0"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedAudioPorts",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedMS12AudioProfiles":{
+            "summary": "Returns list of platform supported MS12 audio profiles for the specified audio port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedMS12AudioProfiles": {
+                        "summary": "A string [] of MS12 audio profiles",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Movie"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedMS12AudioProfiles",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedResolutions":{
+            "summary": "Returns supported resolutions on the selected video display port (both TV and STB) by its name.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDisplay":{
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required": [
+                    "videoDisplay"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedResolutions":{
+                        "summary": "A string array of supported resolutions on the selected video display port",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example":  "1080p60"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedResolutions",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedSettopResolutions": {
+            "summary": "Returns supported STB resolutions",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedSettopResolutions": {
+                        "summary": "A string array of supported STB resolutions",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "1080p60"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedSettopResolutions",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedTvResolutions":{
+            "summary": "Returns supported TV resolutions on the selected video display port",
+            "params":{
+                "type":"object",
+                "properties":{
+                    "videoDisplay":{
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required":[
+                    "videoDisplay"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedTvResolutions": {
+                        "summary": "A string [] of supported TV resolutions",
+                        "type": "array",
+                        "items" : {
+                            "type": "string",
+                            "example": "1080p"
+                        }  
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedTvResolutions",
+                    "success"
+                ]
+            }
+        },
+        "getSupportedVideoDisplays":{
+            "summary": "Returns all video ports supported on the device (all ports that are physically present)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedVideoDisplays": {
+                        "summary": "a string [] of supported video display ports",
+                        "type":"array",
+                        "items": {
+                            "type": "string",
+                            "example": "HDMI0"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedVideoDisplays",
+                    "success"
+                ]
+            }
+        },
+        "getSurroundVirtualizer":{
+            "summary": "Returns the current surround virtualizer boost settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Surround Virtualizer is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "boost",
+                    "success"
+                ]
+            }
+        },
+        "getSurroundVirtualizer2":{
+            "summary": "(Version 2) Returns the current surround virtualizer boost settings",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "boost",
+                    "success"
+                ]
+            }
+        },
+        "getTVHDRCapabilities":{
+            "summary": "Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  \n* 0 - HDRSTANDARD_NONE  \n* 1 - HDRSTANDARD_HDR10  \n* 2 - HDRSTANDARD_HLG  \n* 4 - HDRSTANDARD_DolbyVision  \n* 8 - HDRSTANDARD_TechnicolorPrime",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "capabilities": {
+                        "summary": "The OR-ed value of supported HDR standards by the TV",
+                        "type":"integer",
+                        "example": 3
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "capabilities",
+                    "success"
+                ]
+            }
+        },
+        "getTvHDRSupport":{
+            "summary": "Returns an HDR support object (list of standards that the TV supports)",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "standards": {
+                        "$ref": "#/definitions/standards"
+                    },
+                    "supportsHDR": {
+                        "$ref": "#/definitions/supportsHDR"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "standards",
+                    "supportsHDR",
+                    "success"
+                ]
+            }
+        },
+        "getVideoPortStatusInStandby":{
+            "summary": "Returns video port status in standby mode (failure if the port name is missing)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "portName": {
+                        "$ref": "#/definitions/portName"
+                    }
+                },
+                "required": [
+                    "portName"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "VideoPortStatusInStandby": {
+                        "summary": "video port status (enabled/disabled) in standby mode",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "error_message": {
+                        "summary": "Error message in case of failure",
+                        "type": "string",
+                        "example": "internal error"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "VideoPortStatusInStandby",
+                    "error_message",
+                    "success"
+                ]
+            }
+        },
+        "getVolumeLevel":{
+            "summary": "Returns the current volume level",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "volumeLevel": {
+                        "$ref": "#/definitions/volumeLevel"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "volumeLevel",
+                    "success"
+                ]
+            }
+        },
+        "getVolumeLeveller": {
+            "summary": "Returns the current Volume Leveller setting",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` if Volume Leveller is enabled, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "level",
+                    "success"
+                ]
+            }
+        },
+        "getVolumeLeveller2": {
+            "summary": "(Version 2) Returns the current Volume Leveller setting",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "level",
+                    "success"
+                ]
+            }
+        },
+        "getZoomSetting": {
+            "summary": "Returns the zoom setting value",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "zoomSetting": {
+                        "$ref": "#/definitions/success"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "zoomSetting",
+                    "success"
+                ]
+            }
+        },
+        "isConnectedDeviceRepeater":{
+            "summary": "Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "HdcpRepeater": {
+                        "summary": "`true` if the device is an HDCP repeater otherwise `false`",
+                        "type":"boolean",
+                        "example":true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "HdcpRepeater",
+                    "success"
+                ]
+            }
+        },
+        "isSurroundDecoderEnabled":{
+            "summary": "Returns the current status of Surround Decoder",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "surroundDecoderEnable": {
+                        "$ref": "#/definitions/surroundDecoderEnable"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "surroundDecoderEnable",
+                    "success"
+                ]
+            }
+        },
+        "readEDID":{
+            "summary": "Reads the EDID from the connected HDMI (output) device. Returns a key of `EDID` with a value of the base64 encoded byte array string representing the EDID.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "EDID": {
+                        "$ref": "#/definitions/EDID"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "EDID",
+                    "success"
+                ]
+            }
+        },
+        "readHostEDID":{
+            "summary": "Reads the EDID of the host (STB). Returns a key of `EDID` with a value of the base64 encoded raw byte array string representing the EDID.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "EDID": {
+                        "$ref": "#/definitions/EDID"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "EDID",
+                    "success"
+                ]
+            }
+        },
+        "setAudioAtmosOutputMode":{
+            "summary": "Sets ATMOS audio output mode (on HDMI0)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "enable or disable ATMOS audio output mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },        
+        "setAudioDelay":{
+            "summary": "Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    },
+                    "audioDelay": {
+                        "$ref": "#/definitions/audioDelay"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "audioDelay"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setAudioDelayOffset":{
+            "summary": "Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    },
+                    "audioDelayOffset": {
+                        "$ref": "#/definitions/audioDelayOffset"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "audioDelayOffset"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setBassEnhancer":{
+            "summary": "Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "bassBoost": {
+                        "$ref": "#/definitions/bassBoost"
+                    }
+                },
+                "required": [
+                    "bassBoost"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setCurrentResolution":{
+            "summary": "Sets the current resolution",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "resolution": {
+                        "$ref": "#/definitions/resolution"
+                    }
+                },
+                "required": [
+                    "videoDisplay",
+                    "resolution"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDialogEnhancement":{
+            "summary": "Sets the Dialog Enhancer level. The method fails if no value is set.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enhancerlevel": {
+                        "$ref": "#/definitions/enhancerlevel"
+                    }
+                },
+                "required": [
+                    "enhancerlevel"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDolbyVolumeMode":{
+            "summary": "Enables or disables Dolby Volume mode on audio track (audio output port HDMI0)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "dolbyVolumeMode": {
+                        "$ref": "#/definitions/dolbyVolumeMode"
+                    }
+                },
+                "required": [
+                    "dolbyVolumeMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setDRCMode":{
+            "summary": "Sets the Dynamic Range Control (DRC) setting. DRC is a compression control applied to audio to limit the dynamic range to suit a specific listening situation. For default settings, RF mode is preferred for two-channel outputs (television speaker or headphone) and Line mode for multichannel outputs.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "DRCMode": {
+                        "summary": "Value of 0 or 1, where 0 is Line mode and 1 is RF mode",
+                        "type": "integer",
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "DRCMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setEnableAudioPort": {
+            "summary": "Enable or disable the specified audio port based on the input audio port ID. This feature provides the consumer with a single user control to enable or disable the specified audio port.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    },
+                    "enable": {
+                        "summary": "`true` enables the specified audio port. `false` disables the specified audio port.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setGain":{
+            "summary": "Adjusts the gain on a specific port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "gain": {
+                        "$ref": "#/definitions/gain"
+                    }
+                },
+                "required": [
+                    "gain"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setGraphicEqualizerMode":{
+            "summary": "Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer that allows the end user to customize the sonic qualities of the system.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "graphicEqualizerMode": {
+                        "summary": "Graphic Equalizer mode (`0` = off, `1` = open, `2` = rich, `3` = focused)",
+                        "type": "integer",
+                        "example": 2
+                    }
+                },
+                "required": [
+                    "graphicEqualizerMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setIntelligentEqualizerMode":{
+            "summary": "Sets the Intelligent Equalizer mode (port HDMI0)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "intelligentEqualizerMode": {
+                        "summary": "Intelligent Equalizer mode (`0` = unset, `1` = open, `2` = rich, `3` = focused)",
+                        "type": "integer",
+                        "example": 2
+                    }
+                },
+                "required": [
+                    "intelligentEqualizerMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMISteering":{
+            "summary": "Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audio content and steers the Volume Leveler, the Dialogue Enhancer, the Intelligent Equalizer, and the Speaker Virtualizer, based on the type of audio content.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "MISteeringEnable": {
+                        "$ref": "#/definitions/MISteeringEnable"
+                    }
+                },
+                "required": [
+                    "MISteeringEnable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMS12AudioCompression":{
+            "summary": "Sets the audio dynamic range compression level (port HDMI0)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "compressionLevel":{
+                        "$ref": "#/definitions/compressionLevel"
+                    }
+                },
+                "required": [
+                    "compressionLevel"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMS12AudioProfile":{
+            "summary": "Sets the selected MS12 audio profile",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "ms12AudioProfile": {
+                        "$ref": "#/definitions/ms12AudioProfile"
+                    }
+                },
+                "required": [
+                    "ms12AudioProfile"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMuted":{
+            "summary": "Mutes or unmutes audio on a specific port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "muted": {
+                        "$ref": "#/definitions/muted"
+                    }
+                },
+                "required": [
+                    "muted"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setScartParameter":{
+            "summary": "Sets SCART parameters.  \n   \nPossible values:  \n| **Parameter** | **ParameterData** |  \n| `aspect_ratio` | `4x3` or `16x9` |  \n| `tv_startup` | `on` or `off` |  \n| `rgb` | `on` (disables cvbs) |  \n| `cvbs` | `on` (disables rgb) |  \n| `macrovision` | not implemented |  \n| `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  \n| `port` | `on` or `off` |",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "scartParameter": {
+                        "summary": "SCART parameter name",
+                        "type": "string",
+                        "example": "aspect_ratio"
+                    },
+                    "scartParameterData": {
+                        "summary": "SCART parameter data",
+                        "type": "string",
+                        "example": "4x3"
+                    }
+                },
+                "required": [
+                    "scartParameter",
+                    "scartParameterDelay"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSoundMode":{
+            "summary": "Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort0"
+                    },
+                    "soundMode": {
+                        "$ref": "#/definitions/soundMode"
+                    },
+                    "persist": {
+                        "summary": "persists the sound mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "soundMode",
+                    "persist"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSurroundVirtualizer":{
+            "summary": "Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    }
+                },
+                "required": [
+                    "boost"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSurroundVirtualizer2":{
+            "summary": "(Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mode": {
+                        "$ref": "#/definitions/mode"
+                    },
+                    "boost": {
+                        "$ref": "#/definitions/boost"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "boost"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVideoPortStatusInStandby":{
+            "summary": "Sets the specified video port status to be used in standby mode (failure if the port name is missing)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "portName": {
+                        "$ref": "#/definitions/portName"
+                    },
+                    "enabled": {
+                        "summary": "Enable video port status to be used in standby mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "portName",
+                    "enabled"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "error_message": {
+                        "summary": "Error message in case of failure",
+                        "type":"string",
+                        "example":"internal error"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "error_message",
+                    "success"
+                ]
+            }
+        },
+        "setVolumeLevel":{
+            "summary": "Adjusts the Volume Level on a specific port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "volumeLevel": {
+                        "$ref": "#/definitions/volumeLevel"
+                    }
+                },
+                "required": [
+                    "volumeLevel"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVolumeLeveller":{
+            "summary": "Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    }
+                },
+                "required": [
+                    "level"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVolumeLeveller2":{
+            "summary": "(Version 2) Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mode":{
+                        "$ref": "#/definitions/mode"
+                    },
+                    "level": {
+                        "$ref": "#/definitions/level"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "level"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setZoomSetting": {
+            "summary": "Sets the current zoom value",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "zoomSetting": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "zoomSetting"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },    
+    "events": {
+        "activeInputChanged":{
+            "summary": "Triggered on active input change (RxSense)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "activeInput": {
+                        "summary": "`true` = RXSENSE_ON, `false` = RXSENSE_OFF",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "activeInput"
+                ]
+            }
+        },
+        "connectedAudioPortUpdated":{
+            "summary": "Triggered when the connected audio port is updated",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "HotpluggedAudioPort": {
+                        "summary": "Audio port ID for which the connection status has changed. Possible audio port IDs are (`HDMI_ARC0`, `HEADPHONE0`,  etc).",
+                        "type": "string",
+                        "example": "HDMI_ARC0"
+                    },
+                    "isConnected": {
+                        "summary": "Current connection status of the audio port",
+                        "enum": [
+                            "connected",
+                            "disconnected"
+                        ],
+                        "type": "string",
+                        "example": "connected"
+                    }
+                },
+                "required": [
+                    "HotPuggedAudioPort",
+                    "isConnected"
+                ]
+            }
+        },
+        "connectedVideoDisplaysUpdated":{
+            "summary": "Triggered when the connected video display is updated and returns the connected video displays.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "connectedVideoDisplays": {
+                        "$ref": "#/definitions/connectedVideoDisplays"
+                    }
+                },
+                "required": [
+                    "connectedVideoDisplays"
+                ]
+            }
+        },
+        "resolutionChanged":{
+            "summary": "Triggered when the resolution is changed by the user and returns the current resolution",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "width": {
+                        "summary": "Width of the video display",
+                        "type": "integer",
+                        "example": 1920
+                    },
+                    "height": {
+                        "summary": "Height of the video display",
+                        "type": "integer",
+                        "example": 1080
+                    },
+                    "videoDisplayType": {
+                        "$ref": "#/definitions/videoDisplayType"
+                    },
+                    "resolution": {
+                        "$ref": "#/definitions/resolution"
+                    }
+                },
+                "required": [
+                    "width",
+                    "height",
+                    "videoDisplayType",
+                    "resolution"
+                ]
+            }
+        },
+        "resolutionPreChange": {
+            "summary": "Triggered on resolution pre-change"
+        },
+        "zoomSettingUpdated":{
+            "summary": "Triggered when the zoom setting changes and returns the zoom setting values for all video display types",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "zoomSetting": {
+                        "$ref": "#/definitions/zoomSetting"
+                    },
+                    "videoDisplayType": {
+                        "$ref": "#/definitions/videoDisplayType"
+                    }
+                },
+                "required": [
+                    "zoomSetting",
+                    "videoDisplayType"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "LgiDisplaySettings Plugin",
+      "callsign": "com.lgi.rdk.DisplaySettings",
+      "locator": "libWPEFrameworkLgiDisplaySettings.so",
+      "status": "production",
+      "description": "The `LgiDisplaySettings` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more.",
+      "version": "2.0"
+    },
+    "interface": {
+      "$ref": "LgiDisplaySettings.json#"
+    }
+}
