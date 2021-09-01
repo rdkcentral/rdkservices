@@ -375,7 +375,9 @@ public:
                 else if(soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
                 else mode = UNKNOWN;
 
-                if(aPort.getType().getId() == device::AudioOutputPortType::kARC && aPort.getStereoAuto())
+                /* Auto mode applicable for HDMI Arc and SPDIF */
+                if((aPort.getType().getId() == device::AudioOutputPortType::kARC || aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
+                        && aPort.getStereoAuto())
                 {
                     mode = SOUNDMODE_AUTO;
                 }
