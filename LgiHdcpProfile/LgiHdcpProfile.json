@@ -1,0 +1,14 @@
+{
+ "locator":"libWPEFrameworkLgiHdcpProfile.so",
+ "classname":"LgiHdcpProfile",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"com.lgi.rdk.HdcpProfile",
+ "autostart":false,
+ "configuration":{
+  "root":{
+   "outofprocess":true
+  }
+ }
+}

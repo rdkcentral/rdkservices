@@ -328,6 +328,10 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(PLUGIN_LGIHDCPPROFILE)
+    add_subdirectory(LgiHdcpProfile)
+endif()
+
 if(RDK_SERVICES_TEST)
     add_subdirectory(RdkServicesTest)
 endif()
