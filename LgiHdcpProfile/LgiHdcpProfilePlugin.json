@@ -1,0 +1,14 @@
+{
+    "$schema": "../../Thunder/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "HdcpProfile Plugin",
+      "callsign": "com.lgi.rdk.HdcpProfile",
+      "locator": "libWPEFrameworkLgiHdcpProfile.so",
+      "status": "production",
+      "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "LgiHdcpProfile.json#"
+    }
+}
