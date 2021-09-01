@@ -50,6 +50,10 @@ if(PLUGIN_DISPLAYSETTINGS)
     add_subdirectory(DisplaySettings)
 endif()
 
+if(PLUGIN_LGIDISPLAYSETTINGS)
+    add_subdirectory(LgiDisplaySettings)
+endif()
+
 if(PLUGIN_REMOTEACTIONMAPPING)
     add_subdirectory(RemoteActionMapping)
 endif()
