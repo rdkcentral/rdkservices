@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <interfaces/IFocus.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -168,7 +169,6 @@ bool needsScreenshot = false;
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
-#define RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME 5
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -436,6 +436,13 @@ namespace WPEFramework {
             {
                 std::cout << "lock was acquired via try\n";
             }*/
+        }
+
+        std::string toLower(const std::string& clientName)
+        {
+            std::string displayName = clientName;
+            std::transform(displayName.begin(), displayName.end(), displayName.begin(), [](unsigned char c){ return std::tolower(c); });
+            return displayName;
         }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
@@ -815,8 +822,6 @@ namespace WPEFramework {
                             uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                             gRdkShellMutex.lock();
                             std::cout << "launch factory app status:" << status << std::endl;
-                            gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                            receivedShowSplashScreenRequest = true;
                         }
                         else
                         {
@@ -908,8 +913,6 @@ namespace WPEFramework {
                         uint32_t status = rdkshellPlugin->launchFactoryAppWrapper(request, response);
                         gRdkShellMutex.lock();
                         std::cout << "launch factory app status:" << status << std::endl;
-                        gSplashScreenDisplayTime = RDKSHELL_SPLASH_SCREEN_DISPLAY_TIME;
-                        receivedShowSplashScreenRequest = true;
                     }
                     else
                     {
@@ -4946,13 +4949,52 @@ namespace WPEFramework {
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
 
-            std::string clientLower = client;
-            std::transform(clientLower.begin(), clientLower.end(), clientLower.begin(), [](unsigned char c){ return std::tolower(c); });
+            std::string clientLower = toLower(client);
 
             if (previousFocusedClient != clientLower)
             {
                 onBlur(previousFocusedClient);
                 onFocus(client);
+                std::map<std::string, PluginData> activePluginsData;
+                gPluginDataMutex.lock();
+                activePluginsData = gActivePluginsData;
+                gPluginDataMutex.unlock();
+
+                if (!previousFocusedClient.empty())
+                {
+                    std::map<std::string, PluginData>::iterator previousFocusedIterator;
+
+                    for (previousFocusedIterator = activePluginsData.begin(); previousFocusedIterator != activePluginsData.end(); previousFocusedIterator++)
+                    {
+                        std::string compositorName = toLower(previousFocusedIterator->first);
+                        if (compositorName == previousFocusedClient)
+                        {
+                            std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
+                            Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
+                            if (focusedCallsign != NULL)
+                            {
+                                uint32_t status = focusedCallsign->Focused(false);
+                                std::cout << "result of set focus to false: " << status << std::endl;
+                                focusedCallsign->Release();
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                std::map<std::string, PluginData>::iterator focusedEntry = activePluginsData.find(client);
+                if (focusedEntry != activePluginsData.end())
+                {
+                    PluginData& pluginData = focusedEntry->second;
+                    std::cout << "setting the focus of " << client << " to true " << std::endl;
+                    Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(client);
+                    if (focusedCallsign != NULL)
+                    {
+                        uint32_t status = focusedCallsign->Focused(true);
+                        focusedCallsign->Release();
+                        std::cout << "result of set focus to true: " << status << std::endl;
+                    }
+                }
             }
             return ret;
         }
@@ -5367,7 +5409,21 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::getOpacity(client, opacity);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            std::string newClient(client);
+            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+                {
+                    targetFound = true;
+
+                }
+             if (targetFound)
+            {
+            ret = CompositorController::setOpacity(newClient, opacity);
+
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
@@ -5394,7 +5450,20 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setScale(client, scaleX, scaleY);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            std::string newClient(client);
+            transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+                {
+                    targetFound = true;
+
+                }
+            if (targetFound)
+            {
+            ret = CompositorController::setScale(newClient, scaleX, scaleY);
+
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
