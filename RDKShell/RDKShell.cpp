@@ -5409,32 +5409,31 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            std::vector<std::string> clientList;
-            CompositorController::getClients(clientList);
-            bool targetFound = false;
-            std::string newClient(client);
-            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
-            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
-                {
-                    targetFound = true;
-
-                }
-             if (targetFound)
-            {
-            ret = CompositorController::setOpacity(newClient, opacity);
-
-            }
+            ret = CompositorController::getOpacity(client, opacity);
             gRdkShellMutex.unlock();
             return ret;
         }
 
         bool RDKShell::setOpacity(const string& client, const unsigned int opacity)
         {
-            bool ret = false;
+             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setOpacity(client, opacity);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            std::string newClient(client);
+            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+            {
+              targetFound = true;
+             }
+             if (targetFound)
+            {
+            ret = CompositorController::setOpacity(newClient, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
+
         }
 
         bool RDKShell::getScale(const string& client, double& scaleX, double& scaleY)
@@ -5452,17 +5451,16 @@ namespace WPEFramework {
             lockRdkShellMutex();
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
+	    bool targetFound = false;
             std::string newClient(client);
             transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
             if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
-                {
-                    targetFound = true;
-
-                }
+            {
+              targetFound = true;
+            }
             if (targetFound)
             {
             ret = CompositorController::setScale(newClient, scaleX, scaleY);
-
             }
             gRdkShellMutex.unlock();
             return ret;
