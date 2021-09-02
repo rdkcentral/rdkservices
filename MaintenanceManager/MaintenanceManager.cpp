@@ -264,7 +264,13 @@ namespace WPEFramework {
 #if defined (SKY_BUILD)
             bool internetConnectStatus = true;
 #else
-            bool internetConnectStatus = isDeviceOnline();
+            bool internetConnectStatus = false;
+            for(int retries = 0; retries < 3; retries++) {
+                internetConnectStatus =  isDeviceOnline();
+                if(internetConnectStatus == true) {
+                    break;
+                }
+            }	    
 #endif
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
