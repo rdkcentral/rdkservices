@@ -28,6 +28,7 @@
 
 #include <png.h>
 #include <curl/curl.h>
+#include <base64.h>
 
 #ifdef HAS_FRAMEBUFFER_API_HEADER
 extern "C" {
@@ -36,11 +37,18 @@ extern "C" {
 }
 #endif
 
+#define SCREENCAPTURE_THUNDER_TIMEOUT 20000
+
 // Methods
 #define METHOD_UPLOAD "uploadScreenCapture"
 
 // Events
 #define EVT_UPLOAD_COMPLETE "uploadComplete"
+
+#if defined(PLATFORM_AMLOGIC)
+std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gRSKShellConnection;
+bool gRDKSHellEventSubscribed = false;
+#endif
 
 namespace WPEFramework
 {
@@ -61,6 +69,11 @@ namespace WPEFramework
             inNexus = false;
             #endif
 
+#if defined(PLATFORM_AMLOGIC)
+            screenWidth = 1280;
+            screenHeight = 720;
+#endif   
+
             Register(METHOD_UPLOAD, &ScreenCapture::uploadScreenCapture, this);
         }
 
@@ -75,13 +88,57 @@ namespace WPEFramework
             delete screenShotDispatcher;
         }
 
+#if defined(PLATFORM_AMLOGIC)
+        void ScreenCapture::pluginEventHandler(const JsonObject& parameters)
+        {
+            if (parameters.HasLabel("imageData"))
+            {
+                std::string imageData = parameters["imageData"].String();
+
+                size_t decodedImageSize = b64_get_decoded_buffer_size(imageData.size());
+
+                if(screenWidth * screenHeight * 4 != decodedImageSize)
+                {
+                    LOGERR("Got wrong data size for screen capture, %d instead of %d", decodedImageSize, screenWidth * screenHeight * 4);
+                    return;
+                }
+
+                uint8_t *decodedImage = (uint8_t*)malloc(decodedImageSize);
+                b64_decode((const uint8_t*) imageData.c_str(), imageData.size(), decodedImage);
+
+                // flip the image
+                uint32_t *decodedImageRGBA = (uint32_t *)decodedImage;
+                for(size_t row = 0; row < screenHeight / 2; row++)
+                {
+                    for(size_t col = 0; col < screenWidth; col++)
+                    {
+                        uint32_t p = decodedImageRGBA[row * screenWidth + col];
+
+                        decodedImageRGBA[row * screenWidth + col] = decodedImageRGBA[(screenHeight - 1 - row) * screenWidth + col];
+                        decodedImageRGBA[(screenHeight - 1 - row) * screenWidth + col] = p;
+                    }
+                }
+
+                std::vector<unsigned char> png_out_data;
+                if(!saveToPng((unsigned char *)decodedImage, screenWidth, screenHeight, png_out_data))
+                {
+                    LOGERR("Failed to convert ScreenShot data to png");
+                    return;
+                }
+
+                free(decodedImage);
+
+                doUploadScreenCapture(png_out_data, true);
+            }
+
+        }
+#endif
+
         uint32_t ScreenCapture::uploadScreenCapture(const JsonObject& parameters, JsonObject& response)
         {
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
-
-            std::string callGUID;
 
             if(!parameters.HasLabel("url"))
             {
@@ -90,10 +147,61 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
+            url = parameters["url"].String();
+
             if(parameters.HasLabel("callGUID"))
               callGUID = parameters["callGUID"].String();
+              
+#if defined(PLATFORM_AMLOGIC)
 
-            screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this, parameters["url"].String(), callGUID ) );
+            if (nullptr == gRSKShellConnection)
+            {
+                std::string serviceCallsign = "org.rdk.RDKShell";
+                serviceCallsign.append(".1");
+                gRSKShellConnection = Utils::getThunderControllerClient(serviceCallsign);
+            }
+
+            if (nullptr != gRSKShellConnection)
+            {
+                if(!gRDKSHellEventSubscribed)
+                {
+                    int32_t status = Core::ERROR_GENERAL;
+                    std::string eventName("onScreenshotComplete");
+                    status = gRSKShellConnection->Subscribe<JsonObject>(SCREENCAPTURE_THUNDER_TIMEOUT, _T(eventName), &ScreenCapture::pluginEventHandler, this);
+    
+                    if(Core::ERROR_NONE == status)
+                        gRDKSHellEventSubscribed = true; 
+                    else
+                        LOGERR("Failed to Subscribe for %s", eventName.c_str());
+                }
+            }
+            else
+                LOGERR("Failed to establish connection to RDKShell");
+
+            if(gRDKSHellEventSubscribed)
+            {
+                JsonObject req, res;
+
+                int32_t status = gRSKShellConnection->Invoke(SCREENCAPTURE_THUNDER_TIMEOUT, "getScreenResolution", req, res);
+                if(Core::ERROR_NONE == status)
+                {
+                    if(res.HasLabel("w") && res.HasLabel("h"))
+                    {
+                        screenWidth = std::stoi(res["w"].String());
+                        screenHeight = std::stoi(res["h"].String());
+                    }
+                }
+
+                status = gRSKShellConnection->Invoke(SCREENCAPTURE_THUNDER_TIMEOUT, "getScreenshot", req, res);
+                if(Core::ERROR_NONE != status)
+                    LOGERR("Failed to call getScreenshot: %d", status);
+            }
+            else
+                LOGERR("Not subscribed to onScreenshotComplete event");
+
+#else
+            screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this) );
+#endif
 
             returnResponse(true);
         }
@@ -106,12 +214,12 @@ namespace WPEFramework
                 return 0;
             }
 
-            m_screenCapture->doUploadScreenCapture(url, callGUID);
+            m_screenCapture->getScreenShot();
 
             return 0;
         }
 
-        bool ScreenCapture::doUploadScreenCapture(std::string url, std::string callGUID)
+        bool ScreenCapture::getScreenShot()
         {
             std::vector<unsigned char> png_data;
             bool got_screenshot = false;
@@ -128,6 +236,11 @@ namespace WPEFramework
             got_screenshot = getScreenshotRealtek(png_data);
             #endif
 
+            doUploadScreenCapture(png_data, got_screenshot);
+        }
+
+        bool ScreenCapture::doUploadScreenCapture(const std::vector<unsigned char> &png_data, bool got_screenshot)
+        {
             if(got_screenshot)
             {
                 std::string error_str;
@@ -465,7 +578,7 @@ namespace WPEFramework
             p->insert(p->end(), data, data + length);
         }
 
-        bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)
+        bool ScreenCapture::uploadDataToUrl(const std::vector<unsigned char> &data, const char *url, std::string &error_str)
         {
             CURL *curl;
             CURLcode res;
