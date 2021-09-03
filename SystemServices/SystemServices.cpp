@@ -380,6 +380,9 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
+            registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
+#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
             // version 2 APIs
             registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
@@ -3227,6 +3230,66 @@ namespace WPEFramework {
             returnResponse(retVal);
         }
 
+#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
+	/***
+         * @brief : To set the wakeup source configuration.
+         * @param1[in] : {"params":{ "wakeupSrc": <int>, "config": <int>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setWakeupSrcConfiguration(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool status = false;
+            string src, value;
+            WakeupSrcType_t srcType;
+            bool config;
+            int paramErr = 0;
+            IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t param;
+            if (parameters.HasLabel("wakeupSrc") && parameters.HasLabel("config")) {
+                src = parameters["wakeupSrc"].String();
+                srcType = (WakeupSrcType_t)atoi(src.c_str());
+                value = parameters["config"].String();
+                config = (bool)atoi(value.c_str());
+
+                switch(srcType){
+                    case WAKEUPSRC_VOICE:
+                    case WAKEUPSRC_PRESENCE_DETECTION:
+                    case WAKEUPSRC_BLUETOOTH:
+                    case WAKEUPSRC_WIFI:
+                    case WAKEUPSRC_IR:
+                    case WAKEUPSRC_POWER_KEY:
+                    case WAKEUPSRC_TIMER:
+                    case WAKEUPSRC_CEC:
+                    case WAKEUPSRC_LAN:
+                        param.srcType = srcType;
+                        param.config = config;
+                        break;
+                    default:
+                        LOGERR("setWakeupSrcConfiguration invalid parameter\n");
+                        status = false;
+                        paramErr = 1;
+                }
+
+                if(paramErr == 0) {
+
+                    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                           IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
+                                           sizeof(param));
+
+                    if (IARM_RESULT_SUCCESS == res) {
+                        status = true;
+                    } else {
+                        status = false;
+                    }
+                }
+            } else {
+                LOGERR("setWakeupSrcConfiguration Missing Key Values\n");
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
+            returnResponse(status);
+        }
+#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
         /***
          * @brief : To handle the event of Power State change.
