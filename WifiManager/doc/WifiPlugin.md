@@ -496,6 +496,9 @@ This method takes no parameters.
 | result.security_modes?.NET_WIFI_SECURITY_WPA_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
 | result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP | integer | <sup>*(optional)*</sup>  |
 | result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_WPA2_PSK | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA3_PSK_AES | integer | <sup>*(optional)*</sup>  |
 | result.security_modes?.NET_WIFI_SECURITY_WPA3_SAE | integer | <sup>*(optional)*</sup>  |
 | result.success | boolean | Whether the request succeeded |
 
@@ -530,6 +533,9 @@ This method takes no parameters.
             "NET_WIFI_SECURITY_WPA_ENTERPRISE_AES": 8,
             "NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP": 9,
             "NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES": 10,
+            "NET_WIFI_SECURITY_WPA_WPA2_PSK": 11,
+            "NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE": 12,
+            "NET_WIFI_SECURITY_WPA3_PSK_AES": 13,
             "NET_WIFI_SECURITY_WPA3_SAE": 14
         },
         "success": true
