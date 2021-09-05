@@ -518,6 +518,8 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
+           m_sendKeyEventThreadExit = false;
+           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
            
            m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
            m_semSignaltoArcRoutingThread.acquire();
@@ -591,6 +593,7 @@ namespace WPEFramework
        {
 	    CECDisable();
 	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
+	    m_sendKeyEventThreadExit = true;
 
             m_semSignaltoArcRoutingThread.release();
 
@@ -606,6 +609,19 @@ namespace WPEFramework
 	    catch(const std::exception& e)
 	    {
 		LOGERR("exception in thread join %s", e.what());
+	    }
+	    try
+	    {
+            if (m_sendKeyEventThread.joinable())
+                m_sendKeyEventThread.join();
+	    }
+	    catch(const std::system_error& e)
+	    {
+		    LOGERR("system_error exception in thread join %s", e.what());
+	    }
+	    catch(const std::exception& e)
+	    {
+		    LOGERR("exception in thread join %s", e.what());
 	    }
 
             HdmiCecSink::_instance = nullptr;
@@ -917,13 +933,13 @@ namespace WPEFramework
                     switch(keyCode)
                    {
                        case VOLUME_UP:
-			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),1100);
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),100);
 			   break;
 		       case VOLUME_DOWN:
-			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 1100);
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 100);
                           break;
 		       case MUTE:
-			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 1100);
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
 			   break;
 
                    }
@@ -932,7 +948,7 @@ namespace WPEFramework
 		 {
                     if(!(_instance->smConnection))
                         return;
-		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 1000);
+		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
 
 		 }
          void  HdmiCecSink::sendDeviceUpdateInfo(const int logicalAddress)
@@ -964,7 +980,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send GiveAudioStatus ");
-	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 11000);
+	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
         }
         void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
@@ -1341,15 +1357,13 @@ namespace WPEFramework
 			returnIfParamNotFound(parameters, "keyCode");
 			string logicalAddress = parameters["logicalAddress"].String();
 			string keyCode = parameters["keyCode"].String();
-			int tologicalAddress = stoi(logicalAddress);
-			int remoteKey        = stoi(keyCode);
-		        LOGINFO("sendRemoteKeyPressWrapper : 0x%x 0x%x \n",tologicalAddress,remoteKey);
-			sendKeyPressEvent(tologicalAddress,remoteKey);
-			sendKeyReleaseEvent(tologicalAddress);
-			if((remoteKey == VOLUME_UP) || (remoteKey == VOLUME_DOWN) || (remoteKey == MUTE) )
-			{
-			   sendGiveAudioStatusMsg();
-			}
+			SendKeyInfo keyInfo;
+			keyInfo.logicalAddr = stoi(logicalAddress);
+			keyInfo.keyCode     = stoi(keyCode);
+			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+			m_SendKeyQueue.push(keyInfo);
+			m_sendKeyCV.notify_one();
+			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2791,6 +2805,48 @@ namespace WPEFramework
                 params["status"] = string("success");
                 sendNotify(eventString[HDMICECSINK_EVENT_ARC_TERMINATION_EVENT], params);
         }
+
+        void HdmiCecSink::threadSendKeyEvent()
+        {
+            int i;
+
+            if(!HdmiCecSink::_instance)
+                return;
+
+            while(1)
+            {
+                SendKeyInfo keyInfo = {-1,-1};
+                {
+                    // Wait for a message to be added to the queue
+                    std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
+                    while (_instance->m_SendKeyQueue.empty())
+                        _instance->m_sendKeyCV.wait(lk);
+
+                    if (_instance->m_SendKeyQueue.empty())
+                        continue;
+                    keyInfo = _instance->m_SendKeyQueue.front();
+                    _instance->m_SendKeyQueue.pop();
+                }
+
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
+			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
+			    keycount++;
+			    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
+			    {
+			        _instance->sendGiveAudioStatusMsg();
+			        getStatusCount++;
+			    }
+
+                if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    break;
+                }
+            }//while(1)
+        }//threadSendKeyEvent
+
+
         void HdmiCecSink::threadArcRouting()
         {
         	int i;
