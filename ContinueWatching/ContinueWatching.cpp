@@ -101,27 +101,19 @@ namespace WPEFramework {
 		uint32_t ContinueWatching::getApplicationToken(const JsonObject& parameters, JsonObject& response)
 		{
             LOGINFOMETHOD();
-
-			JsonObject token;
 			JsonArray appToken;
-			Core::OptionalType<Core::JSON::Error> error;
 			std::lock_guard<std::mutex> lock(m_mutex);
 			string appName = parameters["applicationName"].String();
 			LOGINFO("appName:: %s  \n",appName.c_str());
 			bool ret=false;
 			string tokenData = getAppToken(appName.c_str());
 			if(!(tokenData.empty())){
-				if (!token.FromString(tokenData, error)) {
-        	        		LOGERR("getApplicationToken :Failed to parse tokendata");      
-				}
-				else{
 					ret=true;
-					LOGINFO("getApplicationToken response OK  \n");
-				}
 			}
 			else{
 				LOGERR("getApplicationToken Error \n");
 			}
+			JsonObject token(tokenData);
 			appToken.Add(JsonValue(token));
 			response["application_token"]=appToken;
 			returnResponse(ret);
