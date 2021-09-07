@@ -1564,6 +1564,8 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(videoDisplay);
+                response["activeInput"] = JsonValue(false);
+                returnResponse(false);
             }
             response["activeInput"] = JsonValue(active);
             returnResponse(true);
