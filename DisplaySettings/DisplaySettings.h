@@ -132,7 +132,7 @@ namespace WPEFramework {
 	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response);
-            uint32_t setMS12ProfileSetttingsOverride(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response);
             uint32_t resetDialogEnhancement(const JsonObject& parameters, JsonObject& response);
             uint32_t resetBassEnhancer(const JsonObject& parameters, JsonObject& response);
             uint32_t resetSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
