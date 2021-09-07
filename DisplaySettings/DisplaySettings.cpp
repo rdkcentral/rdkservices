@@ -199,6 +199,10 @@ namespace WPEFramework {
             registerMethod("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
             registerMethod("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
 	    registerMethod("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
+            registerMethod("resetDialogEnhancement", &DisplaySettings::resetDialogEnhancement, this);
+            registerMethod("resetBassEnhancer", &DisplaySettings::resetBassEnhancer, this);
+            registerMethod("resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
+            registerMethod("resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
 
             registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
@@ -1225,7 +1229,6 @@ namespace WPEFramework {
                 if (aPort.isConnected())
                 {
                     mode = aPort.getStereoMode();
-
                     if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                     {
                         /* In DS5, "Surround" implies "Auto" */
@@ -1249,6 +1252,16 @@ namespace WPEFramework {
                                 LOGINFO("HDMI0 does not surround");
                                 modeString.append("AUTO (Stereo)");
                             }
+                        }
+                        else if ( mode == device::AudioStereoMode::kDD)
+                        {
+                            LOGINFO("HDMI0 is in dolby digital Mode");
+                            modeString.append("DOLBYDIGITAL");
+                        }
+                        else if ( mode == device::AudioStereoMode::kDDPlus)
+                        {
+                            LOGINFO("HDMI0 is in dolby digital Plus Mode");
+                            modeString.append("DOLBYDIGITALPLUS");
                         }
                         else
                             modeString.append(mode.toString());
@@ -1333,6 +1346,10 @@ namespace WPEFramework {
                 mode = device::AudioStereoMode::kSurround;
             else if (soundMode == "passthru" || soundMode == "PASSTHRU")
                 mode = device::AudioStereoMode::kPassThru;
+            else if (soundMode == "dolbydigital" || soundMode == "DOLBYDIGITAL")
+                mode = device::AudioStereoMode::kDD;
+            else if (soundMode == "dolbydigitalplus" || soundMode == "DOLBYDIGITALPLUS")
+                mode = device::AudioStereoMode::kDDPlus;
             else if (soundMode == "auto" || soundMode == "auto " || soundMode == "AUTO" || soundMode == "AUTO ")
             {
                 /*
@@ -3514,6 +3531,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+
         // Thunder plugins communication
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> DisplaySettings::getHdmiCecSinkPlugin()
         {
@@ -4299,5 +4317,76 @@ namespace WPEFramework {
             return true;
         }
 
+        uint32_t DisplaySettings::resetDialogEnhancement(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.resetDialogEnhancement();
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::resetBassEnhancer(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.resetBassEnhancer();
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::resetSurroundVirtualizer(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.resetSurroundVirtualizer();
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::resetVolumeLeveller(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.resetVolumeLeveller();
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                success = false;
+            }
+            returnResponse(success);
+        }
     } // namespace Plugin
 } // namespace WPEFramework

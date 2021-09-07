@@ -776,8 +776,6 @@ namespace WPEFramework {
                 removeCharsFromString(queryParams, "[\"]");
             }
 
-            string queryOriginal = queryParams;
-
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
 
@@ -833,12 +831,6 @@ namespace WPEFramework {
             }
 #endif
 
-            //Since there is no friendly_id available yet, returning hardcoded values based on model_number
-            if (queryParams == "friendly_id") {
-                queryParams = "model_number";
-            }
-
-
             std::string cmd = DEVICE_INFO_SCRIPT;
             if (!queryParams.empty()) {
                 cmd += " ";
@@ -880,26 +872,10 @@ namespace WPEFramework {
                     }
                 } else {
                     retAPIStatus = true;
-
                     Utils::String::trim(res);
-                    if (queryOriginal == "friendly_id") {
-                        model_number = res;
-                    } else {
                         response[queryParams.c_str()] = res;
                     }
                 }
-
-                if (queryParams.empty() || queryOriginal == "friendly_id") {
-                    if (model_number == "PLTL11AEI") {
-                        response["friendly_id"] = "CAD11";
-                    } else if (model_number == "HSTP11MWR") {
-                        response["friendly_id"] = "43A6GX";
-                    } else {
-                        response["friendly_id"] = "";
-                    }
-                }
-            }
-
             returnResponse(retAPIStatus);
         }
 
@@ -3305,6 +3281,7 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     }
+                    break;
                 case  IARM_BUS_PWRMGR_EVENT_REBOOTING:
                     {
                         IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;

@@ -19,6 +19,7 @@
  
 #include "SecurityAgent.h"
 #include "SecurityContext.h"
+#include "TokenFactory.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -57,30 +58,12 @@ namespace Plugin {
         const string _callsign;
     };
 
-    void SecurityAgent::TokenDispatcher::Tokenize::Procedure(Core::IPCChannel& source, Core::ProxyType<Core::IIPC>& data) {
-        Core::ProxyType<IPC::SecurityAgent::TokenData> message = Core::proxy_cast<IPC::SecurityAgent::TokenData>(data);
-
-        ASSERT (message.IsValid() == true);
-
-        if (message.IsValid() == true) {
-            string token;
-            if (_parent->CreateToken(message->Parameters().Length(), message->Parameters().Value(), token) == Core::ERROR_NONE) {
-                message->Response().Set(static_cast<uint16_t>(token.length()), reinterpret_cast<const uint8_t*>(token.c_str()));
-                source.ReportResponse(data);
-            }
-            else {
-                TRACE(Trace::Fatal, ("Could not create a security token."));
-            }
-        }
-    }
-
-    SecurityAgent::SecurityAgent() : _dispatcher(nullptr)
+    SecurityAgent::SecurityAgent()
+        : _acl()
+        , _dispatcher(nullptr)
+        , _engine()
     {
         RegisterAll();
-
-        for (uint8_t index = 0; index < sizeof(_secretKey); index++) {
-            Crypto::Random(_secretKey[index]);
-        }
     }
 
     /* virtual */ SecurityAgent::~SecurityAgent()
@@ -96,6 +79,8 @@ namespace Plugin {
 
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
+
+        PluginHost::ISubSystem* subSystem = service->SubSystems();
 
         if (aclFile.Exists() == false) {
             aclFile = service->DataPath() + config.ACL.Value();
@@ -114,29 +99,36 @@ namespace Plugin {
             }
         }
 
-        PluginHost::ISubSystem* subSystem = service->SubSystems();
-
-        ASSERT(subSystem != nullptr);
-
-        if (subSystem != nullptr) {
-            Core::Sink<SecurityCallsign> information(service->Callsign());
-
-            if (subSystem->IsActive(PluginHost::ISubSystem::SECURITY) != false) {
-                SYSLOG(Logging::Startup, (_T("Security is not defined as External !!")));
-            } 
-
-            subSystem->Set(PluginHost::ISubSystem::SECURITY, &information);
-            subSystem->Release();
-        }
-
         ASSERT(_dispatcher == nullptr);
+        ASSERT(subSystem != nullptr);
 
         string connector = config.Connector.Value();
 
         if (connector.empty() == true) {
             connector = service->VolatilePath() + _T("token");
         }
-        _dispatcher = new TokenDispatcher(Core::NodeId(connector.c_str()), this);
+        _engine = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
+        _dispatcher.reset(new TokenDispatcher(Core::NodeId(connector.c_str()), service->ProxyStubPath(), this, _engine));
+
+        if (_dispatcher != nullptr) {
+
+            if (_dispatcher->IsListening() == false) {
+                _dispatcher.reset(nullptr);
+                _engine.Release();
+            } else {
+                if (subSystem != nullptr) {
+                    Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), _dispatcher->Connector().c_str(), true);
+                    Core::Sink<SecurityCallsign> information(service->Callsign());
+
+                    if (subSystem->IsActive(PluginHost::ISubSystem::SECURITY) != false) {
+                        SYSLOG(Logging::Startup, (_T("Security is not defined as External !!")));
+                    }
+
+                    subSystem->Set(PluginHost::ISubSystem::SECURITY, &information);
+                    subSystem->Release();
+                }
+            }
+        }
 
         // On success return empty, to indicate there is no error text.
         return _T("");
@@ -147,9 +139,6 @@ namespace Plugin {
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 
         ASSERT(subSystem != nullptr);
-
-        delete _dispatcher;
-        _dispatcher = nullptr;
 
         if (subSystem != nullptr) {
             subSystem->Set(PluginHost::ISubSystem::NOT_SECURITY, nullptr);
@@ -167,24 +156,24 @@ namespace Plugin {
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
         // Generate the token from the buffer coming in...
-        Web::JSONWebToken newToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+        auto newToken = JWTFactory::Instance().Element();
 
-        return (newToken.Encode(token, length, buffer) > 0 ? Core::ERROR_NONE : Core::ERROR_UNAVAILABLE);
+        return (newToken->Encode(token, length, buffer) > 0 ? Core::ERROR_NONE : Core::ERROR_UNAVAILABLE);
     }
 
     /* virtual */ PluginHost::ISecurity* SecurityAgent::Officer(const string& token)
     {
         PluginHost::ISecurity* result = nullptr;
 
-        Web::JSONWebToken webToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
-        uint16_t load = webToken.PayloadLength(token);
+        auto webToken = JWTFactory::Instance().Element();
+        uint16_t load = webToken->PayloadLength(token);
 
         // Validate the token
         if (load != static_cast<uint16_t>(~0)) {
             // It is potentially a valid token, extract the payload.
             uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-            load = webToken.Decode(token, load, payload);
+            load = webToken->Decode(token, load, payload);
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
@@ -238,16 +227,16 @@ namespace Plugin {
                 result->Message = _T("Missing token");
 
                 if (request.WebToken.IsSet()) {
-                    Web::JSONWebToken webToken(Web::JSONWebToken::SHA256, sizeof(_secretKey), _secretKey);
+                    auto webToken = JWTFactory::Instance().Element();
                     const string& token = request.WebToken.Value().Token();
-                    uint16_t load = webToken.PayloadLength(token);
+                    uint16_t load = webToken->PayloadLength(token);
 
                     // Validate the token
                     if (load != static_cast<uint16_t>(~0)) {
                         // It is potentially a valid token, extract the payload.
                         uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-                        load = webToken.Decode(token, load, payload);
+                        load = webToken->Decode(token, load, payload);
 
                         if (load == static_cast<uint16_t>(~0)) {
                             result->ErrorCode = Web::STATUS_FORBIDDEN;

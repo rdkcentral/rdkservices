@@ -249,7 +249,12 @@ namespace WPEFramework {
 			}
 			
 		} ;
-		
+	        typedef struct sendKeyInfo
+                {
+                   int logicalAddr;
+                   int keyCode;
+                }SendKeyInfo;
+
 		class HdmiPortMap {
 			public:
 			uint8_t m_portID;
@@ -576,6 +581,14 @@ private:
 			bool m_pollThreadExit;
 			uint32_t m_sleepTime;
             std::mutex m_pollMutex;
+            std::mutex m_enableMutex;
+            /* Send Key event related */
+            bool m_sendKeyEventThreadExit;
+            std::thread m_sendKeyEventThread;
+            std::mutex m_sendKeyEventMutex;
+            std::queue<SendKeyInfo> m_SendKeyQueue;
+            std::condition_variable m_sendKeyCV;
+
             /* ARC related */
             std::thread m_arcRoutingThread;
 	    uint32_t m_currentArcRoutingState;
@@ -622,6 +635,7 @@ private:
             
             // Arc functions
     
+            static void  threadSendKeyEvent();
             static void  threadArcRouting();
             void requestArcInitiation();
             void requestArcTermination();
