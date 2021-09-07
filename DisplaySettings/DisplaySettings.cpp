@@ -216,7 +216,7 @@ namespace WPEFramework {
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
-            registerMethod("setMS12ProfileSetttingsOverride", &DisplaySettings::setMS12ProfileSetttingsOverride,this);
+            registerMethod("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
 
 	    registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this, {2});
 	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
@@ -2876,7 +2876,7 @@ namespace WPEFramework {
 	    returnResponse(success);
         }
         
-        uint32_t DisplaySettings::setMS12ProfileSetttingsOverride(const JsonObject& parameters, JsonObject& response)
+        uint32_t DisplaySettings::setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool success = true;
