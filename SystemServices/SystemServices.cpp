@@ -2066,6 +2066,7 @@ namespace WPEFramework {
 					outfile.open(TZ_FILE,ios::out);
 					if (outfile) {
 						outfile << timeZone;
+						outfile.flush();
 						outfile.close();
 						LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
 						resp = true;
