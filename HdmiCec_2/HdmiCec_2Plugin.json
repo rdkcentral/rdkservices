@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "HdmiCec_2Plugin",
+      "callsign": "org.rdk.HdmiCec_2",
+      "locator": "libWPEFrameworkHdmiCec_2.so",
+      "status": "production",
+      "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "HdmiCec_2.json#"
+    }
+}

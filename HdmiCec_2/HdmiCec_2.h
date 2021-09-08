@@ -105,6 +105,7 @@ namespace WPEFramework {
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCec_2* _instance;
+            void SendStandbyMsgEvent(const int logicalAddress);
         private:
             // We do not allow this plugin to be copied !!
             HdmiCec_2(const HdmiCec_2&) = delete;
@@ -120,11 +121,14 @@ namespace WPEFramework {
             uint32_t setVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t performOTPActionWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+
             //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
+            bool IsCecMgrActivated;
             Connection *smConnection;
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
@@ -151,6 +155,7 @@ namespace WPEFramework {
             void getPhysicalAddress();
             void getLogicalAddress();
             void cecAddressesChanged(int changeStatus);
+            bool sendStandbyMessage();
         };
 	} // namespace Plugin
 } // namespace WPEFramework
