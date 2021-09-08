@@ -118,8 +118,7 @@ void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enabled, i
     }
     else if (response.HasLabel("state"))
     {
-        int64_t number;
-        getNumberParameter("state", number);
+        int64_t number = std::stoi(response["state"].String());
         state = (WifiState) number;
         LOGINFO("wifi state = %d", state);
     }
@@ -145,19 +144,20 @@ bool WifiManagerSignalThreshold::isSignalThresholdChangeEnabled() const
 void WifiManagerSignalThreshold::loop(int interval)
 {
     std::unique_lock<std::mutex> lk(cv_mutex);
-    while(changeEnabled) {
+    std::string lastStrength = "";
 
+    while(changeEnabled)
+    {
         float signalStrength;
         std::string strength;
-        std::string lastStrength = "";
         if (running)
         {
-            LOGINFO("WifiManagerSignalThreashold::loop");
             getSignalData(wifiManager, signalStrength, strength);
 
 
             if (strength != lastStrength)
             {
+                LOGINFO("Triggering onWifiSignalThresholdChanged notification");
                 wifiManager.onWifiSignalThresholdChanged(signalStrength, strength);
                 lastStrength = strength;
             }
