@@ -222,6 +222,7 @@ namespace WPEFramework {
 	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
 	    registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this, {2});
 	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
+            registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
@@ -4389,6 +4390,77 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+        }
+        uint32_t DisplaySettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+            LOGINFOMETHOD();
+
+            JsonArray videoFormats;
+            int capabilities = dsHDRSTANDARD_NONE;
+
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.getHDRCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            videoFormats.Add("NONE");
+            if(capabilities & dsHDRSTANDARD_NONE)videoFormats.Add("SDR");
+            if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
+	    if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
+            if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
+            if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            try
+            {
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();$
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());$
+                if (vPort.isDisplayConnected())$
+                {$
+                    int _eotf = vPort.getVideoEOTF();$
+                    switch (_eotf)$
+                    {$
+                        case dsHDRSTANDARD_NONE:
+                            response["currentVideoFormat"] = "SDR";
+                            break;
+                        case dsHDRSTANDARD_HDR10:
+                            response["currentVideoFormat"] = "HDR10";
+                            break;
+                        case dsHDRSTANDARD_HLG:
+                            response["currentVideoFormat"] = "HLG";
+                            break;
+                        case dsHDRSTANDARD_DolbyVision:
+                            response["currentVideoFormat"] = "DV";
+                            break;
+                        case dsHDRSTANDARD_TechnicolorPrime:
+                            response["currentVideoFormat"] = "Technicolor Prime";
+                            break;
+                        default:
+                            response["currentVideoFormat"] = "INVALID";
+                            break;
+                    }$
+                }$
+                else$
+                {$
+                    ret = Core::ERROR_GENERAL;$
+                }$
+
+	    }
+	    catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+
+            response["supportedVideoFormat"] = videoFormats
+            for (uint32_t i = 0; i < videoFormats.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
+            }
+            returnResponse(true);
         }
     } // namespace Plugin
 } // namespace WPEFramework
