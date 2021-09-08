@@ -51,3 +51,6 @@ uninstall.cmake
 install_manifest.txt
 CTestTestfile.cmake
 output/
+
+# generated config files
+**/*.generated.json
