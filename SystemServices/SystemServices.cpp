@@ -2025,7 +2025,6 @@ namespace WPEFramework {
 		bool resp = false;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
-			ofstream outfile;
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
@@ -2039,11 +2038,14 @@ namespace WPEFramework {
 						//Do nothing//
 					}
 
-					outfile.open(TZ_FILE,ios::out);
-					if (outfile) {
-						outfile << timeZone;
-						outfile.close();
-						LOGWARN("Set TimeZone: %s\n", timeZone.c_str());
+					FILE *f = fopen(TZ_FILE, "w");
+					if (f) {
+						if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+							LOGERR("Failed to write %s", TZ_FILE);
+
+						fflush(f);
+						fsync(fileno(f));
+						fclose(f);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
