@@ -1,0 +1,13 @@
+{
+    "jsonrpc": "2.0", 
+    "id": "8006", 
+    "method": "org.rdk.FireboltMediaPlayer.1.setDRMConfig", 
+    "params": { 
+        "id": "mainplayer", 
+
+        "com.microsoft.playready": "http://test.playready.microsoft.com/service/rightsmanager.asmx",
+        "com.widevine.alpha": "https://widevine-proxy.appspot.com/proxy",
+        "org.w3.clearkey": "",
+        "preferredKeysystem": "com.microsoft.playready"
+    }
+}
