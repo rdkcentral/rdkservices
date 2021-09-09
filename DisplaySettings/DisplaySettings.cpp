@@ -1988,8 +1988,8 @@ namespace WPEFramework {
 	    if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
 	    if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
 	    if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
-	    switch (videoFormat)$
-	    {$
+	    switch (videoFormat)
+	    {
 		    case dsHDRSTANDARD_NONE:
 			    params["currentVideoFormat"] = "SDR";
 			    break;
@@ -2008,7 +2008,7 @@ namespace WPEFramework {
 		    default:
 			    params["currentVideoFormat"] = "INVALID";
 			    break;
-	    }$
+	    }
 
 	    params["supportedVideoFormat"] = videoFormats;
             for (uint32_t i = 0; i < videoFormats.Length(); i++)
@@ -4479,13 +4479,13 @@ namespace WPEFramework {
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
             try
             {
-                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();$
-                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());$
-                if (vPort.isDisplayConnected())$
-                {$
-                    int _eotf = vPort.getVideoEOTF();$
-                    switch (_eotf)$
-                    {$
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+                if (vPort.isDisplayConnected())
+                {
+                    int _eotf = vPort.getVideoEOTF();
+                    switch (_eotf)
+                    {
                         case dsHDRSTANDARD_NONE:
                             response["currentVideoFormat"] = "SDR";
                             break;
@@ -4504,12 +4504,12 @@ namespace WPEFramework {
                         default:
                             response["currentVideoFormat"] = "INVALID";
                             break;
-                    }$
-                }$
-                else$
-                {$
-                    ret = Core::ERROR_GENERAL;$
-                }$
+                    }
+                }
+                else
+                {
+                    ret = Core::ERROR_GENERAL;
+                }
 
 	    }
 	    catch(const device::Exception& err)
