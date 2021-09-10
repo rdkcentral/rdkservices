@@ -4508,7 +4508,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    ret = Core::ERROR_GENERAL;
+                    response["currentVideoFormat"] = "INVALID";
                 }
 
 	    }
