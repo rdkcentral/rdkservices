@@ -1982,8 +1982,7 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION0();
             }
 
-            videoFormats.Add("NONE");
-            if(capabilities & dsHDRSTANDARD_NONE)videoFormats.Add("SDR");
+            videoFormats.Add("SDR");
             if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
 	    if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
 	    if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
@@ -4471,10 +4470,9 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION0();
             }
 
-            videoFormats.Add("NONE");
-            if(capabilities & dsHDRSTANDARD_NONE)videoFormats.Add("SDR");
+            videoFormats.Add("SDR");
             if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
-	    if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
+            if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
             try
