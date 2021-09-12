@@ -1055,7 +1055,15 @@ namespace WPEFramework {
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
-                    int surroundMode = vPort.getDisplay().getSurroundMode();
+                    int surroundMode = false;
+                    try{
+                        surroundMode = vPort.getDisplay().getSurroundMode();
+                    }
+                    catch(const device::Exception& err)
+                    {
+                        surroundMode = false;
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                    }
                     if (vPort.isDisplayConnected() && surroundMode)
                     {
                         if(surroundMode & dsSURROUNDMODE_DDPLUS )
@@ -1282,6 +1290,17 @@ namespace WPEFramework {
                             modeString.append(mode.toString());
                         }
                     }
+                    if((aPort.getType().getId() == device::AudioOutputPortType::kHDMI)){
+                        mode = aPort.getStereoMode();
+                        if (aPort.getStereoAuto() || mode == device::AudioStereoMode::kSurround)
+                        {
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
+                            modeString.append("AUTO (Stereo)");
+                        }
+                        else{
+                            modeString.append(mode.toString());
+                        }
+                    }
                     else {
                         /*
                         * VideoDisplay is not connected. Its audio mode is unknown. Return
@@ -1451,6 +1470,18 @@ namespace WPEFramework {
                             else { //Auto Mode
                                 aPort.setStereoAuto(stereoAuto, persist);
                             }
+                        }else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI) {
+                            if (!(mode == device::AudioStereoMode::kPassThru))
+                            {
+                                aPort.setStereoAuto(stereoAuto, persist);
+                                LOGINFO("setting stereoAuto= %d  \n ",stereoAuto);
+                            }
+                            else
+                            {
+                                aPort.setStereoAuto(false, persist);
+                            }
+                            LOGINFO("setting sound mode = %s  \n ", mode.toString().c_str());
+                            aPort.setStereoMode(mode.toString(), persist);
                         } else {
                             LOGERR("setSoundMode failed !! Device Not Connected...\n");
                             success = false;
