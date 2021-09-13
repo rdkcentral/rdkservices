@@ -4471,7 +4471,7 @@ namespace WPEFramework {
         string getVideoFormatString(dsHDRStandard_t videoFormat)
         {
             string responseString;
-            switch (_eotf)
+            switch (videoFormat)
             {
                 case dsHDRSTANDARD_NONE:
                     responseString = "SDR";
