@@ -139,6 +139,7 @@ SystemServices interface methods:
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
 | [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
+| [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
 
 
 <a name="method.cacheContains"></a>
@@ -2595,6 +2596,52 @@ This method takes no parameters.
     "method": "org.rdk.System.1.deletePersistentPath",
     "params": {
         "callsign": "HtmlApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.uploadLogs"></a>
+## *uploadLogs <sup>method</sup>*
+
+(Version 2) Uploads logs to a URL returned by SSR.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.url | string | <sup>*(optional)*</sup> SSR URL |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.uploadLogs",
+    "params": {
+        "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
     }
 }
 ```
