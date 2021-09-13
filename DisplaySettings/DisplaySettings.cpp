@@ -1969,47 +1969,9 @@ namespace WPEFramework {
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
 	    JsonObject params;
-            JsonArray videoFormats;
-            int capabilities = dsHDRSTANDARD_NONE;
+	    params["currentVideoFormat"] = getVideoFormatString(videoFormat);
 
-            try
-            {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.getHDRCapabilities(&capabilities);
-            }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION0();
-            }
-
-            videoFormats.Add("SDR");
-            if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
-	    if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
-	    if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
-	    if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
-	    switch (videoFormat)
-	    {
-		    case dsHDRSTANDARD_NONE:
-			    params["currentVideoFormat"] = "SDR";
-			    break;
-		    case dsHDRSTANDARD_HDR10:
-			    params["currentVideoFormat"] = "HDR10";
-			    break;
-		    case dsHDRSTANDARD_HLG:
-			    params["currentVideoFormat"] = "HLG";
-			    break;
-		    case dsHDRSTANDARD_DolbyVision:
-			    params["currentVideoFormat"] = "DV";
-			    break;
-		    case dsHDRSTANDARD_TechnicolorPrime:
-			    params["currentVideoFormat"] = "Technicolor Prime";
-			    break;
-		    default:
-			    params["currentVideoFormat"] = "INVALID";
-			    break;
-	    }
-
-	    params["supportedVideoFormat"] = videoFormats;
+	    params["supportedVideoFormat"] = getSupportedVideoFormats();
             for (uint32_t i = 0; i < videoFormats.Length(); i++)
             {
                LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
@@ -4457,24 +4419,6 @@ namespace WPEFramework {
         {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
             LOGINFOMETHOD();
 
-            JsonArray videoFormats;
-            int capabilities = dsHDRSTANDARD_NONE;
-
-            try
-            {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.getHDRCapabilities(&capabilities);
-            }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION0();
-            }
-
-            videoFormats.Add("SDR");
-            if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
-            if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
-            if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
-            if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
             try
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -4482,27 +4426,7 @@ namespace WPEFramework {
                 if (vPort.isDisplayConnected())
                 {
                     int _eotf = vPort.getVideoEOTF();
-                    switch (_eotf)
-                    {
-                        case dsHDRSTANDARD_NONE:
-                            response["currentVideoFormat"] = "SDR";
-                            break;
-                        case dsHDRSTANDARD_HDR10:
-                            response["currentVideoFormat"] = "HDR10";
-                            break;
-                        case dsHDRSTANDARD_HLG:
-                            response["currentVideoFormat"] = "HLG";
-                            break;
-                        case dsHDRSTANDARD_DolbyVision:
-                            response["currentVideoFormat"] = "DV";
-                            break;
-                        case dsHDRSTANDARD_TechnicolorPrime:
-                            response["currentVideoFormat"] = "Technicolor Prime";
-                            break;
-                        default:
-                            response["currentVideoFormat"] = "INVALID";
-                            break;
-                    }
+                    response["currentVideoFormat"] = getVideoFormatString(_eotf);
                 }
                 else
                 {
@@ -4516,12 +4440,64 @@ namespace WPEFramework {
             }
 
 
-            response["supportedVideoFormat"] = videoFormats;
+            response["supportedVideoFormat"] = getSupportedVideoFormats();
             for (uint32_t i = 0; i < videoFormats.Length(); i++)
             {
                LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
             }
             returnResponse(true);
+        }
+
+        JsonArray getSupportedVideoFormats()
+        {
+            JsonArray videoFormats;
+            int capabilities = dsHDRSTANDARD_NONE;
+
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.getHDRCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                return videoFormats;
+            }
+
+            videoFormats.Add("SDR");
+            if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
+            if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
+            if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            return videoFormats;
+        }
+
+        string getVideoFormatString(dsHDRStandard_t videoFormat)
+        {
+            string responseString;
+            switch (_eotf)
+            {
+                case dsHDRSTANDARD_NONE:
+                    responseString = "SDR";
+                    break;
+                case dsHDRSTANDARD_HDR10:
+                    responseString = "HDR10";
+                    break;
+                case dsHDRSTANDARD_HLG:
+                    responseString = "HLG";
+                    break;
+                case dsHDRSTANDARD_DolbyVision:
+                    responseString = "DV";
+                    break;
+                case dsHDRSTANDARD_TechnicolorPrime:
+                    responseString = "TechnicolorPrime";
+                    break;
+                default:
+                    responseString = "INVALID";
+                    break;
+            }
+            return responseString;
+
         }
     } // namespace Plugin
 } // namespace WPEFramework
