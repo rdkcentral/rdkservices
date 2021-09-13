@@ -1972,11 +1972,7 @@ namespace WPEFramework {
 	    params["currentVideoFormat"] = getVideoFormatString(videoFormat);
 
 	    params["supportedVideoFormat"] = getSupportedVideoFormats();
-            for (uint32_t i = 0; i < videoFormats.Length(); i++)
-            {
-               LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
-            }
-             sendNotify("videoFormatChanged", params);
+            sendNotify("videoFormatChanged", params);
 	}
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
@@ -4441,10 +4437,6 @@ namespace WPEFramework {
 
 
             response["supportedVideoFormat"] = getSupportedVideoFormats();
-            for (uint32_t i = 0; i < videoFormats.Length(); i++)
-            {
-               LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
-            }
             returnResponse(true);
         }
 
@@ -4469,6 +4461,10 @@ namespace WPEFramework {
             if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            for (uint32_t i = 0; i < videoFormats.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
+            }
             return videoFormats;
         }
 
