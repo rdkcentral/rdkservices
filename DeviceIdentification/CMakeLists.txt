@@ -39,6 +39,10 @@ if (PLUGIN_DEVICEIDENTIFICATION_USE_MFR AND MFRFWLIBS_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             mfrfwlibs::mfrfwlibs)
+elseif (BUILD_BROADCOM)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Broadcom/Broadcom.cpp)	    
 elseif (NEXUS_FOUND)
     find_package(NXCLIENT REQUIRED)
     target_link_libraries(${MODULE_NAME} 
