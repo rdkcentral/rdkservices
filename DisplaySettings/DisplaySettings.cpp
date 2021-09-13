@@ -4422,7 +4422,7 @@ namespace WPEFramework {
                 if (vPort.isDisplayConnected())
                 {
                     int _eotf = vPort.getVideoEOTF();
-                    response["currentVideoFormat"] = getVideoFormatString(_eotf);
+                    response["currentVideoFormat"] = getVideoFormatString((dsHDRStandard_t)_eotf);
                 }
                 else
                 {
