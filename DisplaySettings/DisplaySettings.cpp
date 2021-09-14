@@ -4457,7 +4457,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    response["currentVideoFormat"] = "INVALID";
+                    response["currentVideoFormat"] = "NONE";
                 }
 
 	    }
@@ -4505,27 +4505,27 @@ namespace WPEFramework {
             switch (format)
             {
                 case dsHDRSTANDARD_NONE:
-                    printf("Video Format: SDR\n");
+                    LOGINFO("Video Format: SDR\n");
                     strValue = "SDR";
                     break;
                 case dsHDRSTANDARD_HDR10:
-                    printf("Video Format: HDR10\n");
+                    LOGINFO("Video Format: HDR10\n");
                     strValue = "HDR10";
                     break;
                 case dsHDRSTANDARD_HLG:
-                    printf("Video Format: HLG\n");
+                    LOGINFO("Video Format: HLG\n");
                     strValue = "HLG";
                     break;
                 case dsHDRSTANDARD_DolbyVision:
-                    printf("Video Format: DV\n");
+                    LOGINFO("Video Format: DV\n");
                     strValue = "DV";
                     break;
                 case dsHDRSTANDARD_TechnicolorPrime:
-                    printf("Video Format: TechnicolorPrime\n");
+                    LOGINFO("Video Format: TechnicolorPrime\n");
                     strValue = "TechnicolorPrime";
                     break;
                 default:
-                    printf("Video Format: NONE\n");
+                    LOGINFO("Video Format: NONE\n");
                     strValue = "NONE";
                     break;
             }
