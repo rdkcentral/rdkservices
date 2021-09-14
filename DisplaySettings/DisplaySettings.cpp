@@ -1968,12 +1968,12 @@ namespace WPEFramework {
 
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
-	    JsonObject params;
-	    params["currentVideoFormat"] = getVideoFormatString(videoFormat);
+            JsonObject params;
+            params["currentVideoFormat"] = getVideoFormatString((int)videoFormat);
 
-	    params["supportedVideoFormat"] = getSupportedVideoFormats();
+            params["supportedVideoFormat"] = getSupportedVideoFormats();
             sendNotify("videoFormatChanged", params);
-	}
+        }
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
@@ -4422,7 +4422,7 @@ namespace WPEFramework {
                 if (vPort.isDisplayConnected())
                 {
                     int _eotf = vPort.getVideoEOTF();
-                    response["currentVideoFormat"] = getVideoFormatString((dsHDRStandard_t)_eotf);
+                    response["currentVideoFormat"] = getVideoFormatString(_eotf);
                 }
                 else
                 {
@@ -4468,7 +4468,7 @@ namespace WPEFramework {
             return videoFormats;
         }
 
-        string getVideoFormatString(dsHDRStandard_t videoFormat)
+        string getVideoFormatString(int videoFormat)
         {
             string responseString;
             switch (videoFormat)
