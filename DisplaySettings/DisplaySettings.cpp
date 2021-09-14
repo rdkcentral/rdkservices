@@ -4471,7 +4471,7 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
-        JsonArray getSupportedVideoFormats()
+        JsonArray DisplaySettings::getSupportedVideoFormats()
         {
             JsonArray videoFormats;
             int capabilities = dsHDRSTANDARD_NONE;
@@ -4499,7 +4499,7 @@ namespace WPEFramework {
             return videoFormats;
         }
 
-        string getVideoFormatString(int videoFormat)
+        string DisplaySettings::getVideoFormatString(int videoFormat)
         {
             string responseString;
             switch (videoFormat)
