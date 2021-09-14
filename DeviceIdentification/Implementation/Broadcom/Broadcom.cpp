@@ -47,6 +47,7 @@
 #include <interfaces/IDeviceIdentification.h>
 
 #include <fstream>
+#include <sstream>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -115,7 +116,7 @@ private:
     }
     inline void UpdateChipset(string& chipset) const
     {
-        string line;
+        string s;
         std::ifstream file(ProductFile);
 	unsigned char product_id[4];
         int product_id_int;
@@ -126,7 +127,8 @@ private:
             file >> product_id[2];
             file >> product_id[3];
             product_id_int = (unsigned int) product_id[0] << 24 | (unsigned int) product_id[1] << 16 | (unsigned int) product_id[2] << 8 | (unsigned int) product_id[3];
-            chipset = std::to_string(product_id_int);
+            s << "BCM" << std::hex << product_id_int;
+            chipset = s.str();
             file.close();
         }
     }
