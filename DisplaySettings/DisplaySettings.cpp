@@ -4443,7 +4443,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
         uint32_t DisplaySettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
+        {   //sample servicemanager response:{"currentVideoFormat":"SDR","supportedVideoFormat":["SDR","HDR10","HLG","DV","Technicolor Prime"],"success":true}
             LOGINFOMETHOD();
 
             try
@@ -4464,6 +4464,7 @@ namespace WPEFramework {
 	    catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                response["currentVideoFormat"] = "NONE";
             }
 
 
