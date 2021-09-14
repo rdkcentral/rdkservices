@@ -1841,26 +1841,32 @@ namespace WPEFramework {
                             }
                         }
                     }
-                    found = line.find("DnldVersn|");
-                    if (std::string::npos != found) {
-                        while ((pos = line.find(delimiter)) != std::string::npos) {
-                            token = line.substr(0, pos);
-                            line.erase(0, pos + delimiter.length());
+                    // return DnldVersn based on IARM Firmware Update State
+                    // If Firmware Update State is Downloading or above then 
+                    // return DnldVersion from FWDNLDSTATUS_FILE_NAME else return empty
+                    if(m_FwUpdateState_LatestEvent >=2)
+                    {
+                        found = line.find("DnldVersn|");
+                        if (std::string::npos != found) {
+                            while ((pos = line.find(delimiter)) != std::string::npos) {
+                                token = line.substr(0, pos);
+                                line.erase(0, pos + delimiter.length());
+                            }
+                            line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
+                            if (line.length() > 1) {
+                                downloadedFWVersion = line.c_str();
+                            }
                         }
-                        line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
-                        if (line.length() > 1) {
-                            downloadedFWVersion = line.c_str();
-                        }
-                    }
-                    found = line.find("DnldURL|");
-                    if (std::string::npos != found) {
-                        while ((pos = line.find(delimiter)) != std::string::npos) {
-                            token = line.substr(0, pos);
-                            line.erase(0, pos + delimiter.length());
-                        }
-                        line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
-                        if (line.length() > 1) {
-                            downloadedFWLocation = line.c_str();
+                        found = line.find("DnldURL|");
+                        if (std::string::npos != found) {
+                            while ((pos = line.find(delimiter)) != std::string::npos) {
+                                token = line.substr(0, pos);
+                                line.erase(0, pos + delimiter.length());
+                            }
+                            line = std::regex_replace(line, std::regex("^ +| +$"), "$1");
+                            if (line.length() > 1) {
+                                downloadedFWLocation = line.c_str();
+                            }
                         }
                     }
                 }
