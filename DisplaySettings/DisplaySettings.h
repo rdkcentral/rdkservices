@@ -176,7 +176,7 @@ namespace WPEFramework {
             static void audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
-            static const char *getVideoFormatTypeToString(dsHDRStandard_t format);
+            const char *getVideoFormatTypeToString(dsHDRStandard_t format);
             JsonArray getSupportedVideoFormats();
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();

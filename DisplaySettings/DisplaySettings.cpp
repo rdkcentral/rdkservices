@@ -4499,7 +4499,7 @@ namespace WPEFramework {
             return videoFormats;
         }
 
-        static const char *DisplaySettings::getVideoFormatTypeToString(dsHDRStandard_t format)
+        const char *DisplaySettings::getVideoFormatTypeToString(dsHDRStandard_t format)
         {
             const char *strValue = "NONE";
             switch (format)
