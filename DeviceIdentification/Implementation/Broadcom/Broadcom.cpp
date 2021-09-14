@@ -116,7 +116,7 @@ private:
     }
     inline void UpdateChipset(string& chipset) const
     {
-        string s;
+        std::stringstream s;
         std::ifstream file(ProductFile);
 	unsigned char product_id[4];
         int product_id_int;
