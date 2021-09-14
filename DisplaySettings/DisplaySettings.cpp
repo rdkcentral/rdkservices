@@ -2000,7 +2000,7 @@ namespace WPEFramework {
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
             JsonObject params;
-            params["currentVideoFormat"] = getVideoFormatString((int)videoFormat);
+            params["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
 
             params["supportedVideoFormat"] = getSupportedVideoFormats();
             sendNotify("videoFormatChanged", params);
@@ -4453,7 +4453,7 @@ namespace WPEFramework {
                 if (vPort.isDisplayConnected())
                 {
                     int _eotf = vPort.getVideoEOTF();
-                    response["currentVideoFormat"] = getVideoFormatString(_eotf);
+                    response["currentVideoFormat"] = getVideoFormatTypeToString((dsHDRStandard_t)_eotf);
                 }
                 else
                 {
@@ -4499,31 +4499,37 @@ namespace WPEFramework {
             return videoFormats;
         }
 
-        string DisplaySettings::getVideoFormatString(int videoFormat)
+        static const char *DisplaySettings::getVideoFormatTypeToString(dsHDRStandard_t format)
         {
-            string responseString;
-            switch (videoFormat)
+            const char *strValue = "NONE";
+            switch (format)
             {
                 case dsHDRSTANDARD_NONE:
-                    responseString = "SDR";
+                    printf("Video Format: SDR\n");
+                    strValue = "SDR";
                     break;
                 case dsHDRSTANDARD_HDR10:
-                    responseString = "HDR10";
+                    printf("Video Format: HDR10\n");
+                    strValue = "HDR10";
                     break;
                 case dsHDRSTANDARD_HLG:
-                    responseString = "HLG";
+                    printf("Video Format: HLG\n");
+                    strValue = "HLG";
                     break;
                 case dsHDRSTANDARD_DolbyVision:
-                    responseString = "DV";
+                    printf("Video Format: DV\n");
+                    strValue = "DV";
                     break;
                 case dsHDRSTANDARD_TechnicolorPrime:
-                    responseString = "TechnicolorPrime";
+                    printf("Video Format: TechnicolorPrime\n");
+                    strValue = "TechnicolorPrime";
                     break;
                 default:
-                    responseString = "INVALID";
+                    printf("Video Format: NONE\n");
+                    strValue = "NONE";
                     break;
             }
-            return responseString;
+            return strValue;
 
         }
     } // namespace Plugin
