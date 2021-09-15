@@ -506,10 +506,11 @@ void TTSSpeaker::createPipeline() {
     GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioVolume = gst_element_factory_make("volume", NULL);
-    m_audioSink = gst_element_factory_make("alsasink", NULL);
+    m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
     g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
     g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
+    g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #endif
 
     std::string tts_url =
@@ -605,8 +606,15 @@ void TTSSpeaker::createPipeline() {
 #elif defined(PLATFORM_REALTEK)
     audiocaps = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, "rate", G_TYPE_INT, 48000, NULL);
     g_object_set( G_OBJECT(audiofilter),  "caps",  audiocaps, NULL );
-    gst_bin_add_many(GST_BIN(m_pipeline), m_source, parse, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
-    gst_element_link_many (m_source, parse, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+    if(!m_pcmAudioEnabled) {
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parse, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
+        gst_element_link_many (m_source, parse, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+    }
+    else {
+        TTSLOG_INFO("PCM audio capsfilter added to sink");
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_audioVolume, convert, resample, m_audioSink,  NULL);
+        gst_element_link_many (m_source, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+    }
 #endif
 
     if(!result) {

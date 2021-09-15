@@ -1410,6 +1410,24 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "uploadLogs": {
+            "summary": "(Version 2) Uploads logs to a URL returned by SSR",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "summary": "SSR URL",
+                        "type": "string",
+                        "default": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
+                    }
+                },
+                "required": [
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
