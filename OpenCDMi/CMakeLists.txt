@@ -18,6 +18,18 @@
 set(PLUGIN_NAME OCDM)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_OPENCDMI_AUTOSTART "true" CACHE STRING "Automatically start OpenCDMi plugin")
+set(PLUGIN_OPENCDMI_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+
+# deprecated/legacy flags support
+if(PLUGIN_OPENCDMI_OOP STREQUAL "false")
+    set(PLUGIN_OPENCDMI_MODE "Off" CACHE STRING "Process mode"  FORCE)
+    unset(PLUGIN_OPENCDMI_OOP CACHE)
+elseif(PLUGIN_OPENCDMI_OUTOFPROCESS STREQUAL "false")
+    set(PLUGIN_OPENCDMI_MODE "Off" CACHE STRING "Process mode"  FORCE)
+    unset(PLUGIN_OPENCDMI_OUTOFPROCESS CACHE)
+endif()
+
 find_package(ocdm REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
