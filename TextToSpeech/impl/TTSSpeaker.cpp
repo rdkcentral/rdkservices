@@ -539,7 +539,7 @@ void TTSSpeaker::createPipeline() {
         if(m_pcmAudioEnabled) {
             //Raw PCM audio does not work with souphhtpsrc on Amlogic alsaasink
             m_source = gst_element_factory_make("httpsrc", NULL);
-            g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
+            g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
         }
         else {
             m_source = gst_element_factory_make("souphttpsrc", NULL);
@@ -854,8 +854,8 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 #if defined(PLATFORM_AMLOGIC)
-	//-12db is almost 25%
-	setMixGain(MIXGAIN_PRIM,-12);
+        //-12db is almost 25%
+        setMixGain(MIXGAIN_PRIM,-12);
 #endif
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
