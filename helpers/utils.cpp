@@ -34,8 +34,6 @@
 
 #define MAX_STRING_LENGTH 2048
 
-#define SERVER_DETAILS  "127.0.0.1:9998"
-
 using namespace WPEFramework;
 using namespace std;
 
@@ -155,6 +153,65 @@ bool Utils::isFileExistsAndOlderThen(const char *pFileName, long age /*= -1*/)
     //LOGWARN("elapsed time is %lu, %s", modifiedSecondsAgo, modifiedSecondsAgo <= age ? "updated recently (doesn't exists)" : "updated long time ago (exists)");
 
     return modifiedSecondsAgo > age;
+}
+
+
+bool Utils::Port::isJsonMatch(std::string inString) 
+{
+    return std::regex_match(inString, "(sub)(.*)");
+}
+
+std::string Utils::Port::retrieveJsonValue(std::string stringLine, std::string rgxMatch)
+{
+    std::smatch matchFound;
+    std::regex rgx(rgxMatch);
+    if (std::regex_search(stringLine.begin(), stringLine.end(), matchFound, rgx)) {
+        return matchFound;
+    } else {
+        std::string fouledUp "NO MATCH on '" += rgxMatch;
+        fubar += "'";
+        return fouledUp;
+    }
+}
+
+std::string Utils::Port::fetchCurrentIpBindingAndPort()
+{
+    std::fstream inFileStream;
+    std::string jsonLine; // each line of JSON file
+    uint8_t success = 0; // count 0 up to 2 for success!
+    std::string ip_binding_n_port = ""; // start with empty string
+    std::string hardcoded_ip_n_port = "127.0.0.1:9998";
+    std::string ourWpeFwConfig = "/etc/WPEFramework/config.json";
+
+    if (Utils::fileExists(ourWpeFwConfig)) {
+        inFileStream.open(ourWpeFwConfig, ios::in);
+        if (inFileStream.is_open()) {
+            while(getline(inFileStream, jsonLine)) {
+                if isJsonMatch("\"binding\"") {
+                    ip_binding_n_port += retrieveJsonValue(jsonLine, ".*:\"([0-9.]+)\"");
+                    success++;
+                } else {
+                    //LOGWARN("/etc/WPEFramework/config.json does not have a 'binding' entry!");
+                }
+                if Utils::Port::isJsonMatch("\"port\"") {
+                    ip_binding_n_port += retrieveJsonValue(jsonLine, ".*:([0-9]+");
+                    success++;
+                } else {
+                    //LOGWARN("/etc/WPEFramework/config.json does not have a 'port' entry!");
+                }
+            }
+        }
+        inFileStream.close(); // done searching!
+        if (success == 2) {
+            return ip_binding_n_port; // @return : 'ip.add.re.ss:port'
+        } else {
+            //LOGWARN("At least one of the search patterns was missing or corrupted!");
+            return hardcoded_ip_n_port; // FAIL!
+        }
+    } else {
+        //LOGWARN("'/etc/WPEFramework/config.json' does not exist yet!");
+        return hardcoded_ip_n_port; // FAIL!
+    }
 }
 
 void Utils::SecurityToken::getSecurityToken(std::string& token)
