@@ -36,8 +36,10 @@
 #include "rdk/iarmbus/libIARM.h"
 
 // std
+#include <iostream> // DSW 09/16
 #include <string>
 #include <thread>
+#include <regex>    // DSW 09/16
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
@@ -321,6 +323,7 @@ namespace Utils
      */
     bool fileExists(const char *pFileName);
 
+
     /***
      * @brief	: Checks that file exists and modified at least pointed seconds ago
      * @param1[in]	: pFileName name of file
@@ -329,6 +332,30 @@ namespace Utils
      */
     bool isFileExistsAndOlderThen(const char *pFileName, long age = -1);
 
+    namespace Port
+    {
+        /***
+         * @brief       : Does line match searched string?
+         * @param1[in]  : string to match against
+         * @param1[in]  : RegEx to use to match
+         * @return      : true if line matches
+         */
+        bool isJsonMatch(std::string inString);
+
+        /***
+         * @brief       : Get value of matched JSON element
+         * @return      : value as String
+         */
+        std::string retrieveJsonValue(std::string stringLine, std::string rgxMatch);
+
+        /***
+         * @brief	    : Fetches /etc/WPEFramework/config.json and parses out IP Binding and port
+         * @return	    : String of "IP_BINDING:PORT" 
+         */
+        std::string fetchCurrentIpBindingAndPort();
+
+    } // namespace Port
+    
     struct SecurityToken
     {
         static void getSecurityToken(std::string& token);
@@ -412,3 +439,4 @@ namespace Utils
         };
     };
 } // namespace Utils
+
