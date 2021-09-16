@@ -188,13 +188,13 @@ std::string Utils::Port::fetchCurrentIpBindingAndPort()
         if (inFileStream.is_open()) {
             while(getline(inFileStream, jsonLine)) {
                 if isJsonMatch("\"binding\"") {
-                    ip_binding_n_port += retrieveJsonValue(jsonLine, ".*:\"([0-9.]+)\"");
+                    ip_binding_n_port += retrieveJsonValue(jsonLine, ":\"([0-9.]+)\"");
                     success++;
                 } else {
                     //LOGWARN("/etc/WPEFramework/config.json does not have a 'binding' entry!");
                 }
                 if Utils::Port::isJsonMatch("\"port\"") {
-                    ip_binding_n_port += retrieveJsonValue(jsonLine, ".*:([0-9]+");
+                    ip_binding_n_port += retrieveJsonValue(jsonLine, ":([0-9]+");
                     success++;
                 } else {
                     //LOGWARN("/etc/WPEFramework/config.json does not have a 'port' entry!");
