@@ -441,7 +441,7 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             sprintf( url, "https://www.youtube.com/tv");
         }
     }
-    else if(strcmp(app_name,"YouTubeTV") == 0) {
+    else if((strcmp(app_name,"YouTubeTV") == 0) || (strcmp(app_name,"YouTubeKids") == 0)){
         if ((payload != NULL) && (additional_data_url != NULL)){
             sprintf( url, "https://www.youtube.com/tv/upg?%s&additionalDataUrl=%s", payload, additional_data_url);
         }else if (payload != NULL){
