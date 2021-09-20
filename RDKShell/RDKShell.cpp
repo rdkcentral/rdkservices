@@ -3071,7 +3071,7 @@ namespace WPEFramework {
 #endif
                 }
 
-                if (type == "Cobalt")
+                if (!type.empty() && type == "Cobalt")
                 {
                     if (configuration.find("\"preload\"") == std::string::npos)
                     {
@@ -3080,6 +3080,37 @@ namespace WPEFramework {
                         std::cout << "setting Cobalt preload: " << preload << "\n";
                         configSet["preload"] = JsonValue(preload);
                     }
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp" || type == "SearchAndDiscoveryApp" ))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
                 }
 
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
@@ -5416,11 +5447,24 @@ namespace WPEFramework {
 
         bool RDKShell::setOpacity(const string& client, const unsigned int opacity)
         {
-            bool ret = false;
+             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setOpacity(client, opacity);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            bool targetFound = false;
+            std::string newClient(client);
+            std::transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+            {
+              targetFound = true;
+             }
+             if (targetFound)
+            {
+            ret = CompositorController::setOpacity(newClient, opacity);
+            }
             gRdkShellMutex.unlock();
             return ret;
+
         }
 
         bool RDKShell::getScale(const string& client, double& scaleX, double& scaleY)
@@ -5436,7 +5480,19 @@ namespace WPEFramework {
         {
             bool ret = false;
             lockRdkShellMutex();
-            ret = CompositorController::setScale(client, scaleX, scaleY);
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+	    bool targetFound = false;
+            std::string newClient(client);
+            transform(newClient.begin(), newClient.end(), newClient.begin(), ::tolower);
+            if (std::find(clientList.begin(), clientList.end(), newClient) != clientList.end())
+            {
+              targetFound = true;
+            }
+            if (targetFound)
+            {
+            ret = CompositorController::setScale(newClient, scaleX, scaleY);
+            }
             gRdkShellMutex.unlock();
             return ret;
         }
