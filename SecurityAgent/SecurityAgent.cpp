@@ -78,7 +78,7 @@ namespace Plugin {
         string version = service->Version();
 
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
-        Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
+        Core::File aclFile(service->PersistentPath() + config.ACL.Value());
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 
@@ -139,6 +139,8 @@ namespace Plugin {
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 
         ASSERT(subSystem != nullptr);
+
+        _dispatcher.reset(nullptr);
 
         if (subSystem != nullptr) {
             subSystem->Set(PluginHost::ISubSystem::NOT_SECURITY, nullptr);

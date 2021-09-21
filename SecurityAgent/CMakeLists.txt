@@ -15,8 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+project(SecurityAgent)
+
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
 set(PLUGIN_NAME SecurityAgent)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+set(PLUGIN_SECURITYAGENT_AUTOSTART "true" CACHE STRING "Automatically start SecurityAgent plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)

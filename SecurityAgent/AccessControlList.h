@@ -221,7 +221,8 @@ namespace Plugin {
                     Add(_T("role"), &Role);
                 }
                 Group(const Group& copy)
-                    : URL()
+                    : Core::JSON::Container()
+                    , URL()
                     , Role()
                 {
                     Add(_T("url"), &URL);

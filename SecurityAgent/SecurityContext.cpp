@@ -68,13 +68,13 @@ namespace Plugin {
     }
 
     //! Allow a websocket upgrade to be checked if it is allowed to be opened.
-    bool SecurityContext::Allowed(const string& path) const /* override */
+    bool SecurityContext::Allowed(const string&) const /* override */
     {
         return (true);
     }
 
     //! Allow a request to be checked before it is offered for processing.
-    bool SecurityContext::Allowed(const Web::Request& request) const /* override */ 
+    bool SecurityContext::Allowed(const Web::Request&) const /* override */
     {
         bool allowed = (_accessControlList != nullptr);
 

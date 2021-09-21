@@ -21,7 +21,7 @@
 #define TIMESYNC_MODULE_H
 
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_TimeSync
+#define MODULE_NAME Plugin_SecurityAgent
 #endif
 
 #include <plugins/plugins.h>
