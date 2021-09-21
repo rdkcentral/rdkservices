@@ -2678,6 +2678,7 @@ SystemServices interface events:
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onFirmwareDownloadProgress](#event.onFirmwareDownloadProgress) | Triggered once per second when firmware download is started`) |
 
 
 <a name="event.onFirmwarePendingReboot"></a>
@@ -2935,3 +2936,26 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
 }
 ```
 
+<a name="event.onFirmwareDownloadProgress"></a>
+## *onFirmwareDownloadProgress <sup>event</sup>*
+
+Triggered once per second when firmware download is started. Will be stopped at 100%.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.downloadPercent | number | Download progress. |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onFirmwareDownloadProgress",
+    "params": {
+        "downloadPercent": 12
+    }
+}
+```
