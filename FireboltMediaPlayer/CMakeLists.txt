@@ -23,6 +23,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
+find_package(IARMBus REQUIRED)
+
 add_library(${MODULE_NAME} SHARED
     Module.cpp
     FireboltMediaPlayer.cpp
@@ -42,6 +44,7 @@ include_directories(${MEDIAPLAYERS_DIRS})
 target_include_directories(${MODULE_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+	 ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -54,6 +57,7 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
+	${IARMBUS_LIBRARIES}
         -Wl,--whole-archive ${MEDIAPLAYERS_LIBS} -Wl,--no-whole-archive)
 
 install(TARGETS ${MODULE_NAME}
