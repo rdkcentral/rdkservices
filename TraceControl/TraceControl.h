@@ -26,7 +26,10 @@ namespace WPEFramework {
 
 namespace Plugin {
 
-    class TraceControl : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
+    class TraceControl : public PluginHost::IPluginExtended,
+                         public PluginHost::IWeb,
+                         public PluginHost::JSONRPC,
+                         public PluginHost::IWebSocket {
 
     public:
         enum state {
@@ -62,15 +65,13 @@ namespace Plugin {
                         : _index(Trace::TraceUnit::Instance().GetCategories())
                     {
                     }
-                    virtual ~LocalIterator()
-                    {
-                    }
+                    ~LocalIterator() override = default;
 
                 public:
-                    virtual void AddRef() const
+                    void AddRef() const override
                     {
                     }
-                    virtual uint32_t Release() const
+                    uint32_t Release() const override
                     {
                         return (Core::ERROR_NONE);
                     }
@@ -81,11 +82,11 @@ namespace Plugin {
                     END_INTERFACE_MAP
 
                 public:
-                    virtual void Reset()
+                    void Reset() override
                     {
                         _index = Trace::TraceUnit::Instance().GetCategories();
                     }
-                    virtual bool Info(bool& enabled, string& module, string& category) const
+                    bool Info(bool& enabled, string& module, string& category) const override
                     {
                         bool result = _index.Next();
 
@@ -96,7 +97,7 @@ namespace Plugin {
                         }
                         return (result);
                     }
-                    virtual void Enable(const bool enabled, const string& module, const string& category)
+                    void Enable(const bool enabled, const string& module, const string& category) override
                     {
                         Trace::TraceUnit::Instance().SetCategories(
                             enabled,
@@ -310,7 +311,7 @@ namespace Plugin {
                 }
 
             private:
-                virtual uint32_t GetReadSize(Core::CyclicBuffer::Cursor& cursor) override
+                uint32_t GetReadSize(Core::CyclicBuffer::Cursor& cursor) override
                 {
                     // Just read one entry.
                     uint16_t entrySize = 0;
@@ -595,7 +596,7 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
-            virtual void Activated(RPC::IRemoteConnection* connection)
+            void Activated(RPC::IRemoteConnection* connection) override
             {
                 _adminLock.Lock();
 
@@ -607,7 +608,7 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
-            virtual void Deactivated(RPC::IRemoteConnection* connection)
+            void Deactivated(RPC::IRemoteConnection* connection) override
             {
                 _adminLock.Lock();
 
@@ -659,17 +660,17 @@ namespace Plugin {
             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
             END_INTERFACE_MAP
 
-            virtual void AddRef() const
+            void AddRef() const override
             {
                 Core::InterlockedIncrement(_refcount);
             }
-            virtual uint32_t Release() const
+            uint32_t Release() const override
             {
                 Core::InterlockedDecrement(_refcount);
 
                 return (Core::ERROR_NONE);
             }
-            virtual uint32_t Worker()
+            uint32_t Worker() override
             {
                 
                 while ((IsRunning() == true) && (_traceControl.Wait(Core::infinite) == Core::ERROR_NONE)) {
@@ -719,7 +720,7 @@ namespace Plugin {
                         } else if (timeStamp != static_cast<uint64_t>(~0)) {
                             // Looks like we are waiting for a message to be completed.
                             // Give up our slice, so the producer, can produce.
-                            ::SleepMs(0);
+			    std::this_thread::yield();
                         }
 
                         _adminLock.Unlock();
@@ -754,19 +755,19 @@ namespace Plugin {
             }
 
         public:
-            virtual const char* Category() const
+            const char* Category() const override
             {
                 return (_info.Category());
             }
-            virtual const char* Module() const
+            const char* Module() const override
             {
                 return (_info.Module());
             }
-            virtual const char* Data() const
+            const char* Data() const override
             {
                 return (_info.Information());
             }
-            virtual uint16_t Length() const
+            uint16_t Length() const override
             {
                 return (_info.Length());
             }
@@ -822,11 +823,13 @@ namespace Plugin {
                 , SysLog(true)
                 , Abbreviated(true)
                 , Remote()
+                , MaxExportConnections(1)
             {
                 Add(_T("console"), &Console);
                 Add(_T("syslog"), &SysLog);
                 Add(_T("abbreviated"), &Abbreviated);
                 Add(_T("remote"), &Remote);
+                Add(_T("maxexportconnections"), &MaxExportConnections);
             }
             ~Config()
             {
@@ -837,6 +840,7 @@ namespace Plugin {
             Core::JSON::Boolean SysLog;
             Core::JSON::Boolean Abbreviated;
             NetworkNode Remote;
+            Core::JSON::DecUInt16 MaxExportConnections;
         };
         class Data : public Core::JSON::Container {
         public:
@@ -940,7 +944,7 @@ namespace Plugin {
 #ifdef __WINDOWS__
 #pragma warning(default : 4355)
 #endif
-        virtual ~TraceControl()
+        ~TraceControl() override
         {
             UnregisterAll();
         }
@@ -949,6 +953,8 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_ENTRY(PluginHost::IPluginExtended)
+        INTERFACE_ENTRY(PluginHost::IWebSocket)
         END_INTERFACE_MAP
 
     public:
@@ -961,29 +967,53 @@ namespace Plugin {
         // If there is an error, return a string describing the issue why the initialisation failed.
         // The Service object is *NOT* reference counted, lifetime ends if the plugin is deactivated.
         // The lifetime of the Service object is guaranteed till the deinitialize method is called.
-        virtual const string Initialize(PluginHost::IShell* service);
+        const string Initialize(PluginHost::IShell* service) override;
 
         // The plugin is unloaded from WPEFramework. This is call allows the module to notify clients
         // or to persist information if needed. After this call the plugin will unlink from the service path
         // and be deactivated. The Service object is the same as passed in during the Initialize.
         // After theis call, the lifetime of the Service object ends.
-        virtual void Deinitialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service) override;
 
         // Returns an interface to a JSON struct that can be used to return specific metadata information with respect
         // to this plugin. This Metadata can be used by the MetData plugin to publish this information to the ouside world.
-        virtual string Information() const;
+        string Information() const override;
 
         //  IWeb methods
         // -------------------------------------------------------------------------------------------------------
         // Whenever a request is received, it might carry some additional data in the body. This method allows
         // the plugin to attach a deserializable data object (ref counted) to be loaded with any potential found
         // in the body of the request.
-        virtual void Inbound(Web::Request& request);
+        void Inbound(Web::Request& request) override;
 
         // If everything is received correctly, the request is passed on to us, through a thread from the thread pool, to
         // do our thing and to return the result in the response object. Here the actual specific module work,
         // based on a a request is handled.
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request);
+        Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
+
+        //	IPluginExtended methods
+        // -------------------------------------------------------------------------------------------------------
+
+        // Whenever a Channel (WebSocket connection) is created to the plugin that will be reported via the Attach.
+        // Whenever the channel is closed, it is reported via the detach method.
+        bool Attach(PluginHost::Channel& channel) override;
+        void Detach(PluginHost::Channel& channel) override;
+
+        //! @{
+        //! ================================== CALLED ON COMMUNICATION THREAD =====================================
+        //! Whenever a WebSocket is opened with a locator (URL) pointing to this plugin, it is capable of sending
+        //! JSON object to us. This method allows the plugin to return a JSON object that will be used to deserialize
+        //! the comming content on the communication channel. In case the content does not start with a { or [, the
+        //! first keyword deserialized is passed as the identifier.
+        //! @}
+        Core::ProxyType<Core::JSON::IElement> Inbound(const string& identifier) override;
+
+        //! @{
+        //! ==================================== CALLED ON THREADPOOL THREAD ======================================
+        //! Once the passed object from the previous method is filled (completed), this method allows it to be handled
+        //! and to form an answer on the incoming JSON message(if needed).
+        //! @}
+        Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) override;
 
     private:
         void Dispatch(Observer::Source& information);
@@ -999,10 +1029,13 @@ namespace Plugin {
         }
 
     private:
+        using Custom_deleter = std::function<void(Trace::ITraceMedia*)>;
+        using TraceMediaContainer = std::list<std::unique_ptr<Trace::ITraceMedia, Custom_deleter>>;
+
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         Config _config;
-        std::list<Trace::ITraceMedia*> _outputs;
+        TraceMediaContainer _outputs;
         string _tracePath;
         Observer _observer;
     };
