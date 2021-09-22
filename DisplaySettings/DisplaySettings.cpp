@@ -221,6 +221,7 @@ namespace WPEFramework {
 	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
 	    registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this, {2});
 	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
+            registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
@@ -449,7 +450,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
-		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, audioFormatUpdateEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
  
@@ -799,19 +801,30 @@ namespace WPEFramework {
             }
         }
 
-        void DisplaySettings::audioFormatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        void DisplaySettings::formatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            dsAudioFormat_t audioFormat = dsAUDIO_FORMAT_NONE;
 
 	    LOGINFO("%s \n", __FUNCTION__);
             switch (eventId) {
                 case IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE:
                   {
+                    dsAudioFormat_t audioFormat = dsAUDIO_FORMAT_NONE;
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     audioFormat = eventData->data.AudioFormatInfo.audioFormat;
                     LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE. Audio format: %d \n", audioFormat);
                     if(DisplaySettings::_instance) {
                         DisplaySettings::_instance->notifyAudioFormatChange(audioFormat);
+                    }
+		  }
+                  break;
+                case IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE:
+                  {
+                    dsHDRStandard_t videoFormat = dsHDRSTANDARD_NONE;
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    videoFormat = eventData->data.VideoFormatInfo.videoFormat;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE. Video format: %d \n", videoFormat);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifyVideoFormatChange(videoFormat);
                     }
 		  }
                   break;
@@ -1939,6 +1952,14 @@ namespace WPEFramework {
              sendNotify("audioFormatChanged", params);
 	}
 
+	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
+	{
+            JsonObject params;
+            params["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
+
+            params["supportedVideoFormat"] = getSupportedVideoFormats();
+            sendNotify("videoFormatChanged", params);
+        }
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
@@ -4332,6 +4353,97 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+        }
+        uint32_t DisplaySettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"currentVideoFormat":"SDR","supportedVideoFormat":["SDR","HDR10","HLG","DV","Technicolor Prime"],"success":true}
+            LOGINFOMETHOD();
+
+            try
+            {
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+                if (vPort.isDisplayConnected())
+                {
+                    int _eotf = vPort.getVideoEOTF();
+                    response["currentVideoFormat"] = getVideoFormatTypeToString((dsHDRStandard_t)_eotf);
+                }
+                else
+                {
+                    response["currentVideoFormat"] = "NONE";
+                }
+
+	    }
+	    catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                response["currentVideoFormat"] = "NONE";
+            }
+
+
+            response["supportedVideoFormat"] = getSupportedVideoFormats();
+            returnResponse(true);
+        }
+
+        JsonArray DisplaySettings::getSupportedVideoFormats()
+        {
+            JsonArray videoFormats;
+            int capabilities = dsHDRSTANDARD_NONE;
+
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.getHDRCapabilities(&capabilities);
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                return videoFormats;
+            }
+
+            videoFormats.Add("SDR");
+            if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
+            if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
+            if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            for (uint32_t i = 0; i < videoFormats.Length(); i++)
+            {
+               LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
+            }
+            return videoFormats;
+        }
+
+        const char *DisplaySettings::getVideoFormatTypeToString(dsHDRStandard_t format)
+        {
+            const char *strValue = "NONE";
+            switch (format)
+            {
+                case dsHDRSTANDARD_NONE:
+                    LOGINFO("Video Format: SDR\n");
+                    strValue = "SDR";
+                    break;
+                case dsHDRSTANDARD_HDR10:
+                    LOGINFO("Video Format: HDR10\n");
+                    strValue = "HDR10";
+                    break;
+                case dsHDRSTANDARD_HLG:
+                    LOGINFO("Video Format: HLG\n");
+                    strValue = "HLG";
+                    break;
+                case dsHDRSTANDARD_DolbyVision:
+                    LOGINFO("Video Format: DV\n");
+                    strValue = "DV";
+                    break;
+                case dsHDRSTANDARD_TechnicolorPrime:
+                    LOGINFO("Video Format: TechnicolorPrime\n");
+                    strValue = "TechnicolorPrime";
+                    break;
+                default:
+                    LOGINFO("Video Format: NONE\n");
+                    strValue = "NONE";
+                    break;
+            }
+            return strValue;
+
         }
     } // namespace Plugin
 } // namespace WPEFramework
