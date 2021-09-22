@@ -15,10 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME Packager)
-set(MODULE_NAME WPEFramework${PLUGIN_NAME})
+project(Packager)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+set(PLUGIN_NAME Packager)
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(libprovision QUIET)
@@ -30,26 +36,13 @@ add_library(${MODULE_NAME} SHARED
     Packager.cpp
     PackagerImplementation.cpp)
 
-if (libprovision_FOUND)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            libprovision::libprovision
-            LibOPKG::LibOPKG
-            )
-else (libprovision_FOUND)
-     target_include_directories(${MODULE_NAME}
-        PRIVATE
-            ${LIBOPKG_INCLUDE_DIRS}
-            )
+target_link_libraries(${MODULE_NAME} PRIVATE
+             CompileSettingsDebug::CompileSettingsDebug
+             ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+             LibOPKG::LibOPKG)
 
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            ${LIBOPKG_LIBRARIES}
-            )
+if (libprovision_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE libprovision::libprovision)
 endif (libprovision_FOUND)
 
 string(TOLOWER ${NAMESPACE} STORAGENAME)
@@ -57,7 +50,7 @@ install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGENAME}/plugins)
 
 configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/opkg.conf.in"
+        "${CMAKE_CURRENT_LIST_DIR}/opkg.conf.in"
         "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
         @ONLY)
 

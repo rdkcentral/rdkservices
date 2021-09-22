@@ -189,19 +189,19 @@ namespace Plugin {
 
             void SetState(Exchange::IPackager::state state)
             {
-                TRACE_L1("Setting state to %d", state);
+                TRACE(Trace::Information, (_T("Setting state to %d"), state));
                 _state = state;
             }
 
             void SetProgress(uint8_t progress)
             {
-                TRACE_L1("Setting progress to %d", progress);
+                TRACE(Trace::Information, (_T("Setting progress to %d"), progress));
                 _progress = progress;
             }
 
             void SetError(uint32_t err)
             {
-                TRACE_L1("Setting error to %d", err);
+                TRACE(Trace::Information, (_T("Setting error to %d"), err));
                 _error = err;
             }
 

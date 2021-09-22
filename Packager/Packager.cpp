@@ -37,13 +37,14 @@ namespace {
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _service->Register(&_notification);
 
-         string result;
+        string result;
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
-            result = _T("Couldn't create package instance");
+            result = _T("Couldn't create PACKAGER instance ");
+
         } else {
             if (_implementation->Configure(_service) != Core::ERROR_NONE) {
-                result = _T("Couldn't initialize package instance");
+                result = _T("Couldn't initialize PACKAGER instance");
             }
         }
 
@@ -56,9 +57,9 @@ namespace {
 
         _service->Unregister(&_notification);
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        _implementation->Release();
 
-            ASSERT(_connectionId != 0);
+        if (_connectionId != 0) {
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
