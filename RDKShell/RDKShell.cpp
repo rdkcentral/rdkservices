@@ -111,6 +111,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISP
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
+
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -658,6 +660,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -1285,6 +1288,11 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onEasterEgg(const std::string& name, const std::string& actionJson)
         {
           std::cout << "RDKShell onEasterEgg event received ..." << name << std::endl;
+          if (false == mShell.mEnableEasterEggs)
+          {
+              std::cout << "easter eggs disabled and not processing event" << std::endl;
+              return;
+          }
           
           if (actionJson.length() == 0)
           {
@@ -3839,6 +3847,21 @@ namespace WPEFramework {
             {
                 response["message"] = "failed to perform show watermark";
             }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::enableEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool enable = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "enable parameter is not present";
+                returnResponse(false);
+            }
+            enable = parameters["enable"].Boolean();
+            mEnableEasterEggs = enable;
             returnResponse(result);
         }
 
