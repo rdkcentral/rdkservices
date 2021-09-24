@@ -28,27 +28,20 @@ namespace Plugin {
     /* virtual */ const string DeviceIdentification::Initialize(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
-        ASSERT(_device == nullptr);
 
         string message;
 
-        _device = service->Root<Exchange::IDeviceProperties>(_connectionId, 2000, _T("DeviceImplementation"));
-        if (_device != nullptr) {
+        _identifier = service->Root<PluginHost::ISubSystem::IIdentifier>(_connectionId, RPC::CommunicationTimeOut, _T("DeviceImplementation"));
 
-            _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
-            if (_identifier == nullptr) {
+        if (_identifier != nullptr) {
+            _deviceId = GetDeviceId();
 
-                _device->Release();
-                _device = nullptr;
-            } else {
-                _deviceId = GetDeviceId();
-                if (_deviceId.empty() != true) {
-                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _device);
-                }
+            if (_deviceId.empty() != true) {
+                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
             }
         }
 
-        if (_device == nullptr) {
+        if (_identifier == nullptr) {
             message = _T("DeviceIdentification plugin could not be instantiated.");
         }
 
@@ -58,7 +51,6 @@ namespace Plugin {
     /* virtual */ void DeviceIdentification::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
-        ASSERT(_device != nullptr);
 
         ASSERT(_identifier != nullptr);
         if (_identifier != nullptr) {
@@ -69,13 +61,6 @@ namespace Plugin {
             _identifier->Release();
             _identifier = nullptr;
         }
-
-        ASSERT(_device != nullptr);
-        if (_device != nullptr) {
-            _device->Release();
-            _device = nullptr;
-        }
-
         _connectionId = 0;
     }
 
@@ -105,8 +90,8 @@ namespace Plugin {
 
     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
     {
-        deviceInfo.Firmwareversion = _device->FirmwareVersion();
-        deviceInfo.Chipset = _device->Chipset();
+        deviceInfo.Firmwareversion = _identifier->FirmwareVersion();
+        deviceInfo.Chipset = _identifier->Chipset();
 
         if (_deviceId.empty() != true) {
             deviceInfo.Deviceid = _deviceId;

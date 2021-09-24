@@ -15,9 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME DeviceIdentification)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(DeviceIdentification)
 
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+set(PLUGIN_NAME DeviceIdentification)
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+set(PLUGIN_DEVICEIDENTIFICATION_AUTOSTART "true" CACHE STRING "Automatically start DeviceIdentification plugin")
 option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
 
 find_package(NEXUS QUIET)
@@ -42,7 +51,7 @@ if (PLUGIN_DEVICEIDENTIFICATION_USE_MFR AND MFRFWLIBS_FOUND)
 elseif (BUILD_BROADCOM)
     target_sources(${MODULE_NAME}
         PRIVATE
-            Implementation/Broadcom/Broadcom.cpp)	    
+            Implementation/Broadcom/Broadcom.cpp)
 elseif (NEXUS_FOUND)
     find_package(NXCLIENT REQUIRED)
     target_link_libraries(${MODULE_NAME} 
@@ -81,6 +90,10 @@ elseif (BUILD_REALTEK)
 	target_sources(${MODULE_NAME}
         PRIVATE
             Implementation/Realtek/Realtek.cpp)
+elseif(UNIX AND NOT APPLE)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Implementation/Linux/Linux.cpp)
 else ()
     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
 endif()

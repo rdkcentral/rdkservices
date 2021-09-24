@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
@@ -33,7 +33,6 @@ namespace Plugin {
 
         DeviceIdentification()
             : _deviceId()
-            , _device(nullptr)
             , _identifier(nullptr)
             , _connectionId(0)
         {
@@ -46,8 +45,8 @@ namespace Plugin {
         }
 
         BEGIN_INTERFACE_MAP(DeviceIdentification)
-            INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP
 
     public:
@@ -67,8 +66,7 @@ namespace Plugin {
 
     private:
         string _deviceId;
-        Exchange::IDeviceProperties* _device;
-        const PluginHost::ISubSystem::IIdentifier* _identifier;
+        PluginHost::ISubSystem::IIdentifier* _identifier;
 
         uint32_t _connectionId;
     };

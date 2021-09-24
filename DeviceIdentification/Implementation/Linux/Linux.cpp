@@ -19,30 +19,20 @@
 
 #include "../../Module.h"
 
-#include <bcm_host.h>
 #include <fstream>
+#include <sys/utsname.h>
 
 namespace WPEFramework {
 namespace Plugin {
-
     class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
     public:
-        DeviceImplementation()
-        {
-            bcm_host_init();
-
-            UpdateFirmwareVersion(_firmwareVersion);
-        }
+        DeviceImplementation() = default;
+        virtual ~DeviceImplementation() = default;
 
         DeviceImplementation(const DeviceImplementation&) = delete;
         DeviceImplementation& operator=(const DeviceImplementation&) = delete;
-        virtual ~DeviceImplementation()
-        {
-            bcm_host_deinit();
-        }
 
     public:
-        // IIdentifier interface
         uint8_t Identifier(const uint8_t, uint8_t*) const override
         {
             return 0;
@@ -57,56 +47,12 @@ namespace Plugin {
         }
         string FirmwareVersion() const override
         {
-            return _firmwareVersion;
+            return Core::SystemInfo::Instance().FirmwareVersion();
         }
 
         BEGIN_INTERFACE_MAP(DeviceImplementation)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
         END_INTERFACE_MAP
-
-    private:
-        inline void UpdateFirmwareVersion(string& firmwareVersion) const
-        {
-            Command("version", firmwareVersion);
-            if (firmwareVersion.length() > 0) {
-
-                string::size_type i = 0;
-                while (i < firmwareVersion.length()) {
-                    i = firmwareVersion.find_first_of("\n\r", i);
-                    if (i != std::string::npos) {
-                        firmwareVersion.replace(i, 1, ", ");
-                    }
-                }
-            }
-        }
-
-        void Command(const char request[], string& value) const
-        {
-            char buffer[512];
-
-            // Reset the string
-            buffer[0] = '\0';
-
-            int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
-            assert((status == 0) && "Error: vc_gencmd failed.\n");
-
-            // Make sure it is null-terminated
-            buffer[sizeof(buffer) - 1] = '\0';
-
-            // We do not need the stuff that is before the '=', we know what we requested :-)
-            char* equal = strchr(buffer, '=');
-            if (equal != nullptr) {
-                equal++;
-            } else {
-                equal = buffer;
-            }
-
-            // Create string from buffer.
-            Core::ToString(equal, value);
-        }
-
-    private:
-        string _firmwareVersion;
     };
 
     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
