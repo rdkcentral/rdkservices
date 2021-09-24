@@ -1055,7 +1055,15 @@ namespace WPEFramework {
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                     device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
-                    int surroundMode = vPort.getDisplay().getSurroundMode();
+                    int surroundMode = false;
+                    try{
+                        surroundMode = vPort.getDisplay().getSurroundMode();
+                    }
+                    catch(const device::Exception& err)
+                    {
+                        surroundMode = false;
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                    }
                     if (vPort.isDisplayConnected() && surroundMode)
                     {
                         if(surroundMode & dsSURROUNDMODE_DDPLUS )
@@ -1228,7 +1236,6 @@ namespace WPEFramework {
                 if (aPort.isConnected())
                 {
                     mode = aPort.getStereoMode();
-
                     if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI)
                     {
                         /* In DS5, "Surround" implies "Auto" */
@@ -1252,6 +1259,16 @@ namespace WPEFramework {
                                 LOGINFO("HDMI0 does not surround");
                                 modeString.append("AUTO (Stereo)");
                             }
+                        }
+                        else if ( mode == device::AudioStereoMode::kDD)
+                        {
+                            LOGINFO("HDMI0 is in dolby digital Mode");
+                            modeString.append("DOLBYDIGITAL");
+                        }
+                        else if ( mode == device::AudioStereoMode::kDDPlus)
+                        {
+                            LOGINFO("HDMI0 is in dolby digital Plus Mode");
+                            modeString.append("DOLBYDIGITALPLUS");
                         }
                         else
                             modeString.append(mode.toString());
@@ -1279,6 +1296,17 @@ namespace WPEFramework {
                         }
                         else{
                             mode = aPort.getStereoMode();
+                            modeString.append(mode.toString());
+                        }
+                    }
+                    if((aPort.getType().getId() == device::AudioOutputPortType::kHDMI)){
+                        mode = aPort.getStereoMode();
+                        if (aPort.getStereoAuto() || mode == device::AudioStereoMode::kSurround)
+                        {
+                            LOGINFO("%s output mode Auto", audioPort.c_str());
+                            modeString.append("AUTO (Stereo)");
+                        }
+                        else{
                             modeString.append(mode.toString());
                         }
                     }
@@ -1336,6 +1364,10 @@ namespace WPEFramework {
                 mode = device::AudioStereoMode::kSurround;
             else if (soundMode == "passthru" || soundMode == "PASSTHRU")
                 mode = device::AudioStereoMode::kPassThru;
+            else if (soundMode == "dolbydigital" || soundMode == "DOLBYDIGITAL")
+                mode = device::AudioStereoMode::kDD;
+            else if (soundMode == "dolbydigitalplus" || soundMode == "DOLBYDIGITALPLUS")
+                mode = device::AudioStereoMode::kDDPlus;
             else if (soundMode == "auto" || soundMode == "auto " || soundMode == "AUTO" || soundMode == "AUTO ")
             {
                 /*
@@ -1451,6 +1483,18 @@ namespace WPEFramework {
                             else { //Auto Mode
                                 aPort.setStereoAuto(stereoAuto, persist);
                             }
+                        }else if (aPort.getType().getId() == device::AudioOutputPortType::kHDMI) {
+                            if (!(mode == device::AudioStereoMode::kPassThru))
+                            {
+                                aPort.setStereoAuto(stereoAuto, persist);
+                                LOGINFO("setting stereoAuto= %d  \n ",stereoAuto);
+                            }
+                            else
+                            {
+                                aPort.setStereoAuto(false, persist);
+                            }
+                            LOGINFO("setting sound mode = %s  \n ", mode.toString().c_str());
+                            aPort.setStereoMode(mode.toString(), persist);
                         } else {
                             LOGERR("setSoundMode failed !! Device Not Connected...\n");
                             success = false;
