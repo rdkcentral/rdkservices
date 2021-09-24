@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
     "info": {
       "title": "StateObserver Plugin",
-      "callsign": "org.rdk.StateObserver",
+      "callsign": "com.comcast.StateObserver",
       "locator": "libWPEFrameworkStateObserver.so",
       "status": "production",
       "description": "The `StateObserver` plugin is used to monitor property values.",
