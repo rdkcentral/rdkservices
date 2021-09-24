@@ -55,6 +55,7 @@
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONFIRMWAREDOWNLOADPROGRES     "onFirmwareDownloadProgress"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -110,9 +111,11 @@ namespace WPEFramework {
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
+                Utils::ThreadRAII m_fwDownloadProgressThread;
                 PluginHost::IShell* m_shellService { nullptr };
 
                 int m_FwUpdateState_LatestEvent;
+                bool fwDownloadProgress100sent;
 
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
@@ -145,6 +148,7 @@ namespace WPEFramework {
                 void onPwrMgrReboot(string requestedApp, string rebootReason);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
+                void onFirmwareDownloadStateChange(int state);
                 void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
@@ -186,6 +190,10 @@ namespace WPEFramework {
                 uint32_t getFirmwareUpdateInfo(const JsonObject& parameters, JsonObject& response);
                 void reportFirmwareUpdateInfoReceived(string firmwareUpdateVersion,
                         int httpStatus, bool success, string firmwareVersion, string responseString);
+
+                static void firmwareDownloadProgress(void);
+                void reportFirmwareDownloadProgress(int percents);
+
                 uint32_t setDeepSleepTimer(const JsonObject& parameters, JsonObject& response);
                 uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
