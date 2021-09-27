@@ -303,7 +303,7 @@ namespace WPEFramework {
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
             fwDownloadProgress100sent = false;
 
-            regcomp (&m_regexAllowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
+            regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -417,7 +417,7 @@ namespace WPEFramework {
 
         SystemServices::~SystemServices()
         {
-            regfree (&m_regexAllowedChars);
+            regfree (&m_regexUnallowedChars);
         }
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
@@ -787,8 +787,8 @@ namespace WPEFramework {
                 queryParams = parameters["params"].String();
                 removeCharsFromString(queryParams, "[\"]");
 
-                regmatch_t  m_regmatchAllowedChars[1];
-                if (REG_NOERROR == regexec(&m_regexAllowedChars, queryParams.c_str(), 1, m_regmatchAllowedChars, 0))
+                regmatch_t  m_regmatchUnallowedChars[1];
+                if (REG_NOERROR == regexec(&m_regexUnallowedChars, queryParams.c_str(), 1, m_regmatchUnallowedChars, 0))
                 {
                     response["message"] = "Input has unallowable characters";
                     LOGERR("Input has unallowable characters: '%s'", queryParams.c_str());

@@ -114,7 +114,7 @@ namespace WPEFramework {
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 Utils::ThreadRAII m_fwDownloadProgressThread;
                 PluginHost::IShell* m_shellService { nullptr };
-                regex_t m_regexAllowedChars;
+                regex_t m_regexUnallowedChars;
 
                 int m_FwUpdateState_LatestEvent;
                 bool fwDownloadProgress100sent;
