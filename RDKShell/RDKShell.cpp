@@ -113,6 +113,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISP
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
+
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -595,7 +597,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -668,6 +670,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -1291,6 +1294,11 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onEasterEgg(const std::string& name, const std::string& actionJson)
         {
           std::cout << "RDKShell onEasterEgg event received ..." << name << std::endl;
+          if (false == mShell.mEnableEasterEggs)
+          {
+              std::cout << "easter eggs disabled and not processing event" << std::endl;
+              return;
+          }
           
           if (actionJson.length() == 0)
           {
@@ -3901,6 +3909,21 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        uint32_t RDKShell::enableEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool enable = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "enable parameter is not present";
+                returnResponse(false);
+            }
+            enable = parameters["enable"].Boolean();
+            mEnableEasterEggs = enable;
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::showFullScreenImageWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -4844,14 +4867,15 @@ namespace WPEFramework {
 
             if (sPersistentStoreFirstActivated)
             {
+                auto persistentStoreLink = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN);
                 JsonObject joAgingParams;
                 JsonObject joAgingResult;
                 joAgingParams.Set("namespace","FactoryTest");
                 joAgingParams.Set("key","AgingState");
-                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+                std::string agingGetInvoke = "getValue";
 
                 std::cout << "attempting to check aging state \n";
-                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                uint32_t status = persistentStoreLink.Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
                 std::cout << "get status for aging state: " << status << std::endl;
 
                 if ((status == 0) && (joAgingResult.HasLabel("value")))
@@ -4871,7 +4895,7 @@ namespace WPEFramework {
                 joFactoryModeParams.Set("key","FactoryMode");
 
                 std::cout << "attempting to check factory mode \n";
-                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                status = persistentStoreLink.Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
                 std::cout << "get status for factory mode: " << status << std::endl;
 
                 if ((status == 0) && (joFactoryModeResult.HasLabel("value")))

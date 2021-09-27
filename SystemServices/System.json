@@ -1782,6 +1782,22 @@
                     "temperature"
                 ]
             }
+        },
+        "onFirmwareDownloadProgress":{
+            "summary": "Triggered once per second when firmware download is started. Will be stopped at 100%.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "downloadPercent": {
+                        "summary": "Download progress",
+                        "type": "number",
+                        "example": 12
+                    }
+                },
+                "required": [
+                    "downloadPercent"
+                ]
+            }
         }
     }
 }

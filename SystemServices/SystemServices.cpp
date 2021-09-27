@@ -86,6 +86,9 @@ using namespace std;
 
 #define RFC_CALLERID           "SystemServices"
 
+#define CURL_PROGRESS "/opt/curl_progress"
+#define MAX_FIRMWARE_DOWNLOAD_PROGRESS_ATTEMPTS 30
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -296,6 +299,7 @@ namespace WPEFramework {
             }
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
+            fwDownloadProgress100sent = false;
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -1290,6 +1294,102 @@ namespace WPEFramework {
             }
         } //end of event onFirmwareInfoRecived
 
+
+        /***
+         * @brief : Firmware download progress worker.
+         */
+        void SystemServices::firmwareDownloadProgress(void)
+        {
+            if (!_instance) {
+                LOGERR("_instance is NULL.\n");
+                return;
+            }
+
+            int lastSize = 0;
+            int maxAttempts = MAX_FIRMWARE_DOWNLOAD_PROGRESS_ATTEMPTS;
+
+            for (int n = 0; n < 100; n++) {
+                int fsize = 0;
+
+                char buf[1024];
+                FILE *f = fopen(CURL_PROGRESS, "r");
+
+                if (f) {
+                    fseek(f, 0, SEEK_END);
+                    fsize = ftell(f);
+                } else if (lastSize) {
+                    // Looks like the file just dissappeared
+                    break;
+                }
+
+                if (fsize == lastSize) {
+                    if (f)
+                        fclose(f);
+
+                    sleep(1);
+
+                    if (maxAttempts-- >= 0) {
+                        continue;
+                    } else {
+                        LOGERR("Max attempts to get firmware download progress");
+                        break;
+                    }
+                } else {
+                    maxAttempts = MAX_FIRMWARE_DOWNLOAD_PROGRESS_ATTEMPTS;
+                }
+
+                lastSize = fsize;
+
+                fseek(f, -128, SEEK_CUR);
+
+                size_t rd = fread(buf, 1, sizeof(buf) - 1, f);
+                buf[rd] = 0;
+
+                char *cret = strrchr(buf, '\r');
+
+                if (cret && strlen(++cret) >= 3) {
+                    while (' ' == *cret) 
+                        cret++;
+
+                    char *end;
+                    int perc = strtol(cret, &end, 10);
+                    if (end && ' ' != *end) {
+                        LOGERR("Failed to parse percents of firmware download progress:'%s'", end);
+                    }
+
+                    if (_instance)
+                        _instance->reportFirmwareDownloadProgress(perc);
+
+                    if (100 == perc) {
+                        break;
+                    }
+
+                } else {
+                    LOGERR("Failed to parse percents of firmware download progress didn't find the '\\r'");
+                }
+
+                fclose(f);
+                sleep(1);
+            }
+        }
+
+        /***
+         * @brief  : Event sender for firmware download progress.
+         * @param1[in] : download percents
+         */
+        void SystemServices::reportFirmwareDownloadProgress(int percents)
+        {
+            if (fwDownloadProgress100sent)
+                return;
+
+            JsonObject params;
+            params["downloadPercent"] = percents;
+            sendNotify(EVT_ONFIRMWAREDOWNLOADPROGRES, params);
+
+            if (100 == percents)
+                fwDownloadProgress100sent = true;
+        }
+
         /***
          * @brief  : To check Firmware Update Info
          * @param1[in] : {"params":{}}
@@ -1759,7 +1859,7 @@ namespace WPEFramework {
         {
             bool retStatus = false;
             int m_downloadPercent = -1;
-            if (Utils::fileExists("/opt/curl_progress")) {
+            if (Utils::fileExists(CURL_PROGRESS)) {
                 /* TODO: replace with new implementation. */
                 FILE* fp = popen(CAT_DWNLDPROGRESSFILE_AND_GET_INFO, "r");
                 if (NULL != fp) {
@@ -1918,6 +2018,25 @@ namespace WPEFramework {
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
+        }
+
+        /***
+         * @brief : starts thread to send events about firmware download progress
+         *
+         * @param1[in]  : newstate
+         */
+        void SystemServices::onFirmwareDownloadStateChange(int newState)
+        {
+            if (m_fwDownloadProgressThread.get().joinable()) {
+                m_fwDownloadProgressThread.get().join();
+            }
+
+            if (IARM_BUS_SYSMGR_IMAGE_FWDNLD_DOWNLOAD_INPROGRESS == newState) {
+                fwDownloadProgress100sent = false;
+                m_fwDownloadProgressThread = Utils::ThreadRAII(std::thread(firmwareDownloadProgress));
+            } else if (IARM_BUS_SYSMGR_IMAGE_FWDNLD_DOWNLOAD_COMPLETE == newState) {
+                reportFirmwareDownloadProgress(100);
+            }
         }
 
         /***
@@ -3418,6 +3537,16 @@ namespace WPEFramework {
                         LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE = '%d'\n", state);
                         if (SystemServices::_instance) {
                             SystemServices::_instance->onFirmwareUpdateStateChange(state);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
+
+                case IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_DWNLD:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_DWNLD = '%d'\n", state);
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onFirmwareDownloadStateChange(state);
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
