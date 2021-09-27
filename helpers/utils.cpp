@@ -155,7 +155,6 @@ bool Utils::isFileExistsAndOlderThen(const char *pFileName, long age /*= -1*/)
     return modifiedSecondsAgo > age;
 }
 
-
 bool Utils::Port::isJsonMatch(std::string inString) 
 {
     return std::regex_match(inString, "(sub)(.*)");
@@ -166,11 +165,11 @@ std::string Utils::Port::retrieveJsonValue(std::string stringLine, std::string r
     std::smatch matchFound;
     std::regex rgx(rgxMatch);
     if (std::regex_search(stringLine.begin(), stringLine.end(), matchFound, rgx)) {
-        return matchFound;
+        return matchFound; // success!
     } else {
         std::string fouledUp "NO MATCH on '" += rgxMatch;
         fubar += "'";
-        return fouledUp;
+        return fouledUp; // fail!
     }
 }
 
@@ -178,23 +177,27 @@ std::string Utils::Port::fetchCurrentIpBindingAndPort()
 {
     std::fstream inFileStream;
     std::string jsonLine; // each line of JSON file
-    uint8_t success = 0; // count 0 up to 2 for success!
+    uint8_t success = 0; // count 0 up to 2 for success on all matches!
     std::string ip_binding_n_port = ""; // start with empty string
-    std::string hardcoded_ip_n_port = "127.0.0.1:9998";
+    std::string hardcoded_ip_n_port = "127.0.0.1:9998"; // fall back to old hard-coded value
     std::string ourWpeFwConfig = "/etc/WPEFramework/config.json";
 
     if (Utils::fileExists(ourWpeFwConfig)) {
         inFileStream.open(ourWpeFwConfig, ios::in);
         if (inFileStream.is_open()) {
             while(getline(inFileStream, jsonLine)) {
-                if isJsonMatch("\"binding\"") {
-                    ip_binding_n_port += retrieveJsonValue(jsonLine, ":\"([0-9.]+)\"");
+                if Utils::Port::isJsonMatch("\"binding\"") {
+                    // Note that this is stored as an String in the JSON
+                    // Handles corner case where there is a space after the colon
+                    ip_binding_n_port += Utils::Port::retrieveJsonValue(jsonLine, ":\s?\"([0-9.]+)\"");
                     success++;
                 } else {
                     //LOGWARN("/etc/WPEFramework/config.json does not have a 'binding' entry!");
                 }
                 if Utils::Port::isJsonMatch("\"port\"") {
-                    ip_binding_n_port += retrieveJsonValue(jsonLine, ":([0-9]+");
+                    // Note that this is stored as an Integer in the JSON
+                    // Handles corner case where there is a space after the colon
+                    ip_binding_n_port += Utils::Port::retrieveJsonValue(jsonLine, ":\s?([0-9]+");
                     success++;
                 } else {
                     //LOGWARN("/etc/WPEFramework/config.json does not have a 'port' entry!");
@@ -473,4 +476,3 @@ void Utils::persistJsonSettings(const string strFile, const string strKey, const
 
     return;
 }
-
