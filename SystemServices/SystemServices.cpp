@@ -81,6 +81,8 @@ using namespace std;
 
 #define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
 
+#define REGEX_UNALLOWABLE_INPUT "[^[:alnum:]_-]{1}"
+
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
@@ -301,6 +303,8 @@ namespace WPEFramework {
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
             fwDownloadProgress100sent = false;
 
+            regcomp (&m_regexAllowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -412,7 +416,8 @@ namespace WPEFramework {
 
 
         SystemServices::~SystemServices()
-        {       
+        {
+            regfree (&m_regexAllowedChars);
         }
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
@@ -781,6 +786,16 @@ namespace WPEFramework {
             if (parameters.HasLabel("params")) {
                 queryParams = parameters["params"].String();
                 removeCharsFromString(queryParams, "[\"]");
+
+                regmatch_t  m_regmatchAllowedChars[1];
+                if (REG_NOERROR == regexec(&m_regexAllowedChars, queryParams.c_str(), 1, m_regmatchAllowedChars, 0))
+                {
+                    response["message"] = "Input has unallowable characters";
+                    LOGERR("Input has unallowable characters: '%s'", queryParams.c_str());
+
+                    returnResponse(false);
+                }
+
             }
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties

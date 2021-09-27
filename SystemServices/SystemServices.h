@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <thread>
+#include <regex.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -113,6 +114,7 @@ namespace WPEFramework {
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 Utils::ThreadRAII m_fwDownloadProgressThread;
                 PluginHost::IShell* m_shellService { nullptr };
+                regex_t m_regexAllowedChars;
 
                 int m_FwUpdateState_LatestEvent;
                 bool fwDownloadProgress100sent;
