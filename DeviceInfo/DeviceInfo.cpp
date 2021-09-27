@@ -29,9 +29,9 @@ namespace Plugin {
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
     {
         ASSERT(_service == nullptr);
-        ASSERT(service != nullptr);
-
         ASSERT(_subSystem == nullptr);
+        ASSERT(_implementation == nullptr);
+        ASSERT(service != nullptr);
 
         Config config;
         config.FromString(service->ConfigLine());
@@ -42,19 +42,42 @@ namespace Plugin {
 
         ASSERT(_subSystem != nullptr);
 
-        // On success return empty, to indicate there is no error text.
+        _implementation = _service->Root<Exchange::IDeviceCapabilities>(_connectionId, 2000, _T("DeviceInfoImplementation"));
 
-        return (_subSystem != nullptr) ? EMPTY_STRING : _T("Could not retrieve System Information.");
+        if (_implementation == nullptr) {
+            _service = nullptr;
+            SYSLOG(Logging::Startup, (_T("DeviceInfo could not be instantiated")));
+        } else {
+            _implementation->Configure(_service);
+            _deviceMetadataInterface = _implementation->QueryInterface<Exchange::IDeviceMetadata>();
+            ASSERT(_deviceMetadataInterface != nullptr);
+        }
+
+        // On success return empty, to indicate there is no error text.
+        return (_implementation != nullptr) ? EMPTY_STRING : _T("Could not retrieve System Information.");
     }
 
-    /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service)
+    /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
     {
         ASSERT(_service == service);
+        ASSERT(_implementation != nullptr);
+        ASSERT(_deviceMetadataInterface != nullptr);
 
-        if (_subSystem != nullptr) {
-            _subSystem->Release();
-            _subSystem = nullptr;
+        _implementation->Release();
+        _deviceMetadataInterface->Release();
+
+        if (_connectionId != 0) {
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            // The process can disappear in the meantime...
+            if (connection != nullptr) {
+                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                connection->Terminate();
+                connection->Release();
+            }
         }
+
+        _subSystem->Release();
+        _subSystem = nullptr;
 
         _service = nullptr;
     }
@@ -153,6 +176,85 @@ namespace Plugin {
     void DeviceInfo::SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const
     {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
+    }
+
+    void DeviceInfo::CapabilitiesInfo(JsonData::DeviceInfo::CapabilitiesData& response) const
+    {
+        ASSERT(_implementation != nullptr);
+
+        bool supportsHdr = false;
+        if (_implementation->HDR(supportsHdr) == Core::ERROR_NONE) {
+            response.Hdr = supportsHdr;
+        }
+
+        bool supportsAtmos = false;
+        if (_implementation->Atmos(supportsAtmos) == Core::ERROR_NONE) {
+            response.Atmos = supportsAtmos;
+        }
+
+        bool supportsCec = false;
+        if (_implementation->CEC(supportsCec) == Core::ERROR_NONE) {
+            response.Cec = supportsCec;
+        }
+
+        Exchange::IDeviceCapabilities::CopyProtection hdcp(Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE);
+        if (_implementation->HDCP(hdcp) == Core::ERROR_NONE) {
+            response.Hdcp = static_cast<JsonData::DeviceInfo::CapabilitiesData::Copy_protectionType>(hdcp);
+        }
+
+        Exchange::IDeviceCapabilities::IAudioOutputIterator* audioIt = nullptr;
+        Exchange::IDeviceCapabilities::AudioOutput audio(Exchange::IDeviceCapabilities::AudioOutput::AUDIO_OTHER);
+        Core::JSON::EnumType<JsonData::DeviceInfo::CapabilitiesData::Audio_outputType> jsonAudio;
+        if (_implementation->AudioOutputs(audioIt) == Core::ERROR_NONE && audioIt != nullptr) {
+            while (audioIt->Next(audio)) {
+                response.Audio_outputs.Add(jsonAudio = static_cast<JsonData::DeviceInfo::CapabilitiesData::Audio_outputType>(audio));
+            }
+        }
+
+        Exchange::IDeviceCapabilities::IVideoOutputIterator* videoIt = nullptr;
+        Exchange::IDeviceCapabilities::VideoOutput video(Exchange::IDeviceCapabilities::VideoOutput::VIDEO_OTHER);
+        Core::JSON::EnumType<JsonData::DeviceInfo::CapabilitiesData::Video_outputType> jsonVideo;
+        if (_implementation->VideoOutputs(videoIt) == Core::ERROR_NONE && videoIt != nullptr) {
+            while (videoIt->Next(video)) {
+                response.Video_outputs.Add(jsonVideo = static_cast<JsonData::DeviceInfo::CapabilitiesData::Video_outputType>(video));
+            }
+        }
+
+        Exchange::IDeviceCapabilities::IOutputResolutionIterator* resolutionIt = nullptr;
+        Exchange::IDeviceCapabilities::OutputResolution resolution(Exchange::IDeviceCapabilities::OutputResolution::RESOLUTION_UNKNOWN);
+        Core::JSON::EnumType<JsonData::DeviceInfo::CapabilitiesData::Output_resolutionType> jsonResolution;
+        if (_implementation->Resolutions(resolutionIt) == Core::ERROR_NONE && resolutionIt != nullptr) {
+            while (resolutionIt->Next(resolution)) {
+                response.Output_resolutions.Add(jsonResolution = static_cast<JsonData::DeviceInfo::CapabilitiesData::Output_resolutionType>(resolution));
+            }
+        }
+    }
+
+    void DeviceInfo::MetadataInfo(JsonData::DeviceInfo::MetadataData& metadatainfo) const
+    {
+        ASSERT(_deviceMetadataInterface != nullptr);
+        string localresult ;
+
+        if (_deviceMetadataInterface->ModelName(localresult) == Core::ERROR_NONE) {
+            metadatainfo.ModelName = localresult;
+        }
+
+        uint16_t year = 0;
+        if (_deviceMetadataInterface->ModelYear(year) == Core::ERROR_NONE) {
+            metadatainfo.ModelYear = year;
+        }
+
+        if (_deviceMetadataInterface->FriendlyName(localresult) == Core::ERROR_NONE) {
+            metadatainfo.FriendlyName = localresult;
+        }
+
+        if (_deviceMetadataInterface->SystemIntegratorName(localresult) == Core::ERROR_NONE) {
+            metadatainfo.SystemIntegratorName = localresult;
+        }
+
+        if (_deviceMetadataInterface->PlatformName(localresult) == Core::ERROR_NONE) {
+            metadatainfo.PlatformName = localresult;
+        }
     }
 
 } // namespace Plugin

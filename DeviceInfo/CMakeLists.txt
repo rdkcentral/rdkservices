@@ -15,15 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME DeviceInfo)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(DeviceInfo)
 
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+set(PLUGIN_NAME DeviceInfo)
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+set(PLUGIN_DEVICEINFO_AUTOSTART "true" CACHE STRING "Automatically start DeviceInfo plugin")
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
     DeviceInfo.cpp
     DeviceInfoJsonRpc.cpp
+    DeviceInfoImplementation.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -33,7 +42,8 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME} 
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

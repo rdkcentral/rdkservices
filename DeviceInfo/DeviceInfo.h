@@ -21,6 +21,7 @@
 #define DEVICEINFO_DEVICEINFO_H
 
 #include "Module.h"
+#include <interfaces/IDeviceInfo.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
@@ -54,17 +55,17 @@ namespace Plugin {
         DeviceInfo(const DeviceInfo&) = delete;
         DeviceInfo& operator=(const DeviceInfo&) = delete;
 
-        uint32_t addresses(const Core::JSON::String& parameters, Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response)
+        uint32_t addresses(const Core::JSON::String&, Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response)
         {
             AddressInfo(response);
             return (Core::ERROR_NONE);
         }
-        uint32_t system(const Core::JSON::String& parameters, JsonData::DeviceInfo::SysteminfoData& response)
+        uint32_t system(const Core::JSON::String&, JsonData::DeviceInfo::SysteminfoData& response)
         {
             SysInfo(response);
             return (Core::ERROR_NONE);
         }
-        uint32_t sockets(const Core::JSON::String& parameters, JsonData::DeviceInfo::SocketinfoData& response)
+        uint32_t sockets(const Core::JSON::String&, JsonData::DeviceInfo::SocketinfoData& response)
         {
             SocketPortInfo(response);
             return (Core::ERROR_NONE);
@@ -77,6 +78,9 @@ namespace Plugin {
             , _subSystem(nullptr)
             , _systemId()
             , _deviceId()
+            , _implementation(nullptr)
+            , _deviceMetadataInterface(nullptr)
+            , _connectionId(0)
         {
             RegisterAll();
         }
@@ -90,6 +94,8 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::IDeviceCapabilities, _implementation)
+        INTERFACE_AGGREGATE(Exchange::IDeviceMetadata, _implementation)
         END_INTERFACE_MAP
 
     public:
@@ -111,10 +117,14 @@ namespace Plugin {
         uint32_t get_systeminfo(JsonData::DeviceInfo::SysteminfoData& response) const;
         uint32_t get_addresses(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response) const;
         uint32_t get_socketinfo(JsonData::DeviceInfo::SocketinfoData& response) const;
+        uint32_t get_capabilities(JsonData::DeviceInfo::CapabilitiesData& response) const;
+        uint32_t get_metadata(JsonData::DeviceInfo::MetadataData& response) const;
 
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
+        void CapabilitiesInfo(JsonData::DeviceInfo::CapabilitiesData& response) const;
+        void MetadataInfo(JsonData::DeviceInfo::MetadataData& response) const;
         string GetDeviceId() const;
 
     private:
@@ -123,6 +133,9 @@ namespace Plugin {
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
         mutable string _deviceId;
+        Exchange::IDeviceCapabilities* _implementation;
+        Exchange::IDeviceMetadata* _deviceMetadataInterface;
+        uint32_t _connectionId;
     };
 
 } // namespace Plugin
