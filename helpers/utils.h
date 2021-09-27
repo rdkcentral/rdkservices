@@ -36,10 +36,10 @@
 #include "rdk/iarmbus/libIARM.h"
 
 // std
-#include <iostream> // DSW 09/16
+#include <iostream>
 #include <string>
 #include <thread>
-#include <regex>    // DSW 09/16
+#include <regex>
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
@@ -323,7 +323,6 @@ namespace Utils
      */
     bool fileExists(const char *pFileName);
 
-
     /***
      * @brief	: Checks that file exists and modified at least pointed seconds ago
      * @param1[in]	: pFileName name of file
@@ -334,28 +333,31 @@ namespace Utils
 
     namespace Port
     {
+        /* Retrieve IP_BINDING + PORT from /etc/WPEFramework/config.json */
+
         /***
-         * @brief       : Does line match searched string?
-         * @param1[in]  : string to match against
-         * @param1[in]  : RegEx to use to match
+         * @brief       : Does line contain searched string?
+         * @param[in]   : string to match against
          * @return      : true if line matches
          */
         bool isJsonMatch(std::string inString);
 
         /***
-         * @brief       : Get value of matched JSON element
+         * @brief       : Get value of matched JSON element from isJsonMatch()
+         * @param[in]   : whole line to parse and fetch from
+         * @param[in]   : RegEx to extract from
          * @return      : value as String
          */
         std::string retrieveJsonValue(std::string stringLine, std::string rgxMatch);
 
         /***
          * @brief	    : Fetches /etc/WPEFramework/config.json and parses out IP Binding and port
-         * @return	    : String of "IP_BINDING:PORT" 
+         * @return	    : String of 'IP_BINDING:PORT' 
          */
         std::string fetchCurrentIpBindingAndPort();
 
-    } // namespace Port
-    
+    } // end namespace Port
+
     struct SecurityToken
     {
         static void getSecurityToken(std::string& token);
@@ -439,4 +441,3 @@ namespace Utils
         };
     };
 } // namespace Utils
-
