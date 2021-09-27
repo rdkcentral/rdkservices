@@ -112,7 +112,7 @@ namespace WPEFramework {
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 PluginHost::IShell* m_shellService { nullptr };
-                regex_t m_regexAllowedChars;
+                regex_t m_regexUnallowedChars;
 
                 int m_FwUpdateState_LatestEvent;
 
