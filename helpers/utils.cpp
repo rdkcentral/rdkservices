@@ -165,11 +165,11 @@ std::string Utils::Port::retrieveJsonValue(std::string stringLine, std::string r
     std::smatch matchFound;
     std::regex rgx(rgxMatch);
     if (std::regex_search(stringLine.begin(), stringLine.end(), matchFound, rgx)) {
-        return matchFound; // success!
+        return matchFound; // SUCCEED!
     } else {
         std::string fouledUp "NO MATCH on '" += rgxMatch;
         fubar += "'";
-        return fouledUp; // fail!
+        return fouledUp; // FAIL!
     }
 }
 
