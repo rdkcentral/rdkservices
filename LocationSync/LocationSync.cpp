@@ -108,14 +108,19 @@ namespace Plugin {
             const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
             const PluginHost::ISubSystem::ILocation* location(subSystem->Get<PluginHost::ISubSystem::ILocation>());
 
-            response->PublicIp = internet->PublicIPAddress();
-            response->TimeZone = location->TimeZone();
-            response->Region = location->Region();
-            response->Country = location->Country();
-            response->City = location->City();
+            if ((internet != nullptr) && (location != nullptr)) {
+                response->PublicIp = internet->PublicIPAddress();
+                response->TimeZone = location->TimeZone();
+                response->Region = location->Region();
+                response->Country = location->Country();
+                response->City = location->City();
 
-            result->ContentType = Web::MIMETypes::MIME_JSON;
-            result->Body(Core::proxy_cast<Web::IBody>(response));
+                result->ContentType = Web::MIMETypes::MIME_JSON;
+                result->Body(Core::proxy_cast<Web::IBody>(response));
+            } else {
+                result->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
+                result->Message = _T("Internet and Location Service not yet available");
+            }
         } else if (request.Verb == Web::Request::HTTP_POST) {
             index.Next();
             if (index.Next()) {
