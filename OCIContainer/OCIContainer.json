@@ -373,6 +373,63 @@
                 ]
             }
         },
+        "startContainerFromCryptedBundle":{
+            "summary": "Starts a new container from an existing encrypted OCI bundle",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "containerId": {
+                        "$ref": "#/definitions/containerId"
+                    },
+                    "rootFSPath": {
+                        "summary": "Path to the enrypted OCI bundle containing the rootfs to use to create the container",
+                        "type": "string",
+                        "example": "/containers/rootfs/myBundle"
+                    },
+                    "configFilePath": {
+                        "summary": "Path to the enrypted OCI bundle containing the config file to use to create the container",
+                        "type": "string",
+                        "example": "/containers/var/myBundle"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    },
+                    "westerosSocket":{
+                        "summary": "Path to a Westeros socket to mount inside the container",
+                        "type": "string",
+                        "example": "/usr/mySocket"
+                    },
+                    "envvar": {
+                        "summary": "A list of environment variables to add to the container",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "FOO=BAR"
+                        }
+                    }
+                },
+                "required": [
+                    "containerId",
+                    "rootFSPath",
+                    "configFilePath"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "descriptor": {
+                        "$ref": "#/definitions/Descriptor"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "descriptor",
+                    "success"
+                ]
+            }
+        },
         "startContainerFromDobbySpec":{
             "summary": "Starts a new container from a legacy Dobby JSON specification",
             "params": {
