@@ -254,7 +254,7 @@ namespace WPEFramework
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),1000); 
+                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),100);
                  } 
                  catch(...)
                  {
@@ -761,7 +761,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 1000);	
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 500);
        } 
 
 	   void HdmiCecSink::wakeupFromStandby()
@@ -974,7 +974,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1100);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 500);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -1641,7 +1641,7 @@ namespace WPEFramework
 			}
 
 			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-										MessageEncoder().encode(RequestActiveSource()), 5000);	
+										MessageEncoder().encode(RequestActiveSource()), 500);
 		}
 		
 		void HdmiCecSink::setActiveSource(bool isResponse)
@@ -1663,7 +1663,7 @@ namespace WPEFramework
 			}
 		
 			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 1000);
+										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 500);
 			_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 		}
 
@@ -1695,7 +1695,7 @@ namespace WPEFramework
 
 			lang = _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage;
 
-			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(SetMenuLanguage(lang)), 5000);	
+			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(SetMenuLanguage(lang)), 100);
 		}
 
 		void HdmiCecSink::updateInActiveSource(const int logical_address, const InActiveSource &source )
@@ -1778,7 +1778,7 @@ namespace WPEFramework
 			}
 
                         LOGINFO(" Send requestShortAudioDescriptor Message ");
-                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1100);
+                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 200);
 
 		}
 		void HdmiCecSink::sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason)
@@ -1789,7 +1789,7 @@ namespace WPEFramework
                        if(!(_instance->smConnection))
                            return;
 		       LOGINFO(" Sending FeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
-                       _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 1000);
+                       _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 100);
                  }
 	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
         {
@@ -1920,9 +1920,9 @@ namespace WPEFramework
 				{
 					LOGINFO("Sending Power OFF ");
 					/* send Power OFF Function to turn OFF */
-					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_OFF_FUNCTION)), 5000);			
+					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_OFF_FUNCTION)), 100);
 
-					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlReleased()), 5000);			
+					_instance->smConnection->sendTo(LogicalAddress(_instance->m_currentActiveSource), MessageEncoder().encode(UserControlReleased()), 100);
 				}
 			}
 		}
@@ -1956,8 +1956,8 @@ namespace WPEFramework
 				{
 					LOGINFO("Sending Power ON");
 					/* send Power ON Function to turn ON */
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_ON_FUNCTION)), 5000); 		
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlReleased()), 5000);			
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_POWER_ON_FUNCTION)), 100);
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddr), MessageEncoder().encode(UserControlReleased()), 100);
 				}
 			}
 		}
@@ -1974,7 +1974,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(SetStreamPath(physical_addr)), 5000);	
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(SetStreamPath(physical_addr)), 500);
 		}
 
 		void HdmiCecSink::setRoutingChange(const std::string &from, const std::string &to) {
@@ -2033,7 +2033,7 @@ namespace WPEFramework
 			
                         if(!(_instance->smConnection))
                             return;
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RoutingChange(oldPhyAddr, newPhyAddr)), 5000); 
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(RoutingChange(oldPhyAddr, newPhyAddr)), 500);
 		}
 
 		void HdmiCecSink::addDevice(const int logicalAddress) {
@@ -2093,7 +2093,7 @@ namespace WPEFramework
 				LOGERR("Logical Address NOT Allocated Or its not valid");
 				return;
 			}
-			_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);	
+			_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDevicePowerStatus()), 100);
 		}
 
 		void HdmiCecSink::request(const int logicalAddress) {
@@ -2116,31 +2116,31 @@ namespace WPEFramework
 			{
 				case CECDeviceParams::REQUEST_PHISICAL_ADDRESS :
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GivePhysicalAddress()), 5000);	
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GivePhysicalAddress()), 200);
 				}
 					break;
 
 				case CECDeviceParams::REQUEST_CEC_VERSION :
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GetCECVersion()), 5000);	
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GetCECVersion()), 100);
 				}
 					break;
 
 				case CECDeviceParams::REQUEST_DEVICE_VENDOR_ID :
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDeviceVendorID()), 5000);	
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDeviceVendorID()), 100);
 				}
 					break;
 
 				case CECDeviceParams::REQUEST_OSD_NAME :	
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 5000);	
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 200);
 				}
 					break;
 
 				case CECDeviceParams::REQUEST_POWER_STATUS :	
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDevicePowerStatus()), 5000);	
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveDevicePowerStatus()), 100);
 				}
 					break;
 				default:
@@ -2342,7 +2342,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
-								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 5000);	
+								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
 						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
 						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
@@ -2927,7 +2927,7 @@ namespace WPEFramework
            if(!(_instance->smConnection))
                return;
           LOGINFO(" Send_Request_Arc_Initiation_Message ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcInitiation()), 1100);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcInitiation()), 200);
 
         }
         void HdmiCecSink::Send_Report_Arc_Initiated_Message()
@@ -2936,7 +2936,7 @@ namespace WPEFramework
 	    return;
             if(!(_instance->smConnection))
                return;
-            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcInitiation()), 1000);
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcInitiation()), 200);
 
         }
         void HdmiCecSink::Send_Request_Arc_Termination_Message()
@@ -2946,7 +2946,7 @@ namespace WPEFramework
 	     return;
             if(!(_instance->smConnection))
                return;
-            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcTermination()), 1100);
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcTermination()), 200);
         }
 
        void HdmiCecSink::Send_Report_Arc_Terminated_Message()
@@ -2955,7 +2955,7 @@ namespace WPEFramework
 		return;
             if(!(_instance->smConnection))
                return;
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 1000);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 200);
 
        }
 
