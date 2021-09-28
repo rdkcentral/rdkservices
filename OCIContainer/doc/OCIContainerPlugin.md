@@ -91,6 +91,7 @@ OCIContainer interface methods:
 | [pauseContainer](#method.pauseContainer) | Pauses a currently running container |
 | [resumeContainer](#method.resumeContainer) | Resumes a previously paused container |
 | [startContainer](#method.startContainer) | Starts a new container from an existing OCI bundle |
+| [startContainerFromCryptedBundle](#method.startContainerFromCryptedBundle) | Starts a new container from an existing encrypted OCI bundle |
 | [startContainerFromDobbySpec](#method.startContainerFromDobbySpec) | Starts a new container from a legacy Dobby JSON specification |
 | [stopContainer](#method.stopContainer) | Stops a currently running container |
 
@@ -466,6 +467,61 @@ Starts a new container from an existing OCI bundle.
         "envvar": [
             "FOO=BAR"
         ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "descriptor": 91,
+        "success": true
+    }
+}
+```
+<a name="method.startContainerFromCryptedBundle"></a>
+## *startContainerFromCryptedBundle <sup>method</sup>*
+
+Starts a new container from an existing encrypted OCI bundle.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.containerId | string | The ID of a container as returned by `listContainers` |
+| params.rootFSPath | string | Path to the OCI bundle containing the rootfs to use to create the container |
+| params.configFilePath | string | Path to the OCI bundle containing the config to use to create the container |
+| params?.command | string | <sup>*(optional)*</sup> Command to execute |
+| params?.westerosSocket | string | <sup>*(optional)*</sup> Path to a Westeros socket to mount inside the container |
+| params?.envvar | array | <sup>*(optional)*</sup> A list of environment variables to add to the container |
+| params?.envvar[#] | string | <sup>*(optional)*</sup>  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.descriptor | integer | The container descriptor |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.OCIContainer.1.startContainerFromCryptedBundle",
+    "params": {
+        "containerId": "com.bskyb.epgui",
+        "rootFSPath": "/containers/myBundle",
+        "configFilePath": "/containers/var/myBundle"
     }
 }
 ```

@@ -126,6 +126,32 @@ Starts a new container from an existing OCI bundle.
 }
 ```
 
+## startContainerFromCryptedBundle
+
+Starts a new container from an existing encrypted OCI bundle.
+
+### Params
+| Name           | Type   | Description                                                                                |
+| -------------- | ------ | ------------------------------------------------------------------------------------------ |
+| containerId    | string | ID for the new container                                                                   |
+| rootFSPath     | string | Path to the OCI bundle containing the rootfs to use to create the container                |
+| configFilePath | string | Path to the OCI bundle containing the config file to use to create the container           |
+| command        | string | Custom command to run inside the container, overriding the command in the container config |
+| westerosSocket | string | Path to a westeros socket to mount inside the container                                    |
+---
+
+### Response
+```json
+{
+   "jsonrpc":"2.0",
+   "id":3,
+   "result":{
+      "descriptor":257,
+      "success":true
+   }
+}
+```
+
 ## startContainerFromDobbySpec
 
 Starts a new container from a legacy Dobby json specification
