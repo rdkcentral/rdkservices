@@ -24,6 +24,7 @@
 #include <interfaces/IBrowser.h>
 #include <interfaces/IApplication.h>
 #include <interfaces/IMemory.h>
+
 #include <interfaces/json/JsonData_Browser.h>
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
@@ -228,7 +229,7 @@ namespace Plugin {
         uint32_t get_languages(Core::JSON::ArrayType<Core::JSON::String>& response) const;
         uint32_t set_languages(const Core::JSON::ArrayType<Core::JSON::String>& param);
         uint32_t get_headers(Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& response) const;
-        uint32_t set_headers(const Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& param);
+        uint32_t set_headers(const Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& param);        
         void event_bridgequery(const string& message);
         void event_statechange(const bool& suspended); // StateControl
 
