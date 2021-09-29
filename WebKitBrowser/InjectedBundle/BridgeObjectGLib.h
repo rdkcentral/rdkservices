@@ -16,19 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef __INJECTEDBUNDLE_MODULE_H
-#define __INJECTEDBUNDLE_MODULE_H
 
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_WebKitBrowserInjectedBundle
-#endif
+#pragma once
 
-#include <com/com.h>
-#include <core/core.h>
-#include <tracing/tracing.h>
+#include <wpe/webkit-web-extension.h>
 
-#undef EXTERNAL
-#define EXTERNAL
+namespace WPEFramework {
+namespace JavaScript {
+namespace BridgeObject {
 
-#endif // __INJECTEDBUNDLE_MODULE_H
+bool HandleMessageToPage(WebKitWebPage*, const char*, WebKitUserMessage*);
+void InjectJS(WebKitScriptWorld*, WebKitWebPage*, WebKitFrame*);
+
+}  // BridgeObject
+}  // JavaScript
+}  // WPEFramework

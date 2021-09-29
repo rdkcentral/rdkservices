@@ -47,7 +47,7 @@ namespace Plugin {
     {
         Unregister(_T("state"));
         Unregister(_T("headers"));
-        Unregister(_T("languages"));
+        Unregister(_T("languages"));        
         Unregister(_T("delete"));
     }
 
