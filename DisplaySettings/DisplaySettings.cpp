@@ -734,8 +734,11 @@ namespace WPEFramework {
                                         LOGINFO("dsHdmiEventHandler: Disable ARC\n");
                                         DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
                                         DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
-                                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
-                                        DisplaySettings::_instance->m_arcAudioEnabled = false;
+					if(DisplaySettings::_instance->m_arcAudioEnabled == true) {
+                                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+                                            DisplaySettings::_instance->m_arcAudioEnabled = false;
+					}
+
                                        {
                                         std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                         DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
@@ -778,8 +781,11 @@ namespace WPEFramework {
                                else {
                                    DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = false;
                                    DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, hdmiin_hotplug_conn);
-                                   aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
-                                   DisplaySettings::_instance->m_arcAudioEnabled = false;
+				   if(DisplaySettings::_instance->m_arcAudioEnabled == true) {
+                                       aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+                                       DisplaySettings::_instance->m_arcAudioEnabled = false;
+				   }
+
                                    {
                                      std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                      DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
