@@ -763,6 +763,11 @@ namespace WPEFramework {
 				LOGINFO("checkTR181 reutrns true \n");
 			retVal = true;
 			}
+#if defined(PLATFORM_AMLOGIC)
+            else  {
+             retVal =true;
+            }      
+#endif
 
 			// Allow environmential override
 			char* envFeatureControl = getenv(CW_ENV_PARAMETER);
@@ -811,6 +816,9 @@ namespace WPEFramework {
 		std::string NetflixContinueWatchingImpl::getApplicationToken()
 		{
 			string encencryptData = readFromJson();
+            if (encencryptData.empty()) {
+                return encencryptData;
+            }
 			int paddingLength = 0;
 			string decodedencryptedtokenbase64;
 
