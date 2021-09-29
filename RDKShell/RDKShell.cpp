@@ -777,8 +777,8 @@ namespace WPEFramework {
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
             if (true == rdkSupportResolutionChange)
-            {
-             dsPlugin = getDisplaySettingsPlugin();
+        {
+            dsPlugin = getDisplaySettingsPlugin();
             if (!dsPlugin)
             {
                 std::cout << "Display Settings initialization failed\n";
@@ -818,7 +818,7 @@ namespace WPEFramework {
             {
                 std::cout << "Display Settings getFrontPanel failed:"<< res << "\n";
             }
-            }
+        }
 
 
             bool waitForPersistentStore = false;
