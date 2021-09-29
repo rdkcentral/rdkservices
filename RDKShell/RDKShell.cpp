@@ -777,32 +777,32 @@ namespace WPEFramework {
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
             if (true == rdkSupportResolutionChange)
-        {
-            dsPlugin = getDisplaySettingsPlugin();
-            if (!dsPlugin)
             {
-                std::cout << "Display Settings initialization failed\n";
-            }
-            else
-            {
+              dsPlugin = getDisplaySettingsPlugin();
+               if (!dsPlugin)
+               {
+                 std::cout << "Display Settings initialization failed\n";
+               }
+              else
+               {
                  std::string eventName1("resolutionChanged");
                  int32_t status = dsPlugin->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName1), &RDKShell::onResolutionChanged, this);
-                 if (status == 0)
-                {
+                  if (status == 0)
+                  {
                     std::cout << "RDKShell subscribed to resolutionChanged event " << std::endl;
+                  }
                 }
-            }
-            // See if the app is actually installed
-            JsonObject resolutionParams;
-            JsonObject resolutionResult;
-            string resolution;
-            dsPlugin->Invoke<JsonObject, JsonObject>(1000, "getCurrentResolution", resolutionParams, resolutionResult);
-            if (resolutionResult["success"].Boolean())
-            {
+              // See if the app is actually installed
+              JsonObject resolutionParams;
+              JsonObject resolutionResult;
+              string resolution;
+              dsPlugin->Invoke<JsonObject, JsonObject>(1000, "getCurrentResolution", resolutionParams, resolutionResult);
+              if (resolutionResult["success"].Boolean())
+              {
                 unsigned int resWidth, resHeight;
                 resolution = params.Get("resolution").String();
-            if (strstr(resolution.c_str(),"720"))
-               {
+                if (strstr(resolution.c_str(),"720"))
+                {
                    resWidth = 1280;
                    resHeight = 720;
                 }
@@ -813,12 +813,12 @@ namespace WPEFramework {
                 }
                 std::cout << "setScreenResolution "<< resWidth << " "<< resHeight << "\n" ;
                 setScreenResolution(resWidth, resHeight);
-            }
-            else
-            {
+               }
+              else
+              {
                 std::cout << "Display Settings getFrontPanel failed:"<< res << "\n";
+              }
             }
-        }
 
 
             bool waitForPersistentStore = false;
