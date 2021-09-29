@@ -164,6 +164,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+bool rdkSupportResolutionChange = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -694,6 +695,8 @@ namespace WPEFramework {
                 std::cout << "RDKShell WAYLAND_DISPLAY is not set\n";
             }
 
+            rdkSupportResolutionChange = getenv("RDKSHELL_SUPPORT_RESOLUTION_CHANGE");
+
             mCurrentService = service;
             CompositorController::setEventListener(mEventListener);
             bool factoryMacMatched = false;
@@ -773,6 +776,50 @@ namespace WPEFramework {
 
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
+            if (true == rdkSupportResolutionChange)
+            {
+             dsPlugin = getDisplaySettingsPlugin();
+            if (!dsPlugin)
+            {
+                std::cout << "Display Settings initialization failed\n";
+            }
+            else
+            {
+                 std::string eventName1("resolutionChanged");
+                 int32_t status = dsPlugin->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName1), &RDKShell::onResolutionChanged, this);
+                 if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to resolutionChanged event " << std::endl;
+                }
+            }
+            // See if the app is actually installed
+            JsonObject resolutionParams;
+            JsonObject resolutionResult;
+            string resolution;
+            dsPlugin->Invoke<JsonObject, JsonObject>(1000, "getCurrentResolution", resolutionParams, resolutionResult);
+            if (resolutionResult["success"].Boolean())
+            {
+                unsigned int resWidth, resHeight;
+                resolution = params.Get("resolution").String();
+            if (strstr(resolution.c_str(),"720"))
+               {
+                   resWidth = 1280;
+                   resHeight = 720;
+                }
+                else
+                {
+                    resWidth = 1920;  
+                   resHeight = 1080;
+                }
+                std::cout << "setScreenResolution "<< resWidth << " "<< resHeight << "\n" ;
+                setScreenResolution(resWidth, resHeight);
+            }
+            else
+            {
+                std::cout << "Display Settings getFrontPanel failed:"<< res << "\n";
+            }
+            }
+
 
             bool waitForPersistentStore = false;
             char* waitValue = getenv("RDKSHELL_WAIT_FOR_PERSISTENT_STORE");
@@ -1186,6 +1233,48 @@ namespace WPEFramework {
                 }
             }
         }
+         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getDisplaySettingsPlugin()
+        {
+            string query = "token=" + sThunderSecurityToken;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.DisplaySettings.1", "", false, query);
+        }
+
+        void RDKShell::onResolutionChanged(const JsonObject& params)
+        {
+            string eventParams;
+            unsigned int resWidth, resHeight;
+            string resolution;
+            bool result = false;
+            params.ToString(eventParams);
+            std::cout << "resolution changed eventParams: " << eventParams << endl;
+            std::vector<std::string> clientList;
+            unsigned int newW=0, newH=0; // read these from resolution
+            gRdkShellMutex.lock();
+            resolution = params.Get("resolution").String();
+            if (strstr(resolution.c_str(),"720"))
+               {
+                   resWidth = 1280;
+                   resHeight = 720;
+                }
+                else
+                {
+                    resWidth = 1920;  
+                   resHeight = 1080;
+                }
+            CompositorController::getClients(clientList);
+            result=  setScreenResolution(resWidth, resHeight);
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                std::cout << "setBounds for client: " << clientList[i].c_str();
+                unsigned int x=0,y=0,w=0,h=0;
+                std::string client = clientList[i].c_str();
+                CompositorController::getBounds(client, x, y, w, h);
+                CompositorController::setBounds(client, x, y, newW, newH);
+            }
+            gRdkShellMutex.unlock();
+        }
+
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
@@ -5872,7 +5961,33 @@ namespace WPEFramework {
                     std::cout << "Stopped SystemServices connection timer" << std::endl;
                 }
             }
+            if (true == rdkSupportResolutionChange)
+            {
+                if (Core::ERROR_NONE == subscribeForResolutionEvent("resolutionChanged"))
+                {
+                    m_timer.stop();
+                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                }
+            }
         }
+        int32_t RDKShell::subscribeForResolutionEvent(std::string event)
+         {
+          // add here to get Current resolution.
+            dsPlugin = getDisplaySettingsPlugin();
+            if (!dsPlugin)
+            {
+                std::cout << "Display Settings initialization failed\n";
+            }
+            else
+            {
+                std::string eventName1("resolutionChanged");
+                int32_t status = dsPlugin->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName1), &RDKShell::onResolutionChanged, this);
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to resolutionChanged event " << std::endl;
+                }
+            }
+         }
 
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
