@@ -4,7 +4,7 @@
 #  WPE_BACKEND_INCLUDE_DIRS - The libwpe include directories
 #  WPE_BACKEND_LIBRARIES - The libraries needed to use libwpe
 #
-# Copyright (C) 2019 Metrological.
+# Copyright (C) 2019 RDK Management
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,19 +28,38 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 find_package(PkgConfig)
-pkg_search_module(PC_WPE_BACKEND REQUIRED wpe-0.2 wpe-1.0)
 
-find_path(WPE_BACKEND_INCLUDE_DIRS
-    NAMES wpe/wpe.h
-    HINTS ${PC_WPE_BACKEND_INCLUDEDIR} ${PC_WPE_BACKEND_INCLUDE_DIRS}
-)
+if(NOT PC_WPE_BACKEND_FOUND)
+pkg_search_module(PC_WPE_BACKEND wpe-1.0)
+endif()
 
-find_library(WPE_BACKEND_LIBRARIES
-    NAMES wpe-0.2 wpe-1.0
-    HINTS ${PC_WPE_BACKEND_LIBDIR} ${PC_WPE_BACKEND_LIBRARY_DIRS}
-)
+if(NOT PC_WPE_BACKEND_FOUND)
+pkg_search_module(PC_WPE_BACKEND wpe-0.2)
+endif()
 
-mark_as_advanced(WPE_BACKEND_INCLUDE_DIRS WPE_BACKEND_LIBRARIES)
+if(PC_WPE_BACKEND_FOUND)
+    find_path(WPE_BACKEND_INCLUDE_DIR
+        NAMES wpe/wpe.h
+        HINTS ${PC_WPE_BACKEND_INCLUDEDIR} ${PC_WPE_BACKEND_INCLUDE_DIRS}
+    )
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(WPEBACKEND REQUIRED_VARS WPE_BACKEND_INCLUDE_DIRS WPE_BACKEND_LIBRARIES)
+    find_library(WPE_BACKEND_LIBRARY
+        NAMES ${PC_WPE_BACKEND_LIBRARIES}
+        HINTS ${PC_WPE_BACKEND_LIBDIR} ${PC_WPE_BACKEND_LIBRARY_DIRS}
+    )
+
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(WPEBackend 
+        VERSION_VAR PC_WPE_BACKEND_VERSION
+        REQUIRED_VARS WPE_BACKEND_LIBRARY WPE_BACKEND_INCLUDE_DIR WPE_BACKEND_LIBRARY)
+
+    if(PC_WPE_BACKEND_FOUND AND NOT TARGET WPEBackend::WPEBackend)
+        add_library(WPEBackend::WPEBackend SHARED IMPORTED)
+        set_target_properties(WPEBackend::WPEBackend PROPERTIES
+            IMPORTED_LOCATION "${WPE_BACKEND_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${WPE_BACKEND_INCLUDE_DIR}"
+        )
+    endif()
+
+    mark_as_advanced(WPE_BACKEND_INCLUDE_DIR WPE_BACKEND_LIBRARY)
+endif()
