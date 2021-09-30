@@ -1,0 +1,186 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "LgiHdmiCec API", 
+        "class": "LgiHdmiCec", 
+        "description": "The `LgiHdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box"
+    },
+    "definitions": {
+        "enabled": {
+            "summary": "Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`)",
+            "type":"boolean",
+            "example": false
+        },
+        "physicalAddress":{
+            "summary": "The physical IP address of the device",
+            "type":"array",
+            "items": {
+                "type": "string",
+                "example": "255, 255, 255, 255"
+            }
+        },
+        "message":{
+            "summary": "The message is a base64 encoded byte array of the raw CEC bytes. The CEC message includes the device ID for the intended destination.",
+            "type": "string",
+            "example": "1234567890" 
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getCECAddresses":{
+            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "CECAddresses": {
+                        "summary": "An object that includes both the physical and logical HDMI-CEC addresses.",
+                        "type":"object",
+                        "properties": {
+                            "physicalAddress":{
+                                "$ref": "#/definitions/physicalAddress"
+                            },
+                            "logicalAddresses":{
+                                "summary": "The logical address including the device type",
+                                "type": "array",
+                                "items": {
+                                    "type":"object",
+                                    "properties": {
+                                        "deviceType": {
+                                            "summary": "The type of device",
+                                            "type": "string",
+                                            "example": "Tuner"
+                                        },
+                                        "logicalAddress": {
+                                            "summary": "The logical address of the device",
+                                            "type": "integer",
+                                            "example": 3
+                                        }
+                                    },
+                                    "required": [
+                                        "deviceType",
+                                        "logicalAddress"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "physicalAddress",
+                            "logicalAddresses"
+                        ]
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "CECAddresses",
+                    "success"
+                ]
+            }
+        },
+        "getEnabled": {
+            "summary": "Returns whether HDMI-CEC is enabled",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "sendMessage":{
+            "summary": "Writes HDMI-CEC frame to the driver",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "message":{
+                        "$ref": "#/definitions/message"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setEnabled":{
+            "summary": "Enables or disables HDMI-CEC",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled" 
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "cecAddressesChanged":{
+            "summary": "Triggered when the address of the host CEC device has changed",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "CECAddresses": {
+                        "summary": "Includes either the `physicalAddress` or `logicalAddresses`",
+                        "type":"object",
+                        "properties": {
+                            "physicalAddress":{
+                                "$ref": "#/definitions/physicalAddress"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "CECAddresses"
+                ]
+            }
+        },
+        "onMessage":{
+            "summary": "Triggered when a message is sent from an HDMI device",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "message": {
+                        "$ref": "#/definitions/message"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            }
+        }
+    }
+}
