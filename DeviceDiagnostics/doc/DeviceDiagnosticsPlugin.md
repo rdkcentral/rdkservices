@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations, and AV decoder status.
+The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations and AV decoder status.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
