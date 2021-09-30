@@ -71,13 +71,13 @@
                                 "value": {
                                     "summary": "The property value; Empty, if the property name is not supported ",
                                     "type":"string",
-                                    "example": "123" 
+                                    "example": "123"
                                 }
                             },
                             "required": [
                                 "name",
                                 "value"
-                            ] 
+                            ]
                         }
                     },
                     "success": {
