@@ -4,7 +4,7 @@
     "info": {
         "title": "DeviceDiagnostics API", 
         "class": "DeviceDiagnostics", 
-        "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations. "
+        "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
     },
     "definitions": {
         "AVDecoderStatus":{
@@ -36,7 +36,7 @@
     },
     "methods": {
         "getConfiguration": {
-            "summary": "Gets the values associated with the corresponding property names.\n \n### Events \n \nNo events ",
+            "summary": "Gets the values associated with the corresponding property names.\n \n### Events \n \nNo events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -44,7 +44,7 @@
                         "summary": "String array of property names",
                         "type": "array",
                         "items": {
-                           "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc ",
+                           "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc",
                            "type":"string",
                            "example": "Device.X_CISCO_COM_LED.RedPwm"
                        }
@@ -64,12 +64,12 @@
                             "type": "object",
                             "properties": {
                                 "name": {
-                                    "summary": "The property name; Empty, if the property name is not supported ",
+                                    "summary": "The property name; Empty, if the property name is not supported",
                                     "type":"string",
                                     "example": "Device.X_CISCO_COM_LED.RedPwm"
                                 },
                                 "value": {
-                                    "summary": "The property value; Empty, if the property name is not supported ",
+                                    "summary": "The property value; Empty, if the property name is not supported",
                                     "type":"string",
                                     "example": "123"
                                 }
@@ -85,12 +85,11 @@
                     }
                 },
                 "required": [
-	   			    "paramList",
-				    "success"
-			    ]
-			}
-		},
-	
+                    "paramList",
+                    "success"
+                ]
+            }
+        },
         "getAVDecoderStatus":{
             "summary": "Gets the active status of any audio/video decoder pipeline.\n \n### Events \n \nNo events.",
             "result":{
@@ -117,15 +116,15 @@
                 "type": "object",
                 "properties": {
                     "AVDecoderStatus": {
-						"summary": "The status",
-						"enum": [
-							"ACTIVE",
-							"PAUSED",
-							"IDLE"
-						],
-						"type": "string",
-						"example": "ACTIVE"
-					}
+                        "summary": "The status",
+                        "enum": [
+                            "ACTIVE",
+                            "PAUSED",
+                            "IDLE"
+                        ],
+                        "type": "string",
+                        "example": "ACTIVE"
+                    }
                 },
                 "required": [
                     "AVDecoderStatus"
