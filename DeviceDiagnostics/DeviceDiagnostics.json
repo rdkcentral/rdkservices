@@ -57,8 +57,8 @@
                             "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc",
                             "type":"string",
                             "example": "Device.X_CISCO_COM_LED.RedPwm"
-                       }
-                   }
+                        }
+                    }
                 },
                 "required": [
                     "names"
