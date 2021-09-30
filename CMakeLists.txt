@@ -159,6 +159,10 @@ if(PLUGIN_HDMICECSINK)
     add_subdirectory(HdmiCecSink)
 endif()
 
+if(PLUGIN_LGIHDMICEC)
+    add_subdirectory(LgiHdmiCec)
+endif()
+
 if(PLUGIN_LOCATIONSYNC)
     add_subdirectory(LocationSync)
 endif()
