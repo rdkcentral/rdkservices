@@ -10,9 +10,9 @@
         "audioDecoderStatus":{
             "summary": "The status",
             "enum": [
-            "ACTIVE",
-            "PAUSED",
-            "IDLE"
+                "ACTIVE",
+                "PAUSED",
+                "IDLE"
             ],
             "type": "string",
             "example": "ACTIVE"
@@ -54,9 +54,9 @@
                         "summary": "String array of property names",
                         "type": "array",
                         "items": {
-                           "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc",
-                           "type":"string",
-                           "example": "Device.X_CISCO_COM_LED.RedPwm"
+                            "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc",
+                            "type":"string",
+                            "example": "Device.X_CISCO_COM_LED.RedPwm"
                        }
                    }
                 },
