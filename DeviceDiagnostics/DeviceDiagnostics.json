@@ -7,6 +7,16 @@
         "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
     },
     "definitions": {
+        "audioDecoderStatus":{
+            "summary": "The status",
+            "enum": [
+            "ACTIVE",
+            "PAUSED",
+            "IDLE"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+        },
         "AVDecoderStatus":{
             "summary": "The status. If AV decoder status is not supported, the default state will always be IDLE.",
             "enum": [
@@ -15,7 +25,7 @@
                 "IDLE"
             ],
             "type": "string",
-            "example": "IDLE"
+            "example": "ACTIVE"
         },
         "result": {
             "type":"object",
@@ -116,14 +126,7 @@
                 "type": "object",
                 "properties": {
                     "AVDecoderStatus": {
-                        "summary": "The status",
-                        "enum": [
-                            "ACTIVE",
-                            "PAUSED",
-                            "IDLE"
-                        ],
-                        "type": "string",
-                        "example": "ACTIVE"
+                        "$ref": "#/definitions/AVDecoderStatus"
                     }
                 },
                 "required": [

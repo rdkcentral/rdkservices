@@ -96,7 +96,7 @@ Gets the values associated with the corresponding property names.
  
 ### Events 
  
-No events .
+No events.
 
 ### Parameters
 
@@ -104,7 +104,7 @@ No events .
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.names | array | String array of property names |
-| params.names[#] | string | Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc  |
+| params.names[#] | string | Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc |
 
 ### Result
 
@@ -113,8 +113,8 @@ No events .
 | result | object |  |
 | result.paramList | array | An array of JSON objects with the specified properties and their values |
 | result.paramList[#] | object |  |
-| result.paramList[#].name | string | The property name; Empty, if the property name is not supported  |
-| result.paramList[#].value | string | The property value; Empty, if the property name is not supported  |
+| result.paramList[#].name | string | The property name; Empty, if the property name is not supported |
+| result.paramList[#].value | string | The property value; Empty, if the property name is not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -192,7 +192,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "AVDecoderStatus": "IDLE",
+        "AVDecoderStatus": "ACTIVE",
         "success": true
     }
 }
@@ -222,7 +222,7 @@ Triggered when the active status of any audio/video decoder/pipeline changes.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.AVDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| params.AVDecoderStatus | string | The status. If AV decoder status is not supported, the default state will always be IDLE. (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
 
 ### Example
 
