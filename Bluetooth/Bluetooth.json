@@ -294,7 +294,7 @@
             }
         },
         "getAudioInfo":{
-            "summary": " Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.  \n  \n### Events \n\n  No events are triggered.",
+            "summary": "Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.  \n  \n### Events \n\n  No events are triggered.",
             "params": {
                 "type":"object",
                 "properties": {
