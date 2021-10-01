@@ -933,7 +933,7 @@ When true, this device can be discovered by other Bluetooth devices. When false,
   
 ### Events 
 
-  No EventS.
+  No Events.
 
 ### Parameters
 
