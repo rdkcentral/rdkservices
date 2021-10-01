@@ -86,11 +86,12 @@ Network interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getDefaultInterface](#method.getDefaultInterface) | Gets the default network interface |
-| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
+| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device along with their state |
 | [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
 | [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
+| [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
-| [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
+| [getSTBIPFamily](#method.getSTBIPFamily) | The IP address of the default interface is obtained by family address |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
 | [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
@@ -106,7 +107,11 @@ Network interface methods:
 <a name="method.getDefaultInterface"></a>
 ## *getDefaultInterface <sup>method</sup>*
 
-Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
+Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -148,7 +153,11 @@ This method takes no parameters.
 <a name="method.getInterfaces"></a>
 ## *getInterfaces <sup>method</sup>*
 
-Returns a list of interfaces supported by this device including their state.
+Returns a list of interfaces supported by this device along with their state.  
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -202,7 +211,11 @@ This method takes no parameters.
 <a name="method.getIPSettings"></a>
 ## *getIPSettings <sup>method</sup>*
 
-Gets the IP setting for the given interface.
+Gets the IP setting for the given interface. If interface is NULL or invalid name then use current active interface. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -266,7 +279,11 @@ Gets the IP setting for the given interface.
 <a name="method.getNamedEndpoints"></a>
 ## *getNamedEndpoints <sup>method</sup>*
 
-Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
+Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -308,10 +325,60 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getQuirks"></a>
+## *getQuirks <sup>method</sup>*
+
+Get standard string `RDK-20093`. 
+
+### Events 
+
+No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.quirks | string | Update `RDK-20093` string |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Network.1.getQuirks"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "quirks": "RDK-20093",
+        "success": true
+    }
+}
+```
+
 <a name="method.getStbIp"></a>
 ## *getStbIp <sup>method</sup>*
 
-Gets the IP address of the default interface.
+Gets the IP address of the default interface. Empty IP address, if the default interface IP address can not be retrieved. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -353,7 +420,11 @@ This method takes no parameters.
 <a name="method.getSTBIPFamily"></a>
 ## *getSTBIPFamily <sup>method</sup>*
 
-Gets the IP address of the default interface by address family.
+The IP address of the default interface is obtained by family address. If its successful then, the IP address is updated to a valid IP address or else the IP address is left empty. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -403,6 +474,10 @@ Gets the IP address of the default interface by address family.
 
 Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -443,7 +518,11 @@ This method takes no parameters.
 <a name="method.isInterfaceEnabled"></a>
 ## *isInterfaceEnabled <sup>method</sup>*
 
-Whether the specified interface is enabled.
+Whether the specified interface is enabled. 
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -493,6 +572,10 @@ Whether the specified interface is enabled.
 
 Pings the specified endpoint with the specified number of packets.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -500,6 +583,7 @@ Pings the specified endpoint with the specified number of packets.
 | params | object |  |
 | params.endpoint | string | The host name or IP address |
 | params.packets | integer | The number of packets to send. Default is 15 |
+| params?.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -516,6 +600,7 @@ Pings the specified endpoint with the specified number of packets.
 | result.tripMax | string | The maximum amount of time to receive the packets |
 | result.tripStdDev | string | The standard deviation for the trip |
 | result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -528,7 +613,8 @@ Pings the specified endpoint with the specified number of packets.
     "method": "org.rdk.Network.1.ping",
     "params": {
         "endpoint": "45.57.221.20",
-        "packets": 10
+        "packets": 10,
+        "guid": ""
     }
 }
 ```
@@ -549,7 +635,8 @@ Pings the specified endpoint with the specified number of packets.
         "tripAvg": "130.397",
         "tripMax": "230.832",
         "tripStdDev": "80.919",
-        "error": ""
+        "error": "",
+        "guid": ""
     }
 }
 ```
@@ -559,6 +646,10 @@ Pings the specified endpoint with the specified number of packets.
 
 Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -566,6 +657,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 | params | object |  |
 | params.endpointName | string | An endpoint name returned by `getNamedEndpoints` |
 | params.packets | integer | The number of packets to send. Default is 15 |
+| params?.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -582,6 +674,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 | result.tripMax | string | The maximum amount of time to receive the packets |
 | result.tripStdDev | string | The standard deviation for the trip |
 | result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -594,7 +687,8 @@ Pings the specified named endpoint with the specified number of packets. Only na
     "method": "org.rdk.Network.1.pingNamedEndpoint",
     "params": {
         "endpointName": "CMTS",
-        "packets": 10
+        "packets": 10,
+        "guid": ""
     }
 }
 ```
@@ -615,7 +709,8 @@ Pings the specified named endpoint with the specified number of packets. Only na
         "tripAvg": "130.397",
         "tripMax": "230.832",
         "tripStdDev": "80.919",
-        "error": ""
+        "error": "",
+        "guid": ""
     }
 }
 ```
@@ -624,6 +719,10 @@ Pings the specified named endpoint with the specified number of packets. Only na
 ## *setConnectivityTestEndpoints <sup>method</sup>*
 
 Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -672,7 +771,16 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 <a name="method.setDefaultInterface"></a>
 ## *setDefaultInterface <sup>method</sup>*
 
-Sets the default interface. The call fails if the interface is not enabled.
+Sets the default interface. The call fails if the interface is not enabled. Triggers `onDefaultInterfaceChanged` and `onConnectionStatusChanged` events. 
+ 
+### Events
+  
+| Event | Description | 
+| :----------- | :----------- |
+| `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |
+| `onConnectionStatusChanged` | It will return the interface and the current state of that interface (CONNECTED or DISCONNECTED) |.
+
+Also see: [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged), [onConnectionStatusChanged](#event.onConnectionStatusChanged)
 
 ### Parameters
 
@@ -720,7 +828,15 @@ Sets the default interface. The call fails if the interface is not enabled.
 <a name="method.setInterfaceEnabled"></a>
 ## *setInterfaceEnabled <sup>method</sup>*
 
-Enables the specified interface.
+Enables the specified interface. Triggers `onInterfaceStatusChanged` event.
+ 
+### Events  
+
+| Event | Description | 
+| :----------- | :----------- |
+| `onInterfaceStatusChanged` | Triggered when an interface becomes enabled or disabled |.
+
+Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged)
 
 ### Parameters
 
@@ -770,7 +886,15 @@ Enables the specified interface.
 <a name="method.setIPSettings"></a>
 ## *setIPSettings <sup>method</sup>*
 
-Sets the IP settings.
+Sets the IP settings. Triggers `onIPAddressStatusChanged` event.
+ 
+### Events  
+
+| Event | Description | 
+| :----------- | :----------- |
+| `onIPAddressStatusChanged` | Triggered when an IP address is assigned or lost |.
+
+Also see: [onIPAddressStatusChanged](#event.onIPAddressStatusChanged)
 
 ### Parameters
 
@@ -834,6 +958,10 @@ Sets the IP settings.
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -887,6 +1015,10 @@ Traces the specified endpoint with the specified number of packets using `tracer
 ## *traceNamedEndpoint <sup>method</sup>*
 
 Traces the specified named endpoint with the specified number of packets using `traceroute`.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -949,7 +1081,7 @@ Network interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through this API |
+| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API |
 | [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
 | [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
 
@@ -983,7 +1115,7 @@ Triggered when a connection is made or lost.
 <a name="event.onDefaultInterfaceChanged"></a>
 ## *onDefaultInterfaceChanged <sup>event</sup>*
 
-Triggered when the default interface changes, regardless if it's from a system operation or through this API.
+Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API.
 
 ### Parameters
 
