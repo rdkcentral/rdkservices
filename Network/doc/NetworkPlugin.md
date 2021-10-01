@@ -86,12 +86,12 @@ Network interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getDefaultInterface](#method.getDefaultInterface) | Gets the default network interface |
-| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device along with their state |
+| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
 | [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
 | [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
 | [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
-| [getSTBIPFamily](#method.getSTBIPFamily) | The IP address of the default interface is obtained by family address |
+| [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
 | [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
@@ -153,8 +153,8 @@ This method takes no parameters.
 <a name="method.getInterfaces"></a>
 ## *getInterfaces <sup>method</sup>*
 
-Returns a list of interfaces supported by this device along with their state.  
-
+Returns a list of interfaces supported by this device including their state.
+ 
 ### Events 
 
 No Events.
@@ -420,7 +420,7 @@ This method takes no parameters.
 <a name="method.getSTBIPFamily"></a>
 ## *getSTBIPFamily <sup>method</sup>*
 
-The IP address of the default interface is obtained by family address. If its successful then, the IP address is updated to a valid IP address or else the IP address is left empty. 
+Gets the IP address of the default interface by address family.
 
 ### Events 
 
@@ -778,7 +778,7 @@ Sets the default interface. The call fails if the interface is not enabled. Trig
 | Event | Description | 
 | :----------- | :----------- |
 | `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |
-| `onConnectionStatusChanged` | It will return the interface and the current state of that interface (CONNECTED or DISCONNECTED) |.
+| `onConnectionStatusChanged` | Triggered when the interface status is changed. Old interface status changed to `DISCONNECTED` and new interface status change to `CONNECTED` |.
 
 Also see: [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged), [onConnectionStatusChanged](#event.onConnectionStatusChanged)
 
