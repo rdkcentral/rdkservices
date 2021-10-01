@@ -23,37 +23,37 @@
             "example": "0"                   
         },
         "ttsendpoint": {
-            "summary": "TTS Engine URL",
+            "summary": "The TTS engine URL",
             "type": "string",
             "example": "http://url_for_the_text_to_speech_processing_unit"
         },
         "ttsendpointsecured": {
-            "summary": "TTS Engine secured URL",
+            "summary": "The TTS engine secured URL",
             "type": "string",
             "example": "https://url_for_the_text_to_speech_processing_unit"
         },
         "language": {
-            "summary": "TTS language",
+            "summary": "The TTS language",
             "type": "string",
             "example": "en-US"
         },
         "voice": {
-            "summary": "TTS Voice",
+            "summary": "The TTS Voice",
             "type": "string",
             "example": "carol"
         },
         "volume": {
-            "summary": "TTS Volume",
+            "summary": "The TTS Volume",
             "type": "string",
             "example": "100.000000"
         },
         "rate":{
-            "summary": "TTS Rate",
+            "summary": "The TTS Rate",
             "type": "number",
             "example": 50
         },
         "text":{
-            "summary": "The Input Text",
+            "summary": "The text input",
             "type": "string",
             "example": "speech_1"
         },
@@ -157,7 +157,7 @@
             }
         },
         "getapiversion":{
-            "summary": "Gets the API Version. \n  \n### Events \n\nNo Events.",
+            "summary": "Gets the API Version.\n \n### Events \n\nNo Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -300,7 +300,7 @@
                 "type": "object",
                 "properties": {
                     "isenabled": {
-                        "summary": "Enable or Disable TTS",
+                        "summary": "`true` if the TTS engine is enabled, otherwise `false`",
                         "type": "boolean",
                         "example": true
                     },
@@ -549,7 +549,7 @@
     },
     "events": {
         "onnetworkerror": {
-            "summary": "Triggered when a network error occurs while fetching the audio from the endpoint.",
+            "summary": "Triggered when a network error occurs while fetching the audio from the endpoint",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -563,7 +563,7 @@
             }
         },
         "onplaybackerror": {
-            "summary": "Triggered when an error occurs during playback including pipeline failures.",
+            "summary": "Triggered when an error occurs during playback including pipeline failures",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -577,7 +577,7 @@
             }
         },
         "onspeechcomplete": {
-            "summary": "Triggered when the speech completes.",
+            "summary": "Triggered when the speech completes",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -595,7 +595,7 @@
             }
         },
         "onspeechinterrupted":  {
-            "summary": "Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`.",
+            "summary": "Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -609,7 +609,7 @@
             }
         },
         "onspeechpause": {
-            "summary": "Triggered when the ongoing speech pauses.",
+            "summary": "Triggered when the ongoing speech pauses",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -623,7 +623,7 @@
             }
         },
         "onspeechresume": {
-            "summary": "Triggered when any paused speech resumes.",
+            "summary": "Triggered when any paused speech resumes",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -637,7 +637,7 @@
             }
         },
         "onspeechstart": {
-            "summary": "Triggered when the speech start.",
+            "summary": "Triggered when the speech start",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -655,12 +655,12 @@
             }
         },
         "onttsstatechanged": {
-            "summary": "Triggered when TTS is enable or disable.",
+            "summary": "Triggered when TTS is enabled or disabled",
             "params": {
                 "type" :"object",
                 "properties": {
                     "state": {
-                        "summary": "`True:` If TTS is enabled  `False:` If TTS is disabled ",
+                        "summary": "`True` if TTS is enabled, otherwise `False`",
                         "type": "boolean",
                         "example": true
                     }
@@ -671,7 +671,7 @@
             }
         },
         "onvoicechanged": {
-            "summary": "Triggered when the configured voice changes.",
+            "summary": "Triggered when the configured voice changes",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -685,7 +685,7 @@
             }
         },
         "onwillspeak": {
-            "summary": "Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak method.",
+            "summary": "Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak method",
             "params": {
                 "type" :"object",
                 "properties": {
