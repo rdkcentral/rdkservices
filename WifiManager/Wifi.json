@@ -460,7 +460,7 @@
                 "type": "object",
                 "properties": {
                     "enable": {
-                        "summary": "`true` to enable WiFi adapter in device or `false` to disable WiFi adapter in device",
+                        "summary": "`true` to enable, or `false` to disable",
                         "type": "boolean",
                         "example": true
                     }
@@ -564,7 +564,7 @@
                         "$ref": "#/definitions/state"
                     },
                     "isLNF": {
-                        "summary": "`true`: If it is connected to a LNF SSID; `false`: If it is not connected to LNF SSID",
+                        "summary": "`true` if connected to a LNF SSID, otherwise `false`",
                         "type": "boolean",
                         "example": false
                     }

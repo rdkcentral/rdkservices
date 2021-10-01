@@ -847,7 +847,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enable | boolean | `true` to enable WiFi adapter in device or `false` to disable WiFi adapter in device |
+| params.enable | boolean | `true` to enable, or `false` to disable |
 
 ### Result
 
@@ -1072,7 +1072,7 @@ Triggered when the WiFi state changes. See `getCurrentState` for a list of valid
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.state | integer | The Wifi operational state |
-| params.isLNF | boolean | `true`: If it is connected to a LNF SSID; `false`: If it is not connected to LNF SSID |
+| params.isLNF | boolean | `true` if connected to a LNF SSID, otherwise `false` |
 
 ### Example
 
