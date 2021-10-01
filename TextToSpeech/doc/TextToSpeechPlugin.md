@@ -215,8 +215,8 @@ Also see: [onttsstatechanged](#event.onttsstatechanged)
 <a name="method.getapiversion"></a>
 ## *getapiversion <sup>method</sup>*
 
-Gets the API Version. 
-  
+Gets the API Version.
+ 
 ### Events 
 
 No Events.
@@ -330,12 +330,12 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.ttsendpoint | string | TTS Engine URL |
-| result.ttsendpointsecured | string | TTS Engine secured URL |
-| result.language | string | TTS language |
-| result.voice | string | TTS Voice |
-| result.volume | string | TTS Volume |
-| result.rate | number | TTS Rate |
+| result.ttsendpoint | string | The TTS engine URL |
+| result.ttsendpointsecured | string | The TTS engine secured URL |
+| result.language | string | The TTS language |
+| result.voice | string | The TTS Voice |
+| result.volume | string | The TTS Volume |
+| result.rate | number | The TTS Rate |
 | result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
@@ -442,7 +442,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.isenabled | boolean | Enable or Disable TTS |
+| result.isenabled | boolean | `true` if the TTS engine is enabled, otherwise `false` |
 | result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
@@ -486,7 +486,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.language | string | TTS language |
+| params.language | string | The TTS language |
 
 ### Result
 
@@ -653,12 +653,12 @@ Also see: [onvoicechanged](#event.onvoicechanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.ttsendpoint | string | <sup>*(optional)*</sup> TTS Engine URL |
-| params?.ttsendpointsecured | string | <sup>*(optional)*</sup> TTS Engine secured URL |
-| params?.language | string | <sup>*(optional)*</sup> TTS language |
-| params?.voice | string | <sup>*(optional)*</sup> TTS Voice |
-| params?.volume | string | <sup>*(optional)*</sup> TTS Volume |
-| params?.rate | number | <sup>*(optional)*</sup> TTS Rate |
+| params?.ttsendpoint | string | <sup>*(optional)*</sup> The TTS engine URL |
+| params?.ttsendpointsecured | string | <sup>*(optional)*</sup> The TTS engine secured URL |
+| params?.language | string | <sup>*(optional)*</sup> The TTS language |
+| params?.voice | string | <sup>*(optional)*</sup> The TTS Voice |
+| params?.volume | string | <sup>*(optional)*</sup> The TTS Volume |
+| params?.rate | number | <sup>*(optional)*</sup> The TTS Rate |
 
 ### Result
 
@@ -722,7 +722,7 @@ Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.on
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.text | string | The Input Text |
+| params.text | string | The text input |
 | params?.callsign | string | <sup>*(optional)*</sup>  Callsign of the application. This is mandatory when setACL is called prior to speak  |
 
 ### Result
@@ -840,7 +840,7 @@ TextToSpeech interface events:
 | [onspeechpause](#event.onspeechpause) | Triggered when the ongoing speech pauses |
 | [onspeechresume](#event.onspeechresume) | Triggered when any paused speech resumes |
 | [onspeechstart](#event.onspeechstart) | Triggered when the speech start |
-| [onttsstatechanged](#event.onttsstatechanged) | Triggered when TTS is enable or disable |
+| [onttsstatechanged](#event.onttsstatechanged) | Triggered when TTS is enabled or disabled |
 | [onvoicechanged](#event.onvoicechanged) | Triggered when the configured voice changes |
 | [onwillspeak](#event.onwillspeak) | Triggered when the text to speech conversion is about to start |
 
@@ -904,7 +904,7 @@ Triggered when the speech completes.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The Input Text |
+| params.text | string | The text input |
 
 ### Example
 
@@ -1002,7 +1002,7 @@ Triggered when the speech start.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The Input Text |
+| params.text | string | The text input |
 
 ### Example
 
@@ -1020,14 +1020,14 @@ Triggered when the speech start.
 <a name="event.onttsstatechanged"></a>
 ## *onttsstatechanged <sup>event</sup>*
 
-Triggered when TTS is enable or disable.
+Triggered when TTS is enabled or disabled.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.state | boolean | `True:` If TTS is enabled  `False:` If TTS is disabled  |
+| params.state | boolean | `True` if TTS is enabled, otherwise `False` |
 
 ### Example
 
@@ -1051,7 +1051,7 @@ Triggered when the configured voice changes.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.voice | string | TTS Voice |
+| params.voice | string | The TTS Voice |
 
 ### Example
 
@@ -1076,7 +1076,7 @@ Triggered when the text to speech conversion is about to start. It provides the 
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The Input Text |
+| params.text | string | The text input |
 
 ### Example
 
