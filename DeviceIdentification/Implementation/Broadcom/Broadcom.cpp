@@ -25,18 +25,16 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
-    static constexpr const TCHAR* PlatformOutputFile= _T("/tmp/.platform_output");
+class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+    static constexpr const TCHAR* PlatformFile = _T("/proc/brcm/platform");
 
 public:
     DeviceImplementation()
+        : _chipset()
+        , _identifier()
+        , _firmwareVersion()
     {
-        if (system("cat /proc/brcm/platform > /tmp/.platform_output") == 0) {
-            UpdateChipset(_chipset);
-            UpdateFirmwareVersion(_firmwareVersion);
-            UpdateIdentifier(_identifier);
-            system("rm -rf /tmp/.platform_output");
-        }
+        UpdateDeviceInfo(_identifier, _chipset, _firmwareVersion);
     }
 
     DeviceImplementation(const DeviceImplementation&) = delete;
@@ -47,11 +45,15 @@ public:
 
 public:
     // Device Propertirs interface
-    const string Chipset() const override
+    string Architecture() const override
+    {
+        return Core::SystemInfo::Instance().Architecture();;
+    }
+    string Chipset() const override
     {
         return _chipset;
     }
-    const string FirmwareVersion() const override
+    string FirmwareVersion() const override
     {
         return _firmwareVersion;
     }
@@ -68,71 +70,51 @@ public:
     }
 
     BEGIN_INTERFACE_MAP(DeviceImplementation)
-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
     END_INTERFACE_MAP
 
 private:
-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
+    inline void UpdateDeviceInfo(string& identifier, string& chipset, string& firmwareVersion) const
     {
-        std::string line;
-        std::ifstream file(PlatformOutputFile);
-        if (file.is_open()) {
-            while (getline(file, line)) {
-                if (line.find("Nexus Release") != std::string::npos) {
-                    std::size_t position = line.find("Nexus Release") + sizeof("Nexus Release");
-                    if (position != std::string::npos) {
-                        firmwareVersion.assign(line.substr(position, std::string::npos));
-                    }
-                    break;
-                }
-            }
-            file.close();
-        }
-    }
+        static constexpr uint8_t MaxInfoCollection = 3;
+        static constexpr const TCHAR ChipsetKey[] = _T("Chip ID");
+        static constexpr const TCHAR IdentifierKey[] = _T("CHIPID");
+        static constexpr const TCHAR FirmwareVersionKey[] = _T("Nexus Release");
 
-    inline void UpdateChipset(string& chipset) const
-    {
         std::string line;
-        std::ifstream file(PlatformOutputFile);
+        std::ifstream file(PlatformFile);
+        uint32_t collectedInfo = 0;
 
         if (file.is_open()) {
-            while (getline(file, line)) {
-                if (line.find("Chip ID ") != std::string::npos) {
-                    std::size_t position = line.find("Chip ID ") + sizeof("Chip ID ");
-                    if (position != std::string::npos) {
-                        chipset.assign(line.substr(position, std::string::npos));
-                    }
-                    break;
-               }
-            }
-            file.close();
-        }
-    }
-
-   inline void UpdateIdentifier(string &identifier) const
-   {
-        std::string line;
-        std::ifstream file(PlatformOutputFile);
-
-        if (file.is_open()) {
-            while (getline(file, line)) {
-                if (line.find("CHIPID") != std::string::npos) {
-                    std::size_t position = line.find("CHIPID") + sizeof("CHIPID");
+            while (getline(file, line) && (collectedInfo < MaxInfoCollection)) {
+                if ((identifier.empty() == true) && (line.find(IdentifierKey) != std::string::npos)) {
+                    std::size_t position = line.find(IdentifierKey) + sizeof(IdentifierKey);
                     if (position != std::string::npos) {
                         identifier.assign(line.substr(position, line.find(']')-position));
+                        collectedInfo++;
                     }
-                    break;
-               }
+                } else if ((chipset.empty() == true) && (line.find(ChipsetKey) != std::string::npos)) {
+                    std::size_t position = line.find(ChipsetKey) + sizeof(ChipsetKey);
+                    if (position != std::string::npos) {
+                        chipset.assign(line.substr(position, std::string::npos));
+                        collectedInfo++;
+                    }
+                } else if ((firmwareVersion.empty() == true) &&
+                           (line.find(FirmwareVersionKey) != std::string::npos)) {
+                    std::size_t position = line.find(FirmwareVersionKey) + sizeof(FirmwareVersionKey);
+                    if (position != std::string::npos) {
+                        firmwareVersion.assign(line.substr(position, std::string::npos));
+                        collectedInfo++;
+                    }
+                }
             }
-            file.close();
         }
-   }
+    }
 
 private:
     string _chipset;
-    string _firmwareVersion;
     string _identifier;
+    string _firmwareVersion;
 };
 
     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
