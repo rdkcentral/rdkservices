@@ -159,7 +159,7 @@
             }
         },
         "getInterfaces":{
-            "summary": "Returns a list of interfaces supported by this device along with their state.  \n\n### Events \n\nNo Events",
+            "summary": "Returns a list of interfaces supported by this device including their state.\n \n### Events \n\nNo Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -328,7 +328,7 @@
             }
         },
         "getSTBIPFamily":{
-            "summary": "The IP address of the default interface is obtained by family address. If its successful then, the IP address is updated to a valid IP address or else the IP address is left empty. \n\n### Events \n\nNo Events",
+            "summary": "Gets the IP address of the default interface by address family.\n\n### Events \n\nNo Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -578,7 +578,7 @@
             }
         },
         "setDefaultInterface":{
-            "summary": "Sets the default interface. The call fails if the interface is not enabled. Triggers `onDefaultInterfaceChanged` and `onConnectionStatusChanged` events. \n \n### Events\n  \n| Event | Description | \n| :----------- | :----------- |\n| `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |\n| `onConnectionStatusChanged` | It will return the interface and the current state of that interface (CONNECTED or DISCONNECTED) |",
+            "summary": "Sets the default interface. The call fails if the interface is not enabled. Triggers `onDefaultInterfaceChanged` and `onConnectionStatusChanged` events. \n \n### Events\n  \n| Event | Description | \n| :----------- | :----------- |\n| `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |\n| `onConnectionStatusChanged` | Triggered when the interface status is changed. Old interface status changed to `DISCONNECTED` and new interface status change to `CONNECTED` |",
             "events": [
                 "onDefaultInterfaceChanged",
                 "onConnectionStatusChanged"
