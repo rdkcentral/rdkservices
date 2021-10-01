@@ -688,7 +688,7 @@
             }
         },
         "setDiscoverable":{
-            "summary": "When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable. \n  \n### Events \n\n  No EventS",
+            "summary": "When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable. \n  \n### Events \n\n  No Events",
             "params":{
                 "type":"object",
                 "properties":{
