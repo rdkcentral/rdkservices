@@ -5,7 +5,7 @@
       "callsign": "org.rdk.DeviceDiagnostics",
       "locator": "libWPEFrameworkDeviceDiagnostics.so",
       "status": "production",
-      "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations.",
+      "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations and AV decoder status.",
       "version": "1.0"
     },
     "interface": {

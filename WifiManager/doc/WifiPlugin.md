@@ -85,21 +85,21 @@ WifiManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cancelWPSPairing](#method.cancelWPSPairing) | Cancels WPS pairing |
+| [cancelWPSPairing](#method.cancelWPSPairing) | Cancels the in-progress WPS pairing operation |
 | [clearSSID](#method.clearSSID) | Clears the saved SSID |
 | [connect](#method.connect) | Attempts to connect to the specified SSID with the given passphrase |
-| [disconnect](#method.disconnect) | Disconnects from the SSID |
-| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information |
-| [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
+| [disconnect](#method.disconnect) | Disconnects from the connected SSID |
+| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected WiFi network |
+| [getCurrentState](#method.getCurrentState) | Returns the current WiFi States |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
-| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WPS |
-| [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
-| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
-| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
-| [setEnabled](#method.setEnabled) | Enables or disables the Wifi adapter for this device |
-| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Enables `signalThresholdChange` events to be triggered |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the WiFi security modes that the device supports |
+| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WiFi Protected Setup (WPS) |
+| [isPaired](#method.isPaired) | Determines whether the device is paired to a specified SSID or not |
+| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Checks whether `onWifiSignalThresholdChanged` event is enabled or not |
+| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode of the WiFi network for future sessions |
+| [setEnabled](#method.setEnabled) | Enables or disables the WiFi adapter for this device |
+| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Sets the `time interval` to check the WiFi signal strength in a given time interval |
 | [startScan](#method.startScan) | Scans for available SSIDs |
 | [stopScan](#method.stopScan) | Stops scanning for SSIDs |
 
@@ -107,7 +107,17 @@ WifiManager interface methods:
 <a name="method.cancelWPSPairing"></a>
 ## *cancelWPSPairing <sup>method</sup>*
 
-Cancels WPS pairing. A `0` value indicates that paring was canceled. A nonzero value indicates that paring was not canceled.
+Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress paring attempt and aborts the current scan. WPS pairing must be in-progress for the operation to get succeed.
+  
+### Events
+ 
+#### onError
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `ErrorCode: NO_SSID` | WPS pairing gets successfully cancelled. A new WPS can be initiated |.
+
+Also see: [onError](#event.onError)
 
 ### Parameters
 
@@ -118,7 +128,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -140,7 +150,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "result": 0,
+        "result": "",
         "success": true
     }
 }
@@ -149,7 +159,17 @@ This method takes no parameters.
 <a name="method.clearSSID"></a>
 ## *clearSSID <sup>method</sup>*
 
-Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Clears the saved SSID. Triggers `onWiFiStateChanged` event.
+ 
+### Events
+ 
+onWIFIStateChanged
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `WifiState`: `DISCONNECTED` | After you clear the saved SSID, the WiFi gets disconnected |.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged)
 
 ### Parameters
 
@@ -191,7 +211,29 @@ This method takes no parameters.
 <a name="method.connect"></a>
 ## *connect <sup>method</sup>*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be null when the network security is `NONE`. This method attempts to connect to the saved SSID and password, when called with no arguments.
+ 
+### Events 
+ 
+#### onWiFiStateChanged
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `WifiState`: `DISCONNECTED` | When connected to any SSID, the device first switches to disconnected state | 
+| `WifiState`: `CONNECTING` | The WiFi is connecting with the requested SSID and Passphrase | 
+| `WifiState`: `CONNECTED` | The WiFi is successfully connected to the device | 
+| `WifiState`: `FAILED` | If the device has encountered with any recoverable or unexpected WiFi error occurs | 
+ 
+#### onError
+ 
+| Event | Description |  
+| :-------- | :-------- |  
+| `ErrorCode`: `SSID_CHANGED` | This error occurs, when the same SID gets changed | 
+| `ErrorCode`: `CONNECTION_FAILED` | This error occurs, when the network connection is failed for an unknown technical reason | 
+| `ErrorCode`: `INVALID_CREDENTIALS` | This error occurs, when the networkconnection gets failed due to invalid network credentials | 
+| `ErrorCode`: `NO_SSID` | This error occurs, when the requested SSID does not exist |.
+
+Also see: [onWiFiStateChanged](#event.onWiFiStateChanged), [onError](#event.onError)
 
 ### Parameters
 
@@ -241,7 +283,18 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.disconnect"></a>
 ## *disconnect <sup>method</sup>*
 
-Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+Disconnects from the connected SSID. The `onWiFiStateChanged` event triggers on WiFi state changes.
+ 
+### Events
+ 
+#### onWIFIStateChanged
+ 
+| Event | Description |  
+| :-------- | :-------- |  
+| `WifiState`: `DISCONNECTED` | The WiFi gets disconnect when the device is connected to any of the SSID.|
+| `WifiState`: `FAILED` | If the device has encountered with any recoverable or unexpected WiFi errors |.
+
+Also see: [onWiFiStateChanged](#event.onWiFiStateChanged)
 
 ### Parameters
 
@@ -252,7 +305,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -274,7 +327,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "result": 0,
+        "result": "",
         "success": true
     }
 }
@@ -283,7 +336,11 @@ This method takes no parameters.
 <a name="method.getConnectedSSID"></a>
 ## *getConnectedSSID <sup>method</sup>*
 
-Returns the connected SSID information.
+Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected WiFi network.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -337,15 +394,27 @@ This method takes no parameters.
 <a name="method.getCurrentState"></a>
 ## *getCurrentState <sup>method</sup>*
 
-Returns the current Wifi state.  
-**Wifi States**  
-* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed  
-* `1`: DISABLED - The device is installed (or was just installed) and has not yet been enabled  
-* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  
-* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  
-* `4`: CONNECTING - The device is attempting to connect to a network  
-* `5`: CONNECTED - The device is successfully connected to a network  
-* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
+Returns the current WiFi States. The possible WiFi states are as follows.
+ 
+### WiFi States
+  
+`0`: UNINSTALLED - The device was installed and uninstalled; or it does not have a Wifi radio installed
+ 
+`1`: DISABLED - The device is installed but not yet enabled
+ 
+`2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network
+ 
+`3`: PAIRING - The device is in process of pairing, but not yet connected to a network
+ 
+`4`: CONNECTING - The device is attempting to connect to a network
+ 
+`5`: CONNECTED - The device is successfully connected to a network
+ 
+`6`: FAILED - The device has encountered an unrecoverable error with the WiFi adapter
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -388,6 +457,10 @@ This method takes no parameters.
 ## *getPairedSSID <sup>method</sup>*
 
 Returns the SSID to which the device is currently paired.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -429,7 +502,11 @@ This method takes no parameters.
 <a name="method.getPairedSSIDInfo"></a>
 ## *getPairedSSIDInfo <sup>method</sup>*
 
-Returns the SSID and BSSID to which the device is currently paired.
+Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected WiFi network.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -473,7 +550,11 @@ This method takes no parameters.
 <a name="method.getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes <sup>method</sup>*
 
-Returns the Wifi security modes that the device supports.
+Returns the WiFi security modes that the device supports.
+  
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -546,7 +627,26 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing <sup>method</sup>*
 
-Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.
+Initiates a connection using WiFi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after 60 seconds, then the WPS pairing will stop, and an error event triggers. This method sends both `onWifiStateChanged` and `onError` events.
+ 
+### Events
+ 
+#### onWifiStateChanged
+ 
+| Event | Description | 
+| :-------- | :-------- |  
+| `WifiState`: `CONNECTING` | Indicates that a WPS key code has been received from the access point. The device is in the process of connecting to the network | 
+| `WifiState`: `CONNECTED` | Indicates that WPS pairing succeeded, and the device is connected to the access point | 
+| `WifiState`: `FAILED` | Indicates that the connection attempt failed and should be attempted again. Failures includes a connection is already in progress; the WPA supplicant configuration file could not be opened or saved; the WPS key code was not received or an existing connection could not be disconnected |
+ 
+#### onError
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `ErrorCode`: `CONNECTION_FAILED` | Indicates a failure to connect to the access point | 
+| `ErrorCode`: `NO_SSID` | Indicates that the connection timeout threshold of 120 seconds was reached or that a WPS overlap was detected |.
+
+Also see: [onWifiStateChanged](#event.onWifiStateChanged), [onError](#event.onError)
 
 ### Parameters
 
@@ -557,7 +657,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -579,7 +679,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "result": 0,
+        "result": "",
         "success": true
     }
 }
@@ -588,7 +688,11 @@ This method takes no parameters.
 <a name="method.isPaired"></a>
 ## *isPaired <sup>method</sup>*
 
-Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
+Determines whether the device is paired to a specified SSID or not.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -630,7 +734,11 @@ This method takes no parameters.
 <a name="method.isSignalThresholdChangeEnabled"></a>
 ## *isSignalThresholdChangeEnabled <sup>method</sup>*
 
-Returns whether threshold changes are enabled. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired ). A nonzero value indicates that the device is not paired.
+Checks whether `onWifiSignalThresholdChanged` event is enabled or not.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -672,7 +780,11 @@ This method takes no parameters.
 <a name="method.saveSSID"></a>
 ## *saveSSID <sup>method</sup>*
 
-Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
+Saves the SSID, passphrase, and security mode of the WiFi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -724,14 +836,18 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 <a name="method.setEnabled"></a>
 ## *setEnabled <sup>method</sup>*
 
-Enables or disables the Wifi adapter for this device.
+Enables or disables the WiFi adapter for this device.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enable | boolean | `true` to enable or `false` to disable |
+| params.enable | boolean | `true` to enable WiFi adapter in device or `false` to disable WiFi adapter in device |
 
 ### Result
 
@@ -770,15 +886,23 @@ Enables or disables the Wifi adapter for this device.
 <a name="method.setSignalThresholdChangeEnabled"></a>
 ## *setSignalThresholdChangeEnabled <sup>method</sup>*
 
-Enables `signalThresholdChange` events to be triggered.
+Sets the `time interval` to check the WiFi signal strength in a given time interval. The `onWifiSignalThresholdChanged` event is triggered when the `setSignalThresholdChangedEnabled` method sets the `enabled` parameter value as `true`.
+ 
+### Events
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `onWifiSignalThresholdChanged` | This event gets triggered recursively in the specified value in interval param of  `setSignalThresholdChangeEnabled` method |.
+
+Also see: [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged)
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enabled | boolean | `true` to enable events or `false` to disable events |
-| params.interval | integer | A time interval, in milliseconds, after which the current signal strength is compared to the previous value to determine if the strength crossed a threshold value |
+| params.enabled | boolean | `true` to enable the `onWifiSignalThresholdChanged` event or `false` to disable the `onWifiSignalThresholdChanged` event |
+| params.interval | integer | It is the time interval value in milliseconds, to determine if the network strength crossed a threshold value for the given time interval |
 
 ### Result
 
@@ -819,6 +943,12 @@ Enables `signalThresholdChange` events to be triggered.
 ## *startScan <sup>method</sup>*
 
 Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+ 
+### Events
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `onAvailableSSIDs` | Triggered when the `startScan method` is called and SSIDs are obtained. If the scan method is called with the incremental property set to `true`, then `moreData` is `false` when the last set of results are received. If the incremental property in `startScan` method is set to `false`, then the event returns with `moreData` is `false` after a single event |.
 
 Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 
@@ -828,7 +958,7 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.incremental | boolean | If set to `true`, SSIDs are returned in multiple events as the SSIDs are discovered. This may allow the UI to populate faster on screen rather than waiting on the full set of results in one shot |
-| params.ssid | string | The SSIDs to scan. An empty or  `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression |
+| params.ssid | string | The SSIDs to scan. An empty or `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression |
 | params.frequency | string | The frequency to scan. An empty or `null` value scans all frequencies. If a frequency is specified (2.4 or 5.0), then the results are only returned for matching frequencies |
 
 ### Result
@@ -837,6 +967,7 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.success | boolean | Whether the request succeeded |
+| result.error | string | Error string of scan failure |
 
 ### Example
 
@@ -862,7 +993,8 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "success": true
+        "success": true,
+        "error": ""
     }
 }
 ```
@@ -870,7 +1002,11 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 <a name="method.stopScan"></a>
 ## *stopScan <sup>method</sup>*
 
-Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+Stops scanning for SSIDs. From the `startScan` method up to the point where this method is called, all discovered SSIDs are still returned.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -918,17 +1054,17 @@ WifiManager interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when the Wifi state changes |
-| [onError](#event.onError) | Triggered when a recoverable, unexpected Wifi error occurs |
+| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when the WiFi state changes |
+| [onError](#event.onError) | Triggered when a recoverable unexpected WiFi error occurs |
 | [onSSIDsChanged](#event.onSSIDsChanged) | Triggered when a new SSID becomes available or an existing SSID is no longer available |
-| [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged) | Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength |
-| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the `scan` method is called and SSIDs are obtained |
+| [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged) | Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in WiFi strength |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the scan method is called and current SSIDs are obtained |
 
 
 <a name="event.onWIFIStateChanged"></a>
 ## *onWIFIStateChanged <sup>event</sup>*
 
-Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.
+Triggered when the WiFi state changes. See `getCurrentState` for a list of valid WiFi states.
 
 ### Parameters
 
@@ -936,7 +1072,7 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.state | integer | The Wifi operational state |
-| params.isLNF | boolean | `true` if connected to a LNF SSID, otherwise `false` |
+| params.isLNF | boolean | `true`: If it is connected to a LNF SSID; `false`: If it is not connected to LNF SSID |
 
 ### Example
 
@@ -954,15 +1090,23 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
 <a name="event.onError"></a>
 ## *onError <sup>event</sup>*
 
-Triggered when a recoverable, unexpected Wifi error occurs.  
-**Error Codes**  
-* `0`: SSID_CHANGED - The SSID of the network changed  
-* `1`: CONNECTION_LOST - The connection to the network was lost  
-* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  
-* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  
-* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  
-* `5`: NO_SSID - The SSID does not exist  
-* `6`: UNKNOWN - Any other error.
+Triggered when a recoverable unexpected WiFi error occurs.
+ 
+### Error Codes
+ 
+`0`: SSID_CHANGED - The SSID of the network changed
+ 
+`1`: CONNECTION_LOST - The connection to the network is lost
+ 
+`2`: CONNECTION_FAILED - The connection failed for an unknown reason
+ 
+`3`: CONNECTION_INTERRUPTED - The connection was interrupted
+ 
+`4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials
+ 
+`5`: NO_SSID - The SSID does not exist
+ 
+`6`: UNKNOWN - Any other error.
 
 ### Parameters
 
@@ -1004,7 +1148,7 @@ This event carries no parameters.
 <a name="event.onWifiSignalThresholdChanged"></a>
 ## *onWifiSignalThresholdChanged <sup>event</sup>*
 
-Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.
+Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in WiFi strength.
 
 ### Parameters
 
@@ -1012,7 +1156,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.signalStrength | string | The RSSI value in dBm |
-| params.strength | string | A human readable indicator of strength (must be one of the following: *Excellent*, *Good*, *Fair*, *Weak*) |
+| params.strength | string | WiFi signal strength indicates as excellent, good, fair, and weak  (must be one of the following: *Excellent*, *Good*, *Fair*, *Weak*) |
 
 ### Example
 
@@ -1030,7 +1174,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
 <a name="event.onAvailableSSIDs"></a>
 ## *onAvailableSSIDs <sup>event</sup>*
 
-Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.
+Triggered when the scan method is called and current SSIDs are obtained.
 
 ### Parameters
 
@@ -1043,7 +1187,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
 | params.ssids[#].security | integer | The security mode. See `getSupportedSecurityModes` |
 | params.ssids[#].signalStrength | string | The RSSI value in dBm |
 | params.ssids[#].frequency | string | The supported frequency for this SSID in GHz |
-| params.moreData | boolean | When `true`, scanning is not complete and more SSIDs are returned as separate events |
+| params.moreData | boolean | If the scan method is called with the incremental property set to `true`, then `moreData` is `false` when the last set of results are received. If the incremental property is set to `false`, then `moreData` is `false` after a single event |
 
 ### Example
 
