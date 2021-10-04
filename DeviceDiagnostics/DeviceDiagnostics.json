@@ -100,7 +100,7 @@
             }
         },
         "getAVDecoderStatus":{
-            "summary": "Gets the most active status of any audio/video decoder/pipeline.",
+            "summary": "Gets the most active status of any audio/video decoder/pipeline from the Essos Resource Manager.",
             "result":{
                 "type":"object",
                 "properties": {
@@ -120,7 +120,7 @@
     },
     "events": {
         "onAVDecoderStatusChanged":{
-            "summary": "Triggered when the most active status of any audio/video decoder/pipeline changes.",
+            "summary": "Triggered when the most active status of any audio/video decoder/pipeline changes. This event allows an application to determine the AV status and change the device state accordingly. The status is polled periodically.",
             "params": {
                 "type": "object",
                 "properties": {
