@@ -402,7 +402,8 @@ public:
             for (size_t i = 0; i < vPorts.size(); i++)
             {
                 device::VideoOutputPort &vPort = vPorts.at(i);
-                if (vPort.isDisplayConnected() && (vPort.getType() == device::VideoOutputPortType::kHDMI))
+                if (vPort.isDisplayConnected() && ((vPort.getType() == device::VideoOutputPortType::kHDMI) \
+                                                || (vPort.getType() == device::VideoOutputPortType::kInternal)))
                 {
                     name = vPort.getName();
                     TRACE(Trace::Information, (_T("Connected video output port = %s"), name));
