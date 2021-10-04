@@ -107,7 +107,7 @@
             "example": "1080p"
         },
         "soundMode": {
-            "summary": "Sound mode. Possible values: `DOLBYDIGITAL, `DOLBYDIGITALPLUS`, `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
+            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS`.",
             "type":"string",
             "example":"STEREO"
         },
@@ -1788,7 +1788,7 @@
             }
         },
         "setSoundMode":{
-            "summary": "Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.",
+            "summary": "Sets the current sound mode. If the `audioPort` argument value is missing or empty, then  all ports are set. If `DOLBYDIGITAL` or `DOLBYDIGITALPLUS` is selected as the mode, the audio will be forced into this format over the HDMI output(s), even if the format is not identified in the sink EDID.",
             "params": {
                 "type": "object",
                 "properties": {
