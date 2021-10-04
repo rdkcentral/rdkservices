@@ -107,7 +107,7 @@
             "example": "1080p"
         },
         "soundMode": {
-            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
+            "summary": "Sound mode. Possible values: `DOLBYDIGITAL, `DOLBYDIGITALPLUS`, `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
             "type":"string",
             "example":"STEREO"
         },
@@ -892,7 +892,7 @@
             }
         },
         "getSupportedAudioModes": {
-            "summary": "Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
+            "summary": "Returns a list of strings containing the supported audio modes. If a port name is not specified or `Null`, this returns the supported audio modes of the audio processor (regardless of the the output port). \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
             "params": {
                 "type":"object",
                 "properties":{
@@ -908,7 +908,7 @@
                 "type":"object",
                 "properties": {
                     "supportedAudioModes": {
-                        "summary": "A string [] of supported audio modes",
+                        "summary": "A string [] of supported audio modes. Example audio modes include `STEREO`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS`,`AUTO (Stereo)`",
                         "type": "array",
                         "items": {
                             "type": "string",
