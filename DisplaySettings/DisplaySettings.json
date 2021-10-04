@@ -150,6 +150,11 @@
             "type": "string",
             "example": "FULL"
         },
+        "audioFormat": {
+            "summary": "The currently decoded audio format. Possible values: `NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT`, `DOLBY TRUEHD`, `DOLBY EAC3 ATMOS`, `DOLBY TRUEHD ATMOS`, `DOLBY MAT ATMOS`, `DOLBY AC4 ATMOS`",
+            "type": "string",
+            "example": "DOLBY AC3"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -274,6 +279,24 @@
                 "required": [
                     "audioDelayOffset",
                     "success"
+                ]
+            }
+        },
+        "getAudioFormat": {
+            "summary": "Returns the audio format that is currently decoded",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "audioFormat": {
+                        "$ref": "#/definitions/audioFormat"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "audioFormat",
+                    "success"            
                 ]
             }
         },
@@ -2031,6 +2054,20 @@
                 },
                 "required": [
                     "connectedVideoDisplays"
+                ]
+            }
+        },
+        "notifyAudioFormatChange":{
+            "summary": "Triggered when the audio format changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audiFormat": {
+                        "$ref": "#/definitions/audioFormat"
+                    }
+                },
+                "required": [
+                    "audioFormat"
                 ]
             }
         },
