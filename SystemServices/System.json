@@ -300,12 +300,12 @@
             }
         },
         "getDeviceInfo":{
-            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac",
+            "summary": "Collects device details available from `/etc/device.properties`. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* model_num  \n* make  \n* friendly_id  \n* rf4ce_mac  \n* wifi_mac",
             "params": {
                 "type": "object",
                 "properties": {
                     "params": {
-                        "summary": "A list of supported device keys",
+                        "summary": "A list of supported device keys. If no parameters are included, then all keys are returned.",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -321,7 +321,7 @@
                 "type": "object",
                 "properties": {
                     "estb_mac": {
-                        "summary": "Value for the specified key name",
+                        "summary": "Value for the specified key",
                         "type": "string",
                         "example": "20:F1:9E:EE:62:08"
                     },
