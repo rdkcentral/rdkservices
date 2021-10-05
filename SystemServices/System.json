@@ -180,6 +180,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "deletePersistentPath": {
+            "summary": "(Version 2) Deletes persistent path associated with a callsign",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "enableMoca":{
             "summary": "Enables (or disable) Moca support for the platform",
             "params": {
@@ -1386,27 +1405,48 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "updateFirmware":{
-            "summary": "Initiates a firmware update. This method has no affect if an update is not available",
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the device wake-up configuration",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "wakeupSrc": {
+                        "summary": "The wake-up source as an integer from 0 - 8.",
+                        "type": "integer",
+                        "enum": [
+                            "WAKEUPSRC_VOICE",
+                            "WAKEUPSRC_PRESENCE_DETECTION",
+                            "WAKEUPSRC_BLUETOOTH",
+                            "WAKEUPSRC_WIFI",
+                            "WAKEUPSRC_IR",
+                            "WAKEUPSRC_POWER_KEY",
+                            "WAKEUPSRC_TIMER",
+                            "WAKEUPSRC_CEC",
+                            "WAKEUPSRC_LAN"
+                        ],
+                        "example": 3
+                    },
+                    "config": {
+                        "summary": "`0` to disable the wake-up source configuration, or `1` to enable the wake-up source configuration",
+                        "type":"integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "wakeupSrc",
+                    "config"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
-        "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "callsign": {
-                        "description": "Callsign of the service to delete persistent path",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                },
-                "required": [
-                    "callsign"
-                ]
-            },
+        "updateFirmware":{
+            "summary": "Initiates a firmware update. This method has no affect if an update is not available",
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -1431,6 +1471,22 @@
         }
     },
     "events": {
+        "onFirmwareDownloadProgress":{
+            "summary": "Triggered once per second when firmware download is started. Will be stopped at 100%.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "downloadPercent": {
+                        "summary": "Download progress",
+                        "type": "number",
+                        "example": 12
+                    }
+                },
+                "required": [
+                    "downloadPercent"
+                ]
+            }
+        },
         "onFirmwarePendingReboot":{
             "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {
@@ -1644,22 +1700,6 @@
                     "thresholdType",
                     "exceeded",
                     "temperature"
-                ]
-            }
-        },
-        "onFirmwareDownloadProgress":{
-            "summary": "Triggered once per second when firmware download is started. Will be stopped at 100%.",
-            "params": {
-                "type" :"object",
-                "properties": {
-                    "downloadPercent": {
-                        "summary": "Download progress",
-                        "type": "number",
-                        "example": 12
-                    }
-                },
-                "required": [
-                    "downloadPercent"
                 ]
             }
         }
