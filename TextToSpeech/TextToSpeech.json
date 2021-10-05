@@ -123,9 +123,10 @@
             }
         },
         "enabletts": {
-            "summary": "(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechange` event when state changes. \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `state` : `true`|Triggered when TTS is enabled | \n| `state` : `false`| Triggered when TTS is disabled | \n| `No event`| When TTS enable or disable is in-progress | ",
+            "summary": "(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | \n| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress",
             "events": [
-               "onttsstatechanged"
+               "onttsstatechanged",
+               "onspeechinterrupted"
             ],
             "params": {
                 "type": "object",
@@ -464,8 +465,9 @@
             }
         },
         "speak": {
-            "summary": "Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onspeechstart` | Triggered when conversion of text to speech is started | \n| `onspeechcomplete `| Triggered when conversion from text to speech is completed | \n| `onspeechinterrupted`| Current speech is interrupted either by a next speech request or by calling the `cancel` method| \n|`onnetworkerror`| Triggered when failed to fetch audio from the endpoint |  \n|`onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |",
+            "summary": "Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onwillspeak` | Triggered when speech conversion is about to start | \n| `onspeechstart` | Triggered when conversion of text to speech is started | \n| `onspeechcomplete `| Triggered when conversion from text to speech is completed | \n| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | \n| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  \n| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |",
             "events": [
+                "onwillspeak",
                 "onspeechstart",
                 "onspeechinterrupted",
                 "onspeechcomplete",
@@ -595,7 +597,7 @@
             }
         },
         "onspeechinterrupted":  {
-            "summary": "Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`",
+            "summary": "Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress",
             "params": {
                 "type" :"object",
                 "properties": {

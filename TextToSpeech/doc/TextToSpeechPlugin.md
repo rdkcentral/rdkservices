@@ -158,16 +158,15 @@ Also see: [onspeechinterrupted](#event.onspeechinterrupted)
 <a name="method.enabletts"></a>
 ## *enabletts <sup>method</sup>*
 
-(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechange` event when state changes. 
+(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. 
  
 ### Events  
 | Event | Description | 
 | :----------- | :----------- | 
-| `state` : `true`|Triggered when TTS is enabled | 
-| `state` : `false`| Triggered when TTS is disabled | 
-| `No event`| When TTS enable or disable is in-progress | .
+| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | 
+| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress.
 
-Also see: [onttsstatechanged](#event.onttsstatechanged)
+Also see: [onttsstatechanged](#event.onttsstatechanged), [onspeechinterrupted](#event.onspeechinterrupted)
 
 ### Parameters
 
@@ -709,13 +708,14 @@ Converts the input text to speech when TTS is enabled. Any ongoing speech is int
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
+| `onwillspeak` | Triggered when speech conversion is about to start | 
 | `onspeechstart` | Triggered when conversion of text to speech is started | 
 | `onspeechcomplete `| Triggered when conversion from text to speech is completed | 
-| `onspeechinterrupted`| Current speech is interrupted either by a next speech request or by calling the `cancel` method| 
-|`onnetworkerror`| Triggered when failed to fetch audio from the endpoint |  
-|`onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |.
+| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | 
+| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  
+| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |.
 
-Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.onspeechinterrupted), [onspeechcomplete](#event.onspeechcomplete), [onnetworkerror](#event.onnetworkerror), [onplaybackerror](#event.onplaybackerror)
+Also see: [onwillspeak](#event.onwillspeak), [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.onspeechinterrupted), [onspeechcomplete](#event.onspeechcomplete), [onnetworkerror](#event.onnetworkerror), [onplaybackerror](#event.onplaybackerror)
 
 ### Parameters
 
@@ -836,7 +836,7 @@ TextToSpeech interface events:
 | [onnetworkerror](#event.onnetworkerror) | Triggered when a network error occurs while fetching the audio from the endpoint |
 | [onplaybackerror](#event.onplaybackerror) | Triggered when an error occurs during playback including pipeline failures |
 | [onspeechcomplete](#event.onspeechcomplete) | Triggered when the speech completes |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request or by calling `cancel` |
+| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress |
 | [onspeechpause](#event.onspeechpause) | Triggered when the ongoing speech pauses |
 | [onspeechresume](#event.onspeechresume) | Triggered when any paused speech resumes |
 | [onspeechstart](#event.onspeechstart) | Triggered when the speech start |
@@ -922,7 +922,7 @@ Triggered when the speech completes.
 <a name="event.onspeechinterrupted"></a>
 ## *onspeechinterrupted <sup>event</sup>*
 
-Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`.
+Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress.
 
 ### Parameters
 
