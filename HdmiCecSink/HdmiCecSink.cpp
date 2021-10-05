@@ -761,7 +761,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 500);
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 100);
        } 
 
 	   void HdmiCecSink::wakeupFromStandby()
@@ -974,7 +974,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 500);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 100);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -2489,9 +2489,14 @@ namespace WPEFramework
 				break;
 				}
 
-				if ( _instance->m_sleepTime ) {
-					usleep(_instance->m_sleepTime*1000);
-				}
+				LOGINFO("Sleep Time value before CV check: %d ms\n",_instance->m_sleepTime);
+				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
+				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
+					LOGINFO("Timeout m_pollThreadExit %d\n", _instance->m_pollThreadExit);
+				else
+					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
+
+				LOGINFO("After Conditional Variable Check");
 			}
         }
 
@@ -2618,6 +2623,8 @@ namespace WPEFramework
             {
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadExit = true;
+		LOGINFO("Notifying CV wait_for");
+		m_ThreadExitCV.notify_one();
 
 		try
 		{

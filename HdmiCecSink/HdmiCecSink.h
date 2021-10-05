@@ -38,6 +38,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <chrono>
 
 namespace WPEFramework {
 
@@ -580,7 +581,7 @@ private:
 			uint32_t m_pollNextState;
 			bool m_pollThreadExit;
 			uint32_t m_sleepTime;
-            std::mutex m_pollMutex;
+            std::mutex m_pollExitMutex;
             std::mutex m_enableMutex;
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
@@ -588,6 +589,7 @@ private:
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
             std::condition_variable m_sendKeyCV;
+	    std::condition_variable m_ThreadExitCV;
 
             /* ARC related */
             std::thread m_arcRoutingThread;
