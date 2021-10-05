@@ -506,6 +506,8 @@ namespace WPEFramework {
             try
             {
                 //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
+                //No need to call device::Manager::DeInitialize for individual plugin. As it is a singleton instance and shared among all wpeframework plugins
+                //Expecting DisplaySettings will be alive for complete run time of wpeframework
                 device::Manager::DeInitialize();
                 LOGINFO("device::Manager::DeInitialize success");
             }
