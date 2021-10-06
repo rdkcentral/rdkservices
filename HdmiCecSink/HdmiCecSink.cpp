@@ -2346,7 +2346,7 @@ namespace WPEFramework
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
 						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
-						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
+						_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 					}
 					else
 					{
