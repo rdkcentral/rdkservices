@@ -97,6 +97,7 @@ enum {
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
+	HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED,
 };
 
 static char *eventString[] = {
@@ -114,7 +115,8 @@ static char *eventString[] = {
         "shortAudiodesciptorEvent",
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
-        "reportAudioStatusEvent"
+        "reportAudioStatusEvent",
+        "reportAudioDeviceAdded"
 };
 	
 
@@ -974,7 +976,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 500);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 100);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -2037,6 +2039,7 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::addDevice(const int logicalAddress) {
+			JsonObject params;
 
 			if(!HdmiCecSink::_instance)
 				return;
@@ -2052,6 +2055,14 @@ namespace WPEFramework
 				HdmiCecSink::_instance->deviceList[logicalAddress].m_logicalAddress = LogicalAddress(logicalAddress);
 				HdmiCecSink::_instance->m_numberOfDevices++;
 				HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_INFO;
+
+				if(logicalAddress == 0x5)
+				{
+					LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
+					params["status"] = string("success");
+					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED], params)
+				} 
+
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
 			 }
 		}
