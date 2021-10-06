@@ -104,7 +104,7 @@ namespace Plugin {
         // change to "register" the sink for these events !!! So do it ahead of instantiation.
         _service->Register(&_notification);
 
-        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, Core::infinite, _T("OCDMImplementation"));
+        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, WPEFramework::RPC::CommunicationTimeOut, _T("OCDMImplementation"));
 
         if (_opencdmi == nullptr) {
             message = _T("OCDM could not be instantiated.");
