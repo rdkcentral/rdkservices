@@ -157,6 +157,7 @@ namespace WPEFramework {
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
+	    void onAudioDeviceAddedEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
