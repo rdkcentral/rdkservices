@@ -82,6 +82,11 @@ if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
     add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
 endif()
 
+if (BUILD_ENABLE_SET_WAKEUP_SRC_CONFIG)
+   add_definitions (-DBUILD_ENABLE_SET_WAKEUP_SRC_CONFIG)
+   add_definitions (-DENABLE_SET_WAKEUP_SRC_CONFIG)
+endif()
+
 if (BUILD_XI1)
     message("Building for XI1")
     add_definitions (-DBUILD_XI1)
