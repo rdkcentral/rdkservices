@@ -180,6 +180,10 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
+#define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
+#define KEYCODE_INVALID -1
+#define RETRY_INTERVAL_250MS 250000
+
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -4781,21 +4785,88 @@ namespace WPEFramework {
              std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
              serviceCallsign.append(".2");
              auto systemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
-             JsonObject req, res;
-             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
-             if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+             JsonObject request, result;
+             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", request, result);
+             if (Core::ERROR_NONE == status && result.HasLabel("wakeupReason"))
              {
-                 unsigned int key = res["wakeupKeyCode"].Number();
-                 unsigned long flags = 0;
-                 uint32_t mappedKeyCode = key, mappedFlags = 0;
-                 bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
-                 response["keyCode"] = JsonValue(mappedKeyCode);
-                 response["modifiers"] = JsonValue(mappedFlags);
-                 std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
-                 returnResponse(true);
-             }
+                std::string wakeupreason = result["wakeupReason"].String();
+                if(wakeupreason.compare("WAKEUP_REASON_IR") == 0)
+                {
+                     JsonObject req, res;
+                     uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
+                     if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+                     {
+                         unsigned int key = res["wakeupKeyCode"].Number();
+                         unsigned long flags = 0;
+                         uint32_t mappedKeyCode = key, mappedFlags = 0;
+                         bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                         response["keyCode"] = JsonValue(mappedKeyCode);
+                         response["modifiers"] = JsonValue(mappedFlags);
+                         std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+                         returnResponse(true);
+                      }
+                  }
+                  else if (wakeupreason.compare("WAKEUP_REASON_RCU_BT") == 0)
+                  {
+			std::string remoteControlCallsign = REMOTECONTROL_CALLSIGN;
+	                auto remoteControlConnection = RDKShell::getThunderControllerClient(remoteControlCallsign);
+			int16_t keyCode = KEYCODE_INVALID, retry = 12;
 
-             response["message"] = "unable to get wakeup key from system service";
+			while( keyCode == KEYCODE_INVALID )
+			{
+				JsonObject req, res, stat;
+				req.Set("netType",1);
+
+				uint32_t status = remoteControlConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getNetStatus", req, res);
+				if (Core::ERROR_NONE == status && res.HasLabel("status"))
+				{
+					stat = res["status"].Object();
+
+					if(stat.HasLabel("remoteData"))
+					{
+					   JsonArray remoteArray = stat["remoteData"].Array();
+					   for (int k = 0; k < remoteArray.Length(); k++)
+					   {
+						JsonObject remote = remoteArray[k].Object();
+						if (remote.HasLabel("wakeupKeyCode"))
+						{
+							keyCode = remote["wakeupKeyCode"].Number();
+							std::cout << "wakeupKeyCode-keyCode: " << keyCode << std::endl;
+						}
+						else
+							std::cout << "wakeupKeyCode missing in remoteInfo\n" << std::endl;
+					   }
+					 }
+					 else
+						std::cout << "remoteData missing in status\n" << std::endl;
+				}
+				else
+					std::cout << "getNetStatus failed\n" << std::endl;
+
+				retry--;
+				if ( (retry == 0) || (keyCode != KEYCODE_INVALID) )
+				break;
+				usleep(RETRY_INTERVAL_250MS);
+			   }
+
+			   if ( keyCode != KEYCODE_INVALID )
+			   {
+				unsigned long flags = 0;
+	                        uint32_t mappedKeyCode = keyCode, mappedFlags = 0;
+				bool ret = keyCodeFromWayland(keyCode, flags, mappedKeyCode, mappedFlags);
+				response["keyCode"] = JsonValue(mappedKeyCode);
+				response["modifiers"] = JsonValue(mappedFlags);
+				std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+				returnResponse(true);
+			   }
+		    }
+		    else
+			std::cout << "wakeup reason is not IR/BT RCU\n" << std::endl;
+                }
+		else
+			std::cout << "wakeup reason not available\n" << std::endl;
+
+             response["message"] = "unable to get wakeup key";
              returnResponse(false);
         }
 
