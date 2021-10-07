@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations and AV decoder status.
+The `DeviceDiagnostics` plugin provides additional diagnostics information which includes device configuration and AV decoder status.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -86,7 +86,7 @@ DeviceDiagnostics interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
-| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the active status of any audio/video decoder pipeline |
+| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of audio/video decoder/pipeline |
 
 
 <a name="method.getConfiguration"></a>
@@ -155,7 +155,7 @@ No events.
 <a name="method.getAVDecoderStatus"></a>
 ## *getAVDecoderStatus <sup>method</sup>*
 
-Gets the active status of any audio/video decoder pipeline.
+Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
  
 ### Events 
  
@@ -209,13 +209,13 @@ DeviceDiagnostics interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the active status of any audio/video decoder/pipeline changes |
+| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of audio/video decoder/pipeline changes |
 
 
 <a name="event.onAVDecoderStatusChanged"></a>
 ## *onAVDecoderStatusChanged <sup>event</sup>*
 
-Triggered when the active status of any audio/video decoder/pipeline changes.
+Triggered when the most active status of audio/video decoder/pipeline changes.
 
 ### Parameters
 
