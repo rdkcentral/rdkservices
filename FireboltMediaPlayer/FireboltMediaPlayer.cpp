@@ -122,25 +122,12 @@ namespace WPEFramework {
             service->Unregister(&_notification);
 
             auto const result = _aampMediaPlayer->Release();
-            if (result == Core::ERROR_NONE) {
-
-                ASSERT(_aampMediaPlayerConnectionId != 0);
-
-                LOGERR("OutOfProcess AAMP Player is not properly destructed. PID: %d", _aampMediaPlayerConnectionId);
-
-                RPC::IRemoteConnection* connection(_service->RemoteConnection(_aampMediaPlayerConnectionId));
-
-                // The connection can disappear in the meantime...
-                if (connection != nullptr) {
-
-                    // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_aampMediaPlayerConnectionId));
+            if (connection != nullptr) {
                     connection->Terminate();
                     connection->Release();
-                }
             }
-            else if (result != Core::ERROR_DESTRUCTION_SUCCEEDED) 
-                LOGERR("_aampMediaPlayer->Release() unexpectedly returned %d", result);
-
             _aampMediaPlayer = nullptr;
             _service = nullptr;
         }
