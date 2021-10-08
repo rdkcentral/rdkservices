@@ -67,7 +67,8 @@ namespace WPEFramework
         void HdcpProfile::Deinitialize(PluginHost::IShell* /* service */)
         {
             HdcpProfile::_instance = nullptr;
-            device::Manager::DeInitialize();
+            //No need to run device::Manager::DeInitialize for individual plugin. As it is a singleton instance
+            //and shared among all wpeframework plugins
             DeinitializeIARM();
         }
 
