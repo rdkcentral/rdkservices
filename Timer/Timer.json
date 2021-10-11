@@ -81,24 +81,21 @@
     },
     "methods": {
         "cancel":{
-            "summary": "Stops the specified timer",
+            "summary": "Stops the specified timer.\n \n### Events\n \n No Events",
             "params": {
                 "type": "object",
                 "properties": {
                     "timerID": {
                         "$ref": "#/definitions/timerId"
                     }
-                },
-                "required": [
-                    "timerId"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
         "getTimers":{
-            "summary": "Gets the status of all timers",
+            "summary": "Gets the status of all timers. \n### Events \n No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -148,7 +145,7 @@
             }
         },
         "getTimerStatus": {
-            "summary": "Gets the status of the specified timer",
+            "summary": "Gets the status of the specified timer. \n### Events \n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -193,26 +190,24 @@
             }           
         },
         "resume":{
-            "summary": "Resumes the specified timer",
+            "summary": "Resumes the specified timer. \n \n### Events\n \n No Events",
             "params": {
                 "type":"object",
                 "properties": {
                     "timerID": {
                         "$ref": "#/definitions/timerId"
                     }
-                },
-                "required": [
-                    "timerId"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
         "startTimer ": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.",
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `timerExpired` | Triggers when a timer expires | \n| `timerExpiryReminder` | Triggers to remind that, the timer will expire in remindBefore value in seconds |",
             "events": [
-                "timerExpired"
+                "timerExpired",
+                "timerExpiryReminder"
             ],
             "params": {
                 "type":"object",
@@ -253,7 +248,7 @@
             }
         },
         "suspend":{
-            "summary": "Suspends the specified timer",
+            "summary": "Suspends the specified timer. \n \n### Events\n \n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -296,7 +291,7 @@
             }
         },
         "timerExpiryReminder": {
-            "summary": "Triggered before a timer actually expires",
+            "summary": "Triggered before a timer actually expires. This event triggers only when a valid remindBefore parameter is passed and when the timer is started using startTimer.",
             "params": {
                 "type" :"object",
                 "properties": {
