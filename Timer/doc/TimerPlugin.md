@@ -123,7 +123,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.cancel",
     "params": {
         "timerID": 0
@@ -136,7 +136,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -178,7 +178,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.getTimers"
 }
 ```
@@ -188,7 +188,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "timers": [
             {
@@ -240,7 +240,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.getTimerStatus",
     "params": {
         "timerId": 0
@@ -253,7 +253,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "state": "RUNNING",
         "mode": "WAKE",
@@ -295,7 +295,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.resume",
     "params": {
         "timerID": 0
@@ -308,7 +308,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -354,7 +354,7 @@ Also see: [timerExpired](#event.timerExpired), [timerExpiryReminder](#event.time
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.startTimer",
     "params": {
         "interval": 1.2,
@@ -370,7 +370,7 @@ Also see: [timerExpired](#event.timerExpired), [timerExpiryReminder](#event.time
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "timerId": 0,
         "success": true
@@ -408,7 +408,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.suspend",
     "params": {
         "timerID": 0
@@ -421,7 +421,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
