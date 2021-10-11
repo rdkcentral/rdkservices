@@ -98,6 +98,7 @@ enum {
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
 	HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED,
+	HDMICECSINK_EVENT_CEC_ENABLED,
 };
 
 static char *eventString[] = {
@@ -116,7 +117,8 @@ static char *eventString[] = {
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
         "reportAudioStatusEvent",
-        "reportAudioDeviceAdded"
+	"reportAudioDeviceAdded",
+	"reportCecEnabledEvent"
 };
 	
 
@@ -1797,7 +1799,7 @@ namespace WPEFramework
         {
         	int i;
 
-			if(!HdmiCecSink::_instance)
+		if(!HdmiCecSink::_instance)
                 return;
                 if(!(_instance->smConnection))
                     return;
@@ -2061,7 +2063,7 @@ namespace WPEFramework
 					LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
 					params["status"] = string("success");
 					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED], params)
-				} 
+				}
 
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
 			 }
@@ -2559,6 +2561,7 @@ namespace WPEFramework
         void HdmiCecSink::CECEnable(void)
         {
             std::lock_guard<std::mutex> lock(m_enableMutex);
+	    JsonObject params;
             LOGINFO("Entered CECEnable");
             if (cecEnableStatus)
             {
@@ -2603,6 +2606,8 @@ namespace WPEFramework
 				m_pollThread = std::thread(threadRun);
             }
             cecEnableStatus = true;
+	    params["cecEnable"] = string("true");
+            sendNotify(eventString[HDMICECSINK_EVENT_CEC_ENABLED], params);
  
             return;
         }
@@ -2610,6 +2615,7 @@ namespace WPEFramework
         void HdmiCecSink::CECDisable(void)
         {
             std::lock_guard<std::mutex> lock(m_enableMutex);
+	    JsonObject params;
             LOGINFO("Entered CECDisable ");
             if(!cecEnableStatus)
             {
@@ -2660,6 +2666,16 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+
+	    for(int i=0; i< 16; i++)
+            {
+		 if (_instance->deviceList[i].m_isDevicePresent)
+	         {
+	 		_instance->deviceList[i].clear();
+	         }
+		 //LOGINFO("_instance->deviceList[%d].m_isDevicePresent [%d]", i, _instance->deviceList[i].m_isDevicePresent);
+            }
+
             if(1 == libcecInitStatus)
             {
                 try
@@ -2674,6 +2690,10 @@ namespace WPEFramework
 
             libcecInitStatus--;
             LOGWARN("CEC Disabled %d",libcecInitStatus); 
+
+	   params["cecEnable"] = string("false");
+           sendNotify(eventString[HDMICECSINK_EVENT_CEC_ENABLED], params);
+
             return;
         }
 

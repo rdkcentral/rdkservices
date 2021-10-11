@@ -64,6 +64,7 @@ using namespace std;
 #define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT "setSystemAudioModeEvent"
 #define HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT "reportAudioDeviceAdded"
+#define HDMICECSINK_CEC_ENABLED_EVENT "reportCecEnabledEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
 #define HDMICECSINK_PLUGIN_ACTIVATION_TIME 2
@@ -73,6 +74,7 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 static bool isCecArcRoutingThreadEnabled = false;
+static bool isCecEnabled = false;
 
 #ifdef USE_IARM
 namespace
@@ -309,7 +311,7 @@ namespace WPEFramework {
 
 			if(isPluginActivated) {
 			    if(!m_subscribed) {
-			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT) == Core::ERROR_NONE)) {
+			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE)) {
                                     m_subscribed = true;
                                     LOGINFO("%s: HdmiCecSink event subscription completed.\n",__FUNCTION__);
 			        }
@@ -344,7 +346,7 @@ namespace WPEFramework {
                                         //Dummy ARC intiation request
                                        {
                                         std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                                        if(m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) {
+                                        if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (isCecEnabled == true)) {
                                             LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
                                             m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             m_cecArcRoutingThreadRun = true;
@@ -3544,7 +3546,7 @@ namespace WPEFramework {
                                 LOGINFO("%s: setUpHdmiCecSinkArcRouting true. Audio routing after CEC ARC handshake \n",__FUNCTION__);
                                 {
                                     std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                                    if(m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) {
+                                    if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (isCecEnabled == true)) {
                                         m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                         m_cecArcRoutingThreadRun = true;
                                         arcRoutingCV.notify_one();
@@ -3789,6 +3791,9 @@ namespace WPEFramework {
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceAddedEventHandler, this);
+                } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
+                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                            , &DisplaySettings::onCecEnabledEventHandler, this);
 		} else {
                      err = Core::ERROR_UNAVAILABLE;
                      LOGERR("Unsupported Event: %s ", eventName);
@@ -3959,7 +3964,7 @@ namespace WPEFramework {
 //                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                     LOGINFO("%s :  audioMode ON !!!\n", __FUNCTION__);
                     std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                    if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false)) {
+                    if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false) && (isCecEnabled == true)) {
 			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__); 
     		        m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
 			m_cecArcRoutingThreadRun = true;
@@ -3998,33 +4003,56 @@ namespace WPEFramework {
             }
         }
 
-	void DisplaySettings::onAudioDeviceAddedEventHandler(const JsonObject& parameters) 
+	/* Event handler when Audio Device is Added     */
+	void DisplaySettings::onAudioDeviceAddedEventHandler(const JsonObject& parameters)
 	{
             int types = dsAUDIOARCSUPPORT_NONE;
 
 	    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 	    aPort.getSupportedARCTypes(&types);
-	
-            LOGINFO("[ Audio Device Added Event], AudioSupport_type [%d], m_hdmiInAudioDeviceConnected [%d], m_currentArcRoutingState [%d] \n", types, DisplaySettings::_instance->m_hdmiInAudioDeviceConnected, DisplaySettings::_instance->m_currentArcRoutingState);
+
+            LOGINFO("[ Audio Device Added Event], AudioSupport_type [%d], m_hdmiInAudioDeviceConnected [%d], m_currentArcRoutingState [%d], m_cecArcRoutingThreadRun [%d] \n", types, DisplaySettings::_instance->m_hdmiInAudioDeviceConnected, DisplaySettings::_instance->m_currentArcRoutingState, DisplaySettings::_instance->m_cecArcRoutingThreadRun);
+
 	    if(types & dsAUDIOARCSUPPORT_eARC) {
-	 	if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == false)
+		if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == false)
 		{
 			DisplaySettings::_instance->m_hdmiInAudioDeviceConnected = true;
-            	        LOGINFO("eARC_mode: Notify Audio Port \n");
+			LOGINFO("eARC_mode: Notify Audio Port \n");
 			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
 		}
 	    }else if(types & dsAUDIOARCSUPPORT_ARC) {
+                LOGINFO("ARC_mode: settings... \n");
+
 		std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
-                if(DisplaySettings::_instance->m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) {
-            	         LOGINFO("ARC_mode: Send dummy ARC initiation request... \n");
-			 DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
-                         DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
-            	         LOGINFO("ARC_mode: Notify Arc routing with m_currentArcRoutingStat [%d] \n", DisplaySettings::_instance->m_currentArcRoutingState );
-                         DisplaySettings::_instance->arcRoutingCV.notify_one();
+
+	        if((DisplaySettings::_instance->m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (isCecEnabled == true)) {
+			LOGINFO("ARC_mode: Send dummy ARC initiation request... \n");
+			DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
+                        DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
+			LOGINFO("ARC_mode: Notify Arc routing with m_currentArcRoutingStat [%d] \n", DisplaySettings::_instance->m_currentArcRoutingState );
+                        DisplaySettings::_instance->arcRoutingCV.notify_one();
 		}
 	    }else {
                          LOGINFO("Connected Device doesn't have ARC/eARC capability... \n");
             }
+	}
+
+	/* DisplaaySettings gets notified whenever CEC is made Enable or Disable  */
+	void DisplaySettings::onCecEnabledEventHandler(const JsonObject& parameters)
+	{
+             string value;
+
+             LOGINFO(" CEC Enable-Disable Event... \n");
+	     if (parameters.HasLabel("cecEnable"))
+                 value = parameters["cecEnable"].String();
+
+	     if(!value.compare("true")) {
+		isCecEnabled = true;
+	      } else{
+		isCecEnabled = false;
+	      }
+
+              LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
 	}
 
         // 6.
@@ -4047,7 +4075,7 @@ namespace WPEFramework {
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
-                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT) == Core::ERROR_NONE)) 
+                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_ADDED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE))
                 {
                     m_subscribed = true;
                     if (m_timer.isActive()) {
@@ -4112,7 +4140,7 @@ namespace WPEFramework {
                         //Dummy ARC intiation request
                       {
                         std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                        if(m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) {
+                        if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (isCecEnabled == true)) {
                             LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
                             m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                             m_cecArcRoutingThreadRun = true;
