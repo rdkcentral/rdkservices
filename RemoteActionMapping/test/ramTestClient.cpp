@@ -687,6 +687,8 @@ int main(int argc, char** argv)
                                     JsonObject keyMap;
                                     JsonArray tvIRKeyCode;
                                     JsonArray avrIRKeyCode;
+                                    bool hasTVCode = false;
+                                    bool hasAVRCode = false;
 
                                     keyMap["keyName"] = JsonValue(KEDKeyNames[i]);
                                     keyMap["rfKeyCode"] = JsonValue(RFKeyCodes[i]);
@@ -697,6 +699,7 @@ int main(int argc, char** argv)
                                         {
                                             tvIRKeyCode.Add(JsonValue(currentTVIRData[i][j]));
                                         }
+                                        hasTVCode = true;
                                     }
                                     keyMap["tvIRKeyCode"] = tvIRKeyCode;
 
@@ -706,10 +709,14 @@ int main(int argc, char** argv)
                                         {
                                             avrIRKeyCode.Add(JsonValue(currentAVRIRData[i][j]));
                                         }
+                                        hasAVRCode = true;
                                     }
                                     keyMap["avrIRKeyCode"] = avrIRKeyCode;
 
-                                    array.Add(keyMap);
+                                    if(hasTVCode || hasAVRCode)
+                                    {
+                                        array.Add(keyMap);
+                                    }
                                 }
                                 params["keyActionMapping"] = array;
 
