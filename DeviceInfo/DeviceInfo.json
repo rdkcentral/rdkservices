@@ -1,0 +1,149 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Device Info API",
+        "class": "DeviceInfo",
+        "description": "The `DeviceInfo` plugin allows retrieving of various device-related information."
+    },
+    "properties": {
+        "systeminfo": {
+            "summary": "Provides access to system general information",
+            "readonly": true,
+            "params": {
+                "type": "object",
+                "properties": {
+                    "time": {
+                        "description": "Current system date and time",
+                        "type": "string",
+                        "example": "Mon, 11 Mar 2019 14:38:18"
+                    },
+                    "version": {
+                        "description": "Software version (in form *version#hashtag*)",
+                        "type": "string",
+                        "example": "1.0#14452f612c3747645d54974255d11b8f3b4faa54"
+                    },
+                    "uptime": {
+                        "description": "System uptime (in seconds)",
+                        "type": "number",
+                        "size": 64,
+                        "example": 120                  
+                    },
+                    "freeram": {
+                        "description": "Free system RAM memory (in bytes)",
+                        "type": "number",
+                        "size": 64,
+                        "example": 563015680
+                    },
+                    "totalram": {
+                        "description": "Total installed system RAM memory (in bytes)",
+                        "type": "number",
+                        "size": 64,
+                        "example": 655757312
+                    },
+                    "devicename": {
+                        "description": "Host name",                  
+                        "type": "string",
+                        "example": "buildroot"
+                    },
+                    "cpuload": {
+                        "description": "Current CPU load (percentage)",
+                        "type": "string",
+                        "example": "2"
+                    },
+                    "serialnumber": {
+                        "description": "Device serial number",
+                        "type": "string",
+                        "example": "WPEuCfrLF45"
+                    }
+                },
+                "required": [
+                    "time",
+                    "version",
+                    "uptime",
+                    "freeram",
+                    "totalram",
+                    "devicename",
+                    "cpuload",
+                    "serialnumber"
+                ]
+            }
+        },
+        "addresses": {
+            "summary": "Network interface addresses",
+            "readonly": true,
+            "params": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description": "Interface name",
+                            "type": "string",
+                            "example": "lo"
+                        },
+                        "mac": {
+                            "description": "Interface MAC address",
+                            "type": "string",
+                            "example": "00:00:00:00:00"
+                        },
+                        "ip": {
+                            "type": "array",
+                            "items": {
+                                "description": "Interface IP address",
+                                "type": "string",
+                                "example": "127.0.0.1"
+                            }
+                        }
+                    },
+                    "required": [
+                    "name",
+                    "mac"
+                    ]
+                }
+            }
+        },
+        "socketinfo": {
+            "summary": "Socket information",
+            "readonly": true,
+            "params": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "description": "Total number of sockets",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "open": {
+                        "description": "Number of open sockets",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "link": {
+                        "description": "Number of links",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "exception": {
+                        "description": "Number of exceptions",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "shutdown": {
+                        "description": "Number of sockets that were shutdown",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "runs": {
+                        "description": "Number of runs",
+                        "type": "number",
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "runs"
+                ]
+            }
+        }
+    }
+}
