@@ -3954,13 +3954,29 @@ namespace WPEFramework {
 //                    m_hdmiInAudioDeviceConnected = true;
 //                    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                     LOGINFO("%s :  audioMode ON !!!\n", __FUNCTION__);
-                    std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                    if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false) && (isCecEnabled == true)) {
-			LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__); 
-    		        m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
-			m_cecArcRoutingThreadRun = true;
-		        arcRoutingCV.notify_one();
-		    }
+                    try {
+                        int types = dsAUDIOARCSUPPORT_NONE;
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                        aPort.getSupportedARCTypes(&types);
+                        if((types & dsAUDIOARCSUPPORT_eARC) && (m_hdmiInAudioDeviceConnected == false)) {
+                            m_hdmiInAudioDeviceConnected = true;
+                            LOGINFO("%s: eARC device sent system audio mode ON: Notify UI !!! \n");
+                            connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
+                        }
+			else if(types & dsAUDIOARCSUPPORT_ARC) {
+                            std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+                            if((m_currentArcRoutingState == ARC_STATE_ARC_TERMINATED) && (m_hdmiInAudioDeviceConnected == false) && (isCecEnabled == true)) {
+                                LOGINFO("%s :  m_hdmiInAudioDeviceConnected = false. ARC state is terminated.  Trigger ARC Initiation request !!!\n", __FUNCTION__); 
+                                m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
+			        m_cecArcRoutingThreadRun = true;
+		                arcRoutingCV.notify_one();
+		            }
+                        }
+                    }
+                    catch(const device::Exception& err)
+                    {
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    }
                 }
 		else if(!value.compare("Off")) {
                     LOGINFO("%s :  audioMode OFF !!!\n", __FUNCTION__);
