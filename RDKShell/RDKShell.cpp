@@ -113,6 +113,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISP
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
+
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -177,6 +179,10 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
+
+#define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
+#define KEYCODE_INVALID -1
+#define RETRY_INTERVAL_250MS 250000
 
 enum FactoryAppLaunchStatus
 {
@@ -595,7 +601,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0)
+                : AbstractPlugin(API_VERSION_NUMBER_MAJOR), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -668,6 +674,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED, &RDKShell::getVirtualDisplayEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY, &RDKShell::getLastWakeupKeyWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
 
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
@@ -1291,6 +1298,11 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onEasterEgg(const std::string& name, const std::string& actionJson)
         {
           std::cout << "RDKShell onEasterEgg event received ..." << name << std::endl;
+          if (false == mShell.mEnableEasterEggs)
+          {
+              std::cout << "easter eggs disabled and not processing event" << std::endl;
+              return;
+          }
           
           if (actionJson.length() == 0)
           {
@@ -3071,7 +3083,7 @@ namespace WPEFramework {
 #endif
                 }
 
-                if (type == "Cobalt")
+                if (!type.empty() && type == "Cobalt")
                 {
                     if (configuration.find("\"preload\"") == std::string::npos)
                     {
@@ -3080,6 +3092,37 @@ namespace WPEFramework {
                         std::cout << "setting Cobalt preload: " << preload << "\n";
                         configSet["preload"] = JsonValue(preload);
                     }
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp" || type == "SearchAndDiscoveryApp" ))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
                 }
 
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
@@ -3867,6 +3910,21 @@ namespace WPEFramework {
             {
                 response["message"] = "failed to perform show watermark";
             }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::enableEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            bool enable = true;
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "enable parameter is not present";
+                returnResponse(false);
+            }
+            enable = parameters["enable"].Boolean();
+            mEnableEasterEggs = enable;
             returnResponse(result);
         }
 
@@ -4727,21 +4785,88 @@ namespace WPEFramework {
              std::string serviceCallsign = SYSTEM_SERVICE_CALLSIGN;
              serviceCallsign.append(".2");
              auto systemServiceConnection = RDKShell::getThunderControllerClient(serviceCallsign);
-             JsonObject req, res;
-             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
-             if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+             JsonObject request, result;
+             uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getWakeupReason", request, result);
+             if (Core::ERROR_NONE == status && result.HasLabel("wakeupReason"))
              {
-                 unsigned int key = res["wakeupKeyCode"].Number();
-                 unsigned long flags = 0;
-                 uint32_t mappedKeyCode = key, mappedFlags = 0;
-                 bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
-                 response["keyCode"] = JsonValue(mappedKeyCode);
-                 response["modifiers"] = JsonValue(mappedFlags);
-                 std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
-                 returnResponse(true);
-             }
+                std::string wakeupreason = result["wakeupReason"].String();
+                if(wakeupreason.compare("WAKEUP_REASON_IR") == 0)
+                {
+                     JsonObject req, res;
+                     uint32_t status = systemServiceConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getLastWakeupKeyCode", req, res);
+                     if (Core::ERROR_NONE == status && res.HasLabel("wakeupKeyCode"))
+                     {
+                         unsigned int key = res["wakeupKeyCode"].Number();
+                         unsigned long flags = 0;
+                         uint32_t mappedKeyCode = key, mappedFlags = 0;
+                         bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                         response["keyCode"] = JsonValue(mappedKeyCode);
+                         response["modifiers"] = JsonValue(mappedFlags);
+                         std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+                         returnResponse(true);
+                      }
+                  }
+                  else if (wakeupreason.compare("WAKEUP_REASON_RCU_BT") == 0)
+                  {
+			std::string remoteControlCallsign = REMOTECONTROL_CALLSIGN;
+	                auto remoteControlConnection = RDKShell::getThunderControllerClient(remoteControlCallsign);
+			int16_t keyCode = KEYCODE_INVALID, retry = 12;
 
-             response["message"] = "unable to get wakeup key from system service";
+			while( keyCode == KEYCODE_INVALID )
+			{
+				JsonObject req, res, stat;
+				req.Set("netType",1);
+
+				uint32_t status = remoteControlConnection->Invoke(RDKSHELL_THUNDER_TIMEOUT, "getNetStatus", req, res);
+				if (Core::ERROR_NONE == status && res.HasLabel("status"))
+				{
+					stat = res["status"].Object();
+
+					if(stat.HasLabel("remoteData"))
+					{
+					   JsonArray remoteArray = stat["remoteData"].Array();
+					   for (int k = 0; k < remoteArray.Length(); k++)
+					   {
+						JsonObject remote = remoteArray[k].Object();
+						if (remote.HasLabel("wakeupKeyCode"))
+						{
+							keyCode = remote["wakeupKeyCode"].Number();
+							std::cout << "wakeupKeyCode-keyCode: " << keyCode << std::endl;
+						}
+						else
+							std::cout << "wakeupKeyCode missing in remoteInfo\n" << std::endl;
+					   }
+					 }
+					 else
+						std::cout << "remoteData missing in status\n" << std::endl;
+				}
+				else
+					std::cout << "getNetStatus failed\n" << std::endl;
+
+				retry--;
+				if ( (retry == 0) || (keyCode != KEYCODE_INVALID) )
+				break;
+				usleep(RETRY_INTERVAL_250MS);
+			   }
+
+			   if ( keyCode != KEYCODE_INVALID )
+			   {
+				unsigned long flags = 0;
+	                        uint32_t mappedKeyCode = keyCode, mappedFlags = 0;
+				bool ret = keyCodeFromWayland(keyCode, flags, mappedKeyCode, mappedFlags);
+				response["keyCode"] = JsonValue(mappedKeyCode);
+				response["modifiers"] = JsonValue(mappedFlags);
+				std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
+				returnResponse(true);
+			   }
+		    }
+		    else
+			std::cout << "wakeup reason is not IR/BT RCU\n" << std::endl;
+                }
+		else
+			std::cout << "wakeup reason not available\n" << std::endl;
+
+             response["message"] = "unable to get wakeup key";
              returnResponse(false);
         }
 
@@ -4813,14 +4938,15 @@ namespace WPEFramework {
 
             if (sPersistentStoreFirstActivated)
             {
+                auto persistentStoreLink = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN);
                 JsonObject joAgingParams;
                 JsonObject joAgingResult;
                 joAgingParams.Set("namespace","FactoryTest");
                 joAgingParams.Set("key","AgingState");
-                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+                std::string agingGetInvoke = "getValue";
 
                 std::cout << "attempting to check aging state \n";
-                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                uint32_t status = persistentStoreLink.Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
                 std::cout << "get status for aging state: " << status << std::endl;
 
                 if ((status == 0) && (joAgingResult.HasLabel("value")))
@@ -4840,7 +4966,7 @@ namespace WPEFramework {
                 joFactoryModeParams.Set("key","FactoryMode");
 
                 std::cout << "attempting to check factory mode \n";
-                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                status = persistentStoreLink.Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
                 std::cout << "get status for factory mode: " << status << std::endl;
 
                 if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
