@@ -97,13 +97,17 @@ Timer interface methods:
 ## *cancel <sup>method</sup>*
 
 Stops the specified timer.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.timerID | integer | <sup>*(optional)*</sup> The timer ID |
+| params.timerID | integer | The timer ID |
 
 ### Result
 
@@ -119,7 +123,7 @@ Stops the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.cancel",
     "params": {
         "timerID": 0
@@ -132,7 +136,7 @@ Stops the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -142,7 +146,9 @@ Stops the specified timer.
 <a name="method.getTimers"></a>
 ## *getTimers <sup>method</sup>*
 
-Gets the status of all timers.
+Gets the status of all timers. 
+### Events 
+ No Events.
 
 ### Parameters
 
@@ -170,7 +176,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.getTimers"
 }
 ```
@@ -180,7 +186,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "timers": [
             {
@@ -200,7 +206,9 @@ This method takes no parameters.
 <a name="method.getTimerStatus"></a>
 ## *getTimerStatus <sup>method</sup>*
 
-Gets the status of the specified timer.
+Gets the status of the specified timer. 
+### Events 
+ No Events.
 
 ### Parameters
 
@@ -228,7 +236,7 @@ Gets the status of the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.getTimerStatus",
     "params": {
         "timerId": 0
@@ -241,7 +249,7 @@ Gets the status of the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "state": "RUNNING",
         "mode": "WAKE",
@@ -256,14 +264,18 @@ Gets the status of the specified timer.
 <a name="method.resume"></a>
 ## *resume <sup>method</sup>*
 
-Resumes the specified timer.
+Resumes the specified timer. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.timerID | integer | <sup>*(optional)*</sup> The timer ID |
+| params.timerID | integer | The timer ID |
 
 ### Result
 
@@ -279,7 +291,7 @@ Resumes the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.resume",
     "params": {
         "timerID": 0
@@ -292,7 +304,7 @@ Resumes the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -303,8 +315,14 @@ Resumes the specified timer.
 ## *startTimer  <sup>method</sup>*
 
 Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `timerExpired` | Triggers when a timer expires | 
+| `timerExpiryReminder` | Triggers to remind that, the timer will expire in remindBefore value in seconds |.
 
-Also see: [timerExpired](#event.timerExpired)
+Also see: [timerExpired](#event.timerExpired), [timerExpiryReminder](#event.timerExpiryReminder)
 
 ### Parameters
 
@@ -331,7 +349,7 @@ Also see: [timerExpired](#event.timerExpired)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.startTimer ",
     "params": {
         "interval": 1.2,
@@ -347,7 +365,7 @@ Also see: [timerExpired](#event.timerExpired)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "timerId": 0,
         "success": true
@@ -358,7 +376,11 @@ Also see: [timerExpired](#event.timerExpired)
 <a name="method.suspend"></a>
 ## *suspend <sup>method</sup>*
 
-Suspends the specified timer.
+Suspends the specified timer. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -381,7 +403,7 @@ Suspends the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Timer.1.suspend",
     "params": {
         "timerID": 0
@@ -394,7 +416,7 @@ Suspends the specified timer.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -447,7 +469,7 @@ Triggered when a timer expires.
 <a name="event.timerExpiryReminder"></a>
 ## *timerExpiryReminder <sup>event</sup>*
 
-Triggered before a timer actually expires.
+Triggered before a timer actually expires. This event triggers only when a valid remindBefore parameter is passed and when the timer is started using startTimer.
 
 ### Parameters
 
