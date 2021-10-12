@@ -13,7 +13,7 @@
             "example":"61579454946360"
         },
         "name": {
-            "summary":"Device name as specified by the manufacturer",
+            "summary":"Name of the Bluetooth Device.",
             "type":"string",
             "example":"[TV] UE32J5530"
         },
@@ -222,10 +222,20 @@
             "type": "string",
             "example": "0601"
         },
-        "action":{
+        "action": {
             "summary": "Current playback state. Either `started`, `paused`, `stopped` or `ended`. If the state is `ended`, then `position` and `Duration` are omitted.",
             "type": "string",
             "example": "started"
+        },
+        "volume": {
+            "summary": "Volume value should be in between 0 and 255",
+            "type": "string",
+            "example":"50"
+        },
+        "mute": {
+            "summary":"Mute value of the device should be either 0 or 1",
+            "type": "boolean",
+            "example": "false"
         }
     },
     "methods": {
@@ -258,7 +268,7 @@
             }
         },
         "disable":{
-            "summary": "This method disables the Bluetooth stack on the device. \n \n### Events \n  \n No Events",
+            "summary": "Disables the Bluetooth stack. \n \n### Events \n  \n No Events",
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -288,7 +298,7 @@
             }
         },
         "enable":{
-            "summary": "This method enables the Bluetooth stack on the device. \n  \n### Events \n\n  No Events",
+            "summary": "Enables the Bluetooth stack. \n  \n### Events \n\n  No Events",
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -464,7 +474,7 @@
             }
         },
         "getDiscoveredDevices":{
-            "summary": "This method should be called after getting at least one event  [onDiscoveredDevice](#events.onDiscoveredDevice) event and it returns an array of discovered devices. \n  \n### Events \n\n  No Events",
+            "summary": "This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices. \n  \n### Events \n\n  No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -574,7 +584,7 @@
             }
         },
         "isDiscoverable":{
-            "summary": "It returns `TRUE`, if this device can be discovered by other Bluetooth devices.\n  \n### Events \n\n  No Events",
+            "summary": "Returns `true`, if this device can be discovered by other Bluetooth devices.\n  \n### Events \n\n  No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -621,7 +631,7 @@
             }
         },
         "respondToEvent":{
-            "summary": "This method provides the ability to respond the client Bluetooth event. For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted. \n  \n### Events \n\n  No Events",
+            "summary": "Provides the ability to respond the client Bluetooth event. For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted. \n  \n### Events \n\n  No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -713,7 +723,9 @@
                 "type":"object",
                 "properties":{
                     "name":{
-                        "$ref": "#/definitions/name"
+                        "summary": "Name of the Bluetooth Device",
+                        "type": "string",
+                        "example": "RDK Bluetooth Device"
                     }
                 },
                 "required":[
@@ -761,7 +773,7 @@
             }
         },
         "stopScan":{
-            "summary": "Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` event.  \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState:` `DISCOVERY_COMPLETED` | Trigged `onStatusChanged` event when scan is stopped.| ",
+            "summary": "Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` event.  \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged` event when scan is stopped.| ",
             "events":[
                 "onStatusChanged"
             ],
@@ -807,7 +819,35 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "type": "object",
+                "properties": {
+                    "volumeInfo": {
+                        "summary": "A list of apps and their system resource information",
+                        "type": "array",
+                        "items": {
+                            "type":"object",
+                            "properties": {
+                                "volume": {
+                                    "$ref": "#/definitions/volume"
+                                },
+                                "mute": {
+                                    "$ref": "#/definitions/mute"
+                                }
+                            },
+                            "required":[
+                                "volume",
+                                "mute"
+                            ]
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "volumeInfo",
+                    "success"
+                ]
             }
         },
         "setDeviceVolumeMuteInfo": {
@@ -820,11 +860,19 @@
                     },
                     "deviceProfile":{
                         "$ref": "#/definitions/deviceProfile"
+                    },
+                    "volume": {
+                        "$ref": "#/definitions/volume"
+                    },
+                    "mute": {
+                        "$ref": "#/definitions/mute"
                     }
                 },
                 "required": [
                     "deviceID",
-                    "deviceProfile"
+                    "deviceProfile",
+                    "volume",
+                    "mute"
                 ]
             },
             "result": {
@@ -968,7 +1016,7 @@
             }
         },
         "onPlaybackChange": {
-            "summary": "This event triggers when the previous request to pair gets failed. In the absence of a failure, XRE receives statusChanged when the pairing is successful.",
+            "summary": "Triggered when playback is interrupted or changed. Note that there is no resume event. After the previously paused playback is resumed, it is followed by `onPlaybackProgress` events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1136,7 +1184,7 @@
             }
         },
         "onStatusChanged": {
-            "summary": "This event is triggered whenever the Bluetooth functionality changes. Supported statuses are:  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices)  \n* `DISCOVERY STARTED`- The Bluetooth device discovery will be triggered, after startScan method started.",
+            "summary": "Triggered whenever the Bluetooth functionality changes. Supported statuses are:  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices)  \n* `DISCOVERY_STARTED`- The Bluetooth device discovery will be triggered, after startScan method started.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1176,6 +1224,66 @@
                     "lastConnectedState",
                     "paired",
                     "connected"
+                ]
+            }
+        },
+        "onDeviceFound": {
+            "summary": "Triggered when the new device got discovered.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "rawDeviceType": {
+                        "$ref": "#/definitions/rawDeviceType"
+                    },
+                    "lastConnectedState": {
+                        "$ref": "#/definitions/lastConnectedState"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "rawDeviceType",
+                    "lastConnectedState"
+                ]
+            }
+        },
+        "onDeviceLost":{
+            "summary": "Triggered when any discovered device lost or out of range.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "rawDeviceType": {
+                        "$ref": "#/definitions/rawDeviceType"
+                    },
+                    "lastConnectedState": {
+                        "$ref": "#/definitions/lastConnectedState"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "rawDeviceType",
+                    "lastConnectedState"
                 ]
             }
         }
