@@ -3401,7 +3401,7 @@ namespace WPEFramework {
                     hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
 
 		    cecEnable = hdmiCecSinkResult["enabled"].Boolean();
-		    LOGINFO("cecEnable [%d]\n",cecEnable);
+		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
 
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
