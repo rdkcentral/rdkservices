@@ -2673,7 +2673,6 @@ namespace WPEFramework
 	         {
 	 		_instance->deviceList[i].clear();
 	         }
-		 //LOGINFO("_instance->deviceList[%d].m_isDevicePresent [%d]", i, _instance->deviceList[i].m_isDevicePresent);
             }
 
             if(1 == libcecInitStatus)
