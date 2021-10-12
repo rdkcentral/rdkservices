@@ -506,10 +506,15 @@ void TTSSpeaker::createPipeline() {
     GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioVolume = gst_element_factory_make("volume", NULL);
+#if defined(ENABLE_MS12)
+    m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
+    g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
+    g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
+#else
     m_audioSink = gst_element_factory_make("alsasink", NULL);
+#endif
     g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
     g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
-    g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
 #endif
 
     std::string tts_url =
