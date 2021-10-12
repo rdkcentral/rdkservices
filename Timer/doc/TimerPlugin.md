@@ -474,7 +474,7 @@ Triggered when a timer expires.
 <a name="event.timerExpiryReminder"></a>
 ## *timerExpiryReminder <sup>event</sup>*
 
-Triggered before a timer actually expires. It triggered only when a valid parameter is passed using `startTimer`.
+Triggered before a timer actually expires. It triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.
 
 ### Parameters
 
