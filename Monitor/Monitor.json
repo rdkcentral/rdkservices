@@ -1,0 +1,434 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Monitor API",
+        "class": "Monitor",
+        "description": "The `Monitor` plugin provides a watchdog-like functionality for framework processes"
+    },
+    "common": {
+        "errors": {
+            "general": {
+                "code": 1,
+                "message": "ERROR_GENERAL"
+            },
+            "unavailable": {
+                "code": 2,
+                "message": "ERROR_UNAVAILABLE"
+            },
+            "asyncfailed": {
+                "code": 3,
+                "message": "ERROR_ASYNC_FAILED"
+            },
+            "asyncaborted": {
+                "code": 4,
+                "message": "ERROR_ASYNC_ABORTED"
+            },
+            "illegalstate": {
+                "code": 5,
+                "message": "ERROR_ILLEGAL_STATE"
+            },
+            "openingfailed": {
+                "code": 6,
+                "message": "ERROR_OPENING_FAILED"
+            },
+            "acceptfailed": {
+                "code": 7,
+                "message": "ERROR_ACCEPT_FAILED"
+            },
+            "pendingshutdown": {
+                "code": 8,
+                "message": "ERROR_PENDING_SHUTDOWN"
+            },
+            "alreadyconnected": {
+                "code": 9,
+                "message": "ERROR_ALREADY_CONNECTED"
+            },
+            "connectionclosed": {
+                "code": 10,
+                "message": "ERROR_CONNECTION_CLOSED"
+            },
+            "timedout": {
+                "code": 11,
+                "message": "ERROR_TIMEDOUT"
+            },
+            "inprogress": {
+                "code": 12,
+                "message": "ERROR_INPROGRESS",
+                "description": "Operation in progress"
+            },
+            "couldnotsetaddress": {
+                "code": 13,
+                "message": "ERROR_COULD_NOT_SET_ADDRESS"
+            },
+            "incorrecthash": {
+                "code": 14,
+                "message": "ERROR_INCORRECT_HASH",
+                "description": "Incorrect hash given"
+            },
+            "incorrecturl": {
+                "code": 15,
+                "message": "ERROR_INCORRECT_URL",
+                "description": "Incorrect URL given"
+            },
+            "invalidinputlength": {
+                "code": 16,
+                "message": "ERROR_INVALID_INPUT_LENGTH"
+            },
+            "destructionsucceeded": {
+                "code": 17,
+                "message": "ERROR_DESTRUCTION_SUCCEEDED"
+            },
+            "destructionfailed": {
+                "code": 18,
+                "message": "ERROR_DESTRUCTION_FAILED"
+            },
+            "closingfailed": {
+                "code": 19,
+                "message": "ERROR_CLOSING_FAILED"
+            },
+            "processterminated": {
+                "code": 20,
+                "message": "ERROR_PROCESS_TERMINATED"
+            },
+            "processkilled": {
+                "code": 21,
+                "message": "ERROR_PROCESS_KILLED"
+            },
+            "unknownkey": {
+                "code": 22,
+                "message": "ERROR_UNKNOWN_KEY"
+            },
+            "incompleteconfig": {
+                "code": 23,
+                "message": "ERROR_INCOMPLETE_CONFIG"
+            },
+            "privilegedrequest": {
+                "code": 24,
+                "message": "ERROR_PRIVILEGED_REQUEST"
+            },
+            "rpccallfailed": {
+                "code": 25,
+                "message": "ERROR_RPC_CALL_FAILED"
+            },
+            "unreachablenetwork": {
+                "code": 26,
+                "message": "ERROR_UNREACHABLE_NETWORK"
+            },
+            "requestsubmitted": {
+                "code": 27,
+                "message": "ERROR_REQUEST_SUBMITTED"
+            },
+            "unknowntable": {
+                "code": 28,
+                "message": "ERROR_UNKNOWN_TABLE"
+            },
+            "duplicatekey": {
+                "code": 29,
+                "message": "ERROR_DUPLICATE_KEY"
+            },
+            "badrequest": {
+                "code": 30,
+                "message": "ERROR_BAD_REQUEST"
+            },
+            "pendingconditions": {
+                "code": 31,
+                "message": "ERROR_PENDING_CONDITIONS"
+            },
+            "surfaceunavailable": {
+                "code": 32,
+                "message": "ERROR_SURFACE_UNAVAILABLE"
+            },
+            "playerunavailable": {
+                "code": 33,
+                "message": "ERROR_PLAYER_UNAVAILABLE"
+            },
+            "firstresourcenotfound": {
+                "code": 34,
+                "message": "ERROR_FIRST_RESOURCE_NOT_FOUND"
+            },
+            "secondsourcenotfound": {
+                "code": 35,
+                "message": "ERROR_SECOND_RESOURCE_NOT_FOUND"
+            },
+            "alreadyreleased": {
+                "code": 36,
+                "message": "ERROR_ALREADY_RELEASED"
+            },
+            "negtiveacknowledge": {
+                "code": 37,
+                "message": "ERROR_NEGATIVE_ACKNOWLEDGE"
+            },
+            "invalidsignature": {
+                "code": 38,
+                "message": "ERROR_INVALID_SIGNATURE"
+            },
+            "readerror": {
+                "code": 39,
+                "message": "ERROR_READ_ERROR"
+            },
+            "writeerror": {
+                "code": 40,
+                "message": "ERROR_WRITE_ERROR"
+            },
+            "invaliddesignator": {
+                "code": 41,
+                "message": "ERROR_INVALID_DESIGNATOR"
+            },
+            "unauthenticated": {
+                "code": 42,
+                "message": "ERROR_UNAUTHENTICATED"
+            },
+            "notexist": {
+                "code": 43,
+                "message": "ERROR_NOT_EXIST"
+            },
+            "notsupported": {
+                "code": 44,
+                "message": "ERROR_NOT_SUPPORTED"
+            }
+        },
+        "results": {
+            "void": {
+                "type": "null",
+                "default": null,
+                "description": "Always null"
+            }
+        }
+    },
+    "definitions": {
+        "restart": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "description": "Maximum number or restarts to be attempted",
+                    "type": "number",
+                    "size": 8,
+                    "signed": false,
+                    "example": 3
+                },
+                "window": {
+                    "description": "Time period (in seconds) within which failures must happen for the limit to be considered crossed",
+                    "type": "number",
+                    "size": 16,
+                    "signed": false,
+                    "example": 60
+                }
+            },
+            "required": [
+                "limit",
+                "window"
+            ]
+        },
+        "measurement": {
+            "type": "object",
+            "properties": {
+                "min": {
+                    "description": "Minimal value measured",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "max": {
+                    "description": "Maximal value measured",
+                    "type": "number",
+                    "size": 64,
+                    "example": 100                   
+                },
+                "average": {
+                    "description": "Average of all measurements",
+                    "type": "number",
+                    "size": 64,
+                    "example": 50                    
+                },
+                "last": {
+                    "description": "Last measured value",
+                    "type": "number",
+                    "size": 64,
+                    "example": 100                    
+                }
+            },
+            "required": [
+                "min",
+                "max",
+                "average",
+                "last"
+            ]
+        },
+        "measurements": {
+            "type": "object",
+            "properties": {
+                "resident": {
+                    "description": "Resident memory measurement",
+                    "$ref": "#/definitions/measurement"
+                },
+                "allocated": {
+                    "description": "Allocated memory measurement",
+                    "$ref": "#/definitions/measurement"
+                },
+                "shared": {
+                    "description": "Shared memory measurement",
+                    "$ref": "#/definitions/measurement"
+                },
+                "process": {
+                    "description": "Processes measurement",
+                    "$ref": "#/definitions/measurement"
+                },
+                "operational": {
+                    "description": "Whether the service is up and running",
+                    "type": "boolean",
+                    "example": true
+                },
+                "count": {
+                    "description": "Number of measurements",
+                    "type": "number",
+                    "example": 100   
+                }
+            },
+            "required": [
+                "resident",
+                "allocated",
+                "shared",
+                "process",
+                "operational",
+                "count"
+            ]
+        },
+        "info": {
+            "type": "object",
+                "properties": {
+                    "measurements": {
+                        "description": "Measurements for the service",
+                        "$ref": "#/definitions/measurements"
+                    },
+                    "observable": {
+                        "description": "A callsign of the watched service",
+                        "type": "string",
+                        "example": "callsign"
+                    },
+                    "restart": {
+                        "description": "Restart limits for failures applying to the service",
+                        "$ref": "#/definitions/restart"
+                    }
+                },
+                "required": [
+                    "measurements",
+                    "observable",
+                    "restart"
+                ]
+            },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "restartlimits": {
+            "summary": "Sets new restart limits for a service",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign": {
+                        "description": "The callsign of a service for which measurement snapshots are reset",
+                        "type": "string",
+                        "example": "WebServer"
+                    },
+                    "restart": {
+                        "$ref": "#/definitions/restart"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "restart"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/results/void"
+            }
+        },
+        "resetstats": {
+            "summary": "Resets memory and process statistics for a single service watched by the Monitor",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign": {
+                        "description": "The callsign of a service for which statistics are reset",
+                        "type": "string",
+                        "example": "WebServer"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "description": "Measurements for the service before reset",
+                "$ref": "#/definitions/info"
+            }
+        }
+    },
+    "properties": {
+        "status": {
+            "summary": "Service statistics",
+            "readonly": true,
+            "params": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/info"
+                }
+            },
+            "index": {
+                "description": "If omitted, then all observed objects are returned on read.",
+                "name": "Callsign",
+                "example": "WebServer"                
+            }
+        }
+    },
+    "events": {
+        "action": {
+            "summary": "Signals an action taken by the Monitor",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service the Monitor acted upon",
+                        "type": "string",
+                        "example": "WebServer"
+                    },
+                    "action": {
+                        "description": "The action executed by the Monitor on a service",
+                        "type": "string",
+                        "enum": [
+                            "Activate",
+                            "Deactivate",
+                            "StoppedRestarting"
+                        ],
+                        "example": "Deactivate"
+                    },
+                    "reason": {
+                        "description": "A message describing the reason the action was taken",
+                        "type": "string",
+                        "example": "EXCEEDED_MEMORY"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "action",
+                    "reason"
+                ]
+            }
+        }
+    }
+}
