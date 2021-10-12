@@ -764,7 +764,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 500);
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 100);
        } 
 
 	   void HdmiCecSink::wakeupFromStandby()
@@ -977,7 +977,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 500);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 100);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -2321,7 +2321,7 @@ namespace WPEFramework
 					_instance->m_pollThreadState = _instance->m_pollNextState;
 					_instance->m_pollNextState = POLL_THREAD_STATE_NONE;
 				}
-					
+				
 				switch (_instance->m_pollThreadState)  {
 
 				case POLL_THREAD_STATE_POLL :
@@ -2347,8 +2347,8 @@ namespace WPEFramework
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
-						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
-						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
+						_instance->m_sleepTime = 0;
+						_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 					}
 					else
 					{
@@ -2492,9 +2492,12 @@ namespace WPEFramework
 				break;
 				}
 
-				if ( _instance->m_sleepTime ) {
-					usleep(_instance->m_sleepTime*1000);
-				}
+				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
+				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
+					LOGINFO("Timeout m_pollThreadExit %d\n", _instance->m_pollThreadExit);
+				else
+					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
+
 			}
         }
 
@@ -2621,6 +2624,7 @@ namespace WPEFramework
             {
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadExit = true;
+		m_ThreadExitCV.notify_one();
 
 		try
 		{
