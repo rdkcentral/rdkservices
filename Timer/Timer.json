@@ -288,7 +288,7 @@
             }
         },
         "timerExpiryReminder": {
-            "summary": "Triggered before a timer actually expires. It triggered only when a valid remindBefore parameter is passed and when the timer is started using `startTimer`.",
+            "summary": "Triggered before a timer actually expires. This event triggers only when a valid parameter is passed using `startTimer`.",
             "params": {
                 "type" :"object",
                 "properties": {
