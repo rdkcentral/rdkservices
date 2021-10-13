@@ -48,10 +48,12 @@ using namespace std;
 
 #define METHOD_REG_APPLICATIONS "registerApplications"
 
-#define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
+#define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  1000  //1 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
+
+#define LOCATE_CAST_FIRST_RETRY_LIMIT  5
 
 /*
  * The maximum DIAL payload accepted per the DIAL 1.6.1 specification.
@@ -374,22 +376,22 @@ void XCast::onLocateCastTimer()
     if(status != 0)
     {
         locateCastObjectRetryCount++;
-        if(locateCastObjectRetryCount == 1)
+        if(locateCastObjectRetryCount <= LOCATE_CAST_FIRST_RETRY_LIMIT)
         {
-            LOGINFO("Retry after 5 sec...");
+            LOGINFO("Retry after 1 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
         }
-        if(locateCastObjectRetryCount == 2)
+        if(locateCastObjectRetryCount == (LOCATE_CAST_FIRST_RETRY_LIMIT+1))
         {
             LOGINFO("Retry after 15 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS);
         }
-        if(locateCastObjectRetryCount == 3)
+        if(locateCastObjectRetryCount == (LOCATE_CAST_FIRST_RETRY_LIMIT+2))
         {
             LOGINFO("Retry after 30 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS);
         }
-        if(locateCastObjectRetryCount == 4)
+        if(locateCastObjectRetryCount == (LOCATE_CAST_FIRST_RETRY_LIMIT+3))
         {
             LOGINFO("Retry after 60 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
