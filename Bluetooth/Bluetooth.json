@@ -8,7 +8,7 @@
     },
     "definitions": {
         "deviceID":{
-            "summary":"DeviceID of the Bluetooth Device.",
+            "summary":"ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes",
             "type":"string",
             "example":"61579454946360"
         },
@@ -228,12 +228,12 @@
             "example": "started"
         },
         "volume": {
-            "summary": "Volume value should be in between 0 and 255",
+            "summary": "Volume value is in between 0 and 255",
             "type": "string",
             "example":"50"
         },
         "mute": {
-            "summary":"Mute value of the device should be either 0 or 1",
+            "summary":"Mute value of the device is either 0 or 1",
             "type": "boolean",
             "example": "false"
         }
@@ -822,7 +822,7 @@
                 "type": "object",
                 "properties": {
                     "volumeInfo": {
-                        "summary": "A list of apps and their system resource information",
+                        "summary":"An array of objects where each object represents a device volume information",
                         "type": "array",
                         "items": {
                             "type":"object",
@@ -1184,7 +1184,7 @@
             }
         },
         "onStatusChanged": {
-            "summary": "Triggered whenever the Bluetooth functionality changes. Supported statuses are:  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices)  \n* `DISCOVERY_STARTED`- The Bluetooth device discovery will be triggered, after startScan method started.",
+            "summary": "Triggered when the Bluetooth functionality status changes. Supported statuses are:  \n* `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  \n* `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  \n* `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices)  \n* `DISCOVERY_STARTED`- The Bluetooth device discovery will be triggered, after startScan method started.",
             "params": {
                 "type":"object",
                 "properties": {
