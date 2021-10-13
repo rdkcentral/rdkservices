@@ -127,7 +127,7 @@ Also see: [onStatuschanged](#event.onStatuschanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.connectedProfile | string | Profile of the connected device. See [startscan](#method.startscan) for supported profiles |
 
@@ -228,7 +228,7 @@ Also see: [onStatusChanged](#event.onStatusChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 
 ### Result
@@ -324,7 +324,7 @@ Provides information on the currently playing song/audio from an external source
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 
 ### Result
 
@@ -397,7 +397,7 @@ This method takes no parameters.
 | result | object |  |
 | result.connectedDevices | array | An array of objects where each object represents a connected device |
 | result.connectedDevices[#] | object |  |
-| result.connectedDevices[#].deviceID | string | DeviceID of the Bluetooth Device |
+| result.connectedDevices[#].deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.connectedDevices[#].name | string | Name of the Bluetooth Device |
 | result.connectedDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.connectedDevices[#].activeState | string | for devices that support low power mode this parameter indicates if the device is in `STANDBY` mode (`0`), `LOW_POWER` mode (`1`), or `ACTIVE` mode (`2`) |
@@ -449,7 +449,7 @@ Returns information for the given device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 
 ### Result
 
@@ -457,7 +457,7 @@ Returns information for the given device ID.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.deviceInfo | object | An object that contains information about the device |
-| result.deviceInfo.deviceID | string | DeviceID of the Bluetooth Device |
+| result.deviceInfo.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.deviceInfo.name | string | Name of the Bluetooth Device |
 | result.deviceInfo.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.deviceInfo.supportedProfile | string | Bluetooth profile supported by the device |
@@ -524,7 +524,7 @@ This method takes no parameters.
 | result | object |  |
 | result.discoveredDevices | array | An array of objects where each object represents a discovered device |
 | result.discoveredDevices[#] | object |  |
-| result.discoveredDevices[#].deviceID | string | DeviceID of the Bluetooth Device |
+| result.discoveredDevices[#].deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.discoveredDevices[#].name | string | Name of the Bluetooth Device |
 | result.discoveredDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.discoveredDevices[#].connected | boolean | Whether the device is connected |
@@ -630,7 +630,7 @@ This method takes no parameters.
 | result | object |  |
 | result.pairedDevices | array | An array of objects where each object represents a paired device |
 | result.pairedDevices[#] | object |  |
-| result.pairedDevices[#].deviceID | string | DeviceID of the Bluetooth Device |
+| result.pairedDevices[#].deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.pairedDevices[#].name | string | Name of the Bluetooth Device |
 | result.pairedDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.pairedDevices[#].connected | boolean | Whether the device is connected |
@@ -732,7 +732,7 @@ Also see: [onStatusChanged](#event.onStatusChanged), [onRequestFailed](#event.on
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 
 ### Result
 
@@ -782,7 +782,7 @@ Provides the ability to respond the client Bluetooth event. For example, this de
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.eventType | string | Name of a request-time event (for example, `onPairingRequest`, `onConnectionRequest`, `onPlaybackRequest`) |
 | params.responseValue | string | one of `ACCEPTED` or `REJECTED` |
 
@@ -836,7 +836,7 @@ Provides control over the connected source. Requests can have one of the followi
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.command | string | Command to send to the connected source |
 
 ### Result
@@ -888,7 +888,7 @@ Sets the primary or secondary audio-out to the given Bluetooth device.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.audioStreamName | string | The audio out to set. Either `PRIMARY` or `AUXILIARY` |
 
 ### Result
@@ -1163,7 +1163,7 @@ Also see: [onStatusChanged](#event.onStatusChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 
 ### Result
 
@@ -1213,7 +1213,7 @@ Gets the volume information of the given Bluetooth device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceProfile | string | Profile of the Bluetooth device |
 
 ### Result
@@ -1221,10 +1221,10 @@ Gets the volume information of the given Bluetooth device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.volumeInfo | array | A list of apps and their system resource information |
+| result.volumeInfo | array | An array of objects where each object represents a device volume information |
 | result.volumeInfo[#] | object |  |
-| result.volumeInfo[#].volume | string | Volume value should be in between 0 and 255 |
-| result.volumeInfo[#].mute | boolean | Mute value of the device should be either 0 or 1 |
+| result.volumeInfo[#].volume | string | Volume value is in between 0 and 255 |
+| result.volumeInfo[#].mute | boolean | Mute value of the device is either 0 or 1 |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1275,10 +1275,10 @@ Sets the volume of the connected Bluetooth device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceProfile | string | Profile of the Bluetooth device |
-| params.volume | string | Volume value should be in between 0 and 255 |
-| params.mute | boolean | Mute value of the device should be either 0 or 1 |
+| params.volume | string | Volume value is in between 0 and 255 |
+| params.mute | boolean | Mute value of the device is either 0 or 1 |
 
 ### Result
 
@@ -1382,7 +1382,7 @@ Bluetooth interface events:
 | [onPlaybackProgress](#event.onPlaybackProgress) | Triggered in one second intervals as long as the status of the playback is playing |
 | [onPlaybackRequest](#event.onPlaybackRequest) | Triggered when playback is requested by third party device that has already been paired to the set-top box |
 | [onRequestFailed](#event.onRequestFailed) | Triggered when the previous request to pair or connect failed |
-| [onStatusChanged](#event.onStatusChanged) | Triggered whenever the Bluetooth functionality changes |
+| [onStatusChanged](#event.onStatusChanged) | Triggered when the Bluetooth functionality status changes |
 | [onDeviceFound](#event.onDeviceFound) | Triggered when the new device got discovered |
 | [onDeviceLost](#event.onDeviceLost) | Triggered when any discovered device lost or out of range |
 
@@ -1397,7 +1397,7 @@ Triggered when a connection is requested by third party device that has already 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.supportedProfile | string | Bluetooth profile supported by the device |
@@ -1431,7 +1431,7 @@ Triggered during device discovery when a new device is discovered or a discovere
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.discoveryType | string | either `DISCOVERED` or `LOST` |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
@@ -1469,7 +1469,7 @@ Triggered when pairing is requested by a third party device that supports A2DP p
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.supportedProfile | string | Bluetooth profile supported by the device |
@@ -1508,7 +1508,7 @@ Triggered when playback is interrupted or changed. Note that there is no resume 
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.action | string | Current playback state. Either `started`, `paused`, `stopped` or `ended`. If the state is `ended`, then `position` and `Duration` are omitted |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.position | string | Current track's position in milliseconds |
 | params.Duration | string | Current track's duration in milliseconds |
 
@@ -1537,7 +1537,7 @@ Triggered whenever the user plays a new track or when the music player selects a
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.album | string | Name of the album |
 | params.genre | string | Genre of the album |
 | params.title | string | Title of the track |
@@ -1575,7 +1575,7 @@ Triggered in one second intervals as long as the status of the playback is playi
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.position | string | Current track's position in milliseconds |
 | params.Duration | string | Current track's duration in milliseconds |
 
@@ -1603,7 +1603,7 @@ Triggered when playback is requested by third party device that has already been
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.supportedProfile | string | Bluetooth profile supported by the device |
@@ -1638,7 +1638,7 @@ Triggered when the previous request to pair or connect failed. In absence of a f
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.newStatus | string | Bluetooth status on the device |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.rawDeviceType | string | Bluetooth device class as hex code |
@@ -1668,7 +1668,7 @@ Triggered when the previous request to pair or connect failed. In absence of a f
 <a name="event.onStatusChanged"></a>
 ## *onStatusChanged <sup>event</sup>*
 
-Triggered whenever the Bluetooth functionality changes. Supported statuses are:  
+Triggered when the Bluetooth functionality status changes. Supported statuses are:  
 * `PAIRING_CHANGE` - Pairing status changed. Applications get the device which got paired/unpaired as part of this message, but it's up to the application to obtain an updated list of paired devices by calling [getPairedDevices](#method.getpaireddevices).  
 * `CONNECTION_CHANGE` - one or more Bluetooth connections changed status. Applications get the device that got connected/disconnected as part of this message, but it's up to the application to obtain an updated list of connected devices by calling [getConnectedDevices](#method.getconnecteddevices).  
 * `DISCOVERY_COMPLETED` - Bluetooth device discovery is complete, at least one device is available. Applications should obtain an updated list of discovered devices by calling [getDiscoveredDevices](#method.getdiscovereddevices)  
@@ -1680,7 +1680,7 @@ Triggered whenever the Bluetooth functionality changes. Supported statuses are:
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.newStatus | string | Bluetooth status on the device |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.rawDeviceType | string | Bluetooth device class as hex code |
@@ -1717,7 +1717,7 @@ Triggered when the new device got discovered.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.rawDeviceType | string | Bluetooth device class as hex code |
@@ -1749,7 +1749,7 @@ Triggered when any discovered device lost or out of range.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceID | string | DeviceID of the Bluetooth Device |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | params.rawDeviceType | string | Bluetooth device class as hex code |
