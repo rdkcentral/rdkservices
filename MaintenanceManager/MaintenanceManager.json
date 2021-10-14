@@ -113,7 +113,13 @@
             "summary": "Starts maintenance activities",
             "result": {
                 "$ref": "#/definitions/result"
-            }          
+            }
+        },
+        "stopMaintenance":{
+            "summary": "Stops maintenance activities that are in progress",
+            "result": {
+                "$ref": "#/definitions/result"
+            } 
         }
     },
     "events": {
