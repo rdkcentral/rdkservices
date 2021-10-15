@@ -85,21 +85,21 @@ WifiManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cancelWPSPairing](#method.cancelWPSPairing) | Cancels WPS pairing |
+| [cancelWPSPairing](#method.cancelWPSPairing) | Cancels the in-progress WPS pairing operation |
 | [clearSSID](#method.clearSSID) | Clears the saved SSID |
 | [connect](#method.connect) | Attempts to connect to the specified SSID with the given passphrase |
-| [disconnect](#method.disconnect) | Disconnects from the SSID |
-| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information |
-| [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
+| [disconnect](#method.disconnect) | Disconnects from the connected SSID |
+| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected WiFi network |
+| [getCurrentState](#method.getCurrentState) | Returns the current WiFi States |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
-| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WPS |
-| [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
-| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
-| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
-| [setEnabled](#method.setEnabled) | Enables or disables the Wifi adapter for this device |
-| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Enables `signalThresholdChange` events to be triggered |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the WiFi security modes that the device supports |
+| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WiFi Protected Setup (WPS) |
+| [isPaired](#method.isPaired) | Determines whether the device is paired to a specified SSID or not |
+| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Checks whether `onWifiSignalThresholdChanged` event is enabled or not |
+| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode of the WiFi network for future sessions |
+| [setEnabled](#method.setEnabled) | Enables or disables the WiFi adapter for this device |
+| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Sets the `time interval` to check the WiFi signal strength in a given time interval |
 | [startScan](#method.startScan) | Scans for available SSIDs |
 | [stopScan](#method.stopScan) | Stops scanning for SSIDs |
 
@@ -107,7 +107,7 @@ WifiManager interface methods:
 <a name="method.cancelWPSPairing"></a>
 ## *cancelWPSPairing <sup>method</sup>*
 
-Cancels WPS pairing. A `0` value indicates that paring was canceled. A nonzero value indicates that paring was not canceled.
+Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress paring attempt and aborts the current scan. WPS pairing must be in-progress for the operation to get succeed.
 
 ### Parameters
 
@@ -118,7 +118,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -128,7 +128,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.cancelWPSPairing"
 }
 ```
@@ -138,9 +138,9 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "result": 0,
+        "result": "...",
         "success": true
     }
 }
@@ -149,7 +149,7 @@ This method takes no parameters.
 <a name="method.clearSSID"></a>
 ## *clearSSID <sup>method</sup>*
 
-Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Clears the saved SSID.
 
 ### Parameters
 
@@ -170,7 +170,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.clearSSID"
 }
 ```
@@ -180,7 +180,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "result": 0,
         "success": true
@@ -191,7 +191,7 @@ This method takes no parameters.
 <a name="method.connect"></a>
 ## *connect <sup>method</sup>*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. This method attempts to connect to the saved SSID and password, when called with no arguments.
 
 ### Parameters
 
@@ -216,7 +216,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.connect",
     "params": {
         "ssid": "123412341234",
@@ -231,7 +231,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -241,7 +241,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.disconnect"></a>
 ## *disconnect <sup>method</sup>*
 
-Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+Disconnects from the connected SSID.
 
 ### Parameters
 
@@ -252,7 +252,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -262,7 +262,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.disconnect"
 }
 ```
@@ -272,9 +272,9 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "result": 0,
+        "result": "...",
         "success": true
     }
 }
@@ -283,7 +283,7 @@ This method takes no parameters.
 <a name="method.getConnectedSSID"></a>
 ## *getConnectedSSID <sup>method</sup>*
 
-Returns the connected SSID information.
+Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected WiFi network.
 
 ### Parameters
 
@@ -310,7 +310,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.getConnectedSSID"
 }
 ```
@@ -320,7 +320,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ssid": "123412341234",
         "bssid": "ff:ff:ff:ff:ff:ff",
@@ -337,15 +337,17 @@ This method takes no parameters.
 <a name="method.getCurrentState"></a>
 ## *getCurrentState <sup>method</sup>*
 
-Returns the current Wifi state.  
-**Wifi States**  
-* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed  
-* `1`: DISABLED - The device is installed (or was just installed) and has not yet been enabled  
+Returns the current WiFi States. The possible WiFi states are as follows.
+ 
+### WiFi States
+  
+* `0`: UNINSTALLED - The device was installed and uninstalled; or it does not have a Wifi radio installed  
+* `1`: DISABLED - The device is installed but not yet enabled  
 * `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  
-* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  
+* `3`: PAIRING - The device is in process of pairing, but not yet connected to a network  
 * `4`: CONNECTING - The device is attempting to connect to a network  
 * `5`: CONNECTED - The device is successfully connected to a network  
-* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
+* `6`: FAILED - The device has encountered an unrecoverable error with the WiFi adapter.
 
 ### Parameters
 
@@ -366,7 +368,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.getCurrentState"
 }
 ```
@@ -376,7 +378,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "state": 2,
         "success": true
@@ -408,7 +410,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.getPairedSSID"
 }
 ```
@@ -418,7 +420,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ssid": "123412341234",
         "success": true
@@ -429,7 +431,7 @@ This method takes no parameters.
 <a name="method.getPairedSSIDInfo"></a>
 ## *getPairedSSIDInfo <sup>method</sup>*
 
-Returns the SSID and BSSID to which the device is currently paired.
+Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected WiFi network.
 
 ### Parameters
 
@@ -451,7 +453,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.getPairedSSIDInfo"
 }
 ```
@@ -461,7 +463,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ssid": "123412341234",
         "bssid": "ff:ff:ff:ff:ff:ff",
@@ -473,7 +475,7 @@ This method takes no parameters.
 <a name="method.getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes <sup>method</sup>*
 
-Returns the Wifi security modes that the device supports.
+Returns the WiFi security modes that the device supports.
 
 ### Parameters
 
@@ -509,7 +511,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.getSupportedSecurityModes"
 }
 ```
@@ -519,7 +521,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "security_modes": {
             "NET_WIFI_SECURITY_NONE": 0,
@@ -546,7 +548,7 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing <sup>method</sup>*
 
-Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.
+Initiates a connection using WiFi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after 60 seconds, then the WPS pairing will stop, and an error event triggers.
 
 ### Parameters
 
@@ -557,7 +559,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
+| result.result | string | Not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -567,7 +569,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.initiateWPSPairing"
 }
 ```
@@ -577,9 +579,9 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "result": 0,
+        "result": "...",
         "success": true
     }
 }
@@ -588,7 +590,7 @@ This method takes no parameters.
 <a name="method.isPaired"></a>
 ## *isPaired <sup>method</sup>*
 
-Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
+Determines whether the device is paired to a specified SSID or not.
 
 ### Parameters
 
@@ -609,7 +611,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.isPaired"
 }
 ```
@@ -619,7 +621,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "result": 0,
         "success": true
@@ -630,7 +632,7 @@ This method takes no parameters.
 <a name="method.isSignalThresholdChangeEnabled"></a>
 ## *isSignalThresholdChangeEnabled <sup>method</sup>*
 
-Returns whether threshold changes are enabled. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired ). A nonzero value indicates that the device is not paired.
+Checks whether `onWifiSignalThresholdChanged` event is enabled or not.
 
 ### Parameters
 
@@ -651,7 +653,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.isSignalThresholdChangeEnabled"
 }
 ```
@@ -661,7 +663,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "result": 0,
         "success": true
@@ -672,7 +674,7 @@ This method takes no parameters.
 <a name="method.saveSSID"></a>
 ## *saveSSID <sup>method</sup>*
 
-Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
+Saves the SSID, passphrase, and security mode of the WiFi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.
 
 ### Parameters
 
@@ -698,7 +700,7 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.saveSSID",
     "params": {
         "ssid": "123412341234",
@@ -713,7 +715,7 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "result": 0,
         "success": true
@@ -724,14 +726,14 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 <a name="method.setEnabled"></a>
 ## *setEnabled <sup>method</sup>*
 
-Enables or disables the Wifi adapter for this device.
+Enables or disables the WiFi adapter for this device.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enable | boolean | `true` to enable or `false` to disable |
+| params.enable | boolean | `true` to enable, or `false` to disable |
 
 ### Result
 
@@ -747,7 +749,7 @@ Enables or disables the Wifi adapter for this device.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.setEnabled",
     "params": {
         "enable": true
@@ -760,7 +762,7 @@ Enables or disables the Wifi adapter for this device.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -770,15 +772,15 @@ Enables or disables the Wifi adapter for this device.
 <a name="method.setSignalThresholdChangeEnabled"></a>
 ## *setSignalThresholdChangeEnabled <sup>method</sup>*
 
-Enables `signalThresholdChange` events to be triggered.
+Sets the `time interval` to check the WiFi signal strength in a given time interval.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enabled | boolean | `true` to enable events or `false` to disable events |
-| params.interval | integer | A time interval, in milliseconds, after which the current signal strength is compared to the previous value to determine if the strength crossed a threshold value |
+| params.enabled | boolean | `true` to enable the `onWifiSignalThresholdChanged` event or `false` to disable the `onWifiSignalThresholdChanged` event |
+| params.interval | integer | It is the time interval value in milliseconds, to determine if the network strength crossed a threshold value for the given time interval |
 
 ### Result
 
@@ -794,7 +796,7 @@ Enables `signalThresholdChange` events to be triggered.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.setSignalThresholdChangeEnabled",
     "params": {
         "enabled": true,
@@ -808,7 +810,7 @@ Enables `signalThresholdChange` events to be triggered.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -820,15 +822,13 @@ Enables `signalThresholdChange` events to be triggered.
 
 Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
 
-Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
-
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.incremental | boolean | If set to `true`, SSIDs are returned in multiple events as the SSIDs are discovered. This may allow the UI to populate faster on screen rather than waiting on the full set of results in one shot |
-| params.ssid | string | The SSIDs to scan. An empty or  `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression |
+| params.ssid | string | The SSIDs to scan. An empty or `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression |
 | params.frequency | string | The frequency to scan. An empty or `null` value scans all frequencies. If a frequency is specified (2.4 or 5.0), then the results are only returned for matching frequencies |
 
 ### Result
@@ -837,6 +837,7 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.success | boolean | Whether the request succeeded |
+| result.error | string | Error string of scan failure |
 
 ### Example
 
@@ -845,12 +846,12 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.startScan",
     "params": {
         "incremental": false,
-        "ssid": "",
-        "frequency": ""
+        "ssid": "...",
+        "frequency": "..."
     }
 }
 ```
@@ -860,9 +861,10 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "success": true
+        "success": true,
+        "error": "..."
     }
 }
 ```
@@ -870,7 +872,7 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 <a name="method.stopScan"></a>
 ## *stopScan <sup>method</sup>*
 
-Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+Stops scanning for SSIDs. From the `startScan` method up to the point where this method is called, all discovered SSIDs are still returned.
 
 ### Parameters
 
@@ -890,7 +892,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Wifi.1.stopScan"
 }
 ```
@@ -900,7 +902,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -918,17 +920,28 @@ WifiManager interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when the Wifi state changes |
-| [onError](#event.onError) | Triggered when a recoverable, unexpected Wifi error occurs |
+| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when the WiFi state changes |
+| [onError](#event.onError) | Triggered when a recoverable unexpected WiFi error occurs |
 | [onSSIDsChanged](#event.onSSIDsChanged) | Triggered when a new SSID becomes available or an existing SSID is no longer available |
-| [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged) | Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength |
-| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the `scan` method is called and SSIDs are obtained |
+| [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged) | Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in WiFi strength |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the scan method is called and current SSIDs are obtained |
 
 
 <a name="event.onWIFIStateChanged"></a>
 ## *onWIFIStateChanged <sup>event</sup>*
 
-Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.
+Triggered when the WiFi state changes. See `getCurrentState` for a list of valid WiFi states. This event is triggered during below methods call sequence.
+ 
+### Methods
+ 
+| Method | Description | 
+| :-------- | :-------- | 
+| `connect` | Connects the device with given SSID successfully and triggers this event with wifi state CONNECT |
+| `disconnect` | Disconnects the device successfully and triggers this event with wifi state DISCONNECT |
+| `clearSSID` | Clears the SSID successfully and triggers this event  with wifi state DISCONNECT |
+| `initiateWPSPairing` | Pair the device successfully and triggers this event with wifi state CONNECT |
+ 
+Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing).
 
 ### Parameters
 
@@ -954,15 +967,29 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
 <a name="event.onError"></a>
 ## *onError <sup>event</sup>*
 
-Triggered when a recoverable, unexpected Wifi error occurs.  
-**Error Codes**  
+Triggered when a recoverable unexpected WiFi error occurs.
+ 
+### Error Codes
+ 
 * `0`: SSID_CHANGED - The SSID of the network changed  
 * `1`: CONNECTION_LOST - The connection to the network was lost  
 * `2`: CONNECTION_FAILED - The connection failed for an unknown reason  
 * `3`: CONNECTION_INTERRUPTED - The connection was interrupted  
 * `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  
 * `5`: NO_SSID - The SSID does not exist  
-* `6`: UNKNOWN - Any other error.
+* `6`: UNKNOWN - Any other error
+ 
+This event is triggered during below methods call sequence.
+ 
+### Methods
+ 
+| Method | Description | 
+| :-------- | :-------- |
+| `connect` | Failed to connect with SSID and triggers this event with appropriate error code |
+| `initiateWPSPairing` | Failed to pair with WPS device and  triggers this event with appropriate error code |
+| `cancelWPSPairing` | Failed to cancel WPS and  triggers this event with appropriate error code |
+ 
+Also see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
 ### Parameters
 
@@ -987,6 +1014,10 @@ Triggered when a recoverable, unexpected Wifi error occurs.
 ## *onSSIDsChanged <sup>event</sup>*
 
 Triggered when a new SSID becomes available or an existing SSID is no longer available.
+ 
+### Methods
+ 
+No Methods.
 
 ### Parameters
 
@@ -1004,7 +1035,15 @@ This event carries no parameters.
 <a name="event.onWifiSignalThresholdChanged"></a>
 ## *onWifiSignalThresholdChanged <sup>event</sup>*
 
-Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.
+Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in WiFi strength.
+ 
+### Methods
+ 
+| Method | Description | 
+| :-------- | :-------- |
+| `setSignalThresholdChangeEnabled` | Enables the signal threshold change monitoring and triggers this event |
+ 
+Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled).
 
 ### Parameters
 
@@ -1030,7 +1069,15 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
 <a name="event.onAvailableSSIDs"></a>
 ## *onAvailableSSIDs <sup>event</sup>*
 
-Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.
+Triggered when the scan method is called and current SSIDs are obtained.
+ 
+### Methods
+ 
+| Method | Description | 
+| :-------- | :-------- |
+| `startScan` | Starts the scans successfully and triggers this event if SSIDs are available |
+ 
+Also see: [startScan](#method.startScan).
 
 ### Parameters
 
@@ -1043,7 +1090,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
 | params.ssids[#].security | integer | The security mode. See `getSupportedSecurityModes` |
 | params.ssids[#].signalStrength | string | The RSSI value in dBm |
 | params.ssids[#].frequency | string | The supported frequency for this SSID in GHz |
-| params.moreData | boolean | When `true`, scanning is not complete and more SSIDs are returned as separate events |
+| params.moreData | boolean | If the scan method is called with the incremental property set to `true`, then `moreData` is `false` when the last set of results are received. If the incremental property is set to `false`, then `moreData` is `false` after a single event |
 
 ### Example
 
