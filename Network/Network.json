@@ -159,7 +159,7 @@
             }
         },
         "getInterfaces":{
-            "summary": "Returns a list of interfaces supported by this device including their state.",
+            "summary": "Returns a list of interfaces supported by this device including their state",
             "result": {
                 "type": "object",
                 "properties": {
@@ -207,7 +207,7 @@
             }
         },
         "getIPSettings":{
-            "summary": "Gets the IP setting for the given interface. If interface is NULL or invalid name then use current active interface.",
+            "summary": "Gets the IP setting for the given interface",
             "params": {
                 "type":"object",
                 "properties": {
@@ -267,7 +267,7 @@
             }
         },
         "getNamedEndpoints":{
-            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.",
+            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`",
             "result": {
                 "type": "object",
                 "properties": {
@@ -290,7 +290,7 @@
             }
         },
         "getQuirks":{
-            "summary": "Get standard string `RDK-20093`.",
+            "summary": "Get standard string `RDK-20093`",
             "result": {
                 "type": "object",
                 "properties": {
@@ -308,7 +308,7 @@
             }
         },
         "getStbIp":{
-            "summary": "Gets the IP address of the default interface. Empty IP address, if the default interface IP address can't be retrieved.",
+            "summary": "Gets the IP address of the default interface",
             "result": {
                 "type": "object",
                 "properties": {
@@ -328,7 +328,7 @@
             }
         },
         "getSTBIPFamily":{
-            "summary": "Gets the IP address of the default interface by address family.",
+            "summary": "Gets the IP address of the default interface by address family",
             "params": {
                 "type":"object",
                 "properties": {
@@ -381,7 +381,7 @@
             }
         },
         "isInterfaceEnabled":{
-            "summary": "Whether the specified interface is enabled.",
+            "summary": "Whether the specified interface is enabled",
             "params": {
                 "type":"object",
                 "properties": {
@@ -412,7 +412,7 @@
             }
         },
         "ping":{
-            "summary": "Pings the specified endpoint with the specified number of packets.",
+            "summary": "Pings the specified endpoint with the specified number of packets",
             "params": {
                 "type":"object",
                 "properties": {
@@ -556,7 +556,7 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
+            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5",
             "params": {
                 "type":"object",
                 "properties": {
@@ -578,7 +578,7 @@
             }
         },
         "setDefaultInterface":{
-            "summary": "Sets the default interface. The call fails if the interface is not enabled.",
+            "summary": "Sets the default interface. The call fails if the interface is not enabled",
             "params": {
                 "type":"object",
                 "properties": {
@@ -601,7 +601,7 @@
             }
         },
         "setInterfaceEnabled":{
-            "summary": "Enables the specified interface.",
+            "summary": "Enables the specified interface",
             "params": {
                 "type": "object",
                 "properties": {
@@ -630,7 +630,7 @@
             }
         },
         "setIPSettings":{
-            "summary": "Sets the IP settings.",
+            "summary": "Sets the IP settings",
             "params": {
                 "type":"object",
                 "properties": {
@@ -689,7 +689,7 @@
             }
         },
         "trace":{
-            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
+            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`",
             "params": {
                 "type":"object",
                 "properties": {
@@ -730,7 +730,7 @@
             }
         },
         "traceNamedEndpoint":{
-            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`.",
+            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`",
             "params": {
                 "type":"object",
                 "properties": {
@@ -773,7 +773,7 @@
     },
     "events": {
         "onConnectionStatusChanged":{
-            "summary": "Triggered when a connection is made or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
+            "summary": "Triggered when a connection is made or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface successfully and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -794,7 +794,7 @@
             }
         },
         "onDefaultInterfaceChanged":{
-            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface successfully and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -816,7 +816,7 @@
             }
         },
         "onInterfaceStatusChanged":{
-            "summary": "Triggered when an interface becomes enabled or disabled. This is one of the events triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | When the default interface changed successfully and triggers this event |\n| `setInterfaceEnabled` | Enables the interfaces and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
+            "summary": "Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Default interface changed successfully and triggers this event |\n| `setInterfaceEnabled` | Enable/Disable the interfaces successfully and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -836,7 +836,7 @@
             }
         },
         "onIPAddressStatusChanged":{
-            "summary": "Triggered when an IP Address is assigned or lost. This is one of the events triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface and triggers this event |\n| `setIPSettings` | IPsettings changed and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings)",
+            "summary": "Triggered when an IP Address is assigned or lost. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface successfully and triggers this event |\n| `setIPSettings` | IPsettings changed successfully and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings)",
             "params": {
                 "type": "object",
                 "properties": {

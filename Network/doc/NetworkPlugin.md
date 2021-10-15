@@ -203,7 +203,7 @@ This method takes no parameters.
 <a name="method.getIPSettings"></a>
 ## *getIPSettings <sup>method</sup>*
 
-Gets the IP setting for the given interface. If interface is NULL or invalid name then use current active interface.
+Gets the IP setting for the given interface.
 
 ### Parameters
 
@@ -354,7 +354,7 @@ This method takes no parameters.
 <a name="method.getStbIp"></a>
 ## *getStbIp <sup>method</sup>*
 
-Gets the IP address of the default interface. Empty IP address, if the default interface IP address can't be retrieved.
+Gets the IP address of the default interface.
 
 ### Parameters
 
@@ -1014,7 +1014,7 @@ Triggered when a connection is made or lost.
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface |
+| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1048,7 +1048,7 @@ Triggered when the default interface changes, regardless if it's from a system o
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface and triggers this event |
+| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1076,14 +1076,14 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
 <a name="event.onInterfaceStatusChanged"></a>
 ## *onInterfaceStatusChanged <sup>event</sup>*
 
-Triggered when an interface becomes enabled or disabled. This is one of the events triggered during below methods call sequence.
+Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.
  
 ### Methods
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | When the default interface changed successfully and triggers this event |
-| `setInterfaceEnabled` | Enables the interfaces and triggers this event |
+| `setDefaultInterface` | Default interface changed successfully and triggers this event |
+| `setInterfaceEnabled` | Enable/Disable the interfaces successfully and triggers this event |
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 
@@ -1111,14 +1111,14 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabl
 <a name="event.onIPAddressStatusChanged"></a>
 ## *onIPAddressStatusChanged <sup>event</sup>*
 
-Triggered when an IP Address is assigned or lost. This is one of the events triggered during below methods call sequence.
+Triggered when an IP Address is assigned or lost. This event is triggered during below methods call sequence.
  
 ### Methods
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface and triggers this event |
-| `setIPSettings` | IPsettings changed and triggers this event |
+| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
+| `setIPSettings` | IPsettings changed successfully and triggers this event |
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
 
