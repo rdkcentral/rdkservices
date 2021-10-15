@@ -159,7 +159,7 @@
             }
         },
         "getConnectedSSID":{
-            "summary": "Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected WiFi network",
+            "summary": "Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected Wifi network",
             "result": {
                 "type": "object",
                 "properties": {
@@ -207,7 +207,7 @@
             }
         },
         "getCurrentState": {
-            "summary": "Returns the current WiFi States. The possible WiFi states are as follows.\n \n### WiFi States\n  \n* `0`: UNINSTALLED - The device was installed and uninstalled; or it does not have a Wifi radio installed  \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the WiFi adapter",
+            "summary": "Returns the current Wifi States. The possible Wifi states are as follows.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was installed and uninstalled; or it does not have a Wifi radio installed  \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter",
             "result": {
                 "type": "object",
                 "properties": {
@@ -244,7 +244,7 @@
             }
         },
         "getPairedSSIDInfo":{
-            "summary": "Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected WiFi network.",
+            "summary": "Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected Wifi network.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -266,7 +266,7 @@
             }
         },
         "getSupportedSecurityModes":{
-            "summary": "Returns the WiFi security modes that the device supports",
+            "summary": "Returns the Wifi security modes that the device supports",
             "result": {
                 "type": "object",
                 "properties": {
@@ -347,7 +347,7 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "Initiates a connection using WiFi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after 60 seconds, then the WPS pairing will stop, and an error event triggers.",
+            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after 60 seconds, then the WPS pairing will stop, and an error event triggers.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -401,7 +401,7 @@
             }
         },
         "saveSSID":{
-            "summary": "Saves the SSID, passphrase, and security mode of the WiFi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.",
+            "summary": "Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -438,12 +438,12 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables the WiFi adapter for this device",
+            "summary": "Enables or disables the Wifi adapter for this device",
             "params": {
                 "type": "object",
                 "properties": {
                     "enable": {
-                        "summary": "`true` to enable, or `false` to disable",
+                        "summary": "`true` to enable or `false` to disable",
                         "type": "boolean",
                         "example": true
                     }
@@ -457,7 +457,7 @@
             }
         },
         "setSignalThresholdChangeEnabled":{
-            "summary": "Sets the `time interval` to check the WiFi signal strength in a given time interval",
+            "summary": "Sets the `time interval` to check the Wifi signal strength in a given time interval",
             "params": {
                 "type": "object",
                 "properties": {
@@ -492,7 +492,7 @@
                         "example": false
                     },
                     "ssid": {
-                        "summary": "The SSIDs to scan. An empty or `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression.",
+                        "summary": "The SSIDs to scan. An empty or  `null` value scans for all SSIDs. If an SSID is specified, then the results are only returned for matching SSID names. SSIDs may be entered as a string literal or regular expression.",
                         "type": "string",
                         "example": ""
                     },
@@ -533,7 +533,7 @@
     },
     "events": {
         "onWIFIStateChanged":{
-            "summary": "Triggered when the WiFi state changes. See `getCurrentState` for a list of valid WiFi states. This event is triggered during below methods call sequence.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- | \n| `connect` | Connects the device with given SSID successfully and triggers this event with wifi state CONNECT |\n| `disconnect` | Disconnects the device successfully and triggers this event with wifi state DISCONNECT |\n| `clearSSID` | Clears the SSID successfully and triggers this event  with wifi state DISCONNECT |\n| `initiateWPSPairing` | Pair the device successfully and triggers this event with wifi state CONNECT |\n \nAlso see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing)",
+            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states. This event is triggered during below methods call sequence.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- | \n| `connect` | Connects the device with given SSID successfully and triggers this event with wifi state CONNECT |\n| `disconnect` | Disconnects the device successfully and triggers this event with wifi state DISCONNECT |\n| `clearSSID` | Clears the SSID successfully and triggers this event  with wifi state DISCONNECT |\n| `initiateWPSPairing` | Pair the device successfully and triggers this event with wifi state CONNECT |\n \nAlso see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -553,7 +553,7 @@
             }
         },
         "onError":{
-            "summary": "Triggered when a recoverable unexpected WiFi error occurs.\n \n### Error Codes\n \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \nThis event is triggered during below methods call sequence.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Failed to connect with SSID and triggers this event with appropriate error code |\n| `initiateWPSPairing` | Failed to pair with WPS device and  triggers this event with appropriate error code |\n| `cancelWPSPairing` | Failed to cancel WPS and  triggers this event with appropriate error code |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \nThis event is triggered during below methods call sequence.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Failed to connect with SSID and triggers this event with appropriate error code |\n| `initiateWPSPairing` | Failed to pair with WPS device and  triggers this event with appropriate error code |\n| `cancelWPSPairing` | Failed to cancel WPS and  triggers this event with appropriate error code |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -572,7 +572,7 @@
             "summary": "Triggered when a new SSID becomes available or an existing SSID is no longer available.\n \n### Methods\n \nNo Methods."
         },
         "onWifiSignalThresholdChanged":{
-            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in WiFi strength.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `setSignalThresholdChangeEnabled` | Enables the signal threshold change monitoring and triggers this event |\n \nAlso see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled)",
+            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `setSignalThresholdChangeEnabled` | Enables the signal threshold change monitoring and triggers this event |\n \nAlso see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled)",
             "params": {
                 "type" :"object",
                 "properties": {
