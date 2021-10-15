@@ -89,17 +89,17 @@ WifiManager interface methods:
 | [clearSSID](#method.clearSSID) | Clears the saved SSID |
 | [connect](#method.connect) | Attempts to connect to the specified SSID with the given passphrase |
 | [disconnect](#method.disconnect) | Disconnects from the connected SSID |
-| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected Wifi network |
+| [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information |
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi States |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
 | [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using Wifi Protected Setup (WPS) |
-| [isPaired](#method.isPaired) | Determines whether the device is paired to a specified SSID or not |
+| [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Checks whether `onWifiSignalThresholdChanged` event is enabled or not |
 | [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode of the Wifi network for future sessions |
 | [setEnabled](#method.setEnabled) | Enables or disables the Wifi adapter for this device |
-| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Sets the `time interval` to check the Wifi signal strength in a given time interval |
+| [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Enables `signalThresholdChange` events to be triggered |
 | [startScan](#method.startScan) | Scans for available SSIDs |
 | [stopScan](#method.stopScan) | Stops scanning for SSIDs |
 
@@ -283,7 +283,7 @@ This method takes no parameters.
 <a name="method.getConnectedSSID"></a>
 ## *getConnectedSSID <sup>method</sup>*
 
-Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected Wifi network.
+Returns the connected SSID information.
 
 ### Parameters
 
@@ -429,7 +429,7 @@ This method takes no parameters.
 <a name="method.getPairedSSIDInfo"></a>
 ## *getPairedSSIDInfo <sup>method</sup>*
 
-Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected Wifi network.
+Returns the SSID and BSSID to which the device is currently paired.
 
 ### Parameters
 
@@ -588,7 +588,7 @@ This method takes no parameters.
 <a name="method.isPaired"></a>
 ## *isPaired <sup>method</sup>*
 
-Determines whether the device is paired to a specified SSID or not.
+Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
 
 ### Parameters
 
@@ -672,7 +672,7 @@ This method takes no parameters.
 <a name="method.saveSSID"></a>
 ## *saveSSID <sup>method</sup>*
 
-Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.
+Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
 
 ### Parameters
 
@@ -770,15 +770,15 @@ Enables or disables the Wifi adapter for this device.
 <a name="method.setSignalThresholdChangeEnabled"></a>
 ## *setSignalThresholdChangeEnabled <sup>method</sup>*
 
-Sets the `time interval` to check the Wifi signal strength in a given time interval.
+Enables `signalThresholdChange` events to be triggered.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enabled | boolean | `true` to enable the `onWifiSignalThresholdChanged` event or `false` to disable the `onWifiSignalThresholdChanged` event |
-| params.interval | integer | It is the time interval value in milliseconds, to determine if the network strength crossed a threshold value for the given time interval |
+| params.enabled | boolean | `true` to enable events or `false` to disable events |
+| params.interval | integer | A time interval, in milliseconds, after which the current signal strength is compared to the previous value to determine if the strength crossed a threshold value |
 
 ### Result
 
@@ -922,7 +922,7 @@ WifiManager interface events:
 | [onError](#event.onError) | Triggered when a recoverable unexpected Wifi error occurs |
 | [onSSIDsChanged](#event.onSSIDsChanged) | Triggered when a new SSID becomes available or an existing SSID is no longer available |
 | [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged) | Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength |
-| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the scan method is called and current SSIDs are obtained |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when the `scan` method is called and SSIDs are obtained |
 
 
 <a name="event.onWIFIStateChanged"></a>
@@ -1065,7 +1065,7 @@ Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnab
 <a name="event.onAvailableSSIDs"></a>
 ## *onAvailableSSIDs <sup>event</sup>*
 
-Triggered when the scan method is called and current SSIDs are obtained.
+Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.
  
 ### Methods
  
@@ -1086,7 +1086,7 @@ Also see: [startScan](#method.startScan).
 | params.ssids[#].security | integer | The security mode. See `getSupportedSecurityModes` |
 | params.ssids[#].signalStrength | string | The RSSI value in dBm |
 | params.ssids[#].frequency | string | The supported frequency for this SSID in GHz |
-| params.moreData | boolean | If the scan method is called with the incremental property set to `true`, then `moreData` is `false` when the last set of results are received. If the incremental property is set to `false`, then `moreData` is `false` after a single event |
+| params.moreData | boolean | When `true`, scanning is not complete and more SSIDs are returned as separate events |
 
 ### Example
 

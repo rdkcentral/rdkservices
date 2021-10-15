@@ -159,7 +159,7 @@
             }
         },
         "getConnectedSSID":{
-            "summary": "Returns the connected SSID information such as SSID, BSSID, rate, noise, security, signal strength and frequency of the connected Wifi network",
+            "summary": "Returns the connected SSID information",
             "result": {
                 "type": "object",
                 "properties": {
@@ -244,7 +244,7 @@
             }
         },
         "getPairedSSIDInfo":{
-            "summary": "Returns the SSID and BSSID to which the device is currently paired. The BSSID is the MAC address of a connected Wifi network.",
+            "summary": "Returns the SSID and BSSID to which the device is currently paired",
             "result": {
                 "type": "object",
                 "properties": {
@@ -365,7 +365,7 @@
             }
         },
         "isPaired":{
-            "summary": "Determines whether the device is paired to a specified SSID or not",
+            "summary": "Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -401,7 +401,7 @@
             }
         },
         "saveSSID":{
-            "summary": "Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values.",
+            "summary": "Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -457,17 +457,17 @@
             }
         },
         "setSignalThresholdChangeEnabled":{
-            "summary": "Sets the `time interval` to check the Wifi signal strength in a given time interval",
+            "summary": "Enables `signalThresholdChange` events to be triggered",
             "params": {
                 "type": "object",
                 "properties": {
                     "enabled": {
-                        "summary": "`true` to enable the `onWifiSignalThresholdChanged` event or `false` to disable the `onWifiSignalThresholdChanged` event",
+                        "summary": "`true` to enable events or `false` to disable events",
                         "type": "boolean",
                         "example": true
                     },
                     "interval": {
-                        "summary": "It is the time interval value in milliseconds, to determine if the network strength crossed a threshold value for the given time interval",
+                        "summary": "A time interval, in milliseconds, after which the current signal strength is compared to the previous value to determine if the strength crossed a threshold value",
                         "type": "integer",
                         "example": 2000
                     }
@@ -598,7 +598,7 @@
             }
         },
         "onAvailableSSIDs":{
-            "summary": "Triggered when the scan method is called and current SSIDs are obtained.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `startScan` | Starts the scans successfully and triggers this event if SSIDs are available |\n \nAlso see: [startScan](#method.startScan)",
+            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `startScan` | Starts the scans successfully and triggers this event if SSIDs are available |\n \nAlso see: [startScan](#method.startScan)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -630,7 +630,7 @@
                         }
                     },
                     "moreData": {
-                        "summary": "If the scan method is called with the incremental property set to `true`, then `moreData` is `false` when the last set of results are received. If the incremental property is set to `false`, then `moreData` is `false` after a single event",
+                        "summary": "When `true`, scanning is not complete and more SSIDs are returned as separate events",
                         "type": "boolean",
                         "example": true
                     }
