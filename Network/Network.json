@@ -578,7 +578,7 @@
             }
         },
         "setDefaultInterface":{
-            "summary": "Sets the default interface. The call fails if the interface is not enabled",
+            "summary": "Sets the default interface. The call fails if the interface is not enabled.",
             "params": {
                 "type":"object",
                 "properties": {
