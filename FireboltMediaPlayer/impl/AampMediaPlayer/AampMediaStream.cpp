@@ -725,8 +725,6 @@ namespace WPEFramework {
 	        _notificationRelease.Lock();
 	        _notification->Release();
 		_notificationRelease.Unlock();
-		
-		notification->Release();
                 _notification = nullptr;
             }
             _adminLock.Unlock();
