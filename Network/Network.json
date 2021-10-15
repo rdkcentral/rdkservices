@@ -127,6 +127,16 @@
             "summary": "Whether the request succeeded",
             "type": "boolean",
             "example": "true"
+        },
+        "guid": {
+            "summary": "The globally unique identifier",
+            "type": "string",
+            "example": ""
+        },
+        "quirks":{
+            "summary": "Update `RDK-20093` string",
+            "type": "string",
+            "example": "RDK-20093"
         }
     },
     "methods": {
@@ -149,7 +159,7 @@
             }
         },
         "getInterfaces":{
-            "summary": "Returns a list of interfaces supported by this device including their state",
+            "summary": "Returns a list of interfaces supported by this device including their state.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -197,7 +207,7 @@
             }
         },
         "getIPSettings":{
-            "summary": "Gets the IP setting for the given interface",
+            "summary": "Gets the IP setting for the given interface. If interface is NULL or invalid name then use current active interface.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -279,8 +289,26 @@
                 ]
             }
         },
+        "getQuirks":{
+            "summary": "Get standard string `RDK-20093`.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "quirks": {
+                        "$ref": "#/definitions/quirks"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "quirks",
+                    "success"
+                ]
+            }
+        },
         "getStbIp":{
-            "summary": "Gets the IP address of the default interface",
+            "summary": "Gets the IP address of the default interface. Empty IP address, if the default interface IP address can't be retrieved.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -300,7 +328,7 @@
             }
         },
         "getSTBIPFamily":{
-            "summary": "Gets the IP address of the default interface by address family",
+            "summary": "Gets the IP address of the default interface by address family.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -353,7 +381,7 @@
             }
         },
         "isInterfaceEnabled":{
-            "summary": "Whether the specified interface is enabled",
+            "summary": "Whether the specified interface is enabled.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -384,7 +412,7 @@
             }
         },
         "ping":{
-            "summary": "Pings the specified endpoint with the specified number of packets",
+            "summary": "Pings the specified endpoint with the specified number of packets.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -393,6 +421,9 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -432,6 +463,9 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -444,7 +478,8 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error" 
+                    "error",
+                    "guid"
                 ]
             }
         },
@@ -458,6 +493,9 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -497,6 +535,9 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -509,12 +550,13 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error"
+                    "error",
+                    "guid"
                 ]
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5",
+            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -559,7 +601,7 @@
             }
         },
         "setInterfaceEnabled":{
-            "summary": "Enables the specified interface",
+            "summary": "Enables the specified interface.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -588,7 +630,7 @@
             }
         },
         "setIPSettings":{
-            "summary": "Sets the IP settings",
+            "summary": "Sets the IP settings.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -647,7 +689,7 @@
             }
         },
         "trace":{
-            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`",
+            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -688,7 +730,7 @@
             }
         },
         "traceNamedEndpoint":{
-            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`",
+            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -731,7 +773,7 @@
     },
     "events": {
         "onConnectionStatusChanged":{
-            "summary": "Triggered when a connection is made or lost",
+            "summary": "Triggered when a connection is made or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -752,7 +794,7 @@
             }
         },
         "onDefaultInterfaceChanged":{
-            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through this API",
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -774,7 +816,7 @@
             }
         },
         "onInterfaceStatusChanged":{
-            "summary": "Triggered when an interface becomes enabled or disabled",
+            "summary": "Triggered when an interface becomes enabled or disabled. This is one of the events triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | When the default interface changed successfully and triggers this event |\n| `setInterfaceEnabled` | Enables the interfaces and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -794,7 +836,7 @@
             }
         },
         "onIPAddressStatusChanged":{
-            "summary": "Triggered when an IP Address is assigned or lost",
+            "summary": "Triggered when an IP Address is assigned or lost. This is one of the events triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` | Sets the default interface and triggers this event |\n| `setIPSettings` | IPsettings changed and triggers this event |\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -826,6 +868,5 @@
                 ]
             }
         }
-
     }
 }
