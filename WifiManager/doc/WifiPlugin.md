@@ -88,7 +88,7 @@ WifiManager interface methods:
 | [cancelWPSPairing](#method.cancelWPSPairing) | Cancels the in-progress WPS pairing operation |
 | [clearSSID](#method.clearSSID) | Clears the saved SSID |
 | [connect](#method.connect) | Attempts to connect to the specified SSID with the given passphrase |
-| [disconnect](#method.disconnect) | Disconnects from the connected SSID |
+| [disconnect](#method.disconnect) | Disconnects from the SSID |
 | [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information |
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi States |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
@@ -149,7 +149,7 @@ This method takes no parameters.
 <a name="method.clearSSID"></a>
 ## *clearSSID <sup>method</sup>*
 
-Clears the saved SSID. A 0 value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
 
 ### Parameters
 
@@ -191,7 +191,7 @@ This method takes no parameters.
 <a name="method.connect"></a>
 ## *connect <sup>method</sup>*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. This method attempts to connect to the saved SSID and password, when called with no arguments. See `saveSSID`.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
 
 ### Parameters
 
@@ -241,7 +241,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.disconnect"></a>
 ## *disconnect <sup>method</sup>*
 
-Disconnects from the connected SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
 
 ### Parameters
 
