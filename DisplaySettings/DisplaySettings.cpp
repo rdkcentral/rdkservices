@@ -1330,7 +1330,7 @@ namespace WPEFramework {
                             modeString.append(mode.toString());
                         }
                     }
-                    if((aPort.getType().getId() == device::AudioOutputPortType::kHDMI)){
+                    else if((aPort.getType().getId() == device::AudioOutputPortType::kHDMI)){
                         mode = aPort.getStereoMode();
                         if (aPort.getStereoAuto() || mode == device::AudioStereoMode::kSurround)
                         {
