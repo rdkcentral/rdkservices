@@ -31,17 +31,6 @@ namespace WPEFramework {
          */
         FireboltMediaPlayer::MediaStreamProxy::~MediaStreamProxy()
         {
-            while(_implementation) {
-                auto result = _implementation->Release();
-
-                // If the release wasn't successful then we should stop calling it
-                if (result != Core::ERROR_NONE) {
-                    // Expecting to get destruction succeeded eventually but might encounter an error, e.g out-of-process has been killed
-                    if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
-                        LOGERR("_implementation->Release() unexpectedly returned %d", result);
-                    _implementation = nullptr;
-                }
-            }
         }
 
         /**
@@ -52,16 +41,13 @@ namespace WPEFramework {
          */
         uint32_t FireboltMediaPlayer::MediaStreamProxy::Release()
         {
-            auto result = _implementation->Release();
-
-            // If the release wasn't successful then this instance should be destroyed
-            if (result != Core::ERROR_NONE) {
-                // Expecting to get destruction succeeded eventually but might encounter an error, e.g out-of-process has been killed
-                if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
-                    LOGERR("_implementation->Release() unexpectedly returned %d", result);
-                _implementation = nullptr;
-                delete this;
-            }
+            auto result = _implementation->Unregister(&_mediaPlayerSink);
+            if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
+                LOGERR("Unregister failed: %d", result);
+            result = _implementation->Release();
+            if (result != Core::ERROR_DESTRUCTION_SUCCEEDED)
+                LOGERR("Release failed: %d", result);
+            _implementation = nullptr;
             return result;
         }
 
@@ -115,15 +101,16 @@ namespace WPEFramework {
             //release all Streams
             for(auto stream : _mediaStreams)
             {
+                stream.second->Release();
                 delete stream.second;
             }
             _mediaStreams.clear();
 
             service->Unregister(&_notification);
 
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_aampMediaPlayerConnectionId));
             auto const result = _aampMediaPlayer->Release();
             ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_aampMediaPlayerConnectionId));
             if (connection != nullptr) {
                     connection->Terminate();
                     connection->Release();
@@ -205,7 +192,8 @@ namespace WPEFramework {
             }
             else
             {
-                _mediaStreams[id]->AddRef();
+                // we have already such stream created (no need to AddRef one more time)
+                returnResponse(true);
             }
 
             returnResponse(true);
@@ -223,6 +211,7 @@ namespace WPEFramework {
             {
                 if(_mediaStreams[id]->Release() == Core::ERROR_DESTRUCTION_SUCCEEDED)
                 {
+                    delete _mediaStreams[id];
                     _mediaStreams.erase(id);
                 }
                 returnResponse(true);

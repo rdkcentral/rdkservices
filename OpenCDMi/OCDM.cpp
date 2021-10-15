@@ -144,6 +144,7 @@ namespace Plugin {
         _memory->Release();
 
         _opencdmi->Deinitialize(service);
+        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
         uint32_t result = _opencdmi->Release();
         ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
@@ -156,7 +157,6 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::NOT_DECRYPTION, nullptr);
             subSystem->Release();
         }
-        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
         if (connection != nullptr) {
             connection->Terminate();
             connection->Release();
