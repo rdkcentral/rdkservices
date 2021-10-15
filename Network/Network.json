@@ -267,7 +267,7 @@
             }
         },
         "getNamedEndpoints":{
-            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`",
+            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.",
             "result": {
                 "type": "object",
                 "properties": {
