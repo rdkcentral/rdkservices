@@ -25,11 +25,7 @@
 #include <opkg.h>
 #endif
 #include <opkg_download.h>
-
-#include <cjson/cJSON.h>
 #include <pkg.h>
-#include <libgen.h>
-#include "utils.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -61,6 +57,10 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_NONE;
         Config config;
+
+	ASSERT (_servicePI == nullptr);
+	_servicePI = service;
+	_servicePI->AddRef();
 
         config.FromString(service->ConfigLine());
 
@@ -122,6 +122,8 @@ namespace Plugin {
     PackagerImplementation::~PackagerImplementation()
     {
         FreeOPKG();
+	_servicePI->Release();
+	_servicePI = nullptr;
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
@@ -279,99 +281,90 @@ namespace Plugin {
             self->_inProgress.Install->SetState(Exchange::IPackager::INSTALLED);
             self->NotifyStateChange();
 	    self->_inProgress.Install->SetAppName(progress->pkg->local_filename);
-            self->GetCallsign(self->_inProgress.Install->AppName());
+	    string mfilename = self->GetMetadataFile(self->_inProgress.Install->AppName());
+	    string callsign = self->GetCallsign(mfilename);
+	    self->DeactivatePlugin(callsign);
         }
     }
 #endif
 
-    void PackagerImplementation::GetCallsign(std::string appName)
+    string PackagerImplementation::GetMetadataFile(const string& appName)
     {
-        char *appPath = opkg_config->cache_dir;
-        std::string res = std::string(appPath) + "/" + appName + "/etc/apps/" + appName + "_package.json";
-        const char *fname=res.c_str();
-        const char *pkg_name=appName.c_str();
-        TRACE(Trace::Fatal, (_T("[RDM]: Metadata is %s"),fname));
-        char *jsonDoc = NULL;
-        cJSON *root = NULL;
-        FILE *file = fopen(fname, "r");
-        if (file)
-        {
-             fseek(file, 0, SEEK_END);
-             long numbytes = ftell(file);
-             jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
-             fseek(file, 0, SEEK_SET);
-             fread(jsonDoc, numbytes, 1, file);
-             fclose(file);
-             file = NULL;
-             jsonDoc[numbytes] = 0;
-             root = cJSON_Parse(jsonDoc);
-             if(cJSON_HasObjectItem(root, "type"))
-             {
-                  cJSON *item = cJSON_GetObjectItem(root, "type");
-                  TRACE(Trace::Fatal, (_T("[RDM]: Value of type from metadata is %s"),item->valuestring));
-                  std::string type=item->valuestring;
-                  if( 0 == type.compare("plugin"))
-                  {
-                       if(cJSON_HasObjectItem(root, "callsign"))
-                       {
-                            cJSON *item = cJSON_GetObjectItem(root, "callsign");
-                            TRACE(Trace::Fatal, (_T("[RDM]: Value of callsign from metadata is %s"),item->valuestring));
-                            string callsign=item->valuestring;
-                            deactivatePlugin(callsign);
-                       }
-                       else if(cJSON_HasObjectItem(root, "classname"))
-                       {
-                            cJSON *cname = cJSON_GetObjectItem(root, "classname");
-                            TRACE(Trace::Fatal, (_T("[RDM]: Value of classname from metadata is %s"),cname->valuestring));
-                            string classname=cname->valuestring;
-                            deactivatePlugin(classname);
-                       }
-                       else {
-                            TRACE(Trace::Fatal, (_T("[RDM]: callsign or classname for %s is not available in the metadata."), pkg_name));
-                       }
-                  }
-                  else {
-                       TRACE(Trace::Fatal, (_T("[RDM]: %s is not a thunder plugin"), pkg_name));
-                  }
-             }
-             else {
-                  TRACE(Trace::Fatal, (_T("[RDM]: Package type is missing in %s metadata."), pkg_name));
-             }
-             free(jsonDoc);
-             jsonDoc = NULL;
-        }
-        else {
-             TRACE(Trace::Fatal, (_T("[RDM]: Metadata for %s is missing."), pkg_name));
-        }
-        cJSON_Delete(root);
+	char *dnld_loc = opkg_config->cache_dir;
+	string mfilename = string(dnld_loc) + "/" + appName + "/etc/apps/" + appName + "_package.json";
+	return mfilename;
     }
 
-    void PackagerImplementation::deactivatePlugin(std::string plugin)
+    string PackagerImplementation::GetCallsign(const string& mfilename)
     {
-         const char* callsign=plugin.c_str();
-         if (Utils::isPluginUnavailable(callsign))
-         {
-              TRACE(Trace::Fatal, (_T("[RDM]: %s is in  UNAVAILABLE state"), callsign));
-              JsonObject deactivateParams;
-              deactivateParams.Set("callsign", callsign);
-              JsonObject deactivateResult;
-              uint32_t status = Utils::getThunderControllerClient()->Invoke<JsonObject, JsonObject>(2000, "deactivate", deactivateParams, deactivateResult);
-              if(status == 0)
-              {
-                   string strParams;
-                   string strResult;
-                   deactivateParams.ToString(strParams);
-                   deactivateResult.ToString(strResult);
-                   TRACE(Trace::Fatal, (_T("[RDM]: Called method %s, with params %s, status: %d, result: %s"),"deactivate",C_STR(strParams),status,C_STR(strResult)));
-                   TRACE(Trace::Fatal, (_T("[RDM]: %s moved to deactivated state"), callsign));
-              }
-              else {
-                   TRACE(Trace::Fatal, (_T("[RDM]: %s failed to move to deactivated state"), callsign));
-              }
-         }
-         else {
-              TRACE(Trace::Fatal, (_T("[RDM]: %s is not in UNAVAILABLE state. Hence not deactivating it"), callsign));
-         }
+	ASSERT(mfilename != nullptr);
+	string callsign;
+	TRACE(Trace::Information, (_T("[RDM]: Metadata is %s"),mfilename.c_str()));
+	Core::File file(mfilename);
+	if(file.Open()) {
+	    JsonObject parameters;
+	    if(parameters.IElement::FromFile(file)) {
+		if(parameters.HasLabel("type")) {
+	            string type = parameters["type"].String();
+		    if( 0 == type.compare("plugin")) {
+			if(parameters.HasLabel("callsign")) {
+			    callsign = parameters["callsign"].String();
+			    return callsign;
+			}
+			else if(parameters.HasLabel("classname")) {
+			    callsign = parameters["classname"].String();
+			    return callsign;
+			}
+			else {
+			    TRACE(Trace::Information, (_T("[RDM]: callsign or classname missing in metadata")));
+			}
+		    }
+		    else {
+			TRACE(Trace::Information, (_T("[RDM]: Package does not contain thunder plugin")));
+		    }
+		}
+		else {
+		    TRACE(Trace::Information, (_T("[RDM]: Metadata type not found")));
+		}
+	    }
+	    else {
+		TRACE(Trace::Error, (_T("[RDM]: Error in reading the file")));
+	    }
+	}
+	else {
+	    TRACE(Trace::Error, (_T("[RDM]: Error in opening the file")));
+	}
+	return callsign;
+    }
+
+    void PackagerImplementation::DeactivatePlugin(const string& callsign)
+    {
+	if(!callsign.empty()) {
+	    ASSERT(_servicePI != nullptr);
+	    TRACE(Trace::Information, (_T("[RDM]: callsign from metadata is %s"), callsign.c_str()));
+	    PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+
+	    if (dlPlugin == nullptr) {
+		TRACE(Trace::Error, (_T("[RDM]: Plugin %s is not configured in this setup"), callsign.c_str()));
+	    }
+	    else {
+		PluginHost::IShell::state currentState(dlPlugin->State());
+		if (currentState != PluginHost::IShell::UNAVAILABLE) {
+		    TRACE(Trace::Information, (_T("[RDM]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
+		}
+		else {
+		    TRACE(Trace::Information, (_T("[RDM]: Plugin %s is in Unavailable state"), callsign.c_str()));
+		    uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
+		    if (result == Core::ERROR_NONE) {
+			TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
+		    }
+		    else {
+			TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
+		    }
+		}
+	    }
+	    dlPlugin->Release();
+	}
     }
 
     void PackagerImplementation::NotifyStateChange()

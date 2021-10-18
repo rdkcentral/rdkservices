@@ -321,32 +321,6 @@ bool Utils::isPluginActivated(const char* callSign)
     return pluginActivated;
 }
 
-bool Utils::isPluginUnavailable(const char* callSign)
-{
-    bool pluginUnavailable = false;
-    if(callSign != NULL)
-    {
-        string method = "status@" + string(callSign);
-        Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-        uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
-        if (status == Core::ERROR_NONE)
-        {
-            LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
-            pluginUnavailable = joResult[0].JSONState == PluginHost::IShell::UNAVAILABLE;
-        }
-        else {
-            LOGWARN("Getting status for callSign %s, status: %d", callSign, status);
-        }
-
-        if(!pluginUnavailable) {
-            LOGWARN("Plugin %s is not in unavailable state", callSign);
-        } else {
-            LOGINFO("Plugin %s is in unavailable state", callSign);
-        }
-    }
-    return pluginUnavailable;
-}
-
 bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
 {
     WDMP_STATUS wdmpStatus = getRFCParameter("RDKShell", paramName, &paramOutput);
