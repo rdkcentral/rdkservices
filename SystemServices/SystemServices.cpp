@@ -1675,7 +1675,6 @@ namespace WPEFramework {
                 curlResponse = data;
                 free(data);
                 curl_easy_cleanup(curl);
-                curl_global_cleanup();
             }
             if (CURLE_OK == res) {
                 /* Eg: {"paramList":[{"name":"Device.DeviceInfo.SerialNumber",
