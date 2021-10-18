@@ -346,6 +346,8 @@ namespace Utils
 
     bool isPluginActivated(const char* callSign);
 
+    bool isPluginUnavailable(const char* callSign);
+
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
     bool isValidInt(char* x);
     void syncPersistFile (const string file);

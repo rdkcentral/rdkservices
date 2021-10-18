@@ -26,6 +26,10 @@
 #endif
 #include <opkg_download.h>
 
+#include <cjson/cJSON.h>
+#include <pkg.h>
+#include <libgen.h>
+#include "utils.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -274,9 +278,101 @@ namespace Plugin {
         if (progress->percentage == 100) {
             self->_inProgress.Install->SetState(Exchange::IPackager::INSTALLED);
             self->NotifyStateChange();
+	    self->_inProgress.Install->SetAppName(progress->pkg->local_filename);
+            self->GetCallsign(self->_inProgress.Install->AppName());
         }
     }
 #endif
+
+    void PackagerImplementation::GetCallsign(std::string appName)
+    {
+        char *appPath = opkg_config->cache_dir;
+        std::string res = std::string(appPath) + "/" + appName + "/etc/apps/" + appName + "_package.json";
+        const char *fname=res.c_str();
+        const char *pkg_name=appName.c_str();
+        TRACE(Trace::Fatal, (_T("[RDM]: Metadata is %s"),fname));
+        char *jsonDoc = NULL;
+        cJSON *root = NULL;
+        FILE *file = fopen(fname, "r");
+        if (file)
+        {
+             fseek(file, 0, SEEK_END);
+             long numbytes = ftell(file);
+             jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
+             fseek(file, 0, SEEK_SET);
+             fread(jsonDoc, numbytes, 1, file);
+             fclose(file);
+             file = NULL;
+             jsonDoc[numbytes] = 0;
+             root = cJSON_Parse(jsonDoc);
+             if(cJSON_HasObjectItem(root, "type"))
+             {
+                  cJSON *item = cJSON_GetObjectItem(root, "type");
+                  TRACE(Trace::Fatal, (_T("[RDM]: Value of type from metadata is %s"),item->valuestring));
+                  std::string type=item->valuestring;
+                  if( 0 == type.compare("plugin"))
+                  {
+                       if(cJSON_HasObjectItem(root, "callsign"))
+                       {
+                            cJSON *item = cJSON_GetObjectItem(root, "callsign");
+                            TRACE(Trace::Fatal, (_T("[RDM]: Value of callsign from metadata is %s"),item->valuestring));
+                            string callsign=item->valuestring;
+                            deactivatePlugin(callsign);
+                       }
+                       else if(cJSON_HasObjectItem(root, "classname"))
+                       {
+                            cJSON *cname = cJSON_GetObjectItem(root, "classname");
+                            TRACE(Trace::Fatal, (_T("[RDM]: Value of classname from metadata is %s"),cname->valuestring));
+                            string classname=cname->valuestring;
+                            deactivatePlugin(classname);
+                       }
+                       else {
+                            TRACE(Trace::Fatal, (_T("[RDM]: callsign or classname for %s is not available in the metadata."), pkg_name));
+                       }
+                  }
+                  else {
+                       TRACE(Trace::Fatal, (_T("[RDM]: %s is not a thunder plugin"), pkg_name));
+                  }
+             }
+             else {
+                  TRACE(Trace::Fatal, (_T("[RDM]: Package type is missing in %s metadata."), pkg_name));
+             }
+             free(jsonDoc);
+             jsonDoc = NULL;
+        }
+        else {
+             TRACE(Trace::Fatal, (_T("[RDM]: Metadata for %s is missing."), pkg_name));
+        }
+        cJSON_Delete(root);
+    }
+
+    void PackagerImplementation::deactivatePlugin(std::string plugin)
+    {
+         const char* callsign=plugin.c_str();
+         if (Utils::isPluginUnavailable(callsign))
+         {
+              TRACE(Trace::Fatal, (_T("[RDM]: %s is in  UNAVAILABLE state"), callsign));
+              JsonObject deactivateParams;
+              deactivateParams.Set("callsign", callsign);
+              JsonObject deactivateResult;
+              uint32_t status = Utils::getThunderControllerClient()->Invoke<JsonObject, JsonObject>(2000, "deactivate", deactivateParams, deactivateResult);
+              if(status == 0)
+              {
+                   string strParams;
+                   string strResult;
+                   deactivateParams.ToString(strParams);
+                   deactivateResult.ToString(strResult);
+                   TRACE(Trace::Fatal, (_T("[RDM]: Called method %s, with params %s, status: %d, result: %s"),"deactivate",C_STR(strParams),status,C_STR(strResult)));
+                   TRACE(Trace::Fatal, (_T("[RDM]: %s moved to deactivated state"), callsign));
+              }
+              else {
+                   TRACE(Trace::Fatal, (_T("[RDM]: %s failed to move to deactivated state"), callsign));
+              }
+         }
+         else {
+              TRACE(Trace::Fatal, (_T("[RDM]: %s is not in UNAVAILABLE state. Hence not deactivating it"), callsign));
+         }
+    }
 
     void PackagerImplementation::NotifyStateChange()
     {

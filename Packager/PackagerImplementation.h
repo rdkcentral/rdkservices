@@ -24,6 +24,12 @@
 
 #include <list>
 #include <string>
+#include <pkg.h>
+#include <libgen.h>
+#include "utils.h"
+#include "tptimer.h"
+#include <mutex>
+#include "AbstractPlugin.h"
 
 // Forward declarations so we do not need to include the OPKG headers here.
 struct opkg_conf;
@@ -177,6 +183,11 @@ namespace Plugin {
                 return _progress;
             }
 
+	    string AppName() const override
+            {
+                return _appname;
+            }
+
             uint32_t ErrorCode() const override
             {
                 return _error;
@@ -199,6 +210,17 @@ namespace Plugin {
                 _progress = progress;
             }
 
+	    void SetAppName(char* path)
+            {
+                char *pathcopy, *parent, *tmp;
+                pathcopy = strdup(path);
+                tmp = dirname(pathcopy);
+                parent = strdup(tmp);
+                _appname = basename(parent);
+                free(pathcopy);
+                free(parent);
+            }
+
             void SetError(uint32_t err)
             {
                 TRACE_L1("Setting error to %d", err);
@@ -209,6 +231,7 @@ namespace Plugin {
             Exchange::IPackager::state _state = Exchange::IPackager::IDLE;
             uint32_t _error = 0u;
             uint8_t _progress = 0u;
+	    std::string _appname;
         };
 
         struct InstallationData {
@@ -278,6 +301,8 @@ namespace Plugin {
 #if !defined (DO_NOT_USE_DEPRECATED_API)
         static void InstallationProgessNoLock(const _opkg_progress_data_t* progress, void* data);
 #endif
+	void GetCallsign(std::string appName);
+        void deactivatePlugin(std::string plugin);
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
         void BlockingInstallUntilCompletionNoLock();
