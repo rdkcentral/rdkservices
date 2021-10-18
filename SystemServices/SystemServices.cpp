@@ -408,6 +408,8 @@ namespace WPEFramework {
             registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
 #endif
             registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
+            GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
+                &SystemServices::getPlatformConfiguration, this);
         }
 
 
@@ -3924,6 +3926,18 @@ namespace WPEFramework {
           }
 
           returnResponse(result);
+        }
+
+        uint32_t SystemServices::getPlatformConfiguration(const JsonObject &parameters, PlatformCaps &response)
+        {
+          LOGINFOMETHOD();
+
+          const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
+
+          response.Load(query);
+
+          LOGTRACEMETHODFIN();
+          return Core::ERROR_NONE;
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

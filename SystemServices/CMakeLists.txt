@@ -34,6 +34,9 @@ add_library(${MODULE_NAME} SHARED
         ../helpers/SystemServicesHelper.cpp
         ../helpers/utils.cpp
         ../helpers/uploadlogs.cpp
+        platformcaps/platformcaps.cpp
+        platformcaps/platformcapsdata.cpp
+        platformcaps/platformcapsdatarpc.cpp
         )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -81,6 +84,8 @@ if (RFC_FOUND)
 else (RFC_FOUND)
 	message ("RFC lib required.")
 endif (RFC_FOUND)
+
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
