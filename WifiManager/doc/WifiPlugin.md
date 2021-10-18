@@ -1064,3 +1064,4 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
     }
 }
 ```
+
