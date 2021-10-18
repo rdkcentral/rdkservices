@@ -93,7 +93,11 @@ PlayerInfo interface methods:
 <a name="method.audiocodecs"></a>
 ## *audiocodecs <sup>method</sup>*
 
-Returns the audio codec supported by the platform.
+Returns the audio codec supported by the platform. 
+ 
+### Events 
+ 
+No Events.
 
 ### Parameters
 
@@ -113,7 +117,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.audiocodecs"
 }
 ```
@@ -123,7 +127,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         "AudioUndefined"
     ]
@@ -134,6 +138,10 @@ This method takes no parameters.
 ## *videocodecs <sup>method</sup>*
 
 Returns the video codec supported by the platform.
+ 
+### Events 
+ 
+No Events.
 
 ### Parameters
 
@@ -153,7 +161,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.videocodecs"
 }
 ```
@@ -163,7 +171,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         "VideoUndefined"
     ]
@@ -179,6 +187,7 @@ PlayerInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
+| [playerinfo](#property.playerinfo) <sup>RO</sup> | Player general information |
 | [resolution](#property.resolution) <sup>RO</sup> | Current video playback resolution |
 | [isaudioequivalenceenabled](#property.isaudioequivalenceenabled) <sup>RO</sup> | Check for Loudness Equivalence in the platform |
 | [dolby atmosmetadata](#property.dolby_atmosmetadata) <sup>RO</sup> | Atmos capabilities of Sink |
@@ -186,6 +195,52 @@ PlayerInfo interface properties:
 | [dolby enableatmosoutput](#property.dolby_enableatmosoutput) <sup>WO</sup> | Audio output enablement for Atmos |
 | [dolby mode](#property.dolby_mode) | Dolby mode |
 
+
+<a name="property.playerinfo"></a>
+## *playerinfo <sup>property</sup>*
+
+Provides access to the player general information.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | Player general information |
+| (property).audio | array |  |
+| (property).audio[#] | string | Audio Codec supported by the platform (must be one of the following: *Undefined*, *AAC*, *AC3*, *AC3Plus*, *DTS*, *MPEG1*, *MPEG2*, *MPEG3*, *MPEG4*, *OPUS*, *VorbisOGG*, *WAV*) |
+| (property).video | array |  |
+| (property).video[#] | string | Video Codec supported by the platform (must be one of the following: *Undefined*, *H263*, *H264*, *H265*, *H26510*, *MPEG*, *VP8*, *VP9*, *VP10*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "PlayerInfo.1.playerinfo"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "audio": [
+            "AudioAAC"
+        ],
+        "video": [
+            "VideoH264"
+        ]
+    }
+}
+```
 
 <a name="property.resolution"></a>
 ## *resolution <sup>property</sup>*
@@ -207,7 +262,7 @@ Provides access to the current video playback resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.resolution"
 }
 ```
@@ -217,7 +272,7 @@ Provides access to the current video playback resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "ResolutionUnknown"
 }
 ```
@@ -242,7 +297,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.isaudioequivalenceenabled"
 }
 ```
@@ -252,7 +307,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": false
 }
 ```
@@ -277,7 +332,7 @@ Provides access to the atmos capabilities of Sink.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.dolby_atmosmetadata"
 }
 ```
@@ -287,7 +342,7 @@ Provides access to the atmos capabilities of Sink.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": false
 }
 ```
@@ -312,7 +367,7 @@ Provides access to the current sound mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.dolby_soundmode"
 }
 ```
@@ -322,7 +377,7 @@ Provides access to the current sound mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "Unknown"
 }
 ```
@@ -347,7 +402,7 @@ Provides access to the audio output enablement for Atmos.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.dolby_enableatmosoutput",
     "params": false
 }
@@ -358,7 +413,7 @@ Provides access to the audio output enablement for Atmos.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "null"
 }
 ```
@@ -381,7 +436,7 @@ Provides access to the dolby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.dolby_mode"
 }
 ```
@@ -391,7 +446,7 @@ Provides access to the dolby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "DigitalPcm"
 }
 ```
@@ -401,7 +456,7 @@ Provides access to the dolby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "PlayerInfo.1.dolby_mode",
     "params": "DigitalPcm"
 }
@@ -412,7 +467,7 @@ Provides access to the dolby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "null"
 }
 ```
