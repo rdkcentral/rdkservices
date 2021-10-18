@@ -81,24 +81,21 @@
     },
     "methods": {
         "cancel":{
-            "summary": "Stops the specified timer",
+            "summary": "Stops the specified timer.\n \n### Events\n \nNo Events.",
             "params": {
                 "type": "object",
                 "properties": {
                     "timerID": {
                         "$ref": "#/definitions/timerId"
                     }
-                },
-                "required": [
-                    "timerId"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
         "getTimers":{
-            "summary": "Gets the status of all timers",
+            "summary": "Gets the status of all timers.\n \n### Events\n \nNo Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -148,7 +145,7 @@
             }
         },
         "getTimerStatus": {
-            "summary": "Gets the status of the specified timer",
+            "summary": "Gets the status of the specified timer.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -193,26 +190,24 @@
             }           
         },
         "resume":{
-            "summary": "Resumes the specified timer",
+            "summary": "Resumes the specified timer.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
                     "timerID": {
                         "$ref": "#/definitions/timerId"
                     }
-                },
-                "required": [
-                    "timerId"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
-        "startTimer ": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.",
+        "startTimer": {
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events\n \n| Event | Description | \n| :-------- | :-------- | \n| `timerExpired` | Triggered when a timer expires | \n| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |",
             "events": [
-                "timerExpired"
+                "timerExpired",
+                "timerExpiryReminder"
             ],
             "params": {
                 "type":"object",
@@ -253,17 +248,14 @@
             }
         },
         "suspend":{
-            "summary": "Suspends the specified timer",
+            "summary": "Suspends the specified timer.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
                     "timerID": {
                         "$ref": "#/definitions/timerId"
                     }
-                },
-                "required": [
-                    "timerId"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/definitions/result"
@@ -296,7 +288,7 @@
             }
         },
         "timerExpiryReminder": {
-            "summary": "Triggered before a timer actually expires",
+            "summary": "Triggered before a timer actually expires. It is triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -309,7 +301,7 @@
                     "timeRemaining": {
                         "summary": "The time remaining, in seconds, until expiration",
                         "type": "integer",
-                        "example": 0           
+                        "example": 0
                     }
                 },
                 "required": [
