@@ -204,7 +204,7 @@
             }
         },
         "startTimer": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events\n \n| Event | Description | \n| :-------- | :-------- | \n| `timerExpired` | Triggered when a timer expires | \n| `timerExpiryreminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |",
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events\n \n| Event | Description | \n| :-------- | :-------- | \n| `timerExpired` | Triggered when a timer expires | \n| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |",
             "events": [
                 "timerExpired",
                 "timerExpiryReminder"
@@ -288,7 +288,7 @@
             }
         },
         "timerExpiryReminder": {
-            "summary": "Triggered before a timer actually expires. It triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.",
+            "summary": "Triggered before a timer actually expires. It is triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.",
             "params": {
                 "type" :"object",
                 "properties": {

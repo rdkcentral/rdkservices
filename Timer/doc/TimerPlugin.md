@@ -325,7 +325,7 @@ Starts a timer with the specified interval. After the timer expires, a `timerExp
 | Event | Description | 
 | :-------- | :-------- | 
 | `timerExpired` | Triggered when a timer expires | 
-| `timerExpiryreminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |.
+| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |.
 
 Also see: [timerExpired](#event.timerExpired), [timerExpiryReminder](#event.timerExpiryReminder)
 
@@ -474,7 +474,7 @@ Triggered when a timer expires.
 <a name="event.timerExpiryReminder"></a>
 ## *timerExpiryReminder <sup>event</sup>*
 
-Triggered before a timer actually expires. It triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.
+Triggered before a timer actually expires. It is triggered only when a non-zero remindBefore parameter is passed in the `startTimer` method.
 
 ### Parameters
 
