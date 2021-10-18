@@ -104,7 +104,7 @@ namespace Plugin {
         // change to "register" the sink for these events !!! So do it ahead of instantiation.
         _service->Register(&_notification);
 
-        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, Core::infinite, _T("OCDMImplementation"));
+        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, WPEFramework::RPC::CommunicationTimeOut, _T("OCDMImplementation"));
 
         if (_opencdmi == nullptr) {
             message = _T("OCDM could not be instantiated.");
@@ -144,6 +144,7 @@ namespace Plugin {
         _memory->Release();
 
         _opencdmi->Deinitialize(service);
+        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
         uint32_t result = _opencdmi->Release();
         ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
@@ -156,7 +157,6 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::NOT_DECRYPTION, nullptr);
             subSystem->Release();
         }
-        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
         if (connection != nullptr) {
             connection->Terminate();
             connection->Release();
