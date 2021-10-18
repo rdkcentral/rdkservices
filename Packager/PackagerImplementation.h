@@ -28,8 +28,6 @@
 #include <libgen.h>
 #include "utils.h"
 #include "tptimer.h"
-#include <mutex>
-#include "AbstractPlugin.h"
 
 // Forward declarations so we do not need to include the OPKG headers here.
 struct opkg_conf;
@@ -212,13 +210,16 @@ namespace Plugin {
 
 	    void SetAppName(char* path)
             {
-                char *pathcopy, *parent, *tmp;
-                pathcopy = strdup(path);
-                tmp = dirname(pathcopy);
-                parent = strdup(tmp);
-                _appname = basename(parent);
-                free(pathcopy);
-                free(parent);
+		if(path != NULL)
+		{
+                    char *pathcopy, *parent, *tmp;
+                    pathcopy = strdup(path);
+                    tmp = dirname(pathcopy);
+                    parent = strdup(tmp);
+                    _appname = basename(parent);
+                    free(pathcopy);
+                    free(parent);
+		}
             }
 
             void SetError(uint32_t err)

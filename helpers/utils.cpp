@@ -323,12 +323,12 @@ bool Utils::isPluginActivated(const char* callSign)
 
 bool Utils::isPluginUnavailable(const char* callSign)
 {
+    bool pluginUnavailable = false;
     if(callSign != NULL)
     {
         string method = "status@" + string(callSign);
         Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
         uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(2000, method.c_str(),joResult);
-        bool pluginUnavailable = false;
         if (status == Core::ERROR_NONE)
         {
             LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
@@ -343,8 +343,8 @@ bool Utils::isPluginUnavailable(const char* callSign)
         } else {
             LOGINFO("Plugin %s is in unavailable state", callSign);
         }
-        return pluginUnavailable;
     }
+    return pluginUnavailable;
 }
 
 bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
