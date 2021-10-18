@@ -127,21 +127,11 @@
             "summary": "Whether the request succeeded",
             "type": "boolean",
             "example": "true"
-        },
-        "guid": {
-            "summary": "The globally unique identifier",
-            "type": "string",
-            "example": ""
-        },
-        "quirks":{
-            "summary": "Update `RDK-20093` string",
-            "type": "string",
-            "example": "RDK-20093"
         }
     },
     "methods": {
         "getDefaultInterface":{
-            "summary": "Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface. \n\n### Events \n\nNo Events",
+            "summary": "Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -159,7 +149,7 @@
             }
         },
         "getInterfaces":{
-            "summary": "Returns a list of interfaces supported by this device including their state.\n \n### Events \n\nNo Events",
+            "summary": "Returns a list of interfaces supported by this device including their state",
             "result": {
                 "type": "object",
                 "properties": {
@@ -207,7 +197,7 @@
             }
         },
         "getIPSettings":{
-            "summary": "Gets the IP setting for the given interface. If interface is NULL or invalid name then use current active interface. \n\n### Events \n\nNo Events",
+            "summary": "Gets the IP setting for the given interface",
             "params": {
                 "type":"object",
                 "properties": {
@@ -267,7 +257,7 @@
             }
         },
         "getNamedEndpoints":{
-            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`. \n\n### Events \n\nNo Events",
+            "summary": "Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -289,26 +279,8 @@
                 ]
             }
         },
-        "getQuirks":{
-            "summary": "Get standard string `RDK-20093`. \n\n### Events \n\nNo Events",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "quirks": {
-                        "$ref": "#/definitions/quirks"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "quirks",
-                    "success"
-                ]
-            }
-        },
         "getStbIp":{
-            "summary": "Gets the IP address of the default interface. Empty IP address, if the default interface IP address can not be retrieved. \n\n### Events \n\nNo Events",
+            "summary": "Gets the IP address of the default interface",
             "result": {
                 "type": "object",
                 "properties": {
@@ -328,7 +300,7 @@
             }
         },
         "getSTBIPFamily":{
-            "summary": "Gets the IP address of the default interface by address family.\n\n### Events \n\nNo Events",
+            "summary": "Gets the IP address of the default interface by address family",
             "params": {
                 "type":"object",
                 "properties": {
@@ -361,7 +333,7 @@
             }
         },
         "isConnectedToInternet":{
-            "summary": "Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.\n\n### Events \n\nNo Events",
+            "summary": "Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -381,7 +353,7 @@
             }
         },
         "isInterfaceEnabled":{
-            "summary": "Whether the specified interface is enabled. \n\n### Events \n\nNo Events",
+            "summary": "Whether the specified interface is enabled",
             "params": {
                 "type":"object",
                 "properties": {
@@ -412,7 +384,7 @@
             }
         },
         "ping":{
-            "summary": "Pings the specified endpoint with the specified number of packets.\n\n### Events \n\nNo Events",
+            "summary": "Pings the specified endpoint with the specified number of packets",
             "params": {
                 "type":"object",
                 "properties": {
@@ -421,9 +393,6 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
-                    },
-                    "guid": {
-                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -463,9 +432,6 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
-                    },
-                    "guid": {
-                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -478,13 +444,12 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error",
-                    "guid"
+                    "error" 
                 ]
             }
         },
         "pingNamedEndpoint":{
-            "summary": "Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.\n\n### Events \n\nNo Events",
+            "summary": "Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -493,9 +458,6 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
-                    },
-                    "guid": {
-                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -535,9 +497,6 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
-                    },
-                    "guid": {
-                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -550,13 +509,12 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error",
-                    "guid"
+                    "error"
                 ]
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.\n\n### Events \n\nNo Events",
+            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5",
             "params": {
                 "type":"object",
                 "properties": {
@@ -578,11 +536,7 @@
             }
         },
         "setDefaultInterface":{
-            "summary": "Sets the default interface. The call fails if the interface is not enabled. Triggers `onDefaultInterfaceChanged` and `onConnectionStatusChanged` events. \n \n### Events\n  \n| Event | Description | \n| :----------- | :----------- |\n| `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |\n| `onConnectionStatusChanged` | Triggered when the interface status is changed. Old interface status changed to `DISCONNECTED` and new interface status change to `CONNECTED` |",
-            "events": [
-                "onDefaultInterfaceChanged",
-                "onConnectionStatusChanged"
-            ],
+            "summary": "Sets the default interface. The call fails if the interface is not enabled.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -605,10 +559,7 @@
             }
         },
         "setInterfaceEnabled":{
-            "summary": "Enables the specified interface. Triggers `onInterfaceStatusChanged` event.\n \n### Events  \n\n| Event | Description | \n| :----------- | :----------- |\n| `onInterfaceStatusChanged` | Triggered when an interface becomes enabled or disabled |",
-            "events": [
-                "onInterfaceStatusChanged"
-            ],
+            "summary": "Enables the specified interface",
             "params": {
                 "type": "object",
                 "properties": {
@@ -637,10 +588,7 @@
             }
         },
         "setIPSettings":{
-            "summary": "Sets the IP settings. Triggers `onIPAddressStatusChanged` event.\n \n### Events  \n\n| Event | Description | \n| :----------- | :----------- |\n| `onIPAddressStatusChanged` | Triggered when an IP address is assigned or lost |",
-            "events": [
-                "onIPAddressStatusChanged"
-            ],
+            "summary": "Sets the IP settings",
             "params": {
                 "type":"object",
                 "properties": {
@@ -699,7 +647,7 @@
             }
         },
         "trace":{
-            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.\n\n### Events \n\nNo Events",
+            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`",
             "params": {
                 "type":"object",
                 "properties": {
@@ -740,7 +688,7 @@
             }
         },
         "traceNamedEndpoint":{
-            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`.\n\n### Events \n\nNo Events",
+            "summary": "Traces the specified named endpoint with the specified number of packets using `traceroute`",
             "params": {
                 "type":"object",
                 "properties": {
@@ -804,7 +752,7 @@
             }
         },
         "onDefaultInterfaceChanged":{
-            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API",
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through this API",
             "params": {
                 "type": "object",
                 "properties": {
@@ -878,5 +826,6 @@
                 ]
             }
         }
+
     }
 }
