@@ -283,7 +283,9 @@ namespace Plugin {
 	    self->_inProgress.Install->SetAppName(progress->pkg->local_filename);
 	    string mfilename = self->GetMetadataFile(self->_inProgress.Install->AppName());
 	    string callsign = self->GetCallsign(mfilename);
-	    self->DeactivatePlugin(callsign);
+	    if(!callsign.empty()) {
+	        self->DeactivatePlugin(callsign);
+	    }
         }
     }
 #endif
@@ -297,8 +299,7 @@ namespace Plugin {
 
     string PackagerImplementation::GetCallsign(const string& mfilename)
     {
-	ASSERT(mfilename != nullptr);
-	string callsign;
+	string callsign = "";
 	TRACE(Trace::Information, (_T("[RDM]: Metadata is %s"),mfilename.c_str()));
 	Core::File file(mfilename);
 	if(file.Open()) {
@@ -309,14 +310,9 @@ namespace Plugin {
 		    if( 0 == type.compare("plugin")) {
 			if(parameters.HasLabel("callsign")) {
 			    callsign = parameters["callsign"].String();
-			    return callsign;
-			}
-			else if(parameters.HasLabel("classname")) {
-			    callsign = parameters["classname"].String();
-			    return callsign;
 			}
 			else {
-			    TRACE(Trace::Information, (_T("[RDM]: callsign or classname missing in metadata")));
+			    TRACE(Trace::Information, (_T("[RDM]: callsign missing in metadata")));
 			}
 		    }
 		    else {
@@ -339,32 +335,31 @@ namespace Plugin {
 
     void PackagerImplementation::DeactivatePlugin(const string& callsign)
     {
-	if(!callsign.empty()) {
-	    ASSERT(_servicePI != nullptr);
-	    TRACE(Trace::Information, (_T("[RDM]: callsign from metadata is %s"), callsign.c_str()));
-	    PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+	ASSERT(callsign.empty() == false);
+	ASSERT(_servicePI != nullptr);
+	TRACE(Trace::Information, (_T("[RDM]: callsign from metadata is %s"), callsign.c_str()));
+	PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
 
-	    if (dlPlugin == nullptr) {
-		TRACE(Trace::Error, (_T("[RDM]: Plugin %s is not configured in this setup"), callsign.c_str()));
+        if (dlPlugin == nullptr) {
+	    TRACE(Trace::Error, (_T("[RDM]: Plugin %s is not configured in this setup"), callsign.c_str()));
+	}
+	else {
+	    PluginHost::IShell::state currentState(dlPlugin->State());
+	    if (currentState != PluginHost::IShell::UNAVAILABLE) {
+		TRACE(Trace::Information, (_T("[RDM]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
 	    }
 	    else {
-		PluginHost::IShell::state currentState(dlPlugin->State());
-		if (currentState != PluginHost::IShell::UNAVAILABLE) {
-		    TRACE(Trace::Information, (_T("[RDM]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
+	        TRACE(Trace::Information, (_T("[RDM]: Plugin %s is in Unavailable state"), callsign.c_str()));
+		uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
+		if (result == Core::ERROR_NONE) {
+		   TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
 		}
 		else {
-		    TRACE(Trace::Information, (_T("[RDM]: Plugin %s is in Unavailable state"), callsign.c_str()));
-		    uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
-		    if (result == Core::ERROR_NONE) {
-			TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
-		    }
-		    else {
-			TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
-		    }
+		    TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
 		}
 	    }
-	    dlPlugin->Release();
 	}
+	dlPlugin->Release();
     }
 
     void PackagerImplementation::NotifyStateChange()

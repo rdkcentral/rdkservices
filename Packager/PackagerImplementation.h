@@ -205,9 +205,8 @@ namespace Plugin {
                 _progress = progress;
             }
 
-	    void SetAppName(char* path)
+	    void SetAppName(const TCHAR path[])
 	    {
-		ASSERT(path != nullptr);
 		string _pathname = Core::File::PathName(string(path));
 		string _dirname = _pathname.substr(0,_pathname.size()-1);
 		_appname = Core::File::FileName(_dirname);
