@@ -312,11 +312,11 @@ namespace WPEFramework
 
                 getStringParameter("interface", interface)
 
-	        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
-		{
-	            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface);
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface);
                     returnResponse (result)
-		}
+                }
 
                 getBoolParameter("persist", persist)
 
@@ -390,11 +390,11 @@ namespace WPEFramework
                 string interface = "";
                 getStringParameter("interface", interface)
 
-		if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
-	        {
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
                     LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, interface);
                     returnResponse (result)
-		}
+                }
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
                 strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
