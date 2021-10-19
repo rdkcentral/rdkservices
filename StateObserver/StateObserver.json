@@ -79,7 +79,7 @@
                     "name":{
                         "summary": "The plugin name",
                         "type": "string",
-                        "example": "org.rdk.StateObserver"
+                        "example": "com.comcast.StateObserver"
                     },
                     "success":{
                         "$ref": "#/definitions/success"
