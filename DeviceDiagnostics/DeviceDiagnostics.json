@@ -18,7 +18,7 @@
             "example": "ACTIVE"
         },
         "AVDecoderStatus":{
-            "summary": "The status",
+            "summary": "The status. If AV decoder status is not supported, the default state will always be IDLE.",
             "enum": [
                 "ACTIVE",
                 "PAUSED",
@@ -46,7 +46,7 @@
     },
     "methods": {
         "getConfiguration": {
-            "summary": "Gets the values associated with the corresponding property names",
+            "summary": "Gets the values associated with the corresponding property names.\n \n### Events \n \nNo events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -54,6 +54,7 @@
                         "summary": "String array of property names",
                         "type": "array",
                         "items": {
+                            "summary": "Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc",
                             "type":"string",
                             "example": "Device.X_CISCO_COM_LED.RedPwm"
                         }
@@ -73,12 +74,12 @@
                             "type": "object",
                             "properties": {
                                 "name": {
-                                    "summary": "The property name",
+                                    "summary": "The property name; Empty, if the property name is not supported",
                                     "type":"string",
                                     "example": "Device.X_CISCO_COM_LED.RedPwm"
                                 },
                                 "value": {
-                                    "summary": "The property value",
+                                    "summary": "The property value; Empty, if the property name is not supported",
                                     "type":"string",
                                     "example": "123"
                                 }
@@ -86,7 +87,7 @@
                             "required": [
                                 "name",
                                 "value"
-                            ]                        
+                            ]
                         }
                     },
                     "success": {
@@ -100,7 +101,7 @@
             }
         },
         "getAVDecoderStatus":{
-            "summary": "Gets the most active status of any audio/video decoder/pipeline.",
+            "summary": "Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.\n \n### Events \n \nNo events.",
             "result":{
                 "type":"object",
                 "properties": {
@@ -120,7 +121,7 @@
     },
     "events": {
         "onAVDecoderStatusChanged":{
-            "summary": "Triggered when the most active status of any audio/video decoder/pipeline changes.",
+            "summary": "Triggered when the most active status of audio/video decoder/pipeline changes.",
             "params": {
                 "type": "object",
                 "properties": {

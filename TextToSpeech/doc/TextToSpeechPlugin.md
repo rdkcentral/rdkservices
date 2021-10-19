@@ -86,8 +86,8 @@ TextToSpeech interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [cancel](#method.cancel) | Cancels the speech |
-| [enabletts](#method.enabletts) | (For Resident App) Enables or disables TTS conversion processing |
-| [getapiversion](#method.getapiversion) | Gets the apiversion |
+| [enabletts](#method.enabletts) | (For Resident App) Enables or disables the TTS conversion processing |
+| [getapiversion](#method.getapiversion) | Gets the API Version |
 | [getspeechstate](#method.getspeechstate) | Returns the current state of the speech request |
 | [getttsconfiguration](#method.getttsconfiguration) | Gets the current TTS configuration |
 | [isspeaking](#method.isspeaking) | Checks if speech is in progress |
@@ -96,13 +96,19 @@ TextToSpeech interface methods:
 | [pause](#method.pause) | Pauses the speech |
 | [resume](#method.resume) | Resumes the speech |
 | [setttsconfiguration](#method.setttsconfiguration) | Sets the TTS configuration |
-| [speak](#method.speak) | Starts a speech |
+| [speak](#method.speak) | Converts the input text to speech when TTS is enabled |
+| [setACL](#method.setACL) | Configures app to speak |
 
 
 <a name="method.cancel"></a>
 ## *cancel <sup>method</sup>*
 
-Cancels the speech.
+Cancels the speech. Triggers the `onspeechinterrupted` event.  
+ 
+### Events  
+| Event | Description | 
+| :----------- | :-----------| 
+|`onspeechinterrupted` | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |.
 
 Also see: [onspeechinterrupted](#event.onspeechinterrupted)
 
@@ -118,7 +124,7 @@ Also see: [onspeechinterrupted](#event.onspeechinterrupted)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -152,23 +158,29 @@ Also see: [onspeechinterrupted](#event.onspeechinterrupted)
 <a name="method.enabletts"></a>
 ## *enabletts <sup>method</sup>*
 
-(For Resident App) Enables or disables TTS conversion processing.
+(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. 
+ 
+### Events  
+| Event | Description | 
+| :----------- | :----------- | 
+| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | 
+| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress.
 
-Also see: [onttsstatechanged](#event.onttsstatechanged)
+Also see: [onttsstatechanged](#event.onttsstatechanged), [onspeechinterrupted](#event.onspeechinterrupted)
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.enabletts | boolean | `true` to enable TTS or `false` to disable TTS |
+| params.enabletts | boolean | Enable or Disable TTS |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -202,7 +214,11 @@ Also see: [onttsstatechanged](#event.onttsstatechanged)
 <a name="method.getapiversion"></a>
 ## *getapiversion <sup>method</sup>*
 
-Gets the apiversion.
+Gets the API Version.
+ 
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -213,8 +229,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.version | boolean | Indicates the current API version |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.version | number | Indicates the  API Version |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -236,8 +251,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "version": true,
-        "TTS_Status": 0,
+        "version": 1,
         "success": true
     }
 }
@@ -247,6 +261,10 @@ This method takes no parameters.
 ## *getspeechstate <sup>method</sup>*
 
 Returns the current state of the speech request.
+  
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -260,8 +278,8 @@ Returns the current state of the speech request.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.speechstate | string | The speech state (must be one of the following: *SPEECH_PENDING*, *SPEECH_IN_PROGRESS*, *SPEECH_PAUSED*, *SPEECH_NOT_FOUND*) |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.speechstate | string | The speech state (must be one of the following: *SPEECH_PENDING(0)*, *SPEECH_IN_PROGRESS(1)*, *SPEECH_PAUSED(2)*, *SPEECH_NOT_FOUND(3)*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -297,6 +315,10 @@ Returns the current state of the speech request.
 ## *getttsconfiguration <sup>method</sup>*
 
 Gets the current TTS configuration.
+  
+### Events 
+ 
+No Events.
 
 ### Parameters
 
@@ -311,9 +333,9 @@ This method takes no parameters.
 | result.ttsendpointsecured | string | The TTS engine secured URL |
 | result.language | string | The TTS language |
 | result.voice | string | The TTS Voice |
-| result.volume | string | The TTS volume |
-| result.rate | number | The TTS rate |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.volume | string | The TTS Volume |
+| result.rate | number | The TTS Rate |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -351,6 +373,10 @@ This method takes no parameters.
 ## *isspeaking <sup>method</sup>*
 
 Checks if speech is in progress.
+  
+### Event 
+
+No Events.
 
 ### Parameters
 
@@ -364,8 +390,8 @@ Checks if speech is in progress.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.speaking | boolean | `true` if the passed speech is in progress (that is, audio was playing), otherwise `false` |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.speaking | boolean | `true` if the passed speech is in progress (that is, audio was playing), `false` if speech is completed or speech ID not found |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -400,7 +426,11 @@ Checks if speech is in progress.
 <a name="method.isttsenabled"></a>
 ## *isttsenabled <sup>method</sup>*
 
-Returns whether the TTS engine is enabled or disabled.
+Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -412,7 +442,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.isenabled | boolean | `true` if the TTS engine is enabled, otherwise `false` |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -444,7 +474,11 @@ This method takes no parameters.
 <a name="method.listvoices"></a>
 ## *listvoices <sup>method</sup>*
 
-Lists the available voices for the specified language.
+Lists the available voices for the specified language. For every language there is a set of pre-defined voices.  
+  
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -458,8 +492,8 @@ Lists the available voices for the specified language.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.voices | string | The available voice |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.voices | string | Array of available voice |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -494,7 +528,12 @@ Lists the available voices for the specified language.
 <a name="method.pause"></a>
 ## *pause <sup>method</sup>*
 
-Pauses the speech.
+Pauses the speech. Triggers the `onspeechpause` event.  
+ 
+### Events  
+| Event | Description | 
+| :----------- | :----------- | 
+|  `onspeechpause` | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed | .
 
 Also see: [onspeechpause](#event.onspeechpause)
 
@@ -510,7 +549,7 @@ Also see: [onspeechpause](#event.onspeechpause)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -544,7 +583,12 @@ Also see: [onspeechpause](#event.onspeechpause)
 <a name="method.resume"></a>
 ## *resume <sup>method</sup>*
 
-Resumes the speech.
+Resumes the speech. Triggers the `onspeechresume` event. 
+ 
+### Events  
+| Event | Description | 
+| :----------- | :----------- | 
+| `onspeechresume` | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |.
 
 Also see: [onspeechresume](#event.onspeechresume)
 
@@ -560,7 +604,7 @@ Also see: [onspeechresume](#event.onspeechresume)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -594,7 +638,14 @@ Also see: [onspeechresume](#event.onspeechresume)
 <a name="method.setttsconfiguration"></a>
 ## *setttsconfiguration <sup>method</sup>*
 
-Sets the TTS configuration.
+Sets the TTS configuration. Triggers the `onvoicechanged` event.
+ 
+### Events  
+| Event | Description | 
+| :----------- | :----------- | 
+|`onvoicechanged`|Triggered only when the voice configuration is changed| .
+
+Also see: [onvoicechanged](#event.onvoicechanged)
 
 ### Parameters
 
@@ -605,15 +656,15 @@ Sets the TTS configuration.
 | params?.ttsendpointsecured | string | <sup>*(optional)*</sup> The TTS engine secured URL |
 | params?.language | string | <sup>*(optional)*</sup> The TTS language |
 | params?.voice | string | <sup>*(optional)*</sup> The TTS Voice |
-| params?.volume | string | <sup>*(optional)*</sup> The TTS volume |
-| params?.rate | number | <sup>*(optional)*</sup> The TTS rate |
+| params?.volume | string | <sup>*(optional)*</sup> The TTS Volume |
+| params?.rate | number | <sup>*(optional)*</sup> The TTS Rate |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -652,9 +703,19 @@ Sets the TTS configuration.
 <a name="method.speak"></a>
 ## *speak <sup>method</sup>*
 
-Starts a speech. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`.
+Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onwillspeak` | Triggered when speech conversion is about to start | 
+| `onspeechstart` | Triggered when conversion of text to speech is started | 
+| `onspeechcomplete `| Triggered when conversion from text to speech is completed | 
+| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | 
+| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  
+| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |.
 
-Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.onspeechinterrupted)
+Also see: [onwillspeak](#event.onwillspeak), [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.onspeechinterrupted), [onspeechcomplete](#event.onspeechcomplete), [onnetworkerror](#event.onnetworkerror), [onplaybackerror](#event.onplaybackerror)
 
 ### Parameters
 
@@ -662,6 +723,7 @@ Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.on
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.text | string | The text input |
+| params?.callsign | string | <sup>*(optional)*</sup>  Callsign of the application. This is mandatory when setACL is called prior to speak  |
 
 ### Result
 
@@ -669,7 +731,7 @@ Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.on
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.speechid | number | The speech ID |
-| result.TTS_Status | number |  (must be one of the following: *TTS_OK*, *TTS_FAIL*, *TTS_NOT_ENABLED*, *TTS_INVALID_CONFIGURATION*) |
+| result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -682,7 +744,8 @@ Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.on
     "id": 1234567890,
     "method": "org.rdk.TextToSpeech.1.speak",
     "params": {
-        "text": "speech_1"
+        "text": "speech_1",
+        "callsign": "WebApp"
     }
 }
 ```
@@ -696,6 +759,64 @@ Also see: [onspeechstart](#event.onspeechstart), [onspeechinterrupted](#event.on
     "result": {
         "speechid": 1,
         "TTS_Status": 0,
+        "success": true
+    }
+}
+```
+
+<a name="method.setACL"></a>
+## *setACL <sup>method</sup>*
+
+Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak` method. If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.
+  
+### Events 
+
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.accesslist | array |  |
+| params.accesslist[#] | object |  |
+| params.accesslist[#].method | string | Method of TTS function to be performed |
+| params.accesslist[#].apps | string | Name of client application |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.TextToSpeech.1.setACL",
+    "params": {
+        "accesslist": [
+            {
+                "method": "speak",
+                "apps": "WebApp"
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
         "success": true
     }
 }
@@ -715,12 +836,13 @@ TextToSpeech interface events:
 | [onnetworkerror](#event.onnetworkerror) | Triggered when a network error occurs while fetching the audio from the endpoint |
 | [onplaybackerror](#event.onplaybackerror) | Triggered when an error occurs during playback including pipeline failures |
 | [onspeechcomplete](#event.onspeechcomplete) | Triggered when the speech completes |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request or by calling `cancel` |
+| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress |
 | [onspeechpause](#event.onspeechpause) | Triggered when the ongoing speech pauses |
 | [onspeechresume](#event.onspeechresume) | Triggered when any paused speech resumes |
-| [onspeechstart](#event.onspeechstart) | Triggered when the speech starts |
+| [onspeechstart](#event.onspeechstart) | Triggered when the speech start |
 | [onttsstatechanged](#event.onttsstatechanged) | Triggered when TTS is enabled or disabled |
 | [onvoicechanged](#event.onvoicechanged) | Triggered when the configured voice changes |
+| [onwillspeak](#event.onwillspeak) | Triggered when the text to speech conversion is about to start |
 
 
 <a name="event.onnetworkerror"></a>
@@ -800,7 +922,7 @@ Triggered when the speech completes.
 <a name="event.onspeechinterrupted"></a>
 ## *onspeechinterrupted <sup>event</sup>*
 
-Triggered when the current speech is interrupted either by a next speech request or by calling `cancel`.
+Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress.
 
 ### Parameters
 
@@ -872,7 +994,7 @@ Triggered when any paused speech resumes.
 <a name="event.onspeechstart"></a>
 ## *onspeechstart <sup>event</sup>*
 
-Triggered when the speech starts.
+Triggered when the speech start.
 
 ### Parameters
 
@@ -905,7 +1027,7 @@ Triggered when TTS is enabled or disabled.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.state | boolean | `true` if TTS is enabled, otherwise `false` |
+| params.state | boolean | `True` if TTS is enabled, otherwise `False` |
 
 ### Example
 
@@ -939,6 +1061,32 @@ Triggered when the configured voice changes.
     "method": "client.events.1.onvoicechanged",
     "params": {
         "voice": "carol"
+    }
+}
+```
+
+<a name="event.onwillspeak"></a>
+## *onwillspeak <sup>event</sup>*
+
+Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak method.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.speechid | number | The speech ID |
+| params.text | string | The text input |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onwillspeak",
+    "params": {
+        "speechid": 1,
+        "text": "speech_1"
     }
 }
 ```
