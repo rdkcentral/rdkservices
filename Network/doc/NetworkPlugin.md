@@ -1000,7 +1000,7 @@ Network interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API |
+| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation `or through the setDefaultInterface method` |
 | [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
 | [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
 
@@ -1014,7 +1014,7 @@ Triggered when a connection is made or lost.
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
+| `setDefaultInterface` |1.The `setDefaultInterface(WIFI)` method triggers `onConnectionStatusChanged` event if the device connected to WIFI SSID. 2.The `setDefaultInterface(Ethernet)` method never triggers `onConnectionStatusChanged` event when the ethernet connection status keep changing depends upon the ethernet cables plugged-in status. |
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1042,13 +1042,13 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
 <a name="event.onDefaultInterfaceChanged"></a>
 ## *onDefaultInterfaceChanged <sup>event</sup>*
 
-Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` API.
+Triggered when the default interface changes, regardless if it's from a system operation `or through the setDefaultInterface method`.
  
 ### Methods
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
+| `setDefaultInterface` |Triggers this event if a call to this method causes the device's default interface to change.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1082,8 +1082,8 @@ Triggered when an interface becomes enabled or disabled. This event is triggered
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Default interface changed successfully and triggers this event |
-| `setInterfaceEnabled` | Enable/Disable the interfaces successfully and triggers this event |
+| `setDefaultInterface` |1.The `setDefaultInterface(WIFI)` method triggers `onInterfaceStatusChanged(WIFI,TRUE)` event when the WIFI interface is enabled.  2.The `setDefaultInterface(WIFI)` method triggers `onInterfaceStatusChanged(WIFI, FALSE)` when the WIFI interface is disabled.  3.The `setDefaultInterface` method triggers `onInterfaceStatusChanged(TRUE)` when the WIFI interface is enabled and it attempts to switch to ETHERNET.|
+| `setInterfaceEnabled` |Triggers this event only if this method call caused the interface's enabled/disabled status to change.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 
@@ -1117,8 +1117,8 @@ Triggered when an IP Address is assigned or lost. This event is triggered during
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` | Sets the default interface successfully and triggers this event |
-| `setIPSettings` | IPsettings changed successfully and triggers this event |
+| `setDefaultInterface` |Sets the default interface successfully and Triggers this event.|
+| `setIPSettings` |Triggers this event for each IP address that is lost or acquired following a call to this method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
 
