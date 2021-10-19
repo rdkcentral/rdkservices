@@ -710,15 +710,18 @@ namespace WPEFramework {
                                     else{
                                         device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                                         mode = aPort.getStereoMode(); //get Last User set stereo mode and set
-					if(mode == device::AudioStereoMode::kPassThru){
+					if((types & dsAUDIOARCSUPPORT_ARC) && (mode == device::AudioStereoMode::kPassThru)){
                                             if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                                 LOGERR("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor failed !!!\n");;
                                             }
                                             else {
                                                 LOGINFO("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor successful\n");
                                             }
+					    aPort.setStereoMode(mode.toString(), true);
                                         }
-                                        aPort.setStereoMode(mode.toString(), true);
+					else if(types & dsAUDIOARCSUPPORT_eARC) {
+                                            aPort.setStereoMode(mode.toString(), true);
+                                        }
                                     }
 
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
