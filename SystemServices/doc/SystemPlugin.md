@@ -139,6 +139,8 @@ SystemServices interface methods:
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
 | [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
+| [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
+| [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 
 
 <a name="method.cacheContains"></a>
@@ -2606,6 +2608,149 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.uploadLogs"></a>
+## *uploadLogs <sup>method</sup>*
+
+(Version 2) Uploads logs to a URL returned by SSR.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.url | string | <sup>*(optional)*</sup> SSR URL |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.uploadLogs",
+    "params": {
+        "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getPlatformConfiguration"></a>
+## *getPlatformConfiguration <sup>method</sup>*
+
+(Version 2) Returns the supported features and device/account info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.query | string | Query for support of a particular feature, e.g. AccountInfo.accountId |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.AccountInfo | object | <sup>*(optional)*</sup>  |
+| result?.AccountInfo?.accountId | string | <sup>*(optional)*</sup> Account Id |
+| result?.AccountInfo?.x1DeviceId | string | <sup>*(optional)*</sup> X1 Device Id |
+| result?.AccountInfo?.XCALSessionTokenAvailable | boolean | <sup>*(optional)*</sup>  |
+| result?.AccountInfo?.experience | string | <sup>*(optional)*</sup> Experience |
+| result?.AccountInfo?.deviceMACAddress | string | <sup>*(optional)*</sup> Device MAC Address |
+| result?.AccountInfo?.firmwareUpdateDisabled | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.quirks | array | <sup>*(optional)*</sup> The list of installed "quirks" |
+| result?.DeviceInfo?.quirks[#] | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypeExclusions | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.features | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypes | array | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypes[#] | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.model | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.deviceType | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.supportsTrueSD | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.webBrowser | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.webBrowser.browserType | string |  |
+| result?.DeviceInfo?.webBrowser.version | string |  |
+| result?.DeviceInfo?.webBrowser.userAgent | string |  |
+| result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
+| result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "params": {
+        "query": ""
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "AccountInfo": {
+            "accountId": "1000000000000000000",
+            "x1DeviceId": "1000000000000000000",
+            "XCALSessionTokenAvailable": false,
+            "experience": "X1",
+            "deviceMACAddress": "44:AA:F5:39:D3:42",
+            "firmwareUpdateDisabled": false
+        },
+        "DeviceInfo": {
+            "quirks": [
+                "XRE-4621"
+            ],
+            "mimeTypeExclusions": {},
+            "features": {},
+            "mimeTypes": [
+                "audio/mpeg"
+            ],
+            "model": "PX051AEI",
+            "deviceType": "IpStb",
+            "supportsTrueSD": true,
+            "webBrowser": {
+                "browserType": "WPE",
+                "version": "1.0.0.0",
+                "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
+            },
+            "HdrCapability": "none",
+            "canMixPCMWithSurround": true
+        },
         "success": true
     }
 }
