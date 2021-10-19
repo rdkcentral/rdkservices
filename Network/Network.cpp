@@ -62,7 +62,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
         char allNetworkInterfaces[INTERFACE_LIST];
-        char enableInterface[INTERFACE_SIZE];
+        char setInterface[INTERFACE_SIZE];
         char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
     };
     char interfaceCount;
@@ -311,10 +311,17 @@ namespace WPEFramework
                 bool persist = false;
 
                 getStringParameter("interface", interface)
+
+	        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+		{
+	            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface);
+                    returnResponse (result)
+		}
+
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.persist = persist;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
@@ -383,8 +390,14 @@ namespace WPEFramework
                 string interface = "";
                 getStringParameter("interface", interface)
 
+		if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+	        {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, interface);
+                    returnResponse (result)
+		}
+
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-                strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                 {
@@ -410,11 +423,18 @@ namespace WPEFramework
                 bool persist = false;
 
                 getStringParameter("interface", interface)
+
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface);
+                    returnResponse (result)
+                }
+
                 getBoolParameter("enabled", enabled)
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.isInterfaceEnabled = enabled;
                 iarmData.persist = persist;
 
