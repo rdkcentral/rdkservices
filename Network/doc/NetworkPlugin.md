@@ -1000,7 +1000,7 @@ Network interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation `or through the setDefaultInterface method` |
+| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation ''or through the `setDefaultInterface` method'' |
 | [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
 | [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
 
@@ -1014,7 +1014,7 @@ Triggered when a connection is made or lost.
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |1.The `setDefaultInterface(WIFI)` method triggers `onConnectionStatusChanged` event if the device connected to WIFI SSID. 2.The `setDefaultInterface(Ethernet)` method never triggers `onConnectionStatusChanged` event when the ethernet connection status keep changing depends upon the ethernet cables plugged-in status. |
+| `setDefaultInterface` |The `setDefaultInterface(WIFI)` method triggers `onConnectionStatusChanged` event if the device connected to WIFI SSID.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1042,7 +1042,7 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
 <a name="event.onDefaultInterfaceChanged"></a>
 ## *onDefaultInterfaceChanged <sup>event</sup>*
 
-Triggered when the default interface changes, regardless if it's from a system operation `or through the setDefaultInterface method`.
+Triggered when the default interface changes, regardless if it's from a system operation ''or through the `setDefaultInterface` method''.
  
 ### Methods
   
@@ -1117,7 +1117,7 @@ Triggered when an IP Address is assigned or lost. This event is triggered during
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |Sets the default interface successfully and Triggers this event.|
+| `setDefaultInterface` |Sets the default interface successfully and triggers this event.|
 | `setIPSettings` |Triggers this event for each IP address that is lost or acquired following a call to this method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
