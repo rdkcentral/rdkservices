@@ -207,7 +207,7 @@ namespace WPEFramework {
             string reason="";
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo );
+                retAPIStatus = getFileContentToCharBuffer(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo, sizeof(rebootInfo));
             }
 
             if (retAPIStatus && strlen(rebootInfo)) {

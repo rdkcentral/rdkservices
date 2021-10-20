@@ -194,9 +194,10 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
  * @brief  : Used to read file contents into a C char array/buffer
  * @param1[in] : Complete file name with path
  * @param2[in] : Destination C char buffer to be filled with file contents
+ * @param3[in] : Buffer size
  * @return : <bool>; TRUE if operation success; else FALSE.
  */
-bool getFileContentToCharBuffer(std::string fileName, char *pBuffer);
+bool getFileContentToCharBuffer(std::string fileName, char *pBuffer, const size_t bufferSize);
 
 /***
  * @brief	: Used to search for files in the given directory

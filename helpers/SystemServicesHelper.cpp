@@ -287,12 +287,12 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
  * @brief	: Used to read file contents into a C char array/buffer
  * @param1[in]	: Complete file name with path
  * @param2[in]	: Destination C char buffer to be filled with file contents
+ * @param3[in]	: Buffer size
  * @return	: <bool>; TRUE if operation success; else FALSE.
  */
-bool getFileContentToCharBuffer(std::string fileName, char* pBuffer)
+bool getFileContentToCharBuffer(std::string fileName, char* pBuffer, const size_t bufferSize)
 {
     bool retStat = false;
-    long numbytes = 0;
     std::string str;
     std::ifstream inFile(fileName.c_str());
 
@@ -300,16 +300,24 @@ bool getFileContentToCharBuffer(std::string fileName, char* pBuffer)
         return retStat;
     }
 
-    numbytes = inFile.tellg();
-    fprintf(stdout, "getFileContentToCharBuffer : numbytes = %ld\n", numbytes);
+    inFile.seekg(0, std::ios::end);
+    size_t fileSize = inFile.tellg();
 
-    std::strcpy(pBuffer, str.c_str());
+    fprintf(stdout, "getFileContentToCharBuffer : fileSize = %ld\n", fileSize);
+
+    if (fileSize > bufferSize - 1) {
+        return retStat;
+    }
+
+    inFile.seekg(0);
+
     while (std::getline(inFile, str)) {
         std::strcat(pBuffer, str.c_str());
         if (!inFile.eof()) {
             std::strcat(pBuffer, "\n");
         }
     }
+
     retStat = true;
     inFile.close();
 

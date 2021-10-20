@@ -145,11 +145,11 @@ bool isGzEnabledHelper(bool& enabled)
 {
     bool retVal = false;
 
-    char lines[32] = {'\0'};
+    char buffer[32] = {'\0'};
     string gzStatus = "";
-    retVal = getFileContentToCharBuffer(GZ_STATUS.c_str(), lines);
-    if (retVal) {
-        gzStatus = strtok(lines," ");
+    retVal = getFileContentToCharBuffer(GZ_STATUS.c_str(), buffer, sizeof(buffer));
+    if (retVal && strlen(buffer)) {
+        gzStatus = strtok(buffer," ");
         if ("true" == gzStatus) {
             enabled = true;
         } else {
@@ -2578,7 +2578,7 @@ namespace WPEFramework {
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
-                        SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
+                        SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo, sizeof(rebootInfo));
                 if (retAPIStatus && strlen(rebootInfo)) {
                     string dataBuf(rebootInfo);
                     JsonObject rebootInfoJson;
@@ -2597,7 +2597,7 @@ namespace WPEFramework {
 
             if (Utils::fileExists(SYSTEM_SERVICE_HARD_POWER_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
-                        SYSTEM_SERVICE_HARD_POWER_INFO_FILE, hardPowerInfo);
+                        SYSTEM_SERVICE_HARD_POWER_INFO_FILE, hardPowerInfo, sizeof(hardPowerInfo));
                 if (retAPIStatus && strlen(hardPowerInfo)) {
                     string dataBuf(hardPowerInfo);
                     JsonObject hardPowerInfoJson;
@@ -2640,7 +2640,7 @@ namespace WPEFramework {
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
                 retAPIStatus = getFileContentToCharBuffer(
-                        SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
+                        SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo, sizeof(rebootInfo));
                 if (retAPIStatus && strlen(rebootInfo)) {
                     string dataBuf(rebootInfo);
                     JsonObject rebootInfoJson;
@@ -3662,12 +3662,12 @@ namespace WPEFramework {
 		bool optout = false;
 		bool result = true;
                 bool retVal = false;
-                char lines[32] = {'\0'};
+                char buffer[32] = {'\0'};
                 string optStatus = "";
 
-                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, lines);
-                if (retVal) {
-                    optStatus = strtok(lines," ");
+                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, buffer, sizeof(buffer));
+                if (retVal && strlen(buffer)) {
+                    optStatus = strtok(buffer," ");
                     if ("true" == optStatus) {
                        optout = true;
                     } else {
