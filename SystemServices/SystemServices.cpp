@@ -144,13 +144,11 @@ bool setGzEnabled(bool enabled)
 bool isGzEnabledHelper(bool& enabled)
 {
     bool retVal = false;
+    string gzEnabled;
 
-    char lines[32] = {'\0'};
-    string gzStatus = "";
-    retVal = getFileContentToCharBuffer(GZ_STATUS.c_str(), lines);
-    if (retVal) {
-        gzStatus = strtok(lines," ");
-        if ("true" == gzStatus) {
+    retVal = getFileContent(GZ_STATUS.c_str(), gzEnabled);
+    if (retVal && gzEnabled.length()) {
+        if (gzEnabled.find("true") != string::npos) {
             enabled = true;
         } else {
             enabled = false;
@@ -2573,16 +2571,15 @@ namespace WPEFramework {
             uint8_t parseStatus = 0;
             JsonObject respData;
             string timestamp, source, reason, customReason, lastHardPowerReset;
-            char rebootInfo[1024] = {'\0'};
-            char hardPowerInfo[1024] = {'\0'};
+            string rebootInfo;
+            string hardPowerInfo;
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
-                if (retAPIStatus && strlen(rebootInfo)) {
-                    string dataBuf(rebootInfo);
+                if (retAPIStatus && rebootInfo.length()) {
                     JsonObject rebootInfoJson;
-                    rebootInfoJson.FromString(dataBuf);
+                    rebootInfoJson.FromString(rebootInfo);
                     timestamp = rebootInfoJson["timestamp"].String();
                     source = rebootInfoJson["source"].String();
                     reason = rebootInfoJson["reason"].String();
@@ -2596,10 +2593,9 @@ namespace WPEFramework {
             }
 
             if (Utils::fileExists(SYSTEM_SERVICE_HARD_POWER_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_HARD_POWER_INFO_FILE, hardPowerInfo);
-                if (retAPIStatus && strlen(hardPowerInfo)) {
-                    string dataBuf(hardPowerInfo);
+                if (retAPIStatus && hardPowerInfo.length()) {
                     JsonObject hardPowerInfoJson;
                     hardPowerInfoJson.FromString(hardPowerInfo);
                     lastHardPowerReset = hardPowerInfoJson["lastHardPowerReset"].String();
@@ -2636,13 +2632,12 @@ namespace WPEFramework {
             bool retAPIStatus = false;
             uint8_t parseStatus = 0;
             string reason;
-            char rebootInfo[1024] = {'\0'};
+            string rebootInfo;
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
-                if (retAPIStatus && strlen(rebootInfo)) {
-                    string dataBuf(rebootInfo);
+                if (retAPIStatus && rebootInfo.length()) {
                     JsonObject rebootInfoJson;
                     rebootInfoJson.FromString(rebootInfo);
                     reason = rebootInfoJson["reason"].String();
@@ -3009,12 +3004,12 @@ namespace WPEFramework {
         uint32_t SystemServices::isGZEnabled(const JsonObject& parameters,
                 JsonObject& response)
         {
-		bool enabled = false;
-		bool result = true;
+            bool enabled = false;
 
-		isGzEnabledHelper(enabled);
-		response["enabled"] = enabled;
-		returnResponse(result);
+            isGzEnabledHelper(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
         } //end of isGZEnbaled
 
         /***
@@ -3659,24 +3654,21 @@ namespace WPEFramework {
         uint32_t SystemServices::isOptOutTelemetry(const JsonObject& parameters,
                 JsonObject& response)
         {
-		bool optout = false;
-		bool result = true;
-                bool retVal = false;
-                char lines[32] = {'\0'};
-                string optStatus = "";
+            bool optout = false;
+            string optOutStatus;
 
-                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, lines);
-                if (retVal) {
-                    optStatus = strtok(lines," ");
-                    if ("true" == optStatus) {
-                       optout = true;
-                    } else {
-                       optout = false;
-                    }
+            bool retVal = getFileContent(OPTOUT_TELEMETRY_STATUS, optOutStatus);
+            if (retVal && optOutStatus.length()) {
+                if (optOutStatus.find("true") != string::npos) {
+                    optout = true;
+                } else {
+                    optout = false;
                 }
-                LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
-		response["Opt-Out"] = optout;
-		returnResponse(result);
+            }
+
+            LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
+            response["Opt-Out"] = optout;
+            returnResponse(true);
         } //end of isOptOutTelemetry
 
         uint32_t SystemServices::getStoreDemoLink(const JsonObject& parameters, JsonObject& response)

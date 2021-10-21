@@ -175,7 +175,7 @@ void setJSONResponseArray(JsonObject& response, const char* key,
         const vector<string>& items);
 
 /***
- * @brief	: Used to read file contents into a vector
+ * @brief	: Used to read file contents into a string
  * @param1[in]	: Complete file name with path
  * @param2[out]	: Destination string object filled with file contents
  * @return	: <bool>; TRUE if operation success; else FALSE.
@@ -189,14 +189,6 @@ bool getFileContent(std::string fileName, std::string& fileContent);
  * @return : <bool>; TRUE if operation success; else FALSE.
  */
 bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
-
-/***
- * @brief  : Used to read file contents into a C char array/buffer
- * @param1[in] : Complete file name with path
- * @param2[in] : Destination C char buffer to be filled with file contents
- * @return : <bool>; TRUE if operation success; else FALSE.
- */
-bool getFileContentToCharBuffer(std::string fileName, char *pBuffer);
 
 /***
  * @brief	: Used to search for files in the given directory
