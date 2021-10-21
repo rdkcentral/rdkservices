@@ -81,6 +81,8 @@ using namespace std;
 
 #define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
 
+#define REGEX_UNALLOWABLE_INPUT "[^[:alnum:]_-]{1}"
+
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
 
@@ -295,6 +297,8 @@ namespace WPEFramework {
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
+            regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -402,11 +406,14 @@ namespace WPEFramework {
             registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
 #endif
             registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
+            GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
+                &SystemServices::getPlatformConfiguration, this);
         }
 
 
         SystemServices::~SystemServices()
-        {       
+        {
+            regfree (&m_regexUnallowedChars);
         }
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
@@ -775,6 +782,16 @@ namespace WPEFramework {
             if (parameters.HasLabel("params")) {
                 queryParams = parameters["params"].String();
                 removeCharsFromString(queryParams, "[\"]");
+
+                regmatch_t  m_regmatchUnallowedChars[1];
+                if (REG_NOERROR == regexec(&m_regexUnallowedChars, queryParams.c_str(), 1, m_regmatchUnallowedChars, 0))
+                {
+                    response["message"] = "Input has unallowable characters";
+                    LOGERR("Input has unallowable characters: '%s'", queryParams.c_str());
+
+                    returnResponse(false);
+                }
+
             }
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
@@ -1673,7 +1690,6 @@ namespace WPEFramework {
                 curlResponse = data;
                 free(data);
                 curl_easy_cleanup(curl);
-                curl_global_cleanup();
             }
             if (CURLE_OK == res) {
                 /* Eg: {"paramList":[{"name":"Device.DeviceInfo.SerialNumber",
@@ -3788,6 +3804,18 @@ namespace WPEFramework {
           }
 
           returnResponse(result);
+        }
+
+        uint32_t SystemServices::getPlatformConfiguration(const JsonObject &parameters, PlatformCaps &response)
+        {
+          LOGINFOMETHOD();
+
+          const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
+
+          response.Load(query);
+
+          LOGTRACEMETHODFIN();
+          return Core::ERROR_NONE;
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
