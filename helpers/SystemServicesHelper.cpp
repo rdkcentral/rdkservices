@@ -240,7 +240,7 @@ void setJSONResponseArray(JsonObject& response, const char* key,
 }
 
 /***
- * @brief	: Used to read file contents into a vector
+ * @brief	: Used to read file contents into a string
  * @param1[in]	: Complete file name with path
  * @param2[out]	: Destination string object filled with file contents
  * @return	: <bool>; TRUE if operation success; else FALSE.
@@ -281,39 +281,6 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
     }
     inFile.close();
     return retStatus;
-}
-
-/***
- * @brief	: Used to read file contents into a C char array/buffer
- * @param1[in]	: Complete file name with path
- * @param2[in]	: Destination C char buffer to be filled with file contents
- * @return	: <bool>; TRUE if operation success; else FALSE.
- */
-bool getFileContentToCharBuffer(std::string fileName, char* pBuffer)
-{
-    bool retStat = false;
-    long numbytes = 0;
-    std::string str;
-    std::ifstream inFile(fileName.c_str());
-
-    if (!inFile.is_open()) {
-        return retStat;
-    }
-
-    numbytes = inFile.tellg();
-    fprintf(stdout, "getFileContentToCharBuffer : numbytes = %ld\n", numbytes);
-
-    std::strcpy(pBuffer, str.c_str());
-    while (std::getline(inFile, str)) {
-        std::strcat(pBuffer, str.c_str());
-        if (!inFile.eof()) {
-            std::strcat(pBuffer, "\n");
-        }
-    }
-    retStat = true;
-    inFile.close();
-
-    return retStat;
 }
 
 /***
