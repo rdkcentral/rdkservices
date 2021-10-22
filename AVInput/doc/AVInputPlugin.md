@@ -157,7 +157,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.currentVideoMode | string | The current video mode |
-| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -254,7 +254,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.numberOfInputs | number | The number of inputs that are available for selection |
-| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example

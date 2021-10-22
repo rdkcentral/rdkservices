@@ -66,7 +66,7 @@
                         "example": "Unknown"
                     },
                     "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed.",
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
                         "type": "string",
                         "example": "Success"
                     },
@@ -117,7 +117,7 @@
                         "example": 1
                     },
                     "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed.",
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
                         "type": "string",
                         "example": "Success"
                     },
