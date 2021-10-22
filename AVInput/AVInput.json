@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "AVInput API", 
+        "title": "AVInput API",
         "class": "AVInput", 
         "description": "The `AVInput` API facilitates interactions with the Parker STB HDMI input. The HDMI input is presented by using a `VideoResource` whose url starts with `avin:`. For example: `avin://input1`."
     },
@@ -66,7 +66,7 @@
                         "example": "Unknown"
                     },
                     "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed.",
                         "type": "string",
                         "example": "Success"
                     },
@@ -117,7 +117,7 @@
                         "example": 1
                     },
                     "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not found or activation failed.",
                         "type": "string",
                         "example": "Success"
                     },
