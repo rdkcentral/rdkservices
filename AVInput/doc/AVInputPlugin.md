@@ -87,6 +87,7 @@ AVInput interface methods:
 | :-------- | :-------- |
 | [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
 | [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
+| [getApiVersionNumber](#method.getApiVersionNumber) | Returns the major version number of API |
 | [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
 
 
@@ -116,7 +117,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.AVInput.1.contentProtected",
     "params": {}
 }
@@ -127,7 +128,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "isContentProtected": true,
         "success": true
@@ -138,7 +139,11 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 <a name="method.currentVideoMode"></a>
 ## *currentVideoMode <sup>method</sup>*
 
-Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.
+Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -152,6 +157,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.currentVideoMode | string | The current video mode |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -161,7 +167,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.AVInput.1.currentVideoMode",
     "params": {}
 }
@@ -172,9 +178,56 @@ Returns a string encoding the video mode being supplied by the device currently 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "currentVideoMode": "Unknown",
+        "message": "Success",
+        "success": true
+    }
+}
+```
+
+<a name="method.getApiVersionNumber"></a>
+## *getApiVersionNumber <sup>method</sup>*
+
+Returns the major version number of API. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.version | number | The major version number of the API Plugin |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.getApiVersionNumber"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "version": 1,
         "success": true
     }
 }
@@ -183,7 +236,11 @@ Returns a string encoding the video mode being supplied by the device currently 
 <a name="method.numberOfInputs"></a>
 ## *numberOfInputs <sup>method</sup>*
 
-Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
+Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -197,6 +254,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.numberOfInputs | number | The number of inputs that are available for selection |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -206,7 +264,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.AVInput.1.numberOfInputs",
     "params": {}
 }
@@ -217,9 +275,10 @@ Returns an integer that specifies the number of available inputs. For example, a
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "numberOfInputs": 1,
+        "message": "Success",
         "success": true
     }
 }

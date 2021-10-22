@@ -47,11 +47,11 @@
                 "required": [
                     "isContentProtected",
                     "success"
-                ]           
+                ]
             }
         },
         "currentVideoMode": {
-            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.",
+            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. \n \n### Events\n \n No Events.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -61,9 +61,14 @@
                 "type":"object",
                 "properties": {
                     "currentVideoMode" : {
-                        "summary": "The current video mode",
+                        "summary": "The current video mode.",
                         "type":"string",
                         "example": "Unknown"
+                    },
+                    "message": {
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                        "type": "string",
+                        "example": "Success"
                     },
                     "success": {
                         "$ref": "#/definitions/success"
@@ -71,13 +76,33 @@
                 },
                 "required": [
                     "currentVideoMode",
+                    "message",
                     "success"
-                ]           
+                ]
             }
-
+        },
+        "getApiVersionNumber": {
+            "summary":"Returns the major version number of API. \n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "summary": "The major version number of the API Plugin",
+                        "type": "number",
+                        "example": 1
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "version",
+                    "success"
+                ]
+            }
         },
         "numberOfInputs" : {
-            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
+            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. \n \n### Events\n \n No Events.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -91,12 +116,18 @@
                         "type":"number",
                         "example": 1
                     },
+                    "message": {
+                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                        "type": "string",
+                        "example": "Success"
+                    },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
                     "numberOfInputs",
+                    "message",
                     "success"
                 ]
             }
@@ -118,7 +149,6 @@
                     "url"
                 ]
             }
-
         },
         "onAVInputInActive": {
             "summary": "Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive",
@@ -130,15 +160,12 @@
                         "type": "string",
                         "example": "avin://input0"
                     }
-
                 },
                 "required": [
                     "url"
                 ]
                 
             }
-
         }
-
     }
 }
