@@ -38,18 +38,16 @@
             "summary": "The application name associated with `appPid`",
             "type":"string",
             "example": "TTSEngine"
-            
         },
         "memoryMB": {
             "summary": "The total memory used by an application in Megabytes",
             "type":"integer",
             "example": 6
         }
-         
     },
     "methods": {
         "enableMonitoring":{
-            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals",
+            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onMemoryThresholdOccured` | Triggered when an application exceeds the given memory threshold | \n | `onCPUThresholdOccured` | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |",
             "events": [
                 "onCPUThresholdOccurred",
                 "onMemoryThresholdOccurred"
@@ -95,27 +93,24 @@
                         "type": "string",
                         "example": "0.02"
                     },
-                    "CPU check interval":{
+                    "cpuIntervalSeconds":{
                         "summary": "The CPU check interval in seconds",
                         "type": "string",
                         "example": "0.02"
                     }
-
                 },
                 "required": [
                     "config",
                     "memoryIntervalSeconds",
-                    "CPU check interval"
+                    "cpuIntervalSeconds"
                 ]
-                
             },
             "result": {
                 "$ref": "#/definitions/result"
             }
-
         },
         "disableMonitoring":{
-            "summary": "Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.",
+            "summary": "Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.\n \n### Events \n \nNo events",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -126,7 +121,7 @@
             }
         },
         "getApplicationMemoryUsage": {
-            "summary": "Returns memory usage for a specific monitor-enabled application",
+            "summary": "Returns memory usage for a specific monitor-enabled application.\n \n### Events \n \nNo events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -172,7 +167,7 @@
             }
         },
         "getAllMemoryUsage": {
-            "summary": "Returns memory usage for all monitoring-enabled applications",
+            "summary": "Returns memory usage for all monitoring-enabled applications.\n \n### Events \n \nNo events",
             "params": {
                 "summary": "An empty param object",
                 "type": "object",
@@ -217,7 +212,7 @@
                     "freeMemoryMB",
                     "applicationMemory",
                     "success"
-                ]               
+                ]
             }
         }
     },
@@ -268,6 +263,5 @@
                 ]
             }
         }
-        
     }
 }
