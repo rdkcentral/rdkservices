@@ -56,15 +56,9 @@ namespace WPEFramework
     {
         SERVICE_REGISTRATION(ScreenCapture, 1, 0);
 
-        ScreenCapture* ScreenCapture::_instance = nullptr;
-
         ScreenCapture::ScreenCapture()
         : AbstractPlugin()
         {
-            ScreenCapture::_instance = this;
-
-            screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
-
             #ifdef PLATFORM_BROADCOM
             inNexus = false;
             #endif
@@ -81,10 +75,15 @@ namespace WPEFramework
         {
         }
 
+        /* virtual */ const string ScreenCapture::Initialize(PluginHost::IShell*)
+        {
+            screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
+    
+            return { };
+        }
+
         void ScreenCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
-            ScreenCapture::_instance = nullptr;
-
             delete screenShotDispatcher;
         }
 
@@ -236,7 +235,7 @@ namespace WPEFramework
             got_screenshot = getScreenshotRealtek(png_data);
             #endif
 
-            doUploadScreenCapture(png_data, got_screenshot);
+            return doUploadScreenCapture(png_data, got_screenshot);
         }
 
         bool ScreenCapture::doUploadScreenCapture(const std::vector<unsigned char> &png_data, bool got_screenshot)
