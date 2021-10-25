@@ -28,6 +28,7 @@
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
 #include <interfaces/json/JWebBrowser.h>
+#include <interfaces/json/JBrowserSecurity.h>
 
 namespace WPEFramework {
 
@@ -146,6 +147,7 @@ namespace Plugin {
             : _skipURL(0)
             , _service(nullptr)
             , _browser(nullptr)
+            , _browserSecurity(nullptr)
             , _memory(nullptr)
             , _application(nullptr)
             , _notification(this)
@@ -178,6 +180,7 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IBrowser, _browser)
         INTERFACE_AGGREGATE(Exchange::IApplication, _application)
         INTERFACE_AGGREGATE(Exchange::IWebBrowser, _browser)
+        INTERFACE_AGGREGATE(Exchange::IBrowserSecurity, _browser)
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
         END_INTERFACE_MAP
 
@@ -237,6 +240,7 @@ namespace Plugin {
         uint32_t _connectionId;
         PluginHost::IShell* _service;
         Exchange::IWebBrowser* _browser;
+        Exchange::IBrowserSecurity* _browserSecurity;
         Exchange::IMemory* _memory;
         Exchange::IApplication* _application;
         Core::Sink<Notification> _notification;
