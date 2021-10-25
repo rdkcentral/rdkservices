@@ -95,6 +95,12 @@ ActivityMonitor interface methods:
 ## *enableMonitoring <sup>method</sup>*
 
 Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onMemoryThresholdOccured` | Triggered when an application exceeds the given memory threshold | 
+ | `onCPUThresholdOccured` | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |.
 
 Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThresholdOccurred](#event.onMemoryThresholdOccurred)
 
@@ -110,7 +116,7 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
 | params.config[#].cpuThresholdPercent | integer | The maximum CPU usage percent allowed before triggering an `onCPUThresholdOccurred` event |
 | params.config[#].cpuThresholdSeconds | integer | The maximum duration, in seconds, that the CPU usage percent must be exceeded before triggering an `onCPUThresholdOccurred` event |
 | params.memoryIntervalSeconds | string | The memory check interval in seconds |
-| params.CPU check interval | string | The CPU check interval in seconds |
+| params.cpuIntervalSeconds | string | The CPU check interval in seconds |
 
 ### Result
 
@@ -126,7 +132,7 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ActivityMonitor.1.enableMonitoring",
     "params": {
         "config": [
@@ -138,7 +144,7 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
             }
         ],
         "memoryIntervalSeconds": "0.02",
-        "CPU check interval": "0.02"
+        "cpuIntervalSeconds": "0.02"
     }
 }
 ```
@@ -148,7 +154,7 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -159,6 +165,10 @@ Also see: [onCPUThresholdOccurred](#event.onCPUThresholdOccurred), [onMemoryThre
 ## *disableMonitoring <sup>method</sup>*
 
 Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
@@ -180,7 +190,7 @@ Disables monitoring for all applications. Monitoring stops immediately even if t
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ActivityMonitor.1.disableMonitoring",
     "params": {}
 }
@@ -191,7 +201,7 @@ Disables monitoring for all applications. Monitoring stops immediately even if t
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -202,6 +212,10 @@ Disables monitoring for all applications. Monitoring stops immediately even if t
 ## *getApplicationMemoryUsage <sup>method</sup>*
 
 Returns memory usage for a specific monitor-enabled application.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
@@ -228,7 +242,7 @@ Returns memory usage for a specific monitor-enabled application.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ActivityMonitor.1.getApplicationMemoryUsage",
     "params": {
         "pid": 6763
@@ -241,7 +255,7 @@ Returns memory usage for a specific monitor-enabled application.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "applicationMemory": {
             "appPid": 6763,
@@ -257,6 +271,10 @@ Returns memory usage for a specific monitor-enabled application.
 ## *getAllMemoryUsage <sup>method</sup>*
 
 Returns memory usage for all monitoring-enabled applications.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
@@ -284,7 +302,7 @@ Returns memory usage for all monitoring-enabled applications.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ActivityMonitor.1.getAllMemoryUsage",
     "params": {}
 }
@@ -295,7 +313,7 @@ Returns memory usage for all monitoring-enabled applications.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "freeMemoryMB": 100,
         "applicationMemory": [
