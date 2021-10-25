@@ -38,6 +38,7 @@
 #include <WPE/WebKit/WKNotificationManager.h>
 #include <WPE/WebKit/WKNotificationPermissionRequest.h>
 #include <WPE/WebKit/WKNotificationProvider.h>
+#include <WPE/WebKit/WKPreferencesRef.h>
 #include <WPE/WebKit/WKSoupSession.h>
 #include <WPE/WebKit/WKUserMediaPermissionRequest.h>
 #include <WPE/WebKit/WKErrorRef.h>
@@ -348,6 +349,7 @@ static GSourceFuncs _handlerIntervention =
     class WebKitImplementation : public Core::Thread,
                                  public Exchange::IBrowser,
                                  public Exchange::IWebBrowser,
+                                 public Exchange::IBrowserSecurity,
                                  public Exchange::IApplication,
                                  public PluginHost::IStateControl {
     public:
@@ -732,6 +734,7 @@ static GSourceFuncs _handlerIntervention =
             , _unresponsiveReplyNum(0)
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
+            , _allowMixedContent(false)
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -769,6 +772,8 @@ static GSourceFuncs _handlerIntervention =
         uint32_t HTTPCookieAcceptPolicy(const HTTPCookieAcceptPolicyType policy) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t BridgeReply(const string& payload) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t BridgeEvent(const string& payload) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t MixedContentPolicy(MixedContentPolicyType& policy) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t MixedContentPolicy(const MixedContentPolicyType policy) override { return Core::ERROR_UNAVAILABLE; }
 #else
         uint32_t HeaderList(string& headerlist) const override
         {
@@ -1014,7 +1019,52 @@ static GSourceFuncs _handlerIntervention =
                     delete static_cast<BridgeMessageData*>(customdata);
                 });
         }
+
+        uint32_t MixedContentPolicy(MixedContentPolicyType& policy) const override
+        {
+            _adminLock.Lock();
+            policy = _allowMixedContent ? MixedContentPolicyType::ALLOWED : MixedContentPolicyType::BLOCKED;
+            _adminLock.Unlock();
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t MixedContentPolicy(const MixedContentPolicyType policy) override
+        {
+            if (_context == nullptr) {
+                return Core::ERROR_GENERAL;
+            }
+
+            const auto allowMixedContent = (policy == MixedContentPolicyType::ALLOWED);
+
+            using SetMixedContentPolicyData = std::tuple<WebKitImplementation*, bool>;
+            auto* data = new SetMixedContentPolicyData(this, allowMixedContent);
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<SetMixedContentPolicyData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    const bool allowMixedContent = std::get<1>(data);
+
+                    object->_adminLock.Lock();
+                    object->_allowMixedContent = allowMixedContent;
+                    object->_adminLock.Unlock();
+
+                    auto group = WKPageGetPageGroup(object->_page);
+                    auto preferences = WKPageGroupGetPreferences(group);
+                    WKPreferencesSetAllowRunningOfInsecureContent(preferences, allowMixedContent);
+                    WKPreferencesSetAllowDisplayOfInsecureContent(preferences, allowMixedContent);
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetMixedContentPolicyData*>(customdata);
+                });
+            return Core::ERROR_NONE;
+        }
 #endif
+        uint32_t SecurityProfile(string& profile) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t SecurityProfile(const string& profile) override { return Core::ERROR_UNAVAILABLE; }
 
         uint32_t CollectGarbage() override
         {
@@ -1837,6 +1887,7 @@ static GSourceFuncs _handlerIntervention =
         BEGIN_INTERFACE_MAP(WebKitImplementation)
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
+        INTERFACE_ENTRY(Exchange::IBrowserSecurity)
         INTERFACE_ENTRY (Exchange::IApplication)
         INTERFACE_ENTRY(PluginHost::IStateControl)
         END_INTERFACE_MAP
@@ -2246,13 +2297,12 @@ static GSourceFuncs _handlerIntervention =
 
             auto preferences = WKPreferencesCreate();
 
-            // Allow mixed content.
-            bool allowMixedContent = _config.Secure.Value();
-            WKPreferencesSetAllowRunningOfInsecureContent(preferences, !allowMixedContent);
-            WKPreferencesSetAllowDisplayOfInsecureContent(preferences, !allowMixedContent);
+            _allowMixedContent = !_config.Secure.Value();
+            WKPreferencesSetAllowRunningOfInsecureContent(preferences, _allowMixedContent);
+            WKPreferencesSetAllowDisplayOfInsecureContent(preferences, _allowMixedContent);
 
             // WebSecurity
-            WKPreferencesSetWebSecurityEnabled(preferences, allowMixedContent);
+            WKPreferencesSetWebSecurityEnabled(preferences, !_allowMixedContent);
 
             // Turn off log message to stdout.
             WKPreferencesSetLogsPageMessagesToSystemConsoleEnabled(preferences, _config.LogToSystemConsoleEnabled.Value());
@@ -2534,6 +2584,7 @@ static GSourceFuncs _handlerIntervention =
         uint32_t _unresponsiveReplyNum;
         unsigned _frameCount;
         gint64 _lastDumpTime;
+        bool _allowMixedContent;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);

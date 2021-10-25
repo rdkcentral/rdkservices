@@ -96,6 +96,13 @@ namespace Plugin {
         } else {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
+
+            _browserSecurity = _browser->QueryInterface<Exchange::IBrowserSecurity>();
+            if (!_browserSecurity) {
+                TRACE(Trace::Error, (_T("Failed to get IBrowserSecurity interface")));
+            } else {
+                Exchange::JBrowserSecurity::Register(*this, _browserSecurity);
+            }
         }
 
         return message;
@@ -118,6 +125,12 @@ namespace Plugin {
         _application->Release();
         Exchange::JWebBrowser::Unregister(*this);
         UnregisterAll();
+
+        if (_browserSecurity) {
+            Exchange::JBrowserSecurity::Unregister(*this);
+            _browserSecurity->Release();
+            _browserSecurity = nullptr;
+        }
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
 
