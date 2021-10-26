@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.DeviceDiagnostics plugin for Thunder framework.
+A org.rdk.DeviceDiagnostics plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDeviceDiagnostics.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [DeviceDiagnostics.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DeviceDiagnostics.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -90,7 +98,7 @@ DeviceDiagnostics interface methods:
 
 
 <a name="method.getConfiguration"></a>
-## *getConfiguration <sup>method</sup>*
+## *getConfiguration [<sup>method</sup>](#head.Methods)*
 
 Gets the values associated with the corresponding property names.
  
@@ -124,7 +132,7 @@ No events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DeviceDiagnostics.1.getConfiguration",
     "params": {
         "names": [
@@ -139,7 +147,7 @@ No events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "paramList": [
             {
@@ -153,13 +161,9 @@ No events.
 ```
 
 <a name="method.getAVDecoderStatus"></a>
-## *getAVDecoderStatus <sup>method</sup>*
+## *getAVDecoderStatus [<sup>method</sup>](#head.Methods)*
 
-Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
- 
-### Events 
- 
-No events.
+Gets the most active status of any audio/video decoder/pipeline from the Essos Resource Manager.
 
 ### Parameters
 
@@ -180,7 +184,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DeviceDiagnostics.1.getAVDecoderStatus"
 }
 ```
@@ -190,7 +194,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "AVDecoderStatus": "ACTIVE",
         "success": true
@@ -209,11 +213,11 @@ DeviceDiagnostics interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of audio/video decoder/pipeline changes |
+| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of any audio/video decoder/pipeline changes |
 
 
 <a name="event.onAVDecoderStatusChanged"></a>
-## *onAVDecoderStatusChanged <sup>event</sup>*
+## *onAVDecoderStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the most active status of any audio/video decoder/pipeline changes. This event allows an application to determine the AV status and change the device state accordingly. The status is polled periodically.
 

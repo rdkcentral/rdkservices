@@ -17,19 +17,6 @@
             "type": "string",
             "example": "0"
         },
-        "supportedAudioFormat": {
-            "summary": "A list of supported audio formats",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "example": "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
-            }
-        },
-        "currentAudioFormat": {
-            "summary": "The currently set audio format",
-            "type": "string",
-            "example": "PCM"
-        },
         "audioPort0": {
             "summary": "Audio port name. An error returns if no port is specified.",
             "type": "string",
@@ -167,6 +154,19 @@
             "summary": "The currently decoded audio format. Possible values: `NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT`, `DOLBY TRUEHD`, `DOLBY EAC3 ATMOS`, `DOLBY TRUEHD ATMOS`, `DOLBY MAT ATMOS`, `DOLBY AC4 ATMOS`",
             "type": "string",
             "example": "DOLBY AC3"
+        },
+        "supportedAudioFormat": {
+            "summary": "A list of supported audio formats",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
+            }
+        },
+        "currentAudioFormat": {
+            "summary": "The currently set audio format",
+            "type": "string",
+            "example": "PCM"
         },
         "currentVideoFormat": {
             "summary": "The currently set video format",
@@ -309,7 +309,7 @@
             }
         },
         "getAudioFormat": {
-            "summary": "Returns the currently set audio format",
+            "summary": "Returns the audio format that is currently decoded",
             "result": {
                 "type":"object",
                 "properties": {
