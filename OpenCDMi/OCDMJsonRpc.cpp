@@ -34,12 +34,14 @@ namespace Plugin {
     {
         Property<Core::JSON::ArrayType<DrmData>>(_T("drms"), &OCDM::get_drms, nullptr, this);
         Property<Core::JSON::ArrayType<Core::JSON::String>>(_T("keysystems"), &OCDM::get_keysystems, nullptr, this);
+        Property<Core::JSON::ArrayType<SessionData>>(_T("sessions"), &OCDM::get_sessions, nullptr, this);
     }
 
     void OCDM::UnregisterAll()
     {
         Unregister(_T("keysystems"));
         Unregister(_T("drms"));
+        Unregister(_T("sessions"));
     }
 
     bool OCDM::KeySystems(const string& name, Core::JSON::ArrayType<Core::JSON::String>& response) const
@@ -101,6 +103,27 @@ namespace Plugin {
         return result;
     }
 
+    uint32_t OCDM::get_sessions(Core::JSON::ArrayType<SessionData>& response) const
+    {
+        RPC::IStringIterator* drmsIter(_opencdmi->Systems());
+        if (drmsIter != nullptr) {
+            string system;
+            while (drmsIter->Next(system)) {
+                RPC::IStringIterator * sessionsIter(_opencdmi->Sessions(system));
+                string sessionItem;
+                if (sessionsIter != nullptr) {
+                    while (sessionsIter->Next(sessionItem)) {
+                        SessionData session;
+                        session.Drm = system;
+                        response.Add(session);
+                    }
+                    sessionsIter->Release();
+                }
+            }
+            drmsIter->Release();
+        }
+        return Core::ERROR_NONE;
+    }
 } // namespace Plugin
 
 }
