@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations.
+The `DeviceDiagnostics` plugin provides additional diagnostics information which includes device configuration and AV decoder status.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -86,13 +86,17 @@ DeviceDiagnostics interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
-| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of any audio/video decoder/pipeline |
+| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of audio/video decoder/pipeline |
 
 
 <a name="method.getConfiguration"></a>
 ## *getConfiguration <sup>method</sup>*
 
 Gets the values associated with the corresponding property names.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
@@ -100,7 +104,7 @@ Gets the values associated with the corresponding property names.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.names | array | String array of property names |
-| params.names[#] | string |  |
+| params.names[#] | string | Property names as represented in the data model like `Device.X_CISCO_COM_LED.RedPwm`, `Device.DeviceInfo.Manufacturer`, `Device.DeviceInfo.UpTime`, `Device.DeviceInfo.ProcessStatus.CPUUsage`, etc |
 
 ### Result
 
@@ -109,8 +113,8 @@ Gets the values associated with the corresponding property names.
 | result | object |  |
 | result.paramList | array | An array of JSON objects with the specified properties and their values |
 | result.paramList[#] | object |  |
-| result.paramList[#].name | string | The property name |
-| result.paramList[#].value | string | The property value |
+| result.paramList[#].name | string | The property name; Empty, if the property name is not supported |
+| result.paramList[#].value | string | The property value; Empty, if the property name is not supported |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -151,7 +155,11 @@ Gets the values associated with the corresponding property names.
 <a name="method.getAVDecoderStatus"></a>
 ## *getAVDecoderStatus <sup>method</sup>*
 
-Gets the most active status of any audio/video decoder/pipeline.
+Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
@@ -162,7 +170,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.AVDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| result.AVDecoderStatus | string | The status. If AV decoder status is not supported, the default state will always be IDLE. (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -201,20 +209,20 @@ DeviceDiagnostics interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of any audio/video decoder/pipeline changes |
+| [onAVDecoderStatusChanged](#event.onAVDecoderStatusChanged) | Triggered when the most active status of audio/video decoder/pipeline changes |
 
 
 <a name="event.onAVDecoderStatusChanged"></a>
 ## *onAVDecoderStatusChanged <sup>event</sup>*
 
-Triggered when the most active status of any audio/video decoder/pipeline changes.
+Triggered when the most active status of audio/video decoder/pipeline changes.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.AVDecoderStatus | string | The status (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| params.AVDecoderStatus | string | The status. If AV decoder status is not supported, the default state will always be IDLE. (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
 
 ### Example
 

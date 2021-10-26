@@ -7,6 +7,22 @@
         "description": "The `PlayerInfo` plugin helps to get system supported audio and video codecs"
     },
     "definitions": {
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        },
         "audiocodecs": {
             "description": "Audio Codec supported by the platform",
             "type": "string",
@@ -89,12 +105,163 @@
             ]
         }
     },
+    "methods": {
+        "audiocodecs": {
+            "summary": "Returns the audio codec supported by the platform. \n \n### Events \n \nNo Events.",
+            "result": {
+                "type":"array",
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "AudioUndefined",
+                        "AudioAac",
+                        "AudioAc3",
+                        "AudioAc3Plus",
+                        "AudioDts",
+                        "AudioMpeg1",
+                        "AudioMpeg2",
+                        "AudioMpeg3",
+                        "AudioMpeg4",
+                        "AudioOpus",
+                        "AudioVorbisOgg",
+                        "AudioWav"
+                    ],
+                    "example": "AudioUndefined"
+                }
+            }
+        },
+        "videocodecs": {
+            "summary": "Returns the video codec supported by the platform.\n \n### Events \n \nNo Events.",
+            "result": {
+                "type":"array",
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "VideoUndefined",
+                        "VideoH263",
+                        "VideoH264",
+                        "VideoH265",
+                        "VideoH26510",
+                        "VideoMpeg",
+                        "VideoVp8",
+                        "VideoVp9",
+                        "VideoVp10"
+                    ],
+                    "example": "VideoUndefined"
+                }
+            }
+        }
+    },
     "properties": {
-        "playerinfo": {
+        "playerinfo":{
             "summary": "Player general information",
             "readonly": true,
             "params": {
                 "$ref": "#/definitions/codecs"
+            }
+        },
+        "resolution": {
+            "summary": "Current video playback resolution",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [
+                    "ResolutionUnknown",
+                    "Resolution480I",
+                    "Resolution480P",
+                    "Resolution576I",
+                    "Resolution576P",
+                    "Resolution720P",
+                    "Resolution1080I",
+                    "Resolution1080P",
+                    "Resolution2160P30",
+                    "Resolution2160P60"
+                ],
+                "example": "ResolutionUnknown"
+            }
+        },
+        "isaudioequivalenceenabled": {
+            "summary": "Check for Loudness Equivalence in the platform",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "dolby_atmosmetadata":{
+            "summary": "Atmos capabilities of Sink",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "dolby_soundmode":{
+            "summary": "Current sound mode",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [
+                    "Unknown",
+                    "Mono",
+                    "Stereo",
+                    "Surround",
+                    "Passthru"
+                ],
+                "example": "Unknown"
+            }
+        },
+        "dolby_enableatmosoutput":{
+            "summary": "Audio output enablement for Atmos",
+            "writeonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "dolby_mode":{
+            "summary": "Dolby mode",
+            "params": {
+                "type": "string",
+                "enum": [
+                    "DigitalPcm",
+                    "DigitalPlus",
+                    "DigitalAc3",
+                    "Auto",
+                    "Ms12"
+                ],
+                "example": "DigitalPcm"
+            }
+        }
+    },
+    "events": {
+        "dolby_audiomodechanged": {
+            "summary": "Triggered after the audio sound mode changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "mode":{
+                        "summary": "The sound mode",
+                        "type": "string",
+                        "enum": [
+                            "Unknown",
+                            "Mono",
+                            "Stereo",
+                            "Surround",
+                            "Passthru"
+                        ],
+                        "example": "Unknown"
+                    },
+                    "enable":{
+                        "summary": "",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "mode",
+                    "enable"
+                ]
             }
         }
     }

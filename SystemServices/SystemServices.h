@@ -22,12 +22,14 @@
 
 #include <stdint.h>
 #include <thread>
+#include <regex.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 #include "SystemServicesHelper.h"
+#include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
@@ -111,6 +113,7 @@ namespace WPEFramework {
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 PluginHost::IShell* m_shellService { nullptr };
+                regex_t m_regexUnallowedChars;
 
                 int m_FwUpdateState_LatestEvent;
 
@@ -236,6 +239,10 @@ namespace WPEFramework {
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
                 uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
+#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
+                uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
+#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+                uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

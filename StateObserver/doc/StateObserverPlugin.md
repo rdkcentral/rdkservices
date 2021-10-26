@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.StateObserver plugin for Thunder framework.
+com.comcast.StateObserver plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -22,7 +22,7 @@ org.rdk.StateObserver plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the org.rdk.StateObserver plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
+This document describes purpose and functionality of the com.comcast.StateObserver plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -71,15 +71,15 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.StateObserver*) |
-| classname | string | Class name: *org.rdk.StateObserver* |
+| callsign | string | Plugin instance name (default: *com.comcast.StateObserver*) |
+| classname | string | Class name: *com.comcast.StateObserver* |
 | locator | string | Library name: *libWPEFrameworkStateObserver.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
 
-The following methods are provided by the org.rdk.StateObserver plugin:
+The following methods are provided by the com.comcast.StateObserver plugin:
 
 StateObserver interface methods:
 
@@ -119,7 +119,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.getApiVersionNumber"
+    "method": "com.comcast.StateObserver.1.getApiVersionNumber"
 }
 ```
 
@@ -161,7 +161,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.getName"
+    "method": "com.comcast.StateObserver.1.getName"
 }
 ```
 
@@ -172,7 +172,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
-        "name": "org.rdk.StateObserver",
+        "name": "com.comcast.StateObserver",
         "success": true
     }
 }
@@ -204,7 +204,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.getRegisteredPropertyNames"
+    "method": "com.comcast.StateObserver.1.getRegisteredPropertyNames"
 }
 ```
 
@@ -265,7 +265,7 @@ Returns the values and errors for the specified properties.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.getValues",
+    "method": "com.comcast.StateObserver.1.getValues",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -326,7 +326,7 @@ Register a listener on the specified properties for value change notifications. 
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.registerListeners",
+    "method": "com.comcast.StateObserver.1.registerListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -381,7 +381,7 @@ Sets the API version number.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.setApiVersionNumber",
+    "method": "com.comcast.StateObserver.1.setApiVersionNumber",
     "params": {
         "version": 1
     }
@@ -428,7 +428,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.StateObserver.1.unregisterListeners",
+    "method": "com.comcast.StateObserver.1.unregisterListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -454,7 +454,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 
 Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
-The following events are provided by the org.rdk.StateObserver plugin:
+The following events are provided by the com.comcast.StateObserver plugin:
 
 StateObserver interface events:
 

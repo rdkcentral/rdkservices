@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <script src="WebBridgeSDK.js"></script>
+    <script>
+      class Calculator extends Service {
+        constructor() {
+          super("org.rdk.Calculator");
+          this.registerMethod("add", 1, this.add.bind(this));
+          this.registerMethod("sub", 1, this.sub.bind(this));
+        }
+
+        add(params) {
+          console.log("add(" + JSON.stringify(params) + ")");
+          return new Promise((resolve, reject) => {
+            let sum = params.reduce((a, b) => a + b, 0);
+            resolve(sum);
+          });
+        }
+
+        sub(params) {
+          console.log("sub(" + JSON.stringify(params) + ")");
+          return new Promise((resolve, reject) => {
+            let diff = params[0] - params[1];
+            resolve(diff);
+          });
+        }
+      }
+
+      const service_manager = new ServiceManager();
+      const server_address = "192.168.52.124";
+      service_manager.open({"host":server_address, "port":10001})
+        .then(() => {
+          service_manager.registerService(new Calculator());
+        }).catch(ex => {
+          console.log(ex.error);
+        });
+    </script>
+  </head>
+
+  <body>
+    Check the console window.
+  </body>
+</html>

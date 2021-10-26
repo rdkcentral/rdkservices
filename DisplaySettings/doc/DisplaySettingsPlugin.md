@@ -89,6 +89,7 @@ DisplaySettings interface methods:
 | [getActiveInput](#method.getActiveInput) | Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`) |
 | [getAudioDelay](#method.getAudioDelay) | Returns the audio delay (in ms) on the selected audio port |
 | [getAudioDelayOffset](#method.getAudioDelayOffset) | Returns the audio delay offset (in ms) on the selected audio port |
+| [getAudioFormat](#method.getAudioFormat) | Returns the currently set audio format |
 | [getBassEnhancer](#method.getBassEnhancer) | Returns the current status of the Bass Enhancer settings |
 | [getConnectedAudioPorts](#method.getConnectedAudioPorts) | Returns connected audio output ports (a subset of the ports supported on the device) |
 | [getConnectedVideoDisplays](#method.getConnectedVideoDisplays) | Returns connected video displays |
@@ -118,14 +119,12 @@ DisplaySettings interface methods:
 | [getSupportedSettopResolutions](#method.getSupportedSettopResolutions) | Returns supported STB resolutions |
 | [getSupportedTvResolutions](#method.getSupportedTvResolutions) | Returns supported TV resolutions on the selected video display port |
 | [getSupportedVideoDisplays](#method.getSupportedVideoDisplays) | Returns all video ports supported on the device (all ports that are physically present) |
-| [getSurroundVirtualizer](#method.getSurroundVirtualizer) | Returns the current surround virtualizer boost settings |
-| [getSurroundVirtualizer2](#method.getSurroundVirtualizer2) | (Version 2) Returns the current surround virtualizer boost settings |
+| [getSurroundVirtualizer](#method.getSurroundVirtualizer) | (Version 2) Returns the current surround virtualizer boost settings |
 | [getTVHDRCapabilities](#method.getTVHDRCapabilities) | Gets HDR capabilities supported by the TV |
 | [getTvHDRSupport](#method.getTvHDRSupport) | Returns an HDR support object (list of standards that the TV supports) |
 | [getVideoPortStatusInStandby](#method.getVideoPortStatusInStandby) | Returns video port status in standby mode (failure if the port name is missing) |
 | [getVolumeLevel](#method.getVolumeLevel) | Returns the current volume level |
-| [getVolumeLeveller](#method.getVolumeLeveller) | Returns the current Volume Leveller setting |
-| [getVolumeLeveller2](#method.getVolumeLeveller2) | (Version 2) Returns the current Volume Leveller setting |
+| [getVolumeLeveller](#method.getVolumeLeveller) | (Version 2) Returns the current Volume Leveller setting |
 | [getZoomSetting](#method.getZoomSetting) | Returns the zoom setting value |
 | [isConnectedDeviceRepeater](#method.isConnectedDeviceRepeater) | Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater |
 | [isSurroundDecoderEnabled](#method.isSurroundDecoderEnabled) | Returns the current status of Surround Decoder |
@@ -149,12 +148,10 @@ DisplaySettings interface methods:
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
-| [setSurroundVirtualizer](#method.setSurroundVirtualizer) | Sets the Surround Virtualizer boost |
-| [setSurroundVirtualizer2](#method.setSurroundVirtualizer2) | (Version 2) Sets the Surround Virtualizer boost |
+| [setSurroundVirtualizer](#method.setSurroundVirtualizer) | (Version 2) Sets the Surround Virtualizer boost |
 | [setVideoPortStatusInStandby](#method.setVideoPortStatusInStandby) | Sets the specified video port status to be used in standby mode (failure if the port name is missing) |
 | [setVolumeLevel](#method.setVolumeLevel) | Adjusts the Volume Level on a specific port |
-| [setVolumeLeveller](#method.setVolumeLeveller) | Sets the Volume Leveller level |
-| [setVolumeLeveller2](#method.setVolumeLeveller2) | (Version 2) Sets the Volume Leveller level |
+| [setVolumeLeveller](#method.setVolumeLeveller) | (Version 2) Sets the Volume Leveller level |
 | [setZoomSetting](#method.setZoomSetting) | Sets the current zoom value |
 
 
@@ -352,6 +349,53 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
     "id": 1234567890,
     "result": {
         "audioDelayOffset": "0",
+        "success": true
+    }
+}
+```
+
+<a name="method.getAudioFormat"></a>
+## *getAudioFormat <sup>method</sup>*
+
+Returns the currently set audio format.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.supportedAudioFormat | array | A list of supported audio formats |
+| result.supportedAudioFormat[#] | string |  |
+| result.currentAudioFormat | string | The currently set audio format |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getAudioFormat"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "supportedAudioFormat": [
+            "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
+        ],
+        "currentAudioFormat": "PCM",
         "success": true
     }
 }
@@ -1736,56 +1780,6 @@ This method takes no parameters.
 <a name="method.getSurroundVirtualizer"></a>
 ## *getSurroundVirtualizer <sup>method</sup>*
 
-Returns the current surround virtualizer boost settings.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enable | boolean | `true` if Surround Virtualizer is enabled, otherwise `false` |
-| result.boost | integer | Value between 0 and 96, where 0 means no boost and 96 means maximum boost |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getSurroundVirtualizer",
-    "params": {
-        "audioPort": "SPEAKER0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "enable": true,
-        "boost": 90,
-        "success": true
-    }
-}
-```
-
-<a name="method.getSurroundVirtualizer2"></a>
-## *getSurroundVirtualizer2 <sup>method</sup>*
-
 (Version 2) Returns the current surround virtualizer boost settings.
 
 ### Parameters
@@ -1812,7 +1806,7 @@ Returns the current surround virtualizer boost settings.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getSurroundVirtualizer2",
+    "method": "org.rdk.DisplaySettings.1.getSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2028,56 +2022,6 @@ Returns the current volume level.
 <a name="method.getVolumeLeveller"></a>
 ## *getVolumeLeveller <sup>method</sup>*
 
-Returns the current Volume Leveller setting.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enable | boolean | `true` if Volume Leveller is enabled, otherwise `false` |
-| result.level | integer | Value between 0 and 10, where 0 means no level and 10 means maximum level |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getVolumeLeveller",
-    "params": {
-        "audioPort": "SPEAKER0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "enable": true,
-        "level": 9,
-        "success": true
-    }
-}
-```
-
-<a name="method.getVolumeLeveller2"></a>
-## *getVolumeLeveller2 <sup>method</sup>*
-
 (Version 2) Returns the current Volume Leveller setting.
 
 ### Parameters
@@ -2104,7 +2048,7 @@ Returns the current Volume Leveller setting.
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getVolumeLeveller2",
+    "method": "org.rdk.DisplaySettings.1.getVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -3210,54 +3154,6 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 <a name="method.setSurroundVirtualizer"></a>
 ## *setSurroundVirtualizer <sup>method</sup>*
 
-Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
-| params.boost | integer | Value between 0 and 96, where 0 means no boost and 96 means maximum boost |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.setSurroundVirtualizer",
-    "params": {
-        "audioPort": "SPEAKER0",
-        "boost": 90
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setSurroundVirtualizer2"></a>
-## *setSurroundVirtualizer2 <sup>method</sup>*
-
 (Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.
 
 ### Parameters
@@ -3284,7 +3180,7 @@ Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a 
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.setSurroundVirtualizer2",
+    "method": "org.rdk.DisplaySettings.1.setSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0",
         "mode": 1,
@@ -3406,54 +3302,6 @@ Adjusts the Volume Level on a specific port.
 <a name="method.setVolumeLeveller"></a>
 ## *setVolumeLeveller <sup>method</sup>*
 
-Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
-| params.level | integer | Value between 0 and 10, where 0 means no level and 10 means maximum level |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.setVolumeLeveller",
-    "params": {
-        "audioPort": "SPEAKER0",
-        "level": 9
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setVolumeLeveller2"></a>
-## *setVolumeLeveller2 <sup>method</sup>*
-
 (Version 2) Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
 
 ### Parameters
@@ -3480,7 +3328,7 @@ Sets the Volume Leveller level. Volume Leveler is an advanced volume-control sol
 {
     "jsonrpc": "2.0",
     "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.setVolumeLeveller2",
+    "method": "org.rdk.DisplaySettings.1.setVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0",
         "mode": 1,
@@ -3559,6 +3407,7 @@ DisplaySettings interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [activeInputChanged](#event.activeInputChanged) | Triggered on active input change (RxSense) |
+| [audioFormatChanged](#event.audioFormatChanged) | Triggered when the configured audio format changes |
 | [connectedAudioPortUpdated](#event.connectedAudioPortUpdated) | Triggered when the connected audio port is updated |
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
@@ -3586,6 +3435,35 @@ Triggered on active input change (RxSense).
     "method": "client.events.1.activeInputChanged",
     "params": {
         "activeInput": true
+    }
+}
+```
+
+<a name="event.audioFormatChanged"></a>
+## *audioFormatChanged <sup>event</sup>*
+
+Triggered when the configured audio format changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.supportedAudioFormat | array | A list of supported audio formats |
+| params.supportedAudioFormat[#] | string |  |
+| params.currentAudioFormat | string | The currently set audio format |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.audioFormatChanged",
+    "params": {
+        "supportedAudioFormat": [
+            "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
+        ],
+        "currentAudioFormat": "PCM"
     }
 }
 ```
