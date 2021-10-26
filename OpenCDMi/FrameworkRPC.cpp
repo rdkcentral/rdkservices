@@ -20,6 +20,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "Module.h"
 #include "CENCParser.h"
@@ -647,6 +648,11 @@ namespace Plugin {
                     return (OCDM::OCDM_RESULT)_mediaKeySessionExt->CleanDecryptContext();
                 }
 
+                std::string KeySystem() const
+                {
+                    return _keySystem;
+                }
+
                 BEGIN_INTERFACE_MAP(Session)
                 INTERFACE_ENTRY(::OCDM::ISession)
                 INTERFACE_RELAY(::OCDM::ISessionExt, _mediaKeySessionExt)
@@ -925,6 +931,17 @@ namespace Plugin {
                     return (OCDM::OCDM_RESULT)systemExt->GetSecureStoreHash(secureStoreHash, secureStoreHashLength);
                 }
                 return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+            }
+
+            void GetSessionsDesignators(std::list<string> & list) {
+                _adminLock.Lock();
+                list.clear();
+                std::list<SessionImplementation*>::const_iterator index(_sessionList.begin());
+                while (index != _sessionList.end()) {
+                    list.emplace_back((*index)->KeySystem());
+                    index++;
+                }                
+                _adminLock.Unlock();
             }
 
             BEGIN_INTERFACE_MAP(AccessorOCDM)
@@ -1344,12 +1361,20 @@ namespace Plugin {
         }
         void LoadSessions(const string& keySystem, std::list<string>& designators) const
         {
-            std::map<const std::string, SystemFactory>::const_iterator index(_systemToFactory.begin());
-            while (index != _systemToFactory.end()) {
-                if (keySystem == index->second.Name) {
-                    designators.push_back(index->first);
+            if (_entryPoint) {
+                std::list<string> systemDesignators;
+                LoadDesignators(keySystem, systemDesignators);
+                std::list<string> sessionDesignators;
+                AccessorOCDM * acc = static_cast<AccessorOCDM *>(_entryPoint);
+                acc->GetSessionsDesignators(sessionDesignators);
+                for (auto sessionDesignator: sessionDesignators) {
+                    if ((std::find(systemDesignators.begin(), systemDesignators.end(), sessionDesignator) != systemDesignators.end())) {
+                        designators.emplace_back(sessionDesignator);
+                    }
                 }
-                index++;
+                TRACE(Trace::Information, (_T("Number of: %s sessions: %d"), keySystem.c_str(), designators.size()));
+            } else {
+                TRACE(Trace::Error, (_T("null _entryPoint")));
             }
         }
 
