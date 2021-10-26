@@ -205,6 +205,7 @@ namespace Plugin {
         void UnregisterAll();
         uint32_t get_drms(Core::JSON::ArrayType<JsonData::OCDM::DrmData>& response) const;
         uint32_t get_keysystems(const string& index, Core::JSON::ArrayType<Core::JSON::String>& response) const;
+        uint32_t get_sessions(Core::JSON::ArrayType<JsonData::OCDM::SessionData>& response) const;
 
     private:
         uint8_t _skipURL;
