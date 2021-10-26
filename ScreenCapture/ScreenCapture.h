@@ -103,10 +103,9 @@ namespace WPEFramework {
         public:
             ScreenCapture();
             virtual ~ScreenCapture();
+            virtual const string Initialize(PluginHost::IShell*) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
 
-        public:
-            static ScreenCapture* _instance;
         private:
             std::mutex m_callMutex;
 
