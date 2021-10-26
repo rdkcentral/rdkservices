@@ -122,9 +122,10 @@
                 "Requesting",
                 "Downloading",
                 "Failed",
-                "DownLoad Complete",
+                "Download Complete",
                 "Validation Complete",
-                "Preparing to Reboot"
+                "Preparing to Reboot",
+                "On Hold for opt-out"
             ],
             "type": "string",
             "example": "Download Complete"
@@ -168,7 +169,15 @@
                 "firmwareUpdateDisabled": {
                     "type": "boolean"
                 }
-            }
+            },
+            "required": [
+                "accountId",
+                "x1DeviceId",
+                "XCALSessionTokenAvailable",
+                "experience",
+                "deviceMACAddress",
+                "firmwareUpdateDisabled"
+            ]
         },
         "webBrowser": {
             "type": "object",
@@ -244,7 +253,19 @@
                     "type": "boolean",
                     "example": true
                 }
-            }
+            },
+            "required": [
+                "quirks",
+                "mimeTypeExclusions",
+                "features",
+                "mimeTypes",
+                "model",
+                "deviceType",
+                "supportsTrueSD",
+                "webBrowser",
+                "HdrCapability",
+                "canMixPCMWithSurround"
+            ]
         },
         "result": {
             "type":"object",
@@ -283,6 +304,25 @@
         },
         "clearLastDeepSleepReason":{
             "summary": "Clears the last deep sleep reason",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "deletePersistentPath": {
+            "summary": "(Version 2) Deletes persistent path associated with a callsign",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -660,6 +700,35 @@
                 },
                 "required": [
                     "nwStandby",
+                    "success"
+                ]
+            }
+        },
+        "getPlatformConfiguration": {
+            "summary": "(Version 2) Returns the supported features and device/account info",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
+                        "type": "string"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "AccountInfo": {
+                        "$ref": "#/definitions/accountInfo"
+                    },
+                    "DeviceInfo": {
+                        "$ref": "#/definitions/deviceInfo"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
                     "success"
                 ]
             }
@@ -1225,7 +1294,7 @@
             }
         },
         "removeCacheKey":{
-            "summary": "Requests that the system performs a reboot of the set-top box",
+            "summary": "Removes the specified key from the cache",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1313,7 +1382,7 @@
                     }
                 },
                 "required": [
-                    "key"
+                    "enable"
                 ]
             },
             "result": {
@@ -1499,25 +1568,6 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "callsign": {
-                        "description": "Callsign of the service to delete persistent path",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                },
-                "required": [
-                    "callsign"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
         "uploadLogs": {
             "summary": "(Version 2) Uploads logs to a URL returned by SSR",
             "params": {
@@ -1534,35 +1584,6 @@
             },
             "result": {
                 "$ref": "#/definitions/result"
-            }
-        },
-        "getPlatformConfiguration": {
-            "summary": "(Version 2) Returns the supported features and device/account info",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
-                        "type": "string"
-                    }
-                }
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "AccountInfo": {
-                        "$ref": "#/definitions/accountInfo"
-                    },
-                    "DeviceInfo": {
-                        "$ref": "#/definitions/deviceInfo"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
             }
         }
     },
@@ -1600,6 +1621,11 @@
                         "type": "string",
                         "example": ""
                     },
+                    "rebootImmediately": {
+                        "summary": "",
+                        "type": "boolean",
+                        "example": true
+                    },
                     "firmwareUpdateVersion": {
                         "summary": "The next firmware update version",
                         "type": "string",
@@ -1628,6 +1654,7 @@
                 "required": [
                     "status",
                     "responseString",
+                    "rebootImmediately",
                     "firmwareUpdateVersion",
                     "updateAvailable",
                     "updateAvailableEnum",
@@ -1636,7 +1663,7 @@
             }
         },
         "onFirmwareUpdateStateChange":{
-            "summary": "Triggered when the state of a firmware update changes.  \nState details are:  \n* `0`: Uninitialized - there is no firmware update in progress  \n* `1`: Requesting - requesting firmware update information  \n* `2`: Downloading  \n* `3`: Failed  \n* `4`: Download Complete  \n* `5`: Validation Complete  \n* `6`: Preparing to Reboot",
+            "summary": "Triggered when the state of a firmware update changes.  \nState details are:  \n* `0`: Uninitialized - there is no firmware update in progress  \n* `1`: Requesting - requesting firmware update information  \n* `2`: Downloading  \n* `3`: Failed  \n* `4`: Download Complete  \n* `5`: Validation Complete  \n* `6`: Preparing to Reboot  \n* `7`: On Hold for opt-out",
             "params": {
                 "type" :"object",
                 "properties": {
