@@ -93,7 +93,7 @@ WifiManager interface methods:
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | (Version 2) Returns all available security modes |
 | [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WPS |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
@@ -473,7 +473,7 @@ This method takes no parameters.
 <a name="method.getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes <sup>method</sup>*
 
-Returns the Wifi security modes that the device supports.
+(Version 2) Returns all available security modes.
 
 ### Parameters
 

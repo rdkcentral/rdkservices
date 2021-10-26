@@ -87,12 +87,13 @@ SystemServices interface methods:
 | :-------- | :-------- |
 | [cacheContains](#method.cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#method.clearLastDeepSleepReason) | Clears the last deep sleep reason |
+| [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [enableMoca](#method.enableMoca) | Enables (or disable) Moca support for the platform |
 | [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event |
 | [getAvailableStandbyModes](#method.getAvailableStandbyModes) | Queries the available standby modes |
 | [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
-| [getDeviceInfo](#method.getDeviceInfo) | Collects device details |
+| [getDeviceInfo](#method.getDeviceInfo) | Collects device details available from `/etc/device |
 | [getDownloadedFirmwareInfo](#method.getDownloadedFirmwareInfo) | Returns information about firmware downloads |
 | [getFirmwareDownloadPercent](#method.getFirmwareDownloadPercent) | Gets the current download percentage |
 | [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
@@ -137,8 +138,8 @@ SystemServices interface methods:
 | [setPreferredStandbyMode](#method.setPreferredStandbyMode) | Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes) |
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
+| [setWakeupSrcConfiguration](#method.setWakeupSrcConfiguration) | Sets the device wake-up configuration |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
-| [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
 | [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 
@@ -214,6 +215,52 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.System.1.clearLastDeepSleepReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.deletePersistentPath"></a>
+## *deletePersistentPath <sup>method</sup>*
+
+(Version 2) Deletes persistent path associated with a callsign.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | Callsign of the service to delete persistent path |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.deletePersistentPath",
+    "params": {
+        "callsign": "HtmlApp"
+    }
 }
 ```
 
@@ -455,12 +502,15 @@ This method takes no parameters.
 <a name="method.getDeviceInfo"></a>
 ## *getDeviceInfo <sup>method</sup>*
 
-Collects device details. Sample keys include:  
+Collects device details available from `/etc/device.properties`. Sample keys include:  
 * bluetooth_mac  
 * boxIP  
 * build_type  
 * estb_mac  
 * imageVersion  
+* model_num  
+* make  
+* friendly_id  
 * rf4ce_mac  
 * wifi_mac.
 
@@ -469,7 +519,7 @@ Collects device details. Sample keys include:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.params | array | A list of supported device keys |
+| params.params | array | A list of supported device keys. If no parameters are included, then all keys are returned |
 | params.params[#] | string |  |
 
 ### Result
@@ -477,7 +527,7 @@ Collects device details. Sample keys include:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.estb_mac | string | Value for the specified key name |
+| result.estb_mac | string | Value for the specified key |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2527,6 +2577,54 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 }
 ```
 
+<a name="method.setWakeupSrcConfiguration"></a>
+## *setWakeupSrcConfiguration <sup>method</sup>*
+
+Sets the device wake-up configuration.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.wakeupSrc | integer | The wake-up source as an integer from 0 - 8. (must be one of the following: *WAKEUPSRC_VOICE*, *WAKEUPSRC_PRESENCE_DETECTION*, *WAKEUPSRC_BLUETOOTH*, *WAKEUPSRC_WIFI*, *WAKEUPSRC_IR*, *WAKEUPSRC_POWER_KEY*, *WAKEUPSRC_TIMER*, *WAKEUPSRC_CEC*, *WAKEUPSRC_LAN*) |
+| params.config | integer | `0` to disable the wake-up source configuration, or `1` to enable the wake-up source configuration (must be one of the following: *0*, *1*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.System.1.setWakeupSrcConfiguration",
+    "params": {
+        "wakeupSrc": 3,
+        "config": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.updateFirmware"></a>
 ## *updateFirmware <sup>method</sup>*
 
@@ -2552,52 +2650,6 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.System.1.updateFirmware"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.deletePersistentPath"></a>
-## *deletePersistentPath <sup>method</sup>*
-
-(Version 2) Deletes persistent path associated with a callsign.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.callsign | string | Callsign of the service to delete persistent path |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.deletePersistentPath",
-    "params": {
-        "callsign": "HtmlApp"
-    }
 }
 ```
 
@@ -2767,6 +2819,7 @@ SystemServices interface events:
 
 | Event | Description |
 | :-------- | :-------- |
+| [onFirmwareDownloadProgress](#event.onFirmwareDownloadProgress) | Triggered once per second when firmware download is started |
 | [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#event.onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
@@ -2777,6 +2830,30 @@ SystemServices interface events:
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 
+
+<a name="event.onFirmwareDownloadProgress"></a>
+## *onFirmwareDownloadProgress <sup>event</sup>*
+
+Triggered once per second when firmware download is started. Will be stopped at 100%.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.downloadPercent | number | Download progress |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onFirmwareDownloadProgress",
+    "params": {
+        "downloadPercent": 12
+    }
+}
+```
 
 <a name="event.onFirmwarePendingReboot"></a>
 ## *onFirmwarePendingReboot <sup>event</sup>*

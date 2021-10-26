@@ -122,6 +122,7 @@ DisplaySettings interface methods:
 | [getSurroundVirtualizer](#method.getSurroundVirtualizer) | (Version 2) Returns the current surround virtualizer boost settings |
 | [getTVHDRCapabilities](#method.getTVHDRCapabilities) | Gets HDR capabilities supported by the TV |
 | [getTvHDRSupport](#method.getTvHDRSupport) | Returns an HDR support object (list of standards that the TV supports) |
+| [getVideoFormat](#method.getVideoFormat) | Returns the currently set video format |
 | [getVideoPortStatusInStandby](#method.getVideoPortStatusInStandby) | Returns video port status in standby mode (failure if the port name is missing) |
 | [getVolumeLevel](#method.getVolumeLevel) | Returns the current volume level |
 | [getVolumeLeveller](#method.getVolumeLeveller) | (Version 2) Returns the current Volume Leveller setting |
@@ -145,6 +146,7 @@ DisplaySettings interface methods:
 | [setMISteering](#method.setMISteering) | Enables or Disables Media Intelligent Steering |
 | [setMS12AudioCompression](#method.setMS12AudioCompression) | Sets the audio dynamic range compression level (port HDMI0) |
 | [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
+| [setMS12ProfileSettingsOverride](#method.setMS12ProfileSettingsOverride) | Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode) |
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
@@ -1401,7 +1403,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.soundMode | string | Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU |
+| result.soundMode | string | Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1435,7 +1437,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 <a name="method.getSupportedAudioModes"></a>
 ## *getSupportedAudioModes <sup>method</sup>*
 
-Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  
+Returns a list of strings containing the supported audio modes. If a port name is not specified or `Null`, this returns the supported audio modes of the audio processor (regardless of the the output port). 
 If a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  
 For **Auto** mode in DS5, this API has the following extra specification:  
 * For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  
@@ -1455,7 +1457,7 @@ For **Auto** mode in DS5, this API has the following extra specification:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.supportedAudioModes | array | <sup>*(optional)*</sup> A string [] of supported audio modes |
+| result?.supportedAudioModes | array | <sup>*(optional)*</sup> A string [] of supported audio modes. Example audio modes include `STEREO`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS`,`AUTO (Stereo)` |
 | result?.supportedAudioModes[#] | string | <sup>*(optional)*</sup>  |
 | result.success | boolean | Whether the request succeeded |
 
@@ -1916,6 +1918,53 @@ This method takes no parameters.
             "none"
         ],
         "supportsHDR": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.getVideoFormat"></a>
+## *getVideoFormat <sup>method</sup>*
+
+Returns the currently set video format.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.currentVideoFormat | string | The currently set video format |
+| result.supportedVideoFormat | array | The supported video formats (`NONE`, `SDR`, `HLG`, `HDR10`, `HDR10PLUS`, `DV`) |
+| result.supportedVideoFormat[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.getVideoFormat"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "currentVideoFormat": "HDR10",
+        "supportedVideoFormat": [
+            "HDR10"
+        ],
         "success": true
     }
 }
@@ -2995,6 +3044,60 @@ Sets the selected MS12 audio profile.
 }
 ```
 
+<a name="method.setMS12ProfileSettingsOverride"></a>
+## *setMS12ProfileSettingsOverride <sup>method</sup>*
+
+Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioPort | string | Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.operation | string | The audio profile state |
+| params.profileName | string | An MS12 audio profile name from `getSupportedMS12AudioProfile` |
+| params.ms12SettingsName | string | An ms12 setting name |
+| params.ms12SettingsValue | string | The value to set |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.DisplaySettings.1.setMS12ProfileSettingsOverride",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "operation": "",
+        "profileName": "Sports",
+        "ms12SettingsName": "Dialog Enhance",
+        "ms12SettingsValue": "On"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setMuted"></a>
 ## *setMuted <sup>method</sup>*
 
@@ -3104,7 +3207,7 @@ Possible values:
 <a name="method.setSoundMode"></a>
 ## *setSoundMode <sup>method</sup>*
 
-Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.
+Sets the current sound mode. If the `audioPort` argument value is missing or empty, then  all ports are set. If `DOLBYDIGITAL` or `DOLBYDIGITALPLUS` is selected as the mode, the audio will be forced into this format over the HDMI output(s), even if the format is not identified in the sink EDID.
 
 ### Parameters
 
@@ -3112,7 +3215,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.audioPort | string | Audio port name. An error returns if no port is specified |
-| params.soundMode | string | Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU |
+| params.soundMode | string | Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS` |
 | params.persist | boolean | persists the sound mode |
 
 ### Result
@@ -3410,6 +3513,8 @@ DisplaySettings interface events:
 | [audioFormatChanged](#event.audioFormatChanged) | Triggered when the configured audio format changes |
 | [connectedAudioPortUpdated](#event.connectedAudioPortUpdated) | Triggered when the connected audio port is updated |
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
+| [notifyAudioFormatChange](#event.notifyAudioFormatChange) | Triggered when the configured audio format changes |
+| [notifyVideoFormatChange](#event.notifyVideoFormatChange) | Triggered when the configured video format changes |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
 | [resolutionPreChange](#event.resolutionPreChange) | Triggered on resolution pre-change |
 | [zoomSettingUpdated](#event.zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
@@ -3516,6 +3621,59 @@ Triggered when the connected video display is updated and returns the connected 
     "params": {
         "connectedVideoDisplays": [
             "HDMI0"
+        ]
+    }
+}
+```
+
+<a name="event.notifyAudioFormatChange"></a>
+## *notifyAudioFormatChange <sup>event</sup>*
+
+Triggered when the configured audio format changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audiFormat | string | <sup>*(optional)*</sup> The currently decoded audio format. Possible values: `NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT`, `DOLBY TRUEHD`, `DOLBY EAC3 ATMOS`, `DOLBY TRUEHD ATMOS`, `DOLBY MAT ATMOS`, `DOLBY AC4 ATMOS` |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.notifyAudioFormatChange",
+    "params": {
+        "audiFormat": "DOLBY AC3"
+    }
+}
+```
+
+<a name="event.notifyVideoFormatChange"></a>
+## *notifyVideoFormatChange <sup>event</sup>*
+
+Triggered when the configured video format changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.currentVideoFormat | string | The currently set video format |
+| params.SupportedVideoFormat | array | The supported video formats (`NONE`, `SDR`, `HLG`, `HDR10`, `HDR10PLUS`, `DV`) |
+| params.SupportedVideoFormat[#] | string |  |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.notifyVideoFormatChange",
+    "params": {
+        "currentVideoFormat": "HDR10",
+        "SupportedVideoFormat": [
+            "HDR10"
         ]
     }
 }

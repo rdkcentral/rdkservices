@@ -168,6 +168,19 @@
             "type": "string",
             "example": "DOLBY AC3"
         },
+        "currentVideoFormat": {
+            "summary": "The currently set video format",
+            "type": "string",
+            "example": "HDR10"
+        },
+        "supportedVideoFormat": {
+            "summary": "The supported video formats (`NONE`, `SDR`, `HLG`, `HDR10`, `HDR10PLUS`, `DV`)",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "HDR10"
+            }
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -1246,6 +1259,28 @@
                 ]
             }
         },
+        "getVideoFormat": {
+            "summary": "Returns the currently set video format",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "currentVideoFormat": {
+                        "$ref": "#/definitions/currentVideoFormat"
+                    },
+                    "supportedVideoFormat": {
+                        "$ref": "#/definitions/supportedVideoFormat"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "currentVideoFormat",
+                    "supportedVideoFormat",
+                    "success"
+                ]
+            }
+        },
         "getVideoPortStatusInStandby":{
             "summary": "Returns video port status in standby mode (failure if the port name is missing)",
             "params": {
@@ -1782,6 +1817,47 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setMS12ProfileSettingsOverride":{
+            "summary": "Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "operation": {
+                        "summary": "The audio profile state",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "profileName": {
+                        "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
+                         "type": "string",
+                        "example": "Sports"
+                    },
+                    "ms12SettingsName": {
+                        "summary": "An ms12 setting name",
+                        "type": "string",
+                        "example": "Dialog Enhance"
+                    },
+                    "ms12SettingsValue": {
+                        "summary": "The value to set",
+                        "type": "string",
+                        "example": "On"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "operation",
+                    "profileName",
+                    "ms12SettingsName",
+                    "ms12SettingsValue"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setMuted":{
             "summary": "Mutes or unmutes audio on a specific port",
             "params": {
@@ -2093,7 +2169,7 @@
             }
         },
         "notifyAudioFormatChange":{
-            "summary": "Triggered when the audio format changes",
+            "summary": "Triggered when the configured audio format changes",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2103,6 +2179,24 @@
                 },
                 "required": [
                     "audioFormat"
+                ]
+            }
+        },
+        "notifyVideoFormatChange":{
+            "summary": "Triggered when the configured video format changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "currentVideoFormat": {
+                        "$ref": "#/definitions/currentVideoFormat"
+                    },
+                    "SupportedVideoFormat": {
+                        "$ref": "#/definitions/supportedVideoFormat"
+                    }
+                },
+                "required": [
+                    "currentVideoFormat",
+                    "SupportedVideoFormat"
                 ]
             }
         },

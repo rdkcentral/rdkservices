@@ -86,7 +86,7 @@ DeviceDiagnostics interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
-| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of audio/video decoder/pipeline |
+| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of any audio/video decoder/pipeline from the Essos Resource Manager |
 
 
 <a name="method.getConfiguration"></a>
@@ -215,7 +215,7 @@ DeviceDiagnostics interface events:
 <a name="event.onAVDecoderStatusChanged"></a>
 ## *onAVDecoderStatusChanged <sup>event</sup>*
 
-Triggered when the most active status of audio/video decoder/pipeline changes.
+Triggered when the most active status of any audio/video decoder/pipeline changes. This event allows an application to determine the AV status and change the device state accordingly. The status is polled periodically.
 
 ### Parameters
 
