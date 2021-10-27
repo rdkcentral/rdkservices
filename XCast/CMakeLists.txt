@@ -19,6 +19,7 @@ set(PLUGIN_NAME XCast)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}SecurityUtil REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         XCast.cpp
@@ -27,7 +28,6 @@ add_library(${MODULE_NAME} SHARED
 	../helpers/tptimer.cpp
         ../helpers/utils.cpp)
 
-find_package(RFC)
 find_package(IARMBus)
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -37,10 +37,9 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 add_definitions (-DRT_PLATFORM_LINUX)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
-target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE $ENV{PKG_CONFIG_SYSROOT_DIR}/usr/include/pxcore)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins rtRemote rtCore ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil rtRemote rtCore cjson rfcapi ${IARMBUS_LIBRARIES})
 
 
 install(TARGETS ${MODULE_NAME}
