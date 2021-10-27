@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "Playback Synchronization Plugin",
+      "callsign": "org.rdk.PlaybackSync",
+      "locator": "libWPEFrameworkPlaybackSync.so",
+      "status": "production",
+      "description": "The `PlaybackSync` plugin controls playback synchronization execution. It allows you to setup, join rooms for shared content playback synchronization like a watch party",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "PlaybackSync.json#"
+    }
+}

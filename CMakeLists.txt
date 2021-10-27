@@ -315,6 +315,10 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(PLUGIN_PLAYBACKSYNC)
+    add_subdirectory(PlaybackSync)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

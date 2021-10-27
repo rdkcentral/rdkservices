@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkPlaybackSync.so",
+ "classname":"PlaybackSync",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.PlaybackSync",
+ "autostart":false
+}
