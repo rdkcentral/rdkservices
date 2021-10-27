@@ -94,7 +94,7 @@ DeviceDiagnostics interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getConfiguration](#method.getConfiguration) | Gets the values associated with the corresponding property names |
-| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of any audio/video decoder/pipeline from the Essos Resource Manager |
+| [getAVDecoderStatus](#method.getAVDecoderStatus) | Gets the most active status of audio/video decoder/pipeline |
 
 
 <a name="method.getConfiguration"></a>
@@ -163,7 +163,11 @@ No events.
 <a name="method.getAVDecoderStatus"></a>
 ## *getAVDecoderStatus [<sup>method</sup>](#head.Methods)*
 
-Gets the most active status of any audio/video decoder/pipeline from the Essos Resource Manager.
+Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
+ 
+### Events 
+ 
+No events.
 
 ### Parameters
 
