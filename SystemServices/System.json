@@ -428,12 +428,12 @@
             }
         },
         "getDeviceInfo":{
-            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac",
+            "summary": "Collects device details available from `/etc/device.properties`. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* model_num  \n* make  \n* friendly_id  \n* rf4ce_mac  \n* wifi_mac",
             "params": {
                 "type": "object",
                 "properties": {
                     "params": {
-                        "summary": "A list of supported device keys",
+                        "summary": "A list of supported device keys. If no parameters are included, then all keys are returned.",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -449,7 +449,7 @@
                 "type": "object",
                 "properties": {
                     "estb_mac": {
-                        "summary": "Value for the specified key name",
+                        "summary": "Value for the specified key",
                         "type": "string",
                         "example": "20:F1:9E:EE:62:08"
                     },
@@ -1562,6 +1562,46 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the device wake-up configuration",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "wakeupSrc": {
+                        "summary": "The wake-up source as an integer from 0 - 8.",
+                        "type": "integer",
+                        "enum": [
+                            "WAKEUPSRC_VOICE",
+                            "WAKEUPSRC_PRESENCE_DETECTION",
+                            "WAKEUPSRC_BLUETOOTH",
+                            "WAKEUPSRC_WIFI",
+                            "WAKEUPSRC_IR",
+                            "WAKEUPSRC_POWER_KEY",
+                            "WAKEUPSRC_TIMER",
+                            "WAKEUPSRC_CEC",
+                            "WAKEUPSRC_LAN"
+                        ],
+                        "example": 3
+                    },
+                    "config": {
+                        "summary": "`0` to disable the wake-up source configuration, or `1` to enable the wake-up source configuration",
+                        "type":"integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "wakeupSrc",
+                    "config"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "updateFirmware":{
             "summary": "Initiates a firmware update. This method has no affect if an update is not available",
             "result": {
@@ -1588,6 +1628,22 @@
         }
     },
     "events": {
+        "onFirmwareDownloadProgress":{
+            "summary": "Triggered once per second when firmware download is started. Will be stopped at 100%.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "downloadPercent": {
+                        "summary": "Download progress",
+                        "type": "number",
+                        "example": 12
+                    }
+                },
+                "required": [
+                    "downloadPercent"
+                ]
+            }
+        },
         "onFirmwarePendingReboot":{
             "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {

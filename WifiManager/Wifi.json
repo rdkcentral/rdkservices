@@ -256,7 +256,7 @@
             }
         },
         "getSupportedSecurityModes":{
-            "summary": "Returns the Wifi security modes that the device supports",
+            "summary": "(Version 2) Returns all available security modes",
             "result": {
                 "type": "object",
                 "properties": {
@@ -316,15 +316,18 @@
                                 "type": "integer",
                                 "example": 12
                             },
-			    "NET_WIFI_SECURITY_WPA3_PSK_AES": {
+			                "NET_WIFI_SECURITY_WPA3_PSK_AES": {
                                 "type": "integer",
                                 "example": 13
                             },
-			    "NET_WIFI_SECURITY_WPA3_SAE": {
+			                "NET_WIFI_SECURITY_WPA3_SAE": {
                                 "type": "integer",
                                 "example": 14
                             }
-                        }
+                        },
+                        "required": [
+                            
+                        ]
                     },
                     "success":{
                         "$ref": "#/definitions/success"

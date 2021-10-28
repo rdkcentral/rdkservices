@@ -3537,7 +3537,7 @@ namespace WPEFramework {
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
-                            if(mode == device::AudioStereoMode::kPassThru){
+                            if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -3547,7 +3547,7 @@ namespace WPEFramework {
                             }
                             aPort.setStereoMode(mode.toString(), true);
                         }
-                    }		    
+                    }
 
                     if(types & dsAUDIOARCSUPPORT_eARC) {
                         if(pEnable) {
