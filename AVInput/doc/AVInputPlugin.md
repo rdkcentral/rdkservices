@@ -87,7 +87,6 @@ AVInput interface methods:
 | :-------- | :-------- |
 | [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
 | [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
-| [getApiVersionNumber](#method.getApiVersionNumber) | Returns the major version number of API |
 | [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
 
 
@@ -182,52 +181,6 @@ Returns a string encoding the video mode being supplied by the device currently 
     "result": {
         "currentVideoMode": "Unknown",
         "message": "Success",
-        "success": true
-    }
-}
-```
-
-<a name="method.getApiVersionNumber"></a>
-## *getApiVersionNumber <sup>method</sup>*
-
-Returns the major version number of API. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.version | number | The major version number of the API Plugin |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.AVInput.1.getApiVersionNumber"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "version": 1,
         "success": true
     }
 }
