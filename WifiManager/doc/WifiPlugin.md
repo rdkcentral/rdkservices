@@ -90,14 +90,14 @@ WifiManager interface methods:
 | [connect](#method.connect) | Attempts to connect to the specified SSID with the given passphrase |
 | [disconnect](#method.disconnect) | Disconnects from the SSID |
 | [getConnectedSSID](#method.getConnectedSSID) | Returns the connected SSID information |
-| [getCurrentState](#method.getCurrentState) | Returns the current Wifi States |
+| [getCurrentState](#method.getCurrentState) | Returns the current Wifi State |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
 | [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using Wifi Protected Setup (WPS) |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
-| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Checks whether `onWifiSignalThresholdChanged` event is enabled or not |
-| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode of the Wifi network for future sessions |
+| [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether `onWifiSignalThresholdChanged` event is enabled or not |
+| [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
 | [setEnabled](#method.setEnabled) | Enables or disables the Wifi adapter for this device |
 | [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled) | Enables `signalThresholdChange` events to be triggered |
 | [startScan](#method.startScan) | Scans for available SSIDs |
@@ -107,7 +107,7 @@ WifiManager interface methods:
 <a name="method.cancelWPSPairing"></a>
 ## *cancelWPSPairing <sup>method</sup>*
 
-Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress paring attempt and aborts the current scan. WPS pairing must be in-progress for the operation to get succeed.
+Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed.
 
 ### Parameters
 
@@ -337,12 +337,12 @@ This method takes no parameters.
 <a name="method.getCurrentState"></a>
 ## *getCurrentState <sup>method</sup>*
 
-Returns the current Wifi States. The possible Wifi states are as follows.  
+Returns the current Wifi State. The possible Wifi states are as follows.  
 **Wifi States**  
-* `0`: UNINSTALLED - The device was installed and uninstalled; or it does not have a Wifi radio installed  
+* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed   
 * `1`: DISABLED - The device is installed but not yet enabled  
 * `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  
-* `3`: PAIRING - The device is in process of pairing, but not yet connected to a network  
+* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  
 * `4`: CONNECTING - The device is attempting to connect to a network  
 * `5`: CONNECTED - The device is successfully connected to a network  
 * `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
@@ -546,7 +546,7 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing <sup>method</sup>*
 
-Initiates a connection using Wifi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after 60 seconds, then the WPS pairing will stop, and an error event triggers.
+Initiates a connection using Wifi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after ~3 seconds, then the WPS pairing will stop, and an error event triggers.
 
 ### Parameters
 
@@ -630,7 +630,7 @@ This method takes no parameters.
 <a name="method.isSignalThresholdChangeEnabled"></a>
 ## *isSignalThresholdChangeEnabled <sup>method</sup>*
 
-Checks whether `onWifiSignalThresholdChanged` event is enabled or not.
+Returns whether `onWifiSignalThresholdChanged` event is enabled or not.
 
 ### Parameters
 
@@ -672,7 +672,7 @@ This method takes no parameters.
 <a name="method.saveSSID"></a>
 ## *saveSSID <sup>method</sup>*
 
-Saves the SSID, passphrase, and security mode of the Wifi network for future sessions. If the SSID was previously saved then, the new SSID and passphrase will overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
+Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
 
 ### Parameters
 
@@ -870,7 +870,7 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 <a name="method.stopScan"></a>
 ## *stopScan <sup>method</sup>*
 
-Stops scanning for SSIDs. From the `startScan` method up to the point where this method is called, all discovered SSIDs are still returned.
+Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
 
 ### Parameters
 
@@ -934,12 +934,13 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
  
 | Method | Description | 
 | :-------- | :-------- | 
-| `connect` | Connects the device with given SSID successfully and triggers this event with wifi state CONNECT |
-| `disconnect` | Disconnects the device successfully and triggers this event with wifi state DISCONNECT |
-| `clearSSID` | Clears the SSID successfully and triggers this event  with wifi state DISCONNECT |
-| `initiateWPSPairing` | Pair the device successfully and triggers this event with wifi state CONNECT |
+| `connect` | Triggers this event when the device is connected to the requested SSID and sets the WIFI state as CONNECT following a call to this method |
+| `disconnect` | Triggers this event when the device is disconnected from the connected SSID and sets the WIFI state as DISCONNECT following a call to this method |
+| `clearSSID` | Triggers this event when the saved SSID was cleared and sets the WIFI state as DISCONNECT |
+| `initiateWPSPairing` | Triggers this event when the device is initiated WPS Pairing with the requested SSID and sets the WIFI state as CONNECT |
+| `cancelWPSPairing` | Triggers this event when the device cancelled the WPS Pairing with the paired SSID and sets the WIFI state as DISCONNECT |
  
-Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing).
+Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
 ### Parameters
 
@@ -981,9 +982,9 @@ This event is triggered during below methods call sequence.
  
 | Method | Description | 
 | :-------- | :-------- |
-| `connect` | Failed to connect with SSID and triggers this event with appropriate error code |
-| `initiateWPSPairing` | Failed to pair with WPS device and  triggers this event with appropriate error code |
-| `cancelWPSPairing` | Failed to cancel WPS and  triggers this event with appropriate error code |
+| `connect` | Triggers this event when the requested SSID connection has failed and returns with appropriate error code |
+| `initiateWPSPairing` | Triggers this event with appropriate error code if the WPS pairing has failed |
+| `cancelWPSPairing` | Triggers this event with appropriate error code if the device failed to cancel the existing WPS pairing |
  
 Also see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
@@ -1037,7 +1038,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
  
 | Method | Description | 
 | :-------- | :-------- |
-| `setSignalThresholdChangeEnabled` | Enables the signal threshold change monitoring and triggers this event |
+| `setSignalThresholdChangeEnabled` | This method enables onWifiSignalThresholdChanged event and this event triggers when the device signal crosses the defined threshold value |
  
 Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled).
 
@@ -1071,7 +1072,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
  
 | Method | Description | 
 | :-------- | :-------- |
-| `startScan` | Starts the scans successfully and triggers this event if SSIDs are available |
+| `startScan` | Triggers this event when the external SSIDs are available during scanning |
  
 Also see: [startScan](#method.startScan).
 
