@@ -1322,7 +1322,7 @@
                 "type":"object",
                 "properties": {
                     "videoPortStatusInStandby": {
-                        "summary": "video port status (enabled/disabled) in standby mode",
+                        "summary": "video port status (enabled/disabled) in standby mode in case of success",
                         "type": "boolean",
                         "example": true
                     },

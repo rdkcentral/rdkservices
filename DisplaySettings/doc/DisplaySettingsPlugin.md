@@ -2214,7 +2214,7 @@ Returns video port status in standby mode (failure if the port name is missing).
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.videoPortStatusInStandby | boolean | <sup>*(optional)*</sup> video port status (enabled/disabled) in standby mode |
+| result?.videoPortStatusInStandby | boolean | <sup>*(optional)*</sup> video port status (enabled/disabled) in standby mode in case of success |
 | result?.error_message | string | <sup>*(optional)*</sup> Error message in case of failure |
 | result.success | boolean | Whether the request succeeded |
 
