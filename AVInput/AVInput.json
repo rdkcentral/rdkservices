@@ -81,26 +81,6 @@
                 ]
             }
         },
-        "getApiVersionNumber": {
-            "summary":"Returns the major version number of API. \n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "version": {
-                        "summary": "The major version number of the API Plugin",
-                        "type": "number",
-                        "example": 1
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "version",
-                    "success"
-                ]
-            }
-        },
         "numberOfInputs" : {
             "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. \n \n### Events\n \n No Events.",
             "params": {
