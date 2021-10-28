@@ -89,6 +89,7 @@ MaintenanceManager interface methods:
 | [getMaintenanceStartTime](#method.getMaintenanceStartTime) | Gets the scheduled maintenance start time |
 | [setMaintenanceMode](#method.setMaintenanceMode) | Sets the maintenance mode |
 | [startMaintenance](#method.startMaintenance) | Starts maintenance activities |
+| [stopMaintenance](#method.stopMaintenance) | Stops maintenance activities that are in progress |
 
 
 <a name="method.getMaintenanceActivityStatus"></a>
@@ -258,6 +259,46 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "method": "org.rdk.MaintenanceManager.1.startMaintenance"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.stopMaintenance"></a>
+## *stopMaintenance <sup>method</sup>*
+
+Stops maintenance activities that are in progress.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.MaintenanceManager.1.stopMaintenance"
 }
 ```
 

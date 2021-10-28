@@ -97,6 +97,8 @@ enum {
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
+	HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED,
+	HDMICECSINK_EVENT_CEC_ENABLED,
 };
 
 static char *eventString[] = {
@@ -114,7 +116,9 @@ static char *eventString[] = {
         "shortAudiodesciptorEvent",
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
-        "reportAudioStatusEvent"
+        "reportAudioStatusEvent",
+	"reportAudioDeviceAdded",
+	"reportCecEnabledEvent"
 };
 	
 
@@ -761,7 +765,7 @@ namespace WPEFramework
 				return;
 			}
 
-			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 500);
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 100);
        } 
 
 	   void HdmiCecSink::wakeupFromStandby()
@@ -974,7 +978,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 500);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 100);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -1795,7 +1799,7 @@ namespace WPEFramework
         {
         	int i;
 
-			if(!HdmiCecSink::_instance)
+		if(!HdmiCecSink::_instance)
                 return;
                 if(!(_instance->smConnection))
                     return;
@@ -2037,6 +2041,7 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::addDevice(const int logicalAddress) {
+			JsonObject params;
 
 			if(!HdmiCecSink::_instance)
 				return;
@@ -2052,6 +2057,14 @@ namespace WPEFramework
 				HdmiCecSink::_instance->deviceList[logicalAddress].m_logicalAddress = LogicalAddress(logicalAddress);
 				HdmiCecSink::_instance->m_numberOfDevices++;
 				HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_INFO;
+
+				if(logicalAddress == 0x5)
+				{
+					LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
+					params["status"] = string("success");
+					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED], params)
+				}
+
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
 			 }
 		}
@@ -2318,7 +2331,7 @@ namespace WPEFramework
 					_instance->m_pollThreadState = _instance->m_pollNextState;
 					_instance->m_pollNextState = POLL_THREAD_STATE_NONE;
 				}
-					
+				
 				switch (_instance->m_pollThreadState)  {
 
 				case POLL_THREAD_STATE_POLL :
@@ -2344,8 +2357,8 @@ namespace WPEFramework
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
-						_instance->m_sleepTime = HDMICECSINK_PING_INTERVAL_MS;
-						_instance->m_pollThreadState = POLL_THREAD_STATE_IDLE;
+						_instance->m_sleepTime = 0;
+						_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
 					}
 					else
 					{
@@ -2489,9 +2502,12 @@ namespace WPEFramework
 				break;
 				}
 
-				if ( _instance->m_sleepTime ) {
-					usleep(_instance->m_sleepTime*1000);
-				}
+				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
+				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
+					LOGINFO("Timeout m_pollThreadExit %d\n", _instance->m_pollThreadExit);
+				else
+					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
+
 			}
         }
 
@@ -2545,6 +2561,7 @@ namespace WPEFramework
         void HdmiCecSink::CECEnable(void)
         {
             std::lock_guard<std::mutex> lock(m_enableMutex);
+	    JsonObject params;
             LOGINFO("Entered CECEnable");
             if (cecEnableStatus)
             {
@@ -2589,6 +2606,8 @@ namespace WPEFramework
 				m_pollThread = std::thread(threadRun);
             }
             cecEnableStatus = true;
+	    params["cecEnable"] = string("true");
+            sendNotify(eventString[HDMICECSINK_EVENT_CEC_ENABLED], params);
  
             return;
         }
@@ -2596,6 +2615,7 @@ namespace WPEFramework
         void HdmiCecSink::CECDisable(void)
         {
             std::lock_guard<std::mutex> lock(m_enableMutex);
+	    JsonObject params;
             LOGINFO("Entered CECDisable ");
             if(!cecEnableStatus)
             {
@@ -2618,6 +2638,7 @@ namespace WPEFramework
             {
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadExit = true;
+		m_ThreadExitCV.notify_one();
 
 		try
 		{
@@ -2645,6 +2666,15 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+
+	    for(int i=0; i< 16; i++)
+            {
+		 if (_instance->deviceList[i].m_isDevicePresent)
+	         {
+	 		_instance->deviceList[i].clear();
+	         }
+            }
+
             if(1 == libcecInitStatus)
             {
                 try
@@ -2659,6 +2689,10 @@ namespace WPEFramework
 
             libcecInitStatus--;
             LOGWARN("CEC Disabled %d",libcecInitStatus); 
+
+	   params["cecEnable"] = string("false");
+           sendNotify(eventString[HDMICECSINK_EVENT_CEC_ENABLED], params);
+
             return;
         }
 

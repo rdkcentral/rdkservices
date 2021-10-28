@@ -756,6 +756,9 @@ namespace WPEFramework {
 		 */
 		bool ContinueWatchingImpl::tr181FeatureEnabled()
 		{
+                      #if defined(PLATFORM_AMLOGIC)
+                                  return true;
+                      #endif
 			bool retVal = false;
 
 			// Get RFC value for Continue Watching
@@ -811,6 +814,9 @@ namespace WPEFramework {
 		std::string NetflixContinueWatchingImpl::getApplicationToken()
 		{
 			string encencryptData = readFromJson();
+                      if (encencryptData.empty()) {
+                          return encencryptData;
+                      }
 			int paddingLength = 0;
 			string decodedencryptedtokenbase64;
 
