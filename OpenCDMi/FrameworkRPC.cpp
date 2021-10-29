@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <mutex>
 
 #include "Module.h"
 #include "CENCParser.h"
@@ -29,6 +30,9 @@
 // DRM engines.
 #include <interfaces/IDRM.h>
 #include <interfaces/IContentDecryption.h>
+
+#define INITIALIZATION_RETRY_SLEEP_MS         100         // delay in [ms] after getting CDMi_BUSY_CANNOT_INITIALIZE and retry
+#define INITIALIZATION_MAX_RETRY_COUNTER      50          // number of repetitions in retrying procedure
 
 extern "C" {
 
@@ -732,6 +736,7 @@ namespace Plugin {
                  CDMi::IMediaKeys *system = _parent.KeySystem(keySystem);
 
                  session = nullptr;
+                 bool hadInitializationError = false;
                  if (system != nullptr)
                  {
                      CDMi::IMediaKeySession *sessionInterface = nullptr;
@@ -739,23 +744,31 @@ namespace Plugin {
 
                      // OKe we got a buffer machanism to transfer the raw data, now create
                      // the session.
-                     if (system->CreateMediaKeySession(keySystem, licenseType, 
-                                        initDataType.c_str(), initData, initDataLength, 
-                                        CDMData, CDMDataLength, &sessionInterface) == 0)
+                     for (int i = 0; i < INITIALIZATION_MAX_RETRY_COUNTER; i++)
                      {
-                         if (sessionInterface != nullptr)
-                         {
-                                 SessionImplementation *newEntry = 
-                                    Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
+                        CDMi::CDMi_RESULT result =  system->CreateMediaKeySession(keySystem, licenseType, 
+                                                    initDataType.c_str(), initData, initDataLength, 
+                                                    CDMData, CDMDataLength, &sessionInterface);
+                        if (result == 0)
+                        {
+                            if (hadInitializationError)
+                            {
+                                TRACE(Trace::Warning, (_T("DRM initialization: success after re-trying, send SUCCESS notification")));
+                                _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::SUCCESS);
+                            }
+                            if (sessionInterface != nullptr)
+                            {
+                                SessionImplementation *newEntry = 
+                                   Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
                                                  keySystem, sessionInterface,
                                                 callback, &keyIds);
 
-                                 session = newEntry;
-                                 sessionId = newEntry->SessionId();
+                                session = newEntry;
+                                sessionId = newEntry->SessionId();
 
-                                 _adminLock.Lock();
+                                _adminLock.Lock();
 
-                                 _sessionList.push_front(newEntry);
+                                _sessionList.push_front(newEntry);
                                 
                                 if(false == keyIds.IsEmpty())
                                 {
@@ -766,12 +779,37 @@ namespace Plugin {
                                     }
                                 }
                                 _adminLock.Unlock();
-                         }
-                     }
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            TRACE(Trace::Error, (_T("DRM initialization: failed, result=%08x counter=%d"), result, i));
+                            if (result == CDMi::CDMi_RESULT::CDMi_BUSY_CANNOT_INITIALIZE)
+                            {
+                                if (!hadInitializationError)
+                                {
+                                    hadInitializationError = true;
+                                    TRACE(Trace::Error, (_T("DRM initialization: failed, send BUSY notification")));
+                                    _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::BUSY);
+                                }
+                                usleep(INITIALIZATION_RETRY_SLEEP_MS * 1000);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
                  }
 
                  if (session == nullptr) {
                      TRACE(Trace::Error, (_T("Could not create a DRM session! [%d]"), __LINE__));
+                     if (hadInitializationError)
+                     {
+                        TRACE(Trace::Error, (_T("DRM initialization: failed, send FAILED notification")));
+                        _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::FAILED);
+                     }
                  }
 
                  return (session != nullptr ? ::OCDM::OCDM_RESULT::OCDM_SUCCESS : ::OCDM::OCDM_RESULT::OCDM_S_FALSE);
@@ -1267,6 +1305,27 @@ namespace Plugin {
             return (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(sessions));
         }
 
+        uint32_t Register(IContentDecryption::INotification* notification) override
+        {
+            LockGuard lock(notificationMutex);
+            ASSERT(std::find(_notificationCallbacks.begin(), _notificationCallbacks.end(), notification) == _notificationCallbacks.end());
+            _notificationCallbacks.push_back(notification);
+            notification->AddRef();
+            return (Core::ERROR_NONE);
+        }
+        
+        uint32_t Unregister(IContentDecryption::INotification* notification) override
+        {
+            LockGuard lock(notificationMutex);
+            auto index(std::find(_notificationCallbacks.begin(), _notificationCallbacks.end(), notification));
+            ASSERT(index != _notificationCallbacks.end());
+            if (index != _notificationCallbacks.end()) {
+                (*index)->Release();
+                _notificationCallbacks.erase(index);
+            }
+            return (Core::ERROR_NONE);
+        }
+
     public:
         bool IsTypeSupported(const std::string& keySystem, const std::string& contentType)
         {
@@ -1348,6 +1407,24 @@ namespace Plugin {
             return (result);
         }
 
+        void initializationStatusNotify(const string& designator, const Exchange::IContentDecryption::Status status)
+        {
+            string keySystem;
+            // translate "designator" (com.microsoft.playready, ...) into "keySystem" (PlayReady/Widevine)
+            for (auto system : _keySystems) {
+                std::list<string> designators;
+                LoadDesignators(system, designators);
+                if ((std::find(designators.begin(), designators.end(), designator) != designators.end())) {
+                    keySystem = system;
+                    break;
+                }
+            }
+            LockGuard lock(notificationMutex);
+            for(const auto callback: _notificationCallbacks) {
+                callback->initializationStatus(keySystem, status);
+            }
+        }
+
     private:
         void LoadDesignators(const string& keySystem, std::list<string>& designators) const
         {
@@ -1411,6 +1488,9 @@ namespace Plugin {
         Blacklist _systemBlacklistedMediaTypeRegexps;
         std::list<Core::Library> _systemLibraries;
         std::list<string> _keySystems;
+        using LockGuard = std::lock_guard<std::mutex>;
+        std::list<Exchange::IContentDecryption::INotification *> _notificationCallbacks{};
+        std::mutex notificationMutex{};
     };
 
     SERVICE_REGISTRATION(OCDMImplementation, 1, 0);

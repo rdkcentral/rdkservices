@@ -34,7 +34,7 @@ namespace Plugin {
     {
         Property<Core::JSON::ArrayType<DrmData>>(_T("drms"), &OCDM::get_drms, nullptr, this);
         Property<Core::JSON::ArrayType<Core::JSON::String>>(_T("keysystems"), &OCDM::get_keysystems, nullptr, this);
-        Property<Core::JSON::ArrayType<SessionData>>(_T("sessions"), &OCDM::get_sessions, nullptr, this);
+        Property<Core::JSON::ArrayType<SessionInfo>>(_T("sessions"), &OCDM::get_sessions, nullptr, this);
     }
 
     void OCDM::UnregisterAll()
@@ -103,7 +103,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t OCDM::get_sessions(Core::JSON::ArrayType<SessionData>& response) const
+    uint32_t OCDM::get_sessions(Core::JSON::ArrayType<SessionInfo>& response) const
     {
         RPC::IStringIterator* drmsIter(_opencdmi->Systems());
         if (drmsIter != nullptr) {
@@ -113,7 +113,7 @@ namespace Plugin {
                 string sessionItem;
                 if (sessionsIter != nullptr) {
                     while (sessionsIter->Next(sessionItem)) {
-                        SessionData session;
+                        SessionInfo session;
                         session.Drm = system;
                         response.Add(session);
                     }
