@@ -136,7 +136,7 @@ namespace Plugin {
 
                 _memory = WPEFramework::OCDM::MemoryObserver(connection);
                 ASSERT(_memory != nullptr);
-
+                _opencdmi->Register(&_notification);
                 connection->Release();
             }
             else {
@@ -164,6 +164,7 @@ namespace Plugin {
                 _memory = nullptr;
             }
 
+            _opencdmi->Unregister(&_notification);
             _opencdmi->Deinitialize(service);
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
