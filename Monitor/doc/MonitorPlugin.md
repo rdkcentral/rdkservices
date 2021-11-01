@@ -94,6 +94,8 @@ Monitor interface methods:
 ## *restartlimits <sup>method</sup>*
 
 Sets new restart limits for a service.
+ ### Events 
+No Events.
 
 ### Parameters
 
@@ -102,8 +104,8 @@ Sets new restart limits for a service.
 | params | object |  |
 | params.callsign | string | The callsign of a service for which measurement snapshots are reset |
 | params.restart | object |  |
-| params.restart.limit | number | Maximum number or restarts to be attempted |
-| params.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
+| params.restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
+| params.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
 
 ### Result
 
@@ -118,7 +120,7 @@ Sets new restart limits for a service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Monitor.1.restartlimits",
     "params": {
         "callsign": "WebServer",
@@ -135,7 +137,7 @@ Sets new restart limits for a service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
@@ -144,6 +146,8 @@ Sets new restart limits for a service.
 ## *resetstats <sup>method</sup>*
 
 Resets memory and process statistics for a single service watched by the Monitor.
+ ### Events 
+No Events.
 
 ### Parameters
 
@@ -182,8 +186,8 @@ Resets memory and process statistics for a single service watched by the Monitor
 | result.measurements.count | number | Number of measurements |
 | result.observable | string | A callsign of the watched service |
 | result.restart | object | Restart limits for failures applying to the service |
-| result.restart.limit | number | Maximum number or restarts to be attempted |
-| result.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
+| result.restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
+| result.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
 
 ### Example
 
@@ -192,7 +196,7 @@ Resets memory and process statistics for a single service watched by the Monitor
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Monitor.1.resetstats",
     "params": {
         "callsign": "WebServer"
@@ -205,7 +209,7 @@ Resets memory and process statistics for a single service watched by the Monitor
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "measurements": {
             "resident": {
@@ -294,10 +298,10 @@ Provides access to the service statistics.
 | (property)[#].measurements.count | number | Number of measurements |
 | (property)[#].observable | string | A callsign of the watched service |
 | (property)[#].restart | object | Restart limits for failures applying to the service |
-| (property)[#].restart.limit | number | Maximum number or restarts to be attempted |
-| (property)[#].restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
+| (property)[#].restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
+| (property)[#].restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
 
-> The *callsign* shall be passed as the index to the property, e.g. *Monitor.1.status@WebServer*. If omitted, then all observed objects are returned on read.
+> The *callsign* argument shall be passed as the index to the property, e.g. *Monitor.1.status@WebServer*. If omitted then, all the observed objects are returned on read. Invalid callsign results are in empty result.
 
 ### Example
 
@@ -306,7 +310,7 @@ Provides access to the service statistics.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Monitor.1.status@WebServer"
 }
 ```
@@ -316,7 +320,7 @@ Provides access to the service statistics.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "measurements": {

@@ -107,7 +107,7 @@
             "example": "1080p"
         },
         "soundMode": {
-            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
+            "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS`.",
             "type":"string",
             "example":"STEREO"
         },
@@ -149,6 +149,37 @@
             "summary": "Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3`",
             "type": "string",
             "example": "FULL"
+        },
+        "audioFormat": {
+            "summary": "The currently decoded audio format. Possible values: `NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT`, `DOLBY TRUEHD`, `DOLBY EAC3 ATMOS`, `DOLBY TRUEHD ATMOS`, `DOLBY MAT ATMOS`, `DOLBY AC4 ATMOS`",
+            "type": "string",
+            "example": "DOLBY AC3"
+        },
+        "supportedAudioFormat": {
+            "summary": "A list of supported audio formats",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
+            }
+        },
+        "currentAudioFormat": {
+            "summary": "The currently set audio format",
+            "type": "string",
+            "example": "PCM"
+        },
+        "currentVideoFormat": {
+            "summary": "The currently set video format",
+            "type": "string",
+            "example": "HDR10"
+        },
+        "supportedVideoFormat": {
+            "summary": "The supported video formats (`NONE`, `SDR`, `HLG`, `HDR10`, `HDR10PLUS`, `DV`)",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "HDR10"
+            }
         },
         "result": {
             "type":"object",
@@ -273,6 +304,28 @@
                 },
                 "required": [
                     "audioDelayOffset",
+                    "success"
+                ]
+            }
+        },
+        "getAudioFormat": {
+            "summary": "Returns the audio format that is currently decoded",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "supportedAudioFormat": {
+                        "$ref": "#/definitions/supportedAudioFormat"
+                    },
+                    "currentAudioFormat": {
+                        "$ref": "#/definitions/currentAudioFormat"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedAudioFormat",
+                    "currentAudioFormat",
                     "success"
                 ]
             }
@@ -892,7 +945,7 @@
             }
         },
         "getSupportedAudioModes": {
-            "summary": "Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
+            "summary": "Returns a list of strings containing the supported audio modes. If a port name is not specified or `Null`, this returns the supported audio modes of the audio processor (regardless of the the output port). \nIf a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  \nFor **Auto** mode in DS5, this API has the following extra specification:  \n* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  \n* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  \n* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  \n* When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`",
             "params": {
                 "type":"object",
                 "properties":{
@@ -908,7 +961,7 @@
                 "type":"object",
                 "properties": {
                     "supportedAudioModes": {
-                        "summary": "A string [] of supported audio modes",
+                        "summary": "A string [] of supported audio modes. Example audio modes include `STEREO`, `PASSTHRU`, `DOLBYDIGITAL`, `DOLBYDIGITALPLUS`,`AUTO (Stereo)`",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -1131,7 +1184,7 @@
                 ]
             }
         },
-        "getSurroundVirtualizer2":{
+        "getSurroundVirtualizer":{
             "summary": "(Version 2) Returns the current surround virtualizer boost settings",
             "params": {
                 "type":"object",
@@ -1202,6 +1255,28 @@
                 "required": [
                     "standards",
                     "supportsHDR",
+                    "success"
+                ]
+            }
+        },
+        "getVideoFormat": {
+            "summary": "Returns the currently set video format",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "currentVideoFormat": {
+                        "$ref": "#/definitions/currentVideoFormat"
+                    },
+                    "supportedVideoFormat": {
+                        "$ref": "#/definitions/supportedVideoFormat"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "currentVideoFormat",
+                    "supportedVideoFormat",
                     "success"
                 ]
             }
@@ -1307,7 +1382,7 @@
                 ]
             }
         },
-        "getVolumeLeveller2": {
+        "getVolumeLeveller": {
             "summary": "(Version 2) Returns the current Volume Leveller setting",
             "params": {
                 "type":"object",
@@ -1742,6 +1817,47 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setMS12ProfileSettingsOverride":{
+            "summary": "Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "operation": {
+                        "summary": "The audio profile state",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "profileName": {
+                        "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
+                         "type": "string",
+                        "example": "Sports"
+                    },
+                    "ms12SettingsName": {
+                        "summary": "An ms12 setting name",
+                        "type": "string",
+                        "example": "Dialog Enhance"
+                    },
+                    "ms12SettingsValue": {
+                        "summary": "The value to set",
+                        "type": "string",
+                        "example": "On"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "operation",
+                    "profileName",
+                    "ms12SettingsName",
+                    "ms12SettingsValue"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setMuted":{
             "summary": "Mutes or unmutes audio on a specific port",
             "params": {
@@ -1788,7 +1904,7 @@
             }
         },
         "setSoundMode":{
-            "summary": "Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.",
+            "summary": "Sets the current sound mode. If the `audioPort` argument value is missing or empty, then  all ports are set. If `DOLBYDIGITAL` or `DOLBYDIGITALPLUS` is selected as the mode, the audio will be forced into this format over the HDMI output(s), even if the format is not identified in the sink EDID.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1834,7 +1950,7 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "setSurroundVirtualizer2":{
+        "setSurroundVirtualizer":{
             "summary": "(Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.",
             "params": {
                 "type":"object",
@@ -1935,7 +2051,7 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "setVolumeLeveller2":{
+        "setVolumeLeveller":{
             "summary": "(Version 2) Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.",
             "params": {
                 "type":"object",
@@ -1994,6 +2110,24 @@
                 ]
             }
         },
+        "audioFormatChanged": {
+            "summary": "Triggered when the configured audio format changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "supportedAudioFormat": {
+                        "$ref": "#/definitions/supportedAudioFormat"
+                    },
+                    "currentAudioFormat": {
+                        "$ref": "#/definitions/currentAudioFormat"
+                    }
+                },
+                "required": [
+                    "supportedAudioFormat",
+                    "currentAudioFormat"
+                ]
+            }
+        },
         "connectedAudioPortUpdated":{
             "summary": "Triggered when the connected audio port is updated",
             "params": {
@@ -2031,6 +2165,38 @@
                 },
                 "required": [
                     "connectedVideoDisplays"
+                ]
+            }
+        },
+        "notifyAudioFormatChange":{
+            "summary": "Triggered when the configured audio format changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audiFormat": {
+                        "$ref": "#/definitions/audioFormat"
+                    }
+                },
+                "required": [
+                    "audioFormat"
+                ]
+            }
+        },
+        "notifyVideoFormatChange":{
+            "summary": "Triggered when the configured video format changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "currentVideoFormat": {
+                        "$ref": "#/definitions/currentVideoFormat"
+                    },
+                    "SupportedVideoFormat": {
+                        "$ref": "#/definitions/supportedVideoFormat"
+                    }
+                },
+                "required": [
+                    "currentVideoFormat",
+                    "SupportedVideoFormat"
                 ]
             }
         },

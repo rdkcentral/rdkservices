@@ -46,6 +46,10 @@
 #include "libIARM.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#include "systimerifc/itimermsg.h"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+
 #ifdef ENABLE_THERMAL_PROTECTION
 #include "thermonitor.h"
 #endif /* ENABLE_THERMAL_PROTECTION */
@@ -80,6 +84,8 @@ using namespace std;
 #define STATUS_CODE_NO_SWUPDATE_CONF 460 
 
 #define OPTOUT_TELEMETRY_STATUS "/opt/tmtryoptout"
+
+#define REGEX_UNALLOWABLE_INPUT "[^[:alnum:]_-]{1}"
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
@@ -144,13 +150,11 @@ bool setGzEnabled(bool enabled)
 bool isGzEnabledHelper(bool& enabled)
 {
     bool retVal = false;
+    string gzEnabled;
 
-    char lines[32] = {'\0'};
-    string gzStatus = "";
-    retVal = getFileContentToCharBuffer(GZ_STATUS.c_str(), lines);
-    if (retVal) {
-        gzStatus = strtok(lines," ");
-        if ("true" == gzStatus) {
+    retVal = getFileContent(GZ_STATUS.c_str(), gzEnabled);
+    if (retVal && gzEnabled.length()) {
+        if (gzEnabled.find("true") != string::npos) {
             enabled = true;
         } else {
             enabled = false;
@@ -247,6 +251,10 @@ namespace WPEFramework {
         void _thermMgrEventsHandler(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len);
 #endif /* ENABLE_THERMAL_PROTECTION */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void _timerStatusEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static IARM_Result_t _SysModeChange(void *arg);
@@ -297,6 +305,8 @@ namespace WPEFramework {
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
+            regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
+
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -317,6 +327,9 @@ namespace WPEFramework {
             registerMethod("setPowerState", &SystemServices::setDevicePowerState,
                     this);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+            registerMethod("getTimeStatus", &SystemServices::getSystemTimeStatus,this);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
             registerMethod("setGzEnabled", &SystemServices::setGZEnabled, this);
             registerMethod("isGzEnabled", &SystemServices::isGZEnabled, this);
             registerMethod("hasRebootBeenRequested",
@@ -404,11 +417,14 @@ namespace WPEFramework {
             registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
 #endif
             registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
+            GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
+                &SystemServices::getPlatformConfiguration, this);
         }
 
 
         SystemServices::~SystemServices()
-        {       
+        {
+            regfree (&m_regexUnallowedChars);
         }
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
@@ -446,6 +462,9 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSTIME_MGR_NAME, cTIMER_STATUS_UPDATE, _timerStatusEventHandler));
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
             }
         }
 
@@ -777,6 +796,16 @@ namespace WPEFramework {
             if (parameters.HasLabel("params")) {
                 queryParams = parameters["params"].String();
                 removeCharsFromString(queryParams, "[\"]");
+
+                regmatch_t  m_regmatchUnallowedChars[1];
+                if (REG_NOERROR == regexec(&m_regexUnallowedChars, queryParams.c_str(), 1, m_regmatchUnallowedChars, 0))
+                {
+                    response["message"] = "Input has unallowable characters";
+                    LOGERR("Input has unallowable characters: '%s'", queryParams.c_str());
+
+                    returnResponse(false);
+                }
+
             }
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
@@ -1675,7 +1704,6 @@ namespace WPEFramework {
                 curlResponse = data;
                 free(data);
                 curl_easy_cleanup(curl);
-                curl_global_cleanup();
             }
             if (CURLE_OK == res) {
                 /* Eg: {"paramList":[{"name":"Device.DeviceInfo.SerialNumber",
@@ -2021,6 +2049,18 @@ namespace WPEFramework {
                     thresholdType.c_str(), exceed, temperature);
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
+
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void SystemServices::onTimeStatusChanged(string timequality,string timesource, string utctime)
+        {
+            JsonObject params;
+            params["TimeQuality"] = timequality;
+            params["TimeSrc"] = timesource;
+            params["Time"] = utctime;
+            LOGWARN("TimeQuality = %s TimeSrc = %s Time = %s\n",timequality.c_str(),timesource.c_str(),utctime.c_str());
+            sendNotify(EVT_ONTIMESTATUSCHANGED, params);
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 
         /***
          * @brief : To set the Time to TZ_FILE.
@@ -2573,16 +2613,15 @@ namespace WPEFramework {
             uint8_t parseStatus = 0;
             JsonObject respData;
             string timestamp, source, reason, customReason, lastHardPowerReset;
-            char rebootInfo[1024] = {'\0'};
-            char hardPowerInfo[1024] = {'\0'};
+            string rebootInfo;
+            string hardPowerInfo;
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
-                if (retAPIStatus && strlen(rebootInfo)) {
-                    string dataBuf(rebootInfo);
+                if (retAPIStatus && rebootInfo.length()) {
                     JsonObject rebootInfoJson;
-                    rebootInfoJson.FromString(dataBuf);
+                    rebootInfoJson.FromString(rebootInfo);
                     timestamp = rebootInfoJson["timestamp"].String();
                     source = rebootInfoJson["source"].String();
                     reason = rebootInfoJson["reason"].String();
@@ -2596,10 +2635,9 @@ namespace WPEFramework {
             }
 
             if (Utils::fileExists(SYSTEM_SERVICE_HARD_POWER_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_HARD_POWER_INFO_FILE, hardPowerInfo);
-                if (retAPIStatus && strlen(hardPowerInfo)) {
-                    string dataBuf(hardPowerInfo);
+                if (retAPIStatus && hardPowerInfo.length()) {
                     JsonObject hardPowerInfoJson;
                     hardPowerInfoJson.FromString(hardPowerInfo);
                     lastHardPowerReset = hardPowerInfoJson["lastHardPowerReset"].String();
@@ -2636,13 +2674,12 @@ namespace WPEFramework {
             bool retAPIStatus = false;
             uint8_t parseStatus = 0;
             string reason;
-            char rebootInfo[1024] = {'\0'};
+            string rebootInfo;
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(
+                retAPIStatus = getFileContent(
                         SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
-                if (retAPIStatus && strlen(rebootInfo)) {
-                    string dataBuf(rebootInfo);
+                if (retAPIStatus && rebootInfo.length()) {
                     JsonObject rebootInfoJson;
                     rebootInfoJson.FromString(rebootInfo);
                     reason = rebootInfoJson["reason"].String();
@@ -2881,6 +2918,24 @@ namespace WPEFramework {
             returnResponse(( E_OK == retVal)? true: false);
         }//end of getStateInfo
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        uint32_t SystemServices::getSystemTimeStatus(const JsonObject& parameters,
+                JsonObject& response)
+        {
+           IARM_Result_t ret = IARM_RESULT_SUCCESS;
+           TimerMsg param;
+           ret = IARM_Bus_Call(IARM_BUS_SYSTIME_MGR_NAME, TIMER_STATUS_MSG, (void*)&param, sizeof(param));
+           if (ret != IARM_RESULT_SUCCESS ) {
+              LOGWARN ("Query to get Timer Status Failed..\n");
+              returnResponse(false);
+           }
+           
+           response["TimeQuality"] = std::string(param.message,cTIMER_STATUS_MESSAGE_LENGTH);
+           response["TimeSrc"] = std::string(param.timerSrc,cTIMER_STATUS_MESSAGE_LENGTH);
+           response["Time"] = std::string(param.currentTime,cTIMER_STATUS_MESSAGE_LENGTH);
+           returnResponse(true);
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
         /***
          * @brief : To retrieve Device Power State.
@@ -3009,12 +3064,12 @@ namespace WPEFramework {
         uint32_t SystemServices::isGZEnabled(const JsonObject& parameters,
                 JsonObject& response)
         {
-		bool enabled = false;
-		bool result = true;
+            bool enabled = false;
 
-		isGzEnabledHelper(enabled);
-		response["enabled"] = enabled;
-		returnResponse(result);
+            isGzEnabledHelper(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
         } //end of isGZEnbaled
 
         /***
@@ -3441,6 +3496,25 @@ namespace WPEFramework {
         }
 
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+        void _timerStatusEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+        {
+            if ((!strcmp(IARM_BUS_SYSTIME_MGR_NAME, owner)) && (0 == eventId)) {
+                    LOGWARN("IARM_BUS_SYSTIME_MGR_NAME event received\n");
+                    TimerMsg* pMsg = (TimerMsg*)data;
+                    string timequality = std::string(pMsg->message,cTIMER_STATUS_MESSAGE_LENGTH);
+                    string timersrc = std::string(pMsg->timerSrc,cTIMER_STATUS_MESSAGE_LENGTH);
+                    string timerStr = std::string(pMsg->currentTime,cTIMER_STATUS_MESSAGE_LENGTH);
+
+                if (SystemServices::_instance) {
+                    SystemServices::_instance->onTimeStatusChanged(timequality,timersrc,timerStr);
+                } else {
+                    LOGERR("SystemServices::_instance is NULL.\n");
+                }
+            }
+        }
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
          * @brief : To handle the event of Thermal Level change. THe event is registered
@@ -3659,24 +3733,21 @@ namespace WPEFramework {
         uint32_t SystemServices::isOptOutTelemetry(const JsonObject& parameters,
                 JsonObject& response)
         {
-		bool optout = false;
-		bool result = true;
-                bool retVal = false;
-                char lines[32] = {'\0'};
-                string optStatus = "";
+            bool optout = false;
+            string optOutStatus;
 
-                retVal = getFileContentToCharBuffer(OPTOUT_TELEMETRY_STATUS, lines);
-                if (retVal) {
-                    optStatus = strtok(lines," ");
-                    if ("true" == optStatus) {
-                       optout = true;
-                    } else {
-                       optout = false;
-                    }
+            bool retVal = getFileContent(OPTOUT_TELEMETRY_STATUS, optOutStatus);
+            if (retVal && optOutStatus.length()) {
+                if (optOutStatus.find("true") != string::npos) {
+                    optout = true;
+                } else {
+                    optout = false;
                 }
-                LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
-		response["Opt-Out"] = optout;
-		returnResponse(result);
+            }
+
+            LOGINFO("Current TelemetryOptOut flag is %d\n", optout);
+            response["Opt-Out"] = optout;
+            returnResponse(true);
         } //end of isOptOutTelemetry
 
         uint32_t SystemServices::getStoreDemoLink(const JsonObject& parameters, JsonObject& response)
@@ -3796,6 +3867,18 @@ namespace WPEFramework {
           }
 
           returnResponse(result);
+        }
+
+        uint32_t SystemServices::getPlatformConfiguration(const JsonObject &parameters, PlatformCaps &response)
+        {
+          LOGINFOMETHOD();
+
+          const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
+
+          response.Load(query);
+
+          LOGTRACEMETHODFIN();
+          return Core::ERROR_NONE;
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
