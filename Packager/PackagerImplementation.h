@@ -90,7 +90,7 @@ namespace Plugin {
             , _worker(this)
             , _isUpgrade(false)
             , _isSyncing(false)
-	    , _servicePI(nullptr)
+            , _servicePI(nullptr)
         {
         }
 
@@ -178,10 +178,10 @@ namespace Plugin {
                 return _progress;
             }
 
-	    string AppName() const override
-	    {
-		return _appname;
-	    }
+            string AppName() const override
+            {
+                return _appname;
+            }
 
             uint32_t ErrorCode() const override
             {
@@ -205,12 +205,12 @@ namespace Plugin {
                 _progress = progress;
             }
 
-	    void SetAppName(const TCHAR path[])
-	    {
-		string _pathname = Core::File::PathName(string(path));
-		string _dirname = _pathname.substr(0,_pathname.size()-1);
-		_appname = Core::File::FileName(_dirname);
-	    }
+            void SetAppName(const TCHAR path[])
+            {
+                string _pathname = Core::File::PathName(string(path));
+                string _dirname = _pathname.substr(0,_pathname.size()-1);
+                _appname = Core::File::FileName(_dirname);
+            }
 
             void SetError(uint32_t err)
             {
@@ -222,7 +222,7 @@ namespace Plugin {
             Exchange::IPackager::state _state = Exchange::IPackager::IDLE;
             uint32_t _error = 0u;
             uint8_t _progress = 0u;
-	    string _appname;
+            string _appname;
         };
 
         struct InstallationData {
@@ -292,9 +292,9 @@ namespace Plugin {
 #if !defined (DO_NOT_USE_DEPRECATED_API)
         static void InstallationProgessNoLock(const _opkg_progress_data_t* progress, void* data);
 #endif
-	string GetMetadataFile(const string& appName);
-	string GetCallsign(const string& mfilename);
-	void DeactivatePlugin(const string& callsign);
+        string GetMetadataFile(const string& appName);
+        string GetCallsign(const string& mfilename);
+        void DeactivatePlugin(const string& callsign);
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
         void BlockingInstallUntilCompletionNoLock();
@@ -312,7 +312,7 @@ namespace Plugin {
         bool _alwaysUpdateFirst;
         bool _volatileCache;
         bool _opkgInitialized;
-	PluginHost::IShell* _servicePI;
+        PluginHost::IShell* _servicePI;
         std::vector<Exchange::IPackager::INotification*> _notifications;
         InstallationData _inProgress;
         InstallThread _worker;
