@@ -201,14 +201,14 @@
             "type": "object",
             "properties": {
                 "limit": {
-                    "description": "Maximum number or restarts to be attempted",
+                    "description": "Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0.",
                     "type": "number",
                     "size": 8,
                     "signed": false,
                     "example": 3
                 },
                 "window": {
-                    "description": "Time period (in seconds) within which failures must happen for the limit to be considered crossed",
+                    "description": "Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0.",
                     "type": "number",
                     "size": 16,
                     "signed": false,
@@ -233,19 +233,19 @@
                     "description": "Maximal value measured",
                     "type": "number",
                     "size": 64,
-                    "example": 100                   
+                    "example": 100
                 },
                 "average": {
                     "description": "Average of all measurements",
                     "type": "number",
                     "size": 64,
-                    "example": 50                    
+                    "example": 50
                 },
                 "last": {
                     "description": "Last measured value",
                     "type": "number",
                     "size": 64,
-                    "example": 100                    
+                    "example": 100
                 }
             },
             "required": [
@@ -282,7 +282,7 @@
                 "count": {
                     "description": "Number of measurements",
                     "type": "number",
-                    "example": 100   
+                    "example": 100
                 }
             },
             "required": [
@@ -336,12 +336,12 @@
     },
     "methods": {
         "restartlimits": {
-            "summary": "Sets new restart limits for a service",
+            "summary": "Sets new restart limits for a service.\n ### Events \nNo Events.",
             "params": {
                 "type": "object",
                 "properties": {
                     "callsign": {
-                        "description": "The callsign of a service for which measurement snapshots are reset",
+                        "description": "The callsign of a service for which measurement snapshots are reset.",
                         "type": "string",
                         "example": "WebServer"
                     },
@@ -359,7 +359,7 @@
             }
         },
         "resetstats": {
-            "summary": "Resets memory and process statistics for a single service watched by the Monitor",
+            "summary": "Resets memory and process statistics for a single service watched by the Monitor.\n ### Events \nNo Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -390,9 +390,9 @@
                 }
             },
             "index": {
-                "description": "If omitted, then all observed objects are returned on read.",
+                "description": "If omitted then, all the observed objects are returned on read. Invalid callsign results are in empty result.",
                 "name": "Callsign",
-                "example": "WebServer"                
+                "example": "WebServer"
             }
         }
     },
