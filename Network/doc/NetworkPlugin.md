@@ -999,11 +999,46 @@ Network interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
 | [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
+| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
 | [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
+| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
 
+
+<a name="event.onInterfaceStatusChanged"></a>
+## *onInterfaceStatusChanged <sup>event</sup>*
+
+Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
+| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
+| params.enabled | boolean | Whether the interface is enabled (`true`) or disabled (`false`) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onInterfaceStatusChanged",
+    "params": {
+        "interface": "WIFI",
+        "enabled": true
+    }
+}
+```
 
 <a name="event.onConnectionStatusChanged"></a>
 ## *onConnectionStatusChanged <sup>event</sup>*
@@ -1035,75 +1070,6 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
     "params": {
         "interface": "WIFI",
         "status": "CONNECTED"
-    }
-}
-```
-
-<a name="event.onDefaultInterfaceChanged"></a>
-## *onDefaultInterfaceChanged <sup>event</sup>*
-
-Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldInterfaceName | string | The previous interface that was changed |
-| params.newInterfaceName | string | The current interface |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDefaultInterfaceChanged",
-    "params": {
-        "oldInterfaceName": "ETHERNET",
-        "newInterfaceName": "WIFI"
-    }
-}
-```
-
-<a name="event.onInterfaceStatusChanged"></a>
-## *onInterfaceStatusChanged <sup>event</sup>*
-
-Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
-| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.enabled | boolean | Whether the interface is enabled (`true`) or disabled (`false`) |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onInterfaceStatusChanged",
-    "params": {
-        "interface": "WIFI",
-        "enabled": true
     }
 }
 ```
@@ -1143,6 +1109,40 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#m
         "ip6Address": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
         "ip4address": "192.168.1.2",
         "status": "ACQUIRED"
+    }
+}
+```
+
+<a name="event.onDefaultInterfaceChanged"></a>
+## *onDefaultInterfaceChanged <sup>event</sup>*
+
+Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldInterfaceName | string | The previous interface that was changed |
+| params.newInterfaceName | string | The current interface |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDefaultInterfaceChanged",
+    "params": {
+        "oldInterfaceName": "ETHERNET",
+        "newInterfaceName": "WIFI"
     }
 }
 ```
