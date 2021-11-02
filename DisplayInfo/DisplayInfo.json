@@ -134,6 +134,7 @@
             "readonly": true,
             "params": {
                 "type": "integer",
+                "size": 32,
                 "example": 0
             }
         },
@@ -142,7 +143,12 @@
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "HdcpUnencrypted", "Hdcp1x", "Hdcp2x, HdcpAuto"],
+                "enum": [
+                    "HdcpUnencrypted",
+                    "Hdcp1x",
+                    "Hdcp2x",
+                    "HdcpAuto"
+                ],
                 "example": "Hdcp1x"
             }
         },
@@ -159,7 +165,14 @@
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "enum": [
+                    "HdrOff",
+                    "Hdr10",
+                    "Hdr10Plus",
+                    "HdrHlg",
+                    "HdrDolbyvision",
+                    "HdrTechnicolor"
+                ],
                 "example": "HdrOff"
             }
         },
@@ -168,7 +181,14 @@
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "enum": [ 
+                    "HdrOff",
+                    "Hdr10",
+                    "Hdr10Plus",
+                    "HdrHlg",
+                    "HdrDolbyvision",
+                    "HdrTechnicolor"
+                ],
                 "example": "HdrOff"
             }
         },
@@ -177,8 +197,117 @@
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "enum": [ 
+                    "HdrOff",
+                    "Hdr10",
+                    "Hdr10Plus",
+                    "HdrHlg",
+                    "HdrDolbyvision",
+                    "HdrTechnicolor"
+                ],
                 "example": "HdrOff"
+            }            
+        },
+        "colorspace": {
+            "summary": "Display color space (chroma subsampling format)",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ "FORMAT_UNKNOWN",
+                    "FORMAT_OTHER",
+                    "FORMAT_RGB_444",
+                    "FORMAT_YCBCR_444",
+                    "FORMAT_YCBCR_422",
+                    "FORMAT_YCBCR_420"
+                ],
+                "example": "FORMAT_RGB_444"
+            }            
+        },
+        "framerate": {
+            "summary": "Display frame rate",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ 
+                    "FRAMERATE_UNKNOWN",
+                    "FRAMERATE_23_976",
+                    "FRAMERATE_24",
+                    "FRAMERATE_25",
+                    "FRAMERATE_29_97",
+                    "FRAMERATE_30",
+                    "FRAMERATE_47_952",
+                    "FRAMERATE_48",
+                    "FRAMERATE_50",
+                    "FRAMERATE_59_94",
+                    "FRAMERATE_60",
+                    "FRAMERATE_119_88",
+                    "FRAMERATE_120",
+                    "FRAMERATE_144"
+                 ],
+                "example": "FRAMERATE_60"
+            }            
+        },
+        "colourdepth": {
+            "summary": "Display colour depth",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ 
+                    "COLORDEPTH_UNKNOWN",
+                    "COLORDEPTH_8_BIT",
+                    "COLORDEPTH_10_BIT",
+                    "COLORDEPTH_12_BIT"
+                 ],
+                "example": "COLORDEPTH_8_BIT"
+            }            
+        },
+        "quantizationrange": {
+            "summary": "Display quantization range",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ 
+                    "QUANTIZATIONRANGE_UNKNOWN",
+                    "QUANTIZATIONRANGE_LIMITED",
+                    "QUANTIZATIONRANGE_FULL"
+                ],
+                "example": "QUANTIZATIONRANGE_UNKNOWN"
+            }            
+        },
+        "colorimetry": {
+            "summary": "Display colorimetry",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ 
+                    "COLORIMETRY_UNKNOWN",
+                    "COLORIMETRY_OTHER",
+                    "COLORIMETRY_SMPTE170M",
+                    "COLORIMETRY_BT709",
+                    "COLORIMETRY_XVYCC601",
+                    "COLORIMETRY_XVYCC709",
+                    "COLORIMETRY_SYCC601",
+                    "COLORIMETRY_OPYCC601",
+                    "COLORIMETRY_OPRGB",
+                    "COLORIMETRY_BT2020YCCBCBRC",
+                    "COLORIMETRY_BT2020RGB_YCBCR"
+                ],
+                "example": "COLORIMETRY_OTHER"
+            }            
+        },
+        "eotf": {
+            "summary": "Display Electro Optical Transfer Function (EOTF)",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ 
+                    "EOTF_UNKNOWN",
+                    "EOTF_OTHER",
+                    "EOTF_BT1886",
+                    "EOTF_BT2100",
+                    "EOTF_SMPTE_ST_2084"
+                 ],
+                "example": "EOTF_SMPTE_ST_2084"
             }            
         }
     },
