@@ -6,13 +6,15 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-DisplayInfo plugin for Thunder framework.
+A DisplayInfo plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
+- [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
 
@@ -22,7 +24,7 @@ DisplayInfo plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification about its configuration, properties provided and notifications sent.
+This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -76,6 +78,149 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDisplayInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [DisplayInfo.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DisplayInfo.json)
+
+<a name="head.Methods"></a>
+# Methods
+
+The following methods are provided by the DisplayInfo plugin:
+
+DisplayInfo interface methods:
+
+| Method | Description |
+| :-------- | :-------- |
+| [edid](#method.edid) | Returns the TV's Extended Display Identification Data (EDID) |
+| [widthincentimeters](#method.widthincentimeters) | Horizontal size in centimeters |
+| [heightincentimeters](#method.heightincentimeters) | Vertical size in centimeters |
+
+
+<a name="method.edid"></a>
+## *edid [<sup>method</sup>](#head.Methods)*
+
+Returns the TV's Extended Display Identification Data (EDID).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.length | integer | The EDID length |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.length | integer | The EDID length |
+| result.data | string | The EDID data |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.edid",
+    "params": {
+        "length": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "length": 0,
+        "data": "..."
+    }
+}
+```
+
+<a name="method.widthincentimeters"></a>
+## *widthincentimeters [<sup>method</sup>](#head.Methods)*
+
+Horizontal size in centimeters.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | integer |  |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.widthincentimeters"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": 0
+}
+```
+
+<a name="method.heightincentimeters"></a>
+## *heightincentimeters [<sup>method</sup>](#head.Methods)*
+
+Vertical size in centimeters.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | integer |  |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.heightincentimeters"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": 0
+}
+```
+
 <a name="head.Properties"></a>
 # Properties
 
@@ -87,16 +232,20 @@ DisplayInfo interface properties:
 | :-------- | :-------- |
 | [totalgpuram](#property.totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
 | [freegpuram](#property.freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
-| [audiopassthrough](#property.audiopassthrough) <sup>RO</sup> | current audio passthrough status on HDMI |
+| [isaudiopassthrough](#property.isaudiopassthrough) <sup>RO</sup> | Current audio passthrough status on HDMI |
 | [connected](#property.connected) <sup>RO</sup> | Current HDMI connection status |
 | [width](#property.width) <sup>RO</sup> | Horizontal resolution of the TV |
 | [height](#property.height) <sup>RO</sup> | Vertical resolution of the TV |
+| [verticalfreq](#property.verticalfreq) <sup>RO</sup> | Vertical Frequency |
 | [hdcpprotection](#property.hdcpprotection) <sup>RO</sup> | HDCP protocol used for transmission |
-| [hdrtype](#property.hdrtype) <sup>RO</sup> | HDR format in use |
+| [portname](#property.portname) <sup>RO</sup> | Video output port on the STB used for connecting to the TV |
+| [tvcapabilities](#property.tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
+| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
+| [hdrsetting](#property.hdrsetting) <sup>RO</sup> | HDR format in use |
 
 
 <a name="property.totalgpuram"></a>
-## *totalgpuram <sup>property</sup>*
+## *totalgpuram [<sup>property</sup>](#head.Properties)*
 
 Provides access to the total GPU DRAM memory (in bytes).
 
@@ -115,7 +264,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.totalgpuram"
 }
 ```
@@ -125,13 +274,13 @@ Provides access to the total GPU DRAM memory (in bytes).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 381681664
 }
 ```
 
 <a name="property.freegpuram"></a>
-## *freegpuram <sup>property</sup>*
+## *freegpuram [<sup>property</sup>](#head.Properties)*
 
 Provides access to the free GPU DRAM memory (in bytes).
 
@@ -150,7 +299,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.freegpuram"
 }
 ```
@@ -160,13 +309,13 @@ Provides access to the free GPU DRAM memory (in bytes).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 358612992
 }
 ```
 
-<a name="property.audiopassthrough"></a>
-## *audiopassthrough <sup>property</sup>*
+<a name="property.isaudiopassthrough"></a>
+## *isaudiopassthrough [<sup>property</sup>](#head.Properties)*
 
 Provides access to the current audio passthrough status on HDMI.
 
@@ -176,7 +325,7 @@ Provides access to the current audio passthrough status on HDMI.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | boolean | current audio passthrough status on HDMI |
+| (property) | boolean | Current audio passthrough status on HDMI |
 
 ### Example
 
@@ -185,8 +334,8 @@ Provides access to the current audio passthrough status on HDMI.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "DisplayInfo.1.audiopassthrough"
+    "id": 42,
+    "method": "DisplayInfo.1.isaudiopassthrough"
 }
 ```
 
@@ -195,13 +344,13 @@ Provides access to the current audio passthrough status on HDMI.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": false
 }
 ```
 
 <a name="property.connected"></a>
-## *connected <sup>property</sup>*
+## *connected [<sup>property</sup>](#head.Properties)*
 
 Provides access to the current HDMI connection status.
 
@@ -220,7 +369,7 @@ Provides access to the current HDMI connection status.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.connected"
 }
 ```
@@ -230,13 +379,13 @@ Provides access to the current HDMI connection status.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": true
 }
 ```
 
 <a name="property.width"></a>
-## *width <sup>property</sup>*
+## *width [<sup>property</sup>](#head.Properties)*
 
 Provides access to the horizontal resolution of the TV.
 
@@ -255,7 +404,7 @@ Provides access to the horizontal resolution of the TV.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.width"
 }
 ```
@@ -265,13 +414,13 @@ Provides access to the horizontal resolution of the TV.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 1280
 }
 ```
 
 <a name="property.height"></a>
-## *height <sup>property</sup>*
+## *height [<sup>property</sup>](#head.Properties)*
 
 Provides access to the vertical resolution of the TV.
 
@@ -290,7 +439,7 @@ Provides access to the vertical resolution of the TV.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.height"
 }
 ```
@@ -300,13 +449,48 @@ Provides access to the vertical resolution of the TV.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 720
 }
 ```
 
+<a name="property.verticalfreq"></a>
+## *verticalfreq [<sup>property</sup>](#head.Properties)*
+
+Provides access to the vertical Frequency.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | integer | Vertical Frequency |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.verticalfreq"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": 0
+}
+```
+
 <a name="property.hdcpprotection"></a>
-## *hdcpprotection <sup>property</sup>*
+## *hdcpprotection [<sup>property</sup>](#head.Properties)*
 
 Provides access to the HDCP protocol used for transmission.
 
@@ -316,7 +500,7 @@ Provides access to the HDCP protocol used for transmission.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | HDCP protocol used for transmission (must be one of the following: *Unencrypted*, *HDCP1x*, *HDCP2x*) |
+| (property) | string | HDCP protocol used for transmission (must be one of the following: *HdcpUnencrypted*, *Hdcp1x*, *Hdcp2x, HdcpAuto*) |
 
 ### Example
 
@@ -325,7 +509,7 @@ Provides access to the HDCP protocol used for transmission.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DisplayInfo.1.hdcpprotection"
 }
 ```
@@ -335,13 +519,118 @@ Provides access to the HDCP protocol used for transmission.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": "HDCP1x"
+    "id": 42,
+    "result": "Hdcp1x"
 }
 ```
 
-<a name="property.hdrtype"></a>
-## *hdrtype <sup>property</sup>*
+<a name="property.portname"></a>
+## *portname [<sup>property</sup>](#head.Properties)*
+
+Provides access to the video output port on the STB used for connecting to the TV.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Video output port on the STB used for connecting to the TV |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.portname"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "hdmi"
+}
+```
+
+<a name="property.tvcapabilities"></a>
+## *tvcapabilities [<sup>property</sup>](#head.Properties)*
+
+Provides access to the HDR formats supported by the TV.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | HDR formats supported by the TV (must be one of the following: *HdrOff*, *Hdr10*, *Hdr10Plus*, *HdrHlg*, *HdrDolbyvision*, *HdrTechnicolor*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.tvcapabilities"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "HdrOff"
+}
+```
+
+<a name="property.stbcapabilities"></a>
+## *stbcapabilities [<sup>property</sup>](#head.Properties)*
+
+Provides access to the HDR formats supported by the STB.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | HDR formats supported by the STB (must be one of the following: *HdrOff*, *Hdr10*, *Hdr10Plus*, *HdrHlg*, *HdrDolbyvision*, *HdrTechnicolor*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.stbcapabilities"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "HdrOff"
+}
+```
+
+<a name="property.hdrsetting"></a>
+## *hdrsetting [<sup>property</sup>](#head.Properties)*
 
 Provides access to the HDR format in use.
 
@@ -351,7 +640,7 @@ Provides access to the HDR format in use.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | HDR format in use (must be one of the following: *HDROff*, *HDR10*, *HDR10Plus*, *HDRDolbyVision*, *HDRTechnicolor*) |
+| (property) | string | HDR format in use (must be one of the following: *HdrOff*, *Hdr10*, *Hdr10Plus*, *HdrHlg*, *HdrDolbyvision*, *HdrTechnicolor*) |
 
 ### Example
 
@@ -360,8 +649,8 @@ Provides access to the HDR format in use.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "DisplayInfo.1.hdrtype"
+    "id": 42,
+    "method": "DisplayInfo.1.hdrsetting"
 }
 ```
 
@@ -370,8 +659,8 @@ Provides access to the HDR format in use.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": "HDROff"
+    "id": 42,
+    "result": "HdrOff"
 }
 ```
 
@@ -390,7 +679,7 @@ DisplayInfo interface events:
 
 
 <a name="event.updated"></a>
-## *updated <sup>event</sup>*
+## *updated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the connection changes or is updated.
 
@@ -399,7 +688,7 @@ Triggered when the connection changes or is updated.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.events | string | The type of change (must be one of the following: *PreResolutionChange*, *PostResolutionChange*, *HdmiChange*, *HdcpChange*) |
+| params.event | string | The type of change (must be one of the following: *PreResolutionChange*, *PostResolutionChange*, *HdmiChange*, *HdcpChange*) |
 
 ### Example
 
@@ -408,7 +697,7 @@ Triggered when the connection changes or is updated.
     "jsonrpc": "2.0",
     "method": "client.events.1.updated",
     "params": {
-        "events": "HdmiChange"
+        "event": "HdmiChange"
     }
 }
 ```
