@@ -1048,7 +1048,7 @@ Triggered when the default interface changes, regardless if it's from a system o
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |Triggers this event if a call to this method causes the device's default interface to change.|
+| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface).
 
@@ -1082,8 +1082,8 @@ Triggered when an interface becomes enabled or disabled. This event is triggered
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of The setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is enabled as a result of The setDefaultInterface(EITHERNET) method.|
-| `setInterfaceEnabled` |Triggers this event only if this method call caused the interface's enabled/disabled status to change.|
+| `setInterfaceEnabled` |Triggers this onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
+| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of The setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of The setDefaultInterface(ETHERNET) method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 
@@ -1117,8 +1117,8 @@ Triggered when an IP Address is assigned or lost. This event is triggered during
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |Triggers onIPAddressStatusChanged event when Setting the default interface ETHERNET to WIFI or vice-versa.|
 | `setIPSettings` |Triggers this event for each IP address that is lost or acquired following a call to this method.|
+| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
 
