@@ -1083,7 +1083,7 @@ Triggered when an interface becomes enabled or disabled. This event is triggered
 | Method | Description | 
 | :----------- | :----------- |
 | `setInterfaceEnabled` |Triggers this onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
-| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of The setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of The setDefaultInterface(ETHERNET) method.|
+| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 

@@ -816,7 +816,7 @@
             }
         },
         "onInterfaceStatusChanged":{
-            "summary": "Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setInterfaceEnabled` |Triggers this onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|\n| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of The setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of The setDefaultInterface(ETHERNET) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
+            "summary": "Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setInterfaceEnabled` |Triggers this onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|\n| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
             "params": {
                 "type": "object",
                 "properties": {
