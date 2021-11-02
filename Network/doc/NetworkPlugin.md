@@ -1082,7 +1082,7 @@ Triggered when an interface becomes enabled or disabled. This event is triggered
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setInterfaceEnabled` |Triggers this onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
+| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
 | `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
@@ -1117,7 +1117,7 @@ Triggered when an IP Address is assigned or lost. This event is triggered during
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setIPSettings` |Triggers this event for each IP address that is lost or acquired following a call to this method.|
+| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
 | `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
  
 Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
