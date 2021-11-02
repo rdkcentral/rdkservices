@@ -242,6 +242,12 @@ DisplayInfo interface properties:
 | [tvcapabilities](#property.tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
 | [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
 | [hdrsetting](#property.hdrsetting) <sup>RO</sup> | HDR format in use |
+| [colorspace](#property.colorspace) <sup>RO</sup> | Display color space (chroma subsampling format) |
+| [framerate](#property.framerate) <sup>RO</sup> | Display frame rate |
+| [colourdepth](#property.colourdepth) <sup>RO</sup> | Display colour depth |
+| [quantizationrange](#property.quantizationrange) <sup>RO</sup> | Display quantization range |
+| [colorimetry](#property.colorimetry) <sup>RO</sup> | Display colorimetry |
+| [eotf](#property.eotf) <sup>RO</sup> | Display Electro Optical Transfer Function (EOTF) |
 
 
 <a name="property.totalgpuram"></a>
@@ -500,7 +506,7 @@ Provides access to the HDCP protocol used for transmission.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | HDCP protocol used for transmission (must be one of the following: *HdcpUnencrypted*, *Hdcp1x*, *Hdcp2x, HdcpAuto*) |
+| (property) | string | HDCP protocol used for transmission (must be one of the following: *HdcpUnencrypted*, *Hdcp1x*, *Hdcp2x*, *HdcpAuto*) |
 
 ### Example
 
@@ -661,6 +667,216 @@ Provides access to the HDR format in use.
     "jsonrpc": "2.0",
     "id": 42,
     "result": "HdrOff"
+}
+```
+
+<a name="property.colorspace"></a>
+## *colorspace [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display color space (chroma subsampling format).
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display color space (chroma subsampling format) (must be one of the following: *FORMAT_UNKNOWN*, *FORMAT_OTHER*, *FORMAT_RGB_444*, *FORMAT_YCBCR_444*, *FORMAT_YCBCR_422*, *FORMAT_YCBCR_420*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.colorspace"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "FORMAT_RGB_444"
+}
+```
+
+<a name="property.framerate"></a>
+## *framerate [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display frame rate.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display frame rate (must be one of the following: *FRAMERATE_UNKNOWN*, *FRAMERATE_23_976*, *FRAMERATE_24*, *FRAMERATE_25*, *FRAMERATE_29_97*, *FRAMERATE_30*, *FRAMERATE_47_952*, *FRAMERATE_48*, *FRAMERATE_50*, *FRAMERATE_59_94*, *FRAMERATE_60*, *FRAMERATE_119_88*, *FRAMERATE_120*, *FRAMERATE_144*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.framerate"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "FRAMERATE_60"
+}
+```
+
+<a name="property.colourdepth"></a>
+## *colourdepth [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display colour depth.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display colour depth (must be one of the following: *COLORDEPTH_UNKNOWN*, *COLORDEPTH_8_BIT*, *COLORDEPTH_10_BIT*, *COLORDEPTH_12_BIT*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.colourdepth"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "COLORDEPTH_8_BIT"
+}
+```
+
+<a name="property.quantizationrange"></a>
+## *quantizationrange [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display quantization range.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display quantization range (must be one of the following: *QUANTIZATIONRANGE_UNKNOWN*, *QUANTIZATIONRANGE_LIMITED*, *QUANTIZATIONRANGE_FULL*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.quantizationrange"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "QUANTIZATIONRANGE_UNKNOWN"
+}
+```
+
+<a name="property.colorimetry"></a>
+## *colorimetry [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display colorimetry.
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display colorimetry (must be one of the following: *COLORIMETRY_UNKNOWN*, *COLORIMETRY_OTHER*, *COLORIMETRY_SMPTE170M*, *COLORIMETRY_BT709*, *COLORIMETRY_XVYCC601*, *COLORIMETRY_XVYCC709*, *COLORIMETRY_SYCC601*, *COLORIMETRY_OPYCC601*, *COLORIMETRY_OPRGB*, *COLORIMETRY_BT2020YCCBCBRC*, *COLORIMETRY_BT2020RGB_YCBCR*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.colorimetry"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "COLORIMETRY_OTHER"
+}
+```
+
+<a name="property.eotf"></a>
+## *eotf [<sup>property</sup>](#head.Properties)*
+
+Provides access to the display Electro Optical Transfer Function (EOTF).
+
+> This property is **read-only**.
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | string | Display Electro Optical Transfer Function (EOTF) (must be one of the following: *EOTF_UNKNOWN*, *EOTF_OTHER*, *EOTF_BT1886*, *EOTF_BT2100*, *EOTF_SMPTE_ST_2084*) |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DisplayInfo.1.eotf"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "EOTF_SMPTE_ST_2084"
 }
 ```
 
