@@ -772,6 +772,26 @@
         }
     },
     "events": {
+        "onInterfaceStatusChanged":{
+            "summary": "Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|\n| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "enabled":{
+                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "enabled"
+                ]
+            }
+        },
         "onConnectionStatusChanged":{
             "summary": "Triggered when a connection is made or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
@@ -790,48 +810,6 @@
                 "required": [
                     "interface",
                     "status"
-                ]
-            }
-        },
-        "onDefaultInterfaceChanged":{
-            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "oldInterfaceName":{
-                        "summary": "The previous interface that was changed",
-                        "type": "string",
-                        "example": "ETHERNET" 
-                    },
-                    "newInterfaceName":{
-                        "summary": "The current interface",
-                        "type": "string",
-                        "example": "WIFI" 
-                    }
-                },
-                "required": [
-                    "oldInterfaceName",
-                    "newInterfaceName"
-                ]
-            }
-        },
-        "onInterfaceStatusChanged":{
-            "summary": "Triggered when an interface becomes enabled or disabled. This event is triggered during below methods call sequence.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|\n| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event when the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event when the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "interface":{
-                        "$ref": "#/definitions/interface" 
-                    },
-                    "enabled":{
-                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "interface",
-                    "enabled"
                 ]
             }
         },
@@ -865,6 +843,28 @@
                     "ip6Address",
                     "ip4address",
                     "status"
+                ]
+            }
+        },
+        "onDefaultInterfaceChanged":{
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "oldInterfaceName":{
+                        "summary": "The previous interface that was changed",
+                        "type": "string",
+                        "example": "ETHERNET" 
+                    },
+                    "newInterfaceName":{
+                        "summary": "The current interface",
+                        "type": "string",
+                        "example": "WIFI" 
+                    }
+                },
+                "required": [
+                    "oldInterfaceName",
+                    "newInterfaceName"
                 ]
             }
         }
