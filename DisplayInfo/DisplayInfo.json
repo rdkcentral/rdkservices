@@ -6,6 +6,76 @@
         "class": "DisplayInfo",
         "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information"
     },
+    "definitions": {
+        "length": {
+            "summary": "The EDID length",
+            "type": "integer",
+            "example": 0
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "edid": {
+            "summary": "Returns the TV's Extended Display Identification Data (EDID)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "length": {
+                        "$ref": "#/definitions/length"
+                    }
+                },
+                "required": [
+                    "length"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "length": {
+                        "$ref": "#/definitions/length"
+                    },
+                    "data": {
+                        "summary": "The EDID data",
+                        "type":"string",
+                        "example": ""
+                    }
+                },
+                "required": [
+                    "length",
+                    "data"
+                ]
+            }
+        },
+        "widthincentimeters": {
+            "summary": "Horizontal size in centimeters",
+            "result": {
+                "type":"integer",
+                "example": 0
+            }
+        },
+        "heightincentimeters": {
+            "summary": "Vertical size in centimeters",
+            "result": {
+                "type":"integer",
+                "example": 0
+            }
+        }
+    },
     "properties": {
         "totalgpuram": {
             "summary": "Total GPU DRAM memory (in bytes)",
@@ -25,8 +95,8 @@
                 "example": 358612992
             }
         },
-        "audiopassthrough": {
-            "summary": "current audio passthrough status on HDMI",
+        "isaudiopassthrough": {
+            "summary": "Current audio passthrough status on HDMI",
             "readonly": true,
             "params": {
                 "type": "boolean",
@@ -58,24 +128,57 @@
                 "size": 32,
                 "example": 720
             }
-            
+        },
+        "verticalfreq": {
+            "summary": "Vertical Frequency",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "example": 0
+            }
         },
         "hdcpprotection": {
             "summary": "HDCP protocol used for transmission",
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "Unencrypted", "HDCP1x", "HDCP2x"],
-                "example": "HDCP1x"
+                "enum": [ "HdcpUnencrypted", "Hdcp1x", "Hdcp2x, HdcpAuto"],
+                "example": "Hdcp1x"
             }
         },
-        "hdrtype": {
+        "portname": {
+            "summary": "Video output port on the STB used for connecting to the TV",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "example": "hdmi"
+            }
+        },
+        "tvcapabilities": {
+            "summary": "HDR formats supported by the TV",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "example": "HdrOff"
+            }
+        },
+        "stbcapabilities": {
+            "summary": "HDR formats supported by the STB",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "example": "HdrOff"
+            }
+        },
+        "hdrsetting": {
             "summary": "HDR format in use",
             "readonly": true,
             "params": {
                 "type": "string",
-                "enum": [ "HDROff", "HDR10", "HDR10Plus", "HDRDolbyVision", "HDRTechnicolor" ],
-                "example": "HDROff"
+                "enum": [ "HdrOff", "Hdr10", "Hdr10Plus", "HdrHlg", "HdrDolbyvision", "HdrTechnicolor" ],
+                "example": "HdrOff"
             }            
         }
     },
@@ -85,7 +188,7 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "events": {
+                    "event": {
                         "summary": "The type of change",
                         "enum": [
                             "PreResolutionChange",
@@ -98,7 +201,7 @@
                     }
                 },
                 "required": [
-                    "events"
+                    "event"
                 ]
             }
         }
