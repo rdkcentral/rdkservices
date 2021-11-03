@@ -13,6 +13,11 @@
             "example": "WIFI"
         },
         "ipversion": {
+            "summary": "either IPv4 or IPv6",
+            "type": "string",
+            "example": "IPv4"
+        },
+        "sipversion": {
             "summary": "IPv4 (IPv6 is not currently supported)",
             "type": "string",
             "example": "IPv4"
@@ -638,7 +643,7 @@
                         "$ref": "#/definitions/interface"
                     },
                     "ipversion": {
-                        "$ref": "#/definitions/ipversion"
+                        "$ref": "#/definitions/sipversion"
                     },
                     "autoconfig": {
                         "$ref": "#/definitions/autoconfig"
