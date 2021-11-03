@@ -211,7 +211,7 @@ Gets the IP setting for the given interface.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
+| params?.ipversion | string | <sup>*(optional)*</sup> IPv4 version |
 
 ### Result
 
@@ -219,7 +219,7 @@ Gets the IP setting for the given interface.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| result.ipversion | string | either IPv4 or IPv6 |
+| result.ipversion | string | IPv4 version |
 | result.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | result.ipaddr | string | The IP address |
 | result.netmask | string | The network mask address |
@@ -444,7 +444,7 @@ Gets the IP address of the default interface by address family.
 <a name="method.isConnectedToInternet"></a>
 ## *isConnectedToInternet <sup>method</sup>*
 
-Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.
+Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
 ### Parameters
 
@@ -829,7 +829,7 @@ Sets the IP settings.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipversion | string | either IPv4 or IPv6 |
+| params.ipversion | string | IPv4 version |
 | params.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | params.ipaddr | string | The IP address |
 | params.netmask | string | The network mask address |

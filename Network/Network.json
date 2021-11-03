@@ -13,7 +13,7 @@
             "example": "WIFI"
         },
         "ipversion": {
-            "summary": "either IPv4 or IPv6",
+            "summary": "IPv4 version",
             "type": "string",
             "example": "IPv4"
         },
@@ -361,7 +361,7 @@
             }
         },
         "isConnectedToInternet":{
-            "summary": "Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.",
+            "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
             "result": {
                 "type": "object",
                 "properties": {
