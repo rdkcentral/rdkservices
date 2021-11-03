@@ -13,7 +13,7 @@
             "example": "WIFI"
         },
         "ipversion": {
-            "summary": "IPv4 version",
+            "summary": "IPv4 (IPv6 is not currently supported)",
             "type": "string",
             "example": "IPv4"
         },
