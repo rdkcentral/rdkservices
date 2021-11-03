@@ -211,7 +211,7 @@ Gets the IP setting for the given interface.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params?.ipversion | string | <sup>*(optional)*</sup> IPv4 (IPv6 is not currently supported) |
+| params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
 
 ### Result
 
@@ -219,7 +219,7 @@ Gets the IP setting for the given interface.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| result.ipversion | string | IPv4 (IPv6 is not currently supported) |
+| result.ipversion | string | either IPv4 or IPv6 |
 | result.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | result.ipaddr | string | The IP address |
 | result.netmask | string | The network mask address |
