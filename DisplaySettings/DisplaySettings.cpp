@@ -71,6 +71,8 @@ using namespace std;
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
+static bool isCecArcRoutingThreadEnabled = false;
+
 #ifdef USE_IARM
 namespace
 {
@@ -227,13 +229,17 @@ namespace WPEFramework {
         m_arcAudioEnabled = false;
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
+	    isCecArcRoutingThreadEnabled = true;
 	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
         }
 
         DisplaySettings::~DisplaySettings()
         {
-            //LOGINFO("dtor");
+            LOGINFO("dtor");
+            if ( m_timer.isActive()) {
+                m_timer.stop();
+            }
 
             lock_guard<mutex> lck(m_callMutex);
 
@@ -408,8 +414,11 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
+	   LOGERR("Enetering DisplaySettings::Deinitialize");
+	   isCecArcRoutingThreadEnabled = false;
 	   {
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+            LOGERR("DisplaySettings::Deinitialize %d", __LINE__);
             m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 	    m_cecArcRoutingThreadRun = true;
             arcRoutingCV.notify_one();
@@ -3583,7 +3592,7 @@ namespace WPEFramework {
             if(!DisplaySettings::_instance)
                  return;
 	    
-	    while(1) {
+	    while(isCecArcRoutingThreadEnabled) {
 
 		LOGINFO("%s: Debug:  ARC Routing Thread wait \n",__FUNCTION__);
 		{
