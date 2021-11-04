@@ -446,7 +446,8 @@ namespace WPEFramework {
                     /* Store it in a Global structure */
                     g_epoch_time=l_time;
                 }
-                else if ( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) {
+                else if (( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) &&
+                    ( MAINTENANCE_STARTED == m_notify_status )) {
                     module_status = module_event_data->data.maintenance_module_status.status;
                     LOGINFO("MaintMGR Status %d \n",module_status);
                     string status_string=moduleStatusToString(module_status);
@@ -455,6 +456,7 @@ namespace WPEFramework {
                         case MAINT_RFC_COMPLETE :
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_COMPLETE");
+                                 return;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
@@ -466,6 +468,7 @@ namespace WPEFramework {
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
@@ -477,6 +480,7 @@ namespace WPEFramework {
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
@@ -488,6 +492,7 @@ namespace WPEFramework {
                        case MAINT_LOGUPLOAD_COMPLETE :
                             if(task_status_LOGUPLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
@@ -525,6 +530,7 @@ namespace WPEFramework {
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
+                                 return;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
@@ -537,6 +543,7 @@ namespace WPEFramework {
                         case MAINT_LOGUPLOAD_ERROR:
                             if(task_status_LOGUPLD->second != true) {
                                   LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
+                                  return;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
@@ -548,6 +555,7 @@ namespace WPEFramework {
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
@@ -579,7 +587,8 @@ namespace WPEFramework {
                     }
                 }
                 else{
-                    LOGINFO("Unknown Maintenance Status!!");
+                    LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                    return;
                 }
 
                 LOGINFO(" BITFIELD Status : %x",g_task_status);
