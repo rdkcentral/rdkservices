@@ -63,6 +63,11 @@
 #define XCONF_OVERRIDE_FILE						"/opt/swupdate.conf"
 #define	URL_XCONF								"http://xconf.xcal.tv/xconf/swu/stb"
 #define TZ_FILE									"/opt/persistent/timeZoneDST"
+#define DEVICE_PROPERTIES                       "/etc/device.properties"
+#define OPT_DCM_PROPERTIES                      "/opt/dcm.properties"
+#define ETC_DCM_PROPERTIES                      "/etc/dcm.properties"
+#define TMP_DCM_SETTINGS                        "/tmp/DCMSettings.conf"
+
 
 #define MODE_TIMER_UPDATE_INTERVAL	1000
 #define CURL_BUFFER_SIZE	(64 * 1024) /* 256kB */
@@ -279,6 +284,18 @@ std::string stringTodate(char *pBuffer);
  * @param2[out]: String striped of given characters
  */
 void removeCharsFromString(string &str, const char* charsToRemove);
+
+/**
+ * @brief Used to parse and get value of a particular key from config file
+ * seperated by '=' (eg: abc=xyz, where abc is key and xyz is value).
+ * @param1[in] : Filename(with absolute path) of the confiuration file
+ * @param2[in] : Key which we need to find the value
+ * @param3[in] : An empty buffer where the value will be updated
+ *
+ * @param2[out]: Boolean value either true/false
+ */
+
+bool parseConfigFile(const char* filename, string findkey, string &value);
 
 /**
  * @brief Curl write request callback handler.
