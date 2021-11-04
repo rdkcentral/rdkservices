@@ -103,6 +103,7 @@ if (BUILD_LLAMA)
     add_definitions (-DBUILD_LLAMA)
 
     add_definitions (-DENABLE_DEEP_SLEEP)
+    add_definitions (-DLOGUPLOAD_BEFORE_DEEPSLEEP)
     add_definitions (-DUSE_LLAMA_MORE_DEFINITIONS)
     add_definitions (-DUSE_UIMAF)
 
