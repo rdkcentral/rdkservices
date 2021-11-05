@@ -7,6 +7,7 @@
           super("org.rdk.Calculator");
           this.registerMethod("add", 1, this.add.bind(this));
           this.registerMethod("sub", 1, this.sub.bind(this));
+          this.registerMethod("triggerLowBatteryTest", 1, this.triggerLowBatteryTest.bind(this));
         }
 
         add(params) {
@@ -22,6 +23,21 @@
           return new Promise((resolve, reject) => {
             let diff = params[0] - params[1];
             resolve(diff);
+          });
+        }
+
+        runLowBatteryTest() {
+          this.notify("1.low_battery", {
+            level : 2.4,
+            estimated_time_remaining : 2
+          });
+        }
+
+        triggerLowBatteryTest(params) {
+          console.log("triggerLowBatteryTest()");
+          setTimeout(() => { this.runLowBatteryTest() }, 5000);
+          return new Promise((resolve, reject) => {
+            resolve();
           });
         }
       }
