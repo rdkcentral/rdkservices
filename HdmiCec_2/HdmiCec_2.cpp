@@ -1263,6 +1263,13 @@ namespace WPEFramework
 					_instance->smConnection, logicalAddress.toInt());
 			return isConnected;
 		}
+		RFC_ParamData_t param;
+		bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HDMICECDaemon.Enable", param);
+		if (!(true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))){
+			//cec daemon is not enabled
+			LOGERR("HDMICECDaemon is not enabled. Not able to detected cec devices");
+			return isConnected;
+		}
 
 		LOGWARN("PING for  0x%x \r\n",idev);
 		try {
