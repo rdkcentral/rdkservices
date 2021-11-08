@@ -17,6 +17,11 @@
             "type": "string",
             "example": "IPv4"
         },
+        "sipversion": {
+            "summary": "IPv4 (IPv6 is not currently supported)",
+            "type": "string",
+            "example": "IPv4"
+        },
         "autoconfig": {
             "summary": "`true` if DHCP is used, `false` if IP is configured manually",
             "type": "boolean",
@@ -127,6 +132,16 @@
             "summary": "Whether the request succeeded",
             "type": "boolean",
             "example": "true"
+        },
+        "guid": {
+            "summary": "The globally unique identifier",
+            "type": "string",
+            "example": ""
+        },
+        "quirks":{
+            "summary": "Update `RDK-20093` string",
+            "type": "string",
+            "example": "RDK-20093"
         }
     },
     "methods": {
@@ -279,6 +294,24 @@
                 ]
             }
         },
+        "getQuirks":{
+            "summary": "Get standard string `RDK-20093`",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "quirks": {
+                        "$ref": "#/definitions/quirks"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "quirks",
+                    "success"
+                ]
+            }
+        },
         "getStbIp":{
             "summary": "Gets the IP address of the default interface",
             "result": {
@@ -333,7 +366,7 @@
             }
         },
         "isConnectedToInternet":{
-            "summary": "Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.",
+            "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -393,6 +426,9 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -432,6 +468,9 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -444,7 +483,8 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error" 
+                    "error",
+                    "guid"
                 ]
             }
         },
@@ -458,6 +498,9 @@
                     },
                     "packets": {
                         "$ref": "#/definitions/packets"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -497,6 +540,9 @@
                     },
                     "error": {
                         "$ref": "#/definitions/error"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
                     }
                 },
                 "required": [
@@ -509,7 +555,8 @@
                     "tripAvg",
                     "tripMax",
                     "tripStdDev",
-                    "error"
+                    "error",
+                    "guid"
                 ]
             }
         },
@@ -596,7 +643,7 @@
                         "$ref": "#/definitions/interface"
                     },
                     "ipversion": {
-                        "$ref": "#/definitions/ipversion"
+                        "$ref": "#/definitions/sipversion"
                     },
                     "autoconfig": {
                         "$ref": "#/definitions/autoconfig"
@@ -730,8 +777,28 @@
         }
     },
     "events": {
+        "onInterfaceStatusChanged":{
+            "summary": "Triggered when an interface becomes enabled or disabled.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|\n| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "enabled":{
+                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "enabled"
+                ]
+            }
+        },
         "onConnectionStatusChanged":{
-            "summary": "Triggered when a connection is made or lost",
+            "summary": "Triggered when a connection is made or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -751,50 +818,8 @@
                 ]
             }
         },
-        "onDefaultInterfaceChanged":{
-            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through this API",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "oldInterfaceName":{
-                        "summary": "The previous interface that was changed",
-                        "type": "string",
-                        "example": "ETHERNET" 
-                    },
-                    "newInterfaceName":{
-                        "summary": "The current interface",
-                        "type": "string",
-                        "example": "WIFI" 
-                    }
-                },
-                "required": [
-                    "oldInterfaceName",
-                    "newInterfaceName"
-                ]
-            }
-        },
-        "onInterfaceStatusChanged":{
-            "summary": "Triggered when an interface becomes enabled or disabled",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "interface":{
-                        "$ref": "#/definitions/interface" 
-                    },
-                    "enabled":{
-                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "interface",
-                    "enabled"
-                ]
-            }
-        },
         "onIPAddressStatusChanged":{
-            "summary": "Triggered when an IP Address is assigned or lost",
+            "summary": "Triggered when an IP Address is assigned or lost.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|\n| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -825,7 +850,28 @@
                     "status"
                 ]
             }
+        },
+        "onDefaultInterfaceChanged":{
+            "summary": "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.\n \n### Methods\n  \n| Method | Description | \n| :----------- | :----------- |\n| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|\n \nAlso see: [setDefaultInterface](#method.setDefaultInterface)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "oldInterfaceName":{
+                        "summary": "The previous interface that was changed",
+                        "type": "string",
+                        "example": "ETHERNET" 
+                    },
+                    "newInterfaceName":{
+                        "summary": "The current interface",
+                        "type": "string",
+                        "example": "WIFI" 
+                    }
+                },
+                "required": [
+                    "oldInterfaceName",
+                    "newInterfaceName"
+                ]
+            }
         }
-
     }
 }
