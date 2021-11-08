@@ -416,6 +416,17 @@ namespace WPEFramework
                 return;
             }
 
+            char c;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+            if(retVal != IARM_RESULT_SUCCESS) {
+                LOGINFO("CECMGR is not available. Failed to enable HdmiCec Plugin");
+                cecEnableStatus = false;
+                return;
+            } else {
+                LOGINFO("CECMGR is available");
+            }
+
             if(0 == libcecInitStatus)
             {
                 try
@@ -780,9 +791,9 @@ namespace WPEFramework
 			LOGERR("HdmiCec::_instance not existing");
 			return isConnected;
 		}
-		if ( !(_instance->smConnection) || _instance->logicalAddress == LogicalAddress::UNREGISTERED ){
-			LOGERR("Exiting from pingDeviceUpdateList _instance->smConnection:%p, _instance->logicalAddress:%d",
-					_instance->smConnection, _instance->logicalAddress);
+		if ( !(_instance->smConnection) || _instance->logicalAddress == LogicalAddress::UNREGISTERED || (false == cecEnableStatus)){
+			LOGERR("Exiting from pingDeviceUpdateList _instance->smConnection:%p, _instance->logicalAddress:%d, cecEnableStatus=%d",
+					_instance->smConnection, _instance->logicalAddress, cecEnableStatus);
 			return isConnected;
 		}
 
@@ -798,6 +809,12 @@ namespace WPEFramework
 			} else {
 				LOGINFO("Device is not connected: %d. Ping caught %s\r\n",idev, e.what());
 			}
+			isConnected = false;
+			return isConnected;;
+		}
+		catch(IOException &e)
+		{
+			LOGINFO("Device is not reachable: %d. Ping caught %s\r\n",idev, e.what());
 			isConnected = false;
 			return isConnected;;
 		}
