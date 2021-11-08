@@ -220,6 +220,8 @@ std::list <string> PlatformCapsData::GetQuirks() const {
 PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
   BrowserInfo result;
 
+  string type;
+
   Core::File file(OVERRIDE_WEBBACKEND_CONFIG_FILE);
   if (!file.Open(true))
     file = DEFAULT_WEBBACKEND_CONFIG_FILE;
@@ -228,28 +230,28 @@ PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
     JsonObject json;
     json.IElement::FromFile(file);
 
-    auto type = json["html_view"].String();
-
-    if (type == "rdkbrowser") {
-      result = {"WPE", "1.0.0.0",
-                "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
-                "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
-    } else if (type == "cef") {
-      result = {"CEF", "1.0.0.0",
-                "Mozilla/5.0 (Unknown; Linux i686) AppleWebKit/537.21 "
-                "(KHTML, like Gecko) NativeXREReceiver"};
-    } else if (type == "webkit") {
-      result = {"qtwebkit", "1.0.0.0",
-                "Mozilla/5.0 (Unknown; Linux i686) AppleWebKit/537.21 "
-                "(KHTML, like Gecko) NativeXREReceiver"};
-    } else {
-      result = {"WPE", "1.0.0.0",
-                "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
-                "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
-    }
+    type = json["html_view"].String();
   } else {
     TRACE(WPEFramework::Trace::Error, (_T("%s File '%s' : %"PRIu32"\n"),
         __FILE__, file.Name().c_str(), file.ErrorCode()));
+  }
+
+  if (type == "rdkbrowser") {
+    result = {"WPE", "1.0.0.0",
+              "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
+              "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
+  } else if (type == "cef") {
+    result = {"CEF", "1.0.0.0",
+              "Mozilla/5.0 (Unknown; Linux i686) AppleWebKit/537.21 "
+              "(KHTML, like Gecko) NativeXREReceiver"};
+  } else if (type == "webkit") {
+    result = {"qtwebkit", "1.0.0.0",
+              "Mozilla/5.0 (Unknown; Linux i686) AppleWebKit/537.21 "
+              "(KHTML, like Gecko) NativeXREReceiver"};
+  } else {
+    result = {"WPE", "1.0.0.0",
+              "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
+              "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
   }
 
   return result;
