@@ -200,18 +200,16 @@ namespace WPEFramework {
 
 
         string MaintenanceManager::getLastRebootReason(){
-
-            char rebootInfo[1024] = {'\0'};
             bool retAPIStatus = false;
             string reboot_reason="";
             string reason="";
+            string rebootInfo;
 
             if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContentToCharBuffer(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo );
+                retAPIStatus = getFileContent(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
             }
 
-            if (retAPIStatus && strlen(rebootInfo)) {
-                string dataBuf(rebootInfo);
+            if (retAPIStatus && rebootInfo.length()) {
                 JsonObject rebootInfoJson;
                 rebootInfoJson.FromString(rebootInfo);
                 reason = rebootInfoJson["reason"].String();

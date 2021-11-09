@@ -2507,7 +2507,7 @@ namespace WPEFramework
 
 				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
 				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
-					LOGINFO("Timeout m_pollThreadExit %d\n", _instance->m_pollThreadExit);
+					continue;
 				else
 					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
 
