@@ -57,6 +57,14 @@ else()
    target_link_libraries(${MODULE_NAME} PRIVATE ${PLUGINS_LIBRARIES} ${OCDM_LIBRARIES})
 endif()
 
+find_path(LIBODHERR_INCLUDE_DIR "rdk/libodherr/odherr.h")
+if (LIBODHERR_INCLUDE_DIR)
+  message(STATUS "ODH Error reporting support enabled (path: ${LIBODHERR_INCLUDE_DIR})")
+  target_compile_definitions(${MODULE_NAME} PRIVATE -DHAVE_LIBODHERR_ODHERR_H -DODH_SOURCE_NAME="OCDM")
+  target_include_directories(${MODULE_NAME} PRIVATE ${LIBODHERR_INCLUDE_DIR})
+  target_link_libraries(${MODULE_NAME} PRIVATE odherr jansson)
+endif(LIBODHERR_INCLUDE_DIR)
+
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGENAME)
 install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGENAME}/plugins)
