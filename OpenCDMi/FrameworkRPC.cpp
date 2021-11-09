@@ -34,6 +34,8 @@
 #define INITIALIZATION_RETRY_SLEEP_MS         100         // delay in [ms] after getting CDMi_BUSY_CANNOT_INITIALIZE and retry
 #define INITIALIZATION_MAX_RETRY_COUNTER      50          // number of repetitions in retrying procedure
 
+#include "ReportErrors.h"
+
 extern "C" {
 
 typedef ::CDMi::ISystemFactory* (*GetDRMSystemFunction)();
@@ -828,6 +830,7 @@ namespace Plugin {
                             {
                                 TRACE(Trace::Warning, (_T("DRM initialization: success after re-trying, send SUCCESS notification")));
                                 _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::SUCCESS);
+                                ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: success after retrying", i);
                             }
                             if (sessionInterface != nullptr)
                             {
@@ -882,6 +885,7 @@ namespace Plugin {
                      {
                         TRACE(Trace::Error, (_T("DRM initialization: failed, send FAILED notification")));
                         _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::FAILED);
+                        ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: failed after retrying", INITIALIZATION_MAX_RETRY_COUNTER);
                      }
                  }
 
