@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.Network plugin for Thunder framework.
+A org.rdk.Network plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkNetwork.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [Network.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/Network.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -89,6 +97,7 @@ Network interface methods:
 | [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
 | [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
 | [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
+| [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
 | [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
@@ -104,7 +113,7 @@ Network interface methods:
 
 
 <a name="method.getDefaultInterface"></a>
-## *getDefaultInterface <sup>method</sup>*
+## *getDefaultInterface [<sup>method</sup>](#head.Methods)*
 
 Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
 
@@ -127,7 +136,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getDefaultInterface"
 }
 ```
@@ -137,7 +146,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "interface": "WIFI",
         "success": true
@@ -146,7 +155,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getInterfaces"></a>
-## *getInterfaces <sup>method</sup>*
+## *getInterfaces [<sup>method</sup>](#head.Methods)*
 
 Returns a list of interfaces supported by this device including their state.
 
@@ -174,7 +183,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getInterfaces"
 }
 ```
@@ -184,7 +193,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "Interfaces": [
             {
@@ -200,7 +209,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getIPSettings"></a>
-## *getIPSettings <sup>method</sup>*
+## *getIPSettings [<sup>method</sup>](#head.Methods)*
 
 Gets the IP setting for the given interface.
 
@@ -234,7 +243,7 @@ Gets the IP setting for the given interface.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getIPSettings",
     "params": {
         "interface": "WIFI",
@@ -248,7 +257,7 @@ Gets the IP setting for the given interface.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "interface": "WIFI",
         "ipversion": "IPv4",
@@ -264,7 +273,7 @@ Gets the IP setting for the given interface.
 ```
 
 <a name="method.getNamedEndpoints"></a>
-## *getNamedEndpoints <sup>method</sup>*
+## *getNamedEndpoints [<sup>method</sup>](#head.Methods)*
 
 Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
 
@@ -288,7 +297,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getNamedEndpoints"
 }
 ```
@@ -298,7 +307,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "endpoints": [
             "CMTS"
@@ -308,8 +317,50 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getQuirks"></a>
+## *getQuirks [<sup>method</sup>](#head.Methods)*
+
+Get standard string `RDK-20093`.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.quirks | string | Update `RDK-20093` string |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.1.getQuirks"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "quirks": "RDK-20093",
+        "success": true
+    }
+}
+```
+
 <a name="method.getStbIp"></a>
-## *getStbIp <sup>method</sup>*
+## *getStbIp [<sup>method</sup>](#head.Methods)*
 
 Gets the IP address of the default interface.
 
@@ -332,7 +383,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getStbIp"
 }
 ```
@@ -342,7 +393,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ip": "192.168.1.101",
         "success": true
@@ -351,7 +402,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSTBIPFamily"></a>
-## *getSTBIPFamily <sup>method</sup>*
+## *getSTBIPFamily [<sup>method</sup>](#head.Methods)*
 
 Gets the IP address of the default interface by address family.
 
@@ -377,7 +428,7 @@ Gets the IP address of the default interface by address family.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getSTBIPFamily",
     "params": {
         "family": "AF_INET"
@@ -390,7 +441,7 @@ Gets the IP address of the default interface by address family.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ip": "192.168.1.101",
         "success": true
@@ -399,9 +450,9 @@ Gets the IP address of the default interface by address family.
 ```
 
 <a name="method.isConnectedToInternet"></a>
-## *isConnectedToInternet <sup>method</sup>*
+## *isConnectedToInternet [<sup>method</sup>](#head.Methods)*
 
-Whether the device has internet connectivity. Depending on the number of endpoints, this API might take up to 10s to validate internet connectivity.
+Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
 ### Parameters
 
@@ -422,7 +473,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.isConnectedToInternet"
 }
 ```
@@ -432,7 +483,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "connectedToInternet": true,
         "success": true
@@ -441,7 +492,7 @@ This method takes no parameters.
 ```
 
 <a name="method.isInterfaceEnabled"></a>
-## *isInterfaceEnabled <sup>method</sup>*
+## *isInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
 Whether the specified interface is enabled.
 
@@ -467,7 +518,7 @@ Whether the specified interface is enabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.isInterfaceEnabled",
     "params": {
         "interface": "WIFI"
@@ -480,7 +531,7 @@ Whether the specified interface is enabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enabled": true,
         "success": true
@@ -489,7 +540,7 @@ Whether the specified interface is enabled.
 ```
 
 <a name="method.ping"></a>
-## *ping <sup>method</sup>*
+## *ping [<sup>method</sup>](#head.Methods)*
 
 Pings the specified endpoint with the specified number of packets.
 
@@ -500,6 +551,7 @@ Pings the specified endpoint with the specified number of packets.
 | params | object |  |
 | params.endpoint | string | The host name or IP address |
 | params.packets | integer | The number of packets to send. Default is 15 |
+| params?.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -516,6 +568,7 @@ Pings the specified endpoint with the specified number of packets.
 | result.tripMax | string | The maximum amount of time to receive the packets |
 | result.tripStdDev | string | The standard deviation for the trip |
 | result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -524,11 +577,12 @@ Pings the specified endpoint with the specified number of packets.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.ping",
     "params": {
         "endpoint": "45.57.221.20",
-        "packets": 10
+        "packets": 10,
+        "guid": "..."
     }
 }
 ```
@@ -538,7 +592,7 @@ Pings the specified endpoint with the specified number of packets.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "target": "45.57.221.20",
         "success": true,
@@ -549,13 +603,14 @@ Pings the specified endpoint with the specified number of packets.
         "tripAvg": "130.397",
         "tripMax": "230.832",
         "tripStdDev": "80.919",
-        "error": ""
+        "error": "...",
+        "guid": "..."
     }
 }
 ```
 
 <a name="method.pingNamedEndpoint"></a>
-## *pingNamedEndpoint <sup>method</sup>*
+## *pingNamedEndpoint [<sup>method</sup>](#head.Methods)*
 
 Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
@@ -566,6 +621,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 | params | object |  |
 | params.endpointName | string | An endpoint name returned by `getNamedEndpoints` |
 | params.packets | integer | The number of packets to send. Default is 15 |
+| params?.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -582,6 +638,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 | result.tripMax | string | The maximum amount of time to receive the packets |
 | result.tripStdDev | string | The standard deviation for the trip |
 | result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -590,11 +647,12 @@ Pings the specified named endpoint with the specified number of packets. Only na
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.pingNamedEndpoint",
     "params": {
         "endpointName": "CMTS",
-        "packets": 10
+        "packets": 10,
+        "guid": "..."
     }
 }
 ```
@@ -604,7 +662,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "target": "45.57.221.20",
         "success": true,
@@ -615,13 +673,14 @@ Pings the specified named endpoint with the specified number of packets. Only na
         "tripAvg": "130.397",
         "tripMax": "230.832",
         "tripStdDev": "80.919",
-        "error": ""
+        "error": "...",
+        "guid": "..."
     }
 }
 ```
 
 <a name="method.setConnectivityTestEndpoints"></a>
-## *setConnectivityTestEndpoints <sup>method</sup>*
+## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
 Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
 
@@ -647,7 +706,7 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.setConnectivityTestEndpoints",
     "params": {
         "endpoints": [
@@ -662,7 +721,7 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -670,7 +729,7 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 ```
 
 <a name="method.setDefaultInterface"></a>
-## *setDefaultInterface <sup>method</sup>*
+## *setDefaultInterface [<sup>method</sup>](#head.Methods)*
 
 Sets the default interface. The call fails if the interface is not enabled.
 
@@ -696,7 +755,7 @@ Sets the default interface. The call fails if the interface is not enabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.setDefaultInterface",
     "params": {
         "interface": "WIFI",
@@ -710,7 +769,7 @@ Sets the default interface. The call fails if the interface is not enabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -718,7 +777,7 @@ Sets the default interface. The call fails if the interface is not enabled.
 ```
 
 <a name="method.setInterfaceEnabled"></a>
-## *setInterfaceEnabled <sup>method</sup>*
+## *setInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables the specified interface.
 
@@ -745,7 +804,7 @@ Enables the specified interface.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.setInterfaceEnabled",
     "params": {
         "interface": "WIFI",
@@ -760,7 +819,7 @@ Enables the specified interface.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -768,7 +827,7 @@ Enables the specified interface.
 ```
 
 <a name="method.setIPSettings"></a>
-## *setIPSettings <sup>method</sup>*
+## *setIPSettings [<sup>method</sup>](#head.Methods)*
 
 Sets the IP settings.
 
@@ -778,7 +837,7 @@ Sets the IP settings.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipversion | string | either IPv4 or IPv6 |
+| params.ipversion | string | IPv4 (IPv6 is not currently supported) |
 | params.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | params.ipaddr | string | The IP address |
 | params.netmask | string | The network mask address |
@@ -801,7 +860,7 @@ Sets the IP settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.setIPSettings",
     "params": {
         "interface": "WIFI",
@@ -821,7 +880,7 @@ Sets the IP settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supported": true,
         "success": true
@@ -830,7 +889,7 @@ Sets the IP settings.
 ```
 
 <a name="method.trace"></a>
-## *trace <sup>method</sup>*
+## *trace [<sup>method</sup>](#head.Methods)*
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
@@ -859,7 +918,7 @@ Traces the specified endpoint with the specified number of packets using `tracer
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.trace",
     "params": {
         "endpoint": "45.57.221.20",
@@ -873,18 +932,18 @@ Traces the specified endpoint with the specified number of packets using `tracer
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "target": "45.57.221.20",
         "success": true,
-        "error": "",
+        "error": "...",
         "results": "<<<traceroute command results>>>"
     }
 }
 ```
 
 <a name="method.traceNamedEndpoint"></a>
-## *traceNamedEndpoint <sup>method</sup>*
+## *traceNamedEndpoint [<sup>method</sup>](#head.Methods)*
 
 Traces the specified named endpoint with the specified number of packets using `traceroute`.
 
@@ -913,7 +972,7 @@ Traces the specified named endpoint with the specified number of packets using `
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.traceNamedEndpoint",
     "params": {
         "endpointName": "CMTS",
@@ -927,11 +986,11 @@ Traces the specified named endpoint with the specified number of packets using `
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "target": "45.57.221.20",
         "success": true,
-        "error": "",
+        "error": "...",
         "results": "<<<traceroute command results>>>"
     }
 }
@@ -948,68 +1007,25 @@ Network interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through this API |
 | [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
+| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
 | [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
+| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
 
-
-<a name="event.onConnectionStatusChanged"></a>
-## *onConnectionStatusChanged <sup>event</sup>*
-
-Triggered when a connection is made or lost.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.status | string | Whether the interface is currently connected or disconnected (must be one of the following: *`CONNECTED`*, *`DISCONNECTED`*) |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onConnectionStatusChanged",
-    "params": {
-        "interface": "WIFI",
-        "status": "CONNECTED"
-    }
-}
-```
-
-<a name="event.onDefaultInterfaceChanged"></a>
-## *onDefaultInterfaceChanged <sup>event</sup>*
-
-Triggered when the default interface changes, regardless if it's from a system operation or through this API.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldInterfaceName | string | The previous interface that was changed |
-| params.newInterfaceName | string | The current interface |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDefaultInterfaceChanged",
-    "params": {
-        "oldInterfaceName": "ETHERNET",
-        "newInterfaceName": "WIFI"
-    }
-}
-```
 
 <a name="event.onInterfaceStatusChanged"></a>
-## *onInterfaceStatusChanged <sup>event</sup>*
+## *onInterfaceStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an interface becomes enabled or disabled.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
+| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 
 ### Parameters
 
@@ -1032,10 +1048,53 @@ Triggered when an interface becomes enabled or disabled.
 }
 ```
 
+<a name="event.onConnectionStatusChanged"></a>
+## *onConnectionStatusChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a connection is made or lost.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) method.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
+| params.status | string | Whether the interface is currently connected or disconnected (must be one of the following: *`CONNECTED`*, *`DISCONNECTED`*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onConnectionStatusChanged",
+    "params": {
+        "interface": "WIFI",
+        "status": "CONNECTED"
+    }
+}
+```
+
 <a name="event.onIPAddressStatusChanged"></a>
-## *onIPAddressStatusChanged <sup>event</sup>*
+## *onIPAddressStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an IP Address is assigned or lost.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
+| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
 
 ### Parameters
 
@@ -1058,6 +1117,40 @@ Triggered when an IP Address is assigned or lost.
         "ip6Address": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
         "ip4address": "192.168.1.2",
         "status": "ACQUIRED"
+    }
+}
+```
+
+<a name="event.onDefaultInterfaceChanged"></a>
+## *onDefaultInterfaceChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+ 
+### Methods
+  
+| Method | Description | 
+| :----------- | :----------- |
+| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
+ 
+Also see: [setDefaultInterface](#method.setDefaultInterface).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldInterfaceName | string | The previous interface that was changed |
+| params.newInterfaceName | string | The current interface |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDefaultInterfaceChanged",
+    "params": {
+        "oldInterfaceName": "ETHERNET",
+        "newInterfaceName": "WIFI"
     }
 }
 ```

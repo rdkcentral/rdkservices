@@ -221,6 +221,7 @@ namespace WPEFramework {
             registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
             registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
+            registerMethod("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
 
 	    registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this, {2});
 	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
@@ -719,15 +720,18 @@ namespace WPEFramework {
                                     else{
                                         device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                                         mode = aPort.getStereoMode(); //get Last User set stereo mode and set
-					if(mode == device::AudioStereoMode::kPassThru){
+					if((types & dsAUDIOARCSUPPORT_ARC) && (mode == device::AudioStereoMode::kPassThru)){
                                             if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                                 LOGERR("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor failed !!!\n");;
                                             }
                                             else {
                                                 LOGINFO("dsHdmiEventHandler (ARC Passthru mode): requestShortAudioDescriptor successful\n");
                                             }
+					    aPort.setStereoMode(mode.toString(), true);
                                         }
-                                        aPort.setStereoMode(mode.toString(), true);
+					else if(types & dsAUDIOARCSUPPORT_eARC) {
+                                            aPort.setStereoMode(mode.toString(), true);
+                                        }
                                     }
 
                                     if(types & dsAUDIOARCSUPPORT_eARC) {
@@ -2945,6 +2949,38 @@ namespace WPEFramework {
 	    returnResponse(success);
         }
 
+        uint32_t DisplaySettings::setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "operation");
+            string audioProfileState = parameters["operation"].String();
+
+            returnIfParamNotFound(parameters, "profileName");
+            string audioProfileName = parameters["profileName"].String();
+
+            returnIfParamNotFound(parameters, "ms12SettingsName");
+            string audioProfileSettingsName = parameters["ms12SettingsName"].String();
+
+            returnIfParamNotFound(parameters, "ms12SettingsValue");
+            string audioProfileSettingValue = parameters["ms12SettingsValue"].String();
+
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                aPort.setMS12AudioProfileSetttingsOverride(audioProfileState,audioProfileName,audioProfileSettingsName, audioProfileSettingValue);
+            }
+            catch (const device::Exception& err)
+            {
+                success = false;
+            }
+
+            returnResponse(success);
+        }
+
 
         uint32_t DisplaySettings::getMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
         {
@@ -3491,7 +3527,7 @@ namespace WPEFramework {
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
-                            if(mode == device::AudioStereoMode::kPassThru){
+                            if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -3501,7 +3537,7 @@ namespace WPEFramework {
                             }
                             aPort.setStereoMode(mode.toString(), true);
                         }
-                    }		    
+                    }
 
                     if(types & dsAUDIOARCSUPPORT_eARC) {
                         if(pEnable) {
