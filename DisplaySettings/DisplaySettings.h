@@ -137,7 +137,7 @@ namespace WPEFramework {
             uint32_t resetSurroundVirtualizer(const JsonObject& parameters, JsonObject& response);
             uint32_t resetVolumeLeveller(const JsonObject& parameters, JsonObject& response);
             uint32_t getVideoFormat(const JsonObject& parameters, JsonObject& response);
-             
+            uint32_t setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response);
             void InitAudioPorts();
             void AudioPortsReInitialize();
             //End methods
