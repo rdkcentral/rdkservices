@@ -1258,9 +1258,9 @@ namespace WPEFramework
 			LOGERR("HdmiCec_2::_instance not existing");
 			return isConnected;
 		}
-		if ( !(_instance->smConnection) || logicalAddress.toInt() == LogicalAddress::UNREGISTERED ){
-			LOGERR("Exiting from pingDeviceUpdateList _instance->smConnection:%p, logicalAddress:%d",
-					_instance->smConnection, logicalAddress.toInt());
+		if ( !(_instance->smConnection) || logicalAddress.toInt() == LogicalAddress::UNREGISTERED || (false==cecEnableStatus)){
+			LOGERR("Exiting from pingDeviceUpdateList _instance->smConnection:%p, logicalAddress:%d, cecEnableStatus=%d",
+					_instance->smConnection, logicalAddress.toInt(), cecEnableStatus);
 			return isConnected;
 		}
 
@@ -1276,6 +1276,12 @@ namespace WPEFramework
 			} else {
 				LOGINFO("Device is not connected: %d. Ping caught %s\r\n",idev, e.what());
 			}
+			isConnected = false;
+			return isConnected;;
+		}
+		catch(IOException &e)
+		{
+			LOGINFO("Device is not reachable: %d. Ping caught %s\r\n",idev, e.what());
 			isConnected = false;
 			return isConnected;;
 		}
