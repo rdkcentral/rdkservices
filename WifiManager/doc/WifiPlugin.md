@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.Wifi plugin for Thunder framework.
+A org.rdk.Wifi plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkWifiManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [WifiManager.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/WifiManager.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -105,7 +113,7 @@ WifiManager interface methods:
 
 
 <a name="method.cancelWPSPairing"></a>
-## *cancelWPSPairing <sup>method</sup>*
+## *cancelWPSPairing [<sup>method</sup>](#head.Methods)*
 
 Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed.
 
@@ -147,7 +155,7 @@ This method takes no parameters.
 ```
 
 <a name="method.clearSSID"></a>
-## *clearSSID <sup>method</sup>*
+## *clearSSID [<sup>method</sup>](#head.Methods)*
 
 Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
 
@@ -189,7 +197,7 @@ This method takes no parameters.
 ```
 
 <a name="method.connect"></a>
-## *connect <sup>method</sup>*
+## *connect [<sup>method</sup>](#head.Methods)*
 
 Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
 
@@ -239,7 +247,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 ```
 
 <a name="method.disconnect"></a>
-## *disconnect <sup>method</sup>*
+## *disconnect [<sup>method</sup>](#head.Methods)*
 
 Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
 
@@ -281,7 +289,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getConnectedSSID"></a>
-## *getConnectedSSID <sup>method</sup>*
+## *getConnectedSSID [<sup>method</sup>](#head.Methods)*
 
 Returns the connected SSID information.
 
@@ -335,7 +343,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getCurrentState"></a>
-## *getCurrentState <sup>method</sup>*
+## *getCurrentState [<sup>method</sup>](#head.Methods)*
 
 Returns the current Wifi State. The possible Wifi states are as follows.  
 **Wifi States**  
@@ -385,7 +393,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getPairedSSID"></a>
-## *getPairedSSID <sup>method</sup>*
+## *getPairedSSID [<sup>method</sup>](#head.Methods)*
 
 Returns the SSID to which the device is currently paired.
 
@@ -427,7 +435,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getPairedSSIDInfo"></a>
-## *getPairedSSIDInfo <sup>method</sup>*
+## *getPairedSSIDInfo [<sup>method</sup>](#head.Methods)*
 
 Returns the SSID and BSSID to which the device is currently paired.
 
@@ -471,7 +479,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSupportedSecurityModes"></a>
-## *getSupportedSecurityModes <sup>method</sup>*
+## *getSupportedSecurityModes [<sup>method</sup>](#head.Methods)*
 
 Returns the Wifi security modes that the device supports.
 
@@ -544,9 +552,9 @@ This method takes no parameters.
 ```
 
 <a name="method.initiateWPSPairing"></a>
-## *initiateWPSPairing <sup>method</sup>*
+## *initiateWPSPairing [<sup>method</sup>](#head.Methods)*
 
-Initiates a connection using Wifi Protected Setup (WPS). An existing connection is disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected after ~3 seconds, then the WPS pairing will stop, and an error event triggers.
+Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. If the existing connection cannot be disconnected, then the WPS pairing will stop, and an error event triggers.
 
 ### Parameters
 
@@ -586,7 +594,7 @@ This method takes no parameters.
 ```
 
 <a name="method.isPaired"></a>
-## *isPaired <sup>method</sup>*
+## *isPaired [<sup>method</sup>](#head.Methods)*
 
 Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
 
@@ -628,7 +636,7 @@ This method takes no parameters.
 ```
 
 <a name="method.isSignalThresholdChangeEnabled"></a>
-## *isSignalThresholdChangeEnabled <sup>method</sup>*
+## *isSignalThresholdChangeEnabled [<sup>method</sup>](#head.Methods)*
 
 Returns whether `onWifiSignalThresholdChanged` event is enabled or not.
 
@@ -670,7 +678,7 @@ This method takes no parameters.
 ```
 
 <a name="method.saveSSID"></a>
-## *saveSSID <sup>method</sup>*
+## *saveSSID [<sup>method</sup>](#head.Methods)*
 
 Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
 
@@ -722,7 +730,7 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 ```
 
 <a name="method.setEnabled"></a>
-## *setEnabled <sup>method</sup>*
+## *setEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables or disables the Wifi adapter for this device.
 
@@ -768,7 +776,7 @@ Enables or disables the Wifi adapter for this device.
 ```
 
 <a name="method.setSignalThresholdChangeEnabled"></a>
-## *setSignalThresholdChangeEnabled <sup>method</sup>*
+## *setSignalThresholdChangeEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables `signalThresholdChange` events to be triggered.
 
@@ -816,7 +824,7 @@ Enables `signalThresholdChange` events to be triggered.
 ```
 
 <a name="method.startScan"></a>
-## *startScan <sup>method</sup>*
+## *startScan [<sup>method</sup>](#head.Methods)*
 
 Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
 
@@ -868,7 +876,7 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 ```
 
 <a name="method.stopScan"></a>
-## *stopScan <sup>method</sup>*
+## *stopScan [<sup>method</sup>](#head.Methods)*
 
 Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
 
@@ -926,19 +934,19 @@ WifiManager interface events:
 
 
 <a name="event.onWIFIStateChanged"></a>
-## *onWIFIStateChanged <sup>event</sup>*
+## *onWIFIStateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states. This event is triggered during below methods call sequence.
+Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.
  
 ### Methods
  
 | Method | Description | 
 | :-------- | :-------- | 
-| `connect` | Triggers this event when the device is connected to the requested SSID and sets the WIFI state as CONNECT following a call to this method |
-| `disconnect` | Triggers this event when the device is disconnected from the connected SSID and sets the WIFI state as DISCONNECT following a call to this method |
-| `clearSSID` | Triggers this event when the saved SSID was cleared and sets the WIFI state as DISCONNECT |
-| `initiateWPSPairing` | Triggers this event when the device is initiated WPS Pairing with the requested SSID and sets the WIFI state as CONNECT |
-| `cancelWPSPairing` | Triggers this event when the device cancelled the WPS Pairing with the paired SSID and sets the WIFI state as DISCONNECT |
+| `connect` | Triggers this event if the device connects to the requested SSID and Wifi state changes to CONNECTED |
+| `disconnect` | Triggers this event if the device disconnects from a SSID and Wifi state changes to DISCONNECTED. |
+| `clearSSID` | Triggers this event if the saved SSID was cleared and Wifi state changes to DISCONNECTED |
+| `initiateWPSPairing` | Triggers this event if the device initiates WPS Pairing with the requested SSID and Wifi state changes to CONNECTED |
+| `cancelWPSPairing` | Triggers this event if the device cancels the WPS Pairing with the paired SSID and Wifi state changes to DISCONNECTED |
  
 Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
@@ -964,7 +972,7 @@ Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSS
 ```
 
 <a name="event.onError"></a>
-## *onError <sup>event</sup>*
+## *onError [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a recoverable unexpected Wifi error occurs.  
 **Error Codes**  
@@ -976,13 +984,11 @@ Triggered when a recoverable unexpected Wifi error occurs.
 * `5`: NO_SSID - The SSID does not exist  
 * `6`: UNKNOWN - Any other error
  
-This event is triggered during below methods call sequence.
- 
 ### Methods
  
 | Method | Description | 
 | :-------- | :-------- |
-| `connect` | Triggers this event when the requested SSID connection has failed and returns with appropriate error code |
+| `connect` | Triggers this event if the requested SSID connection has failed and returns with appropriate error code |
 | `initiateWPSPairing` | Triggers this event with appropriate error code if the WPS pairing has failed |
 | `cancelWPSPairing` | Triggers this event with appropriate error code if the device failed to cancel the existing WPS pairing |
  
@@ -1008,7 +1014,7 @@ Also see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPa
 ```
 
 <a name="event.onSSIDsChanged"></a>
-## *onSSIDsChanged <sup>event</sup>*
+## *onSSIDsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a new SSID becomes available or an existing SSID is no longer available.
  
@@ -1030,7 +1036,7 @@ This event carries no parameters.
 ```
 
 <a name="event.onWifiSignalThresholdChanged"></a>
-## *onWifiSignalThresholdChanged <sup>event</sup>*
+## *onWifiSignalThresholdChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.
  
@@ -1038,7 +1044,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
  
 | Method | Description | 
 | :-------- | :-------- |
-| `setSignalThresholdChangeEnabled` | This method enables onWifiSignalThresholdChanged event and this event triggers when the device signal crosses the defined threshold value |
+| `setSignalThresholdChangeEnabled` | Triggers this event if the device signal crosses the defined threshold value in `setSignalThresholdChangeEnabled` method |
  
 Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled).
 
@@ -1064,7 +1070,7 @@ Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnab
 ```
 
 <a name="event.onAvailableSSIDs"></a>
-## *onAvailableSSIDs <sup>event</sup>*
+## *onAvailableSSIDs [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.
  
@@ -1072,7 +1078,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
  
 | Method | Description | 
 | :-------- | :-------- |
-| `startScan` | Triggers this event when the external SSIDs are available during scanning |
+| `startScan` | Triggers this event, if the SSIDs are available |
  
 Also see: [startScan](#method.startScan).
 
