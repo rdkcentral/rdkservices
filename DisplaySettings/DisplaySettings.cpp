@@ -1954,10 +1954,10 @@ namespace WPEFramework {
 
         void DisplaySettings::audioFormatToString(dsAudioFormat_t audioFormat, JsonObject & response)
         {
-            std::vector<string> supportedAudioFormat = {"NONE", "PCM", "DOLBY AC3", "DOLBY EAC3",
+            std::vector<string> supportedAudioFormat = {"NONE", "PCM", "AAC","VORBIS","WMA", "DOLBY AC3", "DOLBY EAC3",
                                                          "DOLBY AC4", "DOLBY MAT", "DOLBY TRUEHD",
                                                          "DOLBY EAC3 ATMOS","DOLBY TRUEHD ATMOS",
-                                                         "DOLBY MAT ATMOS","DOLBY AC4 ATMOS"};
+                                                         "DOLBY MAT ATMOS","DOLBY AC4 ATMOS","UNKNOWN"};
             switch (audioFormat)
             {
                    case dsAUDIO_FORMAT_NONE:
@@ -1965,6 +1965,15 @@ namespace WPEFramework {
                        break;
                    case dsAUDIO_FORMAT_PCM:
                        response["currentAudioFormat"] = "PCM";
+                       break;
+                   case dsAUDIO_FORMAT_AAC:
+                       response["currentAudioFormat"] = "AAC";
+                       break;
+                   case dsAUDIO_FORMAT_VORBIS:
+                       response["currentAudioFormat"] = "VORBIS";
+                       break;
+                   case dsAUDIO_FORMAT_WMA:
+                       response["currentAudioFormat"] = "WMA";
                        break;
                    case dsAUDIO_FORMAT_DOLBY_AC3:
                        response["currentAudioFormat"] = "DOLBY AC3";
@@ -1994,6 +2003,7 @@ namespace WPEFramework {
                        response["currentAudioFormat"] = "DOLBY AC4 ATMOS";
                        break;
                    default:
+                       response["currentAudioFormat"] = "UNKNOWN";
                        break;
             }
             setResponseArray(response, "supportedAudioFormat", supportedAudioFormat);
