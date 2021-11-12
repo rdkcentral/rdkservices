@@ -315,6 +315,8 @@ namespace Plugin {
                 private:
                     virtual uint32_t Worker() override
                     {
+		      size_t clearContentInfoTraceCount = 0;
+		      size_t clearContentInfoTraceTotalCount = 0;
 
                         while (IsRunning() == true) {
 
@@ -350,9 +352,16 @@ namespace Plugin {
 
                                 if ((cr == 0) && (clearContentSize != 0)) {
                                     if (clearContentSize != BytesWritten()) {
-                                        TRACE(Trace::Information, (_T("Returned clear sample size (%d) differs from encrypted buffer size (%d)"), clearContentSize, BytesWritten()));
+				      if (++clearContentInfoTraceCount < 3) TRACE(Trace::Information, (_T("Returned clear sample size (%d) differs from encrypted buffer size (%d)"), clearContentSize, BytesWritten()));
+                                        clearContentInfoTraceTotalCount++;
                                         Size(clearContentSize);
                                     }
+				    else {
+				        // above info trace should be printed 2 times in a row
+				        // reset it in case it was not printed more than 10 times for lifecycle
+				        // this should print 2 times in a row, but no more than 10 times overall
+					if (clearContentInfoTraceTotalCount < 10) clearContentInfoTraceCount = 0;
+				      }
 
                                     if(payloadBuffer != clearContent) {
                                         // This wasn't a case of in-place decryption. So, make sure the decrypted buffer is copied to memory mapped file and released
