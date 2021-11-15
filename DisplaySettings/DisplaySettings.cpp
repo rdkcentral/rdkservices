@@ -215,6 +215,7 @@ namespace WPEFramework {
             registerMethod("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
             registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
+            registerMethod("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
@@ -3346,6 +3347,38 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+	uint32_t DisplaySettings::setForceHDRMode (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "hdr_mode");
+
+            string sMode = parameters["hdr_mode"].String();
+            dsHDRStandard_t mode = getVideoFormatTypeFromString(sMode.c_str());
+            LOGINFO("setForceHDRMode entry hdr_mode :%s mode:%d  !\n",sMode.c_str(),mode);
+
+            bool success = false;
+            try
+            {
+		std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+                if (vPort.isDisplayConnected()) {
+                   if(vPort.setForceHDRMode (mode) == true)
+		    {
+                        success = true;
+			LOGINFO("setForceHDRMode set successfully \n");
+		    }
+                }
+                else {
+                    LOGERR("setForceHDRMode failure: HDMI0 not connected!\n");
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(string("HDMI0"), sMode);
+            }
+            returnResponse(success);
+        }
+
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
@@ -4678,6 +4711,24 @@ namespace WPEFramework {
             }
             return strValue;
 
+        }
+	dsHDRStandard_t DisplaySettings::getVideoFormatTypeFromString(const char *strFormat)
+        {
+           dsHDRStandard_t mode = dsHDRSTANDARD_NONE;
+            if(strcmp(strFormat,"SDR")== 0 || strcmp(strFormat,"NONE")== 0 )
+                    mode = dsHDRSTANDARD_NONE;
+            else if(strcmp(strFormat,"HDR10")== 0)
+                    mode = dsHDRSTANDARD_HDR10;
+            else if(strcmp(strFormat,"DV")== 0)
+                    mode = dsHDRSTANDARD_DolbyVision;
+            else if(strcmp(strFormat,"HLG")== 0)
+                    mode = dsHDRSTANDARD_TechnicolorPrime;
+            else if(strcmp(strFormat,"TechnicolorPrime")== 0)
+                    mode = dsHDRSTANDARD_NONE;
+	    else
+		    mode = dsHDRSTANDARD_Invalid;
+
+	    return mode;
         }
     } // namespace Plugin
 } // namespace WPEFramework
