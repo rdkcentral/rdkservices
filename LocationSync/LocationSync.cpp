@@ -27,6 +27,25 @@ namespace Plugin {
     static Core::ProxyPoolType<Web::Response> responseFactory(4);
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
 
+    namespace {
+        const string TZ_FILE = "/opt/persistent/timeZoneDST";
+
+        string readTextFile(const string &filename) {
+            string result;
+
+            Core::File file(filename);
+
+            if (file.Open(true)) {
+                Core::JSON::String str(false);
+                if (str.IElement::FromFile(file)) {
+                    result = str.Value();
+                }
+            }
+
+            return result;
+        }
+    }
+
 #ifdef __WINDOWS__
 #pragma warning(disable : 4355)
 #endif
@@ -53,6 +72,12 @@ namespace Plugin {
         Config config;
         config.FromString(service->ConfigLine());
         string version = service->Version();
+
+        auto timeZone = readTextFile(TZ_FILE);
+
+        if (timeZone.empty() == false) {
+            Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
+        }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
@@ -149,7 +174,12 @@ namespace Plugin {
             subSystem->Release();
 
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
-                Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
+                auto timeZone = readTextFile(TZ_FILE);
+
+                if (timeZone.empty() == true) {
+                    Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
+                }
+
                 event_locationchange();
             }
         }
