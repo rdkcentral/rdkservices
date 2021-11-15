@@ -56,6 +56,18 @@
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define ABORT_REASON_ID 4
 
+enum {
+	HDMICEC2_EVENT_DEVICE_ADDED=0,
+	HDMICEC2_EVENT_DEVICE_REMOVED,
+	HDMICEC2_EVENT_DEVICE_INFO_UPDATED,
+};
+
+static char *eventString[] = {
+	"onDeviceAdded",
+	"onDeviceRemoved",
+	"onDeviceInfoUpdated"
+};
+
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData_2.json"
 #define CEC_SETTING_ENABLED "cecEnabled"
 #define CEC_SETTING_OTP_ENABLED "cecOTPEnabled"
@@ -107,6 +119,7 @@ namespace WPEFramework
              else
                  isDeviceActiveSource = false;
              LOGINFO("ActiveSource isDeviceActiveSource status :%d \n", isDeviceActiveSource);
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const InActiveSource &msg, const Header &header)
        {
@@ -117,11 +130,13 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ImageViewOn \n");
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const TextViewOn &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: TextViewOn\n");
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const RequestActiveSource &msg, const Header &header)
        {
@@ -164,6 +179,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const SetMenuLanguage &msg, const Header &header)
        {
@@ -225,6 +241,13 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
+             if (HdmiCec_2::_instance) {
+                 bool isOSDNameUpdated = HdmiCec_2::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+                 if (isOSDNameUpdated)
+                     HdmiCec_2::_instance->sendDeviceUpdateInfo(header.from.toInt());
+             } else {
+                 LOGWARN("Exception HdmiCec_2::_instance NULL");
+             }
        }
        void HdmiCec_2Processor::process (const RoutingChange &msg, const Header &header)
        {
@@ -266,11 +289,21 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ReportPhysicalAddress\n");
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const DeviceVendorID &msg, const Header &header)
        {
              printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
+             if (HdmiCec_2::_instance){
+                 bool isVendorIdUpdated = HdmiCec_2::_instance->deviceList[header.from.toInt()].update(msg.vendorId);
+                 if (isVendorIdUpdated)
+                     HdmiCec_2::_instance->sendDeviceUpdateInfo(header.from.toInt());
+             }
+             else {
+                 LOGWARN("Exception HdmiCec_2::_instance NULL");
+             }
+
        }
        void HdmiCec_2Processor::process (const GiveDevicePowerStatus &msg, const Header &header)
        {
@@ -291,6 +324,7 @@ namespace WPEFramework
              if ((header.from == LogicalAddress(LogicalAddress::TV)))
                  tvPowerState = msg.status; 
              LOGINFO("Command: ReportPowerStatus TV Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
+             HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const FeatureAbort &msg, const Header &header)
        {
@@ -338,6 +372,7 @@ namespace WPEFramework
            registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
            registerMethod(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
+           registerMethod("getDeviceList", &HdmiCec_2::getDeviceList, this);
 
        }
 
@@ -558,6 +593,8 @@ namespace WPEFramework
                 int hdmi_hotplug_event = eventData->data.hdmi_hpd.event;
                 LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event data:%d \r\n", hdmi_hotplug_event);
                 HdmiCec_2::_instance->onHdmiHotPlug(hdmi_hotplug_event);
+                //Trigger CEC device poll here
+                pthread_cond_signal(&(_instance->m_condSig));
             }
        }
 
@@ -1003,6 +1040,20 @@ namespace WPEFramework
                     smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
                 else 
                     smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+
+                LOGWARN("Start Update thread %p", smConnection );
+                m_updateThreadExit = false;
+                _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
+                _instance->m_condSigUpdate = PTHREAD_COND_INITIALIZER;
+                m_UpdateThread = std::thread(threadUpdateCheck);
+
+                LOGWARN("Start Thread %p", smConnection );
+                m_pollThreadExit = false;
+                _instance->m_numberOfDevices = 0;
+                _instance->m_lock = PTHREAD_MUTEX_INITIALIZER;
+                _instance->m_condSig = PTHREAD_COND_INITIALIZER;
+                m_pollThread = std::thread(threadRun);
+
             }
             return;
         }
@@ -1025,6 +1076,44 @@ namespace WPEFramework
 
             if (smConnection != NULL)
             {
+                LOGWARN("Stop Thread %p", smConnection );
+
+                m_updateThreadExit = true;
+                //Trigger codition to exit poll loop
+                pthread_cond_signal(&(_instance->m_condSigUpdate));
+                try {
+                    if (m_UpdateThread.joinable()) {
+                       LOGWARN("Join update Thread %p", smConnection );
+                       m_UpdateThread.join();
+                    }
+                }
+                catch(const std::system_error& e) {
+                    LOGERR("system_error exception in thread join %s", e.what());
+                }
+                catch(const std::exception& e) {
+                    LOGERR("exception in thread join %s", e.what());
+                }
+                LOGWARN("Deleted update Thread %p", smConnection );
+
+                m_pollThreadExit = true;
+                //Trigger codition to exit poll loop
+                pthread_cond_signal(&(_instance->m_condSig));
+                try {
+                    if (m_pollThread.joinable()) {
+                       LOGWARN("Join Thread %p", smConnection );
+                       m_pollThread.join();
+                    }
+                }
+                catch(const std::system_error& e) {
+                    LOGERR("system_error exception in thread join %s", e.what());
+                }
+                catch(const std::exception& e) {
+                    LOGERR("exception in thread join %s", e.what());
+                }
+                LOGWARN("Deleted Thread %p", smConnection );
+                //Clear cec device cache.
+                removeAllCecDevices();
+
                 smConnection->close();
                 delete smConnection;
                 smConnection = NULL;
@@ -1152,5 +1241,298 @@ namespace WPEFramework
                 LOGWARN("cecEnableStatus=false");
             return ret;
         }
+
+        uint32_t HdmiCec_2::getDeviceList (const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+		LOGINFOMETHOD();
+		//Trigger CEC device poll here
+		pthread_cond_signal(&(_instance->m_condSig));
+
+		bool success = true;
+		response["numberofdevices"] = HdmiCec_2::_instance->m_numberOfDevices;
+		LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCec_2::_instance->m_numberOfDevices);
+		JsonArray deviceListArg;
+		try
+		{
+			int i = 0;
+			for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
+				if (BIT_CHECK(deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) {
+					JsonObject device;
+					device["logicalAddress"] = HdmiCec_2::_instance->deviceList[i].m_logicalAddress.toInt();
+					device["osdName"] = HdmiCec_2::_instance->deviceList[i].m_osdName.toString().c_str();
+					device["vendorID"] = HdmiCec_2::_instance->deviceList[i].m_vendorID.toString().c_str();
+					deviceListArg.Add(device);
+				}
+			}
+		}
+		catch (...)
+		{
+			LOGERR("Exception in api");
+			success = false;
+		}
+		response["deviceList"] = deviceListArg;
+		returnResponse(success);
+	}
+
+	bool HdmiCec_2::pingDeviceUpdateList (int idev)
+	{
+		bool isConnected = false;
+		if(!HdmiCec_2::_instance)
+		{
+			LOGERR("HdmiCec_2::_instance not existing");
+			return isConnected;
+		}
+		if ( !(_instance->smConnection) || logicalAddress.toInt() == LogicalAddress::UNREGISTERED || (false==cecEnableStatus)){
+			LOGERR("Exiting from pingDeviceUpdateList _instance->smConnection:%p, logicalAddress:%d, cecEnableStatus=%d",
+					_instance->smConnection, logicalAddress.toInt(), cecEnableStatus);
+			return isConnected;
+		}
+
+		LOGWARN("PING for  0x%x \r\n",idev);
+		try {
+			_instance->smConnection->ping(logicalAddress, LogicalAddress(idev), Throw_e());
+		}
+		catch(CECNoAckException &e)
+		{
+			if (BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) {
+				LOGINFO("Device disconnected: %d \r\n",idev);
+				removeDevice (idev);
+			} else {
+				LOGINFO("Device is not connected: %d. Ping caught %s\r\n",idev, e.what());
+			}
+			isConnected = false;
+			return isConnected;;
+		}
+		catch(IOException &e)
+		{
+			LOGINFO("Device is not reachable: %d. Ping caught %s\r\n",idev, e.what());
+			isConnected = false;
+			return isConnected;;
+		}
+		catch(Exception &e)
+		{
+			LOGINFO("Ping caught %s \r\n",e.what());
+		}
+
+		/* If we get ACK, then the device is present in the network*/
+		isConnected = true;
+		if ( !(BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) )
+		{
+			LOGINFO("Device connected: %d \r\n",idev);
+			addDevice (idev);
+		}
+		return isConnected;
+	}
+
+	void  HdmiCec_2::sendDeviceUpdateInfo(const int logicalAddress)
+	{
+		JsonObject params;
+		params["logicalAddress"] = JsonValue(logicalAddress);
+		LOGINFO("Device info updated notification send: for logical address:%d\r\n", logicalAddress);
+		sendNotify(eventString[HDMICEC2_EVENT_DEVICE_INFO_UPDATED], params);
+	}
+
+	void HdmiCec_2::addDevice(const int logicalAddress) {
+
+		if(!HdmiCec_2::_instance)
+			return;
+
+		if ( logicalAddress >= LogicalAddress::UNREGISTERED){
+			LOGERR("Logical Address NOT Allocated Or its not valid");
+			return;
+		}
+
+		if ( !(BIT_CHECK(HdmiCec_2::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) )
+		 {
+			BIT_SET(HdmiCec_2::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT);
+			HdmiCec_2::_instance->deviceList[logicalAddress].m_logicalAddress = LogicalAddress(logicalAddress);
+			HdmiCec_2::_instance->m_numberOfDevices++;
+			LOGINFO("New cec ligical address add notification send:  \r\n");
+			sendNotify(eventString[HDMICEC2_EVENT_DEVICE_ADDED], JsonObject());
+		 }
+		//Two source devices can have same logical address.
+		requestCecDevDetails(logicalAddress);
+	}
+
+	void HdmiCec_2::removeAllCecDevices() {
+		int i = 0;
+		for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
+			removeDevice (i);
+		}
+	}
+	void HdmiCec_2::removeDevice(const int logicalAddress) {
+		if(!HdmiCec_2::_instance)
+			return;
+
+		if ( logicalAddress >= LogicalAddress::UNREGISTERED ){
+			LOGERR("Logical Address NOT Allocated Or its not valid");
+			return;
+		}
+
+		if (BIT_CHECK(HdmiCec_2::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT))
+		{
+			_instance->m_numberOfDevices--;
+			_instance->deviceList[logicalAddress].clear();
+			LOGINFO("Cec ligical address remove notification send:  \r\n");
+			sendNotify(eventString[HDMICEC2_EVENT_DEVICE_REMOVED], JsonObject());
+		}
+	}
+
+	void HdmiCec_2::sendUnencryptMsg(unsigned char* msg, int size)
+	{
+		LOGINFO("sendMessage ");
+
+		if(true == cecEnableStatus)
+		{
+			std::vector <unsigned char> buf;
+			buf.resize(size);
+
+			int itr = 0;
+			for (itr= 0; itr<size; itr++)
+				buf [itr] = msg [itr];
+
+			CECFrame frame = CECFrame((const uint8_t *)buf.data(), size);
+			//      SVCLOG_WARN("Frame to be sent from servicemanager in %s \n",__FUNCTION__);
+			//      frame.hexDump();
+			smConnection->sendAsync(frame);
+		}
+		else
+			LOGWARN("cecEnableStatus=false");
+		return;
+	}
+
+	void HdmiCec_2::requestVendorID(const int newDevlogicalAddress)
+	{
+		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
+		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
+		//a new device is reconnected with same logical address
+		unsigned char msg [2];
+		unsigned int logicalAddr = logicalAddress.toInt();
+		unsigned char sender = (unsigned char)(logicalAddr & 0x0f);
+		unsigned char receiver = (unsigned char) (newDevlogicalAddress & 0x0f);
+
+		msg [0] = (sender<<4)|receiver;
+		//Request vendor id
+		msg [1] = 0x8c;
+		LOGINFO("Sending msg request vendor id %x %x", msg [0], msg [1]);
+		_instance->sendUnencryptMsg (msg, sizeof(msg));
+
+	}
+
+	void HdmiCec_2::requestOsdName(const int newDevlogicalAddress)
+	{
+		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
+		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
+		//a new device is reconnected with same logical address
+		unsigned char msg [2];
+		unsigned int logicalAddr = logicalAddress.toInt();
+		unsigned char sender = (unsigned char)(logicalAddr & 0x0f);
+		unsigned char receiver = (unsigned char) (newDevlogicalAddress & 0x0f);
+
+		msg [0] = (sender<<4)|receiver;
+		//Request OSD  name
+		msg [1] = 0x46;
+		LOGINFO("Sending msg request osd name %x %x", msg [0], msg [1]);
+		_instance->sendUnencryptMsg (msg, sizeof(msg));
+
+	}
+
+	void HdmiCec_2::requestCecDevDetails(const int newDevlogicalAddress)
+	{
+		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
+		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
+		//a new device is reconnected with same logical address
+		requestVendorID (newDevlogicalAddress);
+		requestOsdName (newDevlogicalAddress);
+	}
+
+	void HdmiCec_2::threadRun()
+	{
+		if(!HdmiCec_2::_instance)
+			return;
+		if(!(_instance->smConnection))
+			return;
+		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit);
+		int i = 0;
+		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
+		while (!_instance->m_pollThreadExit) {
+			bool isActivateUpdateThread = false;
+			LOGINFO("Starting cec device polling");
+			for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
+				bool isConnected = _instance->pingDeviceUpdateList(i);
+				if (isConnected){
+					isActivateUpdateThread = isConnected;
+				}
+
+			}
+			if (isActivateUpdateThread){
+				//i any of devices is connected activate thread update check
+				pthread_cond_signal(&(_instance->m_condSigUpdate));
+			}
+			//Wait for mutex signal here to continue the worker thread again.
+			pthread_cond_wait(&(_instance->m_condSig), &(_instance->m_lock));
+
+		}
+		pthread_mutex_unlock(&(_instance->m_lock));
+	}
+
+	void HdmiCec_2::threadUpdateCheck()
+	{
+		if(!HdmiCec_2::_instance)
+			return;
+		if(!(_instance->smConnection))
+			return;
+		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit);
+		int i = 0;
+		pthread_mutex_lock(&(_instance->m_lockUpdate));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
+		while (!_instance->m_updateThreadExit) {
+			//Wait for mutex signal here to continue the worker thread again.
+			pthread_cond_wait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate));
+
+			LOGINFO("Starting cec device update check");
+			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
+				//If details are not updated. update now.
+				if (BIT_CHECK(HdmiCec_2::_instance->deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT))
+				{
+					int itr = 0;
+					bool retry = true;
+					int iCounter = 0;
+					for (itr = 0; ((itr<5)&&(retry)); itr++){
+
+						if (!HdmiCec_2::_instance->deviceList[i].m_isOSDNameUpdated){
+							iCounter = 0;
+							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 2sec.
+								usleep (100 * 1000); //sleep for 100 milli sec
+								iCounter ++;
+							}
+
+							HdmiCec_2::_instance->requestOsdName (i);
+							retry = true;
+						}
+						else {
+							retry = false;
+						}
+
+						if (!HdmiCec_2::_instance->deviceList[i].m_isVendorIDUpdated){
+							iCounter = 0;
+							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 1sec.
+								usleep (100 * 1000); //sleep for 100 milli sec
+								iCounter ++;
+							}
+
+							HdmiCec_2::_instance->requestVendorID (i);
+							retry = true;
+						}
+					}
+					if (retry){
+						LOGINFO("cec device: %d update time out", i);
+					}
+				}
+			}
+
+		}
+		pthread_mutex_unlock(&(_instance->m_lockUpdate));
+	}
+
     } // namespace Plugin
 } // namespace WPEFramework

@@ -556,3 +556,30 @@ size_t curl_write(void *ptr, size_t size, size_t nmemb, void *stream)
     return size * nmemb;
 }
 
+/* Utility API for parsing the  DCM/Device properties file */
+bool parseConfigFile(const char* filename, string findkey, string &value)
+{
+    vector<std::string> lines;
+    bool found=false;
+    getFileContent(filename,lines);
+    for (vector<std::string>::const_iterator i = lines.begin();
+            i != lines.end(); ++i){
+        string line = *i;
+        size_t eq = line.find_first_of("=");
+        if (std::string::npos != eq) {
+            std::string key = line.substr(0, eq);
+            if (key == findkey) {
+                value = line.substr(eq + 1);
+                found=true;
+                break;
+            }
+        }
+    }
+
+    if(found){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
