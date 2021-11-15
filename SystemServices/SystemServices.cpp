@@ -2072,6 +2072,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
 	{
+    LOGINFOMETHOD();
 		bool resp = false;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
@@ -2081,6 +2082,9 @@ namespace WPEFramework {
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				} else {
+
+          Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
+
 					if (!dirExists(dir)) {
 						std::string command = "mkdir -p " + dir + " \0";
 						Utils::cRunScript(command.c_str());
