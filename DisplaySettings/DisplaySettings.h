@@ -81,6 +81,7 @@ namespace WPEFramework {
             uint32_t setVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t setForceHDRMode(const JsonObject& parameters, JsonObject& response);
             //End methods
             uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
             uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
@@ -177,6 +178,7 @@ namespace WPEFramework {
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             const char *getVideoFormatTypeToString(dsHDRStandard_t format);
+            dsHDRStandard_t getVideoFormatTypeFromString(const char *mode);
             JsonArray getSupportedVideoFormats();
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();

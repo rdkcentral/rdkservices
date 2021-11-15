@@ -113,6 +113,7 @@ namespace WPEFramework {
                 SystemServices& operator=(const SystemServices&) = delete;
                 static void getMacAddressesAsync(SystemServices *p);
                 static std::string m_currentMode;
+                std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
