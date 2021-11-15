@@ -139,6 +139,10 @@ DisplaySettings interface methods:
 | [isSurroundDecoderEnabled](#method.isSurroundDecoderEnabled) | Returns the current status of Surround Decoder |
 | [readEDID](#method.readEDID) | Reads the EDID from the connected HDMI (output) device |
 | [readHostEDID](#method.readHostEDID) | Reads the EDID of the host (STB) |
+| [resetBassEnhancer](#method.resetBassEnhancer) | Resets the bass enhancer setting to the factory default |
+| [resetDialogEnhancement](#method.resetDialogEnhancement) | Resets the dialog enhancement setting to the factory default |
+| [resetSurroundVirtualizer](#method.resetSurroundVirtualizer) | Resets the surround virtualizer setting to the factory default |
+| [resetVolumeLeveller](#method.resetVolumeLeveller) | Resets the volume leveller setting to the factory default |
 | [setAudioAtmosOutputMode](#method.setAudioAtmosOutputMode) | Sets ATMOS audio output mode (on HDMI0) |
 | [setAudioDelay](#method.setAudioDelay) | Sets the audio delay (in ms) on the selected audio port |
 | [setAudioDelayOffset](#method.setAudioDelayOffset) | Sets the audio delay offset (in ms) on the selected audio port |
@@ -2337,6 +2341,190 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "EDID": "AP///////wAQrMLQVEJTMQUdAQOANR546q11qVRNnSYPUFSlSwCBALMA0QBxT6lAgYDRwAEBVl4AoKCgKVAwIDUADighAAAaAAAA/wBNWTNORDkxVjFTQlQKAAAA/ABERUxMIFAyNDE4RAogAAAA/QAxVh1xHAAKICAgICAgARsCAxuxUJAFBAMCBxYBBhESFRMUHyBlAwwAEAACOoAYcTgtQFgsRQAOKCEAAB4BHYAYcRwWIFgsJQAOKCEAAJ6/FgCggDgTQDAgOgAOKCEAABp+OQCggDgfQDAgOgAOKCEAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2A",
+        "success": true
+    }
+}
+```
+
+<a name="method.resetBassEnhancer"></a>
+## *resetBassEnhancer [<sup>method</sup>](#head.Methods)*
+
+Resets the bass enhancer setting to the factory default.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetBassEnhancer",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetDialogEnhancement"></a>
+## *resetDialogEnhancement [<sup>method</sup>](#head.Methods)*
+
+Resets the dialog enhancement setting to the factory default.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetDialogEnhancement",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetSurroundVirtualizer"></a>
+## *resetSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
+
+Resets the surround virtualizer setting to the factory default.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetSurroundVirtualizer",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetVolumeLeveller"></a>
+## *resetVolumeLeveller [<sup>method</sup>](#head.Methods)*
+
+Resets the volume leveller setting to the factory default.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetVolumeLeveller",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }

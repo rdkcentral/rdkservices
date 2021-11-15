@@ -1518,6 +1518,106 @@
                 ]
             }
         },
+        "resetBassEnhancer": {
+            "summary": "Resets the bass enhancer setting to the factory default",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "resetDialogEnhancement": {
+            "summary": "Resets the dialog enhancement setting to the factory default",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "resetSurroundVirtualizer": {
+            "summary": "Resets the surround virtualizer setting to the factory default",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "resetVolumeLeveller": {
+            "summary": "Resets the volume leveller setting to the factory default",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
         "setAudioAtmosOutputMode":{
             "summary": "Sets ATMOS audio output mode (on HDMI0)",
             "params": {
