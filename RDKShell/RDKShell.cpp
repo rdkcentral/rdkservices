@@ -40,7 +40,6 @@
 #include "FactoryProtectHal.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
-
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
@@ -115,7 +114,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 
-
+//events
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_CONNECTED = "onApplicationConnected";
