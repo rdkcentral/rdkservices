@@ -97,9 +97,11 @@ namespace WPEFramework {
 		OSDName m_osdName;
 		//<Bits 16 - 1: unused><Bit 0: DevicePresent>
 		short m_deviceInfoStatus;
+	        bool m_isOSDNameUpdated;
+	        bool m_isVendorIDUpdated;
 
 		CECDeviceInfo_2()
-		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA")
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
 		}
@@ -110,16 +112,20 @@ namespace WPEFramework {
 			m_vendorID = VendorID(0,0,0);
 			m_osdName = "NA";
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
+			m_isOSDNameUpdated = false;
+			m_isVendorIDUpdated = false;
 		}
 
 		bool update ( const VendorID &vendorId) {
 			bool isVendorIdUpdated = (m_vendorID.toString().compare(vendorId.toString())==0)?false:true;
+			m_isVendorIDUpdated = true;
 			m_vendorID = vendorId;
 			return isVendorIdUpdated;
 		}
 
 		bool update ( const OSDName    &osdName ) {
 			bool isOSDNameUpdated = (m_osdName.toString().compare(osdName.toString())==0)?false:true;
+			m_isOSDNameUpdated = true;
 			m_osdName = osdName;
 			return isOSDNameUpdated;
 		}
@@ -148,6 +154,8 @@ namespace WPEFramework {
             CECDeviceInfo_2 deviceList[16];
             pthread_cond_t m_condSig;
             pthread_mutex_t m_lock;
+            pthread_cond_t m_condSigUpdate;
+            pthread_mutex_t m_lockUpdate;
 
             void SendStandbyMsgEvent(const int logicalAddress);
 
@@ -184,6 +192,8 @@ namespace WPEFramework {
             int m_numberOfDevices;
             bool m_pollThreadExit;
             std::thread m_pollThread;
+            bool m_updateThreadExit;
+            std::thread m_UpdateThread;
 
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
@@ -213,8 +223,11 @@ namespace WPEFramework {
             bool sendStandbyMessage();
             bool pingDeviceUpdateList (int idev);
             void removeAllCecDevices();
+            void requestVendorID(const int newDevlogicalAddress);
+            void requestOsdName(const int newDevlogicalAddress);
             void requestCecDevDetails(const int logicalAddress);
             static void threadRun();
+            static void threadUpdateCheck();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

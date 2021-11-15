@@ -1041,6 +1041,12 @@ namespace WPEFramework
                 else 
                     smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
 
+                LOGWARN("Start Update thread %p", smConnection );
+                m_updateThreadExit = false;
+                _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
+                _instance->m_condSigUpdate = PTHREAD_COND_INITIALIZER;
+                m_UpdateThread = std::thread(threadUpdateCheck);
+
                 LOGWARN("Start Thread %p", smConnection );
                 m_pollThreadExit = false;
                 _instance->m_numberOfDevices = 0;
@@ -1071,6 +1077,24 @@ namespace WPEFramework
             if (smConnection != NULL)
             {
                 LOGWARN("Stop Thread %p", smConnection );
+
+                m_updateThreadExit = true;
+                //Trigger codition to exit poll loop
+                pthread_cond_signal(&(_instance->m_condSigUpdate));
+                try {
+                    if (m_UpdateThread.joinable()) {
+                       LOGWARN("Join update Thread %p", smConnection );
+                       m_UpdateThread.join();
+                    }
+                }
+                catch(const std::system_error& e) {
+                    LOGERR("system_error exception in thread join %s", e.what());
+                }
+                catch(const std::exception& e) {
+                    LOGERR("exception in thread join %s", e.what());
+                }
+                LOGWARN("Deleted update Thread %p", smConnection );
+
                 m_pollThreadExit = true;
                 //Trigger codition to exit poll loop
                 pthread_cond_signal(&(_instance->m_condSig));
@@ -1377,7 +1401,7 @@ namespace WPEFramework
 		return;
 	}
 
-	void HdmiCec_2::requestCecDevDetails(const int newDevlogicalAddress)
+	void HdmiCec_2::requestVendorID(const int newDevlogicalAddress)
 	{
 		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
 		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
@@ -1393,12 +1417,33 @@ namespace WPEFramework
 		LOGINFO("Sending msg request vendor id %x %x", msg [0], msg [1]);
 		_instance->sendUnencryptMsg (msg, sizeof(msg));
 
+	}
+
+	void HdmiCec_2::requestOsdName(const int newDevlogicalAddress)
+	{
+		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
+		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
+		//a new device is reconnected with same logical address
+		unsigned char msg [2];
+		unsigned int logicalAddr = logicalAddress.toInt();
+		unsigned char sender = (unsigned char)(logicalAddr & 0x0f);
+		unsigned char receiver = (unsigned char) (newDevlogicalAddress & 0x0f);
+
 		msg [0] = (sender<<4)|receiver;
 		//Request OSD  name
 		msg [1] = 0x46;
 		LOGINFO("Sending msg request osd name %x %x", msg [0], msg [1]);
 		_instance->sendUnencryptMsg (msg, sizeof(msg));
 
+	}
+
+	void HdmiCec_2::requestCecDevDetails(const int newDevlogicalAddress)
+	{
+		//Get OSD name and vendor ID only from connected devices. Since devices are identified using polling
+		//Once OSD name and Vendor ID is updated. We have to poll again in next iteration also. Just to check
+		//a new device is reconnected with same logical address
+		requestVendorID (newDevlogicalAddress);
+		requestOsdName (newDevlogicalAddress);
 	}
 
 	void HdmiCec_2::threadRun()
@@ -1411,16 +1456,82 @@ namespace WPEFramework
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_pollThreadExit) {
+			bool isActivateUpdateThread = false;
 			LOGINFO("Starting cec device polling");
 			for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
-				_instance->pingDeviceUpdateList(i);
-			}
+				bool isConnected = _instance->pingDeviceUpdateList(i);
+				if (isConnected){
+					isActivateUpdateThread = isConnected;
+				}
 
+			}
+			if (isActivateUpdateThread){
+				//i any of devices is connected activate thread update check
+				pthread_cond_signal(&(_instance->m_condSigUpdate));
+			}
 			//Wait for mutex signal here to continue the worker thread again.
 			pthread_cond_wait(&(_instance->m_condSig), &(_instance->m_lock));
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
+	}
+
+	void HdmiCec_2::threadUpdateCheck()
+	{
+		if(!HdmiCec_2::_instance)
+			return;
+		if(!(_instance->smConnection))
+			return;
+		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit);
+		int i = 0;
+		pthread_mutex_lock(&(_instance->m_lockUpdate));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
+		while (!_instance->m_updateThreadExit) {
+			//Wait for mutex signal here to continue the worker thread again.
+			pthread_cond_wait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate));
+
+			LOGINFO("Starting cec device update check");
+			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
+				//If details are not updated. update now.
+				if (BIT_CHECK(HdmiCec_2::_instance->deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT))
+				{
+					int itr = 0;
+					bool retry = true;
+					int iCounter = 0;
+					for (itr = 0; ((itr<5)&&(retry)); itr++){
+
+						if (!HdmiCec_2::_instance->deviceList[i].m_isOSDNameUpdated){
+							iCounter = 0;
+							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 2sec.
+								usleep (100 * 1000); //sleep for 100 milli sec
+								iCounter ++;
+							}
+
+							HdmiCec_2::_instance->requestOsdName (i);
+							retry = true;
+						}
+						else {
+							retry = false;
+						}
+
+						if (!HdmiCec_2::_instance->deviceList[i].m_isVendorIDUpdated){
+							iCounter = 0;
+							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 1sec.
+								usleep (100 * 1000); //sleep for 100 milli sec
+								iCounter ++;
+							}
+
+							HdmiCec_2::_instance->requestVendorID (i);
+							retry = true;
+						}
+					}
+					if (retry){
+						LOGINFO("cec device: %d update time out", i);
+					}
+				}
+			}
+
+		}
+		pthread_mutex_unlock(&(_instance->m_lockUpdate));
 	}
 
     } // namespace Plugin
