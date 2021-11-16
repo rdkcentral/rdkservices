@@ -347,7 +347,7 @@
             }
         },
         "fireFirmwarePendingReboot":{
-            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event",
+            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event. This method is called after the firmware image is successfully flashed on the device.",
             "events": [
                 "onFirmwarePendingReboot"
             ],
@@ -522,7 +522,7 @@
             }
         },
         "getFirmwareUpdateInfo":{
-            "summary": "Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event",
+            "summary": "Returns information about a firmware update and includes whether or not an update is mandatory. The details are sent as an `onFirmwareUpdateInfoReceived` event.",
             "events": [
                 "onFirmwareUpdateInfoReceived"
             ],
@@ -813,8 +813,8 @@
                 ]
             }
         },
-        "getPreviousRebootInfo2":{
-            "summary": "Returns detailed information about a reboot",
+        "getPreviousRebootInfo":{
+            "summary": "(Version 2) Returns detailed information about a reboot",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1650,7 +1650,10 @@
                 "type" :"object",
                 "properties": {
                     "seconds": {
-                        "$ref": "#/definitions/seconds"
+                        "summary": "The amount of time to wait, in seconds, before forcing a reboot. A reboot is mandatory when the `rebootImmediately` parameter is `true`. See [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived).",
+                        "type": "integer",
+                        "default": 600,
+                        "example": 600
                     },
                     "success": {
                         "$ref": "#/definitions/success"
@@ -1678,7 +1681,7 @@
                         "example": ""
                     },
                     "rebootImmediately": {
-                        "summary": "",
+                        "summary": "When `true`, indicates that an update is mandatory and requires a reboot. The application is responsible for coordinating the reboot with the user. An [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) event indicates that the device has been successfully flashed and that the reboot is pending. See [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot)",
                         "type": "boolean",
                         "example": true
                     },
