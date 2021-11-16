@@ -2082,9 +2082,6 @@ namespace WPEFramework {
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				} else {
-
-                    Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
-
 					if (!dirExists(dir)) {
 						std::string command = "mkdir -p " + dir + " \0";
 						Utils::cRunScript(command.c_str());
@@ -2101,6 +2098,9 @@ namespace WPEFramework {
 						fsync(fileno(f));
 						fclose(f);
 						resp = true;
+
+                        Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
+
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
 						populateResponseWithError(SysSrv_FileAccessFailed, response);
