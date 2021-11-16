@@ -267,6 +267,27 @@
                 "canMixPCMWithSurround"
             ]
         },
+        "timeQuality": {
+            "summary": "The quality of the time source in terms of security",
+            "enum": [
+                "poor",
+                "good",
+                "secure",
+                "unknown"
+            ],
+            "type": "string",
+            "example": "poor"
+        },
+        "timeSrc": {
+            "summary": "The source that is providing the time",
+            "type": "string",
+            "example": "NTP"
+        },
+        "time":{
+            "summary": "The current time",
+            "type": "string",
+            "example": "20200128083540"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -1036,6 +1057,28 @@
                 "required": [
                     "temperatureThresholds",
                     "success"
+                ]
+            }
+        },
+        "getTimeStatus": {
+            "summary": "Returns the timer status",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timeQuality": {
+                        "$ref": "#/definitions/timeQuality"
+                    },
+                    "timeSrc": {
+                        "$ref": "#/definitions/timeSrc"
+                    },
+                    "time":{
+                        "$ref": "#/definitions/time"
+                    }
+                },
+                "required": [
+                    "timeQuality",
+                    "timeSrc",
+                    "time"
                 ]
             }
         },
@@ -1866,6 +1909,28 @@
                     "thresholdType",
                     "exceeded",
                     "temperature"
+                ]
+            }
+        },
+        "onTimeStatusChanged":{
+            "summary": "Triggered when the device timer settings change",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "timeQuality": {
+                        "$ref": "#/definitions/timeQuality"
+                    },
+                    "timeSrc": {
+                        "$ref": "#/definitions/timeSrc"
+                    },
+                    "time":{
+                        "$ref": "#/definitions/time"
+                    }
+                },
+                "required": [
+                    "timeQuality",
+                    "timeSrc",
+                    "time"
                 ]
             }
         }
