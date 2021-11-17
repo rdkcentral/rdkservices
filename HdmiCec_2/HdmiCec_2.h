@@ -117,14 +117,24 @@ namespace WPEFramework {
 		}
 
 		bool update ( const VendorID &vendorId) {
-			bool isVendorIdUpdated = (m_vendorID.toString().compare(vendorId.toString())==0)?false:true;
+			bool isVendorIdUpdated = false;
+			if (!m_isVendorIDUpdated)
+				isVendorIdUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isVendorIdUpdated = (m_vendorID.toString().compare(vendorId.toString())==0)?false:true;
+
 			m_isVendorIDUpdated = true;
 			m_vendorID = vendorId;
 			return isVendorIdUpdated;
 		}
 
 		bool update ( const OSDName    &osdName ) {
-			bool isOSDNameUpdated = (m_osdName.toString().compare(osdName.toString())==0)?false:true;
+			bool isOSDNameUpdated = false;
+			if (!m_isOSDNameUpdated)
+				isOSDNameUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isOSDNameUpdated = (m_osdName.toString().compare(osdName.toString())==0)?false:true;
+
 			m_isOSDNameUpdated = true;
 			m_osdName = osdName;
 			return isOSDNameUpdated;
