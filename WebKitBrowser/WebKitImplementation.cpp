@@ -2275,6 +2275,9 @@ static GSourceFuncs _handlerIntervention =
             // Turn on/off local storage
             WKPreferencesSetLocalStorageEnabled(preferences, _localStorageEnabled);
 
+            // Turn on Intersection Observer object
+            WKPreferencesSetIntersectionObserverEnabled(preferences, true);
+
             // Media Content Types Requiring Hardware Support
             if (_config.MediaContentTypesRequiringHardwareSupport.IsSet() == true
                 && _config.MediaContentTypesRequiringHardwareSupport.Value().empty() == false) {
