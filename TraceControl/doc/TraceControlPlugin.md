@@ -109,7 +109,7 @@ Sets traces. Enables or disables all or select category traces for the specified
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object | Trace information |
-| params.module | string | The module name. If the module is name not specified then, it returns all modules |
+| params.module | string | The module name. If the module name is not specified then, it returns all modules |
 | params.category | string | The category name. If the category name is not specified then, it returns all categories |
 | params.state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
 
@@ -149,7 +149,7 @@ Sets traces. Enables or disables all or select category traces for the specified
 <a name="method.status"></a>
 ## *status <sup>method</sup>*
 
-Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding) if these are configured. 
+Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured. 
  
 ### Events
  
@@ -160,7 +160,7 @@ Retrieves the actual trace status information for the specified module and categ
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.module | string | The module name. If the module is name not specified then, it returns all modules |
+| params.module | string | The module name. If the module name is not specified then, it returns all modules |
 | params.category | string | The category name. If the category name is not specified then, it returns all categories |
 
 ### Result
@@ -174,7 +174,7 @@ Retrieves the actual trace status information for the specified module and categ
 | result.remote.binding | string | The binding address |
 | result.settings | array |  |
 | result.settings[#] | object | Trace information |
-| result.settings[#].module | string | The module name. If the module is name not specified then, it returns all modules |
+| result.settings[#].module | string | The module name. If the module name is not specified then, it returns all modules |
 | result.settings[#].category | string | The category name. If the category name is not specified then, it returns all categories |
 | result.settings[#].state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
 
