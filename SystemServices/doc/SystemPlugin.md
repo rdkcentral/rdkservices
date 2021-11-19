@@ -116,7 +116,8 @@ SystemServices interface methods:
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
 | [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | (Version 2) Returns the power state before reboot |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
-| [getPreviousRebootInfo](#method.getPreviousRebootInfo) | (Version 2) Returns detailed information about a reboot |
+| [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
+| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | (Version 2) Returns detailed information about a reboot |
 | [getPreviousRebootReason](#method.getPreviousRebootReason) | Returns the last reboot reason |
 | [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
@@ -1244,6 +1245,50 @@ This method takes no parameters.
 <a name="method.getPreviousRebootInfo"></a>
 ## *getPreviousRebootInfo [<sup>method</sup>](#head.Methods)*
 
+Returns basic information about a reboot.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timestamp | string | The last reboot time |
+| result.reason | string | The reboot reason |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPreviousRebootInfo"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timestamp": "20200128083540",
+        "reason": "FIRMWARE_FAILURE",
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreviousRebootInfo2"></a>
+## *getPreviousRebootInfo2 [<sup>method</sup>](#head.Methods)*
+
 (Version 2) Returns detailed information about a reboot.
 
 ### Parameters
@@ -1271,7 +1316,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootInfo"
+    "method": "org.rdk.System.1.getPreviousRebootInfo2"
 }
 ```
 

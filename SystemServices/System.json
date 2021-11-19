@@ -834,7 +834,7 @@
                 ]
             }
         },
-        "getPreviousRebootInfo":{
+        "getPreviousRebootInfo2":{
             "summary": "(Version 2) Returns detailed information about a reboot",
             "result": {
                 "type": "object",
