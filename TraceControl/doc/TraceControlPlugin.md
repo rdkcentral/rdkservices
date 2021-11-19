@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `TraceControl` plugin provides ability to disable/enable trace output an set its verbosity level.
+The `TraceControl` plugin provides ability to disable/enable trace output and set its verbosity level.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -92,25 +92,25 @@ TraceControl interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [set](#method.set) | Sets traces |
-| [status](#method.status) | Retrieves the actual trace status information for the specified module and category, if a category or module is not specified, all information is returned |
+| [status](#method.status) | Retrieves the actual trace status information for the specified module and category |
 
 
 <a name="method.set"></a>
 ## *set <sup>method</sup>*
 
-Sets traces.
+Sets traces. Enables or disables all or select category traces for the specified module. 
+  
+### Events 
 
-### Description
-
-Enables or disables all or select category traces for the specified module.
+ No events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object | Trace information |
-| params.module | string | The module name |
-| params.category | string | The category name |
+| params.module | string | The module name. If the module name is not specified then, it returns all modules |
+| params.category | string | The category name. If the category name is not specified then, it returns all categories |
 | params.state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
 
 ### Result
@@ -126,7 +126,7 @@ Enables or disables all or select category traces for the specified module.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "TraceControl.1.set",
     "params": {
         "module": "Plugin_Monitor",
@@ -141,7 +141,7 @@ Enables or disables all or select category traces for the specified module.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
@@ -149,15 +149,19 @@ Enables or disables all or select category traces for the specified module.
 <a name="method.status"></a>
 ## *status <sup>method</sup>*
 
-Retrieves the actual trace status information for the specified module and category, if a category or module is not specified, all information is returned. It retrieves the details about the console status and remote address (port and binding) if these are configured.
+Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.module | string | The module name |
-| params.category | string | The category name |
+| params.module | string | The module name. If the module name is not specified then, it returns all modules |
+| params.category | string | The category name. If the category name is not specified then, it returns all categories |
 
 ### Result
 
@@ -170,8 +174,8 @@ Retrieves the actual trace status information for the specified module and categ
 | result.remote.binding | string | The binding address |
 | result.settings | array |  |
 | result.settings[#] | object | Trace information |
-| result.settings[#].module | string | The module name |
-| result.settings[#].category | string | The category name |
+| result.settings[#].module | string | The module name. If the module name is not specified then, it returns all modules |
+| result.settings[#].category | string | The category name. If the category name is not specified then, it returns all categories |
 | result.settings[#].state | string | The state value (must be one of the following: *enabled*, *disabled*, *tristated*) |
 
 ### Example
@@ -181,7 +185,7 @@ Retrieves the actual trace status information for the specified module and categ
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "TraceControl.1.status",
     "params": {
         "module": "Plugin_Monitor",
@@ -195,7 +199,7 @@ Retrieves the actual trace status information for the specified module and categ
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "console": false,
         "remote": {
