@@ -192,7 +192,7 @@
             "void": {
                 "type": "null",
                 "default": null,
-                "description": "Always null"
+                "description": "`Success`: Sync method will return null. `Fail`: Sync method will return error message with respective error code from the below table."
             }
         }
     },
