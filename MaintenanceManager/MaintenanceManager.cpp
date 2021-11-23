@@ -774,19 +774,27 @@ namespace WPEFramework {
             else {
                 response["maintenanceMode"] = g_currentMode;
 
-                if (m_setting.contains("softwareoptout")){
-                    softwareOptOutmode = m_setting.getValue("softwareoptout").String();
-                    /* check if the values is valid */
-                    if(!checkValidOptOutModes(softwareOptOutmode)){
-                        LOGERR("OptOut Value Corrupted. Failed\n");
+                if ( Utils::fileExists(MAINTENANCE_MGR_RECORD_FILE) ){
+                    if ( parseConfigFile(MAINTENANCE_MGR_RECORD_FILE,"softwareoptout",softwareOptOutmode)){
+                        /* check if the value is valid */
+                        if(!checkValidOptOutModes(softwareOptOutmode)){
+                            LOGERR("OptOut Value Corrupted. Failed\n");
+                            returnResponse(false);
+                        }
+                        else {
+                            LOGINFO("OptOut Value = %s",softwareOptOutmode.c_str());
+                        }
+                    }
+                    else {
+                        LOGERR("OptOut Value Not Found. Failed\n");
                         returnResponse(false);
                     }
                 }
                 else {
-                    LOGERR("OptOut Value Not Found. Failed\n");
+                    LOGERR("OptOut Config File Not Found. Failed\n");
                     returnResponse(false);
                 }
-                response["optOut"] = softwareOptOutmode;
+                response["optOut"] = softwareOptOutmode.c_str();
                 result = true;
             }
             returnResponse(result);
