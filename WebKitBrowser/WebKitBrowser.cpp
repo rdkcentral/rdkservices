@@ -100,6 +100,13 @@ namespace Plugin {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
 
+            _browserResources = _browser->QueryInterface<Exchange::IBrowserResources>();
+            if (!_browserResources) {
+                TRACE(Trace::Error, (_T("Failed to get IBrowserResources interface")));
+            } else {
+                Exchange::JBrowserResources::Register(*this, _browserResources);
+            }
+
             _browserSecurity = _browser->QueryInterface<Exchange::IBrowserSecurity>();
             if (!_browserSecurity) {
                 TRACE(Trace::Error, (_T("Failed to get IBrowserSecurity interface")));
@@ -135,12 +142,19 @@ namespace Plugin {
             _browserSecurity = nullptr;
         }
 
+        if(_browserResources) {
+            Exchange::JBrowserResources::Unregister(*this);
+            _browserResources->Release();
+            _browserResources = nullptr;
+        }
+
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
 
         // In case WPE rpcprocess crashed, there is no access to the statecontrol interface, check it !!
         if (stateControl != nullptr) {
             stateControl->Unregister(&_notification);
             stateControl->Release();
+            stateControl = nullptr;
         }
 
         // Stop processing of the browser:

@@ -20,6 +20,7 @@
 #include <memory>
 #include <utility>
 #include <tuple>
+#include <fstream>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -355,6 +356,7 @@ static GSourceFuncs _handlerIntervention =
     class WebKitImplementation : public Core::Thread,
                                  public Exchange::IBrowser,
                                  public Exchange::IWebBrowser,
+                                 public Exchange::IBrowserResources,
                                  public Exchange::IBrowserSecurity,
                                  public Exchange::IApplication,
                                  public PluginHost::IStateControl {
@@ -717,7 +719,7 @@ static GSourceFuncs _handlerIntervention =
             , _dataPath()
             , _service(nullptr)
             , _headers()
-            , _localStorageEnabled(false)  
+            , _localStorageEnabled(false)
             , _httpStatusCode(-1)
 #ifdef WEBKIT_GLIB_API
             , _view(nullptr)
@@ -725,6 +727,7 @@ static GSourceFuncs _handlerIntervention =
 #else
             , _view()
             , _page()
+            , _pageGroup()
             , _automationSession(nullptr)
             , _notificationManager()
             , _httpCookieAcceptPolicy(kWKHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain)
@@ -747,6 +750,8 @@ static GSourceFuncs _handlerIntervention =
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
             , _allowMixedContent(false)
+            , _userScripts()
+            , _userStyleSheets()
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -758,9 +763,11 @@ static GSourceFuncs _handlerIntervention =
             ASSERT(implementation == nullptr);
 
             implementation = this;
+            TRACE(Trace::Information, (_T("%p"), this));
         }
         ~WebKitImplementation() override
         {
+            TRACE(Trace::Information, (_T("%p"), this));
             Block();
 
             if (_loop != nullptr)
@@ -774,6 +781,12 @@ static GSourceFuncs _handlerIntervention =
 
     public:
 #ifdef WEBKIT_GLIB_API
+        uint32_t Headers(IStringIterator*& header) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t Headers(IStringIterator* const header) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserScripts(IStringIterator*& uris) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserScripts(IStringIterator* const uris) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserStyleSheets(IStringIterator*& uris) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserStyleSheets(IStringIterator* const uris) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t HeaderList(string& headerlist) const override { return Core::ERROR_UNAVAILABLE; }
         uint32_t HeaderList(const string& headerlist) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t UserAgent(string& ua) const override { return Core::ERROR_UNAVAILABLE; }
@@ -787,6 +800,136 @@ static GSourceFuncs _handlerIntervention =
         uint32_t MixedContentPolicy(MixedContentPolicyType& policy) const override { return Core::ERROR_UNAVAILABLE; }
         uint32_t MixedContentPolicy(const MixedContentPolicyType policy) override { return Core::ERROR_UNAVAILABLE; }
 #else
+        uint32_t Headers(IStringIterator*& header) const override
+        {
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Headers(IStringIterator* const header) override
+        {
+            return Core::ERROR_NONE;
+        }
+
+       uint32_t UserScripts(IStringIterator*& uris) const override
+        {
+            _adminLock.Lock();
+            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userScripts);
+            _adminLock.Unlock();
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t UserScripts(IStringIterator* const uris) override
+        {
+            string entry;
+            std::vector<string> userScriptsContent;
+            std::list<string> userScriptsUris;
+            while (uris->Next(entry)) {
+                auto content = GetFileContent(entry);
+                if (!content.empty()) {
+                        userScriptsUris.push_back(entry);
+                        userScriptsContent.push_back(content);
+                }
+                TRACE(Trace::Information, (_T("Adding user's script (uri: %s, empty: %d)"), entry.c_str(), content.empty()));
+            }
+            using SetUserScriptsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
+            auto* data = new SetUserScriptsData(this, userScriptsUris, userScriptsContent);
+
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<SetUserScriptsData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    std::list<string> scriptsUris = std::get<1>(data);
+                    std::vector<string> scriptsContent = std::get<2>(data);
+
+                    object->_adminLock.Lock();
+                    object->_userScripts = scriptsUris;
+                    object->_adminLock.Unlock();
+
+                    // Remove all user scripts
+                    WKPageGroupRemoveAllUserScripts(object->_pageGroup);
+
+                    for (string entry : scriptsContent) {
+                        WKPageGroupAddUserScript(
+                                object->_pageGroup,
+                                WKStringCreateWithUTF8CString(entry.c_str()),
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                kWKInjectInTopFrameOnly,
+                                kWKInjectAtDocumentStart);
+                    }
+
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetUserScriptsData*>(customdata);
+                });
+
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t UserStyleSheets(IStringIterator*& uris) const override
+        {
+            _adminLock.Lock();
+            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userStyleSheets);
+            _adminLock.Unlock();
+            return Core::ERROR_NONE;
+        }
+        uint32_t UserStyleSheets(IStringIterator* const uris) override
+        {
+            string entry;
+            std::vector<string> userStyleSheetsContent;
+            std::list<string> userStyleSheetsUris;
+            while (uris->Next(entry)) {
+                auto content = GetFileContent(entry);
+                if (!content.empty()) {
+                        userStyleSheetsUris.push_back(entry);
+                        userStyleSheetsContent.push_back(content);
+                }
+                TRACE(Trace::Information, (_T("Adding user's style sheet (uri: %s, empty: %d)"), entry.c_str(), content.empty()));
+            }
+            using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
+            auto* data = new SetUserStyleSheetsData(this, userStyleSheetsUris, userStyleSheetsContent);
+
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<SetUserStyleSheetsData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    std::list<string> styleSheetsUris = std::get<1>(data);
+                    std::vector<string> styleSheetsContent = std::get<2>(data);
+
+                    object->_adminLock.Lock();
+                    object->_userStyleSheets = styleSheetsUris;
+                    object->_adminLock.Unlock();
+
+                    // Remove all style sheets
+                    WKPageGroupRemoveAllUserStyleSheets(object->_pageGroup);
+
+                    for (string entry : styleSheetsContent) {
+                        WKPageGroupAddUserStyleSheet(
+                                object->_pageGroup,
+                                WKStringCreateWithUTF8CString(entry.c_str()),
+                                nullptr,
+                                nullptr,
+                                nullptr,
+                                kWKInjectInTopFrameOnly);
+                    }
+
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetUserStyleSheetsData*>(customdata);
+                });
+
+            return Core::ERROR_NONE;
+        }
+
         uint32_t HeaderList(string& headerlist) const override
         {
             _adminLock.Lock();
@@ -1908,6 +2051,7 @@ static GSourceFuncs _handlerIntervention =
         BEGIN_INTERFACE_MAP(WebKitImplementation)
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
+        INTERFACE_ENTRY(Exchange::IBrowserResources)
         INTERFACE_ENTRY(Exchange::IBrowserSecurity)
         INTERFACE_ENTRY (Exchange::IApplication)
         INTERFACE_ENTRY(PluginHost::IStateControl)
@@ -2014,6 +2158,18 @@ static GSourceFuncs _handlerIntervention =
                     },
                     this);
             }
+        }
+        std::string GetFileContent(const std::string& fileName)
+        {
+            std::string content;
+            auto stream = std::ifstream{fileName};
+
+            if (stream.fail()) {
+                TRACE(Trace::Error, (_T("Failed to get content from file: %s"), fileName.c_str()));
+            } else {
+                content = std::string{std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+            }
+            return content;
         }
 #ifdef WEBKIT_GLIB_API
         static void initializeWebExtensionsCallback(WebKitWebContext* context, WebKitImplementation* browser)
@@ -2313,7 +2469,7 @@ static GSourceFuncs _handlerIntervention =
             WKNotificationManagerSetProvider(_notificationManager, &_handlerNotificationProvider.base);
 
             auto pageGroupIdentifier = WKStringCreateWithUTF8CString(_config.PageGroup.Value().c_str());
-            auto pageGroup = WKPageGroupCreateWithIdentifier(pageGroupIdentifier);
+            _pageGroup = WKPageGroupCreateWithIdentifier(pageGroupIdentifier);
             WKRelease(pageGroupIdentifier);
 
             auto preferences = WKPreferencesCreate();
@@ -2355,11 +2511,11 @@ static GSourceFuncs _handlerIntervention =
                 WKRelease(contentTypes);
             }
 
-            WKPageGroupSetPreferences(pageGroup, preferences);
+            WKPageGroupSetPreferences(_pageGroup, preferences);
 
             auto pageConfiguration = WKPageConfigurationCreate();
             WKPageConfigurationSetContext(pageConfiguration, context);
-            WKPageConfigurationSetPageGroup(pageConfiguration, pageGroup);
+            WKPageConfigurationSetPageGroup(pageConfiguration, _pageGroup);
 
             gchar* cookieDatabasePath;
 
@@ -2454,7 +2610,7 @@ static GSourceFuncs _handlerIntervention =
 
             WKRelease(_view);
             WKRelease(pageConfiguration);
-            WKRelease(pageGroup);
+            WKRelease(_pageGroup);
             WKRelease(context);
             WKRelease(preferences);
 
@@ -2583,6 +2739,7 @@ static GSourceFuncs _handlerIntervention =
 #else
         WKViewRef _view;
         WKPageRef _page;
+        WKPageGroupRef _pageGroup;
         WKWebAutomationSessionRef _automationSession;
         WKNotificationManagerRef _notificationManager;
         WKHTTPCookieAcceptPolicy _httpCookieAcceptPolicy;
@@ -2606,6 +2763,8 @@ static GSourceFuncs _handlerIntervention =
         unsigned _frameCount;
         gint64 _lastDumpTime;
         bool _allowMixedContent;
+        std::list<string> _userScripts;
+        std::list<string> _userStyleSheets;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
