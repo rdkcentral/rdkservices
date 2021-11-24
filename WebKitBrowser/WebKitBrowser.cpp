@@ -47,7 +47,7 @@ namespace Plugin {
         // change to "register" the sink for these events !!! So do it ahead of instantiation.
         _service->Register(&_notification);
 
-        _browser = service->Root<Exchange::IWebBrowser>(_connectionId, 2000, _T("WebKitImplementation"));
+        _browser = service->Root<Exchange::IWebBrowser>(_connectionId, 20000, _T("WebKitImplementation"));
 
         if (_browser != nullptr) {
             PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
