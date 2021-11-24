@@ -71,6 +71,8 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 namespace WPEFramework {
 namespace Plugin {
 
+    static string consoleLogPrefix;
+
 #ifndef WEBKIT_GLIB_API
     static void onDidReceiveSynchronousMessageFromInjectedBundle(WKContextRef context, WKStringRef messageName,
         WKTypeRef messageBodyObj, WKTypeRef* returnData, const void* clientInfo);
@@ -228,8 +230,12 @@ namespace Plugin {
         nullptr, // runBeforeUnloadConfirmPanel
         nullptr, // fullscreenMayReturnToInline
         // willAddDetailedMessageToConsole
-        [](WKPageRef, WKStringRef source, WKStringRef, uint64_t line, uint64_t column, WKStringRef message, WKStringRef, const void* clientInfo) {
-            TRACE_GLOBAL(BrowserConsoleLog, (message, line, column));
+        [](WKPageRef, WKStringRef, WKStringRef, uint64_t line, uint64_t column, WKStringRef message, WKStringRef url, const void* clientInfo) {
+          if (WPEFramework::Trace::TraceType<BrowserConsoleLog, &WPEFramework::Core::System::MODULE_NAME>::IsEnabled() == false)
+            return;
+          string urlStr = WebKit::Utils::WKStringToString(url);
+          string messageStr = WebKit::Utils::WKStringToString(message);
+          fprintf(stderr, "[%s]:%s:%llu,%llu %s\n", consoleLogPrefix.c_str(), Core::FileNameOnly(urlStr.c_str()), line, column, messageStr.c_str());
         },
     };
 
@@ -1636,6 +1642,7 @@ static GSourceFuncs _handlerIntervention =
 
         uint32_t Configure(PluginHost::IShell* service) override
         {
+            consoleLogPrefix = service->Callsign();
             _service = service;
 
             _dataPath = service->DataPath();
