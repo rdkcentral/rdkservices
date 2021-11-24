@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.CompositeInput plugin for Thunder framework.
+A org.rdk.CompositeInput plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkCompositeInput.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [CompositeInput.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/CompositeInput.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -92,9 +100,13 @@ CompositeInput interface methods:
 
 
 <a name="method.getCompositeInputDevices"></a>
-## *getCompositeInputDevices <sup>method</sup>*
+## *getCompositeInputDevices [<sup>method</sup>](#head.Methods)*
 
 returns a list of composite input devices.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -119,7 +131,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.CompositeInput.1.getCompositeInputDevices"
 }
 ```
@@ -129,7 +141,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "devices": [
             {
@@ -144,9 +156,13 @@ This method takes no parameters.
 ```
 
 <a name="method.setVideoRectangle"></a>
-## *setVideoRectangle <sup>method</sup>*
+## *setVideoRectangle [<sup>method</sup>](#head.Methods)*
 
 Sets the composite input video window.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -172,7 +188,7 @@ Sets the composite input video window.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.CompositeInput.1.setVideoRectangle",
     "params": {
         "x": 900,
@@ -188,7 +204,7 @@ Sets the composite input video window.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -196,9 +212,17 @@ Sets the composite input video window.
 ```
 
 <a name="method.startCompositeInput"></a>
-## *startCompositeInput <sup>method</sup>*
+## *startCompositeInput [<sup>method</sup>](#head.Methods)*
 
 Activates the specified composite input as the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | 
+| `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |.
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
 
 ### Parameters
 
@@ -221,7 +245,7 @@ Activates the specified composite input as the primary video source.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.CompositeInput.1.startCompositeInput",
     "params": {
         "portId": 0
@@ -234,7 +258,7 @@ Activates the specified composite input as the primary video source.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -242,9 +266,16 @@ Activates the specified composite input as the primary video source.
 ```
 
 <a name="method.stopCompositeInput"></a>
-## *stopCompositeInput <sup>method</sup>*
+## *stopCompositeInput [<sup>method</sup>](#head.Methods)*
 
 Deactivates the current composite input source that is the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |.
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 
 ### Parameters
 
@@ -264,7 +295,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.CompositeInput.1.stopCompositeInput"
 }
 ```
@@ -274,7 +305,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -298,7 +329,7 @@ CompositeInput interface events:
 
 
 <a name="event.onDeviceChanged"></a>
-## *onDeviceChanged <sup>event</sup>*
+## *onDeviceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the composite input device changes.
 
@@ -332,7 +363,7 @@ Triggered when the composite input device changes.
 ```
 
 <a name="event.onInputStatusChanged"></a>
-## *onInputStatusChanged <sup>event</sup>*
+## *onInputStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the status of the composite input changes.
 
@@ -360,7 +391,7 @@ Triggered when the status of the composite input changes.
 ```
 
 <a name="event.onSignalChanged"></a>
-## *onSignalChanged <sup>event</sup>*
+## *onSignalChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the status of the composite input signal changes.
 
