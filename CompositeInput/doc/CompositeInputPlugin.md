@@ -222,6 +222,8 @@ Activates the specified composite input as the primary video source.
 | `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | 
 | `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |.
 
+Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -272,6 +274,8 @@ Deactivates the current composite input source that is the primary video source.
 | Event | Description | 
 | :----------- | :----------- | 
 | `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |.
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 
 ### Parameters
 
