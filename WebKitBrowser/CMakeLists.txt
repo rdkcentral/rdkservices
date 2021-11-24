@@ -247,3 +247,6 @@ endif()
 if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
     write_config( LightningApp )
 endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wextra")
