@@ -26,7 +26,7 @@
 # So here we purposely left one underscore away
 
 find_package(PkgConfig)
-pkg_check_modules(PC_WPE_WEBKIT wpe-webkit)
+pkg_check_modules(PC_WPE_WEBKIT wpe-webkit-deprecated-0.1)
 
 if(PC_WPE_WEBKIT_FOUND)
     if(WPE_WEBKIT_FIND_VERSION AND PC_WPE_WEBKIT_VERSION)
