@@ -41,7 +41,7 @@
     },
     "methods": {
         "getCompositeInputDevices" :{
-            "summary": "returns a list of composite input devices",
+            "summary": "returns a list of composite input devices.\n \n### Events\n \nNo Events.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -79,7 +79,7 @@
             }
         },
         "setVideoRectangle":{
-            "summary": "Sets the composite input video window",
+            "summary": "Sets the composite input video window.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -117,7 +117,11 @@
 
         },
         "startCompositeInput":{
-            "summary": "Activates the specified composite input as the primary video source",
+            "summary": "Activates the specified composite input as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | \n| `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |",
+            "events": [
+                "onInputStatusChanged",
+                "onSignalChanged"
+            ],
             "params": {
                 "type":"object",
                 "properties": {
@@ -136,7 +140,10 @@
             }
         },
         "stopCompositeInput":{
-            "summary": "Deactivates the current composite input source that is the primary video source",
+            "summary": "Deactivates the current composite input source that is the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |",
+            "events": [
+                "onInputStatusChanged"
+            ],
             "result": {
                 "$ref": "#/definitions/result"
             }
