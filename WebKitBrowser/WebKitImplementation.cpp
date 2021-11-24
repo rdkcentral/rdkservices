@@ -74,7 +74,6 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 #include "HTML5Notification.h"
 #include "WebKitBrowser.h"
 
-//extern pid_t gettid();
 namespace WPEFramework {
 namespace Plugin {
 
@@ -485,6 +484,7 @@ static GSourceFuncs _handlerIntervention =
                 : Core::JSON::Container()
                 , WebkitDebug()
                 , GstDebug()
+                , MixedContentWhitelist()
                 , UserAgent()
                 , URL(_T("http://www.google.com"))
                 , Whitelist()
@@ -537,6 +537,7 @@ static GSourceFuncs _handlerIntervention =
             {
                 Add(_T("webkitdebug"), &WebkitDebug);
                 Add(_T("gstdebug"), &GstDebug);
+                Add(_T("mixedcontentwhitelist"), &MixedContentWhitelist);
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
                 Add(_T("whitelist"), &Whitelist);
@@ -597,6 +598,7 @@ static GSourceFuncs _handlerIntervention =
         public:
             Core::JSON::String WebkitDebug;
             Core::JSON::String GstDebug;
+            Core::JSON::String MixedContentWhitelist;
             Core::JSON::String UserAgent;
             Core::JSON::String URL;
             Core::JSON::String Whitelist;
@@ -2087,6 +2089,10 @@ static GSourceFuncs _handlerIntervention =
             // GST_DEBUG
             if (_config.GstDebug.Value().empty() == false)
                Core::SystemInfo::SetEnvironment(_T("GST_DEBUG"), _config.GstDebug.Value(), !environmentOverride);
+
+            // Allow running mixed content for whitelisted URLs
+            if (_config.MixedContentWhitelist.Value().empty() == false)
+               Core::SystemInfo::SetEnvironment(_T("WPE_MIXEDCONTENT_WHITELIST"), _config.MixedContentWhitelist.Value(), !environmentOverride);
 
             // Set dummy window for gst-gl
             Core::SystemInfo::SetEnvironment(_T("GST_GL_WINDOW"), _T("dummy"), !environmentOverride);
