@@ -74,6 +74,7 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 #include "HTML5Notification.h"
 #include "WebKitBrowser.h"
 
+//extern pid_t gettid();
 namespace WPEFramework {
 namespace Plugin {
 
@@ -452,6 +453,34 @@ static GSourceFuncs _handlerIntervention =
             };
 
         public:
+            class SecurityProfileProperty : public Core::JSON::Container {
+            private:
+                SecurityProfileProperty& operator=(const SecurityProfileProperty&) = delete;
+
+            public:
+                SecurityProfileProperty()
+                    : Core::JSON::Container()
+                    , Name()
+                    , CipherPrio()
+                {
+                    Add(_T("name"), &Name);
+                    Add(_T("cipherprio"), &CipherPrio);
+                }
+                SecurityProfileProperty(const SecurityProfileProperty& rhs)
+                    : Core::JSON::Container()
+                    , Name(rhs.Name)
+                    , CipherPrio(rhs.CipherPrio)
+                {
+                    Add(_T("name"), &Name);
+                    Add(_T("cipherprio"), &CipherPrio);
+                }
+
+            public:
+                Core::JSON::String Name;
+                Core::JSON::String CipherPrio;
+            };
+
+        public:
             Config()
                 : Core::JSON::Container()
                 , WebkitDebug()
@@ -559,6 +588,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
                 Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
+                Add(_T("securityprofiles"), &SecurityProfiles);
             }
             ~Config()
             {
@@ -618,6 +648,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
             Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
+            Core::JSON::ArrayType<SecurityProfileProperty> SecurityProfiles;
         };
 
 #ifndef WEBKIT_GLIB_API
@@ -757,6 +788,7 @@ static GSourceFuncs _handlerIntervention =
             , _allowMixedContent(false)
             , _userScripts()
             , _userStyleSheets()
+            , _securityProfileName()
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -1229,8 +1261,68 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 #endif
-        uint32_t SecurityProfile(string& profile) const override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t SecurityProfile(const string& profile) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t SecurityProfile(string& profile) const override
+        {
+            _adminLock.Lock();
+            profile = _securityProfileName;
+            _adminLock.Unlock();
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t SecurityProfile(const string& profile) override
+        {
+            if (_context == nullptr) {
+                return Core::ERROR_GENERAL;
+            }
+
+            Core::JSON::ArrayType<Config::SecurityProfileProperty>::Iterator spe(_config.SecurityProfiles.Elements());
+            while (spe.Next() == true) {
+                if (spe.Current().Name.IsSet() && spe.Current().CipherPrio.IsSet()) {
+                    if (profile == spe.Current().Name.Value()) break;
+                }
+            }
+
+            if (!spe.IsValid()) {
+                TRACE(Trace::Error, (_T("Wrong security profile name - %s"), profile.c_str()));
+                return Core::ERROR_NOT_SUPPORTED;
+            }
+
+            const Config::SecurityProfileProperty securityProfile(spe.Current());
+            TRACE(Trace::Information, (_T("Setting security profile to %s: %s"),
+                        securityProfile.Name.Value().c_str(), securityProfile.CipherPrio.Value().c_str()));
+
+            using SetSecurityProfileData = std::tuple<WebKitImplementation*, Config::SecurityProfileProperty>;
+            auto* data = new SetSecurityProfileData(this, securityProfile);
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<SetSecurityProfileData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    const Config::SecurityProfileProperty securityProfile = std::get<1>(data);
+                    bool hasProfileChanged = false;
+
+                    object->_adminLock.Lock();
+                    if (object->_securityProfileName != securityProfile.Name.Value()) {
+                        object->_securityProfileName = securityProfile.Name.Value();
+                        hasProfileChanged = true;
+                    }
+                    object->_adminLock.Unlock();
+
+                    if (hasProfileChanged) {
+                        setenv("G_TLS_GNUTLS_PRIORITY", securityProfile.CipherPrio.Value().c_str(), 1);
+                        auto context = WKPageGetContext(object->_page);
+                        WKContextSetGnuTlsCipherPriority(context, WKStringCreateWithUTF8CString(securityProfile.CipherPrio.Value().c_str()));
+                    } else
+                        SYSLOG(Logging::Notification, (_T("Security profile %s is already set"), object->_securityProfileName.c_str()));
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<SetSecurityProfileData*>(customdata);
+                });
+            return Core::ERROR_NONE;
+        }
 
         uint32_t CollectGarbage() override
         {
@@ -1974,8 +2066,19 @@ static GSourceFuncs _handlerIntervention =
                 Core::SystemInfo::SetEnvironment(_T("CLIENT_IDENTIFIER"), service->Callsign(), !environmentOverride);
             }
 
-            // Setup client certificates
+            // Aways setup initial client certificates to propagate env variable to NetworkProcess
             SetupClientCertificates();
+            // NOTE: first valid security profile defined in config is used by default
+            Core::JSON::ArrayType<Config::SecurityProfileProperty>::Iterator spe(_config.SecurityProfiles.Elements());
+            while (spe.Next() == true) {
+                if (spe.Current().Name.IsSet() && spe.Current().CipherPrio.IsSet()) {
+                    _securityProfileName = spe.Current().Name.Value();
+                    setenv("G_TLS_GNUTLS_PRIORITY", spe.Current().CipherPrio.Value().c_str(), 1);
+                    TRACE(Trace::Information, (_T("Setting security profile to %s: %s"),
+                                spe.Current().Name.Value().c_str(), spe.Current().CipherPrio.Value().c_str()));
+                    break;
+                }
+            }
 
             // WEBKIT_DEBUG
             if (_config.WebkitDebug.Value().empty() == false)
@@ -2923,6 +3026,7 @@ static GSourceFuncs _handlerIntervention =
         bool _allowMixedContent;
         std::list<string> _userScripts;
         std::list<string> _userStyleSheets;
+        string _securityProfileName;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
