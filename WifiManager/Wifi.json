@@ -533,7 +533,7 @@
     },
     "events": {
         "onWIFIStateChanged":{
-            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- | \n| `connect` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING -> CONNECTED |\n| `disconnect` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |\n| `clearSSID` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |\n| `initiateWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED |\n| `cancelWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED |\n \nAlso see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- | \n| `connect` | Triggers onWIFIStateChanged event when Wifi state changes to CONNECTING, CONNECTED |\n| `disconnect` | Triggers onWIFIStateChanged event when Wifi state changes to DISCONNECTED |\n| `clearSSID` | Triggers onWIFIStateChanged event when Wifi state changes to DISCONNECTED |\n| `initiateWPSPairing` | Triggers onWIFIStateChanged event when Wifi state changes to DISCONNECTED, CONNECTING, CONNECTED |\n| `cancelWPSPairing` | Triggers onWIFIStateChanged event when Wifi state changes to DISCONNECTED |\n \nAlso see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -553,7 +553,7 @@
             }
         },
         "onError":{
-            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Triggers `onError` event if fails to connect with requested SSID |\n| `initiateWPSPairing` | Triggers `onError` event if fails in WPS pairing process |\n| `cancelWPSPairing` | Triggers `onError` event if fails to cancel in-progress WPS pairing |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Triggers onError event if the requested SSID connection fails |\n| `initiateWPSPairing` | Triggers onError event if the WPS pairing fails |\n| `cancelWPSPairing` | Triggers onError event if the device fails to cancel the in-progress WPS pairing |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -572,7 +572,7 @@
             "summary": "Triggered when a new SSID becomes available or an existing SSID is no longer available.\n \n### Methods\n \nNo Methods."
         },
         "onWifiSignalThresholdChanged":{
-            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `setSignalThresholdChangeEnabled` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between *Excellent*, *Good*, *Fair*, *Weak* |\n \nAlso see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled)",
+            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `setSignalThresholdChangeEnabled` | Triggers onWifiSignalThresholdChanged event if the Wifi signal strength switches between Excellent, Good, Fair, Weak |\n \nAlso see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled)",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -598,7 +598,7 @@
             }
         },
         "onAvailableSSIDs":{
-            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `startScan` | Triggers `onAvailableSSIDs` event when SSIDs are detected |\n \nAlso see: [startScan](#method.startScan)",
+            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `startScan` | Triggers onAvailableSSIDs event when the list of SSIDs are detected |\n \nAlso see: [startScan](#method.startScan)",
             "params": {
                 "type" :"object",
                 "properties": {
