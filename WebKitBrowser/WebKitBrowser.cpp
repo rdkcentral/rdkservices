@@ -19,6 +19,9 @@
 
 #include "WebKitBrowser.h"
 
+#undef TRACE
+#define TRACE SYSLOG
+
 namespace WPEFramework {
 
 namespace Plugin {
