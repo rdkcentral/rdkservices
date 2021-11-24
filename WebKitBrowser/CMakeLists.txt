@@ -33,6 +33,10 @@ endif()
 set(PLUGIN_NAME WebKitBrowser)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+if(PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY_PASSWD)
+    add_definitions(-DWEBKITBROWSER_CLIENT_CERTS_PRIV_KEY_PASSWD="${PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY_PASSWD}")
+endif()
+
 option(PLUGIN_WEBKITBROWSER_YOUTUBE "Include YouTube in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_APPS "Include Apps instance in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_UX "Include UX in seperate plugin." OFF)
@@ -128,6 +132,7 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(GLIB REQUIRED)
 find_package(WPEWebKit REQUIRED)
 find_package(WPEBackend REQUIRED)
+find_package(OpenSSL REQUIRED)
 if(DEFINED WEBKIT_GLIB_API)
 find_package(LibSoup REQUIRED)
 endif()
@@ -164,6 +169,7 @@ target_link_libraries(${MODULE_NAME}
         ${LIBSOUP_LIBRARIES}
         ${GLIB_LIBRARIES}
         ${WPE_WEBKIT_LIBRARIES}
+        ${OPENSSL_LIBRARIES}
         ${SECURITY_TOKEN_LIBRARY})
 
 target_include_directories(${MODULE_NAME}
@@ -173,6 +179,7 @@ target_include_directories(${MODULE_NAME}
         ${WPE_WEBKIT_INCLUDE_DIRS}/WPE
         ${GLIB_INCLUDE_DIRS}
         ${LIBSOUP_INCLUDE_DIRS}
+        ${OPENSSL_INCLUDE_DIRS}
 )
 
 if(WPE_WEBKIT_DEPRECATED_API)
