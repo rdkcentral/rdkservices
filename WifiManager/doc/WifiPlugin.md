@@ -942,11 +942,11 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
  
 | Method | Description | 
 | :-------- | :-------- | 
-| `connect` | Triggers this event if the device connects to the requested SSID and Wifi state changes to CONNECTED |
-| `disconnect` | Triggers this event if the device disconnects from a SSID and Wifi state changes to DISCONNECTED. |
-| `clearSSID` | Triggers this event if the saved SSID was cleared and Wifi state changes to DISCONNECTED |
-| `initiateWPSPairing` | Triggers this event if the device initiates WPS Pairing with the requested SSID and Wifi state changes to CONNECTED |
-| `cancelWPSPairing` | Triggers this event if the device cancels the WPS Pairing with the paired SSID and Wifi state changes to DISCONNECTED |
+| `connect` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING -> CONNECTED |
+| `disconnect` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |
+| `clearSSID` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |
+| `initiateWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED |
+| `cancelWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED |
  
 Also see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
@@ -988,9 +988,9 @@ Triggered when a recoverable unexpected Wifi error occurs.
  
 | Method | Description | 
 | :-------- | :-------- |
-| `connect` | Triggers this event if the requested SSID connection has failed and returns with appropriate error code |
-| `initiateWPSPairing` | Triggers this event with appropriate error code if the WPS pairing has failed |
-| `cancelWPSPairing` | Triggers this event with appropriate error code if the device failed to cancel the existing WPS pairing |
+| `connect` | Triggers `onError` event if fails to connect with requested SSID |
+| `initiateWPSPairing` | Triggers `onError` event if fails in WPS pairing process |
+| `cancelWPSPairing` | Triggers `onError` event if fails to cancel in-progress WPS pairing |
  
 Also see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
@@ -1044,7 +1044,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
  
 | Method | Description | 
 | :-------- | :-------- |
-| `setSignalThresholdChangeEnabled` | Triggers this event if the device signal crosses the defined threshold value in `setSignalThresholdChangeEnabled` method |
+| `setSignalThresholdChangeEnabled` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between *Excellent*, *Good*, *Fair*, *Weak* |
  
 Also see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled).
 
@@ -1078,7 +1078,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
  
 | Method | Description | 
 | :-------- | :-------- |
-| `startScan` | Triggers this event, if the SSIDs are available |
+| `startScan` | Triggers `onAvailableSSIDs` event when SSIDs are detected |
  
 Also see: [startScan](#method.startScan).
 
