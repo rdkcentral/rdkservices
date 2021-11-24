@@ -41,7 +41,18 @@ namespace Plugin {
         _service = service;
         _skipURL = _service->WebPrefix().length();
 
+        // If DiskCacheDir value exist in plugins/WebKitBrowser.json DiskCacheDir
+        // it should replace the original persistentStoragePath with its path data
         _persistentStoragePath = _service->PersistentPath();
+        std::string configLine = _service->ConfigLine();
+        if (!configLine.empty()) {
+            JsonObject serviceConfig = JsonObject(configLine.c_str());
+            if (serviceConfig.HasLabel("diskcachedir")) {
+                _persistentStoragePath = serviceConfig["diskcachedir"].String();
+            } else {
+                TRACE(Trace::Error, (string(_T("Failed to overwrite persistentPath"))));
+            }
+        }
 
         // Register the Connection::Notification stuff. The Remote process might die before we get a
         // change to "register" the sink for these events !!! So do it ahead of instantiation.

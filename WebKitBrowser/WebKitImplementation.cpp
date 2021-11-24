@@ -1963,7 +1963,9 @@ static GSourceFuncs _handlerIntervention =
             }
 
             Core::SystemInfo::SetEnvironment(_T("QUEUEPLAYER_FLUSH_MODE"), _T("3"), false);
-            Core::SystemInfo::SetEnvironment(_T("HOME"), service->PersistentPath());
+            // Change HOME environment value from config.json PersistentPath to plugins/WebKitBrowser.json DiskCacheDir
+            Core::SystemInfo::SetEnvironment(_T("HOME"),
+                _config.DiskCacheDir.Value().empty() ? _service->PersistentPath() : _config.DiskCacheDir.Value());
 
             if (_config.ClientIdentifier.IsSet() == true) {
                 string value(service->Callsign() + ',' + _config.ClientIdentifier.Value());
@@ -2001,8 +2003,11 @@ static GSourceFuncs _handlerIntervention =
             // GStreamer on-disk buffering
             if (_config.MediaDiskCache.Value() == false)
                 Core::SystemInfo::SetEnvironment(_T("WPE_SHELL_DISABLE_MEDIA_DISK_CACHE"), _T("1"), !environmentOverride);
-            else
-                Core::SystemInfo::SetEnvironment(_T("WPE_SHELL_MEDIA_DISK_CACHE_PATH"), service->PersistentPath(), !environmentOverride);
+            else {
+                // Change WPE_SHELL_MEDIA_DISK_CACHE_PATH environment value from config.json PersistentPath to plugins/WebKitBrowser.json DiskCacheDir
+                Core::SystemInfo::SetEnvironment(_T("WPE_SHELL_MEDIA_DISK_CACHE_PATH"),
+                    _config.DiskCacheDir.Value().empty() ? _service->PersistentPath() : _config.DiskCacheDir.Value(),  !environmentOverride);
+            }
 
             // Disk Cache
             if (_config.DiskCache.Value().empty() == false)
