@@ -21,6 +21,11 @@
 
 #include "Utils.h"
 
+#include <vector>
+#include <string>
+#include <utility>
+#include <glib.h>
+
 // Global handle to this bundle.
 extern WKBundleRef g_Bundle;
 
@@ -52,7 +57,18 @@ const char kBadgerEventSrc[] = R"jssrc(
   window.$badger.event(obj.handlerId, obj.json)
 )jssrc";
 
-static string JSStringToString(JSStringRef str)
+const char kInjectBadgerSrc[] = R"jssrc(
+var scriptUrl = url;
+window.addEventListener('load', (event) => {
+  if (typeof $badger === 'undefined') {
+    var script = document.createElement('script');
+    script.src = scriptUrl;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+});
+)jssrc";
+
+static std::string JSStringToString(JSStringRef str)
 {
   if (!str)
     return string();
@@ -65,7 +81,7 @@ static string JSStringToString(JSStringRef str)
 static void LogException(JSContextRef ctx, JSValueRef exception)
 {
     JSStringRef exceptStr = JSValueToStringCopy(ctx, exception, nullptr);
-    string errorStr = JSStringToString(exceptStr);
+    std::string errorStr = JSStringToString(exceptStr);
     JSStringRelease(exceptStr);
     TRACE_GLOBAL(Trace::Error, (_T("Got Exception: %s"), errorStr.c_str()));
 }
@@ -119,6 +135,95 @@ static void CallBridge(WKBundlePageRef page, const char* scriptSrc, WKTypeRef pa
     }
 }
 
+struct PatternSpec
+{
+    PatternSpec() = delete;
+    PatternSpec(const PatternSpec&) = delete;
+    PatternSpec & operator=(const PatternSpec&) = delete;
+    PatternSpec & operator=(PatternSpec&&) = delete;
+
+    PatternSpec(const std::string& pattern)
+        : _text(pattern)
+    {
+        _spec = g_pattern_spec_new(_text.c_str());
+    }
+    PatternSpec(PatternSpec&& o)
+        : _text(std::move(o._text))
+        , _spec(o._spec)
+    {
+        o._spec = nullptr;
+    }
+    ~PatternSpec()
+    {
+        if (_spec)
+            g_pattern_spec_free(_spec);
+    }
+    std::string _text;
+    GPatternSpec* _spec {nullptr};
+};
+
+static std::string g_badgerScriptUrl;
+static std::vector<PatternSpec> g_injectBadgerFor;
+
+void Initialize()
+{
+    auto requestConfig = []() -> std::string
+    {
+        std::string utf8MessageName(std::string(Tags::Config) + "badger");
+        WKStringRef jsMessageName = WKStringCreateWithUTF8CString(utf8MessageName.c_str());
+        WKMutableArrayRef messageBody = WKMutableArrayCreate();
+        WKTypeRef returnData;
+        WKBundlePostSynchronousMessage(WebKit::Utils::GetBundle(), jsMessageName, messageBody, &returnData);
+        std::string json (WebKit::Utils::WKStringToString(static_cast<WKStringRef>(returnData)));
+        WKRelease(returnData);
+        WKRelease(messageBody);
+        WKRelease(jsMessageName);
+        return json;
+    };
+
+    auto parseConfig = [](const string& json)
+    {
+        struct BadgerConfig : public Core::JSON::Container
+        {
+            BadgerConfig()
+                : Core::JSON::Container()
+            {
+                Add(_T("scripturl"), &ScriptUrl);
+                Add(_T("injectfor"), &InjectFor);
+            }
+            Core::JSON::String ScriptUrl;
+            Core::JSON::ArrayType<Core::JSON::String> InjectFor;
+        };
+
+        Core::OptionalType<Core::JSON::Error> error;
+        BadgerConfig config;
+        if (!config.FromString(json, error))
+        {
+            SYSLOG(Trace::Error,
+                   (_T("Failed to parse $badger config, error='%s', json='%s'\n"),
+                    (error.IsSet() ? error.Value().Message().c_str() : "unknown"), json.c_str()));
+            return false;
+        }
+
+        g_badgerScriptUrl = config.ScriptUrl.Value();
+        for (auto it = config.InjectFor.Elements(); it.Next();) {
+            if (!it.IsValid())
+                continue;
+            const auto &data  = it.Current();
+            g_injectBadgerFor.push_back(data.Value());
+        }
+        return true;
+    };
+
+    std::string json = requestConfig();
+    if (parseConfig(json)) {
+        SYSLOG(Trace::Information, (_T("Configured $badger script url: '%s'\n"), g_badgerScriptUrl.c_str()));
+        for (const auto& p : g_injectBadgerFor) {
+            SYSLOG(Trace::Information, (_T("Enable $badger script injection for: '%s'\n"), p._text.c_str()));
+        }
+    }
+}
+
 void InjectJS(WKBundleFrameRef frame)
 {
     if (!WKBundleFrameIsMainFrame(frame))
@@ -151,6 +256,52 @@ void InjectJS(WKBundleFrameRef frame)
     if (exception) {
         LogException(context, exception);
         return;
+    }
+
+    auto getProvisionalUrl = [](WKBundleFrameRef frame) {
+        std::string result;
+        auto frameUrl = WKBundleFrameCopyURL(frame);
+        if (frameUrl) {
+            auto urlString = WKURLCopyString(frameUrl);
+            result = WebKit::Utils::WKStringToString(urlString);
+            WKRelease(urlString);
+            WKRelease(frameUrl);
+        }
+        return result;
+    };
+
+    auto shouldInjectBadgerScript = [](const std::string url) {
+        for (const auto& p : g_injectBadgerFor) {
+            if (g_pattern_match_string(p._spec, url.c_str()))
+                return true;
+        }
+        return false;
+    };
+
+    std::string frameUrl = getProvisionalUrl(frame);
+    if ( shouldInjectBadgerScript(frameUrl) ) {
+        SYSLOG(Trace::Information, (_T("Injecting $badger script for: '%s'\n"), frameUrl.c_str()));
+
+        JSStringRef mbScriptStr = JSStringCreateWithUTF8CString(kInjectBadgerSrc);
+        JSStringRef paramNameStr = JSStringCreateWithUTF8CString("url");
+
+        JSObjectRef fun = JSObjectMakeFunction(context, nullptr, 1, &paramNameStr, mbScriptStr, nullptr, 1, &exception);
+
+        JSStringRelease(mbScriptStr);
+        JSStringRelease(paramNameStr);
+        if (exception) {
+            LogException(context, exception);
+            return;
+        }
+
+        JSStringRef scriptSrcStr = JSStringCreateWithUTF8CString(g_badgerScriptUrl.c_str());
+        JSValueRef argValue = JSValueMakeString(context, scriptSrcStr);
+        JSObjectCallAsFunction(context, fun, nullptr, 1, &argValue, &exception);
+        JSStringRelease(scriptSrcStr);
+        if (exception) {
+            LogException(context, exception);
+            return;
+        }
     }
 }
 

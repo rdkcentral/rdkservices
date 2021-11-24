@@ -142,6 +142,9 @@ public:
         }
 #else
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
+        #if defined(ENABLE_BADGER_BRIDGE)
+        JavaScript::BridgeObject::Initialize();
+        #endif
 #endif
 
     }

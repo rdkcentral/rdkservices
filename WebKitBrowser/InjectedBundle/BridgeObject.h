@@ -26,6 +26,7 @@ namespace WPEFramework {
 namespace JavaScript {
 namespace BridgeObject {
 
+void Initialize();
 bool HandleMessageToPage(WKBundlePageRef page, WKStringRef messageName, WKTypeRef messageBody);
 void InjectJS(WKBundleFrameRef frame);
 
