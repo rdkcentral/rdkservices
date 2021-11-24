@@ -119,7 +119,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | null | `Success`: Sync method returns null. `Fail`: Sync method returns error message with respective error code from the below table |
+| result | null | Returns null on success. On failure, it returns the error message and error code from the following table |
 
 ### Errors
 
