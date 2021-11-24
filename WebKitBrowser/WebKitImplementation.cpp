@@ -767,6 +767,10 @@ static GSourceFuncs _handlerIntervention =
             // The WebKitBrowser (WPE) can only be instantiated once (it is a process wide singleton !!!!)
             ASSERT(implementation == nullptr);
 
+            // Initialize ODH reporting for WebKitBrowser
+            if (odh_error_report_init("WebKitBrowser"))
+                TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
+
             implementation = this;
             TRACE(Trace::Information, (_T("%p"), this));
         }
@@ -774,6 +778,8 @@ static GSourceFuncs _handlerIntervention =
         {
             TRACE(Trace::Information, (_T("%p"), this));
             Block();
+
+            odh_error_report_deinit(ODH_ERROR_REPORT_DEINIT_MODE_DEFERRED);
 
             if (_loop != nullptr)
                 g_main_loop_quit(_loop);
@@ -1265,6 +1271,7 @@ static GSourceFuncs _handlerIntervention =
         uint32_t URL(const string& URL) override
         {
             TRACE(Trace::Information, (_T("New URL: %s"), URL.c_str()));
+            ODH_WARNING("New URL: %s", URL.c_str());
 
             if (_context != nullptr) {
                 using SetURLData = std::tuple<WebKitImplementation*, string>;
@@ -1718,6 +1725,7 @@ static GSourceFuncs _handlerIntervention =
             }
 
             _adminLock.Unlock();
+            ODH_ERROR("Failed to load URL: %s", _URL.c_str());
         }
         void OnStateChange(const PluginHost::IStateControl::state newState)
         {
