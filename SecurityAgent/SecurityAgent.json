@@ -216,7 +216,7 @@
     },
     "methods": {
         "createtoken": {
-            "summary": "Creates a signed JsonWeb token",
+            "summary": "Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -246,7 +246,7 @@
                 "type": "object",
                 "properties": {
                     "token": {
-                        "description": "On success, returns Signed JsonWeb token. On failure, returns error message and error code from the following table.",
+                        "description": "Signed JsonWeb token",
                         "type": "string",
                         "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgImpzb25ycGMiOiAiMi4wIiwgCiAgICAiaWQiOiAxMjM0NTY3ODkwLCAKICAgICJtZXRob2QiOiAiQ29udHJvbGxlci4xLmFjdGl2YXRlIiwgCiAgICAicGFyYW1zIjogewogICAgICAgICJjYWxsc2lnbiI6ICJTZWN1cml0eUFnZW50IgogICAgfQp9.lL40nTwRyBvMwiglZhl5_rB8ycY1uhAJRFx9pGATMRQ"
                     }
