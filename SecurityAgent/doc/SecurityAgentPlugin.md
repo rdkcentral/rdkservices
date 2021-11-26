@@ -102,7 +102,7 @@ SecurityAgent interface methods:
 <a name="method.createtoken"></a>
 ## *createtoken [<sup>method</sup>](#head.Methods)*
 
-Creates a signed JsonWeb token.
+Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.
 
 ### Parameters
 
@@ -118,7 +118,7 @@ Creates a signed JsonWeb token.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.token | string | On success, returns Signed JsonWeb token. On failure, returns error message and error code from the following table |
+| result.token | string | Signed JsonWeb token |
 
 ### Errors
 
