@@ -74,9 +74,9 @@ namespace WPEFramework
                 }
                 std::string wps_pin;
                 getStringParameter("wps_pin", wps_pin);
-		if(wps_pin == "")
+		if (wps_pin.length() != 8)
                 {
-                    LOGERR("parameter 'wps_pin' is empty");
+                    LOGERR("parameter 'wps_pin' should be 8 digits");
                     returnResponse(false);
                 }
                 snprintf(wps_parameters.pin, sizeof(wps_parameters.pin), "%s", wps_pin.c_str());
