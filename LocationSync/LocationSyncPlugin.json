@@ -28,7 +28,7 @@
                     "source": {
                         "type": "string",
                         "size": 16,
-                        "description": "URI of the Location Server (default:\"http://jsonip.metrological.com/?maf=true\")."
+                        "description": "URI of the Location Server (default:\"location.webplatformforembedded.org\")."
                     }
                 }
             }
