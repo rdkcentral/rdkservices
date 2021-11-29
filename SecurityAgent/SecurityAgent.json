@@ -216,8 +216,7 @@
     },
     "methods": {
         "createtoken": {
-            "summary": "Creates a Token",
-            "description": "Create a signed JsonWeb token with the specified parameters",
+            "summary": "Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -261,8 +260,7 @@
             ]
         },
         "validate": {
-            "summary": "Validates Token",
-            "description": "Checks whether the token is valid and properly signed",
+            "summary": "Validates the token whether it is valid and properly signed",
             "params": {
                 "type": "object",
                 "properties": {
@@ -284,9 +282,7 @@
                         "type": "boolean"
                     }
                 }
-            },
-            "errors": [
-            ]
+            }
         }
     }
 }
