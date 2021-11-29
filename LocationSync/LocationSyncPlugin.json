@@ -23,7 +23,7 @@
                     "retries": {
                         "type": "number",
                         "size": 8,
-                        "description": "Maximum number of request reties to the Location Server (default:20)."
+                        "description": "Maximum number of request reties to the Location Server (default:60)."
                     },
                     "source": {
                         "type": "string",
