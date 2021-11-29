@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-LocationSync plugin for Thunder framework.
+A LocationSync plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -79,7 +80,14 @@ The table below lists configuration options of the plugin.
 | configuration | object | <sup>*(optional)*</sup>  |
 | configuration?.interval | number | <sup>*(optional)*</sup> Maximum time duration between each request to the Location Server (default: 10) |
 | configuration?.retries | number | <sup>*(optional)*</sup> Maximum number of request reties to the Location Server (default:20) |
-| configuration?.source | string | <sup>*(optional)*</sup> URI of the Location Server (default:"http://jsonip.metrological.com/?maf=true") |
+| configuration?.source | string | <sup>*(optional)*</sup> URI of the Location Server (default:"location.webplatformforembedded.org") |
+
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [LocationSync.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/LocationSync.json)
 
 <a name="head.Methods"></a>
 # Methods
@@ -94,9 +102,14 @@ LocationSync interface methods:
 
 
 <a name="method.sync"></a>
-## *sync <sup>method</sup>*
+## *sync [<sup>method</sup>](#head.Methods)*
 
-Synchronizes the location.
+Synchronizes the location. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `locationchange` | Signals the change of location |.
 
 ### Parameters
 
@@ -106,7 +119,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | null | Always null |
+| result | null | Returns null on success. On failure, it returns the error message and error code from the following table |
 
 ### Errors
 
@@ -124,7 +137,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "LocationSync.1.sync"
 }
 ```
@@ -134,7 +147,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
@@ -152,7 +165,7 @@ LocationSync interface properties:
 
 
 <a name="property.location"></a>
-## *location <sup>property</sup>*
+## *location [<sup>property</sup>](#head.Properties)*
 
 Provides access to the location information.
 
@@ -176,7 +189,7 @@ Provides access to the location information.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "LocationSync.1.location"
 }
 ```
@@ -186,7 +199,7 @@ Provides access to the location information.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "city": "Wroclaw",
         "country": "Poland",
@@ -212,7 +225,7 @@ LocationSync interface events:
 
 
 <a name="event.locationchange"></a>
-## *locationchange <sup>event</sup>*
+## *locationchange [<sup>event</sup>](#head.Notifications)*
 
 Signals a location change.
 
