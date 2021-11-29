@@ -6,13 +6,14 @@
 
 **Status: :black_circle::white_circle::white_circle:**
 
-DTV plugin for Thunder framework.
+A DTV plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -80,6 +81,13 @@ The table below lists configuration options of the plugin.
 | configuration?.subtitleprocessing | boolean | <sup>*(optional)*</sup> Enable subtitle processing |
 | configuration?.teletextproessing | boolean | <sup>*(optional)*</sup> Enable teletext processing |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [DTV.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DTV.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -98,9 +106,13 @@ DTV interface methods:
 
 
 <a name="method.addLnb"></a>
-## *addLnb <sup>method</sup>*
+## *addLnb [<sup>method</sup>](#head.Methods)*
 
 Add a new LNB to the database.
+  
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -135,7 +147,7 @@ Add a new LNB to the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.addLnb",
     "params": {
         "name": "Universal",
@@ -161,15 +173,19 @@ Add a new LNB to the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": true
 }
 ```
 
 <a name="method.addSatellite"></a>
-## *addSatellite <sup>method</sup>*
+## *addSatellite [<sup>method</sup>](#head.Methods)*
 
 Add a new satellite to the database.
+  
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -193,7 +209,7 @@ Add a new satellite to the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.addSatellite",
     "params": {
         "name": "Astra 28.2E",
@@ -208,15 +224,19 @@ Add a new satellite to the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": true
 }
 ```
 
 <a name="method.finishServiceSearch"></a>
-## *finishServiceSearch <sup>method</sup>*
+## *finishServiceSearch [<sup>method</sup>](#head.Methods)*
 
 Finishes a service search.
+  
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -239,7 +259,7 @@ Finishes a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.finishServiceSearch",
     "params": {
         "tunertype": "none",
@@ -253,15 +273,19 @@ Finishes a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": true
 }
 ```
 
 <a name="method.startPlaying"></a>
-## *startPlaying <sup>method</sup>*
+## *startPlaying [<sup>method</sup>](#head.Methods)*
 
 Starts playing the specified service.
+  
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -284,7 +308,7 @@ Starts playing the specified service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.startPlaying",
     "params": {
         "dvburi": "2.2041.9212",
@@ -298,15 +322,20 @@ Starts playing the specified service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 0
 }
 ```
 
 <a name="method.startServiceSearch"></a>
-## *startServiceSearch <sup>method</sup>*
+## *startServiceSearch [<sup>method</sup>](#head.Methods)*
 
 Starts a service search.
+ 
+### Events  
+| Event | Description | 
+| :----------- | :----------- | 
+|`searchstatus`|Triggered during the course of a service search.|.
 
 Also see: [searchstatus](#event.searchstatus)
 
@@ -345,7 +374,7 @@ Also see: [searchstatus](#event.searchstatus)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.startServiceSearch",
     "params": {
         "tunertype": "none",
@@ -353,7 +382,7 @@ Also see: [searchstatus](#event.searchstatus)
         "retune": false,
         "usetuningparams": true,
         "dvbstuningparams": {
-            "satellite": "",
+            "satellite": "...",
             "frequency": 10714,
             "polarity": "horizontal",
             "symbolrate": 22000,
@@ -375,15 +404,19 @@ Also see: [searchstatus](#event.searchstatus)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": true
 }
 ```
 
 <a name="method.stopPlaying"></a>
-## *stopPlaying <sup>method</sup>*
+## *stopPlaying [<sup>method</sup>](#head.Methods)*
 
 Stops playing the specified service.
+  
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -404,7 +437,7 @@ Stops playing the specified service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.stopPlaying",
     "params": 0
 }
@@ -415,7 +448,7 @@ Stops playing the specified service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
@@ -437,12 +470,12 @@ DTV interface properties:
 | [numberOfServices](#property.numberOfServices) <sup>RO</sup> | Total number of services in the service database |
 | [serviceList](#property.serviceList) <sup>RO</sup> | List of services for the given type of tuner or all services if no tuner is defined |
 | [nowNextEvents](#property.nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
-| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Schedule events (EITsched) for the given service |
+| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Events which are scheduled (EITsched) for the given service |
 | [status](#property.status) <sup>RO</sup> | Information related to the play handle defined by the index |
 
 
 <a name="property.numberOfCountries"></a>
-## *numberOfCountries <sup>property</sup>*
+## *numberOfCountries [<sup>property</sup>](#head.Properties)*
 
 Provides access to the number of country configurations available.
 
@@ -461,7 +494,7 @@ Provides access to the number of country configurations available.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.numberOfCountries"
 }
 ```
@@ -471,13 +504,13 @@ Provides access to the number of country configurations available.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 5
 }
 ```
 
 <a name="property.countryList"></a>
-## *countryList <sup>property</sup>*
+## *countryList [<sup>property</sup>](#head.Properties)*
 
 Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
 
@@ -499,7 +532,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.countryList"
 }
 ```
@@ -509,7 +542,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "name": "UK",
@@ -520,7 +553,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 ```
 
 <a name="property.country"></a>
-## *country <sup>property</sup>*
+## *country [<sup>property</sup>](#head.Properties)*
 
 Provides access to the country configuration using the ISO 3-character country code.
 
@@ -537,7 +570,7 @@ Provides access to the country configuration using the ISO 3-character country c
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.country"
 }
 ```
@@ -547,7 +580,7 @@ Provides access to the country configuration using the ISO 3-character country c
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 6775410
 }
 ```
@@ -557,7 +590,7 @@ Provides access to the country configuration using the ISO 3-character country c
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.country",
     "params": 6775410
 }
@@ -568,13 +601,13 @@ Provides access to the country configuration using the ISO 3-character country c
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": "null"
 }
 ```
 
 <a name="property.lnbList"></a>
-## *lnbList <sup>property</sup>*
+## *lnbList [<sup>property</sup>](#head.Properties)*
 
 Provides access to the array of LNBs defined in the database.
 
@@ -608,7 +641,7 @@ Provides access to the array of LNBs defined in the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.lnbList"
 }
 ```
@@ -618,7 +651,7 @@ Provides access to the array of LNBs defined in the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "name": "Universal",
@@ -641,7 +674,7 @@ Provides access to the array of LNBs defined in the database.
 ```
 
 <a name="property.satelliteList"></a>
-## *satelliteList <sup>property</sup>*
+## *satelliteList [<sup>property</sup>](#head.Properties)*
 
 Provides access to the array of satellites defined in the database.
 
@@ -664,7 +697,7 @@ Provides access to the array of satellites defined in the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.satelliteList"
 }
 ```
@@ -674,7 +707,7 @@ Provides access to the array of satellites defined in the database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "name": "Astra 28.2E",
@@ -686,7 +719,7 @@ Provides access to the array of satellites defined in the database.
 ```
 
 <a name="property.numberOfServices"></a>
-## *numberOfServices <sup>property</sup>*
+## *numberOfServices [<sup>property</sup>](#head.Properties)*
 
 Provides access to the total number of services in the service database.
 
@@ -705,7 +738,7 @@ Provides access to the total number of services in the service database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.numberOfServices"
 }
 ```
@@ -715,13 +748,13 @@ Provides access to the total number of services in the service database.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": 145
 }
 ```
 
 <a name="property.serviceList"></a>
-## *serviceList <sup>property</sup>*
+## *serviceList [<sup>property</sup>](#head.Properties)*
 
 Provides access to the list of services for the given type of tuner or all services if no tuner is defined.
 
@@ -737,7 +770,7 @@ Provides access to the list of services for the given type of tuner or all servi
 | (property)[#].dvburi | string | DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal |
 | (property)[#].lcn | number | Logical channel number |
 
-> The *optional tuner type* shall be passed as the index to the property, e.g. *DTV.1.serviceList@dvbs*.
+> The *optional tuner type* argument shall be passed as the index to the property, e.g. *DTV.1.serviceList@dvbs*.
 
 ### Example
 
@@ -746,7 +779,7 @@ Provides access to the list of services for the given type of tuner or all servi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.serviceList@dvbs"
 }
 ```
@@ -756,7 +789,7 @@ Provides access to the list of services for the given type of tuner or all servi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "shortname": "Channel 4",
@@ -768,7 +801,7 @@ Provides access to the list of services for the given type of tuner or all servi
 ```
 
 <a name="property.nowNextEvents"></a>
-## *nowNextEvents <sup>property</sup>*
+## *nowNextEvents [<sup>property</sup>](#head.Properties)*
 
 Provides access to the now and next events (EITp/f) for the given service.
 
@@ -792,7 +825,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 | (property)?.next.eventid | number | ID of the event from the event information table |
 | (property)?.next.shortdescription | string | Event description from the EIT short event descriptor |
 
-> The *service uri string* shall be passed as the index to the property, e.g. *DTV.1.nowNextEvents@9018.4161.1001*.
+> The *service uri string* argument shall be passed as the index to the property, e.g. *DTV.1.nowNextEvents@9018.4161.1001*.
 
 ### Example
 
@@ -801,7 +834,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.nowNextEvents@9018.4161.1001"
 }
 ```
@@ -811,7 +844,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "now": {
             "name": "Channel 4 News",
@@ -832,9 +865,9 @@ Provides access to the now and next events (EITp/f) for the given service.
 ```
 
 <a name="property.scheduleEvents"></a>
-## *scheduleEvents <sup>property</sup>*
+## *scheduleEvents [<sup>property</sup>](#head.Properties)*
 
-Provides access to the schedule events (EITsched) for the given service.
+Provides access to the events which are scheduled (EITsched) for the given service.
 
 > This property is **read-only**.
 
@@ -842,7 +875,7 @@ Provides access to the schedule events (EITsched) for the given service.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | Schedule events (EITsched) for the given service |
+| (property) | array | Events which are scheduled (EITsched) for the given service |
 | (property)[#] | object | EIT event information |
 | (property)[#].name | string | Name of the DVB event as defined in the short event descriptor |
 | (property)[#].starttime | number | UTC start time of the event in seconds |
@@ -850,7 +883,7 @@ Provides access to the schedule events (EITsched) for the given service.
 | (property)[#].eventid | number | ID of the event from the event information table |
 | (property)[#].shortdescription | string | Event description from the EIT short event descriptor |
 
-> The *service uri string, with optional start and end times as number of seconds utc* shall be passed as the index to the property, e.g. *DTV.1.scheduleEvents@9018.4161.1001:12345000,12346000*.
+> The *service uri string, with optional start and end times as number of seconds utc* argument shall be passed as the index to the property, e.g. *DTV.1.scheduleEvents@9018.4161.1001:12345000,12346000*.
 
 ### Example
 
@@ -859,7 +892,7 @@ Provides access to the schedule events (EITsched) for the given service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.scheduleEvents@9018.4161.1001:12345000,12346000"
 }
 ```
@@ -869,7 +902,7 @@ Provides access to the schedule events (EITsched) for the given service.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": [
         {
             "name": "Channel 4 News",
@@ -883,7 +916,7 @@ Provides access to the schedule events (EITsched) for the given service.
 ```
 
 <a name="property.status"></a>
-## *status <sup>property</sup>*
+## *status [<sup>property</sup>](#head.Properties)*
 
 Provides access to the information related to the play handle defined by the index.
 
@@ -900,7 +933,7 @@ Provides access to the information related to the play handle defined by the ind
 | (property).dvburi | string | DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal |
 | (property).lcn | number | LCN of the service being played |
 
-> The *play handle* shall be passed as the index to the property, e.g. *DTV.1.status@0*.
+> The *play handle* argument shall be passed as the index to the property, e.g. *DTV.1.status@0*.
 
 ### Example
 
@@ -909,7 +942,7 @@ Provides access to the information related to the play handle defined by the ind
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "DTV.1.status@0"
 }
 ```
@@ -919,7 +952,7 @@ Provides access to the information related to the play handle defined by the ind
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "tuner": 0,
         "demux": 0,
@@ -945,7 +978,7 @@ DTV interface events:
 
 
 <a name="event.searchstatus"></a>
-## *searchstatus <sup>event</sup>*
+## *searchstatus [<sup>event</sup>](#head.Notifications)*
 
 Triggered during the course of a service search.
 
