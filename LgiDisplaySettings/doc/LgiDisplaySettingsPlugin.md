@@ -1,10 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.LgiDisplaySettings_Plugin"></a>
-# LgiDisplaySettings Plugin
+<a name="head.LgiDisplaySettings_API"></a>
+# LgiDisplaySettings API
 
 **Version: 1.0**
 
-**Status: :black_circle::black_circle::black_circle:**
+**Status: :black_circle::white_circle::white_circle:**
 
 com.lgi.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -71,9 +71,7 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *com.lgi.rdk.DisplaySettings*) |
 | classname | string | Class name: *com.lgi.rdk.DisplaySettings* |
-| locator | string | Library name: *libWPEFrameworkDisplaySettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
@@ -81,7 +79,7 @@ The table below lists configuration options of the plugin.
 
 The following methods are provided by the com.lgi.rdk.DisplaySettings plugin:
 
-DisplaySettings interface methods:
+com.lgi.rdk.DisplaySettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
@@ -156,6 +154,15 @@ DisplaySettings interface methods:
 | [setVolumeLeveller](#method.setVolumeLeveller) | Sets the Volume Leveller level |
 | [setVolumeLeveller2](#method.setVolumeLeveller2) | (Version 2) Sets the Volume Leveller level |
 | [setZoomSetting](#method.setZoomSetting) | Sets the current zoom value |
+| [setOutputFrameRatePreference](#method.setOutputFrameRatePreference) | Sets the current output frame rate follow content preference |
+| [setAudioProcessingHint](#method.setAudioProcessingHint) | Sets audio processing hint |
+| [getAudioOutputEncoding](#method.getAudioOutputEncoding) | gets current audio output encoding |
+| [getFollowColorSpace](#method.getFollowColorSpace) | get current follow colorspace setting |
+| [setFollowColorSpace](#method.setFollowColorSpace) | set current follow colorspace setting |
+| [getPreferredOutputColorSpace](#method.getPreferredOutputColorSpace) | get current preferred output colorspace |
+| [setPreferredOutputColorSpace](#method.setPreferredOutputColorSpace) | set current preferred output colorspace |
+| [getHDRGfxColorSpace](#method.getHDRGfxColorSpace) | Gets current HDR gfx colorspace values |
+| [setHDRGfxColorSpace](#method.setHDRGfxColorSpace) | Sets current HDR gfx colorspace values |
 
 
 <a name="method.enableSurroundDecoder"></a>
@@ -3547,6 +3554,454 @@ Sets the current zoom value.
 }
 ```
 
+<a name="method.setOutputFrameRatePreference"></a>
+## *setOutputFrameRatePreference <sup>method</sup>*
+
+Sets the current output frame rate follow content preference.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+| params.followContent | boolean | should follow content frame rate |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.setOutputFrameRatePreference",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "followContent": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setAudioProcessingHint"></a>
+## *setAudioProcessingHint <sup>method</sup>*
+
+Sets audio processing hint.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port ID |
+| params.audioMode | string | Audio mode - dd/pcm |
+| params?.audioDelayMs | integer | <sup>*(optional)*</sup> audio delay [ms] |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.setAudioProcessingHint",
+    "params": {
+        "audioPort": "HDMI0",
+        "audioMode": "pcm",
+        "audioDelayMs": 50
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getAudioOutputEncoding"></a>
+## *getAudioOutputEncoding <sup>method</sup>*
+
+gets current audio output encoding.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port ID |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.encoding | string | audio encoding type |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.getAudioOutputEncoding",
+    "params": {
+        "audioPort": "HDMI0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "encoding": "PCM",
+        "success": true
+    }
+}
+```
+
+<a name="method.getFollowColorSpace"></a>
+## *getFollowColorSpace <sup>method</sup>*
+
+get current follow colorspace setting.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.followColorSpace | boolean | should follow colorspace |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.getFollowColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "followColorSpace": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.setFollowColorSpace"></a>
+## *setFollowColorSpace <sup>method</sup>*
+
+set current follow colorspace setting.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+| params.followColorSpace | boolean | should follow color space |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.setFollowColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "followColorSpace": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreferredOutputColorSpace"></a>
+## *getPreferredOutputColorSpace <sup>method</sup>*
+
+get current preferred output colorspace.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.preferredOutputColorSpaces | array | A string [] of preferred colorspaces |
+| result.preferredOutputColorSpaces[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.getPreferredOutputColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "preferredOutputColorSpaces": [
+            "BT2020_NCL"
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="method.setPreferredOutputColorSpace"></a>
+## *setPreferredOutputColorSpace <sup>method</sup>*
+
+set current preferred output colorspace.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+| params.preferredOutputColorSpaces | array | A string [] of preferred colorspaces |
+| params.preferredOutputColorSpaces[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.setPreferredOutputColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "preferredOutputColorSpaces": [
+            "BT2020_NCL"
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getHDRGfxColorSpace"></a>
+## *getHDRGfxColorSpace <sup>method</sup>*
+
+Gets current HDR gfx colorspace values.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.y | integer | y value |
+| result.cr | integer | cr value |
+| result.cb | integer | cb value |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.getHDRGfxColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "y": 0,
+        "cr": 0,
+        "cb": 0,
+        "success": true
+    }
+}
+```
+
+<a name="method.setHDRGfxColorSpace"></a>
+## *setHDRGfxColorSpace <sup>method</sup>*
+
+Sets current HDR gfx colorspace values.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+| params.y | integer | y value |
+| params.cr | integer | cr value |
+| params.cb | integer | cb value |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "com.lgi.rdk.DisplaySettings.1.setHDRGfxColorSpace",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "y": 0,
+        "cr": 0,
+        "cb": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -3554,7 +4009,7 @@ Notifications are autonomous events, triggered by the internals of the implement
 
 The following events are provided by the com.lgi.rdk.DisplaySettings plugin:
 
-DisplaySettings interface events:
+com.lgi.rdk.DisplaySettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |

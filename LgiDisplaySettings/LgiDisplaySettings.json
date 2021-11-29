@@ -2,8 +2,8 @@
     "$schema": "../../Thunder/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "LgiDisplaySettings API", 
-        "class": "LgiDisplaySettings", 
+        "title": "LgiDisplaySettings API",
+        "class": "com.lgi.rdk.DisplaySettings",
         "description": "The `DisplaySetting` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more."
     },
     "definitions": {
@@ -1975,8 +1975,293 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "setOutputFrameRatePreference": {
+            "summary": "Sets the current output frame rate follow content preference",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "followContent": {
+                        "summary": "should follow content frame rate",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required":[
+                    "followContent"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setAudioProcessingHint": {
+            "summary": "Sets audio processing hint",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "audioPort": {
+                        "summary": "Audio port ID",
+                        "type": "string",
+                        "example": "HDMI0"
+                    },
+                    "audioMode": {
+                        "summary": "Audio mode - dd/pcm",
+                        "type": "string",
+                        "example": "pcm"
+                    },
+                    "audioDelayMs": {
+                        "summary": "audio delay [ms]",
+                        "type": "integer",
+                        "example": 50
+                    }
+                },
+                "required":[
+                    "audioMode"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getAudioOutputEncoding": {
+            "summary": "gets current audio output encoding",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "audioPort": {
+                        "summary": "Audio port ID",
+                        "type": "string",
+                        "example": "HDMI0"
+                    }
+                },
+                "required":[
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "encoding": {
+                        "summary": "audio encoding type",
+                        "type": "string",
+                        "example": "PCM"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "encoding",
+                    "success"
+                ]
+            }
+        },
+        "getFollowColorSpace": {
+            "summary": "get current follow colorspace setting",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required":[
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "followColorSpace": {
+                        "summary": "should follow colorspace",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "followColorSpace",
+                    "success"
+                ]
+            }
+        },
+        "setFollowColorSpace": {
+            "summary": "set current follow colorspace setting",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "followColorSpace": {
+                        "summary": "should follow color space",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required":[
+                    "followColorSpace"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getPreferredOutputColorSpace": {
+            "summary": "get current preferred output colorspace",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required":[
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "preferredOutputColorSpaces": {
+                        "summary": "A string [] of preferred colorspaces",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "BT2020_NCL"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "preferredOutputColorSpaces",
+                    "success"
+                ]
+            }
+        },
+        "setPreferredOutputColorSpace": {
+            "summary": "set current preferred output colorspace",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "preferredOutputColorSpaces": {
+                        "summary": "A string [] of preferred colorspaces",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "BT2020_NCL"
+                        }
+                    }
+                },
+                "required": [
+                    "preferredOutputColorSpaces"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "getHDRGfxColorSpace": {
+            "summary": "Gets current HDR gfx colorspace values",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    }
+                },
+                "required":[
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "y": {
+                        "summary": "y value",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "cr": {
+                        "summary": "cr value",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "cb": {
+                        "summary": "cb value",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "y",
+                    "cr",
+                    "cb",
+                    "success"
+                ]
+            }
+        },
+        "setHDRGfxColorSpace": {
+            "summary": "Sets current HDR gfx colorspace values",
+            "params": {
+                "type":"object",
+                "properties":{
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "y": {
+                        "summary": "y value",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "cr": {
+                        "summary": "cr value",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "cb": {
+                        "summary": "cb value",
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "required":[
+                    "y",
+                    "cr",
+                    "cb"
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
         }
-    },    
+    },
     "events": {
         "activeInputChanged":{
             "summary": "Triggered on active input change (RxSense)",
