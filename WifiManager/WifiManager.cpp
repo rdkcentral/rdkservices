@@ -38,7 +38,6 @@ namespace {
         {"setEnabled", &WifiManager::setEnabled},
         {"connect", &WifiManager::connect},
         {"disconnect", &WifiManager::disconnect},
-        {"initiateWPSPairing", &WifiManager::initiateWPSPairing},
         {"cancelWPSPairing", &WifiManager::cancelWPSPairing},
         {"saveSSID", &WifiManager::saveSSID},
         {"clearSSID", &WifiManager::clearSSID},
@@ -74,8 +73,12 @@ namespace WPEFramework
             for(const auto &mapping: mutableMethods)
                 registerMethod(mapping.first, mapping.second, this);
 
+            /* Version 1 only API */
+            registerMethod("initiateWPSPairing", &WifiManager::initiateWPSPairing, this, {1});
+
             /* Version 2 API */
             registerMethod("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this, {2});
+            registerMethod("initiateWPSPairing", &WifiManager::initiateWPSPairing2, this, {2});
         }
 
         WifiManager::~WifiManager()
@@ -209,6 +212,16 @@ namespace WPEFramework
             LOGINFOMETHOD();
 
             uint32_t result = wifiWPS.initiateWPSPairing(parameters, response);
+
+            LOGTRACEMETHODFIN();
+            return result;
+        }
+
+        uint32_t WifiManager::initiateWPSPairing2(const JsonObject &parameters, JsonObject &response)
+        {
+            LOGINFOMETHOD();
+
+            uint32_t result = wifiWPS.initiateWPSPairing2(parameters, response);
 
             LOGTRACEMETHODFIN();
             return result;

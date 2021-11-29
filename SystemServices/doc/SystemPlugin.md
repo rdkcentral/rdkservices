@@ -104,7 +104,7 @@ SystemServices interface methods:
 | [getDeviceInfo](#method.getDeviceInfo) | Collects device details available from `/etc/device |
 | [getDownloadedFirmwareInfo](#method.getDownloadedFirmwareInfo) | Returns information about firmware downloads |
 | [getFirmwareDownloadPercent](#method.getFirmwareDownloadPercent) | Gets the current download percentage |
-| [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
+| [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Returns information about a firmware update and includes whether or not an update is mandatory |
 | [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
 | [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
@@ -112,17 +112,19 @@ SystemServices interface methods:
 | [getMilestones](#method.getMilestones) | Returns the list of milestones |
 | [getMode](#method.getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
+| [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
 | [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | (Version 2) Returns the power state before reboot |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
 | [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
-| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
+| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | (Version 2) Returns detailed information about a reboot |
 | [getPreviousRebootReason](#method.getPreviousRebootReason) | Returns the last reboot reason |
 | [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
 | [getStateInfo](#method.getStateInfo) | Queries device state information of various properties |
 | [getSystemVersions](#method.getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#method.getTemperatureThresholds) | Returns temperature threshold values |
+| [getTimeStatus](#method.getTimeStatus) | Returns the timer status |
 | [getTimeZoneDST](#method.getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
 | [getTimeZones](#method.getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
 | [getWakeupReason](#method.getWakeupReason) | (Version 2) Returns the reason for the device coming out of deep sleep |
@@ -132,7 +134,7 @@ SystemServices interface methods:
 | [isOptOutTelemetry](#method.isOptOutTelemetry) | (Version 2) Checks the telemetry opt-out status |
 | [queryMocaStatus](#method.queryMocaStatus) | Checks whether MOCA is enabled |
 | [reboot](#method.reboot) | Requests that the system performs a reboot of the set-top box |
-| [removeCacheKey](#method.removeCacheKey) | Requests that the system performs a reboot of the set-top box |
+| [removeCacheKey](#method.removeCacheKey) | Removes the specified key from the cache |
 | [requestSystemUptime](#method.requestSystemUptime) | Returns the device uptime |
 | [setCachedValue](#method.setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#method.setDeepSleepTimer) | Sets the deep sleep timeout period |
@@ -149,7 +151,6 @@ SystemServices interface methods:
 | [setWakeupSrcConfiguration](#method.setWakeupSrcConfiguration) | Sets the device wake-up configuration |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
 | [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
-| [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 
 
 <a name="method.cacheContains"></a>
@@ -333,7 +334,7 @@ Enables (or disable) Moca support for the platform.
 <a name="method.fireFirmwarePendingReboot"></a>
 ## *fireFirmwarePendingReboot [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event.
+(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event. This method is called after the firmware image is successfully flashed on the device.
 
 Also see: [onFirmwarePendingReboot](#event.onFirmwarePendingReboot)
 
@@ -661,7 +662,7 @@ This method takes no parameters.
 <a name="method.getFirmwareUpdateInfo"></a>
 ## *getFirmwareUpdateInfo [<sup>method</sup>](#head.Methods)*
 
-Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event.
+Returns information about a firmware update and includes whether or not an update is mandatory. The details are sent as an `onFirmwareUpdateInfoReceived` event.
 
 Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 
@@ -722,7 +723,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| result.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *Download Complete*, *Validation Complete*, *Preparing to Reboot*, *On Hold for opt-out*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1018,6 +1019,103 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getPlatformConfiguration"></a>
+## *getPlatformConfiguration [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the supported features and device/account info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.query | string | Query for support of a particular feature, e.g. AccountInfo.accountId |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.AccountInfo | object | <sup>*(optional)*</sup>  |
+| result?.AccountInfo.accountId | string | Account Id |
+| result?.AccountInfo.x1DeviceId | string | X1 Device Id |
+| result?.AccountInfo.XCALSessionTokenAvailable | boolean |  |
+| result?.AccountInfo.experience | string | Experience |
+| result?.AccountInfo.deviceMACAddress | string | Device MAC Address |
+| result?.AccountInfo.firmwareUpdateDisabled | boolean |  |
+| result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo.quirks | array | The list of installed "quirks" |
+| result?.DeviceInfo.quirks[#] | string |  |
+| result?.DeviceInfo.mimeTypeExclusions | object |  |
+| result?.DeviceInfo.features | object |  |
+| result?.DeviceInfo.mimeTypes | array |  |
+| result?.DeviceInfo.mimeTypes[#] | string |  |
+| result?.DeviceInfo.model | string |  |
+| result?.DeviceInfo.deviceType | string |  |
+| result?.DeviceInfo.supportsTrueSD | boolean |  |
+| result?.DeviceInfo.webBrowser | object |  |
+| result?.DeviceInfo.webBrowser.browserType | string |  |
+| result?.DeviceInfo.webBrowser.version | string |  |
+| result?.DeviceInfo.webBrowser.userAgent | string |  |
+| result?.DeviceInfo.HdrCapability | string | e.g. HDR10,Dolby Vision,Technicolor Prime |
+| result?.DeviceInfo.canMixPCMWithSurround | boolean |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "params": {
+        "query": "..."
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "AccountInfo": {
+            "accountId": "1000000000000000000",
+            "x1DeviceId": "1000000000000000000",
+            "XCALSessionTokenAvailable": false,
+            "experience": "X1",
+            "deviceMACAddress": "44:AA:F5:39:D3:42",
+            "firmwareUpdateDisabled": false
+        },
+        "DeviceInfo": {
+            "quirks": [
+                "XRE-4621"
+            ],
+            "mimeTypeExclusions": {},
+            "features": {},
+            "mimeTypes": [
+                "audio/mpeg"
+            ],
+            "model": "PX051AEI",
+            "deviceType": "IpStb",
+            "supportsTrueSD": true,
+            "webBrowser": {
+                "browserType": "WPE",
+                "version": "1.0.0.0",
+                "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
+            },
+            "HdrCapability": "none",
+            "canMixPCMWithSurround": true
+        },
+        "success": true
+    }
+}
+```
+
 <a name="method.getPowerState"></a>
 ## *getPowerState [<sup>method</sup>](#head.Methods)*
 
@@ -1191,7 +1289,7 @@ This method takes no parameters.
 <a name="method.getPreviousRebootInfo2"></a>
 ## *getPreviousRebootInfo2 [<sup>method</sup>](#head.Methods)*
 
-Returns detailed information about a reboot.
+(Version 2) Returns detailed information about a reboot.
 
 ### Parameters
 
@@ -1518,6 +1616,50 @@ This method takes no parameters.
             "temperature": 48.0
         },
         "success": true
+    }
+}
+```
+
+<a name="method.getTimeStatus"></a>
+## *getTimeStatus [<sup>method</sup>](#head.Methods)*
+
+Returns the timer status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timeQuality | string | The quality of the time source in terms of security (must be one of the following: *poor*, *good*, *secure*, *unknown*) |
+| result.timeSrc | string | The source that is providing the time |
+| result.time | string | The current time |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTimeStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timeQuality": "poor",
+        "timeSrc": "NTP",
+        "time": "20200128083540"
     }
 }
 ```
@@ -1931,7 +2073,7 @@ Also see: [onRebootRequest](#event.onRebootRequest)
 <a name="method.removeCacheKey"></a>
 ## *removeCacheKey [<sup>method</sup>](#head.Methods)*
 
-Requests that the system performs a reboot of the set-top box.
+Removes the specified key from the cache.
 
 ### Parameters
 
@@ -2120,7 +2262,7 @@ Sets the deep sleep timeout period.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.enable | boolean | <sup>*(optional)*</sup> `true` to enable Autoreboot or `false` to disable |
+| params.enable | boolean | `true` to enable Autoreboot or `false` to disable |
 
 ### Result
 
@@ -2719,103 +2861,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPlatformConfiguration"></a>
-## *getPlatformConfiguration [<sup>method</sup>](#head.Methods)*
-
-(Version 2) Returns the supported features and device/account info.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.query | string | Query for support of a particular feature, e.g. AccountInfo.accountId |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result?.AccountInfo | object | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.accountId | string | <sup>*(optional)*</sup> Account Id |
-| result?.AccountInfo?.x1DeviceId | string | <sup>*(optional)*</sup> X1 Device Id |
-| result?.AccountInfo?.XCALSessionTokenAvailable | boolean | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.experience | string | <sup>*(optional)*</sup> Experience |
-| result?.AccountInfo?.deviceMACAddress | string | <sup>*(optional)*</sup> Device MAC Address |
-| result?.AccountInfo?.firmwareUpdateDisabled | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.quirks | array | <sup>*(optional)*</sup> The list of installed "quirks" |
-| result?.DeviceInfo?.quirks[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypeExclusions | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.features | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes | array | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.model | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.deviceType | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.supportsTrueSD | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser.browserType | string |  |
-| result?.DeviceInfo?.webBrowser.version | string |  |
-| result?.DeviceInfo?.webBrowser.userAgent | string |  |
-| result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
-| result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.1.getPlatformConfiguration",
-    "params": {
-        "query": "..."
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "AccountInfo": {
-            "accountId": "1000000000000000000",
-            "x1DeviceId": "1000000000000000000",
-            "XCALSessionTokenAvailable": false,
-            "experience": "X1",
-            "deviceMACAddress": "44:AA:F5:39:D3:42",
-            "firmwareUpdateDisabled": false
-        },
-        "DeviceInfo": {
-            "quirks": [
-                "XRE-4621"
-            ],
-            "mimeTypeExclusions": {},
-            "features": {},
-            "mimeTypes": [
-                "audio/mpeg"
-            ],
-            "model": "PX051AEI",
-            "deviceType": "IpStb",
-            "supportsTrueSD": true,
-            "webBrowser": {
-                "browserType": "WPE",
-                "version": "1.0.0.0",
-                "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
-            },
-            "HdrCapability": "none",
-            "canMixPCMWithSurround": true
-        },
-        "success": true
-    }
-}
-```
-
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -2837,6 +2882,7 @@ SystemServices interface events:
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onTimeStatusChanged](#event.onTimeStatusChanged) | Triggered when the device timer settings change |
 
 
 <a name="event.onFirmwareDownloadProgress"></a>
@@ -2873,7 +2919,7 @@ Triggered once per second when firmware download is started. Will be stopped at 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.seconds | integer | The deep sleep timeout in seconds |
+| params.seconds | integer | The amount of time to wait, in seconds, before forcing a reboot. A reboot is mandatory when the `rebootImmediately` parameter is `true`. See [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) |
 | params.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2883,7 +2929,7 @@ Triggered once per second when firmware download is started. Will be stopped at 
     "jsonrpc": "2.0",
     "method": "client.events.1.onFirmwarePendingReboot",
     "params": {
-        "seconds": 3,
+        "seconds": 600,
         "success": true
     }
 }
@@ -2906,6 +2952,7 @@ Update details are:
 | params | object |  |
 | params.status | integer | The firmware update status |
 | params.responseString | string | A custom response |
+| params.rebootImmediately | boolean | When `true`, indicates that an update is mandatory and requires a reboot. The application is responsible for coordinating the reboot with the user. An [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) event indicates that the device has been successfully flashed and that the reboot is pending. See [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) |
 | params.firmwareUpdateVersion | string | The next firmware update version |
 | params.updateAvailable | boolean | The value `false` indicates that there is no update available, either because there was no firmware update version returned from XCONF, or because the version returned from XCONF matches the version already on the device. The value of `true` indicates there is a firmware version available for update |
 | params.updateAvailableEnum | integer | The update available details (must be one of the following: *0*, *1*, *2*, *3*) |
@@ -2920,6 +2967,7 @@ Update details are:
     "params": {
         "status": 0,
         "responseString": "...",
+        "rebootImmediately": true,
         "firmwareUpdateVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
         "updateAvailable": true,
         "updateAvailableEnum": 0,
@@ -2939,14 +2987,15 @@ State details are:
 * `3`: Failed  
 * `4`: Download Complete  
 * `5`: Validation Complete  
-* `6`: Preparing to Reboot.
+* `6`: Preparing to Reboot  
+* `7`: On Hold for opt-out.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| params.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *Download Complete*, *Validation Complete*, *Preparing to Reboot*, *On Hold for opt-out*) |
 
 ### Example
 
@@ -3114,6 +3163,34 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
         "thresholdType": "MAX",
         "exceeded": true,
         "temperature": 48.0
+    }
+}
+```
+
+<a name="event.onTimeStatusChanged"></a>
+## *onTimeStatusChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the device timer settings change.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.timeQuality | string | The quality of the time source in terms of security (must be one of the following: *poor*, *good*, *secure*, *unknown*) |
+| params.timeSrc | string | The source that is providing the time |
+| params.time | string | The current time |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onTimeStatusChanged",
+    "params": {
+        "timeQuality": "poor",
+        "timeSrc": "NTP",
+        "time": "20200128083540"
     }
 }
 ```
