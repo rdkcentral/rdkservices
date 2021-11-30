@@ -6189,6 +6189,7 @@ namespace WPEFramework {
             return ret;
         }
 
+<<<<<<< HEAD
         void RDKShell::onTimer()
         {
             if (gSystemServiceEventsSubscribed)
@@ -6251,7 +6252,7 @@ namespace WPEFramework {
 
             return status;
         }
-
+=======
         void RDKShell::enableLogsFlushing(const bool enable)
         {
             gRdkShellMutex.lock();
@@ -6266,6 +6267,7 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
         }
 
+>>>>>>> 69cefa9... RDK-32260 API for enabling flushing after log (#1085)
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
