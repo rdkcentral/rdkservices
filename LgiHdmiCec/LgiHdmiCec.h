@@ -91,12 +91,14 @@ namespace WPEFramework {
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void cecHostDeviceStatusChangedEventHandler(const char* owner_str, IARM_EventId_t eventId, void* data_ptr, size_t len);
             static void cecHostDeviceStatusUpdateEndEventHandler(const char* owner_str, IARM_EventId_t eventId, void* data_ptr, size_t len);
+            static void cecHostCecStatusChange(const char* owner_str, IARM_EventId_t eventId, void* data_ptr, size_t len);
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
             void onHdmiHotPlug(int connectStatus);
             void onDeviceStatusChanged(IARM_EventId_t eventId, const void* data_ptr, size_t len);
             void onDeviceStatusUpdateEnd(IARM_EventId_t eventId, const void* data_ptr, size_t len);
             void onDevicesChanged();
+            void onCecStatusChange(IARM_EventId_t eventId, const void* data_ptr, size_t len);
 
             void getConnectedDevices(JsonArray &deviceList);
 

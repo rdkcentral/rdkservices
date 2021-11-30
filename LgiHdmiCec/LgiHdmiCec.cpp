@@ -184,6 +184,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecHostDeviceStatusChangedEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND, cecHostDeviceStatusUpdateEndEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE, cecHostCecStatusChange) );
             }
         }
 
@@ -197,6 +198,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND) );
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE) );
             }
         }
 
@@ -205,7 +207,7 @@ namespace WPEFramework
             if(!LgiHdmiCec::_instance)
                 return;
 
-            if( !strcmp(owner, IARM_BUS_CECMGR_NAME))
+            if( !strncmp(owner, IARM_BUS_CECMGR_NAME, strlen(IARM_BUS_CECMGR_NAME) + 1))
             {
                 switch (eventId)
                 {
@@ -665,6 +667,11 @@ namespace WPEFramework
             getLogicalAddress();
 
             cecEnableStatus = true;
+
+            m_rescan_in_progress = true;
+            m_scan_id++;
+            requestRescanning(m_scan_id);
+
             return;
         }
 
@@ -1038,7 +1045,7 @@ namespace WPEFramework
 
             if (data_ptr && owner_str
                     && (eventId == IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE)
-                    && (strcmp(owner_str, IARM_BUS_CECHOST_NAME) == 0))
+                    && (strncmp(owner_str, IARM_BUS_CECHOST_NAME, strlen(IARM_BUS_CECHOST_NAME) + 1) == 0))
             {
                 _instance->onDeviceStatusChanged(eventId, data_ptr, len);
             }
@@ -1095,9 +1102,53 @@ namespace WPEFramework
                 return;
 
             if (data_ptr && owner_str
-                    && (strcmp(owner_str, IARM_BUS_CECHOST_NAME) == 0))
+                    && (strncmp(owner_str, IARM_BUS_CECHOST_NAME, strlen(IARM_BUS_CECHOST_NAME) + 1) == 0))
             {
                 _instance->onDeviceStatusUpdateEnd(eventId, data_ptr, len);
+            }
+        }
+
+        void LgiHdmiCec::onCecStatusChange(IARM_EventId_t eventId, const void* data_ptr, size_t len)
+        {
+            assert(data_ptr != NULL);
+            if (len < sizeof(IARM_Bus_CECHost_DevMgrStatus_Param_t))
+            {
+                return;
+            }
+
+            const IARM_Bus_CECHost_DevMgrStatus_Param_t* eData = static_cast<const IARM_Bus_CECHost_DevMgrStatus_Param_t*>(data_ptr);
+
+            LOGINFO("status=%s-%s\n", eData->status ? "true" : "false", cecEnableStatus ? "true" : "false");
+            std::lock_guard<std::mutex> guard(m_mutex);
+            if (cecEnableStatus != eData->status)
+            {
+                cecEnableStatus = eData->status;
+                if (cecEnableStatus == false)
+                {
+                    m_devices.clear();
+                    m_scan_devices.clear();
+                    m_rescan_in_progress = false;
+                }
+                else
+                {
+                    m_rescan_in_progress = true;
+                    m_scan_id++;
+                    requestRescanning(m_scan_id);
+                }
+            }
+        }
+
+        void LgiHdmiCec::cecHostCecStatusChange(const char *owner_str, IARM_EventId_t eventId, void* data_ptr, size_t len)
+        {
+            LOGINFO("owner=%s", owner_str? owner_str: "<<UNKNOWN>>");
+
+            if (!LgiHdmiCec::_instance)
+                return;
+
+            if (data_ptr && owner_str
+                    && (strncmp(owner_str, IARM_BUS_CECHOST_NAME, strlen(IARM_BUS_CECHOST_NAME) + 1) == 0))
+            {
+                LgiHdmiCec::_instance->onCecStatusChange(eventId, data_ptr, len);
             }
         }
 
