@@ -347,7 +347,7 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will triggers an error event.",
+            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -553,7 +553,7 @@
             }
         },
         "onError":{
-            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Triggers `onError` event if fails to connect with requested SSID |\n| `initiateWPSPairing` | Triggers `onError` event if fails in WPS pairing process |\n| `cancelWPSPairing` | Triggers `onError` event if fails to cancel in-progress WPS pairing |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Triggers `onError` event if the requested SSID connection fails |\n| `initiateWPSPairing` | Triggers `onError` event if the WPS pairing fails |\n| `cancelWPSPairing` | Triggers `onError` event if the device fails to cancel the in-progress WPS pairing |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
             "params": {
                 "type" :"object",
                 "properties": {

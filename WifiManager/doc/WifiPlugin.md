@@ -554,7 +554,7 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing [<sup>method</sup>](#head.Methods)*
 
-Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will triggers an error event.
+Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.
 
 ### Parameters
 
@@ -988,9 +988,9 @@ Triggered when a recoverable unexpected Wifi error occurs.
  
 | Method | Description | 
 | :-------- | :-------- |
-| `connect` | Triggers `onError` event if fails to connect with requested SSID |
-| `initiateWPSPairing` | Triggers `onError` event if fails in WPS pairing process |
-| `cancelWPSPairing` | Triggers `onError` event if fails to cancel in-progress WPS pairing |
+| `connect` | Triggers `onError` event if the requested SSID connection fails |
+| `initiateWPSPairing` | Triggers `onError` event if the WPS pairing fails |
+| `cancelWPSPairing` | Triggers `onError` event if the device fails to cancel the in-progress WPS pairing |
  
 Also see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing).
 
