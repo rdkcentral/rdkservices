@@ -93,8 +93,8 @@ WifiManager interface methods:
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
-| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using WPS |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | (Version 2) Returns all available security modes |
+| [initiateWPSPairing](#method.initiateWPSPairing) | (Version 2) Initiates a connection using WPS |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
 | [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
@@ -546,17 +546,24 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing <sup>method</sup>*
 
-Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.
+(Version 2) Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.  
+
+If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.method | string | The method used to obtain the pin (must be one of the following: *PBC*, *PIN*, *SERIALIZED_PIN*) |
+| params?.wps_pin | string | <sup>*(optional)*</sup> A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN` |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.pin | string | <sup>*(optional)*</sup> The WPS pin value. Valid only when `method` is set to `PIN` or `SERIALIZED_PIN` |
 | result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
 | result.success | boolean | Whether the request succeeded |
 
@@ -567,8 +574,12 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.Wifi.1.initiateWPSPairing"
+    "id": 42,
+    "method": "org.rdk.Wifi.1.initiateWPSPairing",
+    "params": {
+        "method": "PIN",
+        "wps_pin": "88888888"
+    }
 }
 ```
 
@@ -579,6 +590,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 1234567890,
     "result": {
+        "pin": "88888888",
         "result": 0,
         "success": true
     }
