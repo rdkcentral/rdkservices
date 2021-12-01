@@ -3434,6 +3434,8 @@ namespace WPEFramework {
         void _systemStateChanged(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
         {
+            int seconds = 600; /* 10 Minutes to Reboot */
+
             LOGINFO("len = %d\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
@@ -3446,8 +3448,14 @@ namespace WPEFramework {
                 case IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE:
                     {
                         LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE = '%d'\n", state);
-                        if (SystemServices::_instance) {
-                            SystemServices::_instance->onFirmwareUpdateStateChange(state);
+                        if (SystemServices::_instance)
+                        {
+                            if (IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT == state) {
+                                LOGWARN(" Critical reboot is required. \n ");
+                                SystemServices::_instance->onFirmwarePendingReboot(seconds);
+                            } else {
+                                SystemServices::_instance->onFirmwareUpdateStateChange(state);
+                            }
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
