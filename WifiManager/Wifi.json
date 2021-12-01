@@ -357,6 +357,52 @@
                 ]
             }
         },
+        "initiateWPSPairing":{
+            "summary": "(Version 2) Initiates a connection using WPS. A `0` value indicates that paring was initiated. A nonzero value indicates that paring was not initiated.  \n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "method": {
+                        "summary": "The method used to obtain the pin",
+                        "type": "string",
+                        "enum": [
+                            "PBC",
+                            "PIN",
+                            "SERIALIZED_PIN"
+                        ],
+                        "example": "PIN"
+                    },
+                    "wps_pin": {
+                        "summary": "A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN`.",
+                        "type": "string",
+                        "example": "88888888"
+                    }
+                },
+                "required": [
+                    "method"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "pin": {
+                        "summary": "The WPS pin value. Valid only when `method` is set to `PIN` or `SERIALIZED_PIN`.",
+                        "type":"string",
+                        "example": "88888888"
+                    },
+                    "result": {
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
         "isPaired":{
             "summary": "Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
             "result": {
