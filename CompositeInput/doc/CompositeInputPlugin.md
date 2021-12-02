@@ -323,13 +323,13 @@ CompositeInput interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDeviceChanged](#event.onDeviceChanged) | Triggered when the composite input device changes |
+| [onDevicesChanged](#event.onDevicesChanged) | Triggered when the composite input device changes |
 | [onInputStatusChanged](#event.onInputStatusChanged) | Triggered when the status of the composite input changes |
 | [onSignalChanged](#event.onSignalChanged) | Triggered when the status of the composite input signal changes |
 
 
-<a name="event.onDeviceChanged"></a>
-## *onDeviceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onDevicesChanged"></a>
+## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the composite input device changes.
 
@@ -349,7 +349,7 @@ Triggered when the composite input device changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceChanged",
+    "method": "client.events.1.onDevicesChanged",
     "params": {
         "devices": [
             {

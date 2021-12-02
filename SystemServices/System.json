@@ -635,9 +635,9 @@
 
         },
         "getMacAddresses":{
-            "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.",
+            "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetreived` event.",
             "events": [
-                "onMACAddressesRetrieved"
+                "onMacAddressesRetreived"
             ],
             "params": {
                 "type": "object",
@@ -1778,7 +1778,7 @@
                 ]
             }
         },
-        "onMacAddressesRetrieved":{
+        "onMacAddressesRetreived":{
             "summary": "Triggered when the `getMacAddresses` asynchronous method is invoked",
             "params": {
                 "type" :"object",
