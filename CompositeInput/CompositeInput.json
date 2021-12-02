@@ -150,7 +150,7 @@
         }
     },
     "events": {
-        "onDeviceChanged":{
+        "onDevicesChanged":{
             "summary": "Triggered when the composite input device changes",
             "params": {
                 "type":"object",
