@@ -838,9 +838,9 @@ This method takes no parameters.
 <a name="method.getMacAddresses"></a>
 ## *getMacAddresses [<sup>method</sup>](#head.Methods)*
 
-Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.
+Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetreived` event.
 
-Also see: [onMACAddressesRetrieved](#event.onMACAddressesRetrieved)
+Also see: [onMacAddressesRetreived](#event.onMacAddressesRetreived)
 
 ### Parameters
 
@@ -2876,7 +2876,7 @@ SystemServices interface events:
 | [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#event.onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
-| [onMacAddressesRetrieved](#event.onMacAddressesRetrieved) | Triggered when the `getMacAddresses` asynchronous method is invoked |
+| [onMacAddressesRetreived](#event.onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
 | [onRebootRequest](#event.onRebootRequest) | Triggered when an application invokes the reboot method |
 | [onSystemClockSet](#event.onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
@@ -3009,8 +3009,8 @@ State details are:
 }
 ```
 
-<a name="event.onMacAddressesRetrieved"></a>
-## *onMacAddressesRetrieved [<sup>event</sup>](#head.Notifications)*
+<a name="event.onMacAddressesRetreived"></a>
+## *onMacAddressesRetreived [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `getMacAddresses` asynchronous method is invoked.
 
@@ -3032,7 +3032,7 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMacAddressesRetrieved",
+    "method": "client.events.1.onMacAddressesRetreived",
     "params": {
         "ecm_mac": "A8:11:XX:FD:0C:XX",
         "estb_mac": "A8:11:XX:FD:0C:XX",
