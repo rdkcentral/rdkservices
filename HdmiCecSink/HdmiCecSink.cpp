@@ -60,6 +60,7 @@
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
+#define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -97,7 +98,7 @@ enum {
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
-	HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED,
+	HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS,
 	HDMICECSINK_EVENT_CEC_ENABLED,
 };
 
@@ -117,7 +118,7 @@ static char *eventString[] = {
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
         "reportAudioStatusEvent",
-	"reportAudioDeviceAdded",
+	"reportAudioDeviceConnectedStatus",
 	"reportCecEnabledEvent"
 };
 	
@@ -496,6 +497,7 @@ namespace WPEFramework
 		   m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
+		   hdmiCecAudioDeviceConnected = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
 		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
@@ -523,6 +525,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
+		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -1024,6 +1027,12 @@ namespace WPEFramework
        uint32_t HdmiCecSink::getEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
             response["enabled"] = getEnabled();
+            returnResponse(true);
+       }
+
+       uint32_t HdmiCecSink::getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response)
+       {
+            response["connected"] = getAudioDeviceConnectedStatus();
             returnResponse(true);
        }
 
@@ -2065,7 +2074,9 @@ namespace WPEFramework
 				{
 					LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
 					params["status"] = string("success");
-					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED], params)
+					params["audioDeviceConnected"] = string("true");
+					hdmiCecAudioDeviceConnected = true;
+					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
 				}
 
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
@@ -2073,6 +2084,8 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::removeDevice(const int logicalAddress) {
+			JsonObject params;
+
 			if(!HdmiCecSink::_instance)
 				return;
 			
@@ -2092,6 +2105,16 @@ namespace WPEFramework
                                                 hdmiInputs[i].update(LogicalAddress(LogicalAddress::UNREGISTERED));
 					}
 				}
+
+                                if(logicalAddress == 0x5)
+                                {
+                                        LOGINFO(" logicalAddress =%d , Audio device removed, Notify Device Settings", logicalAddress );
+                                        params["status"] = string("success");
+                                        params["audioDeviceConnected"] = string("false");
+					hdmiCecAudioDeviceConnected = false;
+                                        sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
+                                }
+
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
 			}
@@ -2725,6 +2748,15 @@ namespace WPEFramework
             
             LOGINFO("getEnabled :%d ",cecEnableStatus);
             if(true == cecEnableStatus)
+                return true;
+            else
+                return false;
+        }
+
+        bool HdmiCecSink::getAudioDeviceConnectedStatus()
+        {
+            LOGINFO("getAudioDeviceConnectedStatus :%d ", hdmiCecAudioDeviceConnected);
+            if(true == hdmiCecAudioDeviceConnected)
                 return true;
             else
                 return false;

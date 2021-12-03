@@ -156,7 +156,7 @@ namespace WPEFramework {
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
-	    void onAudioDeviceAddedEventHandler(const JsonObject& parameters);
+	    void onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters);
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
             //End events
         public:
@@ -191,6 +191,7 @@ namespace WPEFramework {
 	    bool requestShortAudioDescriptor();
 	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    bool getHdmiCecSinkCecEnableStatus();
+	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
 
@@ -203,6 +204,7 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
+	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
