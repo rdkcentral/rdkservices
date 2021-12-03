@@ -1390,6 +1390,13 @@ static GSourceFuncs _handlerIntervention =
                         auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
+                        // This is just a temporary workaround for ARRISEOS-40798.
+                        // Clarification about root cause of #boot url reloading is done in HZN4PD-85201
+                        static const string bootUrl("https://widgets.metrological.com/lightning/liberty/2e3c4fc22f0d35e3eb7fdb47eb7d4658#boot");
+                        if (url.compare(bootUrl) == 0) {
+                            SYSLOG(Logging::Notification, (_T("Boot URL detected, reloading: %s"), bootUrl.c_str()));
+                            WKPageReload(object->_page);
+                        }
 #endif
                         return G_SOURCE_REMOVE;
                     },
