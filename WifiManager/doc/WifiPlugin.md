@@ -102,7 +102,7 @@ WifiManager interface methods:
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
 | [getSupportedSecurityModes](#method.getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
-| [initiateWPSPairing](#method.initiateWPSPairing) | Initiates a connection using Wifi Protected Setup (WPS) |
+| [initiateWPSPairing](#method.initiateWPSPairing) | (Version 2) Initiates a connection using Wifi Protected Setup (WPS) |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether `onWifiSignalThresholdChanged` event is enabled or not |
 | [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
@@ -126,7 +126,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | string | Not supported |
+| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -148,7 +148,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "result": "...",
+        "result": 0,
         "success": true
     }
 }
@@ -260,7 +260,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | string | Not supported |
+| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -282,7 +282,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "result": "...",
+        "result": 0,
         "success": true
     }
 }
@@ -554,18 +554,25 @@ This method takes no parameters.
 <a name="method.initiateWPSPairing"></a>
 ## *initiateWPSPairing [<sup>method</sup>](#head.Methods)*
 
-Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.
+(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.
+
+If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.method | string | The method used to obtain the pin (must be one of the following: *PBC*, *PIN*, *SERIALIZED_PIN*) |
+| params?.wps_pin | string | <sup>*(optional)*</sup> A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN` |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.result | string | Not supported |
+| result?.pin | string | <sup>*(optional)*</sup> The WPS pin value. Valid only when `method` is set to `PIN` or `SERIALIZED_PIN` |
+| result.result | integer | The result of the operation (must be one of the following: *0*, *1*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -576,7 +583,11 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.initiateWPSPairing"
+    "method": "org.rdk.Wifi.1.initiateWPSPairing",
+    "params": {
+        "method": "PIN",
+        "wps_pin": "88888888"
+    }
 }
 ```
 
@@ -587,7 +598,8 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "result": "...",
+        "pin": "88888888",
+        "result": 0,
         "success": true
     }
 }
@@ -827,6 +839,8 @@ Enables `signalThresholdChange` events to be triggered.
 ## *startScan [<sup>method</sup>](#head.Methods)*
 
 Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+
+Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 
 ### Parameters
 

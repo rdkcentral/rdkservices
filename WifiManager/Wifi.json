@@ -66,7 +66,7 @@
             "summary": "Whether the request succeeded",
             "type": "boolean",
             "example": "true"
-        },
+         },
         "errors": {
             "summary": "Error string of scan failure",
             "type": "string",
@@ -85,7 +85,7 @@
                 "type": "object",
                 "properties": {
                     "result": {
-                        "$ref": "#/definitions/empty_string"
+                        "$ref": "#/definitions/result_int"
                     },
                     "success":{
                         "$ref": "#/definitions/success"
@@ -146,7 +146,7 @@
                 "type": "object",
                 "properties": {
                     "result": {
-                        "$ref": "#/definitions/empty_string"
+                        "$ref": "#/definitions/result_int"
                     },
                     "success":{
                         "$ref": "#/definitions/success"
@@ -326,11 +326,11 @@
                                 "type": "integer",
                                 "example": 12
                             },
-                            "NET_WIFI_SECURITY_WPA3_PSK_AES": {
+			    "NET_WIFI_SECURITY_WPA3_PSK_AES": {
                                 "type": "integer",
                                 "example": 13
                             },
-                            "NET_WIFI_SECURITY_WPA3_SAE": {
+			    "NET_WIFI_SECURITY_WPA3_SAE": {
                                 "type": "integer",
                                 "example": 14
                             }
@@ -352,7 +352,53 @@
                 "type": "object",
                 "properties": {
                     "result": {
-                        "$ref": "#/definitions/empty_string"
+                        "$ref": "#/definitions/result_int"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "result",
+                    "success"
+                ]
+            }
+        },
+        "initiateWPSPairing":{
+            "summary": "(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.\n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "method": {
+                        "summary": "The method used to obtain the pin",
+                        "type": "string",
+                        "enum": [
+                            "PBC",
+                            "PIN",
+                            "SERIALIZED_PIN"
+                        ],
+                        "example": "PIN"
+                    },
+                    "wps_pin": {
+                        "summary": "A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN`.",
+                        "type": "string",
+                        "example": "88888888"
+                    }
+                },
+                "required": [
+                    "method"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "pin": {
+                        "summary": "The WPS pin value. Valid only when `method` is set to `PIN` or `SERIALIZED_PIN`.",
+                        "type":"string",
+                        "example": "88888888"
+                    },
+                    "result": {
+                        "$ref": "#/definitions/result_int"
                     },
                     "success":{
                         "$ref": "#/definitions/success"
@@ -483,6 +529,9 @@
         },
         "startScan":{
             "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event",
+            "events": [
+                "onAvailableSSIDs"
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -509,9 +558,9 @@
                 ]
             },
             "result": {
-                "type": "object",
-                "properties": {
-                    "success": {
+                  "type": "object",
+                  "properties": {
+                     "success": {
                         "$ref": "#/definitions/success"
                     },
                     "error": {
@@ -643,4 +692,3 @@
         }
     }
 }
-
