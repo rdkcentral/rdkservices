@@ -63,7 +63,7 @@ using namespace std;
 #define HDMICECSINK_ARC_TERMINATION_EVENT "arcTerminationEvent"
 #define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT "setSystemAudioModeEvent"
-#define HDMICECSINK_AUDIO_DEVICE_STATUS_EVENT "reportAudioDeviceStatus"
+#define HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT "reportAudioDeviceConnectedStatus"
 #define HDMICECSINK_CEC_ENABLED_EVENT "reportCecEnabledEvent"
 #define SERVER_DETAILS  "127.0.0.1:9998"
 #define WARMING_UP_TIME_IN_SECONDS 5
@@ -316,7 +316,7 @@ namespace WPEFramework {
 				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
 			}
 			try {
-		    		m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceStatus();
+		    		m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceConnectedStatus();
 			}
 			catch (const device::Exception& err){
 				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
@@ -326,7 +326,7 @@ namespace WPEFramework {
 
 			if(isPluginActivated) {
 			    if(!m_subscribed) {
-			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE)) {
+			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE)) {
                                     m_subscribed = true;
                                     LOGINFO("%s: HdmiCecSink event subscription completed.\n",__FUNCTION__);
 			        }
@@ -3458,7 +3458,7 @@ namespace WPEFramework {
             return cecEnable;
         }
 
-	bool DisplaySettings::getHdmiCecSinkAudioDeviceStatus ()
+	bool DisplaySettings::getHdmiCecSinkAudioDeviceConnectedStatus ()
         {
             bool success = true;
             bool hdmiAudioDeviceDetected = false;
@@ -3472,7 +3472,7 @@ namespace WPEFramework {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceStatus", param, hdmiCecSinkResult);
+                    hdmiCecSinkPlugin->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
 
                     hdmiAudioDeviceDetected = hdmiCecSinkResult["connected"].Boolean();
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
@@ -3901,9 +3901,9 @@ namespace WPEFramework {
                 } else if(strcmp(eventName, HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
-                } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_STATUS_EVENT) == 0) {
+                } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
-                            , &DisplaySettings::onAudioDeviceStatusEventHandler, this);
+                            , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
                 } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onCecEnabledEventHandler, this);
@@ -4140,7 +4140,7 @@ namespace WPEFramework {
         }
 
 	/* Event handler when Audio Device is Added/Removed     */
-	void DisplaySettings::onAudioDeviceStatusEventHandler(const JsonObject& parameters)
+	void DisplaySettings::onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters)
 	{
             int types = dsAUDIOARCSUPPORT_NONE;
 	    string value;
@@ -4232,7 +4232,7 @@ namespace WPEFramework {
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
-                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE))
+                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE))
                 {
                     m_subscribed = true;
                     if (m_timer.isActive()) {

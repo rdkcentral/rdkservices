@@ -567,7 +567,7 @@ private:
 			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t getAudioDeviceStatusWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;

@@ -60,7 +60,7 @@
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
-#define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_STATUS   "getAudioDeviceStatus"
+#define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -118,7 +118,7 @@ static char *eventString[] = {
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
         "reportAudioStatusEvent",
-	"reportAudioDeviceStatus",
+	"reportAudioDeviceConnectedStatus",
 	"reportCecEnabledEvent"
 };
 	
@@ -525,7 +525,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
-		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_STATUS,&HdmiCecSink::getAudioDeviceStatusWrapper,this);
+		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -1030,7 +1030,7 @@ namespace WPEFramework
             returnResponse(true);
        }
 
-       uint32_t HdmiCecSink::getAudioDeviceStatusWrapper(const JsonObject& parameters, JsonObject& response)
+       uint32_t HdmiCecSink::getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response)
        {
             response["connected"] = getAudioDeviceConnectedStatus();
             returnResponse(true);

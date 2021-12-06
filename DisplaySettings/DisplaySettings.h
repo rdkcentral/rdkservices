@@ -156,7 +156,7 @@ namespace WPEFramework {
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
-	    void onAudioDeviceStatusEventHandler(const JsonObject& parameters);
+	    void onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters);
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
             //End events
         public:
@@ -191,7 +191,7 @@ namespace WPEFramework {
 	    bool requestShortAudioDescriptor();
 	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    bool getHdmiCecSinkCecEnableStatus();
-	    bool getHdmiCecSinkAudioDeviceStatus();
+	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
 
