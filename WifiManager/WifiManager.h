@@ -66,6 +66,7 @@ namespace WPEFramework {
             virtual uint32_t connect(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t disconnect(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t initiateWPSPairing(const JsonObject& parameters, JsonObject& response) override;
+            virtual uint32_t initiateWPSPairing2(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t saveSSID(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t clearSSID(const JsonObject& parameters, JsonObject& response) override;

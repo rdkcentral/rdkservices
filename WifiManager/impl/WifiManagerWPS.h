@@ -33,6 +33,7 @@ namespace WPEFramework {
             WifiManagerWPS& operator=(const WifiManagerWPS&) = delete;
 
             uint32_t initiateWPSPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t initiateWPSPairing2(const JsonObject& parameters, JsonObject& response);
             uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response);
             uint32_t saveSSID (const JsonObject& parameters, JsonObject& response);
             uint32_t clearSSID(const JsonObject& parameters, JsonObject& response);
