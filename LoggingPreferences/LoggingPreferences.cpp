@@ -78,7 +78,7 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
-            response["keystrokeMaskEnabled"] = !!param.logStatus;
+            response["keystrokeMaskEnabled"] = !param.logStatus;
             returnResponse(true);
         }
         uint32_t LoggingPreferences::setKeystrokeMaskEnabled(const JsonObject& parameters, JsonObject& response)
@@ -96,9 +96,9 @@ namespace WPEFramework {
 
             bool enabled = parameters["keystrokeMaskEnabled"].Boolean();
 
-            if (enabled != params.logStatus)
+            if (enabled == params.logStatus)
             {
-                params = { enabled ? 1 : 0 };
+                params = { enabled ? 0 : 1 };
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref, (void *)&params, sizeof(params));
                 if (res != IARM_RESULT_SUCCESS)
                 {
