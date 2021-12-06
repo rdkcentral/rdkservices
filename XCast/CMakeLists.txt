@@ -26,7 +26,9 @@ find_package(${NAMESPACE}SecurityUtil REQUIRED)
 add_library(${MODULE_NAME} SHARED
         XCast.cpp
         Module.cpp
-        RtXcastConnector.cpp)
+        RtXcastConnector.cpp
+        XCastSystemRemoteObject.cpp
+        )
 
 find_package(IARMBus)
 set_target_properties(${MODULE_NAME} PROPERTIES
