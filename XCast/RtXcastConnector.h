@@ -26,6 +26,9 @@
 #include <rtObject.h>
 #include <rtError.h>
 #include "RtNotifier.h"
+
+#include "XCastSystemRemoteObject.h"
+
 using namespace std;
 
 typedef struct _RegAppLaunchParams {
@@ -86,6 +89,7 @@ public:
     
     void setService(RtNotifier * service){
         m_observer = service;
+        m_xcast_system_remote_object->setService(service);
     }
 private:
     //Internal methods
@@ -97,6 +101,9 @@ private:
     mutex m_threadlock;
     // Boolean event thread exit condition
     bool m_runEventThread;
+
+    XCastSystemRemoteObjectReferenceWrapper m_xcast_system_remote_object;
+
     // Member function to handle RT messages.
     void processRtMessages();
     void clearAppLaunchParamList ();

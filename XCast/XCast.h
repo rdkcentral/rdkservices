@@ -86,6 +86,8 @@ public:
     virtual void onXcastApplicationHideRequest(string appName, string appID) override;
     virtual void onXcastApplicationResumeRequest(string appName, string appID) override;
     virtual void onXcastApplicationStateRequest(string appName, string appID) override;
+    bool onXcastSystemApplicationSleepRequest(string key) override;
+
 private:
     /**
      * Whether Cast service is enabled by RFC

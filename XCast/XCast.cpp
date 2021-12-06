@@ -650,5 +650,17 @@ bool XCast::checkRFCServiceStatus()
     return XCast::isCastEnabled;
 }
 
+bool XCast::onXcastSystemApplicationSleepRequest(string key)
+{
+    LOGINFO("onXcastSystemApplicationSleepRequest: key='%s'",key.c_str());
+    /*
+        this method needs to:
+            - check if the key is correct
+            - start transition to low power mode
+            - return true if the transition was successfully started, false otherwise
+    */
+    return true;
+}
+
 } // namespace Plugin
 } // namespace WPEFramework

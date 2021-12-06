@@ -25,6 +25,7 @@ add_library(${MODULE_NAME} SHARED
         XCast.cpp
         Module.cpp
         RtXcastConnector.cpp
+        XCastSystemRemoteObject.cpp
 	../helpers/tptimer.cpp
         ../helpers/utils.cpp)
 
