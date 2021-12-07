@@ -101,13 +101,13 @@ Messenger interface methods:
 <a name="method.join"></a>
 ## *join [<sup>method</sup>](#head.Methods)*
 
-Joins a messaging room. If the specified room does not exist, then it is created.
+Joins a messaging room. The room is created if specified room does not exist.
  
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
-| `roomupdate`| Triggered when a room is created or destroyed|
-| `userupdate`| Triggered when the user join or leave a messaging room |.
+| `roomupdate`| Triggered if a room is created or destroyed|
+| `userupdate`| Triggered if the user join or leave a messaging room |.
 
 Also see: [roomupdate](#event.roomupdate), [userupdate](#event.userupdate)
 
@@ -177,8 +177,8 @@ Leaves a messaging room.The room is destroyed and its resources are freed, once 
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
-| `roomupdate`| Triggered when a room is created or destroyed|
-| `userupdate`| Triggered when the user join or leave a messaging room |.
+| `roomupdate`| Triggered if a room is created or destroyed |
+| `userupdate`| Triggered if the user join or leave a messaging room |.
 
 Also see: [roomupdate](#event.roomupdate), [userupdate](#event.userupdate)
 
@@ -234,7 +234,7 @@ Sends a message to a room.
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
-| `message`| Triggered when the user send message to a room|.
+| `message`| Triggered if the user sends message to a room |.
 
 Also see: [message](#event.message)
 
@@ -359,7 +359,7 @@ Notifies about user status updates. Registering to this event the listener will 
 <a name="event.message"></a>
 ## *message [<sup>event</sup>](#head.Notifications)*
 
-Notifies about new messages in a room.
+Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.
 
 ### Parameters
 
