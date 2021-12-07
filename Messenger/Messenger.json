@@ -216,7 +216,7 @@
     },
     "methods": {
         "join": {
-            "summary":"Joins a messaging room. If the specified room does not exist, then it is created.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered when a room is created or destroyed|\n| `userupdate`| Triggered when the user join or leave a messaging room |",
+            "summary":"Joins a messaging room. The room is created if specified room does not exist.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed|\n| `userupdate`| Triggered if the user join or leave a messaging room |",
             "events": [
                 "roomupdate",
                 "userupdate"
@@ -280,7 +280,7 @@
             ]
         },
         "leave": {
-            "summary": "Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered when a room is created or destroyed|\n| `userupdate`| Triggered when the user join or leave a messaging room |",
+            "summary": "Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed |\n| `userupdate`| Triggered if the user join or leave a messaging room |",
             "events": [
                 "roomupdate",
                 "userupdate"
@@ -306,7 +306,7 @@
             ]
         },
         "send": {
-            "summary": "Sends a message to a room.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `message`| Triggered when the user send message to a room|",
+            "summary": "Sends a message to a room.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `message`| Triggered if the user sends message to a room |",
             "events": [
                 "message"
             ],
@@ -410,7 +410,7 @@
             }
         },
         "message": {
-            "summary": "Notifies about new messages in a room",
+            "summary": "Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.",
             "id": {
                 "name": "room ID",
                 "example": "1e217990dd1cd4f66124"
