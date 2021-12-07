@@ -373,7 +373,10 @@ void XCast::onLocateCastTimer()
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
-        locateCastObjectRetryCount++;
+        if(locateCastObjectRetryCount < 4)
+        {
+            locateCastObjectRetryCount++;
+        }
         if(locateCastObjectRetryCount == 1)
         {
             LOGINFO("Retry after 5 sec...");
