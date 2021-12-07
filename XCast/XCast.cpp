@@ -64,7 +64,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace WPEFramework {
 
@@ -741,7 +741,10 @@ void XCast::onLocateCastTimer()
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
-        locateCastObjectRetryCount++;
+        if(locateCastObjectRetryCount < 4)
+        {
+            locateCastObjectRetryCount++;
+        }
         if(locateCastObjectRetryCount == 1)
         {
             LOGINFO("Retry after 5 sec...");
