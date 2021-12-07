@@ -108,6 +108,7 @@ Network interface methods:
 | [setDefaultInterface](#method.setDefaultInterface) | Sets the default interface |
 | [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
 | [setIPSettings](#method.setIPSettings) | Sets the IP settings |
+| [getPublicIP](#method.getPublicIP) | Determine WAN ip address |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
@@ -883,6 +884,64 @@ Sets the IP settings.
     "id": 42,
     "result": {
         "supported": true,
+        "success": true
+    }
+}
+```
+<a name="method.getPublicIP"></a>
+## *getPublicIP [<sup>method</sup>](#head.Methods)*
+Determine WAN ip address.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.server | string | STUN server |
+| params.port | integer | STUN server port |
+| params.iface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
+| params.ipv6 | string | either IPv4 or IPv6 |
+| params.sync | boolean | STUN server sync |
+| params.timeout | integer | STUN server bind timeout |
+| params.cache_timeout | integer | STUN server cache timeout |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.public_ip | string | Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Network.1.getPublicIP",
+    "params": {
+        "server": "global.stun.twilio.com",
+        "port": 3478,
+        "iface": "WIFI",
+        "ipv6": "IPv4",
+        "sync": true,
+        "timeout": 30,
+        "cache_timeout": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "public_ip": "69.136.49.95",
         "success": true
     }
 }
