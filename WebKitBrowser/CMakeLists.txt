@@ -65,6 +65,7 @@ set(PLUGIN_WEBKITBROWSER_WEBINSPECTOR_ADDRESS 0.0.0.0:9224 CACHE STRING "IP:Port
 set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE_ENABLE true CACHE STRING "Enable LocalStorage of WebKitBrowser")
 set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE true CACHE STRING "Enable Thunder decryptor preference in WebKit")
 set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_WEBKITBROWSER_PRECONDITIONS "" CACHE STRING "Preconditions for WebKitBrowser plugin")
 
 set(PLUGIN_YOUTUBE_AUTOSTART false CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string YouTube")
@@ -87,24 +88,28 @@ set(PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS :::10000 CACHE STRING "IP:Port for 
 set(PLUGIN_RESIDENT_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Resident App plugin")
 set(PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE true CACHE STRING "Enable LocalStorage of Resident App")
 set(PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_RESIDENT_APP_PRECONDITIONS "" CACHE STRING "Preconditions for Resident App plugin")
 
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART false CACHE STRING "Automatically start Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_WEBINSPECTOR_ADDRESS :::10003 CACHE STRING "IP:Port for WebInspector of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_PRECONDITIONS "" CACHE STRING "Preconditions for Search&Discovery app")
 
 set(PLUGIN_HTML_APP_AUTOSTART false CACHE STRING "Automatically start Htmp App plugin")
 set(PLUGIN_HTML_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Html App")
 set(PLUGIN_HTML_APP_WEBINSPECTOR_ADDRESS :::10001 CACHE STRING "IP:Port for WebInspector of Html App")
 set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Html App")
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_HTML_APP_PRECONDITIONS "" CACHE STRING "Preconditions for Html App plugin")
 
 set(PLUGIN_LIGHTNING_APP_AUTOSTART false CACHE STRING "Automatically start Lightninig App plugin")
 set(PLUGIN_LIGHTNING_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Lightning App")
 set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS :::10002 CACHE STRING "IP:Port for WebInspector of Lightning App")
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_LIGHTNING_APP_PRECONDITIONS "" CACHE STRING "Preconditions for Lightning App plugin")
 
 set(PLUGIN_AMAZON_AUTOSTART false CACHE STRING "Automatically start Amazon plugin")
 set(PLUGIN_AMAZON_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string for Amazon App")
