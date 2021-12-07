@@ -297,13 +297,42 @@
             }
         },
         "requestShortAudioDescriptor": {
-            "summary": "Sends the CEC Request Short Audio Descriptor (SAD) message as an event. See `shortAudiodesciptorEvent`.",
+            "summary": "Sends the CEC \\<Request Short Audio Descriptor\\> (SAD) message as an event. See [shortAudiodesciptorEvent](#event.shortAudiodescriptorEvent).",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "sendGetAudioStatusMessage": {
+            "summary": "Sends the CEC \\<Give Audio Status\\> message to request the audio status. A CEC \\<Report Audio Status\\> message is returned and is available as an event. See [reportAudioStatusEvent](#event.reportAudioStatusEvent). This method is used to support the HDMI-CEC Control Pass Through feature for volume up, volume down, and mute.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "sendKeyPressEvent": {
+            "summary": "Sends the CEC \\<User Control Pressed\\> message. This method is used to support the HDMI-CEC Control Pass Through feature for volume up, volume down, and mute.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "keyCode":{
+                        "summary":"The key code for the pressed key",
+                        "type": "number",
+                        "example": 10
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "keyCode"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
         "sendStandbyMessage": {
-            "summary": "Sends a CEC <Standby> message to the logical address of the device.",
+            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -351,7 +380,7 @@
             }
         },
         "setMenuLanguage": {
-            "summary": "Updates the internal data structure with the new menu Language and also broadcasts the <Set Menu Language> CEC message",
+            "summary": "Updates the internal data structure with the new menu Language and also broadcasts the \\<Set Menu Language\\> CEC message",
             "params": {
                 "type":"object",
                 "properties": {
@@ -400,7 +429,7 @@
                 "type":"object",
                 "properties": {
                     "enabled":{
-                        "summary": "Indicates whether HDMI-CEC ARC is enabled (`true`) or disabled (`false`). If enabled, the CEC <Request ARC Initiation> and <Report ARC Initiated> messages are sent. If disabled, the CEC <Request ARC Termination> and <Report ARC Terminated> messages are sent.",
+                        "summary": "Indicates whether HDMI-CEC ARC is enabled (`true`) or disabled (`false`). If enabled, the CEC \\<Request ARC Initiation\\> and \\<Report ARC Initiated\\> messages are sent. If disabled, the CEC \\<Request ARC Termination\\> and \\<Report ARC Terminated\\> messages are sent.",
                         "type": "boolean",
                         "example": true
                     }
@@ -521,7 +550,7 @@
             }
         },
         "onImageViewOnMsg": {
-            "summary": "Triggered when an <Image View ON> CEC message is received from the source device",
+            "summary": "Triggered when an \\<Image View ON\\> CEC message is received from the source device",
             "params": {
                 "type":"object",
                 "properties": {
@@ -553,7 +582,7 @@
             }
         },
         "onTextViewOnMsg": {
-            "summary": "Triggered when a <Text View ON> CEC message is received from the source device",
+            "summary": "Triggered when a \\<Text View ON\\> CEC message is received from the source device",
             "params": {
                 "type":"object",
                 "properties": {
@@ -567,7 +596,7 @@
             }
         },
         "onWakeupFromStandby": {
-            "summary": "Triggered when the source device changes status from STANDBY to ON and the <Image View ON> CEC message is received from the source device",
+            "summary": "Triggered when the source device changes status from STANDBY to ON and the \\<Image View ON\\> CEC message is received from the source device",
             "params": {
                 "type":"object",
                 "properties": {
@@ -577,6 +606,28 @@
                 },
                 "required": [
                     "logicalAddress"
+                ]
+            }
+        },
+        "reportAudioStatusEvent": {
+            "summary": "Triggered when a CEC \\<Report Audio Status\\> message is received. The message is received as a response when a CEC \\<Give Audio Status\\> message is sent. See [sendGetAudioStatusMessage](#method.sendGetAudioStatusMessage).",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "muteStatus": {
+                        "summary": "The mute status",
+                        "type": "string",
+                        "example": "off"
+                    },
+                    "volumeLevel": {
+                        "summary": "The current volume",
+                        "type": "string",
+                        "example": "10"
+                    }
+                },
+                "required": [
+                    "muteStatus",
+                    "volumeLevel"
                 ]
             }
         },
@@ -595,7 +646,7 @@
             }
         },
         "shortAudiodesciptorEvent": {
-            "summary": "Triggered when the CEC Request Short Audio Descriptor (SAD) message is sent. See `requestShortAudioDescriptor`",
+            "summary": "Triggered when the CEC \\<Request Short Audio Descriptor\\> (SAD) message is sent. See [requestShortAudioDescriptor](#method.requestShortAudioDescriptor)",
             "params": {
                 "type":"object",
                 "properties": {
@@ -610,6 +661,5 @@
                 ]
             }
         }
-        
     }
 }
