@@ -29,6 +29,10 @@
                         "type": "string",
                         "size": 16,
                         "description": "URI of the Location Server (default:\"http://jsonip.metrological.com/?maf=true\")."
+                    },
+                    "timeZoneOverrideFile": {
+                        "type": "string",
+                        "description": "Location of a file with override time zone value."
                     }
                 }
             }

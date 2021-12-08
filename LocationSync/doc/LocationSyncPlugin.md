@@ -80,6 +80,7 @@ The table below lists configuration options of the plugin.
 | configuration?.interval | number | <sup>*(optional)*</sup> Maximum time duration between each request to the Location Server (default: 10) |
 | configuration?.retries | number | <sup>*(optional)*</sup> Maximum number of request reties to the Location Server (default:20) |
 | configuration?.source | string | <sup>*(optional)*</sup> URI of the Location Server (default:"http://jsonip.metrological.com/?maf=true") |
+| configuration?.timeZoneOverrideFile | string | <sup>*(optional)*</sup> Location of a file with override time zone value |
 
 <a name="head.Methods"></a>
 # Methods
