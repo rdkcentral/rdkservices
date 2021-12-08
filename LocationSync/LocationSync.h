@@ -151,10 +151,12 @@ namespace Plugin {
                 : Interval(30)
                 , Retries(8)
                 , Source()
+                , TimeZoneOverrideFile()
             {
                 Add(_T("interval"), &Interval);
                 Add(_T("retries"), &Retries);
                 Add(_T("source"), &Source);
+                Add(_T("timeZoneOverrideFile"), &TimeZoneOverrideFile);
             }
             ~Config()
             {
@@ -164,6 +166,7 @@ namespace Plugin {
             Core::JSON::DecUInt16 Interval;
             Core::JSON::DecUInt8 Retries;
             Core::JSON::String Source;
+            Core::JSON::String TimeZoneOverrideFile;
         };
 
     private:

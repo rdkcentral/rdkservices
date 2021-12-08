@@ -28,14 +28,12 @@ namespace Plugin {
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
 
     namespace {
-        const string TZ_FILE = "/opt/persistent/timeZoneDST";
-
         string readTextFile(const string &filename) {
             string result;
 
             Core::File file(filename);
 
-            if (file.Open(true)) {
+            if (file.Exists() && file.Open(true)) {
                 Core::JSON::String str(false);
                 if (str.IElement::FromFile(file)) {
                     result = str.Value();
@@ -73,10 +71,12 @@ namespace Plugin {
         config.FromString(service->ConfigLine());
         string version = service->Version();
 
-        auto timeZone = readTextFile(TZ_FILE);
-
-        if (timeZone.empty() == false) {
-            Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
+        if (config.TimeZoneOverrideFile.IsSet() == true) {
+            auto timeZone = readTextFile(config.TimeZoneOverrideFile.Value());
+  
+            if (timeZone.empty() == false) {
+                Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
+            }
         }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
@@ -174,9 +174,10 @@ namespace Plugin {
             subSystem->Release();
 
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
-                auto timeZone = readTextFile(TZ_FILE);
+                Config config;
+                config.FromString(_service->ConfigLine());
 
-                if (timeZone.empty() == true) {
+                if (config.TimeZoneOverrideFile.IsSet() == false) {
                     Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
                 }
 
