@@ -12,6 +12,27 @@
             "type": "string",
             "example": "MAINTENANCE_STARTED"
         },
+        "maintenanceMode":{
+            "summary": "The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode runs maintenance tasks that do not impact the user experience.",
+            "enum": [
+                "FOREGROUND",
+                "BACKGROUND"
+            ],
+            "type": "string",
+            "example": "BACKGROUND"
+        },
+        "optOut":{
+            "summary": "The opt-out mode. See [setMaintenanceMode](#method.setMaintenanceMode) for a description of each opt-out mode",
+            "enum": [
+                "NONE",
+                "ENFORCE_OPTOUT",
+                "BYPASS_OPTOUT",
+                "IGNORE_UPDATE"
+            ],
+            "default": "NONE",
+            "type": "string",
+            "example": "ENFORCE_OPTOUT"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -66,6 +87,28 @@
                 ]
             }
         },
+        "getMaintenanceMode": {
+            "summary": "Gets the current maintenance mode and software upgrade opt-out mode that is stored in the persistent location",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "maintenanceMode":{
+                        "$ref": "#/definitions/maintenanceMode"
+                    },
+                    "optOut":{
+                        "$ref": "#/definitions/optOut"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "maintenanceMode",
+                    "optOut",
+                    "success"
+                ]
+            }
+        },
         "getMaintenanceStartTime":{
             "summary": "Gets the scheduled maintenance start time",
             "result": {
@@ -87,22 +130,20 @@
             }
         },
         "setMaintenanceMode":{
-            "summary": "Sets the maintenance mode",
+            "summary": "Sets the maintenance mode and software upgrade opt-out mode.  \n*Opt-Out Modes*  \n* `NONE` - The software upgrade process is unaffected and proceeds with the download and update.  \n* `ENFORCE_OPTPOUT` - The software upgrade process pauses after discovering an update is available and sends a `System` service `onFirmwareUpdateStateChange` event with the `On Hold for opt-out` state. An application must give the user the option of whether or not to accept the update. If the user accepts the update, then the opt-out mode must be set to `BYPASS-OPTOUT`.  \n* `BYPASS_OPTOUT` The software upgrade process proceeds with a download and update, as directed by the application, for this occurrence of the maintenance window (used when the user accepts the software update).  \n* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter).",
             "params": {
                 "type":"object",
                 "properties": {
                     "maintenanceMode":{
-                        "summary": "The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode runs maintenance tasks that do not impact the user experience.",
-                        "enum": [
-                            "FOREGROUND",
-                            "BACKGROUND"
-                        ],
-                        "type": "string",
-                        "example": "BACKGROUND"
+                        "$ref": "#/definitions/maintenanceMode"
+                    },
+                    "optOut":{
+                        "$ref": "#/definitions/optOut"
                     }
                 },
                 "required": [
-                    "maintenanceMode"
+                    "maintenanceMode",
+                    "optOut"
                 ]
             },
             "result": {
@@ -114,6 +155,12 @@
             "result": {
                 "$ref": "#/definitions/result"
             }          
+        },
+        "stopMaintenance":{
+            "summary": "Stops maintenance activities that are in progress",
+            "result": {
+                "$ref": "#/definitions/result"
+            } 
         }
     },
     "events": {
