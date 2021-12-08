@@ -28,7 +28,7 @@ namespace Plugin {
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
 
     namespace {
-        string readTextFile(const string &filename) {
+        string ReadTextFile(const string &filename) {
             string result;
 
             Core::File file(filename);
@@ -72,7 +72,7 @@ namespace Plugin {
         string version = service->Version();
 
         if (config.TimeZoneOverrideFile.IsSet() == true) {
-            auto timeZone = readTextFile(config.TimeZoneOverrideFile.Value());
+            auto timeZone = ReadTextFile(config.TimeZoneOverrideFile.Value());
   
             if (timeZone.empty() == false) {
                 Core::SystemInfo::SetEnvironment(_T("TZ"), timeZone);
