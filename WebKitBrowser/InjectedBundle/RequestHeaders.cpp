@@ -25,9 +25,8 @@
 #include <WPE/WebKit/WKBundleFrame.h>
 #include <WPE/WebKit/WKURL.h>
 
+#include "Module.h"
 #include <interfaces/json/JsonData_WebKitBrowser.h>
-
-#include <core/JSON.h>
 
 #include "Utils.h"
 
