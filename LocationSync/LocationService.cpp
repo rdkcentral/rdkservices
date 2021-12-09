@@ -241,8 +241,7 @@ namespace Plugin {
     };
 
     DomainConstructor g_domainFactory[] = {
-        { _TXT("jsonip.metrological.com"), []() -> Core::ProxyType<IGeography> { return Core::ProxyType<Plugin::IGeography>(Core::ProxyType<Web::JSONBodyType<Response>>::Create()); } },
-        { _TXT("ip-api.com"), []() -> Core::ProxyType<IGeography> { return Core::ProxyType<Plugin::IGeography>(Core::ProxyType<Web::JSONBodyType<Geography>>::Create()); } }
+        { _TXT("jsonip.metrological.com"), []() -> Core::ProxyType<IGeography> { return Core::ProxyType<Plugin::IGeography>(Core::ProxyType<Web::JSONBodyType<Response>>::Create()); } }
     };
 
     static DomainConstructor* FindDomain(const Core::URL& domain)
