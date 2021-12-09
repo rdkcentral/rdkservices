@@ -40,9 +40,6 @@ using namespace WPEFramework::Plugin;
 std::string WifiManagerEvents::Initialize(PluginHost::IShell*)
 {
     LOGINFO("initializing");
-	
-	//debugging
-	LOGINFO("WifiManagerEvents Initialized");
 
     // Register event handlers for wireless scan related events
     IARM_Result_t res;

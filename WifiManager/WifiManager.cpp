@@ -95,9 +95,6 @@ namespace WPEFramework
             // Initialize other parts of the implementation
             string const scanMessage = wifiScan.Initialize(service);
             string const eventsMessage = wifiEvents.Initialize(service);
-			
-			//debugging
-			LOGINFO("WifiManager Initialized");
 
             // Combine their error messages (if any)
             return scanMessage + eventsMessage;
