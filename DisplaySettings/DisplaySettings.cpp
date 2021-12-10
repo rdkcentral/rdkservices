@@ -1230,12 +1230,16 @@ namespace WPEFramework {
             bool hasPersist = parameters.HasLabel("persist");
             bool persist = hasPersist ? parameters["persist"].Boolean() : true;
             if (!hasPersist) LOGINFO("persist: true");
+ 
+            bool isIgnoreEdidArg = parameters.HasLabel("ignoreEdid");
+            bool isIgnoreEdid = isIgnoreEdidArg ? parameters["ignoreEdid"].Boolean() : false;
+            if (!isIgnoreEdidArg) LOGINFO("isIgnoreEdid: false"); else LOGINFO("isIgnoreEdid: %d", isIgnoreEdid);
 
             bool success = true;
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                vPort.setResolution(resolution, persist);
+                vPort.setResolution(resolution, persist, isIgnoreEdid);
             }
             catch (const device::Exception& err)
             {
