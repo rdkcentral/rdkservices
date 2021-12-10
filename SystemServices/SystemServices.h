@@ -22,12 +22,14 @@
 
 #include <stdint.h>
 #include <thread>
+#include <regex.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 #include "SystemServicesHelper.h"
+#include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
@@ -41,6 +43,7 @@
 #include "sysMgr.h"
 #include "cSettings.h"
 #include "cTimer.h"
+#include "rfcapi.h"
 
 /* System Services Triggered Events. */
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
@@ -52,6 +55,12 @@
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
+#define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
+#define EVT_ONREBOOTREQUEST               "onRebootRequest"
+
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 
 namespace WPEFramework {
     namespace Plugin {
@@ -97,6 +106,7 @@ namespace WPEFramework {
                 static JsonObject _systemParams;
                 static const string MODEL_NAME;
                 static const string HARDWARE_ID;
+		static const string MANUFACTURE_SERIAL;
 
                 enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
                 // We do not allow this plugin to be copied !!
@@ -104,15 +114,21 @@ namespace WPEFramework {
                 SystemServices& operator=(const SystemServices&) = delete;
                 static void getMacAddressesAsync(SystemServices *p);
                 static std::string m_currentMode;
+                std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
+                PluginHost::IShell* m_shellService { nullptr };
+                regex_t m_regexUnallowedChars;
+
+                int m_FwUpdateState_LatestEvent;
 
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
+		bool SystemServices::getManufacturerSerialData(const string& parameter, JsonObject& response);
 #endif
             public:
                 SystemServices();
@@ -135,13 +151,18 @@ namespace WPEFramework {
 
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
-                void onSystemPowerStateChanged(string powerState);
+                void onSystemPowerStateChanged(string currentPowerState, string powerState);
+                void onPwrMgrReboot(string requestedApp, string rebootReason);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                void onTimeStatusChanged(string timequality,string timesource, string utctime);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 void onRebootRequest(string reason);
+                void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -158,6 +179,10 @@ namespace WPEFramework {
                 uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                uint32_t getSystemTimeStatus(const JsonObject& parameters,JsonObject& response);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
@@ -184,6 +209,7 @@ namespace WPEFramework {
                 uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_DEEP_SLEEP
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
@@ -206,6 +232,8 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 uint32_t getTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
+		uint32_t getOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
 #endif /* ENABLE_THERMAL_PROTECTION */
                 uint32_t getPreviousRebootInfo2(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
@@ -215,6 +243,20 @@ namespace WPEFramework {
                 uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
                 uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+                uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+                uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
+                uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+                uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
+                uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
+                uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
+#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
+                uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
+#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+                uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
