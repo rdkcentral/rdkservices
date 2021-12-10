@@ -216,9 +216,9 @@
     },
     "methods": {
         "join": {
-            "summary": "Joins a messaging room",
-            "description": "Use this method to join a room. If the specified room does not exist, then it is created.",
+            "summary":"Joins a messaging room. The room is created if specified room does not exist.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed|\n| `userupdate`| Triggered if the user join or leave a messaging room |",
             "events": [
+                "roomupdate",
                 "userupdate"
             ],
             "params": {
@@ -233,6 +233,20 @@
                         "description": "The name of the room to join (must not be empty)",
                         "type": "string",
                         "example": "Lounge"
+                    },
+                    "secure": {
+                        "description": "Room security (must be one of the following: insecure, secure)",
+                        "type":"string",
+                        "example":"secure"
+                    },
+                    "acl":{
+                        "description": "Access-control list for secure room",
+                        "type":"array",
+                        "items":{
+                            "type":"string",
+                            "description": "URL origin with possible wildcards",
+                            "example": "https://*.github.io"
+                        }
                     }
                 },
                 "required": [
@@ -258,13 +272,17 @@
                 {
                     "description": "User name or room name was invalid",
                     "$ref": "#/common/errors/badrequest"
+                },
+                {
+                    "description": "Room security errors",
+                    "$ref": "#/common/errors/privilegedrequest"
                 }
             ]
         },
         "leave": {
-            "summary": "Leaves a messaging room",
-            "description": "Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.",
+            "summary": "Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed |\n| `userupdate`| Triggered if the user join or leave a messaging room |",
             "events": [
+                "roomupdate",
                 "userupdate"
             ],
             "params": {
@@ -288,8 +306,7 @@
             ]
         },
         "send": {
-            "summary": "Sends a message to a room",
-            "description": "Use this method to send a message to a room.",
+            "summary": "Sends a message to a room.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `message`| Triggered if the user sends message to a room |",
             "events": [
                 "message"
             ],
@@ -325,8 +342,7 @@
     },
     "events": {
         "roomupdate": {
-            "summary": "Notifies about room status updates",
-            "description": "Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all rooms that have been created so far.",
+            "summary": "Notifies about room status updates. Registering to this event the listener will sequentially receive updates of all rooms that have been created so far.",
             "statuslistener": true,
             "params": {
                 "type": "object",
@@ -336,6 +352,14 @@
                         "type": "string",
                         "example": "Lounge"
                     },
+                    "secure":{
+                        "description": "Room security",
+                        "type": "string",
+                        "enum": [
+                            "insecure",
+                            "secure"
+                        ],
+                        "example": "secure"                    },
                     "action": {
                         "description": "Specifies the room status change, e.g. created or destroyed",
                         "type": "string",
@@ -354,8 +378,7 @@
             }
         },
         "userupdate": {
-            "summary": "Notifies about user status updates.",
-            "description": "Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all users that have joined the room so far.",
+            "summary": "Notifies about user status updates. Registering to this event the listener will sequentially receive updates of all users that have joined the room so far.",
             "statuslistener": true,
             "id": {
                 "name": "room ID",
@@ -387,8 +410,7 @@
             }
         },
         "message": {
-            "summary": "Notifies about new messages in a room",
-            "description": "Register to this event to be notified about new messages in a room.",
+            "summary": "Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.",
             "id": {
                 "name": "room ID",
                 "example": "1e217990dd1cd4f66124"
