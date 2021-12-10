@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.FrontPanel plugin for Thunder framework.
+A org.rdk.FrontPanel plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 
 <a name="head.Introduction"></a>
@@ -75,6 +76,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkFrontPanel.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [FrontPanel.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/FrontPanel.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -97,12 +105,11 @@ FrontPanel interface methods:
 | [setClockBrightness](#method.setClockBrightness) | Sets the clock brightness |
 | [setClockTestPattern](#method.setClockTestPattern) | Allows you to set a test pattern on the STB clock (`88 88`) |
 | [setLED](#method.setLED) | Set preferences for the specified Front Panel LED indicator |
-| [setPowerStatus](#method.setPowerStatus) | (Version 2) Sets the power status |
 | [setPreferences](#method.setPreferences) | Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences |
 
 
 <a name="method.getBrightness"></a>
-## *getBrightness <sup>method</sup>*
+## *getBrightness [<sup>method</sup>](#head.Methods)*
 
 Get the brightness of the specified LED or FrontPanel.
 
@@ -128,7 +135,7 @@ Get the brightness of the specified LED or FrontPanel.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.getBrightness",
     "params": {
         "index": "power_led"
@@ -141,7 +148,7 @@ Get the brightness of the specified LED or FrontPanel.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "brightness": 50,
         "success": true
@@ -150,7 +157,7 @@ Get the brightness of the specified LED or FrontPanel.
 ```
 
 <a name="method.getClockBrightness"></a>
-## *getClockBrightness <sup>method</sup>*
+## *getClockBrightness [<sup>method</sup>](#head.Methods)*
 
 Returns the current clock brightness value.
 
@@ -173,7 +180,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.getClockBrightness"
 }
 ```
@@ -183,7 +190,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "brightness": 50,
         "success": true
@@ -192,7 +199,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getFrontPanelLights"></a>
-## *getFrontPanelLights <sup>method</sup>*
+## *getFrontPanelLights [<sup>method</sup>](#head.Methods)*
 
 Returns a list of supported Front Panel LEDs and their properties.
 
@@ -225,7 +232,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.getFrontPanelLights"
 }
 ```
@@ -235,7 +242,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedLights": [
             "power_led"
@@ -258,7 +265,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getPreferences"></a>
-## *getPreferences <sup>method</sup>*
+## *getPreferences [<sup>method</sup>](#head.Methods)*
 
 Returns the preferences that are saved in the `/opt/fp_service_preferences.json` file.
 
@@ -281,7 +288,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.getPreferences"
 }
 ```
@@ -291,7 +298,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "preferences": {},
         "success": true
@@ -300,7 +307,7 @@ This method takes no parameters.
 ```
 
 <a name="method.is24HourClock"></a>
-## *is24HourClock <sup>method</sup>*
+## *is24HourClock [<sup>method</sup>](#head.Methods)*
 
 Gets the currently set clock mode (12 or 24 hour).  
 **Note:** On Xi6, this method always returns `false` despite having successfully set the clock to 24 hour mode.
@@ -324,7 +331,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.is24HourClock"
 }
 ```
@@ -334,7 +341,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "is24Hour": false,
         "success": true
@@ -343,7 +350,7 @@ This method takes no parameters.
 ```
 
 <a name="method.powerLedOff"></a>
-## *powerLedOff <sup>method</sup>*
+## *powerLedOff [<sup>method</sup>](#head.Methods)*
 
 Switches the specified LED off.
 
@@ -368,7 +375,7 @@ Switches the specified LED off.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.powerLedOff",
     "params": {
         "index": "power_led"
@@ -381,7 +388,7 @@ Switches the specified LED off.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -389,7 +396,7 @@ Switches the specified LED off.
 ```
 
 <a name="method.powerLedOn"></a>
-## *powerLedOn <sup>method</sup>*
+## *powerLedOn [<sup>method</sup>](#head.Methods)*
 
 Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.
 
@@ -414,7 +421,7 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.powerLedOn",
     "params": {
         "index": "power_led"
@@ -427,7 +434,7 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -435,7 +442,7 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 ```
 
 <a name="method.set24HourClock"></a>
-## *set24HourClock <sup>method</sup>*
+## *set24HourClock [<sup>method</sup>](#head.Methods)*
 
 Sets the clock mode to either 12 or 24 hour.
 
@@ -460,7 +467,7 @@ Sets the clock mode to either 12 or 24 hour.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.set24HourClock",
     "params": {
         "is24Hour": false
@@ -473,7 +480,7 @@ Sets the clock mode to either 12 or 24 hour.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -481,7 +488,7 @@ Sets the clock mode to either 12 or 24 hour.
 ```
 
 <a name="method.setBlink"></a>
-## *setBlink <sup>method</sup>*
+## *setBlink [<sup>method</sup>](#head.Methods)*
 
 Sets a blinking pattern for a particular LED indicator.  
 **Note:** This API does not currently work nor does it provide a meaningful error status.
@@ -491,16 +498,17 @@ Sets a blinking pattern for a particular LED indicator.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.ledIndicator | string | The index name of an LED indicator (`record_led`, `power_led`, `data_led`) |
-| params.iterations | integer | Defines the number of times to loop through the pattern array: a value of `0` indicates iterating through the array one time and is similar to a `do... while` loop; for values greater than `0`, the pattern is looped the specified amount of times; a value of `-1`, loops indefinitely until either `setLED`, `animate` or `setBrightness` is called or `setBlink` is called again |
-| params.pattern | array | An array of blink properties |
-| params.pattern[#] | object |  |
-| params.pattern[#].brightness | integer | A brightness value from 0 - 100 |
-| params.pattern[#].duration | integer | Step duration time in milliseconds |
-| params.pattern[#]?.color | string | <sup>*(optional)*</sup> The color which should be set if `colorMode` is set to `2` (see `getFrontPanelLights`) |
-| params.pattern[#]?.red | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
-| params.pattern[#]?.green | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
-| params.pattern[#]?.blue | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
+| params.blinkInfo | object |  |
+| params.blinkInfo.ledIndicator | string | The index name of an LED indicator (`record_led`, `power_led`, `data_led`) |
+| params.blinkInfo.iterations | integer | Defines the number of times to loop through the pattern array: a value of `0` indicates iterating through the array one time and is similar to a `do... while` loop; for values greater than `0`, the pattern is looped the specified amount of times; a value of `-1`, loops indefinitely until either `setLED`, `animate` or `setBrightness` is called or `setBlink` is called again |
+| params.blinkInfo.pattern | array | An array of blink properties |
+| params.blinkInfo.pattern[#] | object |  |
+| params.blinkInfo.pattern[#].brightness | integer | A brightness value from 0 - 100 |
+| params.blinkInfo.pattern[#].duration | integer | Step duration time in milliseconds |
+| params.blinkInfo.pattern[#]?.color | string | <sup>*(optional)*</sup> The color which should be set if `colorMode` is set to `2` (see `getFrontPanelLights`) |
+| params.blinkInfo.pattern[#]?.red | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
+| params.blinkInfo.pattern[#]?.green | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
+| params.blinkInfo.pattern[#]?.blue | integer | <sup>*(optional)*</sup> If `colorMode` is set to `0`, RGB values are used to set LED colors |
 
 ### Result
 
@@ -516,21 +524,23 @@ Sets a blinking pattern for a particular LED indicator.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setBlink",
     "params": {
-        "ledIndicator": "power_lead",
-        "iterations": 10,
-        "pattern": [
-            {
-                "brightness": 50,
-                "duration": 100,
-                "color": "red",
-                "red": 0,
-                "green": 0,
-                "blue": 0
-            }
-        ]
+        "blinkInfo": {
+            "ledIndicator": "power_led",
+            "iterations": 10,
+            "pattern": [
+                {
+                    "brightness": 50,
+                    "duration": 100,
+                    "color": "red",
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            ]
+        }
     }
 }
 ```
@@ -540,7 +550,7 @@ Sets a blinking pattern for a particular LED indicator.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -548,7 +558,7 @@ Sets a blinking pattern for a particular LED indicator.
 ```
 
 <a name="method.setBrightness"></a>
-## *setBrightness <sup>method</sup>*
+## *setBrightness [<sup>method</sup>](#head.Methods)*
 
 Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.
 
@@ -574,7 +584,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setBrightness",
     "params": {
         "brightness": 50,
@@ -588,7 +598,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -596,7 +606,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 ```
 
 <a name="method.setClockBrightness"></a>
-## *setClockBrightness <sup>method</sup>*
+## *setClockBrightness [<sup>method</sup>](#head.Methods)*
 
 Sets the clock brightness.
 
@@ -621,7 +631,7 @@ Sets the clock brightness.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setClockBrightness",
     "params": {
         "brightness": 50
@@ -634,7 +644,7 @@ Sets the clock brightness.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -642,7 +652,7 @@ Sets the clock brightness.
 ```
 
 <a name="method.setClockTestPattern"></a>
-## *setClockTestPattern <sup>method</sup>*
+## *setClockTestPattern [<sup>method</sup>](#head.Methods)*
 
 Allows you to set a test pattern on the STB clock (`88 88`).
 
@@ -668,7 +678,7 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setClockTestPattern",
     "params": {
         "show": true,
@@ -682,7 +692,7 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -690,7 +700,7 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 ```
 
 <a name="method.setLED"></a>
-## *setLED <sup>method</sup>*
+## *setLED [<sup>method</sup>](#head.Methods)*
 
 Set preferences for the specified Front Panel LED indicator. Data are not validated in this call.
 
@@ -720,10 +730,10 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setLED",
     "params": {
-        "ledIndicator": "power_lead",
+        "ledIndicator": "power_led",
         "brightness": 50,
         "color": "red",
         "red": 0,
@@ -738,53 +748,7 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setPowerStatus"></a>
-## *setPowerStatus <sup>method</sup>*
-
-(Version 2) Sets the power status.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.power | boolean | `true` for power state on, or `false` for power state off |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.FrontPanel.1.setPowerStatus",
-    "params": {
-        "power": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -792,7 +756,7 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 ```
 
 <a name="method.setPreferences"></a>
-## *setPreferences <sup>method</sup>*
+## *setPreferences [<sup>method</sup>](#head.Methods)*
 
 Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.
 
@@ -817,7 +781,7 @@ Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_serv
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrontPanel.1.setPreferences",
     "params": {
         "preferences": {}
@@ -830,7 +794,7 @@ Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_serv
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
