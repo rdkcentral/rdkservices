@@ -3675,7 +3675,12 @@ namespace WPEFramework {
                        }
                     }
                     else {
-                        LOGWARN("DisplaySettings::setEnableAudioPort Connected device doesn't have ARC/eARC capability \n");
+			    LOGWARN("DisplaySettings::setEnableAudioPort Connected device doesn't have ARC/eARC capability \n");
+			    m_audioOutputPortConfig["SPEAKER"] = true;
+			    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("SPEAKER0");
+			    aPort.enable();
+			    pEnable = false;
+			    LOGINFO("SPEAKER Audio Port enabled successfully.\n");
                     }
 
                     m_audioOutputPortConfig["HDMI_ARC"] = pEnable;
