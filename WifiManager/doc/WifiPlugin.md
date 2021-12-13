@@ -101,8 +101,8 @@ WifiManager interface methods:
 | [getCurrentState](#method.getCurrentState) | Returns the current Wifi state |
 | [getPairedSSID](#method.getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#method.getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | (Version 2) Returns all available security modes |
-| [initiateWPSPairing](#method.initiateWPSPairing) | (Version 2) Initiates a connection using WPS |
+| [getSupportedSecurityModes](#method.getSupportedSecurityModes) | (Version 2) Returns the Wifi security modes that the device supports |
+| [initiateWPSPairing](#method.initiateWPSPairing) | (Version 2) Initiates a connection using Wifi Protected Setup (WPS) |
 | [isPaired](#method.isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#method.isSignalThresholdChangeEnabled) | Returns whether threshold changes are enabled |
 | [saveSSID](#method.saveSSID) | Saves the SSID, passphrase, and security mode for future sessions |
@@ -157,7 +157,7 @@ This method takes no parameters.
 <a name="method.clearSSID"></a>
 ## *clearSSID [<sup>method</sup>](#head.Methods)*
 
-Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
 
 ### Parameters
 
@@ -249,7 +249,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.disconnect"></a>
 ## *disconnect [<sup>method</sup>](#head.Methods)*
 
-Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
 
 ### Parameters
 
@@ -481,7 +481,7 @@ This method takes no parameters.
 <a name="method.getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns all available security modes.
+(Version 2) Returns the Wifi security modes that the device supports.
 
 ### Parameters
 
@@ -608,7 +608,7 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
 <a name="method.isPaired"></a>
 ## *isPaired [<sup>method</sup>](#head.Methods)*
 
-Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
+Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
 
 ### Parameters
 
