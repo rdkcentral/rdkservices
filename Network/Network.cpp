@@ -608,14 +608,15 @@ namespace WPEFramework
                     inet_pton(AF_INET, netmask, &mask) == 1 &&
                     inet_pton(AF_INET, gateway_ip, &gateway_address) == 1)
                 {
-                     subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
-                     subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
-                     if (subnet_addr1.s_addr != subnet_addr2.s_addr)
-                     {
-                          LOGINFO("Interface and Gateway IP are not in the same subnet \n");
-                          return false;
-                     }
-
+                    subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
+                    subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
+                    if (subnet_addr1.s_addr != subnet_addr2.s_addr)
+                    {
+                        LOGINFO("Interface and Gateway IP are not in the same subnet \n");
+                        result = false;
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(result)
+                    }
 		}
                 if (IARM_RESULT_SUCCESS ==
                     IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
