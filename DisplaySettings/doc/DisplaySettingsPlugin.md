@@ -2966,7 +2966,7 @@ Also see: [resolutionPreChange](#event.resolutionPreChange), [resolutionChanged]
 | params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 | params.resolution | string | Video display resolution |
 | params?.persist | boolean | <sup>*(optional)*</sup> Persists the resolution |
-| params?.ignoreEdid | boolean | <sup>*(optional)*</sup> ignoe the EDID data while settting resolution |
+| params?.ignoreEdid | boolean | <sup>*(optional)*</sup> ignore the EDID data while settting resolution |
 
 ### Result
 
