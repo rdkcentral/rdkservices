@@ -98,7 +98,7 @@
             }
         },
         "clearSSID":{
-            "summary": "Clears the saved SSID. A `0` value indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.",
+            "summary": "Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -141,7 +141,7 @@
             }
         },
         "disconnect":{
-            "summary": "Disconnects from the SSID. A `0` value indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.",
+            "summary": "Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -266,7 +266,7 @@
             }
         },
         "getSupportedSecurityModes":{
-            "summary": "Returns the Wifi security modes that the device supports",
+            "summary": "(Version 2) Returns the Wifi security modes that the device supports",
             "result": {
                 "type": "object",
                 "properties": {
@@ -411,7 +411,7 @@
             }
         },
         "isPaired":{
-            "summary": "Determines if the device is paired to an SSID. A `0` value indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
+            "summary": "Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
             "result": {
                 "type": "object",
                 "properties": {
