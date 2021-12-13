@@ -19,6 +19,7 @@
 
 #include "Network.h"
 #include <net/if.h>
+#include <arpa/inet.h>
 
 using namespace std;
 
@@ -568,6 +569,7 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+	    struct in_addr ip_address, gateway_address, mask, subnet_addr1, subnet_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
                 (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
@@ -602,6 +604,19 @@ namespace WPEFramework
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
                 iarmData.isSupported = true;
 
+                if (inet_pton(AF_INET, interface_ip, &ip_address) == 1 &&
+                    inet_pton(AF_INET, netmask, &mask) == 1 &&
+                    inet_pton(AF_INET, gateway_ip, &gateway_address) == 1)
+                {
+                     subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
+                     subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
+                     if (subnet_addr1.s_addr != subnet_addr2.s_addr)
+                     {
+                          LOGINFO("Interface and Gateway IP are not in the same subnet \n");
+                          return false;
+                     }
+
+		}
                 if (IARM_RESULT_SUCCESS ==
                     IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
                                   sizeof(iarmData)))
