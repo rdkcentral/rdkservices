@@ -241,6 +241,7 @@ namespace WPEFramework {
         JsonObject SystemServices::_systemParams;
         const string SystemServices::MODEL_NAME = "modelName";
         const string SystemServices::HARDWARE_ID = "hardwareID";
+	const string SystemServices::MANUFACTURE_SERIAL = "ManufactureSerial";
 
         IARM_Bus_SYSMgr_GetSystemStates_Param_t SystemServices::paramGetSysState = {};
 
@@ -859,7 +860,7 @@ namespace WPEFramework {
             }
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
+            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID) || !queryParams.compare(MANUFACTURE_SERIAL)) {
                 returnResponse(getManufacturerData(queryParams, response));
             }
 #endif
@@ -924,7 +925,10 @@ namespace WPEFramework {
                 param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
+            } else if (!parameter.compare(MANUFACTURE_SERIAL)) {
+                param.type = mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
             }
+
             IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
             param.buffer[param.bufLen] = '\0';
 
@@ -936,6 +940,29 @@ namespace WPEFramework {
                 status = true;
             } else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
+            }
+
+            return status;
+        }
+
+	bool SystemServices::getManufacturerSerialData(const string& parameter, JsonObject& response)
+        {
+            LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
+
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+            IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+            param.buffer[param.bufLen] = '\0';
+
+            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+            bool status = false;
+            if (result == IARM_RESULT_SUCCESS) {
+                response[parameter.c_str()] = string(param.buffer);
+                status = true;
+            } else {
+                populateResponseWithError(SysSrv_ManufacturerSerialDataReadFailed, response);
             }
 
             return status;
