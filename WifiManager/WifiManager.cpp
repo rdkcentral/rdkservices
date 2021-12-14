@@ -178,8 +178,6 @@ namespace WPEFramework
 
         uint32_t WifiManager::connect(const JsonObject &parameters, JsonObject &response)
         {
-            LOGINFOMETHOD();
-
             uint32_t result = wifiConnect.connect(parameters, response);
 
             LOGTRACEMETHODFIN();
