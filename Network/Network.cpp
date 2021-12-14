@@ -604,9 +604,9 @@ namespace WPEFramework
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
                 iarmData.isSupported = true;
 
-                if (inet_pton(AF_INET, interface_ip, &ip_address) == 1 &&
-                    inet_pton(AF_INET, netmask, &mask) == 1 &&
-                    inet_pton(AF_INET, gateway_ip, &gateway_address) == 1)
+                if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
+                    inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
+                    inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
                 {
                     subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
                     subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
