@@ -26,6 +26,7 @@
 #include <plugins/plugins.h>
 #include <tracing/tracing.h>
 #include "rfcapi.h"
+#include <math.h>
 
 // telemetry
 #ifdef ENABLE_TELEMETRY_LOGGING
@@ -53,6 +54,20 @@
 #define LOG_DEVICE_EXCEPTION0() LOGWARN("Exception caught: code=%d message=%s", err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION1(param1) LOGWARN("Exception caught" #param1 "=%s code=%d message=%s", param1.c_str(), err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION2(param1, param2) LOGWARN("Exception caught " #param1 "=%s " #param2 "=%s code=%d message=%s", param1.c_str(), param2.c_str(), err.getCode(), err.what());
+
+/* a=target variable, b=bit number to act upon 0-n */
+#define BIT_SET(a,b) ((a) |= (1ULL<<(b)))
+#define BIT_CLEAR(a,b) ((a) &= ~(1ULL<<(b)))
+#define BIT_FLIP(a,b) ((a) ^= (1ULL<<(b)))
+#define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b))))        // '!!' to make sure this returns 0 or 1
+
+#define BITMASK_SET(x, mask) ((x) |= (mask))
+#define BITMASK_CLEAR(x, mask) ((x) &= (~(mask)))
+#define BITMASK_FLIP(x, mask) ((x) ^= (mask))
+#define BITMASK_CHECK_ALL(x, mask) (!(~(x) & (mask)))
+#define BITMASK_CHECK_ANY(x, mask) ((x) & (mask))
+
+#define GET_BITMASK(a) (((short)pow(2,a))&0xFFFF)
 
 //this set of macros are used in the method handlers to make the code more consistent and easier to read
 #define vectorSet(v,s) \
@@ -162,6 +177,15 @@
         param = parameters[paramName].Boolean(); \
     else \
         param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
+}
+
+#define getDefaultBoolParameter(paramName, param, default) { \
+    if (parameters.HasLabel(paramName)) { \
+        if (Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
+            param = parameters[paramName].Boolean(); \
+        else \
+            param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
+     } else param = default; \
 }
 
 #define getStringParameter(paramName, param) { \
@@ -392,7 +416,7 @@ namespace Utils
 #endif
         };
 
-        static void sendError(char* format, ...)
+        static void sendError(const char* format, ...)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
             va_list parameters;

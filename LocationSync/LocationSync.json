@@ -192,7 +192,7 @@
             "void": {
                 "type": "null",
                 "default": null,
-                "description": "Always null"
+                "description": "Returns null on success. On failure, it returns the error message and error code from the following table."
             }
         }
     },
@@ -216,7 +216,7 @@
     },
     "methods": {
         "sync": {
-            "summary": "Synchronizes the location",
+            "summary": "Synchronizes the location. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `locationchange` | Signals the change of location |",
             "result": {
                 "$ref": "#/common/results/void"
             },

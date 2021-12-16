@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <rdkshell/logger.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -115,6 +116,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -396,6 +399,7 @@ namespace WPEFramework {
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
         std::mutex gLaunchDestroyMutex;
+        std::mutex gDestroyMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
@@ -780,7 +784,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
 
-            m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -3249,6 +3255,33 @@ namespace WPEFramework {
                         std::cout << "setting Cobalt preload: " << preload << "\n";
                         configSet["preload"] = JsonValue(preload);
                     }
+
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby rfc false - launching cobalt in local mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading cobalt dobby rfc failed " << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
                 }
 
                 // One RFC controls all WPE-based apps
@@ -3625,19 +3658,46 @@ namespace WPEFramework {
                 uint32_t status;
                 const string callsign = parameters["callsign"].String();
                 std::cout << "about to suspend " << callsign << std::endl;
-
-                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
-                if (stateControl) {
-                  stateControl->Request(PluginHost::IStateControl::SUSPEND);
-                  stateControl->Release();
-                  status = Core::ERROR_NONE;
-                } else {
-                  WPEFramework::Core::JSON::String stateString;
-                  stateString = "suspended";
-                  const string callsignWithVersion = callsign + ".1";
-                  status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+		string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
                 }
-
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                bool isApplicationBeingDestroyed = false;
+            	gLaunchDestroyMutex.lock();
+            	if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            	{
+                    isApplicationBeingDestroyed = true;
+            	}
+            	gLaunchDestroyMutex.unlock();
+            	if (isApplicationBeingDestroyed)
+            	{
+                    std::cout << "ignoring suspend for " << client << " as it is being destroyed " << std::endl;
+		    result=false;
+		    response["message"] = "failed to suspend application";
+                    returnResponse(result);
+            	}
+                gDestroyMutex.lock();
+                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                if (stateControl)
+		{
+                    stateControl->Request(PluginHost::IStateControl::SUSPEND);
+                    stateControl->Release();
+                    gDestroyMutex.unlock();
+                    status = Core::ERROR_NONE;
+                }
+		else
+		{
+                    gDestroyMutex.unlock();
+                    WPEFramework::Core::JSON::String stateString;
+                    stateString = "suspended";
+                    const string callsignWithVersion = callsign + ".1";
+                    status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
                 if (status > 0)
                 {
                     std::cout << "failed to suspend " << callsign << ".  status: " << status << std::endl;
@@ -3690,7 +3750,9 @@ namespace WPEFramework {
                 joParams.Set("callsign",callsign.c_str());
                 JsonObject joResult;
                 auto thunderController = getThunderControllerClient();
+                gDestroyMutex.lock();
                 uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
+                gDestroyMutex.unlock();
                 if (status > 0)
                 {
                     std::cout << "failed to destroy " << callsign << ".  status: " << status << std::endl;
@@ -5068,6 +5130,37 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             returnResponse(result);
         }
+
+        uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                bool enable = parameters["enable"].Boolean();
+                enableLogsFlushing(enable);
+                result = true;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+           LOGINFOMETHOD();
+
+            bool enabled = false;
+            getLogsFlushingEnabled(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
+        }
         // Registered methods end
 
         // Events begin
@@ -5716,7 +5809,19 @@ namespace WPEFramework {
             }
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-
+            
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setvisibility for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
             std::map<std::string, PluginData> activePluginsData;
             gPluginDataMutex.lock();
             activePluginsData = gActivePluginsData;
@@ -5729,6 +5834,18 @@ namespace WPEFramework {
                 {
                     std::cout << "setting the visiblity of " << client << " to " << visible << std::endl;
                     uint32_t status = 0;
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(client) != gDestroyApplications.end())
+                    {
+                        isApplicationBeingDestroyed = true;
+                    }
+                    gLaunchDestroyMutex.unlock();
+					if (isApplicationBeingDestroyed)
+                    {
+                        std::cout << "ignoring setvisibility for " << client << " as it is being destroyed " << std::endl;
+						return false;
+                    }
+                    gDestroyMutex.lock();
                     Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
                     if (browser != NULL)
                     {
@@ -5739,9 +5856,10 @@ namespace WPEFramework {
                     {
                         status = 1;
                     }
+                    gDestroyMutex.unlock();
                     if (status > 0)
                     {
-                        std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                        std::cout << "failed to set visibility property to browser " << client << " with status code " << status << std::endl;
                     }
                 }
             }
@@ -6189,6 +6307,21 @@ namespace WPEFramework {
 
             return status;
         }
+        
+	void RDKShell::enableLogsFlushing(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            Logger::enableFlushing(enable);
+            gRdkShellMutex.unlock();
+        }
+
+        void RDKShell::getLogsFlushingEnabled(bool &enabled)
+        {
+            gRdkShellMutex.lock();
+            enabled = Logger::isFlushingEnabled();
+            gRdkShellMutex.unlock();
+        }
+
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework

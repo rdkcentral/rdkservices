@@ -81,6 +81,7 @@ namespace WPEFramework {
             uint32_t setVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t setForceHDRMode(const JsonObject& parameters, JsonObject& response);
             //End methods
             uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
             uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
@@ -155,7 +156,7 @@ namespace WPEFramework {
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
-	    void onAudioDeviceAddedEventHandler(const JsonObject& parameters);
+	    void onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters);
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
             //End events
         public:
@@ -177,6 +178,7 @@ namespace WPEFramework {
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             const char *getVideoFormatTypeToString(dsHDRStandard_t format);
+            dsHDRStandard_t getVideoFormatTypeFromString(const char *mode);
             JsonArray getSupportedVideoFormats();
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
@@ -189,6 +191,7 @@ namespace WPEFramework {
 	    bool requestShortAudioDescriptor();
 	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    bool getHdmiCecSinkCecEnableStatus();
+	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
 
@@ -201,6 +204,7 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
+	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;

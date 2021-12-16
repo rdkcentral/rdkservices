@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-SecurityAgent plugin for Thunder framework.
+A SecurityAgent plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 
 <a name="head.Introduction"></a>
@@ -78,6 +79,13 @@ The table below lists configuration options of the plugin.
 | configuration?.acl | string | <sup>*(optional)*</sup> ACL |
 | configuration?.connector | string | <sup>*(optional)*</sup> Connector |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [SecurityAgent.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/SecurityAgent.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -87,18 +95,14 @@ SecurityAgent interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [createtoken](#method.createtoken) | Creates a Token |
-| [validate](#method.validate) | Validates Token |
+| [createtoken](#method.createtoken) | Creates a signed JsonWeb token |
+| [validate](#method.validate) | Validates the token whether it is valid and properly signed |
 
 
 <a name="method.createtoken"></a>
-## *createtoken <sup>method</sup>*
+## *createtoken [<sup>method</sup>](#head.Methods)*
 
-Creates a Token.
-
-### Description
-
-Create a signed JsonWeb token with the specified parameters
+Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.
 
 ### Parameters
 
@@ -129,7 +133,7 @@ Create a signed JsonWeb token with the specified parameters
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "SecurityAgent.1.createtoken",
     "params": {
         "url": "https://test.comcast.com",
@@ -144,7 +148,7 @@ Create a signed JsonWeb token with the specified parameters
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgImpzb25ycGMiOiAiMi4wIiwgCiAgICAiaWQiOiAxMjM0NTY3ODkwLCAKICAgICJtZXRob2QiOiAiQ29udHJvbGxlci4xLmFjdGl2YXRlIiwgCiAgICAicGFyYW1zIjogewogICAgICAgICJjYWxsc2lnbiI6ICJTZWN1cml0eUFnZW50IgogICAgfQp9.lL40nTwRyBvMwiglZhl5_rB8ycY1uhAJRFx9pGATMRQ"
     }
@@ -152,13 +156,9 @@ Create a signed JsonWeb token with the specified parameters
 ```
 
 <a name="method.validate"></a>
-## *validate <sup>method</sup>*
+## *validate [<sup>method</sup>](#head.Methods)*
 
-Validates Token.
-
-### Description
-
-Checks whether the token is valid and properly signed
+Validates the token whether it is valid and properly signed.
 
 ### Parameters
 
@@ -174,11 +174,6 @@ Checks whether the token is valid and properly signed
 | result | object |  |
 | result.valid | boolean | Whether the token is signature is correct |
 
-### Errors
-
-| Code | Message | Description |
-| :-------- | :-------- | :-------- |
-
 ### Example
 
 #### Request
@@ -186,7 +181,7 @@ Checks whether the token is valid and properly signed
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "SecurityAgent.1.validate",
     "params": {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgImpzb25ycGMiOiAiMi4wIiwgCiAgICAiaWQiOiAxMjM0NTY3ODkwLCAKICAgICJtZXRob2QiOiAiQ29udHJvbGxlci4xLmFjdGl2YXRlIiwgCiAgICAicGFyYW1zIjogewogICAgICAgICJjYWxsc2lnbiI6ICJTZWN1cml0eUFnZW50IgogICAgfQp9.lL40nTwRyBvMwiglZhl5_rB8ycY1uhAJRFx9pGATMRQ"
@@ -199,7 +194,7 @@ Checks whether the token is valid and properly signed
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "valid": false
     }

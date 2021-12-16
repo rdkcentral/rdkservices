@@ -241,6 +241,7 @@ namespace WPEFramework {
         JsonObject SystemServices::_systemParams;
         const string SystemServices::MODEL_NAME = "modelName";
         const string SystemServices::HARDWARE_ID = "hardwareID";
+
         IARM_Bus_SYSMgr_GetSystemStates_Param_t SystemServices::paramGetSysState = {};
 
         static void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
@@ -2973,6 +2974,7 @@ namespace WPEFramework {
 	{
 		bool retVal = false;
 		string sleepMode;
+        int32_t uploadStatus = E_NOK;
 		ofstream outfile;
 		JsonObject paramIn, paramOut;
 		if (parameters.HasLabel("powerState")) {
@@ -2980,9 +2982,26 @@ namespace WPEFramework {
 			string reason = parameters["standbyReason"].String();
 			/* Power state defaults standbyReason is "application". */
 			reason = ((reason.length()) ? reason : "application");
-			LOGERR("SystemServices::setDevicePowerState state: %s\n", state.c_str());
-			if (state == "STANDBY") {
-				if (SystemServices::_instance) {
+            LOGINFO("SystemServices::setDevicePowerState state: %s\n", state.c_str());
+
+#if defined(LOGUPLOAD_BEFORE_DEEPSLEEP)
+            if ( "LIGHT_SLEEP" == state || "STANDBY" == state){
+                if ( "ON" == m_current_state){
+
+                    /* only if transition from ON -> LIGHT_SLEEP
+                     * perform logupload when state change to Standby */
+                    uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
+                    if ( E_NOK == uploadStatus ){
+                        LOGERR("SystemServices Logupload Disabled \n");
+                    }
+                    else {
+                        LOGINFO("LogUploadBeforeDeepSleep Success \n");
+                    }
+                }
+            }
+#endif
+            if (state == "STANDBY") {
+                if (SystemServices::_instance) {
 					SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
 					/* TODO: parse abd get the sleepMode from paramOut */
 					sleepMode= paramOut["preferredStandbyMode"].String();
@@ -3006,6 +3025,7 @@ namespace WPEFramework {
 			} else {
 				retVal = CPowerState::instance()->setPowerState(state);
 			}
+            m_current_state=state; /* save the old state */
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
@@ -3458,6 +3478,8 @@ namespace WPEFramework {
         void _systemStateChanged(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
         {
+            int seconds = 600; /* 10 Minutes to Reboot */
+
             LOGINFO("len = %d\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
@@ -3470,8 +3492,14 @@ namespace WPEFramework {
                 case IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE:
                     {
                         LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE = '%d'\n", state);
-                        if (SystemServices::_instance) {
-                            SystemServices::_instance->onFirmwareUpdateStateChange(state);
+                        if (SystemServices::_instance)
+                        {
+                            if (IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT == state) {
+                                LOGWARN(" Critical reboot is required. \n ");
+                                SystemServices::_instance->onFirmwarePendingReboot(seconds);
+                            } else {
+                                SystemServices::_instance->onFirmwareUpdateStateChange(state);
+                            }
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }

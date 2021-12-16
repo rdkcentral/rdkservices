@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::white_circle:**
 
-PlayerInfo plugin for Thunder framework.
+A PlayerInfo plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -77,6 +78,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEPlayerInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [PlayerInfo.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/PlayerInfo.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -91,7 +99,7 @@ PlayerInfo interface methods:
 
 
 <a name="method.audiocodecs"></a>
-## *audiocodecs <sup>method</sup>*
+## *audiocodecs [<sup>method</sup>](#head.Methods)*
 
 Returns the audio codec supported by the platform. 
  
@@ -135,7 +143,7 @@ This method takes no parameters.
 ```
 
 <a name="method.videocodecs"></a>
-## *videocodecs <sup>method</sup>*
+## *videocodecs [<sup>method</sup>](#head.Methods)*
 
 Returns the video codec supported by the platform.
  
@@ -188,7 +196,7 @@ PlayerInfo interface properties:
 | Property | Description |
 | :-------- | :-------- |
 | [playerinfo](#property.playerinfo) <sup>RO</sup> | Player general information |
-| [resolution](#property.resolution) <sup>RO</sup> | Current video playback resolution |
+| [resolution](#property.resolution) <sup>RO</sup> | Current configured video output port resolution |
 | [isaudioequivalenceenabled](#property.isaudioequivalenceenabled) <sup>RO</sup> | Check for Loudness Equivalence in the platform |
 | [dolby atmosmetadata](#property.dolby_atmosmetadata) <sup>RO</sup> | Atmos capabilities of Sink |
 | [dolby soundmode](#property.dolby_soundmode) <sup>RO</sup> | Current sound mode |
@@ -197,7 +205,7 @@ PlayerInfo interface properties:
 
 
 <a name="property.playerinfo"></a>
-## *playerinfo <sup>property</sup>*
+## *playerinfo [<sup>property</sup>](#head.Properties)*
 
 Provides access to the player general information.
 
@@ -243,9 +251,9 @@ Provides access to the player general information.
 ```
 
 <a name="property.resolution"></a>
-## *resolution <sup>property</sup>*
+## *resolution [<sup>property</sup>](#head.Properties)*
 
-Provides access to the current video playback resolution.
+Provides access to the current configured video output port resolution.
 
 > This property is **read-only**.
 
@@ -253,7 +261,7 @@ Provides access to the current video playback resolution.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | Current video playback resolution (must be one of the following: *ResolutionUnknown*, *Resolution480I*, *Resolution480P*, *Resolution576I*, *Resolution576P*, *Resolution720P*, *Resolution1080I*, *Resolution1080P*, *Resolution2160P30*, *Resolution2160P60*) |
+| (property) | string | Current configured video output port resolution (must be one of the following: *ResolutionUnknown*, *Resolution480I*, *Resolution480P*, *Resolution576I*, *Resolution576P*, *Resolution720P*, *Resolution1080I*, *Resolution1080P*, *Resolution2160P30*, *Resolution2160P60*) |
 
 ### Example
 
@@ -278,7 +286,7 @@ Provides access to the current video playback resolution.
 ```
 
 <a name="property.isaudioequivalenceenabled"></a>
-## *isaudioequivalenceenabled <sup>property</sup>*
+## *isaudioequivalenceenabled [<sup>property</sup>](#head.Properties)*
 
 Provides access to the check for Loudness Equivalence in the platform.
 
@@ -313,7 +321,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 ```
 
 <a name="property.dolby_atmosmetadata"></a>
-## *dolby_atmosmetadata <sup>property</sup>*
+## *dolby_atmosmetadata [<sup>property</sup>](#head.Properties)*
 
 Provides access to the atmos capabilities of Sink.
 
@@ -348,7 +356,7 @@ Provides access to the atmos capabilities of Sink.
 ```
 
 <a name="property.dolby_soundmode"></a>
-## *dolby_soundmode <sup>property</sup>*
+## *dolby_soundmode [<sup>property</sup>](#head.Properties)*
 
 Provides access to the current sound mode.
 
@@ -383,7 +391,7 @@ Provides access to the current sound mode.
 ```
 
 <a name="property.dolby_enableatmosoutput"></a>
-## *dolby_enableatmosoutput <sup>property</sup>*
+## *dolby_enableatmosoutput [<sup>property</sup>](#head.Properties)*
 
 Provides access to the audio output enablement for Atmos.
 
@@ -419,7 +427,7 @@ Provides access to the audio output enablement for Atmos.
 ```
 
 <a name="property.dolby_mode"></a>
-## *dolby_mode <sup>property</sup>*
+## *dolby_mode [<sup>property</sup>](#head.Properties)*
 
 Provides access to the dolby mode.
 
@@ -487,7 +495,7 @@ PlayerInfo interface events:
 
 
 <a name="event.dolby_audiomodechanged"></a>
-## *dolby_audiomodechanged <sup>event</sup>*
+## *dolby_audiomodechanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio sound mode changes.
 

@@ -161,7 +161,7 @@
             }
         },
         "resolution": {
-            "summary": "Current video playback resolution",
+            "summary": "Current configured video output port resolution",
             "readonly": true,
             "params": {
                 "type": "string",
