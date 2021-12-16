@@ -102,6 +102,7 @@ SystemServices interface methods:
 | [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
 | [getDeviceInfo](#method.getDeviceInfo) | Collects device details available from `/etc/device |
+| [getMfgSerialNumber](#method.getMfgSerialNumber) | Gets the Manufacturing Serial Number |
 | [getDownloadedFirmwareInfo](#method.getDownloadedFirmwareInfo) | Returns information about firmware downloads |
 | [getFirmwareDownloadPercent](#method.getFirmwareDownloadPercent) | Gets the current download percentage |
 | [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Returns information about a firmware update and includes whether or not an update is mandatory |
@@ -564,6 +565,48 @@ Collects device details available from `/etc/device.properties`. Sample keys inc
     "id": 42,
     "result": {
         "estb_mac": "20:F1:9E:EE:62:08",
+        "success": true
+    }
+}
+```
+
+<a name="method.getMfgSerialNumber"></a>
+## *getMfgSerialNumber [<sup>method</sup>](#head.Methods)*
+
+Gets the Manufacturing Serial Number.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mfgSerialNumber | string | Manufacturing Serial Number |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getMfgSerialNumber"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mfgSerialNumber": "F00020CE000003",
         "success": true
     }
 }
