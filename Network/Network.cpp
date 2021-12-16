@@ -570,6 +570,7 @@ namespace WPEFramework
         {
             bool result = false;
             struct in_addr ip_address, gateway_address, mask, subnet_addr1, subnet_addr2;
+            struct in_addr broadcast_addr1, broadcast_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
                 (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
@@ -610,9 +611,38 @@ namespace WPEFramework
                 {
                     subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
                     subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
+                    broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
+                    broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
+
                     if (subnet_addr1.s_addr != subnet_addr2.s_addr)
                     {
+                        LOGINFO("Interface and Gateway IP is not in same subnet, return false \n");
                         result = false;
+                        iarmData.isSupported = false;
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(result)
+                    }
+                    if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
+                    {
+                        LOGINFO("Interface and Gateway IP is not in broadcast domain, return false \n");
+                        result = false;
+                        iarmData.isSupported = false;
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(result)
+                    }
+                    if (ip_address.s_addr == broadcast_addr1.s_addr)
+                    {
+                        LOGINFO("Interface and Broadcast IP is same, return false \n");
+                        result = false;
+                        iarmData.isSupported = false;
+                        response["supported"] = iarmData.isSupported;
+                        returnResponse(result)
+                    }
+                    if (gateway_address.s_addr == broadcast_addr2.s_addr)
+                    {
+                        LOGINFO("Gateway and Broadcast IP is same, return false \n");
+                        result = false;
+                        iarmData.isSupported = false;
                         response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
