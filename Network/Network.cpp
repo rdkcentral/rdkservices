@@ -20,6 +20,7 @@
 #include "Network.h"
 #include <net/if.h>
 #include <arpa/inet.h>
+#include "utils.h"
 
 using namespace std;
 
@@ -605,6 +606,15 @@ namespace WPEFramework
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
                 iarmData.isSupported = true;
 
+                RFC_ParamData_t manual_ip;
+                bool manual_ip_result = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", manual_ip);
+                if (false == manual_ip_result)
+                {
+                    iarmData.isSupported = false;
+                    result = false;
+                    returnResponse(result)
+                }
+
                 if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
                     inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
                     inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
@@ -614,36 +624,34 @@ namespace WPEFramework
                     broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
                     broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
 
+                    if (ip_address.s_addr == gateway_address.s_addr)
+                    {
+                        LOGINFO("Interface and Gateway IP is not in same subnet, return false \n");
+                        result = false;
+                        returnResponse(result)
+                    }
                     if (subnet_addr1.s_addr != subnet_addr2.s_addr)
                     {
                         LOGINFO("Interface and Gateway IP is not in same subnet, return false \n");
                         result = false;
-                        iarmData.isSupported = false;
-                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
                     {
                         LOGINFO("Interface and Gateway IP is not in broadcast domain, return false \n");
                         result = false;
-                        iarmData.isSupported = false;
-                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (ip_address.s_addr == broadcast_addr1.s_addr)
                     {
                         LOGINFO("Interface and Broadcast IP is same, return false \n");
                         result = false;
-                        iarmData.isSupported = false;
-                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (gateway_address.s_addr == broadcast_addr2.s_addr)
                     {
                         LOGINFO("Gateway and Broadcast IP is same, return false \n");
                         result = false;
-                        iarmData.isSupported = false;
-                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                 }
