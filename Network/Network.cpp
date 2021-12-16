@@ -604,13 +604,19 @@ namespace WPEFramework
                 strncpy(iarmData.gateway, gateway.c_str(), 16);
                 strncpy(iarmData.primarydns, primarydns.c_str(), 16);
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
-                iarmData.isSupported = true;
+                iarmData.isSupported = false;
 
-                RFC_ParamData_t manual_ip;
-                bool manual_ip_result = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", manual_ip);
-                if (false == manual_ip_result)
+                RFC_ParamData_t param;
+                if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
                 {
-                    iarmData.isSupported = false;
+                    if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    {
+                        iarmData.isSupported  = true;
+                    }
+                }
+                if (false == iarmData.isSupported)
+                {
+                    LOGWARN("Manual IP not supported..\n");
                     result = false;
                     returnResponse(result)
                 }
@@ -626,31 +632,31 @@ namespace WPEFramework
 
                     if (ip_address.s_addr == gateway_address.s_addr)
                     {
-                        LOGINFO("Interface and Gateway IP is not in same subnet, return false \n");
+                        LOGWARN("Interface and Gateway IP is not in same subnet, return false \n");
                         result = false;
                         returnResponse(result)
                     }
                     if (subnet_addr1.s_addr != subnet_addr2.s_addr)
                     {
-                        LOGINFO("Interface and Gateway IP is not in same subnet, return false \n");
+                        LOGWARN("Interface and Gateway IP is not in same subnet, return false \n");
                         result = false;
                         returnResponse(result)
                     }
                     if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
                     {
-                        LOGINFO("Interface and Gateway IP is not in broadcast domain, return false \n");
+                        LOGWARN("Interface and Gateway IP is not in broadcast domain, return false \n");
                         result = false;
                         returnResponse(result)
                     }
                     if (ip_address.s_addr == broadcast_addr1.s_addr)
                     {
-                        LOGINFO("Interface and Broadcast IP is same, return false \n");
+                        LOGWARN("Interface and Broadcast IP is same, return false \n");
                         result = false;
                         returnResponse(result)
                     }
                     if (gateway_address.s_addr == broadcast_addr2.s_addr)
                     {
-                        LOGINFO("Gateway and Broadcast IP is same, return false \n");
+                        LOGWARN("Gateway and Broadcast IP is same, return false \n");
                         result = false;
                         returnResponse(result)
                     }
