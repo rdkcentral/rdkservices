@@ -570,7 +570,7 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-            struct in_addr ip_address, gateway_address, mask, subnet_addr1, subnet_addr2;
+            struct in_addr ip_address, gateway_address, mask;
             struct in_addr broadcast_addr1, broadcast_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
@@ -616,7 +616,7 @@ namespace WPEFramework
                 }
                 if (false == iarmData.isSupported)
                 {
-                    LOGWARN("Manual IP not supported..\n");
+                    LOGWARN("Manual IP Settings not Enabled..\n");
                     result = false;
                     returnResponse(result)
                 }
@@ -625,26 +625,18 @@ namespace WPEFramework
                     inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
                     inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
                 {
-                    subnet_addr1.s_addr = ip_address.s_addr & mask.s_addr;
-                    subnet_addr2.s_addr = gateway_address.s_addr & mask.s_addr;
                     broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
                     broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
 
                     if (ip_address.s_addr == gateway_address.s_addr)
                     {
-                        LOGWARN("Interface and Gateway IP is not in same subnet, return false \n");
-                        result = false;
-                        returnResponse(result)
-                    }
-                    if (subnet_addr1.s_addr != subnet_addr2.s_addr)
-                    {
-                        LOGWARN("Interface and Gateway IP is not in same subnet, return false \n");
+                        LOGWARN("Interface and Gateway IP are same , return false \n");
                         result = false;
                         returnResponse(result)
                     }
                     if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
                     {
-                        LOGWARN("Interface and Gateway IP is not in broadcast domain, return false \n");
+                        LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
                         result = false;
                         returnResponse(result)
                     }
