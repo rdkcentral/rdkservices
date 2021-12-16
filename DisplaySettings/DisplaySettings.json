@@ -2295,24 +2295,6 @@
         "resolutionPreChange": {
             "summary": "Triggered on resolution pre-change"
         },
-        "zoomSettingUpdated":{
-            "summary": "Triggered when the zoom setting changes and returns the zoom setting values for all video display types",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "zoomSetting": {
-                        "$ref": "#/definitions/zoomSetting"
-                    },
-                    "videoDisplayType": {
-                        "$ref": "#/definitions/videoDisplayType"
-                    }
-                },
-                "required": [
-                    "zoomSetting",
-                    "videoDisplayType"
-                ]
-            }
-        },
         "videoFormatChanged": {
             "summary": "Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port.",
             "params": {
@@ -2328,6 +2310,24 @@
                 "required": [
                     "supportedVideoFormat",
                     "currentVideoFormat"
+                ]
+            }
+        },
+        "zoomSettingUpdated":{
+            "summary": "Triggered when the zoom setting changes and returns the zoom setting values for all video display types",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "zoomSetting": {
+                        "$ref": "#/definitions/zoomSetting"
+                    },
+                    "videoDisplayType": {
+                        "$ref": "#/definitions/videoDisplayType"
+                    }
+                },
+                "required": [
+                    "zoomSetting",
+                    "videoDisplayType"
                 ]
             }
         }
