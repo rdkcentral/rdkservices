@@ -237,14 +237,16 @@ namespace WPEFramework {
             std::unique_lock<std::mutex> lck(m_callMutex);
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for ( i=0;i< task_count ;i++ ){
+                for ( i=0;i< task_count && !m_abort_flag ;i++ ){
+                    LOGINFO("DBG Before Lock = %d",i);
                     task_thread.wait(lck);
+                    LOGINFO("DBG After Lock");
                     cmd=task_names_foreground[i].c_str();
                     cmd+=" &";
                     cmd+="\0";
                     m_task_map[task_names_foreground[i].c_str()]=true;
-                    LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                     if (!m_abort_flag){
+                        LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
                 }
@@ -260,14 +262,14 @@ namespace WPEFramework {
                     LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                     system(cmd.c_str());
                     cmd="";
-                    for (i=1;i<task_count;i++){
+                    for (i=1;i<task_count && !m_abort_flag ;i++){
                         task_thread.wait(lck);
                         cmd=task_names_foreground[i].c_str();
                         cmd+=" &";
                         cmd+="\0";
                         m_task_map[task_names_foreground[i].c_str()]=true;
-                        LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                         if (!m_abort_flag){
+                            LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                             system(cmd.c_str());
                         }
                     }
@@ -646,6 +648,11 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
+
+            /* set the abort flag to true */
+            m_abort_flag = true;
+            /* unlock if the task is still waiting */
+            task_thread.notify_one();
 
             if(m_thread.joinable()){
                 m_thread.join();
