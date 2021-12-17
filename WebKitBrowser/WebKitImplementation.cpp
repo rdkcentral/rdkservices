@@ -1314,7 +1314,7 @@ static GSourceFuncs _handlerIntervention =
                     if (hasProfileChanged) {
                         setenv("G_TLS_GNUTLS_PRIORITY", securityProfile.CipherPrio.Value().c_str(), 1);
                         auto context = WKPageGetContext(object->_page);
-                        WKContextSetGnuTlsCipherPriority(context, WKStringCreateWithUTF8CString(securityProfile.CipherPrio.Value().c_str()));
+                        WKContextSetEnv(context, WKStringCreateWithUTF8CString("G_TLS_GNUTLS_PRIORITY"), WKStringCreateWithUTF8CString(securityProfile.CipherPrio.Value().c_str()), false, true);
                     } else
                         SYSLOG(Logging::Notification, (_T("Security profile %s is already set"), object->_securityProfileName.c_str()));
                     return G_SOURCE_REMOVE;
@@ -1388,6 +1388,20 @@ static GSourceFuncs _handlerIntervention =
 #else
                         object->SetNavigationRef(nullptr);
                         auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
+                        const char* activateKeyboardEventDelay = getenv("ACTIVATE_KEYBOARD_EVENT_DELAY");
+                        if (activateKeyboardEventDelay) {
+                            if (object->_URL.find("https://www.live.bbctvapps.co.uk/tap/sounds") != std::string::npos) {
+                                SYSLOG(Logging::Notification, (_T("Activating key event delays")));
+                                setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "1", 1);
+                                WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("1"), true, false);
+                            } else {
+                                if (activateKeyboardEventDelay[0] != '0') {
+                                    SYSLOG(Logging::Notification, (_T("Deactivating key event delays")));
+                                    setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "0", 1);
+                                    WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("0"), true, false);
+                                }
+                            }
+                        }
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
 #endif
