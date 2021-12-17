@@ -787,7 +787,7 @@ static GSourceFuncs _handlerIntervention =
             , _unresponsiveReplyNum(0)
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
-            , _allowMixedContent(false)
+            , _allowMixedContent(true)
             , _userScripts()
             , _userStyleSheets()
             , _securityProfileName()
@@ -1390,13 +1390,6 @@ static GSourceFuncs _handlerIntervention =
                         auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
-                        // This is just a temporary workaround for ARRISEOS-40798.
-                        // Clarification about root cause of #boot url reloading is done in HZN4PD-85201
-                        static const string bootUrl("https://widgets.metrological.com/lightning/liberty/2e3c4fc22f0d35e3eb7fdb47eb7d4658#boot");
-                        if (url.compare(bootUrl) == 0) {
-                            SYSLOG(Logging::Notification, (_T("Boot URL detected, reloading: %s"), bootUrl.c_str()));
-                            WKPageReload(object->_page);
-                        }
 #endif
                         return G_SOURCE_REMOVE;
                     },
@@ -2641,8 +2634,6 @@ static GSourceFuncs _handlerIntervention =
 
             _configurationCompleted.SetState(true);
 
-            URL(static_cast<const string>(_URL));
-
             // Move into the correct state, as requested
             auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(_view));
             _adminLock.Lock();
@@ -2855,8 +2846,6 @@ static GSourceFuncs _handlerIntervention =
                 WKRelease(ua);
                 TRACE(Trace::Information, (_T("Current user agent: '%s'"), _config.UserAgent.Value().c_str()));
             }
-
-            URL(static_cast<const string>(_URL));
 
             // Move into the correct state, as requested
             _adminLock.Lock();
