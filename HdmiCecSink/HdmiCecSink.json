@@ -188,6 +188,22 @@
                 ]
             }
         },
+        "getAudioDeviceConnectedStatus": {
+            "summary": "Whether an audio device is connected. Applications can use this method to ensure that an audio device is connected before sending HDMI-CEC messages.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "connected": {
+                        "summary": "`true` if an audio device is connected, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "connected"
+                ]
+            }
+        },
         "getDeviceList":{
             "summary": "Gets the number of connected source devices and system information for each device. The information includes device type, physical address, CEC version, vendor ID, power status and OSD name.",
             "result": {
@@ -606,6 +622,28 @@
                 },
                 "required": [
                     "logicalAddress"
+                ]
+            }
+        },
+        "reportAudioDeviceConnectedStatus": {
+            "summary": "Triggered when an audio device is added or removed",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "summary": "The status",
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "audioDeviceConnected": {
+                        "summary": "`true` if an audio device is connected, otherwise `false`",
+                        "type": "string",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "status",
+                    "audioDeviceConnected"
                 ]
             }
         },
