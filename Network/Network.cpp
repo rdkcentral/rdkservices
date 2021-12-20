@@ -25,6 +25,7 @@
 using namespace std;
 
 #define DEFAULT_PING_PACKETS 15
+#define CIDR_NETMASK_IP_LEN 33
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -258,6 +259,57 @@ namespace WPEFramework
         {
              return(string());
         }
+
+        bool Network::isValidCIDRv4(string buf)
+        {
+            string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
+                                                     "0.0.0.0",
+                                                     "128.0.0.0",
+                                                     "192.0.0.0",
+                                                     "224.0.0.0",
+                                                     "240.0.0.0",
+                                                     "248.0.0.0",
+                                                     "252.0.0.0",
+                                                     "254.0.0.0",
+                                                     "255.0.0.0",
+                                                     "255.128.0.0",
+                                                     "255.192.0.0",
+                                                     "255.224.0.0",
+                                                     "255.240.0.0",
+                                                     "255.248.0.0",
+                                                     "255.252.0.0",
+                                                     "255.254.0.0",
+                                                     "255.255.0.0",
+                                                     "255.255.128.0",
+                                                     "255.255.192.0",
+                                                     "255.255.224.0",
+                                                     "255.255.240.0",
+                                                     "255.255.248.0",
+                                                     "255.255.252.0",
+                                                     "255.255.254.0",
+                                                     "255.255.255.0",
+                                                     "255.255.255.128",
+                                                     "255.255.255.192",
+                                                     "255.255.255.224",
+                                                     "255.255.255.240",
+                                                     "255.255.255.248",
+                                                     "255.255.255.252",
+                                                     "255.255.255.254",
+                                                     "255.255.255.255",
+                                                   };
+            int i = 0;
+            bool retval = false;
+            while(i < CIDR_NETMASK_IP_LEN)
+            {
+                if((buf.compare(CIDR_PREFIXES[i])) == 0)
+	        {
+                    retval = true;
+                    break;
+                }
+                i++;
+            }
+            return retval;
+	}
 
         // Wrapper methods
         uint32_t Network::getQuirks(const JsonObject& parameters, JsonObject& response)
@@ -617,6 +669,14 @@ namespace WPEFramework
                 if (false == iarmData.isSupported)
                 {
                     LOGWARN("Manual IP Settings not Enabled..\n");
+                    result = false;
+                    returnResponse(result)
+                }
+                bool mask_validation;
+                mask_validation = isValidCIDRv4(netmask.c_str());
+                if (false == mask_validation)
+                {
+                    LOGWARN("Netmask is not valid ..\n");
                     result = false;
                     returnResponse(result)
                 }
