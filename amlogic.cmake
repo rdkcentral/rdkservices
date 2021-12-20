@@ -89,11 +89,6 @@ if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
     add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
 endif()
 
-if (BUILD_ENABLE_MANUFACTURER_SERIAL_NO)
-    message("Building with manufacturer serial number")
-    add_definitions (-DENABLE_MANUFACTURER_SERIAL_NO)
-endif()
-
 if (AMLOGIC_E2)
     add_definitions (-DAMLOGIC_E2)
 endif()

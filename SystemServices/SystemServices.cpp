@@ -315,7 +315,7 @@ namespace WPEFramework {
             registerMethod("sampleSystemServiceAPI", &SystemServices::sampleAPI, this);
 #endif /* DEBUG */
             registerMethod("getDeviceInfo", &SystemServices::getDeviceInfo, this);
-#ifdef ENABLE_MANUFACTURER_SERIAL_NO
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             registerMethod("getMfgSerialNumber", &SystemServices::getMfgSerialNumber, this);
 #endif
             registerMethod("reboot", &SystemServices::requestSystemReboot, this);
@@ -914,7 +914,8 @@ namespace WPEFramework {
                 }
             returnResponse(retAPIStatus);
         }
-#ifdef ENABLE_MANUFACTURER_SERIAL_NO
+
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
         /***
          * @brief : To retrieve Manufacturing Serial Number.
          * @param1[in] : {"params":{}}
@@ -941,9 +942,7 @@ namespace WPEFramework {
 
             returnResponse(status);;
         }
-#endif
 
-#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
         bool SystemServices::getManufacturerData(const string& parameter, JsonObject& response)
         {
             LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
