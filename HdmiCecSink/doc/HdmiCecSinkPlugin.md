@@ -95,6 +95,7 @@ HdmiCecSink interface methods:
 | :-------- | :-------- |
 | [getActiveRoute](#method.getActiveRoute) | Gets details for the current route from the source to sink devices |
 | [getActiveSource](#method.getActiveSource) | Gets details for the current active source |
+| [getAudioDeviceConnectedStatus](#method.getAudioDeviceConnectedStatus) | Whether an audio device is connected |
 | [getDeviceList](#method.getDeviceList) | Gets the number of connected source devices and system information for each device |
 | [getEnabled](#method.getEnabled) | Check whether HDMI-CEC sink is enabled |
 | [getVendorId](#method.getVendorId) | Gets the current vendor ID of this sink device |
@@ -226,6 +227,46 @@ This method takes no parameters.
         "vendorID": "0ce7",
         "powerStatus": "Standby",
         "success": true
+    }
+}
+```
+
+<a name="method.getAudioDeviceConnectedStatus"></a>
+## *getAudioDeviceConnectedStatus [<sup>method</sup>](#head.Methods)*
+
+Whether an audio device is connected. Applications can use this method to ensure that an audio device is connected before sending HDMI-CEC messages.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.connected | boolean | `true` if an audio device is connected, otherwise `false` |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCecSink.1.getAudioDeviceConnectedStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "connected": true
     }
 }
 ```
@@ -925,6 +966,7 @@ HdmiCecSink interface events:
 | [onInActiveSource](#event.onInActiveSource) | Triggered when the source is no longer active |
 | [onTextViewOnMsg](#event.onTextViewOnMsg) | Triggered when a \<Text View ON\> CEC message is received from the source device |
 | [onWakeupFromStandby](#event.onWakeupFromStandby) | Triggered when the source device changes status from STANDBY to ON and the \<Image View ON\> CEC message is received from the source device |
+| [reportAudioDeviceConnectedStatus](#event.reportAudioDeviceConnectedStatus) | Triggered when an audio device is added or removed |
 | [reportAudioStatusEvent](#event.reportAudioStatusEvent) | Triggered when a CEC \<Report Audio Status\> message is received |
 | [sendStandbyMessageEvent](#event.sendStandbyMessageEvent) | Triggered when the source device changes status to `STANDBY` |
 | [shortAudiodesciptorEvent](#event.shortAudiodesciptorEvent) | Triggered when the CEC \<Request Short Audio Descriptor\> (SAD) message is sent |
@@ -1170,6 +1212,32 @@ Triggered when the source device changes status from STANDBY to ON and the \<Ima
     "method": "client.events.1.onWakeupFromStandby",
     "params": {
         "logicalAddress": 4
+    }
+}
+```
+
+<a name="event.reportAudioDeviceConnectedStatus"></a>
+## *reportAudioDeviceConnectedStatus [<sup>event</sup>](#head.Notifications)*
+
+Triggered when an audio device is added or removed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | string | The status |
+| params.audioDeviceConnected | string | `true` if an audio device is connected, otherwise `false` |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.reportAudioDeviceConnectedStatus",
+    "params": {
+        "status": "success",
+        "audioDeviceConnected": "True"
     }
 }
 ```

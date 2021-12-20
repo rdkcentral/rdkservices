@@ -3971,8 +3971,8 @@ DisplaySettings interface events:
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
 | [resolutionPreChange](#event.resolutionPreChange) | Triggered on resolution pre-change |
-| [zoomSettingUpdated](#event.zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 | [videoFormatChanged](#event.videoFormatChanged) | Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port |
+| [zoomSettingUpdated](#event.zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 
 
 <a name="event.activeInputChanged"></a>
@@ -4129,32 +4129,6 @@ This event carries no parameters.
 }
 ```
 
-<a name="event.zoomSettingUpdated"></a>
-## *zoomSettingUpdated [<sup>event</sup>](#head.Notifications)*
-
-Triggered when the zoom setting changes and returns the zoom setting values for all video display types.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.zoomSetting | string | Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3` |
-| params.videoDisplayType | string | Type of video display (port) |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.zoomSettingUpdated",
-    "params": {
-        "zoomSetting": "FULL",
-        "videoDisplayType": "HDMI0"
-    }
-}
-```
-
 <a name="event.videoFormatChanged"></a>
 ## *videoFormatChanged [<sup>event</sup>](#head.Notifications)*
 
@@ -4180,6 +4154,32 @@ Triggered when the video format of connected video port changes and returns the 
             "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR"
+    }
+}
+```
+
+<a name="event.zoomSettingUpdated"></a>
+## *zoomSettingUpdated [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the zoom setting changes and returns the zoom setting values for all video display types.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.zoomSetting | string | Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3` |
+| params.videoDisplayType | string | Type of video display (port) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.zoomSettingUpdated",
+    "params": {
+        "zoomSetting": "FULL",
+        "videoDisplayType": "HDMI0"
     }
 }
 ```
