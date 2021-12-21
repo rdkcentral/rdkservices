@@ -1402,6 +1402,14 @@ static GSourceFuncs _handlerIntervention =
                                 }
                             }
                         }
+                        // This is workaround in case of applications which use ShakaPlayer in version >= 3.0.0 and <= 3.0.3
+                        if (object->_URL.find("https://app.10ft.itv.com/virginmedia") != std::string::npos) {
+                            SYSLOG(Logging::Notification, (_T("Activating convert playready key ID for Shaka")));
+                            WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("1"), true, false);
+                        } else {
+                            SYSLOG(Logging::Notification, (_T("Deactivating convert playready key ID for Shaka")));
+                            WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("0"), true, false);
+                        }
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
 #endif
