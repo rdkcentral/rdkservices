@@ -58,6 +58,10 @@
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+
 namespace WPEFramework {
     namespace Plugin {
 
@@ -109,6 +113,7 @@ namespace WPEFramework {
                 SystemServices& operator=(const SystemServices&) = delete;
                 static void getMacAddressesAsync(SystemServices *p);
                 static std::string m_currentMode;
+                std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
@@ -151,6 +156,9 @@ namespace WPEFramework {
                 void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                void onTimeStatusChanged(string timequality,string timesource, string utctime);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
                 /* Events : End */
@@ -169,6 +177,10 @@ namespace WPEFramework {
                 uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                uint32_t getSystemTimeStatus(const JsonObject& parameters,JsonObject& response);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);

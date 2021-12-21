@@ -122,9 +122,10 @@
                 "Requesting",
                 "Downloading",
                 "Failed",
-                "DownLoad Complete",
+                "Download Complete",
                 "Validation Complete",
-                "Preparing to Reboot"
+                "Preparing to Reboot",
+                "On Hold for opt-out"
             ],
             "type": "string",
             "example": "Download Complete"
@@ -168,7 +169,15 @@
                 "firmwareUpdateDisabled": {
                     "type": "boolean"
                 }
-            }
+            },
+            "required": [
+                "accountId",
+                "x1DeviceId",
+                "XCALSessionTokenAvailable",
+                "experience",
+                "deviceMACAddress",
+                "firmwareUpdateDisabled"
+            ]
         },
         "webBrowser": {
             "type": "object",
@@ -244,7 +253,40 @@
                     "type": "boolean",
                     "example": true
                 }
-            }
+            },
+            "required": [
+                "quirks",
+                "mimeTypeExclusions",
+                "features",
+                "mimeTypes",
+                "model",
+                "deviceType",
+                "supportsTrueSD",
+                "webBrowser",
+                "HdrCapability",
+                "canMixPCMWithSurround"
+            ]
+        },
+        "timeQuality": {
+            "summary": "The quality of the time source in terms of security",
+            "enum": [
+                "poor",
+                "good",
+                "secure",
+                "unknown"
+            ],
+            "type": "string",
+            "example": "poor"
+        },
+        "timeSrc": {
+            "summary": "The source that is providing the time",
+            "type": "string",
+            "example": "NTP"
+        },
+        "time":{
+            "summary": "The current time",
+            "type": "string",
+            "example": "20200128083540"
         },
         "result": {
             "type":"object",
@@ -287,6 +329,25 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "deletePersistentPath": {
+            "summary": "(Version 2) Deletes persistent path associated with a callsign",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "enableMoca":{
             "summary": "Enables (or disable) Moca support for the platform",
             "params": {
@@ -307,7 +368,7 @@
             }
         },
         "fireFirmwarePendingReboot":{
-            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event",
+            "summary": "(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event. This method is called after the firmware image is successfully flashed on the device.",
             "events": [
                 "onFirmwarePendingReboot"
             ],
@@ -388,12 +449,12 @@
             }
         },
         "getDeviceInfo":{
-            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac",
+            "summary": "Collects device details available from `/etc/device.properties`. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* model_num  \n* make  \n* friendly_id  \n* rf4ce_mac  \n* wifi_mac",
             "params": {
                 "type": "object",
                 "properties": {
                     "params": {
-                        "summary": "A list of supported device keys",
+                        "summary": "A list of supported device keys. If no parameters are included, then all keys are returned.",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -409,7 +470,7 @@
                 "type": "object",
                 "properties": {
                     "estb_mac": {
-                        "summary": "Value for the specified key name",
+                        "summary": "Value for the specified key",
                         "type": "string",
                         "example": "20:F1:9E:EE:62:08"
                     },
@@ -482,7 +543,7 @@
             }
         },
         "getFirmwareUpdateInfo":{
-            "summary": "Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event",
+            "summary": "Returns information about a firmware update and includes whether or not an update is mandatory. The details are sent as an `onFirmwareUpdateInfoReceived` event.",
             "events": [
                 "onFirmwareUpdateInfoReceived"
             ],
@@ -574,9 +635,9 @@
 
         },
         "getMacAddresses":{
-            "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.",
+            "summary": "Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetreived` event.",
             "events": [
-                "onMACAddressesRetrieved"
+                "onMacAddressesRetreived"
             ],
             "params": {
                 "type": "object",
@@ -664,6 +725,35 @@
                 ]
             }
         },
+        "getPlatformConfiguration": {
+            "summary": "(Version 2) Returns the supported features and device/account info",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
+                        "type": "string"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "AccountInfo": {
+                        "$ref": "#/definitions/accountInfo"
+                    },
+                    "DeviceInfo": {
+                        "$ref": "#/definitions/deviceInfo"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
         "getPowerState":{
             "summary": "Returns the power state of the device",
             "result": {
@@ -745,7 +835,7 @@
             }
         },
         "getPreviousRebootInfo2":{
-            "summary": "Returns detailed information about a reboot",
+            "summary": "(Version 2) Returns detailed information about a reboot",
             "result": {
                 "type": "object",
                 "properties": {
@@ -967,6 +1057,28 @@
                 "required": [
                     "temperatureThresholds",
                     "success"
+                ]
+            }
+        },
+        "getTimeStatus": {
+            "summary": "Returns the timer status",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timeQuality": {
+                        "$ref": "#/definitions/timeQuality"
+                    },
+                    "timeSrc": {
+                        "$ref": "#/definitions/timeSrc"
+                    },
+                    "time":{
+                        "$ref": "#/definitions/time"
+                    }
+                },
+                "required": [
+                    "timeQuality",
+                    "timeSrc",
+                    "time"
                 ]
             }
         },
@@ -1225,7 +1337,7 @@
             }
         },
         "removeCacheKey":{
-            "summary": "Requests that the system performs a reboot of the set-top box",
+            "summary": "Removes the specified key from the cache",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1313,7 +1425,7 @@
                     }
                 },
                 "required": [
-                    "key"
+                    "enable"
                 ]
             },
             "result": {
@@ -1493,27 +1605,48 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "updateFirmware":{
-            "summary": "Initiates a firmware update. This method has no affect if an update is not available",
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the device wake-up configuration",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "wakeupSrc": {
+                        "summary": "The wake-up source as an integer from 0 - 8.",
+                        "type": "integer",
+                        "enum": [
+                            "WAKEUPSRC_VOICE",
+                            "WAKEUPSRC_PRESENCE_DETECTION",
+                            "WAKEUPSRC_BLUETOOTH",
+                            "WAKEUPSRC_WIFI",
+                            "WAKEUPSRC_IR",
+                            "WAKEUPSRC_POWER_KEY",
+                            "WAKEUPSRC_TIMER",
+                            "WAKEUPSRC_CEC",
+                            "WAKEUPSRC_LAN"
+                        ],
+                        "example": 3
+                    },
+                    "config": {
+                        "summary": "`0` to disable the wake-up source configuration, or `1` to enable the wake-up source configuration",
+                        "type":"integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "wakeupSrc",
+                    "config"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
         },
-        "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "callsign": {
-                        "description": "Callsign of the service to delete persistent path",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                },
-                "required": [
-                    "callsign"
-                ]
-            },
+        "updateFirmware":{
+            "summary": "Initiates a firmware update. This method has no affect if an update is not available",
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -1535,45 +1668,35 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
-        },
-        "getPlatformConfiguration": {
-            "summary": "(Version 2) Returns the supported features and device/account info",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
-                        "type": "string"
-                    }
-                }
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "AccountInfo": {
-                        "$ref": "#/definitions/accountInfo"
-                    },
-                    "DeviceInfo": {
-                        "$ref": "#/definitions/deviceInfo"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
-            }
         }
     },
     "events": {
+        "onFirmwareDownloadProgress":{
+            "summary": "Triggered once per second when firmware download is started. Will be stopped at 100%.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "downloadPercent": {
+                        "summary": "Download progress",
+                        "type": "number",
+                        "example": 12
+                    }
+                },
+                "required": [
+                    "downloadPercent"
+                ]
+            }
+        },
         "onFirmwarePendingReboot":{
             "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {
                 "type" :"object",
                 "properties": {
                     "seconds": {
-                        "$ref": "#/definitions/seconds"
+                        "summary": "The amount of time to wait, in seconds, before forcing a reboot. A reboot is mandatory when the `rebootImmediately` parameter is `true`. See [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived).",
+                        "type": "integer",
+                        "default": 600,
+                        "example": 600
                     },
                     "success": {
                         "$ref": "#/definitions/success"
@@ -1599,6 +1722,11 @@
                         "summary": "A custom response",
                         "type": "string",
                         "example": ""
+                    },
+                    "rebootImmediately": {
+                        "summary": "When `true`, indicates that an update is mandatory and requires a reboot. The application is responsible for coordinating the reboot with the user. An [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) event indicates that the device has been successfully flashed and that the reboot is pending. See [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot)",
+                        "type": "boolean",
+                        "example": true
                     },
                     "firmwareUpdateVersion": {
                         "summary": "The next firmware update version",
@@ -1628,6 +1756,7 @@
                 "required": [
                     "status",
                     "responseString",
+                    "rebootImmediately",
                     "firmwareUpdateVersion",
                     "updateAvailable",
                     "updateAvailableEnum",
@@ -1636,7 +1765,7 @@
             }
         },
         "onFirmwareUpdateStateChange":{
-            "summary": "Triggered when the state of a firmware update changes.  \nState details are:  \n* `0`: Uninitialized - there is no firmware update in progress  \n* `1`: Requesting - requesting firmware update information  \n* `2`: Downloading  \n* `3`: Failed  \n* `4`: Download Complete  \n* `5`: Validation Complete  \n* `6`: Preparing to Reboot",
+            "summary": "Triggered when the state of a firmware update changes.  \nState details are:  \n* `0`: Uninitialized - there is no firmware update in progress  \n* `1`: Requesting - requesting firmware update information  \n* `2`: Downloading  \n* `3`: Failed  \n* `4`: Download Complete  \n* `5`: Validation Complete  \n* `6`: Preparing to Reboot  \n* `7`: On Hold for opt-out",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -1649,7 +1778,7 @@
                 ]
             }
         },
-        "onMacAddressesRetrieved":{
+        "onMacAddressesRetreived":{
             "summary": "Triggered when the `getMacAddresses` asynchronous method is invoked",
             "params": {
                 "type" :"object",
@@ -1780,6 +1909,28 @@
                     "thresholdType",
                     "exceeded",
                     "temperature"
+                ]
+            }
+        },
+        "onTimeStatusChanged":{
+            "summary": "Triggered when the device timer settings change",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "timeQuality": {
+                        "$ref": "#/definitions/timeQuality"
+                    },
+                    "timeSrc": {
+                        "$ref": "#/definitions/timeSrc"
+                    },
+                    "time":{
+                        "$ref": "#/definitions/time"
+                    }
+                },
+                "required": [
+                    "timeQuality",
+                    "timeSrc",
+                    "time"
                 ]
             }
         }

@@ -17,6 +17,7 @@
 
 set(PLUGIN_NAME DisplaySettings)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(PLUGIN_DISPLAY_AUTOSTART false CACHE STRING "Automatically start DisplaySettings plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 

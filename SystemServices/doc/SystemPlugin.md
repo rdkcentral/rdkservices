@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.System plugin for Thunder framework.
+A org.rdk.System plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkSystemServices.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [SystemServices.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/SystemServices.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -87,15 +95,16 @@ SystemServices interface methods:
 | :-------- | :-------- |
 | [cacheContains](#method.cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#method.clearLastDeepSleepReason) | Clears the last deep sleep reason |
+| [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [enableMoca](#method.enableMoca) | Enables (or disable) Moca support for the platform |
 | [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event |
 | [getAvailableStandbyModes](#method.getAvailableStandbyModes) | Queries the available standby modes |
 | [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
-| [getDeviceInfo](#method.getDeviceInfo) | Collects device details |
+| [getDeviceInfo](#method.getDeviceInfo) | Collects device details available from `/etc/device |
 | [getDownloadedFirmwareInfo](#method.getDownloadedFirmwareInfo) | Returns information about firmware downloads |
 | [getFirmwareDownloadPercent](#method.getFirmwareDownloadPercent) | Gets the current download percentage |
-| [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
+| [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Returns information about a firmware update and includes whether or not an update is mandatory |
 | [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
 | [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
@@ -103,17 +112,19 @@ SystemServices interface methods:
 | [getMilestones](#method.getMilestones) | Returns the list of milestones |
 | [getMode](#method.getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
+| [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
 | [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | (Version 2) Returns the power state before reboot |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
 | [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
-| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
+| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | (Version 2) Returns detailed information about a reboot |
 | [getPreviousRebootReason](#method.getPreviousRebootReason) | Returns the last reboot reason |
 | [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
 | [getStateInfo](#method.getStateInfo) | Queries device state information of various properties |
 | [getSystemVersions](#method.getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#method.getTemperatureThresholds) | Returns temperature threshold values |
+| [getTimeStatus](#method.getTimeStatus) | Returns the timer status |
 | [getTimeZoneDST](#method.getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
 | [getTimeZones](#method.getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
 | [getWakeupReason](#method.getWakeupReason) | (Version 2) Returns the reason for the device coming out of deep sleep |
@@ -123,7 +134,7 @@ SystemServices interface methods:
 | [isOptOutTelemetry](#method.isOptOutTelemetry) | (Version 2) Checks the telemetry opt-out status |
 | [queryMocaStatus](#method.queryMocaStatus) | Checks whether MOCA is enabled |
 | [reboot](#method.reboot) | Requests that the system performs a reboot of the set-top box |
-| [removeCacheKey](#method.removeCacheKey) | Requests that the system performs a reboot of the set-top box |
+| [removeCacheKey](#method.removeCacheKey) | Removes the specified key from the cache |
 | [requestSystemUptime](#method.requestSystemUptime) | Returns the device uptime |
 | [setCachedValue](#method.setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#method.setDeepSleepTimer) | Sets the deep sleep timeout period |
@@ -137,14 +148,13 @@ SystemServices interface methods:
 | [setPreferredStandbyMode](#method.setPreferredStandbyMode) | Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes) |
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
+| [setWakeupSrcConfiguration](#method.setWakeupSrcConfiguration) | Sets the device wake-up configuration |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
-| [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
-| [getPlatformConfiguration](#method.getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 
 
 <a name="method.cacheContains"></a>
-## *cacheContains <sup>method</sup>*
+## *cacheContains [<sup>method</sup>](#head.Methods)*
 
 Checks if a key is present in the cache.
 
@@ -169,7 +179,7 @@ Checks if a key is present in the cache.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.cacheContains",
     "params": {
         "key": "sampleKey"
@@ -182,7 +192,7 @@ Checks if a key is present in the cache.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -190,7 +200,7 @@ Checks if a key is present in the cache.
 ```
 
 <a name="method.clearLastDeepSleepReason"></a>
-## *clearLastDeepSleepReason <sup>method</sup>*
+## *clearLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Clears the last deep sleep reason.
 
@@ -212,7 +222,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.clearLastDeepSleepReason"
 }
 ```
@@ -222,7 +232,53 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.deletePersistentPath"></a>
+## *deletePersistentPath [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Deletes persistent path associated with a callsign.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | Callsign of the service to delete persistent path |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.deletePersistentPath",
+    "params": {
+        "callsign": "HtmlApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
     "result": {
         "success": true
     }
@@ -230,7 +286,7 @@ This method takes no parameters.
 ```
 
 <a name="method.enableMoca"></a>
-## *enableMoca <sup>method</sup>*
+## *enableMoca [<sup>method</sup>](#head.Methods)*
 
 Enables (or disable) Moca support for the platform.
 
@@ -255,7 +311,7 @@ Enables (or disable) Moca support for the platform.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.enableMoca",
     "params": {
         "value": true
@@ -268,7 +324,7 @@ Enables (or disable) Moca support for the platform.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -276,9 +332,9 @@ Enables (or disable) Moca support for the platform.
 ```
 
 <a name="method.fireFirmwarePendingReboot"></a>
-## *fireFirmwarePendingReboot <sup>method</sup>*
+## *fireFirmwarePendingReboot [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event.
+(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event. This method is called after the firmware image is successfully flashed on the device.
 
 Also see: [onFirmwarePendingReboot](#event.onFirmwarePendingReboot)
 
@@ -300,7 +356,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.fireFirmwarePendingReboot"
 }
 ```
@@ -310,7 +366,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -318,7 +374,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getAvailableStandbyModes"></a>
-## *getAvailableStandbyModes <sup>method</sup>*
+## *getAvailableStandbyModes [<sup>method</sup>](#head.Methods)*
 
 Queries the available standby modes.
 
@@ -342,7 +398,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getAvailableStandbyModes"
 }
 ```
@@ -352,7 +408,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedStandbyModes": [
             "LIGHT_SLEEP"
@@ -363,7 +419,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getCachedValue"></a>
-## *getCachedValue <sup>method</sup>*
+## *getCachedValue [<sup>method</sup>](#head.Methods)*
 
 Gets the value of a key in the cache.
 
@@ -389,7 +445,7 @@ Gets the value of a key in the cache.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getCachedValue",
     "params": {
         "key": "sampleKey"
@@ -402,7 +458,7 @@ Gets the value of a key in the cache.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "sampleKey": "4343.3434",
         "success": true
@@ -411,7 +467,7 @@ Gets the value of a key in the cache.
 ```
 
 <a name="method.getCoreTemperature"></a>
-## *getCoreTemperature <sup>method</sup>*
+## *getCoreTemperature [<sup>method</sup>](#head.Methods)*
 
 Returns the core temperature of the device. Not supported on all devices.
 
@@ -434,7 +490,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getCoreTemperature"
 }
 ```
@@ -444,7 +500,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "temperature": 48.0,
         "success": true
@@ -453,14 +509,17 @@ This method takes no parameters.
 ```
 
 <a name="method.getDeviceInfo"></a>
-## *getDeviceInfo <sup>method</sup>*
+## *getDeviceInfo [<sup>method</sup>](#head.Methods)*
 
-Collects device details. Sample keys include:  
+Collects device details available from `/etc/device.properties`. Sample keys include:  
 * bluetooth_mac  
 * boxIP  
 * build_type  
 * estb_mac  
 * imageVersion  
+* model_num  
+* make  
+* friendly_id  
 * rf4ce_mac  
 * wifi_mac.
 
@@ -469,7 +528,7 @@ Collects device details. Sample keys include:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.params | array | A list of supported device keys |
+| params.params | array | A list of supported device keys. If no parameters are included, then all keys are returned |
 | params.params[#] | string |  |
 
 ### Result
@@ -477,7 +536,7 @@ Collects device details. Sample keys include:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.estb_mac | string | Value for the specified key name |
+| result.estb_mac | string | Value for the specified key |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -487,7 +546,7 @@ Collects device details. Sample keys include:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getDeviceInfo",
     "params": {
         "params": [
@@ -502,7 +561,7 @@ Collects device details. Sample keys include:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "estb_mac": "20:F1:9E:EE:62:08",
         "success": true
@@ -511,7 +570,7 @@ Collects device details. Sample keys include:
 ```
 
 <a name="method.getDownloadedFirmwareInfo"></a>
-## *getDownloadedFirmwareInfo <sup>method</sup>*
+## *getDownloadedFirmwareInfo [<sup>method</sup>](#head.Methods)*
 
 Returns information about firmware downloads.
 
@@ -537,7 +596,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getDownloadedFirmwareInfo"
 }
 ```
@@ -547,7 +606,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "currentFWVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
         "downloadFWVersion": "AX061AEI_VBN_1911_sprint_20200510040450sdy",
@@ -559,7 +618,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getFirmwareDownloadPercent"></a>
-## *getFirmwareDownloadPercent <sup>method</sup>*
+## *getFirmwareDownloadPercent [<sup>method</sup>](#head.Methods)*
 
 Gets the current download percentage.
 
@@ -582,7 +641,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getFirmwareDownloadPercent"
 }
 ```
@@ -592,7 +651,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "downloadPercent": 25,
         "success": true
@@ -601,9 +660,9 @@ This method takes no parameters.
 ```
 
 <a name="method.getFirmwareUpdateInfo"></a>
-## *getFirmwareUpdateInfo <sup>method</sup>*
+## *getFirmwareUpdateInfo [<sup>method</sup>](#head.Methods)*
 
-Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event.
+Returns information about a firmware update and includes whether or not an update is mandatory. The details are sent as an `onFirmwareUpdateInfoReceived` event.
 
 Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 
@@ -629,7 +688,7 @@ Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getFirmwareUpdateInfo",
     "params": {
         "GUID": "1234abcd"
@@ -642,7 +701,7 @@ Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "asyncResponse": true,
         "success": true
@@ -651,7 +710,7 @@ Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 ```
 
 <a name="method.getFirmwareUpdateState"></a>
-## *getFirmwareUpdateState <sup>method</sup>*
+## *getFirmwareUpdateState [<sup>method</sup>](#head.Methods)*
 
 Checks the state of the firmware update.
 
@@ -664,7 +723,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| result.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *Download Complete*, *Validation Complete*, *Preparing to Reboot*, *On Hold for opt-out*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -674,7 +733,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getFirmwareUpdateState"
 }
 ```
@@ -684,7 +743,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "firmwareUpdateState": "Download Complete",
         "success": true
@@ -693,7 +752,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getLastDeepSleepReason"></a>
-## *getLastDeepSleepReason <sup>method</sup>*
+## *getLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Retrieves the last deep sleep reason.
 
@@ -716,7 +775,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getLastDeepSleepReason"
 }
 ```
@@ -726,7 +785,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "lastDeepSleepReason": "thermal_deepsleep_critical_threshold",
         "success": true
@@ -735,7 +794,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getLastFirmwareFailureReason"></a>
-## *getLastFirmwareFailureReason <sup>method</sup>*
+## *getLastFirmwareFailureReason [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Retrieves the last firmware failure reason.
 
@@ -758,7 +817,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getLastFirmwareFailureReason"
 }
 ```
@@ -768,7 +827,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "failureReason": "Image Download Failed - Unable to connect",
         "success": true
@@ -777,11 +836,11 @@ This method takes no parameters.
 ```
 
 <a name="method.getMacAddresses"></a>
-## *getMacAddresses <sup>method</sup>*
+## *getMacAddresses [<sup>method</sup>](#head.Methods)*
 
-Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetrieved` event.
+Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetreived` event.
 
-Also see: [onMACAddressesRetrieved](#event.onMACAddressesRetrieved)
+Also see: [onMacAddressesRetreived](#event.onMacAddressesRetreived)
 
 ### Parameters
 
@@ -805,7 +864,7 @@ Also see: [onMACAddressesRetrieved](#event.onMACAddressesRetrieved)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getMacAddresses",
     "params": {
         "GUID": "1234abcd"
@@ -818,7 +877,7 @@ Also see: [onMACAddressesRetrieved](#event.onMACAddressesRetrieved)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "asyncResponse": true,
         "success": true
@@ -827,7 +886,7 @@ Also see: [onMACAddressesRetrieved](#event.onMACAddressesRetrieved)
 ```
 
 <a name="method.getMilestones"></a>
-## *getMilestones <sup>method</sup>*
+## *getMilestones [<sup>method</sup>](#head.Methods)*
 
 Returns the list of milestones.
 
@@ -851,7 +910,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getMilestones"
 }
 ```
@@ -861,7 +920,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "milestones": [
             "2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service..."
@@ -872,7 +931,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getMode"></a>
-## *getMode <sup>method</sup>*
+## *getMode [<sup>method</sup>](#head.Methods)*
 
 Returns the currently set mode information.
 
@@ -897,7 +956,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getMode"
 }
 ```
@@ -907,7 +966,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "modeInfo": {
             "mode": "NORMAL",
@@ -919,7 +978,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getNetworkStandbyMode"></a>
-## *getNetworkStandbyMode <sup>method</sup>*
+## *getNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
 
@@ -942,7 +1001,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getNetworkStandbyMode"
 }
 ```
@@ -952,7 +1011,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "nwStandby": false,
         "success": true
@@ -960,1707 +1019,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPowerState"></a>
-## *getPowerState <sup>method</sup>*
-
-Returns the power state of the device.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPowerState"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "powerState": "ON",
-        "success": true
-    }
-}
-```
-
-<a name="method.getPowerStateBeforeReboot"></a>
-## *getPowerStateBeforeReboot <sup>method</sup>*
-
-(Version 2) Returns the power state before reboot.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.state | string | The power state |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "state": "ON",
-        "success": true
-    }
-}
-```
-
-<a name="method.getPreferredStandbyMode"></a>
-## *getPreferredStandbyMode <sup>method</sup>*
-
-Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.preferredStandbyMode | string | The standby mode (must be one of the following: *LIGHT_SLEEP*, *DEEP_SLEEP*) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPreferredStandbyMode"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "preferredStandbyMode": "DEEP_SLEEP",
-        "success": true
-    }
-}
-```
-
-<a name="method.getPreviousRebootInfo"></a>
-## *getPreviousRebootInfo <sup>method</sup>*
-
-Returns basic information about a reboot.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.timestamp | string | The last reboot time |
-| result.reason | string | The reboot reason |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPreviousRebootInfo"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "timestamp": "20200128083540",
-        "reason": "FIRMWARE_FAILURE",
-        "success": true
-    }
-}
-```
-
-<a name="method.getPreviousRebootInfo2"></a>
-## *getPreviousRebootInfo2 <sup>method</sup>*
-
-Returns detailed information about a reboot.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.rebootInfo | object |  |
-| result.rebootInfo.timestamp | string | The last reboot time |
-| result.rebootInfo.source | string | The source of the reboot |
-| result.rebootInfo.reason | string | The reboot reason |
-| result.rebootInfo.customReason | string | A custom reason |
-| result.rebootInfo.lastHardPowerReset | string | The timestamp of the last hard power reset |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPreviousRebootInfo2"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "rebootInfo": {
-            "timestamp": "20200128083540",
-            "source": "SystemPlugin",
-            "reason": "FIRMWARE_FAILURE",
-            "customReason": "API Validation",
-            "lastHardPowerReset": "Tue Jan 28 08:22:22 UTC 2020"
-        },
-        "success": true
-    }
-}
-```
-
-<a name="method.getPreviousRebootReason"></a>
-## *getPreviousRebootReason <sup>method</sup>*
-
-Returns the last reboot reason.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.reason | string | The reboot reason |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getPreviousRebootReason"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "reason": "FIRMWARE_FAILURE",
-        "success": true
-    }
-}
-```
-
-<a name="method.getRFCConfig"></a>
-## *getRFCConfig <sup>method</sup>*
-
-Returns information that is related to RDK Feature Control (RFC) configurations.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.rfcList | array | A list of RFC properties to query |
-| params.rfcList[#] | string |  |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.RFCConfig | object | A list of specified RFC properties |
-| result.RFCConfig?.Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID | string | <sup>*(optional)*</sup>  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getRFCConfig",
-    "params": {
-        "rfcList": [
-            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
-        ]
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "RFCConfig": {
-            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID": "1181405614235499371"
-        },
-        "success": true
-    }
-}
-```
-
-<a name="method.getSerialNumber"></a>
-## *getSerialNumber <sup>method</sup>*
-
-Returns the device serial number.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.serialNumber | string | The serial number |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getSerialNumber"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "serialNumber": "M11806TK0024",
-        "success": true
-    }
-}
-```
-
-<a name="method.getStateInfo"></a>
-## *getStateInfo <sup>method</sup>*
-
-Queries device state information of various properties.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.param | string | The property to query as a string |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result?.com.comcast.channel_map | number | <sup>*(optional)*</sup> The specified property |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getStateInfo",
-    "params": {
-        "param": "com.comcast.channel_map"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "com.comcast.channel_map": 2,
-        "success": true
-    }
-}
-```
-
-<a name="method.getSystemVersions"></a>
-## *getSystemVersions <sup>method</sup>*
-
-Returns system version details.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.stbVersion | string | The STB version |
-| result.receiverVersion | string | The receiver version |
-| result.stbTimestamp | string | The STB timestamp |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getSystemVersions"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "stbVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
-        "receiverVersion": "3.14.0.0",
-        "stbTimestamp": "Thu 09 Jan 2020 04:04:24 AP UTC",
-        "success": true
-    }
-}
-```
-
-<a name="method.getTemperatureThresholds"></a>
-## *getTemperatureThresholds <sup>method</sup>*
-
-Returns temperature threshold values. Not supported on all devices.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.temperatureThresholds | object |  |
-| result.temperatureThresholds.WARN | string | The warning threshold |
-| result.temperatureThresholds.MAX | string | The max temperature threshold |
-| result.temperatureThresholds.temperature | number | The temperature |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getTemperatureThresholds"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "temperatureThresholds": {
-            "WARN": "100.000000",
-            "MAX": "110.000000",
-            "temperature": 48.0
-        },
-        "success": true
-    }
-}
-```
-
-<a name="method.getTimeZoneDST"></a>
-## *getTimeZoneDST <sup>method</sup>*
-
-Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.timeZone | string | The timezone |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getTimeZoneDST"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "timeZone": "America/New_York",
-        "success": true
-    }
-}
-```
-
-<a name="method.getTimeZones"></a>
-## *getTimeZones <sup>method</sup>*
-
-(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result?.zoneInfo | object | <sup>*(optional)*</sup> A timezone area |
-| result?.zoneInfo?.America | object | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.America?.New_York | string | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.America?.Los_Angeles | string | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.Europe | object | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.Europe?.London | string | <sup>*(optional)*</sup>  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getTimeZones"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "zoneInfo": {
-            "America": {
-                "New_York": "Thu Nov 5 15:21:17 2020 EST",
-                "Los_Angeles": "Thu Nov 5 12:21:17 2020 PST"
-            },
-            "Europe": {
-                "London": "Thu Nov 5 14:21:18 2020 CST"
-            }
-        },
-        "success": true
-    }
-}
-```
-
-<a name="method.getWakeupReason"></a>
-## *getWakeupReason <sup>method</sup>*
-
-(Version 2) Returns the reason for the device coming out of deep sleep.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.wakeupReason | string | The reason (must be one of the following: *WAKEUP_REASON_IR*, *WAKEUP_REASON_RCU_BT*, *WAKEUP_REASON_RCU_RF4CE*, *WAKEUP_REASON_GPIO*, *WAKEUP_REASON_LAN*, *WAKEUP_REASON_WLAN*, *WAKEUP_REASON_TIMER*, *WAKEUP_REASON_FRONT_PANEL*, *WAKEUP_REASON_WATCHDOG*, *WAKEUP_REASON_SOFTWARE_RESET*, *WAKEUP_REASON_THERMAL_RESET*, *WAKEUP_REASON_WARM_RESET*, *WAKEUP_REASON_COLDBOOT*, *WAKEUP_REASON_STR_AUTH_FAILURE*, *WAKEUP_REASON_CEC*, *WAKEUP_REASON_PRESENCE*, *WAKEUP_REASON_VOICE*, *WAKEUP_REASON_UNKNOWN*) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getWakeupReason"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "wakeupReason": "WAKEUP_REASON_VOICE",
-        "success": true
-    }
-}
-```
-
-<a name="method.getXconfParams"></a>
-## *getXconfParams <sup>method</sup>*
-
-Returns XCONF configuration parameters for the device.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.xconfParams | object | A timezone area |
-| result.xconfParams.env | string | The environment |
-| result.xconfParams.eStbMac | string | The embedded set-top box MAC address |
-| result.xconfParams.model | string | The device model number |
-| result.xconfParams.firmwareVersion | string | The firmware version |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.getXconfParams"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "xconfParams": {
-            "env": "vbn",
-            "eStbMac": "20:F1:9E:EE:62:08",
-            "model": "AX061AEI",
-            "firmwareVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
-        },
-        "success": true
-    }
-}
-```
-
-<a name="method.hasRebootBeenRequested"></a>
-## *hasRebootBeenRequested <sup>method</sup>*
-
-Checks whether a reboot has been requested.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.rebootRequested | boolean | `true` if a reboot has been requested, otherwise `false` |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.hasRebootBeenRequested"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "rebootRequested": false,
-        "success": true
-    }
-}
-```
-
-<a name="method.isGzEnabled"></a>
-## *isGzEnabled <sup>method</sup>*
-
-Checks whether GZ is enabled.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enabled | boolean | Enabled (`true`) or disabled (`false`) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.isGzEnabled"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "enabled": false,
-        "success": true
-    }
-}
-```
-
-<a name="method.isOptOutTelemetry"></a>
-## *isOptOutTelemetry <sup>method</sup>*
-
-(Version 2) Checks the telemetry opt-out status.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.isOptOutTelemetry"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "Opt-Out": false,
-        "success": true
-    }
-}
-```
-
-<a name="method.queryMocaStatus"></a>
-## *queryMocaStatus <sup>method</sup>*
-
-Checks whether MOCA is enabled.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.mocaEnabled | boolean | `true` if MOCA is enabled, otherwise `false` |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.queryMocaStatus"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "mocaEnabled": true,
-        "success": true
-    }
-}
-```
-
-<a name="method.reboot"></a>
-## *reboot <sup>method</sup>*
-
-Requests that the system performs a reboot of the set-top box.
-
-Also see: [onRebootRequest](#event.onRebootRequest)
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.rebootReason | string | The reboot reason |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.reboot",
-    "params": {
-        "rebootReason": "FIRMWARE_FAILURE"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.removeCacheKey"></a>
-## *removeCacheKey <sup>method</sup>*
-
-Requests that the system performs a reboot of the set-top box.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.removeCacheKey",
-    "params": {
-        "key": "sampleKey"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.requestSystemUptime"></a>
-## *requestSystemUptime <sup>method</sup>*
-
-Returns the device uptime.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.systemUptime | string | The uptime, in seconds, of the device |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.requestSystemUptime"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "systemUptime": "1655.92",
-        "success": true
-    }
-}
-```
-
-<a name="method.setCachedValue"></a>
-## *setCachedValue <sup>method</sup>*
-
-Sets the value for a key in the cache.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-| params.value | number | The value to set |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setCachedValue",
-    "params": {
-        "key": "sampleKey",
-        "value": 4343.3434
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setDeepSleepTimer"></a>
-## *setDeepSleepTimer <sup>method</sup>*
-
-Sets the deep sleep timeout period.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.seconds | integer | The deep sleep timeout in seconds |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setDeepSleepTimer",
-    "params": {
-        "seconds": 3
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setFirmwareAutoReboot"></a>
-## *setFirmwareAutoReboot <sup>method</sup>*
-
-(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.enable | boolean | <sup>*(optional)*</sup> `true` to enable Autoreboot or `false` to disable |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setFirmwareAutoReboot",
-    "params": {
-        "enable": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setFirmwareRebootDelay"></a>
-## *setFirmwareRebootDelay <sup>method</sup>*
-
-(Version 2) Delays the firmware reboot.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.delaySeconds | integer | The reboot delay in seconds |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setFirmwareRebootDelay",
-    "params": {
-        "delaySeconds": 60
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setGzEnabled"></a>
-## *setGzEnabled <sup>method</sup>*
-
-Enables or disables GZ.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.enabled | boolean | Enabled (`true`) or disabled (`false`) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setGzEnabled",
-    "params": {
-        "enabled": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setMode"></a>
-## *setMode <sup>method</sup>*
-
-Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  
-* `NORMAL` - The set-top box is operating in normal mode.  
-* `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  
-* `WAREHOUSE` - The set-top box is operating in warehouse mode.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.modeInfo | object | The mode information |
-| params.modeInfo.mode | string | The mode (must be one of the following: *NORMAL*, *EAS*, *WAREHOUSE*) |
-| params.modeInfo.duration | integer | The duration |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setMode",
-    "params": {
-        "modeInfo": {
-            "mode": "NORMAL",
-            "duration": 0
-        }
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setNetworkStandbyMode"></a>
-## *setNetworkStandbyMode <sup>method</sup>*
-
-Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.nwStandby | boolean | Whether `WakeOnLAN` and `WakeOnWLAN` is supported (`true`); otherwise, `false` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setNetworkStandbyMode",
-    "params": {
-        "nwStandby": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.SetOptOutTelemetry"></a>
-## *SetOptOutTelemetry <sup>method</sup>*
-
-Sets the telemetry opt-out status.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.SetOptOutTelemetry",
-    "params": {
-        "Opt-Out": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setPowerState"></a>
-## *setPowerState <sup>method</sup>*
-
-Sets the power state of the device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
-| params.standbyReason | string | The reason for a standby state |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setPowerState",
-    "params": {
-        "powerState": "ON",
-        "standbyReason": "APIUnitTest"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setPreferredStandbyMode"></a>
-## *setPreferredStandbyMode <sup>method</sup>*
-
-Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.standbyMode | string | The standby mode (must be one of the following: *LIGHT_SLEEP*, *DEEP_SLEEP*) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setPreferredStandbyMode",
-    "params": {
-        "standbyMode": "DEEP_SLEEP"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setTemperatureThresholds"></a>
-## *setTemperatureThresholds <sup>method</sup>*
-
-Sets the temperature threshold values. Not supported on all devices.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.Thresholds | object |  |
-| params.Thresholds.WARN | string | The warning threshold |
-| params.Thresholds.MAX | string | The max temperature threshold |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setTemperatureThresholds",
-    "params": {
-        "Thresholds": {
-            "WARN": "100.000000",
-            "MAX": "110.000000"
-        }
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.setTimeZoneDST"></a>
-## *setTimeZoneDST <sup>method</sup>*
-
-Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.timeZone | string | The timezone |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.setTimeZoneDST",
-    "params": {
-        "timeZone": "America/New_York"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.updateFirmware"></a>
-## *updateFirmware <sup>method</sup>*
-
-Initiates a firmware update. This method has no affect if an update is not available.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.updateFirmware"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.deletePersistentPath"></a>
-## *deletePersistentPath <sup>method</sup>*
-
-(Version 2) Deletes persistent path associated with a callsign.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.callsign | string | Callsign of the service to delete persistent path |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.deletePersistentPath",
-    "params": {
-        "callsign": "HtmlApp"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.uploadLogs"></a>
-## *uploadLogs <sup>method</sup>*
-
-(Version 2) Uploads logs to a URL returned by SSR.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.url | string | <sup>*(optional)*</sup> SSR URL |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.System.1.uploadLogs",
-    "params": {
-        "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1234567890,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="method.getPlatformConfiguration"></a>
-## *getPlatformConfiguration <sup>method</sup>*
+## *getPlatformConfiguration [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the supported features and device/account info.
 
@@ -2677,28 +1037,28 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result?.AccountInfo | object | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.accountId | string | <sup>*(optional)*</sup> Account Id |
-| result?.AccountInfo?.x1DeviceId | string | <sup>*(optional)*</sup> X1 Device Id |
-| result?.AccountInfo?.XCALSessionTokenAvailable | boolean | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.experience | string | <sup>*(optional)*</sup> Experience |
-| result?.AccountInfo?.deviceMACAddress | string | <sup>*(optional)*</sup> Device MAC Address |
-| result?.AccountInfo?.firmwareUpdateDisabled | boolean | <sup>*(optional)*</sup>  |
+| result?.AccountInfo.accountId | string | Account Id |
+| result?.AccountInfo.x1DeviceId | string | X1 Device Id |
+| result?.AccountInfo.XCALSessionTokenAvailable | boolean |  |
+| result?.AccountInfo.experience | string | Experience |
+| result?.AccountInfo.deviceMACAddress | string | Device MAC Address |
+| result?.AccountInfo.firmwareUpdateDisabled | boolean |  |
 | result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.quirks | array | <sup>*(optional)*</sup> The list of installed "quirks" |
-| result?.DeviceInfo?.quirks[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypeExclusions | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.features | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes | array | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.model | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.deviceType | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.supportsTrueSD | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser.browserType | string |  |
-| result?.DeviceInfo?.webBrowser.version | string |  |
-| result?.DeviceInfo?.webBrowser.userAgent | string |  |
-| result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
-| result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo.quirks | array | The list of installed "quirks" |
+| result?.DeviceInfo.quirks[#] | string |  |
+| result?.DeviceInfo.mimeTypeExclusions | object |  |
+| result?.DeviceInfo.features | object |  |
+| result?.DeviceInfo.mimeTypes | array |  |
+| result?.DeviceInfo.mimeTypes[#] | string |  |
+| result?.DeviceInfo.model | string |  |
+| result?.DeviceInfo.deviceType | string |  |
+| result?.DeviceInfo.supportsTrueSD | boolean |  |
+| result?.DeviceInfo.webBrowser | object |  |
+| result?.DeviceInfo.webBrowser.browserType | string |  |
+| result?.DeviceInfo.webBrowser.version | string |  |
+| result?.DeviceInfo.webBrowser.userAgent | string |  |
+| result?.DeviceInfo.HdrCapability | string | e.g. HDR10,Dolby Vision,Technicolor Prime |
+| result?.DeviceInfo.canMixPCMWithSurround | boolean |  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2708,10 +1068,10 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.System.1.getPlatformConfiguration",
     "params": {
-        "query": ""
+        "query": "..."
     }
 }
 ```
@@ -2721,7 +1081,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "AccountInfo": {
             "accountId": "1000000000000000000",
@@ -2756,6 +1116,1751 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getPowerState"></a>
+## *getPowerState [<sup>method</sup>](#head.Methods)*
+
+Returns the power state of the device.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPowerState"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "powerState": "ON",
+        "success": true
+    }
+}
+```
+
+<a name="method.getPowerStateBeforeReboot"></a>
+## *getPowerStateBeforeReboot [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the power state before reboot.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.state | string | The power state |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "state": "ON",
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreferredStandbyMode"></a>
+## *getPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
+
+Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.preferredStandbyMode | string | The standby mode (must be one of the following: *LIGHT_SLEEP*, *DEEP_SLEEP*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPreferredStandbyMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "preferredStandbyMode": "DEEP_SLEEP",
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreviousRebootInfo"></a>
+## *getPreviousRebootInfo [<sup>method</sup>](#head.Methods)*
+
+Returns basic information about a reboot.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timestamp | string | The last reboot time |
+| result.reason | string | The reboot reason |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPreviousRebootInfo"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timestamp": "20200128083540",
+        "reason": "FIRMWARE_FAILURE",
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreviousRebootInfo2"></a>
+## *getPreviousRebootInfo2 [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns detailed information about a reboot.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.rebootInfo | object |  |
+| result.rebootInfo.timestamp | string | The last reboot time |
+| result.rebootInfo.source | string | The source of the reboot |
+| result.rebootInfo.reason | string | The reboot reason |
+| result.rebootInfo.customReason | string | A custom reason |
+| result.rebootInfo.lastHardPowerReset | string | The timestamp of the last hard power reset |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPreviousRebootInfo2"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "rebootInfo": {
+            "timestamp": "20200128083540",
+            "source": "SystemPlugin",
+            "reason": "FIRMWARE_FAILURE",
+            "customReason": "API Validation",
+            "lastHardPowerReset": "Tue Jan 28 08:22:22 UTC 2020"
+        },
+        "success": true
+    }
+}
+```
+
+<a name="method.getPreviousRebootReason"></a>
+## *getPreviousRebootReason [<sup>method</sup>](#head.Methods)*
+
+Returns the last reboot reason.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.reason | string | The reboot reason |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPreviousRebootReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "reason": "FIRMWARE_FAILURE",
+        "success": true
+    }
+}
+```
+
+<a name="method.getRFCConfig"></a>
+## *getRFCConfig [<sup>method</sup>](#head.Methods)*
+
+Returns information that is related to RDK Feature Control (RFC) configurations.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.rfcList | array | A list of RFC properties to query |
+| params.rfcList[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.RFCConfig | object | A list of specified RFC properties |
+| result.RFCConfig?.Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID | string | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getRFCConfig",
+    "params": {
+        "rfcList": [
+            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "RFCConfig": {
+            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID": "1181405614235499371"
+        },
+        "success": true
+    }
+}
+```
+
+<a name="method.getSerialNumber"></a>
+## *getSerialNumber [<sup>method</sup>](#head.Methods)*
+
+Returns the device serial number.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.serialNumber | string | The serial number |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getSerialNumber"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "serialNumber": "M11806TK0024",
+        "success": true
+    }
+}
+```
+
+<a name="method.getStateInfo"></a>
+## *getStateInfo [<sup>method</sup>](#head.Methods)*
+
+Queries device state information of various properties.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.param | string | The property to query as a string |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.com.comcast.channel_map | number | <sup>*(optional)*</sup> The specified property |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getStateInfo",
+    "params": {
+        "param": "com.comcast.channel_map"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "com.comcast.channel_map": 2,
+        "success": true
+    }
+}
+```
+
+<a name="method.getSystemVersions"></a>
+## *getSystemVersions [<sup>method</sup>](#head.Methods)*
+
+Returns system version details.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.stbVersion | string | The STB version |
+| result.receiverVersion | string | The receiver version |
+| result.stbTimestamp | string | The STB timestamp |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getSystemVersions"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "stbVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
+        "receiverVersion": "3.14.0.0",
+        "stbTimestamp": "Thu 09 Jan 2020 04:04:24 AP UTC",
+        "success": true
+    }
+}
+```
+
+<a name="method.getTemperatureThresholds"></a>
+## *getTemperatureThresholds [<sup>method</sup>](#head.Methods)*
+
+Returns temperature threshold values. Not supported on all devices.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.temperatureThresholds | object |  |
+| result.temperatureThresholds.WARN | string | The warning threshold |
+| result.temperatureThresholds.MAX | string | The max temperature threshold |
+| result.temperatureThresholds.temperature | number | The temperature |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTemperatureThresholds"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "temperatureThresholds": {
+            "WARN": "100.000000",
+            "MAX": "110.000000",
+            "temperature": 48.0
+        },
+        "success": true
+    }
+}
+```
+
+<a name="method.getTimeStatus"></a>
+## *getTimeStatus [<sup>method</sup>](#head.Methods)*
+
+Returns the timer status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timeQuality | string | The quality of the time source in terms of security (must be one of the following: *poor*, *good*, *secure*, *unknown*) |
+| result.timeSrc | string | The source that is providing the time |
+| result.time | string | The current time |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTimeStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timeQuality": "poor",
+        "timeSrc": "NTP",
+        "time": "20200128083540"
+    }
+}
+```
+
+<a name="method.getTimeZoneDST"></a>
+## *getTimeZoneDST [<sup>method</sup>](#head.Methods)*
+
+Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timeZone | string | The timezone |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTimeZoneDST"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timeZone": "America/New_York",
+        "success": true
+    }
+}
+```
+
+<a name="method.getTimeZones"></a>
+## *getTimeZones [<sup>method</sup>](#head.Methods)*
+
+(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.zoneInfo | object | <sup>*(optional)*</sup> A timezone area |
+| result?.zoneInfo?.America | object | <sup>*(optional)*</sup>  |
+| result?.zoneInfo?.America?.New_York | string | <sup>*(optional)*</sup>  |
+| result?.zoneInfo?.America?.Los_Angeles | string | <sup>*(optional)*</sup>  |
+| result?.zoneInfo?.Europe | object | <sup>*(optional)*</sup>  |
+| result?.zoneInfo?.Europe?.London | string | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTimeZones"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "zoneInfo": {
+            "America": {
+                "New_York": "Thu Nov 5 15:21:17 2020 EST",
+                "Los_Angeles": "Thu Nov 5 12:21:17 2020 PST"
+            },
+            "Europe": {
+                "London": "Thu Nov 5 14:21:18 2020 CST"
+            }
+        },
+        "success": true
+    }
+}
+```
+
+<a name="method.getWakeupReason"></a>
+## *getWakeupReason [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the reason for the device coming out of deep sleep.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.wakeupReason | string | The reason (must be one of the following: *WAKEUP_REASON_IR*, *WAKEUP_REASON_RCU_BT*, *WAKEUP_REASON_RCU_RF4CE*, *WAKEUP_REASON_GPIO*, *WAKEUP_REASON_LAN*, *WAKEUP_REASON_WLAN*, *WAKEUP_REASON_TIMER*, *WAKEUP_REASON_FRONT_PANEL*, *WAKEUP_REASON_WATCHDOG*, *WAKEUP_REASON_SOFTWARE_RESET*, *WAKEUP_REASON_THERMAL_RESET*, *WAKEUP_REASON_WARM_RESET*, *WAKEUP_REASON_COLDBOOT*, *WAKEUP_REASON_STR_AUTH_FAILURE*, *WAKEUP_REASON_CEC*, *WAKEUP_REASON_PRESENCE*, *WAKEUP_REASON_VOICE*, *WAKEUP_REASON_UNKNOWN*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getWakeupReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "wakeupReason": "WAKEUP_REASON_VOICE",
+        "success": true
+    }
+}
+```
+
+<a name="method.getXconfParams"></a>
+## *getXconfParams [<sup>method</sup>](#head.Methods)*
+
+Returns XCONF configuration parameters for the device.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.xconfParams | object | A timezone area |
+| result.xconfParams.env | string | The environment |
+| result.xconfParams.eStbMac | string | The embedded set-top box MAC address |
+| result.xconfParams.model | string | The device model number |
+| result.xconfParams.firmwareVersion | string | The firmware version |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getXconfParams"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "xconfParams": {
+            "env": "vbn",
+            "eStbMac": "20:F1:9E:EE:62:08",
+            "model": "AX061AEI",
+            "firmwareVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy"
+        },
+        "success": true
+    }
+}
+```
+
+<a name="method.hasRebootBeenRequested"></a>
+## *hasRebootBeenRequested [<sup>method</sup>](#head.Methods)*
+
+Checks whether a reboot has been requested.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.rebootRequested | boolean | `true` if a reboot has been requested, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.hasRebootBeenRequested"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "rebootRequested": false,
+        "success": true
+    }
+}
+```
+
+<a name="method.isGzEnabled"></a>
+## *isGzEnabled [<sup>method</sup>](#head.Methods)*
+
+Checks whether GZ is enabled.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.enabled | boolean | Enabled (`true`) or disabled (`false`) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.isGzEnabled"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "enabled": false,
+        "success": true
+    }
+}
+```
+
+<a name="method.isOptOutTelemetry"></a>
+## *isOptOutTelemetry [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Checks the telemetry opt-out status.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.isOptOutTelemetry"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "Opt-Out": false,
+        "success": true
+    }
+}
+```
+
+<a name="method.queryMocaStatus"></a>
+## *queryMocaStatus [<sup>method</sup>](#head.Methods)*
+
+Checks whether MOCA is enabled.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mocaEnabled | boolean | `true` if MOCA is enabled, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.queryMocaStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mocaEnabled": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.reboot"></a>
+## *reboot [<sup>method</sup>](#head.Methods)*
+
+Requests that the system performs a reboot of the set-top box.
+
+Also see: [onRebootRequest](#event.onRebootRequest)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.rebootReason | string | The reboot reason |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.reboot",
+    "params": {
+        "rebootReason": "FIRMWARE_FAILURE"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.removeCacheKey"></a>
+## *removeCacheKey [<sup>method</sup>](#head.Methods)*
+
+Removes the specified key from the cache.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.key | string | The cache key |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.removeCacheKey",
+    "params": {
+        "key": "sampleKey"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.requestSystemUptime"></a>
+## *requestSystemUptime [<sup>method</sup>](#head.Methods)*
+
+Returns the device uptime.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.systemUptime | string | The uptime, in seconds, of the device |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.requestSystemUptime"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "systemUptime": "1655.92",
+        "success": true
+    }
+}
+```
+
+<a name="method.setCachedValue"></a>
+## *setCachedValue [<sup>method</sup>](#head.Methods)*
+
+Sets the value for a key in the cache.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.key | string | The cache key |
+| params.value | number | The value to set |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setCachedValue",
+    "params": {
+        "key": "sampleKey",
+        "value": 4343.3434
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setDeepSleepTimer"></a>
+## *setDeepSleepTimer [<sup>method</sup>](#head.Methods)*
+
+Sets the deep sleep timeout period.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.seconds | integer | The deep sleep timeout in seconds |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setDeepSleepTimer",
+    "params": {
+        "seconds": 3
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setFirmwareAutoReboot"></a>
+## *setFirmwareAutoReboot [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enable | boolean | `true` to enable Autoreboot or `false` to disable |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setFirmwareAutoReboot",
+    "params": {
+        "enable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setFirmwareRebootDelay"></a>
+## *setFirmwareRebootDelay [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Delays the firmware reboot.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.delaySeconds | integer | The reboot delay in seconds |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setFirmwareRebootDelay",
+    "params": {
+        "delaySeconds": 60
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setGzEnabled"></a>
+## *setGzEnabled [<sup>method</sup>](#head.Methods)*
+
+Enables or disables GZ.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | Enabled (`true`) or disabled (`false`) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setGzEnabled",
+    "params": {
+        "enabled": false
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setMode"></a>
+## *setMode [<sup>method</sup>](#head.Methods)*
+
+Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  
+* `NORMAL` - The set-top box is operating in normal mode.  
+* `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  
+* `WAREHOUSE` - The set-top box is operating in warehouse mode.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.modeInfo | object | The mode information |
+| params.modeInfo.mode | string | The mode (must be one of the following: *NORMAL*, *EAS*, *WAREHOUSE*) |
+| params.modeInfo.duration | integer | The duration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setMode",
+    "params": {
+        "modeInfo": {
+            "mode": "NORMAL",
+            "duration": 0
+        }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setNetworkStandbyMode"></a>
+## *setNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
+
+Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.nwStandby | boolean | Whether `WakeOnLAN` and `WakeOnWLAN` is supported (`true`); otherwise, `false` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setNetworkStandbyMode",
+    "params": {
+        "nwStandby": false
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.SetOptOutTelemetry"></a>
+## *SetOptOutTelemetry [<sup>method</sup>](#head.Methods)*
+
+Sets the telemetry opt-out status.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.Opt-Out | boolean | `true` for opt-out, otherwise `false` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.SetOptOutTelemetry",
+    "params": {
+        "Opt-Out": false
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setPowerState"></a>
+## *setPowerState [<sup>method</sup>](#head.Methods)*
+
+Sets the power state of the device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
+| params.standbyReason | string | The reason for a standby state |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setPowerState",
+    "params": {
+        "powerState": "ON",
+        "standbyReason": "APIUnitTest"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setPreferredStandbyMode"></a>
+## *setPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
+
+Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.standbyMode | string | The standby mode (must be one of the following: *LIGHT_SLEEP*, *DEEP_SLEEP*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setPreferredStandbyMode",
+    "params": {
+        "standbyMode": "DEEP_SLEEP"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setTemperatureThresholds"></a>
+## *setTemperatureThresholds [<sup>method</sup>](#head.Methods)*
+
+Sets the temperature threshold values. Not supported on all devices.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.Thresholds | object |  |
+| params.Thresholds.WARN | string | The warning threshold |
+| params.Thresholds.MAX | string | The max temperature threshold |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setTemperatureThresholds",
+    "params": {
+        "Thresholds": {
+            "WARN": "100.000000",
+            "MAX": "110.000000"
+        }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setTimeZoneDST"></a>
+## *setTimeZoneDST [<sup>method</sup>](#head.Methods)*
+
+Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.timeZone | string | The timezone |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setTimeZoneDST",
+    "params": {
+        "timeZone": "America/New_York"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setWakeupSrcConfiguration"></a>
+## *setWakeupSrcConfiguration [<sup>method</sup>](#head.Methods)*
+
+Sets the device wake-up configuration.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.wakeupSrc | integer | The wake-up source as an integer from 0 - 8. (must be one of the following: *WAKEUPSRC_VOICE*, *WAKEUPSRC_PRESENCE_DETECTION*, *WAKEUPSRC_BLUETOOTH*, *WAKEUPSRC_WIFI*, *WAKEUPSRC_IR*, *WAKEUPSRC_POWER_KEY*, *WAKEUPSRC_TIMER*, *WAKEUPSRC_CEC*, *WAKEUPSRC_LAN*) |
+| params.config | integer | `0` to disable the wake-up source configuration, or `1` to enable the wake-up source configuration (must be one of the following: *0*, *1*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setWakeupSrcConfiguration",
+    "params": {
+        "wakeupSrc": 3,
+        "config": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.updateFirmware"></a>
+## *updateFirmware [<sup>method</sup>](#head.Methods)*
+
+Initiates a firmware update. This method has no affect if an update is not available.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.updateFirmware"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.uploadLogs"></a>
+## *uploadLogs [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Uploads logs to a URL returned by SSR.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.url | string | <sup>*(optional)*</sup> SSR URL |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.uploadLogs",
+    "params": {
+        "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -2767,19 +2872,45 @@ SystemServices interface events:
 
 | Event | Description |
 | :-------- | :-------- |
+| [onFirmwareDownloadProgress](#event.onFirmwareDownloadProgress) | Triggered once per second when firmware download is started |
 | [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#event.onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
-| [onMacAddressesRetrieved](#event.onMacAddressesRetrieved) | Triggered when the `getMacAddresses` asynchronous method is invoked |
+| [onMacAddressesRetreived](#event.onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
 | [onRebootRequest](#event.onRebootRequest) | Triggered when an application invokes the reboot method |
 | [onSystemClockSet](#event.onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onTimeStatusChanged](#event.onTimeStatusChanged) | Triggered when the device timer settings change |
 
+
+<a name="event.onFirmwareDownloadProgress"></a>
+## *onFirmwareDownloadProgress [<sup>event</sup>](#head.Notifications)*
+
+Triggered once per second when firmware download is started. Will be stopped at 100%.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.downloadPercent | number | Download progress |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onFirmwareDownloadProgress",
+    "params": {
+        "downloadPercent": 12
+    }
+}
+```
 
 <a name="event.onFirmwarePendingReboot"></a>
-## *onFirmwarePendingReboot <sup>event</sup>*
+## *onFirmwarePendingReboot [<sup>event</sup>](#head.Notifications)*
 
 (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked.
 
@@ -2788,7 +2919,7 @@ SystemServices interface events:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.seconds | integer | The deep sleep timeout in seconds |
+| params.seconds | integer | The amount of time to wait, in seconds, before forcing a reboot. A reboot is mandatory when the `rebootImmediately` parameter is `true`. See [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) |
 | params.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2798,14 +2929,14 @@ SystemServices interface events:
     "jsonrpc": "2.0",
     "method": "client.events.1.onFirmwarePendingReboot",
     "params": {
-        "seconds": 3,
+        "seconds": 600,
         "success": true
     }
 }
 ```
 
 <a name="event.onFirmwareUpdateInfoReceived"></a>
-## *onFirmwareUpdateInfoReceived <sup>event</sup>*
+## *onFirmwareUpdateInfoReceived [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked.  
 Update details are:  
@@ -2821,6 +2952,7 @@ Update details are:
 | params | object |  |
 | params.status | integer | The firmware update status |
 | params.responseString | string | A custom response |
+| params.rebootImmediately | boolean | When `true`, indicates that an update is mandatory and requires a reboot. The application is responsible for coordinating the reboot with the user. An [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) event indicates that the device has been successfully flashed and that the reboot is pending. See [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) |
 | params.firmwareUpdateVersion | string | The next firmware update version |
 | params.updateAvailable | boolean | The value `false` indicates that there is no update available, either because there was no firmware update version returned from XCONF, or because the version returned from XCONF matches the version already on the device. The value of `true` indicates there is a firmware version available for update |
 | params.updateAvailableEnum | integer | The update available details (must be one of the following: *0*, *1*, *2*, *3*) |
@@ -2834,7 +2966,8 @@ Update details are:
     "method": "client.events.1.onFirmwareUpdateInfoReceived",
     "params": {
         "status": 0,
-        "responseString": "",
+        "responseString": "...",
+        "rebootImmediately": true,
         "firmwareUpdateVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
         "updateAvailable": true,
         "updateAvailableEnum": 0,
@@ -2844,7 +2977,7 @@ Update details are:
 ```
 
 <a name="event.onFirmwareUpdateStateChange"></a>
-## *onFirmwareUpdateStateChange <sup>event</sup>*
+## *onFirmwareUpdateStateChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the state of a firmware update changes.  
 State details are:  
@@ -2854,14 +2987,15 @@ State details are:
 * `3`: Failed  
 * `4`: Download Complete  
 * `5`: Validation Complete  
-* `6`: Preparing to Reboot.
+* `6`: Preparing to Reboot  
+* `7`: On Hold for opt-out.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| params.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *Download Complete*, *Validation Complete*, *Preparing to Reboot*, *On Hold for opt-out*) |
 
 ### Example
 
@@ -2875,8 +3009,8 @@ State details are:
 }
 ```
 
-<a name="event.onMacAddressesRetrieved"></a>
-## *onMacAddressesRetrieved <sup>event</sup>*
+<a name="event.onMacAddressesRetreived"></a>
+## *onMacAddressesRetreived [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `getMacAddresses` asynchronous method is invoked.
 
@@ -2898,21 +3032,21 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMacAddressesRetrieved",
+    "method": "client.events.1.onMacAddressesRetreived",
     "params": {
         "ecm_mac": "A8:11:XX:FD:0C:XX",
         "estb_mac": "A8:11:XX:FD:0C:XX",
         "moca_mac": "00:15:5F:XX:20:5E:57:XX",
         "eth_mac": "A8:11:XX:FD:0C:XX",
         "wifi_mac": "A8:11:XX:FD:0C:XX",
-        "info": "",
+        "info": "...",
         "success": true
     }
 }
 ```
 
 <a name="event.onRebootRequest"></a>
-## *onRebootRequest <sup>event</sup>*
+## *onRebootRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application invokes the reboot method.
 
@@ -2938,7 +3072,7 @@ Triggered when an application invokes the reboot method.
 ```
 
 <a name="event.onSystemClockSet"></a>
-## *onSystemClockSet <sup>event</sup>*
+## *onSystemClockSet [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the clock on the set-top device is updated.
 
@@ -2956,7 +3090,7 @@ This event carries no parameters.
 ```
 
 <a name="event.onSystemModeChanged"></a>
-## *onSystemModeChanged <sup>event</sup>*
+## *onSystemModeChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the device operating mode changes.
 
@@ -2980,7 +3114,7 @@ Triggered when the device operating mode changes.
 ```
 
 <a name="event.onSystemPowerStateChanged"></a>
-## *onSystemPowerStateChanged <sup>event</sup>*
+## *onSystemPowerStateChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the power manager detects a device power state change.
 
@@ -3006,7 +3140,7 @@ Triggered when the power manager detects a device power state change.
 ```
 
 <a name="event.onTemperatureThresholdChanged"></a>
-## *onTemperatureThresholdChanged <sup>event</sup>*
+## *onTemperatureThresholdChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`). Not supported on all devices.
 
@@ -3029,6 +3163,34 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
         "thresholdType": "MAX",
         "exceeded": true,
         "temperature": 48.0
+    }
+}
+```
+
+<a name="event.onTimeStatusChanged"></a>
+## *onTimeStatusChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the device timer settings change.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.timeQuality | string | The quality of the time source in terms of security (must be one of the following: *poor*, *good*, *secure*, *unknown*) |
+| params.timeSrc | string | The source that is providing the time |
+| params.time | string | The current time |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onTimeStatusChanged",
+    "params": {
+        "timeQuality": "poor",
+        "timeSrc": "NTP",
+        "time": "20200128083540"
     }
 }
 ```

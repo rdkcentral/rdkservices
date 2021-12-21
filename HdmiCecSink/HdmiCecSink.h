@@ -38,6 +38,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <chrono>
 
 namespace WPEFramework {
 
@@ -566,11 +567,13 @@ private:
 			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
+	    bool hdmiCecAudioDeviceConnected;
 			bool m_isHdmiInConnected;
 			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
@@ -580,7 +583,7 @@ private:
 			uint32_t m_pollNextState;
 			bool m_pollThreadExit;
 			uint32_t m_sleepTime;
-            std::mutex m_pollMutex;
+            std::mutex m_pollExitMutex;
             std::mutex m_enableMutex;
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
@@ -588,6 +591,7 @@ private:
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
             std::condition_variable m_sendKeyCV;
+	    std::condition_variable m_ThreadExitCV;
 
             /* ARC related */
             std::thread m_arcRoutingThread;
@@ -627,6 +631,7 @@ private:
             void persistVendorId(unsigned int vendorID);
             void setEnabled(bool enabled);
             bool getEnabled();
+	    bool getAudioDeviceConnectedStatus();
             void CECEnable(void);
             void CECDisable(void);
             void getPhysicalAddress();

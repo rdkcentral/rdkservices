@@ -86,6 +86,62 @@ namespace WPEFramework {
             }
         
         };
+
+#define BIT_DEVICE_PRESENT    (0)
+
+	class CECDeviceInfo_2 {
+		public:
+
+		LogicalAddress m_logicalAddress;
+		VendorID m_vendorID;
+		OSDName m_osdName;
+		//<Bits 16 - 1: unused><Bit 0: DevicePresent>
+		short m_deviceInfoStatus;
+	        bool m_isOSDNameUpdated;
+	        bool m_isVendorIDUpdated;
+
+		CECDeviceInfo_2()
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		{
+			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
+		}
+
+		void clear( )
+		{
+			m_logicalAddress = 0;
+			m_vendorID = VendorID(0,0,0);
+			m_osdName = "NA";
+			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
+			m_isOSDNameUpdated = false;
+			m_isVendorIDUpdated = false;
+		}
+
+		bool update ( const VendorID &vendorId) {
+			bool isVendorIdUpdated = false;
+			if (!m_isVendorIDUpdated)
+				isVendorIdUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isVendorIdUpdated = (m_vendorID.toString().compare(vendorId.toString())==0)?false:true;
+
+			m_isVendorIDUpdated = true;
+			m_vendorID = vendorId;
+			return isVendorIdUpdated;
+		}
+
+		bool update ( const OSDName    &osdName ) {
+			bool isOSDNameUpdated = false;
+			if (!m_isOSDNameUpdated)
+				isOSDNameUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isOSDNameUpdated = (m_osdName.toString().compare(osdName.toString())==0)?false:true;
+
+			m_isOSDNameUpdated = true;
+			m_osdName = osdName;
+			return isOSDNameUpdated;
+		}
+
+	};
+
 		// This is a server for a JSONRPC communication channel. 
 		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
 		// By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
@@ -105,7 +161,19 @@ namespace WPEFramework {
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCec_2* _instance;
+            CECDeviceInfo_2 deviceList[16];
+            pthread_cond_t m_condSig;
+            pthread_mutex_t m_lock;
+            pthread_cond_t m_condSigUpdate;
+            pthread_mutex_t m_lockUpdate;
+
             void SendStandbyMsgEvent(const int logicalAddress);
+
+            void addDevice(const int logicalAddress);
+            void removeDevice(const int logicalAddress);
+            void sendUnencryptMsg(unsigned char* msg, int size);
+            void sendDeviceUpdateInfo(const int logicalAddress);
+
         private:
             // We do not allow this plugin to be copied !!
             HdmiCec_2(const HdmiCec_2&) = delete;
@@ -122,6 +190,7 @@ namespace WPEFramework {
             uint32_t getVendorIdWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t performOTPActionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDeviceList (const JsonObject& parameters, JsonObject& response);
 
             //End methods
             std::string logicalAddressDeviceType;
@@ -130,6 +199,12 @@ namespace WPEFramework {
             bool cecEnableStatus;
             bool IsCecMgrActivated;
             Connection *smConnection;
+            int m_numberOfDevices;
+            bool m_pollThreadExit;
+            std::thread m_pollThread;
+            bool m_updateThreadExit;
+            std::thread m_UpdateThread;
+
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
             const void InitializeIARM();
@@ -156,6 +231,13 @@ namespace WPEFramework {
             void getLogicalAddress();
             void cecAddressesChanged(int changeStatus);
             bool sendStandbyMessage();
+            bool pingDeviceUpdateList (int idev);
+            void removeAllCecDevices();
+            void requestVendorID(const int newDevlogicalAddress);
+            void requestOsdName(const int newDevlogicalAddress);
+            void requestCecDevDetails(const int logicalAddress);
+            static void threadRun();
+            static void threadUpdateCheck();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

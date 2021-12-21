@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.DisplaySettings plugin for Thunder framework.
+A org.rdk.DisplaySettings plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDisplaySettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [DisplaySettings.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DisplaySettings.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -122,6 +130,7 @@ DisplaySettings interface methods:
 | [getSurroundVirtualizer](#method.getSurroundVirtualizer) | (Version 2) Returns the current surround virtualizer boost settings |
 | [getTVHDRCapabilities](#method.getTVHDRCapabilities) | Gets HDR capabilities supported by the TV |
 | [getTvHDRSupport](#method.getTvHDRSupport) | Returns an HDR support object (list of standards that the TV supports) |
+| [getVideoFormat](#method.getVideoFormat) | Returns the current and supported video formats |
 | [getVideoPortStatusInStandby](#method.getVideoPortStatusInStandby) | Returns video port status in standby mode (failure if the port name is missing) |
 | [getVolumeLevel](#method.getVolumeLevel) | Returns the current volume level |
 | [getVolumeLeveller](#method.getVolumeLeveller) | (Version 2) Returns the current Volume Leveller setting |
@@ -129,7 +138,11 @@ DisplaySettings interface methods:
 | [isConnectedDeviceRepeater](#method.isConnectedDeviceRepeater) | Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater |
 | [isSurroundDecoderEnabled](#method.isSurroundDecoderEnabled) | Returns the current status of Surround Decoder |
 | [readEDID](#method.readEDID) | Reads the EDID from the connected HDMI (output) device |
-| [readHostEDID](#method.readHostEDID) | Reads the EDID of the host (STB) |
+| [readHostEDID](#method.readHostEDID) | Reads the EDID of the host |
+| [resetBassEnhancer](#method.resetBassEnhancer) | Resets the bass enhancer setting to the factory default |
+| [resetDialogEnhancement](#method.resetDialogEnhancement) | Resets the dialog enhancement setting to the factory default |
+| [resetSurroundVirtualizer](#method.resetSurroundVirtualizer) | Resets the surround virtualizer setting to the factory default |
+| [resetVolumeLeveller](#method.resetVolumeLeveller) | Resets the volume leveller setting to the factory default |
 | [setAudioAtmosOutputMode](#method.setAudioAtmosOutputMode) | Sets ATMOS audio output mode (on HDMI0) |
 | [setAudioDelay](#method.setAudioDelay) | Sets the audio delay (in ms) on the selected audio port |
 | [setAudioDelayOffset](#method.setAudioDelayOffset) | Sets the audio delay offset (in ms) on the selected audio port |
@@ -138,10 +151,10 @@ DisplaySettings interface methods:
 | [setDialogEnhancement](#method.setDialogEnhancement) | Sets the Dialog Enhancer level |
 | [setDolbyVolumeMode](#method.setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#method.setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
-| [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port ID |
+| [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port name |
 | [setGain](#method.setGain) | Adjusts the gain on a specific port |
 | [setGraphicEqualizerMode](#method.setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
-| [setIntelligentEqualizerMode](#method.setIntelligentEqualizerMode) | Sets the Intelligent Equalizer mode (port HDMI0) |
+| [setIntelligentEqualizerMode](#method.setIntelligentEqualizerMode) | Sets the Intelligent Equalizer Mode (port HDMI0) |
 | [setMISteering](#method.setMISteering) | Enables or Disables Media Intelligent Steering |
 | [setMS12AudioCompression](#method.setMS12AudioCompression) | Sets the audio dynamic range compression level (port HDMI0) |
 | [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
@@ -156,9 +169,13 @@ DisplaySettings interface methods:
 
 
 <a name="method.enableSurroundDecoder"></a>
-## *enableSurroundDecoder <sup>method</sup>*
+## *enableSurroundDecoder [<sup>method</sup>](#head.Methods)*
 
 Enables or disables Surround Decoder capability. The Surround Decoder is an upmixer that takes stereo music content, or surround-encoded two-channel movie content, and creates a high-quality multichannel upmix. If the Surround Decoder is enabled, two-channel signals and 5.1-channel signals are upmixed to 5.1.2.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -182,7 +199,7 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.enableSurroundDecoder",
     "params": {
         "audioPort": "SPEAKER0",
@@ -196,7 +213,7 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -204,30 +221,27 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 ```
 
 <a name="method.getActiveInput"></a>
-## *getActiveInput <sup>method</sup>*
+## *getActiveInput [<sup>method</sup>](#head.Methods)*
 
-Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`). If the STB does not support `RxSense`, this API always returns `true`. Specifically:  
-`true`  
-* STB is connected to the TV's active Input, or  
-* Unable to determine if STB is connected to the TV's active input or not (because STB does not support `RxSense`)  
-  
-`false`  
-* STB is not connected to the TV's active input, or  
-* TV is OFF.
+Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.activeInput | boolean | Determines whether selected input is active or not |
+| result.activeInput | boolean | `true`:  1. STB is connected to TV's active input 2. Unable to determine if STB is connected to the TV's active input or not (because STB does not support RxSense) ; `false`: 1.STB is not connected to TV's Active input 2. TV is off  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -237,7 +251,7 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getActiveInput",
     "params": {
         "videoDisplay": "HDMI0"
@@ -250,7 +264,7 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "activeInput": true,
         "success": true
@@ -259,16 +273,20 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 ```
 
 <a name="method.getAudioDelay"></a>
-## *getAudioDelay <sup>method</sup>*
+## *getAudioDelay [<sup>method</sup>](#head.Methods)*
 
 Returns the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 
 ### Result
 
@@ -285,7 +303,7 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getAudioDelay",
     "params": {
         "audioPort": "HDMI0"
@@ -298,7 +316,7 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "audioDelay": "0",
         "success": true
@@ -307,16 +325,20 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 ```
 
 <a name="method.getAudioDelayOffset"></a>
-## *getAudioDelayOffset <sup>method</sup>*
+## *getAudioDelayOffset [<sup>method</sup>](#head.Methods)*
 
 Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 
 ### Result
 
@@ -333,7 +355,7 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getAudioDelayOffset",
     "params": {
         "audioPort": "HDMI0"
@@ -346,7 +368,7 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "audioDelayOffset": "0",
         "success": true
@@ -355,9 +377,13 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 ```
 
 <a name="method.getAudioFormat"></a>
-## *getAudioFormat <sup>method</sup>*
+## *getAudioFormat [<sup>method</sup>](#head.Methods)*
 
 Returns the currently set audio format.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -380,7 +406,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getAudioFormat"
 }
 ```
@@ -390,7 +416,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedAudioFormat": [
             "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
@@ -402,9 +428,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getBassEnhancer"></a>
-## *getBassEnhancer <sup>method</sup>*
+## *getBassEnhancer [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of the Bass Enhancer settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -418,8 +448,8 @@ Returns the current status of the Bass Enhancer settings.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.enable | boolean | `true` if Bass Enhancer is enabled, otherwise `false` |
-| result.bassBoost | integer | Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost |
+| result?.enable | boolean | <sup>*(optional)*</sup> `true` if Bass Enhancer is enabled, otherwise `false` |
+| result?.bassBoost | integer | <sup>*(optional)*</sup> Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -429,7 +459,7 @@ Returns the current status of the Bass Enhancer settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getBassEnhancer",
     "params": {
         "audioPort": "SPEAKER0"
@@ -442,7 +472,7 @@ Returns the current status of the Bass Enhancer settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": true,
         "bassBoost": 50,
@@ -452,9 +482,13 @@ Returns the current status of the Bass Enhancer settings.
 ```
 
 <a name="method.getConnectedAudioPorts"></a>
-## *getConnectedAudioPorts <sup>method</sup>*
+## *getConnectedAudioPorts [<sup>method</sup>](#head.Methods)*
 
-Returns connected audio output ports (a subset of the ports supported on the device). SPDIF port is always considered connected. HDMI port may or may not be connected.
+Returns connected audio output ports (a subset of the ports supported on the device). For SPDIF supported platforms, SPDIF port is always considered connected. HDMI port may or may not be connected.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -476,7 +510,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getConnectedAudioPorts"
 }
 ```
@@ -486,7 +520,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "connectedAudioPorts": [
             "HDMI0"
@@ -497,9 +531,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getConnectedVideoDisplays"></a>
-## *getConnectedVideoDisplays <sup>method</sup>*
+## *getConnectedVideoDisplays [<sup>method</sup>](#head.Methods)*
 
 Returns connected video displays.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -521,7 +559,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getConnectedVideoDisplays"
 }
 ```
@@ -531,7 +569,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "connectedVideoDisplays": [
             "HDMI0"
@@ -542,9 +580,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getCurrentOutputSettings"></a>
-## *getCurrentOutputSettings <sup>method</sup>*
+## *getCurrentOutputSettings [<sup>method</sup>](#head.Methods)*
 
 Returns current output settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -569,7 +611,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getCurrentOutputSettings"
 }
 ```
@@ -579,7 +621,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "colorSpace": 5,
         "colorDepth": 0,
@@ -592,23 +634,27 @@ This method takes no parameters.
 ```
 
 <a name="method.getCurrentResolution"></a>
-## *getCurrentResolution <sup>method</sup>*
+## *getCurrentResolution [<sup>method</sup>](#head.Methods)*
 
 Returns the current resolution on the selected video display port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.resolution | string | Video display resolution |
+| result?.resolution | string | <sup>*(optional)*</sup> Video display resolution |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -618,7 +664,7 @@ Returns the current resolution on the selected video display port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getCurrentResolution",
     "params": {
         "videoDisplay": "HDMI0"
@@ -631,7 +677,7 @@ Returns the current resolution on the selected video display port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "resolution": "1080p",
         "success": true
@@ -640,9 +686,13 @@ Returns the current resolution on the selected video display port.
 ```
 
 <a name="method.getDefaultResolution"></a>
-## *getDefaultResolution <sup>method</sup>*
+## *getDefaultResolution [<sup>method</sup>](#head.Methods)*
 
 Gets the default resolution supported by the HDMI0 video output port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -663,7 +713,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getDefaultResolution"
 }
 ```
@@ -673,7 +723,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "defaultResolution": "720p",
         "success": true
@@ -682,13 +732,20 @@ This method takes no parameters.
 ```
 
 <a name="method.getDialogEnhancement"></a>
-## *getDialogEnhancement <sup>method</sup>*
+## *getDialogEnhancement [<sup>method</sup>](#head.Methods)*
 
 Returns the current Dialog Enhancer level (port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -706,8 +763,11 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getDialogEnhancement"
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getDialogEnhancement",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
 }
 ```
 
@@ -716,7 +776,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": false,
         "enhancerlevel": 0,
@@ -726,9 +786,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getDolbyVolumeMode"></a>
-## *getDolbyVolumeMode <sup>method</sup>*
+## *getDolbyVolumeMode [<sup>method</sup>](#head.Methods)*
 
 Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -739,7 +803,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.dolbyVolumeMode | boolean | Whether Dolby Volume mode is enabled (`true`) or disabled (`false`) |
+| result?.dolbyVolumeMode | boolean | <sup>*(optional)*</sup> Whether Dolby Volume mode is enabled (`true`) or disabled (`false`) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -749,7 +813,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getDolbyVolumeMode"
 }
 ```
@@ -759,7 +823,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "dolbyVolumeMode": true,
         "success": true
@@ -768,9 +832,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getDRCMode"></a>
-## *getDRCMode <sup>method</sup>*
+## *getDRCMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Dynamic Range Control mode.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -784,7 +852,7 @@ Returns the current Dynamic Range Control mode.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.DRCMode | string | The DRC Mode value: either `line` or `RF` |
+| result?.DRCMode | string | <sup>*(optional)*</sup> The DRC Mode value: either `line` or `RF` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -794,7 +862,7 @@ Returns the current Dynamic Range Control mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getDRCMode",
     "params": {
         "audioPort": "SPEAKER0"
@@ -807,7 +875,7 @@ Returns the current Dynamic Range Control mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "DRCMode": "line",
         "success": true
@@ -816,16 +884,20 @@ Returns the current Dynamic Range Control mode.
 ```
 
 <a name="method.getEnableAudioPort"></a>
-## *getEnableAudioPort <sup>method</sup>*
+## *getEnableAudioPort [<sup>method</sup>](#head.Methods)*
 
  Returns the current status of the specified input audio port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name |
 
 ### Result
 
@@ -842,7 +914,7 @@ Returns the current Dynamic Range Control mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getEnableAudioPort",
     "params": {
         "audioPort": "HDMI0"
@@ -855,7 +927,7 @@ Returns the current Dynamic Range Control mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": true,
         "success": true
@@ -864,9 +936,13 @@ Returns the current Dynamic Range Control mode.
 ```
 
 <a name="method.getGain"></a>
-## *getGain <sup>method</sup>*
+## *getGain [<sup>method</sup>](#head.Methods)*
 
 Returns the current gain value.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -890,7 +966,7 @@ Returns the current gain value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getGain",
     "params": {
         "audioPort": "SPEAKER0"
@@ -903,7 +979,7 @@ Returns the current gain value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "gain": 10.0,
         "success": true
@@ -912,9 +988,13 @@ Returns the current gain value.
 ```
 
 <a name="method.getGraphicEqualizerMode"></a>
-## *getGraphicEqualizerMode <sup>method</sup>*
+## *getGraphicEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Graphic Equalizer Mode setting (port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -939,7 +1019,7 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getGraphicEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0"
@@ -952,7 +1032,7 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": true,
         "mode": 2,
@@ -962,13 +1042,20 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 ```
 
 <a name="method.getIntelligentEqualizerMode"></a>
-## *getIntelligentEqualizerMode <sup>method</sup>*
+## *getIntelligentEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Intelligent Equalizer Mode setting (port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -986,8 +1073,11 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getIntelligentEqualizerMode"
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getIntelligentEqualizerMode",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
 }
 ```
 
@@ -996,7 +1086,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": true,
         "mode": 2,
@@ -1006,9 +1096,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getMISteering"></a>
-## *getMISteering <sup>method</sup>*
+## *getMISteering [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of Media Intelligence Steering settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1032,7 +1126,7 @@ Returns the current status of Media Intelligence Steering settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getMISteering",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1045,7 +1139,7 @@ Returns the current status of Media Intelligence Steering settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "MISteeringEnable": true,
         "success": true
@@ -1054,13 +1148,20 @@ Returns the current status of Media Intelligence Steering settings.
 ```
 
 <a name="method.getMS12AudioCompression"></a>
-## *getMS12AudioCompression <sup>method</sup>*
+## *getMS12AudioCompression [<sup>method</sup>](#head.Methods)*
 
 Returns the current audio compression settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1078,8 +1179,11 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.DisplaySettings.1.getMS12AudioCompression"
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getMS12AudioCompression",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
 }
 ```
 
@@ -1088,7 +1192,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enable": true,
         "compressionLevel": 5,
@@ -1098,9 +1202,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getMS12AudioProfile"></a>
-## *getMS12AudioProfile <sup>method</sup>*
+## *getMS12AudioProfile [<sup>method</sup>](#head.Methods)*
 
 Returns the current MS12 audio profile settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1124,7 +1232,7 @@ Returns the current MS12 audio profile settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getMS12AudioProfile",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1137,7 +1245,7 @@ Returns the current MS12 audio profile settings.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ms12AudioProfile": "Game",
         "success": true
@@ -1146,9 +1254,13 @@ Returns the current MS12 audio profile settings.
 ```
 
 <a name="method.getMuted"></a>
-## *getMuted <sup>method</sup>*
+## *getMuted [<sup>method</sup>](#head.Methods)*
 
 Returns whether audio is muted on a given port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1172,7 +1284,7 @@ Returns whether audio is muted on a given port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getMuted",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1185,7 +1297,7 @@ Returns whether audio is muted on a given port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "muted": true,
         "success": true
@@ -1194,9 +1306,13 @@ Returns whether audio is muted on a given port.
 ```
 
 <a name="method.getSettopAudioCapabilities"></a>
-## *getSettopAudioCapabilities <sup>method</sup>*
+## *getSettopAudioCapabilities [<sup>method</sup>](#head.Methods)*
 
 Returns the set-top audio capabilities for the specified audio port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1210,8 +1326,8 @@ Returns the set-top audio capabilities for the specified audio port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.audioCapabilities | array | A string [] of audio capabilities |
-| result.audioCapabilities[#] | string |  |
+| result?.AudioCapabilities | array | <sup>*(optional)*</sup> An array of audio capabilities supported by STB |
+| result?.AudioCapabilities[#] | string | <sup>*(optional)*</sup> Audio capability name (None in case of no audio capability support)  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1221,7 +1337,7 @@ Returns the set-top audio capabilities for the specified audio port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSettopAudioCapabilities",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1234,10 +1350,10 @@ Returns the set-top audio capabilities for the specified audio port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "audioCapabilities": [
-            "DOLBY DIGITAL"
+        "AudioCapabilities": [
+            "None"
         ],
         "success": true
     }
@@ -1245,9 +1361,13 @@ Returns the set-top audio capabilities for the specified audio port.
 ```
 
 <a name="method.getSettopHDRSupport"></a>
-## *getSettopHDRSupport <sup>method</sup>*
+## *getSettopHDRSupport [<sup>method</sup>](#head.Methods)*
 
 Returns an HDR support object (list of standards that the STB supports).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1270,7 +1390,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSettopHDRSupport"
 }
 ```
@@ -1280,7 +1400,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "standards": [
             "none"
@@ -1292,9 +1412,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getSettopMS12Capabilities"></a>
-## *getSettopMS12Capabilities <sup>method</sup>*
+## *getSettopMS12Capabilities [<sup>method</sup>](#head.Methods)*
 
 Returns the set-top MS12 audio capabilities for the specified audio port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1319,7 +1443,7 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSettopMS12Capabilities",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1332,7 +1456,7 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "ms12Capabilities": [
             "Dolby Volume"
@@ -1343,9 +1467,13 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 ```
 
 <a name="method.getSinkAtmosCapability"></a>
-## *getSinkAtmosCapability <sup>method</sup>*
+## *getSinkAtmosCapability [<sup>method</sup>](#head.Methods)*
 
 Returns the ATMOS capability of the sink (HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1366,7 +1494,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSinkAtmosCapability"
 }
 ```
@@ -1376,7 +1504,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "atmos_capability": 2,
         "success": true
@@ -1385,16 +1513,20 @@ This method takes no parameters.
 ```
 
 <a name="method.getSoundMode"></a>
-## *getSoundMode <sup>method</sup>*
+## *getSoundMode [<sup>method</sup>](#head.Methods)*
 
 Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as a safe default.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1411,10 +1543,10 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSoundMode",
     "params": {
-        "audioPort": "HDMI0"
+        "audioPort": "SPEAKER0"
     }
 }
 ```
@@ -1424,7 +1556,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "soundMode": "STEREO",
         "success": true
@@ -1433,30 +1565,33 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 ```
 
 <a name="method.getSupportedAudioModes"></a>
-## *getSupportedAudioModes <sup>method</sup>*
+## *getSupportedAudioModes [<sup>method</sup>](#head.Methods)*
 
 Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  
 If a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  
 For **Auto** mode in DS5, this API has the following extra specification:  
-* For HDMI port, if connected, this API returns `Stereo` mode and `Auto` mode;  
-* For HDMI port, if not connected, this API returns `Stereo` mode and `Dolby Digital 5.1` mode;  
-* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `Dolby Digital 5.1` Mode;  
+* For HDMI port, this API returns `Stereo` mode, `Dolby Digital 5.1` mode and `Auto` mode; 
+* For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `PASSTHRU` Mode;  
 * When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.supportedAudioModes | array | <sup>*(optional)*</sup> A string [] of supported audio modes |
-| result?.supportedAudioModes[#] | string | <sup>*(optional)*</sup>  |
+| result.supportedAudioModes | array | A string [] of supported audio modes |
+| result.supportedAudioModes[#] | string |  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1466,10 +1601,10 @@ For **Auto** mode in DS5, this API has the following extra specification:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedAudioModes",
     "params": {
-        "audioPort": "HDMI0"
+        "audioPort": "SPEAKER0"
     }
 }
 ```
@@ -1479,7 +1614,7 @@ For **Auto** mode in DS5, this API has the following extra specification:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedAudioModes": [
             "STEREO"
@@ -1490,9 +1625,13 @@ For **Auto** mode in DS5, this API has the following extra specification:
 ```
 
 <a name="method.getSupportedAudioPorts"></a>
-## *getSupportedAudioPorts <sup>method</sup>*
+## *getSupportedAudioPorts [<sup>method</sup>](#head.Methods)*
 
 Returns all audio ports supported on the device (all ports that are physically present).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1514,7 +1653,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedAudioPorts"
 }
 ```
@@ -1524,7 +1663,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedAudioPorts": [
             "HDMI0"
@@ -1535,9 +1674,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getSupportedMS12AudioProfiles"></a>
-## *getSupportedMS12AudioProfiles <sup>method</sup>*
+## *getSupportedMS12AudioProfiles [<sup>method</sup>](#head.Methods)*
 
 Returns list of platform supported MS12 audio profiles for the specified audio port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1562,7 +1705,7 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedMS12AudioProfiles",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1575,7 +1718,7 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedMS12AudioProfiles": [
             "Movie"
@@ -1586,16 +1729,20 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 ```
 
 <a name="method.getSupportedResolutions"></a>
-## *getSupportedResolutions <sup>method</sup>*
+## *getSupportedResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported resolutions on the selected video display port (both TV and STB) by its name.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1613,7 +1760,7 @@ Returns supported resolutions on the selected video display port (both TV and ST
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedResolutions",
     "params": {
         "videoDisplay": "HDMI0"
@@ -1626,7 +1773,7 @@ Returns supported resolutions on the selected video display port (both TV and ST
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedResolutions": [
             "1080p60"
@@ -1637,9 +1784,13 @@ Returns supported resolutions on the selected video display port (both TV and ST
 ```
 
 <a name="method.getSupportedSettopResolutions"></a>
-## *getSupportedSettopResolutions <sup>method</sup>*
+## *getSupportedSettopResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported STB resolutions.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1661,7 +1812,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedSettopResolutions"
 }
 ```
@@ -1671,7 +1822,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedSettopResolutions": [
             "1080p60"
@@ -1682,16 +1833,20 @@ This method takes no parameters.
 ```
 
 <a name="method.getSupportedTvResolutions"></a>
-## *getSupportedTvResolutions <sup>method</sup>*
+## *getSupportedTvResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported TV resolutions on the selected video display port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1709,7 +1864,7 @@ Returns supported TV resolutions on the selected video display port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedTvResolutions",
     "params": {
         "videoDisplay": "HDMI0"
@@ -1722,7 +1877,7 @@ Returns supported TV resolutions on the selected video display port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedTvResolutions": [
             "1080p"
@@ -1733,9 +1888,13 @@ Returns supported TV resolutions on the selected video display port.
 ```
 
 <a name="method.getSupportedVideoDisplays"></a>
-## *getSupportedVideoDisplays <sup>method</sup>*
+## *getSupportedVideoDisplays [<sup>method</sup>](#head.Methods)*
 
 Returns all video ports supported on the device (all ports that are physically present).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1757,7 +1916,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSupportedVideoDisplays"
 }
 ```
@@ -1767,7 +1926,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedVideoDisplays": [
             "HDMI0"
@@ -1778,9 +1937,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getSurroundVirtualizer"></a>
-## *getSurroundVirtualizer <sup>method</sup>*
+## *getSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current surround virtualizer boost settings.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1805,7 +1968,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0"
@@ -1818,7 +1981,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "mode": 1,
         "boost": 90,
@@ -1828,7 +1991,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getTVHDRCapabilities"></a>
-## *getTVHDRCapabilities <sup>method</sup>*
+## *getTVHDRCapabilities [<sup>method</sup>](#head.Methods)*
 
 Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  
 * 0 - HDRSTANDARD_NONE  
@@ -1836,6 +1999,10 @@ Gets HDR capabilities supported by the TV. The following values (OR-ed value) ar
 * 2 - HDRSTANDARD_HLG  
 * 4 - HDRSTANDARD_DolbyVision  
 * 8 - HDRSTANDARD_TechnicolorPrime.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1856,7 +2023,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getTVHDRCapabilities"
 }
 ```
@@ -1866,7 +2033,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "capabilities": 3,
         "success": true
@@ -1875,9 +2042,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getTvHDRSupport"></a>
-## *getTvHDRSupport <sup>method</sup>*
+## *getTvHDRSupport [<sup>method</sup>](#head.Methods)*
 
 Returns an HDR support object (list of standards that the TV supports).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1900,7 +2071,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getTvHDRSupport"
 }
 ```
@@ -1910,7 +2081,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "standards": [
             "none"
@@ -1921,10 +2092,65 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getVideoFormat"></a>
+## *getVideoFormat [<sup>method</sup>](#head.Methods)*
+
+Returns the current and supported video formats.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.supportedVideoFormat | array | A list of supported Video formats |
+| result.supportedVideoFormat[#] | string |  |
+| result.currentVideoFormat | string | The current video format |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getVideoFormat"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "supportedVideoFormat": [
+            "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
+        ],
+        "currentVideoFormat": "SDR",
+        "success": true
+    }
+}
+```
+
 <a name="method.getVideoPortStatusInStandby"></a>
-## *getVideoPortStatusInStandby <sup>method</sup>*
+## *getVideoPortStatusInStandby [<sup>method</sup>](#head.Methods)*
 
 Returns video port status in standby mode (failure if the port name is missing).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1938,8 +2164,8 @@ Returns video port status in standby mode (failure if the port name is missing).
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.VideoPortStatusInStandby | boolean | video port status (enabled/disabled) in standby mode |
-| result.error_message | string | Error message in case of failure |
+| result?.videoPortStatusInStandby | boolean | <sup>*(optional)*</sup> video port status (enabled/disabled) in standby mode in case of success |
+| result?.error_message | string | <sup>*(optional)*</sup> Error message in case of failure |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1949,7 +2175,7 @@ Returns video port status in standby mode (failure if the port name is missing).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getVideoPortStatusInStandby",
     "params": {
         "portName": "HDMI0"
@@ -1962,19 +2188,23 @@ Returns video port status in standby mode (failure if the port name is missing).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "VideoPortStatusInStandby": true,
-        "error_message": "internal error",
+        "videoPortStatusInStandby": true,
+        "error_message": "Internal error",
         "success": true
     }
 }
 ```
 
 <a name="method.getVolumeLevel"></a>
-## *getVolumeLevel <sup>method</sup>*
+## *getVolumeLevel [<sup>method</sup>](#head.Methods)*
 
 Returns the current volume level.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -1998,7 +2228,7 @@ Returns the current volume level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getVolumeLevel",
     "params": {
         "audioPort": "SPEAKER0"
@@ -2011,7 +2241,7 @@ Returns the current volume level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "volumeLevel": 50,
         "success": true
@@ -2020,9 +2250,13 @@ Returns the current volume level.
 ```
 
 <a name="method.getVolumeLeveller"></a>
-## *getVolumeLeveller <sup>method</sup>*
+## *getVolumeLeveller [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current Volume Leveller setting.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2047,7 +2281,7 @@ Returns the current volume level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0"
@@ -2060,7 +2294,7 @@ Returns the current volume level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "mode": 1,
         "level": 9,
@@ -2070,9 +2304,13 @@ Returns the current volume level.
 ```
 
 <a name="method.getZoomSetting"></a>
-## *getZoomSetting <sup>method</sup>*
+## *getZoomSetting [<sup>method</sup>](#head.Methods)*
 
 Returns the zoom setting value.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2083,7 +2321,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.zoomSetting | boolean | Whether the request succeeded |
+| result.zoomSetting | string | Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2093,7 +2331,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.getZoomSetting"
 }
 ```
@@ -2103,18 +2341,22 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "zoomSetting": true,
+        "zoomSetting": "FULL",
         "success": true
     }
 }
 ```
 
 <a name="method.isConnectedDeviceRepeater"></a>
-## *isConnectedDeviceRepeater <sup>method</sup>*
+## *isConnectedDeviceRepeater [<sup>method</sup>](#head.Methods)*
 
 Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2135,7 +2377,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.isConnectedDeviceRepeater"
 }
 ```
@@ -2145,7 +2387,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "HdcpRepeater": true,
         "success": true
@@ -2154,9 +2396,13 @@ This method takes no parameters.
 ```
 
 <a name="method.isSurroundDecoderEnabled"></a>
-## *isSurroundDecoderEnabled <sup>method</sup>*
+## *isSurroundDecoderEnabled [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of Surround Decoder.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2170,7 +2416,7 @@ Returns the current status of Surround Decoder.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.surroundDecoderEnable | boolean | Whether Surround Decoder is is enabled (`true`) or disabled (`false`) |
+| result?.surroundDecoderEnable | boolean | <sup>*(optional)*</sup> Whether Surround Decoder is is enabled (`true`) or disabled (`false`) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2180,7 +2426,7 @@ Returns the current status of Surround Decoder.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.isSurroundDecoderEnabled",
     "params": {
         "audioPort": "SPEAKER0"
@@ -2193,7 +2439,7 @@ Returns the current status of Surround Decoder.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "surroundDecoderEnable": true,
         "success": true
@@ -2202,9 +2448,13 @@ Returns the current status of Surround Decoder.
 ```
 
 <a name="method.readEDID"></a>
-## *readEDID <sup>method</sup>*
+## *readEDID [<sup>method</sup>](#head.Methods)*
 
 Reads the EDID from the connected HDMI (output) device. Returns a key of `EDID` with a value of the base64 encoded byte array string representing the EDID.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2215,7 +2465,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.EDID | string | A base64 encoded byte array string representing the EDID |
+| result?.EDID | string | <sup>*(optional)*</sup> A base64 encoded byte array string representing the EDID |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2225,7 +2475,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.readEDID"
 }
 ```
@@ -2235,7 +2485,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "EDID": "AP///////wAQrMLQVEJTMQUdAQOANR546q11qVRNnSYPUFSlSwCBALMA0QBxT6lAgYDRwAEBVl4AoKCgKVAwIDUADighAAAaAAAA/wBNWTNORDkxVjFTQlQKAAAA/ABERUxMIFAyNDE4RAogAAAA/QAxVh1xHAAKICAgICAgARsCAxuxUJAFBAMCBxYBBhESFRMUHyBlAwwAEAACOoAYcTgtQFgsRQAOKCEAAB4BHYAYcRwWIFgsJQAOKCEAAJ6/FgCggDgTQDAgOgAOKCEAABp+OQCggDgfQDAgOgAOKCEAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2A",
         "success": true
@@ -2244,9 +2494,13 @@ This method takes no parameters.
 ```
 
 <a name="method.readHostEDID"></a>
-## *readHostEDID <sup>method</sup>*
+## *readHostEDID [<sup>method</sup>](#head.Methods)*
 
-Reads the EDID of the host (STB). Returns a key of `EDID` with a value of the base64 encoded raw byte array string representing the EDID.
+Reads the EDID of the host. Returns a key of `EDID` with a value of the base64 encoded raw byte array string representing the EDID.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2257,7 +2511,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.EDID | string | A base64 encoded byte array string representing the EDID |
+| result?.EDID | string | <sup>*(optional)*</sup> A base64 encoded byte array string representing the EDID |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2267,7 +2521,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.readHostEDID"
 }
 ```
@@ -2277,7 +2531,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "EDID": "AP///////wAQrMLQVEJTMQUdAQOANR546q11qVRNnSYPUFSlSwCBALMA0QBxT6lAgYDRwAEBVl4AoKCgKVAwIDUADighAAAaAAAA/wBNWTNORDkxVjFTQlQKAAAA/ABERUxMIFAyNDE4RAogAAAA/QAxVh1xHAAKICAgICAgARsCAxuxUJAFBAMCBxYBBhESFRMUHyBlAwwAEAACOoAYcTgtQFgsRQAOKCEAAB4BHYAYcRwWIFgsJQAOKCEAAJ6/FgCggDgTQDAgOgAOKCEAABp+OQCggDgfQDAgOgAOKCEAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2A",
         "success": true
@@ -2285,10 +2539,214 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.resetBassEnhancer"></a>
+## *resetBassEnhancer [<sup>method</sup>](#head.Methods)*
+
+Resets the bass enhancer setting to the factory default.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetBassEnhancer",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetDialogEnhancement"></a>
+## *resetDialogEnhancement [<sup>method</sup>](#head.Methods)*
+
+Resets the dialog enhancement setting to the factory default.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetDialogEnhancement",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetSurroundVirtualizer"></a>
+## *resetSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
+
+Resets the surround virtualizer setting to the factory default.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetSurroundVirtualizer",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetVolumeLeveller"></a>
+## *resetVolumeLeveller [<sup>method</sup>](#head.Methods)*
+
+Resets the volume leveller setting to the factory default.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.resetVolumeLeveller",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setAudioAtmosOutputMode"></a>
-## *setAudioAtmosOutputMode <sup>method</sup>*
+## *setAudioAtmosOutputMode [<sup>method</sup>](#head.Methods)*
 
 Sets ATMOS audio output mode (on HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2311,7 +2769,7 @@ Sets ATMOS audio output mode (on HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setAudioAtmosOutputMode",
     "params": {
         "enable": true
@@ -2324,7 +2782,7 @@ Sets ATMOS audio output mode (on HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2332,16 +2790,20 @@ Sets ATMOS audio output mode (on HDMI0).
 ```
 
 <a name="method.setAudioDelay"></a>
-## *setAudioDelay <sup>method</sup>*
+## *setAudioDelay [<sup>method</sup>](#head.Methods)*
 
 Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 | params.audioDelay | string | Delay (in ms) on the selected audio port |
 
 ### Result
@@ -2358,7 +2820,7 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setAudioDelay",
     "params": {
         "audioPort": "HDMI0",
@@ -2372,7 +2834,7 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2380,16 +2842,20 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 ```
 
 <a name="method.setAudioDelayOffset"></a>
-## *setAudioDelayOffset <sup>method</sup>*
+## *setAudioDelayOffset [<sup>method</sup>](#head.Methods)*
 
 Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 | params.audioDelayOffset | string | Delay offset (in ms) on the selected audio port |
 
 ### Result
@@ -2406,7 +2872,7 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setAudioDelayOffset",
     "params": {
         "audioPort": "HDMI0",
@@ -2420,7 +2886,7 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2428,9 +2894,13 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 ```
 
 <a name="method.setBassEnhancer"></a>
-## *setBassEnhancer <sup>method</sup>*
+## *setBassEnhancer [<sup>method</sup>](#head.Methods)*
 
 Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2454,7 +2924,7 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setBassEnhancer",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2468,7 +2938,7 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2476,9 +2946,17 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 ```
 
 <a name="method.setCurrentResolution"></a>
-## *setCurrentResolution <sup>method</sup>*
+## *setCurrentResolution [<sup>method</sup>](#head.Methods)*
 
 Sets the current resolution.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `resolutionPreChange`| Triggered when the resolution of the video display is about to change.|
+| `resolutionChanged`| Triggered when the resolution is changed by the user and returns the current resolution.|.
+
+Also see: [resolutionPreChange](#event.resolutionPreChange), [resolutionChanged](#event.resolutionChanged)
 
 ### Parameters
 
@@ -2487,6 +2965,7 @@ Sets the current resolution.
 | params | object |  |
 | params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 | params.resolution | string | Video display resolution |
+| params?.persist | boolean | <sup>*(optional)*</sup> Persists the resolution |
 
 ### Result
 
@@ -2502,11 +2981,12 @@ Sets the current resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setCurrentResolution",
     "params": {
         "videoDisplay": "HDMI0",
-        "resolution": "1080p"
+        "resolution": "1080p",
+        "persist": true
     }
 }
 ```
@@ -2516,7 +2996,7 @@ Sets the current resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2524,15 +3004,20 @@ Sets the current resolution.
 ```
 
 <a name="method.setDialogEnhancement"></a>
-## *setDialogEnhancement <sup>method</sup>*
+## *setDialogEnhancement [<sup>method</sup>](#head.Methods)*
 
-Sets the Dialog Enhancer level. The method fails if no value is set.
+Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separately from other background content, without increasing the loudness.The method fails if no value is set.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.enhancerlevel | integer | Value between 0 and 16, where 0 means no enhancement and 16 means maximum enhancement |
 
 ### Result
@@ -2549,9 +3034,10 @@ Sets the Dialog Enhancer level. The method fails if no value is set.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setDialogEnhancement",
     "params": {
+        "audioPort": "SPEAKER0",
         "enhancerlevel": 0
     }
 }
@@ -2562,7 +3048,7 @@ Sets the Dialog Enhancer level. The method fails if no value is set.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2570,9 +3056,13 @@ Sets the Dialog Enhancer level. The method fails if no value is set.
 ```
 
 <a name="method.setDolbyVolumeMode"></a>
-## *setDolbyVolumeMode <sup>method</sup>*
+## *setDolbyVolumeMode [<sup>method</sup>](#head.Methods)*
 
 Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2595,7 +3085,7 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setDolbyVolumeMode",
     "params": {
         "dolbyVolumeMode": true
@@ -2608,7 +3098,7 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2616,9 +3106,13 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 ```
 
 <a name="method.setDRCMode"></a>
-## *setDRCMode <sup>method</sup>*
+## *setDRCMode [<sup>method</sup>](#head.Methods)*
 
 Sets the Dynamic Range Control (DRC) setting. DRC is a compression control applied to audio to limit the dynamic range to suit a specific listening situation. For default settings, RF mode is preferred for two-channel outputs (television speaker or headphone) and Line mode for multichannel outputs.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2642,7 +3136,7 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setDRCMode",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2656,7 +3150,7 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2664,16 +3158,20 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 ```
 
 <a name="method.setEnableAudioPort"></a>
-## *setEnableAudioPort <sup>method</sup>*
+## *setEnableAudioPort [<sup>method</sup>](#head.Methods)*
 
-Enable or disable the specified audio port based on the input audio port ID. This feature provides the consumer with a single user control to enable or disable the specified audio port.
+Enable or disable the specified audio port based on the input audio port name. This feature provides the consumer with a single user control to enable or disable the specified audio port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 | params.enable | boolean | `true` enables the specified audio port. `false` disables the specified audio port |
 
 ### Result
@@ -2690,7 +3188,7 @@ Enable or disable the specified audio port based on the input audio port ID. Thi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setEnableAudioPort",
     "params": {
         "audioPort": "HDMI0",
@@ -2704,7 +3202,7 @@ Enable or disable the specified audio port based on the input audio port ID. Thi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2712,9 +3210,13 @@ Enable or disable the specified audio port based on the input audio port ID. Thi
 ```
 
 <a name="method.setGain"></a>
-## *setGain <sup>method</sup>*
+## *setGain [<sup>method</sup>](#head.Methods)*
 
 Adjusts the gain on a specific port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2738,7 +3240,7 @@ Adjusts the gain on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setGain",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2752,7 +3254,7 @@ Adjusts the gain on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2760,9 +3262,13 @@ Adjusts the gain on a specific port.
 ```
 
 <a name="method.setGraphicEqualizerMode"></a>
-## *setGraphicEqualizerMode <sup>method</sup>*
+## *setGraphicEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer that allows the end user to customize the sonic qualities of the system.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2786,7 +3292,7 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setGraphicEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2800,7 +3306,7 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2808,15 +3314,20 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 ```
 
 <a name="method.setIntelligentEqualizerMode"></a>
-## *setIntelligentEqualizerMode <sup>method</sup>*
+## *setIntelligentEqualizerMode [<sup>method</sup>](#head.Methods)*
 
-Sets the Intelligent Equalizer mode (port HDMI0).
+Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer continuously monitors the audio spectrum and adjusts its equalization filter to transform the original audio tone into desired tone.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 | params.intelligentEqualizerMode | integer | Intelligent Equalizer mode (`0` = unset, `1` = open, `2` = rich, `3` = focused) |
 
 ### Result
@@ -2833,9 +3344,10 @@ Sets the Intelligent Equalizer mode (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setIntelligentEqualizerMode",
     "params": {
+        "audioPort": "SPEAKER0",
         "intelligentEqualizerMode": 2
     }
 }
@@ -2846,7 +3358,7 @@ Sets the Intelligent Equalizer mode (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2854,9 +3366,13 @@ Sets the Intelligent Equalizer mode (port HDMI0).
 ```
 
 <a name="method.setMISteering"></a>
-## *setMISteering <sup>method</sup>*
+## *setMISteering [<sup>method</sup>](#head.Methods)*
 
 Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audio content and steers the Volume Leveler, the Dialogue Enhancer, the Intelligent Equalizer, and the Speaker Virtualizer, based on the type of audio content.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2880,7 +3396,7 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setMISteering",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2894,7 +3410,7 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2902,16 +3418,21 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 ```
 
 <a name="method.setMS12AudioCompression"></a>
-## *setMS12AudioCompression <sup>method</sup>*
+## *setMS12AudioCompression [<sup>method</sup>](#head.Methods)*
 
 Sets the audio dynamic range compression level (port HDMI0).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.compressionLevel | integer | Value between 0 and 10, where 0 means no compression and 10 means maximum compression |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.compresionLevel | integer | Value between 0 and 10, where 0 means no compression and 10 means maximum compression |
 
 ### Result
 
@@ -2927,10 +3448,11 @@ Sets the audio dynamic range compression level (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setMS12AudioCompression",
     "params": {
-        "compressionLevel": 5
+        "audioPort": "SPEAKER0",
+        "compresionLevel": 5
     }
 }
 ```
@@ -2940,7 +3462,7 @@ Sets the audio dynamic range compression level (port HDMI0).
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2948,9 +3470,13 @@ Sets the audio dynamic range compression level (port HDMI0).
 ```
 
 <a name="method.setMS12AudioProfile"></a>
-## *setMS12AudioProfile <sup>method</sup>*
+## *setMS12AudioProfile [<sup>method</sup>](#head.Methods)*
 
 Sets the selected MS12 audio profile.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -2974,7 +3500,7 @@ Sets the selected MS12 audio profile.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setMS12AudioProfile",
     "params": {
         "audioPort": "SPEAKER0",
@@ -2988,7 +3514,7 @@ Sets the selected MS12 audio profile.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2996,9 +3522,13 @@ Sets the selected MS12 audio profile.
 ```
 
 <a name="method.setMuted"></a>
-## *setMuted <sup>method</sup>*
+## *setMuted [<sup>method</sup>](#head.Methods)*
 
 Mutes or unmutes audio on a specific port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3022,7 +3552,7 @@ Mutes or unmutes audio on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setMuted",
     "params": {
         "audioPort": "SPEAKER0",
@@ -3036,7 +3566,7 @@ Mutes or unmutes audio on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3044,7 +3574,7 @@ Mutes or unmutes audio on a specific port.
 ```
 
 <a name="method.setScartParameter"></a>
-## *setScartParameter <sup>method</sup>*
+## *setScartParameter [<sup>method</sup>](#head.Methods)*
 
 Sets SCART parameters.  
    
@@ -3056,7 +3586,11 @@ Possible values:
 | `cvbs` | `on` (disables rgb) |  
 | `macrovision` | not implemented |  
 | `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  
-| `port` | `on` or `off` |.
+| `port` | `on` or `off` | 
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3080,7 +3614,7 @@ Possible values:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setScartParameter",
     "params": {
         "scartParameter": "aspect_ratio",
@@ -3094,7 +3628,7 @@ Possible values:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3102,18 +3636,22 @@ Possible values:
 ```
 
 <a name="method.setSoundMode"></a>
-## *setSoundMode <sup>method</sup>*
+## *setSoundMode [<sup>method</sup>](#head.Methods)*
 
 Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.audioPort | string | Audio port name. An error returns if no port is specified |
+| params.audioPort | string | Audio port name |
 | params.soundMode | string | Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU |
-| params.persist | boolean | persists the sound mode |
+| params?.persist | boolean | <sup>*(optional)*</sup> persists the sound mode |
 
 ### Result
 
@@ -3129,7 +3667,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setSoundMode",
     "params": {
         "audioPort": "HDMI0",
@@ -3144,7 +3682,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3152,9 +3690,13 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```
 
 <a name="method.setSurroundVirtualizer"></a>
-## *setSurroundVirtualizer <sup>method</sup>*
+## *setSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3179,7 +3721,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0",
@@ -3194,7 +3736,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3202,9 +3744,13 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```
 
 <a name="method.setVideoPortStatusInStandby"></a>
-## *setVideoPortStatusInStandby <sup>method</sup>*
+## *setVideoPortStatusInStandby [<sup>method</sup>](#head.Methods)*
 
 Sets the specified video port status to be used in standby mode (failure if the port name is missing).
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3219,7 +3765,7 @@ Sets the specified video port status to be used in standby mode (failure if the 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.error_message | string | Error message in case of failure |
+| result?.error_message | string | <sup>*(optional)*</sup> Error message in case of failure |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -3229,7 +3775,7 @@ Sets the specified video port status to be used in standby mode (failure if the 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setVideoPortStatusInStandby",
     "params": {
         "portName": "HDMI0",
@@ -3243,7 +3789,7 @@ Sets the specified video port status to be used in standby mode (failure if the 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "error_message": "internal error",
         "success": true
@@ -3252,9 +3798,13 @@ Sets the specified video port status to be used in standby mode (failure if the 
 ```
 
 <a name="method.setVolumeLevel"></a>
-## *setVolumeLevel <sup>method</sup>*
+## *setVolumeLevel [<sup>method</sup>](#head.Methods)*
 
 Adjusts the Volume Level on a specific port.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3278,7 +3828,7 @@ Adjusts the Volume Level on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setVolumeLevel",
     "params": {
         "audioPort": "SPEAKER0",
@@ -3292,7 +3842,7 @@ Adjusts the Volume Level on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3300,9 +3850,13 @@ Adjusts the Volume Level on a specific port.
 ```
 
 <a name="method.setVolumeLeveller"></a>
-## *setVolumeLeveller <sup>method</sup>*
+## *setVolumeLeveller [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Sets the Volume Leveller level. Volume Leveler is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
+(Version 2) Sets the Volume Leveller level. Volume Leveller is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
+ 
+### Event 
+
+ No Events.
 
 ### Parameters
 
@@ -3327,7 +3881,7 @@ Adjusts the Volume Level on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0",
@@ -3342,7 +3896,7 @@ Adjusts the Volume Level on a specific port.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3350,16 +3904,21 @@ Adjusts the Volume Level on a specific port.
 ```
 
 <a name="method.setZoomSetting"></a>
-## *setZoomSetting <sup>method</sup>*
+## *setZoomSetting [<sup>method</sup>](#head.Methods)*
 
 Sets the current zoom value.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `zoomSettingsUpdated`| Triggered when the zoom setting changes and returns the zoom setting values for all video display types.|.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.zoomSetting | boolean | Whether the request succeeded |
+| params.zoomSetting | string | Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3` |
 
 ### Result
 
@@ -3375,10 +3934,10 @@ Sets the current zoom value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.DisplaySettings.1.setZoomSetting",
     "params": {
-        "zoomSetting": true
+        "zoomSetting": "FULL"
     }
 }
 ```
@@ -3388,7 +3947,7 @@ Sets the current zoom value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -3412,11 +3971,12 @@ DisplaySettings interface events:
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
 | [resolutionPreChange](#event.resolutionPreChange) | Triggered on resolution pre-change |
+| [videoFormatChanged](#event.videoFormatChanged) | Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port |
 | [zoomSettingUpdated](#event.zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 
 
 <a name="event.activeInputChanged"></a>
-## *activeInputChanged <sup>event</sup>*
+## *activeInputChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered on active input change (RxSense).
 
@@ -3440,7 +4000,7 @@ Triggered on active input change (RxSense).
 ```
 
 <a name="event.audioFormatChanged"></a>
-## *audioFormatChanged <sup>event</sup>*
+## *audioFormatChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the configured audio format changes.
 
@@ -3469,7 +4029,7 @@ Triggered when the configured audio format changes.
 ```
 
 <a name="event.connectedAudioPortUpdated"></a>
-## *connectedAudioPortUpdated <sup>event</sup>*
+## *connectedAudioPortUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the connected audio port is updated.
 
@@ -3495,7 +4055,7 @@ Triggered when the connected audio port is updated.
 ```
 
 <a name="event.connectedVideoDisplaysUpdated"></a>
-## *connectedVideoDisplaysUpdated <sup>event</sup>*
+## *connectedVideoDisplaysUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the connected video display is updated and returns the connected video displays.
 
@@ -3522,7 +4082,7 @@ Triggered when the connected video display is updated and returns the connected 
 ```
 
 <a name="event.resolutionChanged"></a>
-## *resolutionChanged <sup>event</sup>*
+## *resolutionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the resolution is changed by the user and returns the current resolution.
 
@@ -3552,7 +4112,7 @@ Triggered when the resolution is changed by the user and returns the current res
 ```
 
 <a name="event.resolutionPreChange"></a>
-## *resolutionPreChange <sup>event</sup>*
+## *resolutionPreChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered on resolution pre-change.
 
@@ -3569,8 +4129,37 @@ This event carries no parameters.
 }
 ```
 
+<a name="event.videoFormatChanged"></a>
+## *videoFormatChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.supportedVideoFormat | array | A list of supported Video formats |
+| params.supportedVideoFormat[#] | string |  |
+| params.currentVideoFormat | string | The current video format |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.videoFormatChanged",
+    "params": {
+        "supportedVideoFormat": [
+            "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
+        ],
+        "currentVideoFormat": "SDR"
+    }
+}
+```
+
 <a name="event.zoomSettingUpdated"></a>
-## *zoomSettingUpdated <sup>event</sup>*
+## *zoomSettingUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the zoom setting changes and returns the zoom setting values for all video display types.
 
