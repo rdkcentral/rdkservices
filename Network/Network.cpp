@@ -659,7 +659,7 @@ namespace WPEFramework
                 iarmData.isSupported = false;
 
                 RFC_ParamData_t param;
-                if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
+                if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
                 {
                     if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
                     {
