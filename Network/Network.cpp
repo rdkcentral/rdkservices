@@ -25,7 +25,7 @@
 using namespace std;
 
 #define DEFAULT_PING_PACKETS 15
-#define CIDR_NETMASK_IP_LEN 33
+#define CIDR_NETMASK_IP_LEN 32
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
