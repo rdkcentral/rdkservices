@@ -143,6 +143,7 @@ uint32_t OCIContainer::getContainerState(const JsonObject &parameters, JsonObjec
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -199,6 +200,7 @@ uint32_t OCIContainer::getContainerInfo(const JsonObject &parameters, JsonObject
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -207,6 +209,7 @@ uint32_t OCIContainer::getContainerInfo(const JsonObject &parameters, JsonObject
     if (containerInfoString.empty())
     {
         LOGERR("Failed to get info for container %s", id.c_str());
+        response["error"] = "failed to get container info";
         returnResponse(false);
     }
 
@@ -215,6 +218,7 @@ uint32_t OCIContainer::getContainerInfo(const JsonObject &parameters, JsonObject
     WPEC::OptionalType<WPEJ::Error> error;
     if (!WPEJ::IElement::FromString(containerInfoString, containerInfoJson, error)) {
         LOGERR("Failed to parse Dobby Spec JSON due to: %s", WPEJ::ErrorDisplayMessage(error).c_str());
+        response["error"] = "failed to parse dobby spec";
         returnResponse(false);
     }
 
@@ -315,9 +319,9 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
                                        containerPath))
     {
         LOGERR("Failed to start container - sync mount request to omi failed.");
+        response["error"] = "mount failed";
         returnResponse(false);
     }
-
 
     LOGINFO("Mount request to omi succeeded, contenerPath: %s", containerPath.c_str());
 
@@ -344,6 +348,7 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
     if (descriptor <= 0)
     {
         LOGERR("Failed to start container - internal Dobby error.");
+        response["error"] = "internal dobby error";
         returnResponse(false);
     }
 
@@ -437,6 +442,7 @@ uint32_t OCIContainer::stopContainer(const JsonObject &parameters, JsonObject &r
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -448,6 +454,7 @@ uint32_t OCIContainer::stopContainer(const JsonObject &parameters, JsonObject &r
     if (!stoppedSuccessfully)
     {
         LOGERR("Failed to stop container - internal Dobby error.");
+        response["error"] = "internal dobby error";
         returnResponse(false);
     }
 
@@ -473,6 +480,7 @@ uint32_t OCIContainer::pauseContainer(const JsonObject &parameters, JsonObject &
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -481,6 +489,7 @@ uint32_t OCIContainer::pauseContainer(const JsonObject &parameters, JsonObject &
     if (!pausedSuccessfully)
     {
         LOGERR("Failed to pause container - internal Dobby error.");
+        response["error"] = "internal dobby error";
         returnResponse(false);
     }
 
@@ -506,6 +515,7 @@ uint32_t OCIContainer::resumeContainer(const JsonObject &parameters, JsonObject 
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -514,6 +524,7 @@ uint32_t OCIContainer::resumeContainer(const JsonObject &parameters, JsonObject 
     if (!resumedSuccessfully)
     {
         LOGERR("Failed to resume container - internal Dobby error.");
+        response["error"] = "internal dobby error";
         returnResponse(false);
     }
 
@@ -542,6 +553,7 @@ uint32_t OCIContainer::executeCommand(const JsonObject &parameters, JsonObject &
     int cd = GetContainerDescriptorFromId(id);
     if (cd < 0)
     {
+        response["error"] = "container descriptor can not be acquired";
         returnResponse(false);
     }
 
@@ -553,6 +565,7 @@ uint32_t OCIContainer::executeCommand(const JsonObject &parameters, JsonObject &
     if (!executedSuccessfully)
     {
         LOGERR("Failed to execute command in container - internal Dobby error.");
+        response["error"] = "internal dobby error";
         returnResponse(false);
     }
 
@@ -582,6 +595,7 @@ void OCIContainer::onContainerStarted(int32_t descriptor, const std::string& nam
  */
 void OCIContainer::onContainerStopped(int32_t descriptor, const std::string& name)
 {
+
     if (!mOmiProxy->umountCryptedBundle(name))
     {
         LOGERR("Failed to umount container %s - sync unmount request to omi failed.", name.c_str());
