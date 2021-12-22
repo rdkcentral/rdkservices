@@ -263,7 +263,6 @@ namespace WPEFramework
         bool Network::isValidCIDRv4(string buf)
         {
             string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
-                                                     "0.0.0.0",
                                                      "128.0.0.0",
                                                      "192.0.0.0",
                                                      "224.0.0.0",
