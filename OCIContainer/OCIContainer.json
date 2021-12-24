@@ -34,6 +34,11 @@
             "type": "string",
             "example": "command"
         },
+        "name": {
+            "summary":"Name of the Container.",
+            "type":"string",
+            "example":"com.bskyb.epgui"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -52,8 +57,8 @@
         }
     },
     "methods": {
-        "execCommand":{
-            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace",
+        "executeCommand":{
+            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -79,7 +84,7 @@
             }
         },
         "getContainerInfo":{
-            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).",
+            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -211,7 +216,7 @@
             }
         },
         "getContainerState":{
-            "summary": "Gets the state of a currently running container",
+            "summary": "Gets the state of a currently running container.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -253,7 +258,7 @@
             }
         },
         "listContainers":{
-            "summary": "Lists all running OCI containers Dobby knows about",
+            "summary": "Lists all running OCI containers Dobby knows about.\n \n### Events \n\n No Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -289,7 +294,7 @@
             } 
         },
         "pauseContainer":{
-            "summary": "Pauses a currently running container",
+            "summary": "Pauses a currently running container.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -306,7 +311,7 @@
             }
         },
         "resumeContainer":{
-            "summary": "Resumes a previously paused container",
+            "summary": "Resumes a previously paused container.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -323,7 +328,10 @@
             }
         },
         "startContainer":{
-            "summary": "Starts a new container from an existing OCI bundle",
+            "summary": "Starts a new container from an existing OCI bundle. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
+            "events": [
+               "onContainerStarted" 
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -374,7 +382,10 @@
             }
         },
         "startContainerFromDobbySpec":{
-            "summary": "Starts a new container from a legacy Dobby JSON specification",
+            "summary": "Starts a new container from a legacy Dobby JSON specification.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
+            "events": [
+               "onContainerStarted" 
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -388,6 +399,11 @@
                     },
                     "command": {
                         "$ref": "#/definitions/command"
+                    },
+                    "westerosSocket":{
+                        "summary": "Path to a Westeros socket to mount inside the container",
+                        "type": "string",
+                        "example": "/usr/mySocket"
                     }
                 },
                 "required": [
@@ -413,7 +429,10 @@
 
         },
         "stopContainer":{
-            "summary": "Stops a currently running container",
+            "summary": "Stops a currently running container. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStopped` | Triggers when the container stops running.|",
+            "events": [
+               "onContainerStopped" 
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -435,11 +454,44 @@
                 "$ref": "#/definitions/result"
             }
         }
+    },
+    "events": {
+        "onContainerStarted":{
+            "summary":"Triggered when a new container has started running.",
+            "params":{
+                "type":"object",
+                "properties": {
+                    "descriptor":{
+                        "$ref": "#/definitions/Descriptor"
+                    },
+                    "name":{
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "descriptor",
+                    "name"
+                ]
+            }
+        },
+        "onContainerStopped":{
+            "summary": "Triggered when the container has stopped running.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "descriptor":{
+                        "$ref": "#/definitions/Descriptor"
+                    },
+                    "name":{
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "descriptor",
+                    "name"
+                ]
+            }
+        }
+        
     }
 }
-
-
-
-
-
-
