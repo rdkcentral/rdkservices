@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.FrameRate plugin for Thunder framework.
+A org.rdk.FrameRate plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkFrameRate.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [FrameRate.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/FrameRate.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -92,12 +100,17 @@ FrameRate interface methods:
 | [setFrmMode](#method.setFrmMode) | (Version 2) Sets the auto framerate mode |
 | [startFpsCollection](#method.startFpsCollection) | Starts the FPS data collection |
 | [stopFpsCollection](#method.stopFpsCollection) | Stops the FPS data collection |
+| [updateFps](#method.updateFps) | Updates Fps values |
 
 
 <a name="method.getDisplayFrameRate"></a>
-## *getDisplayFrameRate <sup>method</sup>*
+## *getDisplayFrameRate [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current display frame rate values.
+  
+### Events 
+
+ No events.
 
 ### Parameters
 
@@ -118,7 +131,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.getDisplayFrameRate"
 }
 ```
@@ -128,7 +141,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "framerate": "3840x2160px48",
         "success": true
@@ -137,9 +150,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getFrmMode"></a>
-## *getFrmMode <sup>method</sup>*
+## *getFrmMode [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current auto framerate mode.
+  
+### Events 
+
+ No events.
 
 ### Parameters
 
@@ -160,7 +177,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.getFrmMode"
 }
 ```
@@ -170,7 +187,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "auto-frm-mode": 0,
         "success": true
@@ -179,16 +196,20 @@ This method takes no parameters.
 ```
 
 <a name="method.setCollectionFrequency"></a>
-## *setCollectionFrequency <sup>method</sup>*
+## *setCollectionFrequency [<sup>method</sup>](#head.Methods)*
 
 Sets the FPS data collection interval.
+  
+### Events 
+
+ No events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.frequency | integer | The amount of time in milliseconds. The default frequency if no frequency is specified is 10000 milliseconds |
+| params.frequency | integer | The amount of time in milliseconds. The default frequency is 10000 milliseconds |
 
 ### Result
 
@@ -204,7 +225,7 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.setCollectionFrequency",
     "params": {
         "frequency": 1000
@@ -217,7 +238,7 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -225,9 +246,17 @@ Sets the FPS data collection interval.
 ```
 
 <a name="method.setDisplayFrameRate"></a>
-## *setDisplayFrameRate <sup>method</sup>*
+## *setDisplayFrameRate [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Sets the display framerate values.
+(Version 2) Sets the display framerate values. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| 
+| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|.
+
+Also see: [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged)
 
 ### Parameters
 
@@ -250,7 +279,7 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.setDisplayFrameRate",
     "params": {
         "framerate": "3840x2160px48"
@@ -263,7 +292,7 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -271,16 +300,20 @@ Sets the FPS data collection interval.
 ```
 
 <a name="method.setFrmMode"></a>
-## *setFrmMode <sup>method</sup>*
+## *setFrmMode [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Sets the auto framerate mode.
+  
+### Events 
+
+ No events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.auto-frm-mode | integer | `0` for auto framerate mode disabled, `1` for auto framerate mode enabled (must be one of the following: *0*, *1*) |
+| params.frmmode | integer | `0` for auto framerate mode disabled, `1` for auto framerate mode enabled (must be one of the following: *0*, *1*) |
 
 ### Result
 
@@ -296,10 +329,10 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.setFrmMode",
     "params": {
-        "auto-frm-mode": 0
+        "frmmode": 0
     }
 }
 ```
@@ -309,7 +342,7 @@ Sets the FPS data collection interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -317,9 +350,16 @@ Sets the FPS data collection interval.
 ```
 
 <a name="method.startFpsCollection"></a>
-## *startFpsCollection <sup>method</sup>*
+## *startFpsCollection [<sup>method</sup>](#head.Methods)*
 
 Starts the FPS data collection.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` method.|.
+
+Also see: [onFpsEvent](#event.onFpsEvent)
 
 ### Parameters
 
@@ -339,7 +379,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.startFpsCollection"
 }
 ```
@@ -349,7 +389,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -357,9 +397,16 @@ This method takes no parameters.
 ```
 
 <a name="method.stopFpsCollection"></a>
-## *stopFpsCollection <sup>method</sup>*
+## *stopFpsCollection [<sup>method</sup>](#head.Methods)*
 
 Stops the FPS data collection.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|.
+
+Also see: [onFpsEvent](#event.onFpsEvent)
 
 ### Parameters
 
@@ -379,7 +426,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.FrameRate.1.stopFpsCollection"
 }
 ```
@@ -389,7 +436,57 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.updateFps"></a>
+## *updateFps [<sup>method</sup>](#head.Methods)*
+
+Updates Fps values.
+  
+### Events 
+
+ No events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.newFpsValue | integer | New Frames per Second (Fps) value |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.FrameRate.1.updateFps",
+    "params": {
+        "newFpsValue": 60
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
     "result": {
         "success": true
     }
@@ -407,15 +504,15 @@ FrameRate interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging) | Triggered before the framerate changes |
-| [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged) | Triggered when the user changes the framerate |
-| [onFpsEvent](#event.onFpsEvent) | Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached |
+| [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging) | Triggered when the framerate changes started |
+| [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged) | Triggered when the framerate changed |
+| [onFpsEvent](#event.onFpsEvent) | Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked |
 
 
 <a name="event.onDisplayFrameRateChanging"></a>
-## *onDisplayFrameRateChanging <sup>event</sup>*
+## *onDisplayFrameRateChanging [<sup>event</sup>](#head.Notifications)*
 
-Triggered before the framerate changes.
+Triggered when the framerate changes started.
 
 ### Parameters
 
@@ -431,9 +528,9 @@ This event carries no parameters.
 ```
 
 <a name="event.onDisplayFrameRateChanged"></a>
-## *onDisplayFrameRateChanged <sup>event</sup>*
+## *onDisplayFrameRateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when the user changes the framerate.
+Triggered when the framerate changed.
 
 ### Parameters
 
@@ -449,9 +546,9 @@ This event carries no parameters.
 ```
 
 <a name="event.onFpsEvent"></a>
-## *onFpsEvent <sup>event</sup>*
+## *onFpsEvent [<sup>event</sup>](#head.Notifications)*
 
-Triggered at the end of each interval as defined by the `setCollectionFrequency` method and immediately after the `stopFpsCollection` method is invoked even if the full collection interval has not been reached.
+Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked.
 
 ### Parameters
 
