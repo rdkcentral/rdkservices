@@ -15,14 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME InjectedBundle)
+set(PLUGIN_NAME Extension)
 set(MODULE_NAME WPE${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(securityagent QUIET)
 find_package(WPEWebKit REQUIRED)
 
-option(PLUGIN_AMAZON_HYBRID "Enable the Amazon Player interface (Hawaii) in the injected bundle and the creation of the Amazon tab" OFF)
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
@@ -30,33 +29,23 @@ option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
 add_library(${MODULE_NAME} SHARED
     main.cpp
     WhiteListedOriginDomainsList.cpp
-    RequestHeaders.cpp
-    Utils.cpp
-    JavaScriptFunction.cpp
-    NotifyWPEFramework.cpp
     Milestone.cpp
-    ClassDefinition.cpp
+    NotifyWPEFramework.cpp
+    RequestHeaders.cpp
     ../Tags.cpp
 )
 
-if(PLUGIN_AMAZON_HYBRID)
-    target_sources(${MODULE_NAME} PRIVATE HawaiiMessage.cpp)
-endif()
-
 if(securityagent_FOUND)
     target_sources(${MODULE_NAME} PRIVATE SecurityAgent.cpp)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            securityagent::securityagent)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_SECURITY_AGENT)
+    target_link_libraries(${MODULE_NAME} PRIVATE securityagent::securityagent)
 endif()
 
 if(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS)
     find_package(AampJSBindings REQUIRED)
     target_sources(${MODULE_NAME} PRIVATE AAMPJSBindings.cpp)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_AAMP_JSBINDINGS)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-        ${AAMP_JSBINDINGS_LIBRARIES})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${AAMP_JSBINDINGS_LIBRARIES})
 endif()
 
 if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
@@ -73,16 +62,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         WPEWebKit::WPEWebKit)
 
-if(WPE_WEBKIT_DEPRECATED_API)
-    target_compile_definitions(${MODULE_NAME} PRIVATE WPE_WEBKIT_DEPRECATED_API)
-endif()
+target_compile_definitions(${MODULE_NAME} PRIVATE WEBKIT_GLIB_API)
 
 install(TARGETS ${MODULE_NAME}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser/${PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY}
     COMPONENT ${PROJECT_NAME})
-
-if(PLUGIN_AMAZON_HYBRID)
-    install(TARGETS ${MODULE_NAME}
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/Amazon
-        COMPONENT ${PROJECT_NAME})
-endif()
