@@ -16,15 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef __WHITELISTEDORIGINDOMAINSLIST_H
 #define __WHITELISTEDORIGINDOMAINSLIST_H
 
 #include "Module.h"
 
-#include <WPE/WebKit.h>
-
+#include <wpe/webkit-web-extension.h>
 #include <vector>
+#include <map>
+#include <memory>
 
 namespace WPEFramework {
 namespace WebKit {
@@ -40,13 +41,14 @@ namespace WebKit {
         typedef std::map<string, Domains> WhiteMap;
 
     public:
-        static std::unique_ptr<WhiteListedOriginDomainsList> RequestFromWPEFramework(const char* whitelist = nullptr);
+        static std::unique_ptr<WhiteListedOriginDomainsList> Parse(const char* whitelist);
+
         ~WhiteListedOriginDomainsList()
         {
         }
 
     public:
-        void AddWhiteListToWebKit(WKBundleRef bundle);
+        void AddWhiteListToWebKit(WebKitWebExtension* extension);
 
     private:
         WhiteListedOriginDomainsList()
