@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.HdmiInput plugin for Thunder framework.
+A org.rdk.HdmiInput plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkHdmiInput.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [HdmiInput.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/HdmiInput.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -98,9 +106,13 @@ HdmiInput interface methods:
 
 
 <a name="method.getHDMIInputDevices"></a>
-## *getHDMIInputDevices <sup>method</sup>*
+## *getHDMIInputDevices [<sup>method</sup>](#head.Methods)*
 
 Returns an array of available HDMI Input ports.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -125,7 +137,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.getHDMIInputDevices"
 }
 ```
@@ -135,7 +147,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "devices": [
             {
@@ -150,9 +162,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getEdidVersion"></a>
-## *getEdidVersion <sup>method</sup>*
+## *getEdidVersion [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the EDID version.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -176,7 +192,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.getEdidVersion",
     "params": {
         "portId": "0"
@@ -189,7 +205,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "edidVersion": "HDMI2.0",
         "success": true
@@ -198,9 +214,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getHDMISPD"></a>
-## *getHDMISPD <sup>method</sup>*
+## *getHDMISPD [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -224,7 +244,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.getHDMISPD",
     "params": {
         "portId": "0"
@@ -237,18 +257,22 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "HDMISPD": "",
+        "HDMISPD": "...",
         "success": true
     }
 }
 ```
 
 <a name="method.getRawHDMISPD"></a>
-## *getRawHDMISPD <sup>method</sup>*
+## *getRawHDMISPD [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -272,7 +296,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.getRawHDMISPD",
     "params": {
         "portId": "0"
@@ -285,18 +309,22 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "HDMISPD": "",
+        "HDMISPD": "...",
         "success": true
     }
 }
 ```
 
 <a name="method.readEDID"></a>
-## *readEDID <sup>method</sup>*
+## *readEDID [<sup>method</sup>](#head.Methods)*
 
 Returns the current EDID value.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -320,7 +348,7 @@ Returns the current EDID value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.readEDID",
     "params": {
         "deviceId": 0
@@ -333,18 +361,26 @@ Returns the current EDID value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "EDID": "",
+        "EDID": "...",
         "success": true
     }
 }
 ```
 
 <a name="method.startHdmiInput"></a>
-## *startHdmiInput <sup>method</sup>*
+## *startHdmiInput [<sup>method</sup>](#head.Methods)*
 
 Activates the specified HDMI Input port as the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers the event when HDMI Input source is activated and Input status changes to `started` | 
+| `onSignalChanged` | Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal).
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
 
 ### Parameters
 
@@ -367,7 +403,7 @@ Activates the specified HDMI Input port as the primary video source.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.startHdmiInput",
     "params": {
         "portId": "0"
@@ -380,7 +416,7 @@ Activates the specified HDMI Input port as the primary video source.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -388,9 +424,16 @@ Activates the specified HDMI Input port as the primary video source.
 ```
 
 <a name="method.stopHdmiInput"></a>
-## *stopHdmiInput <sup>method</sup>*
+## *stopHdmiInput [<sup>method</sup>](#head.Methods)*
 
 Deactivates the HDMI Input port currently selected as the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`.
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 
 ### Parameters
 
@@ -410,7 +453,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.stopHdmiInput"
 }
 ```
@@ -420,7 +463,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -428,9 +471,13 @@ This method takes no parameters.
 ```
 
 <a name="method.setEdidVersion"></a>
-## *setEdidVersion <sup>method</sup>*
+## *setEdidVersion [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Sets an HDMI EDID version.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -454,7 +501,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.setEdidVersion",
     "params": {
         "portId": "0",
@@ -468,7 +515,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -476,9 +523,13 @@ This method takes no parameters.
 ```
 
 <a name="method.setVideoRectangle"></a>
-## *setVideoRectangle <sup>method</sup>*
+## *setVideoRectangle [<sup>method</sup>](#head.Methods)*
 
 Sets an HDMI Input video window.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -504,7 +555,7 @@ Sets an HDMI Input video window.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.setVideoRectangle",
     "params": {
         "x": 0,
@@ -520,7 +571,7 @@ Sets an HDMI Input video window.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -528,9 +579,13 @@ Sets an HDMI Input video window.
 ```
 
 <a name="method.writeEDID"></a>
-## *writeEDID <sup>method</sup>*
+## *writeEDID [<sup>method</sup>](#head.Methods)*
 
 Changes a current EDID value.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -554,7 +609,7 @@ Changes a current EDID value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdmiInput.1.writeEDID",
     "params": {
         "deviceId": 0,
@@ -568,7 +623,7 @@ Changes a current EDID value.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -589,10 +644,11 @@ HdmiInput interface events:
 | [onDevicesChanged](#event.onDevicesChanged) | Triggered whenever a new HDMI device is connected to an HDMI Input |
 | [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI Input |
 | [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
+| [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
 
 
 <a name="event.onDevicesChanged"></a>
-## *onDevicesChanged <sup>event</sup>*
+## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered whenever a new HDMI device is connected to an HDMI Input.
 
@@ -626,7 +682,7 @@ Triggered whenever a new HDMI device is connected to an HDMI Input.
 ```
 
 <a name="event.onInputStatusChanged"></a>
-## *onInputStatusChanged <sup>event</sup>*
+## *onInputStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered whenever the status changes for an HDMI Input.
 
@@ -654,7 +710,7 @@ Triggered whenever the status changes for an HDMI Input.
 ```
 
 <a name="event.onSignalChanged"></a>
-## *onSignalChanged <sup>event</sup>*
+## *onSignalChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered whenever the signal status changes for an HDMI Input.
 
@@ -677,6 +733,42 @@ Triggered whenever the signal status changes for an HDMI Input.
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
         "signalStatus": "stableSignal"
+    }
+}
+```
+
+<a name="event.videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate [<sup>event</sup>](#head.Notifications)*
+
+Triggered whenever there is an update in HDMI Input video stream info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | number | The port identifier for the HDMI Input |
+| params.locator | string | A URL corresponding to the HDMI Input port |
+| params.width | integer | Width of the Video Stream |
+| params.height | integer | Height of the Video Stream |
+| params.progressive | boolean | Whether the streaming video is progressive or not? |
+| params.frameRateN | integer | FrameRate Numerator |
+| params.frameRateD | integer | FrameRate Denomirator |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.videoStreamInfoUpdate",
+    "params": {
+        "id": 0,
+        "locator": "hdmiin://localhost/deviceid/0",
+        "width": 3840,
+        "height": 2160,
+        "progressive": true,
+        "frameRateN": 60000,
+        "frameRateD": 1001
     }
 }
 ```
