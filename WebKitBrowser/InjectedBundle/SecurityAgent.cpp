@@ -19,7 +19,7 @@
 
 #include "JavaScriptFunctionType.h"
 #include "Utils.h"
-#include "Tags.h"
+#include "../Tags.h"
 #include <securityagent/securityagent.h>
 
 namespace WPEFramework {
