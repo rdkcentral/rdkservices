@@ -16,31 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef __NOTIFYH
-#define __NOTIFYH
 
-#include "JavaScriptFunctionType.h"
-#include "../Tags.h"
+#pragma once
+
+#include <wpe/webkit-web-extension.h>
 
 namespace WPEFramework {
 namespace JavaScript {
-    namespace Functions {
+namespace BridgeObject {
 
-        class NotifyWPEFramework {
-        public:
-            NotifyWPEFramework();
+bool HandleMessageToPage(WebKitWebPage*, const char*, WebKitUserMessage*);
+void InjectJS(WebKitScriptWorld*, WebKitWebPage*, WebKitFrame*);
 
-            JSValueRef HandleMessage(JSContextRef context, JSObjectRef,
-                JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef*);
-
-            static inline string GetMessageName()
-            {
-                return Tags::Notification;
-            }
-        };
-    }
-}
-}
-
-#endif // __NOTIFYH
+}  // BridgeObject
+}  // JavaScript
+}  // WPEFramework
