@@ -16,20 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include "Tags.h"
+
+#pragma once
+
+#include <wpe/webkit-web-extension.h>
 
 namespace WPEFramework {
+namespace JavaScript {
+namespace Milestone {
 
-namespace Tags {
+void InjectJS(WebKitScriptWorld* world, WebKitFrame* frame);
 
-const char* const Config = "Config.";
-const char* const Notification = "Notification";
-const char* const URL = "URL";
-const char* const BridgeObjectQuery = "BridgeObjectQuery";
-const char* const BridgeObjectReply = "BridgeObjectReply";
-const char* const BridgeObjectEvent = "BridgeObjectEvent";
-const char* const Headers = "Headers";
-
-} } ;
-
+}  // Milestone
+}  // JavaScript
+}  // WPEFramework

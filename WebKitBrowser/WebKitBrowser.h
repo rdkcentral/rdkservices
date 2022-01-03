@@ -24,6 +24,7 @@
 #include <interfaces/IBrowser.h>
 #include <interfaces/IApplication.h>
 #include <interfaces/IMemory.h>
+
 #include <interfaces/json/JsonData_Browser.h>
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>

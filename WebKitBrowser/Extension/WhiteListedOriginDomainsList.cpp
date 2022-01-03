@@ -16,20 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include "WhiteListedOriginDomainsList.h"
 
-#include "Utils.h"
-#include "../Tags.h"
+#include "WhiteListedOriginDomainsList.h"
 
 using std::unique_ptr;
 using std::vector;
-
-// For now we report errors to stderr.
-// TODO: does the injected bundle need a more formal way of dealing with errors?
-#include <iostream>
-using std::cerr;
-using std::endl;
 
 namespace WPEFramework {
 namespace WebKit {
@@ -90,59 +81,29 @@ namespace WebKit {
         }
     }
 
-    // Gets white list from WPEFramework via synchronous message.
-    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::RequestFromWPEFramework(const char* whitelist)
+    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::Parse(const char* whitelist)
     {
-        string messageName(string(Tags::Config) + "Whitelist");
-        std::string utf8MessageName = Core::ToString(messageName.c_str());
-
-        WKStringRef jsMessageName = WKStringCreateWithUTF8CString(utf8MessageName.c_str());
-        WKMutableArrayRef messageBody = WKMutableArrayCreate();
-        WKTypeRef returnData;
-
-        WKBundlePostSynchronousMessage(WebKit::Utils::GetBundle(), jsMessageName, messageBody, &returnData);
-
-        WKStringRef returnedString = static_cast<WKStringRef>(returnData);
-
-        string jsonString = WebKit::Utils::WKStringToString(returnedString);
-
         unique_ptr<WhiteListedOriginDomainsList> whiteList(new WhiteListedOriginDomainsList());
-        ParseWhiteList(jsonString, whiteList->_whiteMap);
-
-        WKRelease(returnData);
-        WKRelease(messageBody);
-        WKRelease(jsMessageName);
-
+        ParseWhiteList(whitelist, whiteList->_whiteMap);
         return whiteList;
     }
 
     // Adds stored entries to WebKit.
-    void WhiteListedOriginDomainsList::AddWhiteListToWebKit(WKBundleRef bundle)
+    void WhiteListedOriginDomainsList::AddWhiteListToWebKit(WebKitWebExtension* extension)
     {
         WhiteMap::const_iterator index(_whiteMap.begin());
 
         while (index != _whiteMap.end()) {
 
-            WKStringRef wkOrigin = WKStringCreateWithUTF8CString(index->first.c_str());
-
-            for (const Domain& domain : index->second) {
-
-                std::string utf8Domain = Core::ToString(domain.second.c_str());
-                WKURLRef url = WKURLCreateWithUTF8CString(utf8Domain.c_str());
-                WKStringRef protocol = WKURLCopyScheme(url);
-                WKStringRef host = WKURLCopyHostName(url);
-
-                WKRelease(url);
-
-                WKBundleAddOriginAccessWhitelistEntry(bundle, wkOrigin, protocol, host, domain.first);
-
-                WKRelease(host);
-                WKRelease(protocol);
-
-                cerr << "Added origin->domain pair to WebKit white list: " << index->first << " -> " << domain.second << endl;
+            WebKitSecurityOrigin* origin = webkit_security_origin_new_for_uri(index->first.c_str());
+            for (const Domain& domainIndex : index->second) {
+                WebKitSecurityOrigin* domain = webkit_security_origin_new_for_uri(domainIndex.second.c_str());
+                webkit_web_extension_add_origin_access_whitelist_entry(extension,
+                        origin, webkit_security_origin_get_protocol(domain),
+                        webkit_security_origin_get_host(domain), domainIndex.first);
+                webkit_security_origin_unref(domain);
             }
-
-            WKRelease(wkOrigin);
+            webkit_security_origin_unref(origin);
 
             index++;
         }
