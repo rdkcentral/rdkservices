@@ -423,6 +423,26 @@
                 ]
             }
         },
+        "getMfgSerialNumber": {
+            "summary": "Gets the Manufacturing Serial Number",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mfgSerialNumber": {
+                        "summary": "Manufacturing Serial Number",
+                        "type": "string",
+                        "example": "F00020CE000003"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mfgSerialNumber",
+                    "success"
+                ]
+            }
+        },
         "getDownloadedFirmwareInfo":{
             "summary": "Returns information about firmware downloads",
             "result": {

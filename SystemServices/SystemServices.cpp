@@ -307,6 +307,9 @@ namespace WPEFramework {
             registerMethod("sampleSystemServiceAPI", &SystemServices::sampleAPI, this);
 #endif /* DEBUG */
             registerMethod("getDeviceInfo", &SystemServices::getDeviceInfo, this);
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+            registerMethod("getMfgSerialNumber", &SystemServices::getMfgSerialNumber, this);
+#endif
             registerMethod("reboot", &SystemServices::requestSystemReboot, this);
             registerMethod("enableMoca", &SystemServices::requestEnableMoca, this);
             registerMethod("queryMocaStatus", &SystemServices::queryMocaStatus,
@@ -897,8 +900,34 @@ namespace WPEFramework {
                 }
             returnResponse(retAPIStatus);
         }
-
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        /***
+         * @brief : To retrieve Manufacturing Serial Number.
+         * @param1[in] : {"params":{}}
+         * @param2[out] : {"result":{"mfgSerialNumber":"<string>","success":<bool>}}
+         */
+        uint32_t SystemServices::getMfgSerialNumber(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGWARN("SystemService getMfgSerialNumber query");
+
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+            IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+            param.buffer[param.bufLen] = '\0';
+
+            bool status = false;
+            if (result == IARM_RESULT_SUCCESS) {
+                response["mfgSerialNumber"] = string(param.buffer);
+                status = true;
+                LOGWARN("SystemService getMfgSerialNumber Manufacturing Serial Number: %s", param.buffer);
+            } else {
+                LOGERR("SystemService getMfgSerialNumber Manufacturing Serial Number: NULL");
+            }
+
+            returnResponse(status);;
+        }
+
         bool SystemServices::getManufacturerData(const string& parameter, JsonObject& response)
         {
             LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
