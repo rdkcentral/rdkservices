@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.LoggingPreferences plugin for Thunder framework.
+A org.rdk.LoggingPreferences plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkLoggingPreferences.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [LoggingPreferences.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/LoggingPreferences.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -90,9 +98,13 @@ LoggingPreferences interface methods:
 
 
 <a name="method.isKeystrokeMaskEnabled"></a>
-## *isKeystrokeMaskEnabled <sup>method</sup>*
+## *isKeystrokeMaskEnabled [<sup>method</sup>](#head.Methods)*
 
-Gets logging keystroke mask status (enabled or disabled).
+Gets logging keystroke mask status (enabled or disabled). 
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -103,7 +115,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.keystrokeMaskEnabled | integer | Whether keystroke mask is enabled. If `1` (true), then any system that logs keystrokes must mask the actual keystroke being used. Default value is `0` (false) |
+| result.keystrokeMaskEnabled | boolean | Whether keystroke mask is enabled (`true`) or disabled (`false`). If `true`, then any system that logs keystrokes must mask the actual keystroke being used. Default value is `false` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -113,7 +125,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.LoggingPreferences.1.isKeystrokeMaskEnabled"
 }
 ```
@@ -123,18 +135,23 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "keystrokeMaskEnabled": 0,
+        "keystrokeMaskEnabled": false,
         "success": true
     }
 }
 ```
 
 <a name="method.setKeystrokeMaskEnabled"></a>
-## *setKeystrokeMaskEnabled <sup>method</sup>*
+## *setKeystrokeMaskEnabled [<sup>method</sup>](#head.Methods)*
 
 Sets the keystroke logging mask property. If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onKeystrokeMaskEnabledChange`| Triggered if the keystroke mask is changed successfully |.
 
 Also see: [onKeystrokeMaskEnabledChange](#event.onKeystrokeMaskEnabledChange)
 
@@ -159,7 +176,7 @@ Also see: [onKeystrokeMaskEnabledChange](#event.onKeystrokeMaskEnabledChange)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.LoggingPreferences.1.setKeystrokeMaskEnabled",
     "params": {
         "keystrokeMaskEnabled": false
@@ -172,7 +189,7 @@ Also see: [onKeystrokeMaskEnabledChange](#event.onKeystrokeMaskEnabledChange)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -194,7 +211,7 @@ LoggingPreferences interface events:
 
 
 <a name="event.onKeystrokeMaskEnabledChange"></a>
-## *onKeystrokeMaskEnabledChange <sup>event</sup>*
+## *onKeystrokeMaskEnabledChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the keystroke mask is changed.
 
