@@ -2214,6 +2214,7 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(_view, "permission-request", reinterpret_cast<GCallback>(decidePermissionCallback), nullptr);
             g_signal_connect(_view, "show-notification", reinterpret_cast<GCallback>(showNotificationCallback), this);
             g_signal_connect(_view, "user-message-received", reinterpret_cast<GCallback>(userMessageReceivedCallback), this);
+            g_signal_connect(_view, "notify::is-web-process-responsive", reinterpret_cast<GCallback>(isWebProcessResponsiveCallback), this);
 
             _configurationCompleted.SetState(true);
 
@@ -2579,7 +2580,21 @@ static GSourceFuncs _handlerIntervention =
             }
         }
 
-#ifndef WEBKIT_GLIB_API
+#ifdef WEBKIT_GLIB_API
+        static void isWebProcessResponsiveCallback(WebKitWebView*, GParamSpec*, WebKitImplementation* self)
+        {
+            if (webkit_web_view_get_is_web_process_responsive(self->_view) == true)
+            {
+                if (self->_unresponsiveReplyNum > 0)
+                {
+                    std::string activeURL(webkit_web_view_get_uri(self->_view));
+                    SYSLOG(Logging::Notification, (_T("WebProcess recovered after %d unresponsive replies, url=%s\n"),
+                                                self->_unresponsiveReplyNum, activeURL.c_str()));
+                    self->_unresponsiveReplyNum = 0;
+                }
+            }
+        }
+#else
         static void WebProcessDidBecomeResponsive(WKPageRef page, const void* clientInfo)
         {
             auto &self = *const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
