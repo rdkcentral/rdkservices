@@ -2145,57 +2145,43 @@ namespace WPEFramework {
             returnResponse(resp);
         }
 
-        bool SystemServices::getZoneInfoZDump(std::string file, std::string &zoneInfo)
+        bool SystemServices::processTimeZones(std::string dir, JsonObject& out)
         {
+            bool ret = true;
             std::string cmd = "zdump ";
-            cmd += file;
+            cmd += dir;
+            cmd += "/*";
 
             FILE *p = popen(cmd.c_str(), "r");
 
             if(!p)
             {
                 LOGERR("failed to start %s: %s", cmd.c_str(), strerror(errno));
-                zoneInfo = "";
                 return false;
 
             }
 
-            char buf[1024];
+            std::vector <std::string> dirs;
+
+            char buf[4096];
             while(fgets(buf, sizeof(buf), p) != NULL)
-                zoneInfo += buf;
-
-            int err = pclose(p);
-            if (0 == err)
             {
-                zoneInfo.erase(0, zoneInfo.find_first_of(" \t")); // Skip filename
-                zoneInfo.erase(0, zoneInfo.find_first_not_of(" \n\r\t")); // Trim whitespaces
-                zoneInfo.erase(zoneInfo.find_last_not_of(" \n\r\t") + 1);
-            }
-            else
-            {    
-                zoneInfo = "";
-                LOGERR("%s failed with code %d", cmd.c_str(), err);
-                return false;
-            }
+                std::string line(buf);
 
-            return true;
-        }
+                line.erase(0, line.find_first_not_of(" \n\r\t"));
+                line.erase(line.find_last_not_of(" \n\r\t") + 1);
 
-        bool SystemServices::processTimeZones(std::string dir, JsonObject& out)
-        {
-            bool ret = true;
-            DIR *d = opendir(dir.c_str());
+                size_t fileEnd = line.find_first_of(" \t");
 
-            struct dirent *de;
+                std::string fullName;
 
-            while ((de = readdir(d)))
-            {
-                if (0 == de->d_name[0] || 0 == strcmp(de->d_name, ".") || 0 == strcmp(de->d_name, ".."))
+                if (std::string::npos == fileEnd)
+                {
+                    LOGERR("Failed to parse '%s'", line.c_str());
                     continue;
+                }
 
-                std::string fullName = dir;
-                fullName += "/";
-                fullName += de->d_name;
+                fullName = line.substr(0, fileEnd);
 
                 struct stat deStat;
                 if (stat(fullName.c_str(), &deStat))
@@ -2206,25 +2192,47 @@ namespace WPEFramework {
 
                 if (S_ISDIR(deStat.st_mode))
                 {
-                    JsonObject dirObject;
-                    if (!processTimeZones(fullName, dirObject)) 
-                        ret = false;
-
-                    out[de->d_name] = dirObject;
+                    dirs.push_back(fullName);
                 }
                 else
                 {
-                    if (0 == access(fullName.c_str(), R_OK))
-                    {
-                        std::string zoneInfo;
-                        if (!getZoneInfoZDump(fullName, zoneInfo)) 
-                            ret = false;
 
-                        out[de->d_name] = zoneInfo;
-                    }
+                    std::string name = fullName;
+
+                    size_t pathEnd = fullName.find_last_of("/") + 1;
+                    if (std::string::npos != pathEnd)
+                        name = fullName.substr(pathEnd);
                     else
-                        LOGWARN("no access to %s", fullName.c_str());
+                        LOGWARN("No '/' in %s", fullName.c_str());
+
+                    line.erase(0, line.find_first_of(" \t"));
+                    line.erase(0, line.find_first_not_of(" \n\r\t"));
+
+                    out[name.c_str()] = line;
                 }
+            }
+
+            int err = pclose(p);
+
+            if (0 != err)
+            {    
+                LOGERR("%s failed with code %d", cmd.c_str(), err);
+                return false;
+            }
+
+            for (int n = 0 ; n < dirs.size(); n++) {
+                std::string name = dirs[n];
+
+                size_t pathEnd = name.find_last_of("/") + 1;
+
+                if (std::string::npos != pathEnd)
+                    name = name.substr(pathEnd);
+                else
+                    LOGWARN("No '/' in %s", name.c_str());
+
+                JsonObject dirObject;
+                processTimeZones(dirs[n], dirObject);
+                out[name.c_str()] = dirObject;
             }
 
             return ret;
