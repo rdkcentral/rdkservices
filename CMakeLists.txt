@@ -315,6 +315,10 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(RDK_SERVICES_TEST)
+    add_subdirectory(RdkServicesTest)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
