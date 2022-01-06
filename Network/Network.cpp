@@ -668,6 +668,7 @@ namespace WPEFramework
                 if (false == iarmData.isSupported)
                 {
                     LOGWARN("Manual IP Settings not Enabled..\n");
+                    response["supported"] = iarmData.isSupported;
                     result = false;
                     returnResponse(result)
                 }
@@ -676,6 +677,7 @@ namespace WPEFramework
                 if (false == mask_validation)
                 {
                     LOGWARN("Netmask is not valid ..\n");
+                    response["supported"] = iarmData.isSupported;
                     result = false;
                     returnResponse(result)
                 }
@@ -690,24 +692,28 @@ namespace WPEFramework
                     if (ip_address.s_addr == gateway_address.s_addr)
                     {
                         LOGWARN("Interface and Gateway IP are same , return false \n");
+                        response["supported"] = iarmData.isSupported;
                         result = false;
                         returnResponse(result)
                     }
                     if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
                     {
                         LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                        response["supported"] = iarmData.isSupported;
                         result = false;
                         returnResponse(result)
                     }
                     if (ip_address.s_addr == broadcast_addr1.s_addr)
                     {
                         LOGWARN("Interface and Broadcast IP is same, return false \n");
+                        response["supported"] = iarmData.isSupported;
                         result = false;
                         returnResponse(result)
                     }
                     if (gateway_address.s_addr == broadcast_addr2.s_addr)
                     {
                         LOGWARN("Gateway and Broadcast IP is same, return false \n");
+                        response["supported"] = iarmData.isSupported;
                         result = false;
                         returnResponse(result)
                     }
