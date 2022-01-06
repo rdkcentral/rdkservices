@@ -17,10 +17,12 @@
  * limitations under the License.
  */
 
-#include <memory>
-#include <utility>
-#include <tuple>
+#include <condition_variable>
 #include <fstream>
+#include <memory>
+#include <tuple>
+#include <utility>
+
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -51,6 +53,9 @@
 
 #include "BrowserConsoleLog.h"
 #include "InjectedBundle/Tags.h"
+#include "tracing/Logging.h"
+
+#define URL_LOAD_RESULT_TIMEOUT_MS                                   (15 * 1000)
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,6 +81,37 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 
 namespace WPEFramework {
 namespace Plugin {
+
+namespace {
+
+void onURLChangeWorkarounds(const std::string &url, WKPageRef page)
+{
+    const char* activateKeyboardEventDelay = getenv("ACTIVATE_KEYBOARD_EVENT_DELAY");
+
+    if (activateKeyboardEventDelay) {
+        if (url.find("https://www.live.bbctvapps.co.uk/tap/sounds") != std::string::npos) {
+            SYSLOG(Logging::Notification, (_T("Activating key event delays")));
+            setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "1", 1);
+            WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("1"), true, false);
+        } else {
+            if (activateKeyboardEventDelay[0] != '0') {
+                SYSLOG(Logging::Notification, (_T("Deactivating key event delays")));
+                setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "0", 1);
+                WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("0"), true, false);
+            }
+        }
+    }
+    // This is workaround in case of applications which use ShakaPlayer in version >= 3.0.0 and <= 3.0.3
+    if (url.find("https://app.10ft.itv.com/virginmedia") != std::string::npos) {
+        SYSLOG(Logging::Notification, (_T("Activating convert playready key ID for Shaka")));
+        WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("1"), true, false);
+    } else {
+        SYSLOG(Logging::Notification, (_T("Deactivating convert playready key ID for Shaka")));
+        WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("0"), true, false);
+    }
+}
+
+} // namespace
 
     static string consoleLogPrefix;
 
@@ -753,7 +789,6 @@ static GSourceFuncs _handlerIntervention =
         WebKitImplementation()
             : Core::Thread(0, _T("WebKitBrowser"))
             , _config()
-            , _URL()
             , _dataPath()
             , _service(nullptr)
             , _headers()
@@ -769,7 +804,6 @@ static GSourceFuncs _handlerIntervention =
             , _automationSession(nullptr)
             , _notificationManager()
             , _httpCookieAcceptPolicy(kWKHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain)
-            , _navigationRef(nullptr)
 #endif
             , _adminLock()
             , _fps(0)
@@ -806,11 +840,11 @@ static GSourceFuncs _handlerIntervention =
                 TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
 
             implementation = this;
-            TRACE(Trace::Information, (_T("%p"), this));
+            TRACE_L1("%p", this);
         }
         ~WebKitImplementation() override
         {
-            TRACE(Trace::Information, (_T("%p"), this));
+            TRACE_L1("%p", this);
             Block();
 
             odh_error_report_deinit(ODH_ERROR_REPORT_DEINIT_MODE_DEFERRED);
@@ -874,7 +908,7 @@ static GSourceFuncs _handlerIntervention =
                         userScriptsUris.push_back(entry);
                         userScriptsContent.push_back(content);
                 }
-                TRACE(Trace::Information, (_T("Adding user's script (uri: %s, empty: %d)"), entry.c_str(), content.empty()));
+                TRACE_L1("Adding user's script (uri: %s, empty: %d)", entry.c_str(), content.empty());
             }
             using SetUserScriptsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
             auto* data = new SetUserScriptsData(this, userScriptsUris, userScriptsContent);
@@ -934,7 +968,7 @@ static GSourceFuncs _handlerIntervention =
                         userStyleSheetsUris.push_back(entry);
                         userStyleSheetsContent.push_back(content);
                 }
-                TRACE(Trace::Information, (_T("Adding user's style sheet (uri: %s, empty: %d)"), entry.c_str(), content.empty()));
+                TRACE_L1("Adding user's style sheet (uri: %s, empty: %d)", entry.c_str(), content.empty());
             }
             using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
             auto* data = new SetUserStyleSheetsData(this, userStyleSheetsUris, userStyleSheetsContent);
@@ -1037,7 +1071,7 @@ static GSourceFuncs _handlerIntervention =
             using SetUserAgentData = std::tuple<WebKitImplementation*, string>;
             auto* data = new SetUserAgentData(this, useragent);
 
-            TRACE(Trace::Information, (_T("New user agent: %s"), useragent.c_str()));
+            TRACE_L1("New user agent: %s", useragent.c_str());
 
             g_main_context_invoke_full(
                 _context,
@@ -1290,8 +1324,9 @@ static GSourceFuncs _handlerIntervention =
             }
 
             const Config::SecurityProfileProperty securityProfile(spe.Current());
-            TRACE(Trace::Information, (_T("Setting security profile to %s: %s"),
-                        securityProfile.Name.Value().c_str(), securityProfile.CipherPrio.Value().c_str()));
+            TRACE_L1(
+                "Setting security profile to %s: %s",
+                securityProfile.Name.Value().c_str(), securityProfile.CipherPrio.Value().c_str());
 
             using SetSecurityProfileData = std::tuple<WebKitImplementation*, Config::SecurityProfileProperty>;
             auto* data = new SetSecurityProfileData(this, securityProfile);
@@ -1362,75 +1397,89 @@ static GSourceFuncs _handlerIntervention =
             return 0;
         }
 
+        std::string urlValue() const
+        {
+            std::unique_lock<std::mutex> lock{urlData_.mutex};
+            return urlData_.url;
+        }
+
+        std::string urlValue(std::string url)
+        {
+            std::unique_lock<std::mutex> lock{urlData_.mutex};
+            std::swap(urlData_.url, url);
+            return url;
+        }
+
         uint32_t URL(const string& URL) override
         {
-            TRACE(Trace::Information, (_T("New URL: %s"), URL.c_str()));
+            using namespace std::chrono;
+
+            TRACE_L1("New URL: %s", URL.c_str());
             ODH_WARNING("New URL: %s", URL.c_str());
 
-            if (_context != nullptr) {
-                using SetURLData = std::tuple<WebKitImplementation*, string>;
-                auto *data = new SetURLData(this, URL);
-                g_main_context_invoke_full(
-                    _context,
-                    G_PRIORITY_DEFAULT,
-                    [](gpointer customdata) -> gboolean {
-                        auto& data = *static_cast<SetURLData*>(customdata);
-                        WebKitImplementation* object = std::get<0>(data);
+            if (!_context) return Core::ERROR_ILLEGAL_STATE;
 
-                        string url = std::get<1>(data);
-                        object->_adminLock.Lock();
-                        object->_URL = url;
-                        object->_adminLock.Unlock();
+            using SetURLData = std::tuple<WebKitImplementation *, string>;
+            auto *data = new SetURLData(this, URL);
 
-                        object->SetResponseHTTPStatusCode(-1);
+            std::unique_lock<std::mutex> lock{urlData_.mutex};
+
+            urlData_.result = Core::ERROR_TIMEDOUT;
+            const auto now = steady_clock::now();
+
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean
+                {
+                    auto &data = *static_cast<SetURLData*>(customdata);
+                    WebKitImplementation *object = std::get<0>(data);
+                    const string url = std::get<1>(data);
+
+                    object->urlValue(url);
+
+                    object->SetResponseHTTPStatusCode(-1);
 #ifdef WEBKIT_GLIB_API
-                        webkit_web_view_load_uri(object->_view, object->_URL.c_str());
+                    webkit_web_view_load_uri(object->_view, url.c_str());
 #else
-                        object->SetNavigationRef(nullptr);
-                        auto shellURL = WKURLCreateWithUTF8CString(object->_URL.c_str());
-                        const char* activateKeyboardEventDelay = getenv("ACTIVATE_KEYBOARD_EVENT_DELAY");
-                        if (activateKeyboardEventDelay) {
-                            if (object->_URL.find("https://www.live.bbctvapps.co.uk/tap/sounds") != std::string::npos) {
-                                SYSLOG(Logging::Notification, (_T("Activating key event delays")));
-                                setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "1", 1);
-                                WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("1"), true, false);
-                            } else {
-                                if (activateKeyboardEventDelay[0] != '0') {
-                                    SYSLOG(Logging::Notification, (_T("Deactivating key event delays")));
-                                    setenv("ACTIVATE_KEYBOARD_EVENT_DELAY", "0", 1);
-                                    WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("ACTIVATE_KEYBOARD_EVENT_DELAY"), WKStringCreateWithUTF8CString("0"), true, false);
-                                }
-                            }
-                        }
-                        // This is workaround in case of applications which use ShakaPlayer in version >= 3.0.0 and <= 3.0.3
-                        if (object->_URL.find("https://app.10ft.itv.com/virginmedia") != std::string::npos) {
-                            SYSLOG(Logging::Notification, (_T("Activating convert playready key ID for Shaka")));
-                            WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("1"), true, false);
-                        } else {
-                            SYSLOG(Logging::Notification, (_T("Deactivating convert playready key ID for Shaka")));
-                            WKContextSetEnv(WKPageGetContext(object->_page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("0"), true, false);
-                        }
-                        WKPageLoadURL(object->_page, shellURL);
-                        WKRelease(shellURL);
-#endif
-                        return G_SOURCE_REMOVE;
-                    },
-                    data,
-                    [](gpointer customdata) {
-                        delete static_cast<SetURLData*>(customdata);
-                    });
-            }
+                    auto page = object->GetPage();
 
-            return Core::ERROR_NONE;
+                    onURLChangeWorkarounds(url, page);
+
+                    auto shellURL = WKURLCreateWithUTF8CString(url.c_str());
+                    WKPageLoadURL(page, shellURL);
+                    WKRelease(shellURL);
+                    TRACE_L1("URL %s, load requested", url.c_str());
+#endif
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata)
+                {
+                    delete static_cast<SetURLData*>(customdata);
+                });
+
+            urlData_.cond.wait_for(
+                lock,
+                milliseconds{URL_LOAD_RESULT_TIMEOUT_MS},
+                [this](){return Core::ERROR_TIMEDOUT != urlData_.result;});
+
+            const auto diff = steady_clock::now() - now;
+
+            TRACE_L1(
+                    "URL: %s, load result %s(%d), %dms",
+                    urlData_.url.c_str(),
+                    Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
+                    int(urlData_.result),
+                    int(duration_cast<milliseconds>(diff).count()));
+
+            return urlData_.result;
         }
 
         uint32_t URL(string& url) const override
         {
-            _adminLock.Lock();
-            url = _URL;
-            _adminLock.Unlock();
-
-            return 0;
+            url = urlValue();
+            return Core::ERROR_NONE;
         }
 
         uint32_t FPS(uint8_t& fps) const override
@@ -1768,23 +1817,32 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 
-        void OnURLChanged(const string& URL)
+        void OnURLChanged(const string& url, bool navigationStart)
         {
-            _adminLock.Lock();
+            TRACE_L1("%s", url.c_str());
 
-            _URL = URL;
+            urlValue(url);
+
+            if(!navigationStart)
+            {
+                std::unique_lock<std::mutex> lock{urlData_.mutex};
+                urlData_.result = Core::ERROR_NONE;
+                urlData_.cond.notify_one();
+            }
+
+            _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
             {
                 while (index != _notificationClients.end()) {
-                    (*index)->URLChange(URL, false);
+                    (*index)->URLChange(url, false);
                     index++;
                 }
             }
             {
                 std::list<Exchange::IBrowser::INotification*>::iterator index(_notificationBrowserClients.begin());
                 while (index != _notificationBrowserClients.end()) {
-                    (*index)->URLChanged(URL);
+                    (*index)->URLChanged(url);
                     index++;
                 }
             }
@@ -1797,24 +1855,35 @@ static GSourceFuncs _handlerIntervention =
             string URL = Core::ToString(webkit_web_view_get_uri(_view));
             OnLoadFinished(URL);
         }
-        void OnLoadFinished(const string& URL)
+        void OnLoadFinished(const string& url)
         {
 #else
-        void OnLoadFinished(const string& URL, WKNavigationRef navigation)
+        void OnLoadFinished(const string& url, WKNavigationRef navigation)
         {
-            if (_navigationRef != navigation) {
+            const auto currNavRef = NavigationRef();
+
+            TRACE_L1("%s (%p|%p)", url.c_str(), currNavRef, navigation);
+
+            if (currNavRef != navigation) {
                 TRACE(Trace::Information, (_T("Ignore 'loadfinished' for previous navigation request")));
                 return;
             }
 #endif
+            urlValue(url);
+
+            {
+                std::unique_lock<std::mutex> lock{urlData_.mutex};
+                urlData_.result = Core::ERROR_NONE;
+                urlData_.cond.notify_one();
+            }
+
             _adminLock.Lock();
 
-            _URL = URL;
             {
                 std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
 
                 while (index != _notificationClients.end()) {
-                    (*index)->LoadFinished(URL, _httpStatusCode);
+                    (*index)->LoadFinished(url, _httpStatusCode);
                     index++;
                 }
             }
@@ -1822,27 +1891,39 @@ static GSourceFuncs _handlerIntervention =
                 std::list<Exchange::IBrowser::INotification*>::iterator index(_notificationBrowserClients.begin());
 
                 while (index != _notificationBrowserClients.end()) {
-                    (*index)->LoadFinished(URL);
+                    (*index)->LoadFinished(url);
                     index++;
                 }
             }
 
             _adminLock.Unlock();
         }
+
         void OnLoadFailed()
         {
+            const auto url = urlValue();
+
+            TRACE_L1("%s (%p)", url.c_str(), NavigationRef());
+
+            {
+                std::unique_lock<std::mutex> lock{urlData_.mutex};
+                urlData_.result = Core::ERROR_INCORRECT_URL;
+                urlData_.cond.notify_one();
+            }
+
             _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
 
             while (index != _notificationClients.end()) {
-                (*index)->LoadFailed(_URL);
+                (*index)->LoadFailed(url);
                 index++;
             }
 
             _adminLock.Unlock();
-            ODH_ERROR("Failed to load URL: %s", _URL.c_str());
+            ODH_ERROR("Failed to load URL: %s", url.c_str());
         }
+
         void OnStateChange(const PluginHost::IStateControl::state newState)
         {
             _adminLock.Lock();
@@ -2072,10 +2153,13 @@ static GSourceFuncs _handlerIntervention =
                 return (Core::ERROR_INCOMPLETE_CONFIG);
             }
 
-            bool environmentOverride(WebKitBrowser::EnvironmentOverride(_config.EnvironmentOverride.Value()));
+            const bool environmentOverride(WebKitBrowser::EnvironmentOverride(_config.EnvironmentOverride.Value()));
 
-            if ((environmentOverride == false) || (Core::SystemInfo::GetEnvironment(_T("WPE_WEBKIT_URL"), _URL) == false)) {
-                _URL = _config.URL.Value();
+            {
+                std::string url = _config.URL.Value();
+
+                if(environmentOverride) Core::SystemInfo::GetEnvironment(_T("WPE_WEBKIT_URL"), url);
+                urlValue(url);
             }
 
             Core::SystemInfo::SetEnvironment(_T("QUEUEPLAYER_FLUSH_MODE"), _T("3"), false);
@@ -2315,10 +2399,21 @@ static GSourceFuncs _handlerIntervention =
             return (value);
         }
 #ifndef WEBKIT_GLIB_API
-        void SetNavigationRef(WKNavigationRef ref)
+        void NavigationRef(WKNavigationRef ref)
         {
+            _adminLock.Lock();
             _navigationRef = ref;
+            _adminLock.Unlock();
         }
+
+        WKNavigationRef NavigationRef() const
+        {
+            _adminLock.Lock();
+            WKNavigationRef ref = _navigationRef;
+            _adminLock.Unlock();
+            return ref;
+        }
+
         void OnNotificationShown(uint64_t notificationID) const
         {
             WKNotificationManagerProviderDidShowNotification(_notificationManager, notificationID);
@@ -2334,7 +2429,10 @@ static GSourceFuncs _handlerIntervention =
 
         WKPageRef GetPage() const
         {
-            return _page;
+            _adminLock.Lock();
+            WKPageRef page = _page;
+            _adminLock.Unlock();
+            return page;
         }
 #endif
         BEGIN_INTERFACE_MAP(WebKitImplementation)
@@ -2407,7 +2505,7 @@ static GSourceFuncs _handlerIntervention =
                             const char kBlankURL[] = "about:blank";
                             if (GetPageActiveURL(object->_page) != kBlankURL)
                                 object->SetURL(kBlankURL);
-                            ASSERT(object->_URL == kBlankURL);
+                            ASSERT(object->urlValue() == kBlankURL);
                         }
 
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
@@ -2493,7 +2591,7 @@ static GSourceFuncs _handlerIntervention =
         }
         static void uriChangedCallback(WebKitWebView* webView, GParamSpec*, WebKitImplementation* browser)
         {
-            browser->OnURLChanged(Core::ToString(webkit_web_view_get_uri(webView)));
+            browser->OnURLChanged(Core::ToString(webkit_web_view_get_uri(webView)), false);
         }
         static void loadChangedCallback(WebKitWebView* webView, WebKitLoadEvent loadEvent, WebKitImplementation* browser)
         {
@@ -3011,7 +3109,14 @@ static GSourceFuncs _handlerIntervention =
 
     private:
         Config _config;
-        string _URL;
+
+        struct {
+            mutable std::mutex mutex;
+            std::condition_variable cond;
+            string url;
+            uint32_t result = Core::ERROR_TIMEDOUT;
+        } urlData_;
+
         string _dataPath;
         PluginHost::IShell* _service;
         string _headers;
@@ -3028,7 +3133,7 @@ static GSourceFuncs _handlerIntervention =
         WKWebAutomationSessionRef _automationSession;
         WKNotificationManagerRef _notificationManager;
         WKHTTPCookieAcceptPolicy _httpCookieAcceptPolicy;
-        WKNavigationRef _navigationRef;
+        WKNavigationRef _navigationRef{nullptr};
 #endif
         mutable Core::CriticalSection _adminLock;
         uint32_t _fps;
@@ -3099,8 +3204,8 @@ static GSourceFuncs _handlerIntervention =
 
         string url = WKStringToString(urlStringRef);
 
-        browser->SetNavigationRef(navigation);
-        browser->OnURLChanged(url);
+        browser->NavigationRef(navigation);
+        browser->OnURLChanged(url, true);
 
         WKRelease(urlRef);
         WKRelease(urlStringRef);
@@ -3116,7 +3221,7 @@ static GSourceFuncs _handlerIntervention =
 
             string url = WKStringToString(urlStringRef);
 
-            browser->OnURLChanged(url);
+            browser->OnURLChanged(url, false);
 
             WKRelease(urlRef);
             WKRelease(urlStringRef);
