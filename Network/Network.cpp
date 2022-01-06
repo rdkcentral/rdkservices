@@ -669,6 +669,7 @@ namespace WPEFramework
                 {
                     LOGWARN("Manual IP Settings not Enabled..\n");
                     result = false;
+                    response["supported"] = iarmData.isSupported;
                     returnResponse(result)
                 }
                 bool mask_validation;
@@ -677,6 +678,7 @@ namespace WPEFramework
                 {
                     LOGWARN("Netmask is not valid ..\n");
                     result = false;
+                    response["supported"] = iarmData.isSupported;
                     returnResponse(result)
                 }
 
@@ -691,24 +693,28 @@ namespace WPEFramework
                     {
                         LOGWARN("Interface and Gateway IP are same , return false \n");
                         result = false;
+                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
                     {
                         LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
                         result = false;
+                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (ip_address.s_addr == broadcast_addr1.s_addr)
                     {
                         LOGWARN("Interface and Broadcast IP is same, return false \n");
                         result = false;
+                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                     if (gateway_address.s_addr == broadcast_addr2.s_addr)
                     {
                         LOGWARN("Gateway and Broadcast IP is same, return false \n");
                         result = false;
+                        response["supported"] = iarmData.isSupported;
                         returnResponse(result)
                     }
                 }
