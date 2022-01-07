@@ -19,6 +19,8 @@ set(PLUGIN_NAME DeviceIdentification)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
+set(PLUGIN_DEVICEIDENTIFICATION_AUTOSTART "true" CACHE STRING "Automatically start DeviceIdentification plugin")
+set(PLUGIN_DEVICEIDENTIFICATION_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 
 find_package(NEXUS QUIET)
 find_package(BCM_HOST QUIET)
