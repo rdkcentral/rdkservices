@@ -111,7 +111,7 @@
     },
     "methods":{
         "canFindMyRemote":{
-            "summary": "Checks if the Control Manager can search for the remote",
+            "summary": "Checks if the Control Manager can search for the remote. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -133,8 +133,31 @@
                 ]
             }
         },
+        "checkRf4ceChipConnectivity":{
+            "summary": "Checks Rf4ce chip connectivity status. \n \n### Events\n \n No Events.",
+            "params": {
+                "$ref": "#/definitions/params"
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "rf4ceChipConnected":{
+                        "summary": "The rf4ce chip connectivity status",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "success": {
+                        "$ref": "#definitions/success"
+                    }
+                },
+                "required":[
+                    "rf4ceChipConnected",
+                    "success"
+                ]
+            }
+        },
         "endPairingMode":{
-            "summary": "Leaves pairing mode",
+            "summary": "Leaves pairing mode. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -162,24 +185,19 @@
 
         },
         "findLastUsedRemote":{
-            "summary": "Searches for the remote",
+            "summary": "Searches for the last used remote.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onControl`| Triggered when the last used remote is successfully found |",
+            "events": ["onControl"],
             "params": {
                 "type":"object",
                 "properties": {
                     "timeOutPeriod": {
                         "summary": "The timeout interval in milliseconds",
                         "type": "integer",
-                        "example": 100
-                    },
-                    "bOnlyLastUsed":{
-                        "summary": "Whether to use the last controller ID",
-                        "type": "boolean",
-                        "example": true
+                        "example": 20
                     }
                 },
                 "required": [
-                    "timeOutPeriod",
-                    "bOnlyLastUsed"
+                    "timeOutPeriod"
                 ]
                 },
             "result": {
@@ -199,7 +217,7 @@
             }
         },
         "getAllRemoteData":{
-            "summary": "Returns all remote data",
+            "summary": "Returns all remote data. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -296,6 +314,381 @@
                         "type": "boolean",
                         "example": false
                     },
+                    "remoteData": {
+                        "type": "object",
+                        "properties": {
+                            "remoteId":{
+                                "$ref": "#/definitions/remoteId"
+                            },
+                            "remoteMACAddress": {
+                                "summary": "The MAC address of remote",
+                                "type": "string",
+                                "example": "0x00155F011C7F7359"
+                            },
+                            "remoteModel": {
+                                "summary": "The remote model",
+                                "type": "string",
+                                "example": "XR15"
+                            },
+                            "remoteModelVersion": {
+                                "summary": "The version of remote model",
+                                "type": "string",
+                                "example": "v1"
+                            },
+                            "batteryLevelLoaded": {
+                                "summary": "The loaded battery level",
+                                "type": "string",
+                                "example": "2.619608"
+                            },
+                            "batteryLevelPercentage": {
+                                "summary": "The battery percentage",
+                                "type": "integer",
+                                "example": 60
+                            },
+                            "batteryLastEvent": {
+                                "summary": "The battery last event",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryLastEventTimestamp": {
+                                "summary": "The timestamp of last battery event (in milliseconds)",
+                                "type": "integer",
+                                "example": 1602879639000
+                            },
+                            "numVoiceCommandsPreviousDay": {
+                                "summary": "Number of voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCommandsCurrentDay": {
+                                "summary": "Number of voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesPreviousDay": {
+                                "summary": "Number of short voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesCurrentDay": {
+                                "summary": "Number of short voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentPreviousDay": {
+                                "summary": "Number of voice packets sent the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentCurrentDay": {
+                                "summary": "Number of voice packets sent the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostPreviousDay": {
+                                "summary": "Number of voice packets lost the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostCurrentDay": {
+                                "summary": "Number of voice packets lost the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "aveVoicePacketLossPreviousDay": {
+                                "summary": "Average number of voice packets lost the previous day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "aveVoicePacketLossCurrentDay": {
+                                "summary": "Average number of voice packets lost the current day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "numVoiceCmdsHighLossPreviousDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCmdsHighLossCurrentDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionInfoSw": {
+                                "summary": "The software version of remote",
+                                "type": "string",
+                                "example": "2.0.1.2"
+                            },
+                            "versionInfoHw": {
+                                "summary": "The hardware version of remote",
+                                "type": "string",
+                                "example": "2.3.1.0"
+                            },
+                            "versionInfoIrdb": {
+                                "summary": "The IR database version of remote",
+                                "type": "string",
+                                "example": "4.3.2.0"
+                            },
+                            "irdbType": {
+                                "summary": "The IR database type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "irdbState": {
+                                "summary": "The state of IR database",
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "programmedTvIRCode": {
+                                "summary": "The IR code programmed for TV",
+                                "type": "string",
+                                "example": "12731"
+                            },
+                            "programmedAvrIRCode": {
+                                "summary": "The IR code programmed for AVR",
+                                "type": "string",
+                                "example": "31360"
+                            },
+                            "lastCommandTimeDate": {
+                                "summary": "The time when last key was pressed",
+                                "type": "integer",
+                                "example": 1580263335000
+                            },
+                            "rf4ceRemoteSocMfr": {
+                                "summary": "The remote chipset manufacturer",
+                                "type": "string",
+                                "example": "QORVO"
+                            },
+                            "remoteMfr": {
+                                "summary": "The remote manufacturer",
+                                "type": "string",
+                                "example": "RS"
+                            },
+                            "signalStrengthPercentage": {
+                                "summary": "The percentage of signal strength",
+                                "type": "integer",
+                                "example": 50
+                            },
+                            "linkQuality": {
+                                "summary": "The link quality",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "howRemoteIsPaired": {
+                                "summary": "The binding type of remote",
+                                "type": "string",
+                                "example": "manual"
+                            },
+                            "bHasCheckedIn":{
+                                "summary": "`true` if the remote has checkedin for update and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bHasRemoteBeenUpdated":{
+                                "summary": "`true` if the remote's firmware is updated and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bIrdbDownloadSupported":{
+                                "summary": "`true` if the IR database download is supported and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "pairingTimestamp":{
+                                "summary": "The binding time (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootErrorCode":{
+                                "summary": "The error code for previous reboot (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootTimestamp":{
+                                "summary": "The previous reboot time (in milliseconds)",
+                                "type": "integer",
+                                "example": 12342000
+                            },
+                            "securityType":{
+                                "summary": "The security type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bHasBattery":{
+                                "summary": "`true` if remote has battery and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "batteryChangedTimestamp":{
+                                "summary": "The time of battery change (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "batteryChangedActualPercentage":{
+                                "summary": "The battery changed actual percentage",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "batteryChangedUnloadedVoltage":{
+                                "summary": "The battery changed unloaded voltage",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery75PercentTimestamp":{
+                                "summary": "The timestamp when battery was 75% (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "battery75PercentActualPercentage":{
+                                "summary": "The actual percentage for 75% battery",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "battery75PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 75% battery",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery50PercentTimestamp":{
+                                "summary": "The timestamp when battery was 50% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentActualPercentage":{
+                                "summary": "The actual percentage for 50% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 50% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery25PercentTimestamp":{
+                                "summary": "The timestamp when battery was 25% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentActualPercentage":{
+                                "summary": "The actual percentage for 25% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 25% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery5PercentTimestamp":{
+                                "summary": "The timestamp when battery was 5% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentActualPercentage":{
+                                "summary": "The actual percentage for 5% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 5% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery0PercentTimestamp":{
+                                "summary": "The timestamp for 0% battery (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentActualPercentage":{
+                                "summary": "The actual percentage for 0% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 0% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "batteryVoltageLargeJumpCounter":{
+                                "summary": "Number of large voltage jumps in battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryVoltageLargeDeclineDetected":{
+                                "summary": "`true` if large voltage decline in battery is detected, otherwise `false`",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "bHasDSP":{
+                                "summary": "`true` if remote has digital signal processor and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageTimeInPrivacyMode":{
+                                "summary": "Average time in privacy mode (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bInPrivacyMode":{
+                                "summary": "`true` if remote is in privacy mode and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageSNR":{
+                                "summary": "Average signal to noise ratio",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "averageKeywordConfidence":{
+                                "summary": "Average keyword confidence",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfMicsWorking":{
+                                "summary": "Number of mics working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfSpeakersWorking":{
+                                "summary": "Number of speakers working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechInitialTimeoutCount":{
+                                "summary": "Initial time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechTimeoutCount":{
+                                "summary": "Time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "uptimeStartTime":{
+                                "summary": "Start of uptime (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641460244000
+                            },
+                            "uptimeInSeconds":{
+                                "summary": "Uptime (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "privacyTimeInSeconds":{
+                                "summary": "Privacy time (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionDSPBuildId":{
+                                "summary": "Version of dsp build ID",
+                                "type": "string",
+                                "example": ""
+                            }
+                        },
+                        "required": [
+                        ]
+                    },
                     "status_code": {
                         "$ref": "#/definitions/status_code"
                     },
@@ -328,13 +721,46 @@
             }
         },
         "getLastKeypressSource":{
-            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object.",
+            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
             "result": {
                 "type": "object",
                 "properties": {
+                    "remoteId":{
+                        "$ref": "#/definitions/remoteId"
+                    },
+                    "timestamp":{
+                        "summary": "The timestamp of last key press (in milliseconds)",
+                        "type": "integer",
+                        "example": 1598470622000
+                    },
+                    "sourceName":{
+                        "summary": "The source name",
+                        "type": "string",
+                        "example": "XR15-10"
+                    },
+                    "sourceType":{
+                        "summary": "The source type",
+                        "type": "string",
+                        "example": "RF"
+                    },
+                    "sourceKeyCode":{
+                        "summary": "The source keycode",
+                        "type": "integer",
+                        "example": 133
+                    },
+                    "bIsScreenBindMode":{
+                        "summary": "`true` if screen bind mode is ON and `false` otherwise",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "remoteKeypadConfig":{
+                        "summary": "The remote keypad configuration",
+                        "type": "integer",
+                        "example": 1
+                    },
                     "status_code": {
                         "$ref": "#/definitions/status_code"
                     },
@@ -343,19 +769,401 @@
                     }
                 },
                 "required":[
+                    "remoteId",
+                    "timestamp",
+                    "sourceName",
+                    "sourceType",
+                    "sourceKeyCode",
+                    "bIsScreenBindMode",
+                    "remoteKeypadConfig",
                     "status_code",
                     "success"
                 ]
             }
         },
         "getLastPairedRemoteData":{
-            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.",
+            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
             "result": {
                 "type": "object",
                 "properties": {
+                    "remoteData": {
+                        "type": "object",
+                        "properties": {
+                            "remoteId":{
+                                "$ref": "#/definitions/remoteId"
+                            },
+                            "remoteMACAddress": {
+                                "summary": "The MAC address of remote",
+                                "type": "string",
+                                "example": "0x00155F011C7F7359"
+                            },
+                            "remoteModel": {
+                                "summary": "The remote model",
+                                "type": "string",
+                                "example": "XR15"
+                            },
+                            "remoteModelVersion": {
+                                "summary": "The version of remote model",
+                                "type": "string",
+                                "example": "v1"
+                            },
+                            "batteryLevelLoaded": {
+                                "summary": "The loaded battery level",
+                                "type": "string",
+                                "example": "2.619608"
+                            },
+                            "batteryLevelPercentage": {
+                                "summary": "The battery percentage",
+                                "type": "integer",
+                                "example": 60
+                            },
+                            "batteryLastEvent": {
+                                "summary": "The battery last event",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryLastEventTimestamp": {
+                                "summary": "The timestamp of last battery event (in milliseconds)",
+                                "type": "integer",
+                                "example": 1602879639000
+                            },
+                            "numVoiceCommandsPreviousDay": {
+                                "summary": "Number of voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCommandsCurrentDay": {
+                                "summary": "Number of voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesPreviousDay": {
+                                "summary": "Number of short voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesCurrentDay": {
+                                "summary": "Number of short voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentPreviousDay": {
+                                "summary": "Number of voice packets sent the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentCurrentDay": {
+                                "summary": "Number of voice packets sent the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostPreviousDay": {
+                                "summary": "Number of voice packets lost the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostCurrentDay": {
+                                "summary": "Number of voice packets lost the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "aveVoicePacketLossPreviousDay": {
+                                "summary": "Average number of voice packets lost the previous day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "aveVoicePacketLossCurrentDay": {
+                                "summary": "Average number of voice packets lost the current day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "numVoiceCmdsHighLossPreviousDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCmdsHighLossCurrentDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionInfoSw": {
+                                "summary": "The software version of remote",
+                                "type": "string",
+                                "example": "2.0.1.2"
+                            },
+                            "versionInfoHw": {
+                                "summary": "The hardware version of remote",
+                                "type": "string",
+                                "example": "2.3.1.0"
+                            },
+                            "versionInfoIrdb": {
+                                "summary": "The IR database version of remote",
+                                "type": "string",
+                                "example": "4.3.2.0"
+                            },
+                            "irdbType": {
+                                "summary": "The IR database type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "irdbState": {
+                                "summary": "The state of IR database",
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "programmedTvIRCode": {
+                                "summary": "The IR code programmed for TV",
+                                "type": "string",
+                                "example": "12731"
+                            },
+                            "programmedAvrIRCode": {
+                                "summary": "The IR code programmed for AVR",
+                                "type": "string",
+                                "example": "31360"
+                            },
+                            "lastCommandTimeDate": {
+                                "summary": "The time when last key was pressed",
+                                "type": "integer",
+                                "example": 1580263335000
+                            },
+                            "rf4ceRemoteSocMfr": {
+                                "summary": "The remote chipset manufacturer",
+                                "type": "string",
+                                "example": "QORVO"
+                            },
+                            "remoteMfr": {
+                                "summary": "The remote manufacturer",
+                                "type": "string",
+                                "example": "RS"
+                            },
+                            "signalStrengthPercentage": {
+                                "summary": "The percentage of signal strength",
+                                "type": "integer",
+                                "example": 50
+                            },
+                            "linkQuality": {
+                                "summary": "The link quality",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "howRemoteIsPaired": {
+                                "summary": "The binding type of remote",
+                                "type": "string",
+                                "example": "manual"
+                            },
+                            "bHasCheckedIn":{
+                                "summary": "`true` if the remote has checkedin for update and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bHasRemoteBeenUpdated":{
+                                "summary": "`true` if the remote's firmware is updated and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bIrdbDownloadSupported":{
+                                "summary": "`true` if the IR database download is supported and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "pairingTimestamp":{
+                                "summary": "The binding time (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootErrorCode":{
+                                "summary": "The error code for previous reboot (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootTimestamp":{
+                                "summary": "The previous reboot time (in milliseconds)",
+                                "type": "integer",
+                                "example": 12342000
+                            },
+                            "securityType":{
+                                "summary": "The security type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bHasBattery":{
+                                "summary": "`true` if remote has battery and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "batteryChangedTimestamp":{
+                                "summary": "The time of battery change (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "batteryChangedActualPercentage":{
+                                "summary": "The battery changed actual percentage",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "batteryChangedUnloadedVoltage":{
+                                "summary": "The battery changed unloaded voltage",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery75PercentTimestamp":{
+                                "summary": "The timestamp when battery was 75% (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "battery75PercentActualPercentage":{
+                                "summary": "The actual percentage for 75% battery",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "battery75PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 75% battery",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery50PercentTimestamp":{
+                                "summary": "The timestamp when battery was 50% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentActualPercentage":{
+                                "summary": "The actual percentage for 50% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 50% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery25PercentTimestamp":{
+                                "summary": "The timestamp when battery was 25% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentActualPercentage":{
+                                "summary": "The actual percentage for 25% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 25% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery5PercentTimestamp":{
+                                "summary": "The timestamp when battery was 5% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentActualPercentage":{
+                                "summary": "The actual percentage for 5% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 5% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery0PercentTimestamp":{
+                                "summary": "The timestamp for 0% battery (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentActualPercentage":{
+                                "summary": "The actual percentage for 0% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 0% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "batteryVoltageLargeJumpCounter":{
+                                "summary": "Number of large voltage jumps in battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryVoltageLargeDeclineDetected":{
+                                "summary": "`true` if large voltage decline in battery is detected, otherwise `false`",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "bHasDSP":{
+                                "summary": "`true` if remote has digital signal processor and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageTimeInPrivacyMode":{
+                                "summary": "Average time in privacy mode (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bInPrivacyMode":{
+                                "summary": "`true` if remote is in privacy mode and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageSNR":{
+                                "summary": "Average signal to noise ratio",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "averageKeywordConfidence":{
+                                "summary": "Average keyword confidence",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfMicsWorking":{
+                                "summary": "Number of mics working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfSpeakersWorking":{
+                                "summary": "Number of speakers working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechInitialTimeoutCount":{
+                                "summary": "Initial time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechTimeoutCount":{
+                                "summary": "Time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "uptimeStartTime":{
+                                "summary": "Start of uptime (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641460244000
+                            },
+                            "uptimeInSeconds":{
+                                "summary": "Uptime (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "privacyTimeInSeconds":{
+                                "summary": "Privacy time (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionDSPBuildId":{
+                                "summary": "Version of dsp build ID",
+                                "type": "string",
+                                "example": ""
+                            }
+                        },
+                        "required": [
+                        ]
+                    },
                     "status_code": {
                         "$ref": "#/definitions/status_code"
                     },
@@ -369,8 +1177,34 @@
                 ]
             }
         },
+        "getQuirks":{
+            "summary": "Gets quirks. \n \n### Events\n \n No Events.",
+            "params": {
+                "$ref": "#/definitions/params"
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "quirks": {
+                        "summary": "The list of quirks",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "DELIA-43686, RDK-28767, RDK-31263, RDK-32347"
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "quirks",
+                    "success"
+                ]
+            }
+        },
         "getSingleRemoteData":{
-            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.",
+            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -385,6 +1219,381 @@
             "result": {
                 "type": "object",
                 "properties": {
+                    "remoteData": {
+                        "type": "object",
+                        "properties": {
+                            "remoteId":{
+                                "$ref": "#/definitions/remoteId"
+                            },
+                            "remoteMACAddress": {
+                                "summary": "The MAC address of remote",
+                                "type": "string",
+                                "example": "0x00155F011C7F7359"
+                            },
+                            "remoteModel": {
+                                "summary": "The remote model",
+                                "type": "string",
+                                "example": "XR15"
+                            },
+                            "remoteModelVersion": {
+                                "summary": "The version of remote model",
+                                "type": "string",
+                                "example": "v1"
+                            },
+                            "batteryLevelLoaded": {
+                                "summary": "The loaded battery level",
+                                "type": "string",
+                                "example": "2.619608"
+                            },
+                            "batteryLevelPercentage": {
+                                "summary": "The battery percentage",
+                                "type": "integer",
+                                "example": 60
+                            },
+                            "batteryLastEvent": {
+                                "summary": "The battery last event",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryLastEventTimestamp": {
+                                "summary": "The timestamp of last battery event (in milliseconds)",
+                                "type": "integer",
+                                "example": 1602879639000
+                            },
+                            "numVoiceCommandsPreviousDay": {
+                                "summary": "Number of voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCommandsCurrentDay": {
+                                "summary": "Number of voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesPreviousDay": {
+                                "summary": "Number of short voice commands the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceShortUtterancesCurrentDay": {
+                                "summary": "Number of short voice commands the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentPreviousDay": {
+                                "summary": "Number of voice packets sent the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsSentCurrentDay": {
+                                "summary": "Number of voice packets sent the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostPreviousDay": {
+                                "summary": "Number of voice packets lost the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoicePacketsLostCurrentDay": {
+                                "summary": "Number of voice packets lost the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "aveVoicePacketLossPreviousDay": {
+                                "summary": "Average number of voice packets lost the previous day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "aveVoicePacketLossCurrentDay": {
+                                "summary": "Average number of voice packets lost the current day",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "numVoiceCmdsHighLossPreviousDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the previous day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "numVoiceCmdsHighLossCurrentDay": {
+                                "summary": "Number of voice commands exceeding packet loss threshold the current day",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionInfoSw": {
+                                "summary": "The software version of remote",
+                                "type": "string",
+                                "example": "2.0.1.2"
+                            },
+                            "versionInfoHw": {
+                                "summary": "The hardware version of remote",
+                                "type": "string",
+                                "example": "2.3.1.0"
+                            },
+                            "versionInfoIrdb": {
+                                "summary": "The IR database version of remote",
+                                "type": "string",
+                                "example": "4.3.2.0"
+                            },
+                            "irdbType": {
+                                "summary": "The IR database type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "irdbState": {
+                                "summary": "The state of IR database",
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "programmedTvIRCode": {
+                                "summary": "The IR code programmed for TV",
+                                "type": "string",
+                                "example": "12731"
+                            },
+                            "programmedAvrIRCode": {
+                                "summary": "The IR code programmed for AVR",
+                                "type": "string",
+                                "example": "31360"
+                            },
+                            "lastCommandTimeDate": {
+                                "summary": "The time when last key was pressed",
+                                "type": "integer",
+                                "example": 1580263335000
+                            },
+                            "rf4ceRemoteSocMfr": {
+                                "summary": "The remote chipset manufacturer",
+                                "type": "string",
+                                "example": "QORVO"
+                            },
+                            "remoteMfr": {
+                                "summary": "The remote manufacturer",
+                                "type": "string",
+                                "example": "RS"
+                            },
+                            "signalStrengthPercentage": {
+                                "summary": "The percentage of signal strength",
+                                "type": "integer",
+                                "example": 50
+                            },
+                            "linkQuality": {
+                                "summary": "The link quality",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "howRemoteIsPaired": {
+                                "summary": "The binding type of remote",
+                                "type": "string",
+                                "example": "manual"
+                            },
+                            "bHasCheckedIn":{
+                                "summary": "`true` if the remote has checkedin for update and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bHasRemoteBeenUpdated":{
+                                "summary": "`true` if the remote's firmware is updated and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "bIrdbDownloadSupported":{
+                                "summary": "`true` if the IR database download is supported and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "pairingTimestamp":{
+                                "summary": "The binding time (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootErrorCode":{
+                                "summary": "The error code for previous reboot (in milliseconds)",
+                                "type": "integer",
+                                "example": 1538782229000
+                            },
+                            "lastRebootTimestamp":{
+                                "summary": "The previous reboot time (in milliseconds)",
+                                "type": "integer",
+                                "example": 12342000
+                            },
+                            "securityType":{
+                                "summary": "The security type",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bHasBattery":{
+                                "summary": "`true` if remote has battery and `false` otherwise",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "batteryChangedTimestamp":{
+                                "summary": "The time of battery change (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "batteryChangedActualPercentage":{
+                                "summary": "The battery changed actual percentage",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "batteryChangedUnloadedVoltage":{
+                                "summary": "The battery changed unloaded voltage",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery75PercentTimestamp":{
+                                "summary": "The timestamp when battery was 75% (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641294389000
+                            },
+                            "battery75PercentActualPercentage":{
+                                "summary": "The actual percentage for 75% battery",
+                                "type": "integer",
+                                "example": 64
+                            },
+                            "battery75PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 75% battery",
+                                "type": "string",
+                                "example": "2.729412"
+                            },
+                            "battery50PercentTimestamp":{
+                                "summary": "The timestamp when battery was 50% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentActualPercentage":{
+                                "summary": "The actual percentage for 50% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery50PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 50% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery25PercentTimestamp":{
+                                "summary": "The timestamp when battery was 25% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentActualPercentage":{
+                                "summary": "The actual percentage for 25% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery25PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 25% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery5PercentTimestamp":{
+                                "summary": "The timestamp when battery was 5% (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentActualPercentage":{
+                                "summary": "The actual percentage for 5% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery5PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 5% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "battery0PercentTimestamp":{
+                                "summary": "The timestamp for 0% battery (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentActualPercentage":{
+                                "summary": "The actual percentage for 0% battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "battery0PercentUnloadedVoltage":{
+                                "summary": "The unloaded voltage of 0% battery",
+                                "type": "string",
+                                "example": "0.000000"
+                            },
+                            "batteryVoltageLargeJumpCounter":{
+                                "summary": "Number of large voltage jumps in battery",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "batteryVoltageLargeDeclineDetected":{
+                                "summary": "`true` if large voltage decline in battery is detected, otherwise `false`",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "bHasDSP":{
+                                "summary": "`true` if remote has digital signal processor and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageTimeInPrivacyMode":{
+                                "summary": "Average time in privacy mode (in milliseconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "bInPrivacyMode":{
+                                "summary": "`true` if remote is in privacy mode and `false` otherwise",
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "averageSNR":{
+                                "summary": "Average signal to noise ratio",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "averageKeywordConfidence":{
+                                "summary": "Average keyword confidence",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfMicsWorking":{
+                                "summary": "Number of mics working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "totalNumberOfSpeakersWorking":{
+                                "summary": "Number of speakers working",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechInitialTimeoutCount":{
+                                "summary": "Initial time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "endOfSpeechTimeoutCount":{
+                                "summary": "Time out count after end of speech",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "uptimeStartTime":{
+                                "summary": "Start of uptime (in milliseconds)",
+                                "type": "integer",
+                                "example": 1641460244000
+                            },
+                            "uptimeInSeconds":{
+                                "summary": "Uptime (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "privacyTimeInSeconds":{
+                                "summary": "Privacy time (in seconds)",
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "versionDSPBuildId":{
+                                "summary": "Version of dsp build ID",
+                                "type": "string",
+                                "example": ""
+                            }
+                        },
+                        "required": [
+                        ]
+                    },
                     "status_code": {
                         "$ref": "#/definitions/status_code"
                     },
@@ -399,7 +1608,7 @@
             }
         },
         "getValues":{
-            "summary": "Returns remote setting values",
+            "summary": "Returns remote setting values. \n \n### Events\n \n No Events.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -452,13 +1661,10 @@
             }
         },
         "setValues":{
-            "summary": "Sets remote setting values",
+            "summary": "Sets remote setting values. \n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
-                    "supportsASB":{
-                        "$ref": "#/definitions/supportsASB"
-                    },
                     "enableASB":{
                         "$ref": "#/definitions/enableASB"
                     },
@@ -482,14 +1688,6 @@
                     }
                 },
                 "required":[
-                    "supportsASB",
-                    "enableASB",
-                    "enableOpenChime",
-                    "enableCloseChime",
-                    "enablePrivacyChime",
-                    "conversationalMode",
-                    "chimeVolume",
-                    "irCommandRepeats"
                 ]
             },
             "result": {
@@ -509,7 +1707,7 @@
             }
         },
         "startPairingMode":{
-            "summary": "Enters pairing mode",
+            "summary": "Enters pairing mode. \n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
