@@ -64,7 +64,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
         char allNetworkInterfaces[INTERFACE_LIST];
-        char setInterface[INTERFACE_SIZE];
+        char enableInterface[INTERFACE_SIZE];
         char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
     };
     char interfaceCount;
@@ -335,7 +335,7 @@ namespace WPEFramework
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.persist = persist;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
@@ -411,7 +411,7 @@ namespace WPEFramework
                 }
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-                strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                 {
@@ -448,7 +448,7 @@ namespace WPEFramework
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.isInterfaceEnabled = enabled;
                 iarmData.persist = persist;
 
