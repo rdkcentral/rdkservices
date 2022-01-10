@@ -1076,7 +1076,11 @@ namespace WPEFramework {
                       std::cout << "Screenshot success size:" << size << std::endl;
                       JsonObject params;
                       params["imageData"] = screenshotBase64;
-                      notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+
+                      // Calling Notify instead of  RDKShell::notify to avoid logging of entire screen content
+                      LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE);
+                      Notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+
                       free(encodedImage);
                       free(data);
                       needsScreenshot = false;
