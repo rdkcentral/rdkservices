@@ -375,7 +375,8 @@ std::int32_t LogUploadBeforeDeepSleep()
 
    string cmd;
    cmd = "nice -n 19 /bin/busybox sh /lib/rdk/uploadSTBLogs.sh " + tftp_server + " 0 1 0 " + upload_protocol + " " + upload_httplink + " " + calledFromPlugin + " & " + " \0";
-   Utils::cRunScript(cmd.c_str());
+   int exec_status = system(cmd.c_str());
+   LOGINFO("CMD %s [exec_status:%d]",cmd.c_str(), exec_status);
 
    ret = E_OK;
 
