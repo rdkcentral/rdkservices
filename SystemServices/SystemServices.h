@@ -123,6 +123,7 @@ namespace WPEFramework {
                 static void updateDuration();
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
+                uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
 #endif
             public:
                 SystemServices();
@@ -208,7 +209,6 @@ namespace WPEFramework {
                 uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
                 uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
-                bool getZoneInfoZDump(std::string file, std::string &zoneInfo);
                 bool processTimeZones(std::string dir, JsonObject& out);
                 uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
 
