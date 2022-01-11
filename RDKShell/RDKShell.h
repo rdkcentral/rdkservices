@@ -151,6 +151,7 @@ namespace WPEFramework {
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
             void launchRequestThread(RDKShellApiRequest apiRequest);
+	    void onResolutionChanged(const JsonObject& params);
 
         private/*registered methods (wrappers)*/:
 
@@ -288,6 +289,7 @@ namespace WPEFramework {
             void loadStartupConfig();
             void invokeStartupThunderApis();
             int32_t subscribeForSystemEvent(std::string event);
+	    int32_t subscribeForResolutionEvent(std::string event);
             void onTimer();
 
             void addFactoryModeEasterEggs();
@@ -298,6 +300,7 @@ namespace WPEFramework {
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
+	    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getDisplaySettingsPlugin();
 
         private/*classes */:
 

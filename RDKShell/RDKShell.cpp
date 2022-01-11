@@ -164,6 +164,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+bool rdkSupportResolutionChange = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -810,6 +811,22 @@ namespace WPEFramework {
             CompositorController::setEventListener(mEventListener);
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
+            RFC_ParamData_t param1;
+            bool isRFC1080Enabled = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.1080pGraphics.Enable",param1);
+            if(isRFC1080Enabled== true && param1.type == WDMP_BOOLEAN && (strncasecmp(param1.value,"true",4) == 0))
+            {
+                std::cout<< "1080pGraphics RFC is true" << std::endl;
+                rdkSupportResolutionChange = true;
+            }
+            else
+            {
+                std::cout<<"1080pGraphics RFC is false" << std::endl;
+                rdkSupportResolutionChange = false;
+            }
+#else
+            std::cout << "RFC is disabled and unable to check for 1080 resolution " << std::endl;
+#endif
+#ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             char* mac = new char[19];
             tFHError retAPIStatus;
@@ -885,6 +902,49 @@ namespace WPEFramework {
 
             static PluginHost::IShell* pluginService = nullptr;
             pluginService = service;
+	    if (true == rdkSupportResolutionChange)
+            {
+                dsPlugin = getDisplaySettingsPlugin();
+                if (!dsPlugin)
+                {
+                    std::cout << "Display Settings initialization failed\n";
+                }
+                else
+                {
+                    std::string eventName1("resolutionChanged");
+                    int32_t status = dsPlugin->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName1), &RDKShell::onResolutionChanged, this);
+                    if (status == 0)
+                    {
+                       std::cout << "RDKShell subscribed to resolutionChanged event " << std::endl;
+                    }
+                    // See if the app is actually installed
+                   JsonObject resolutionParams;
+                   JsonObject resolutionResult;
+                   string resolution;
+                   dsPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getCurrentResolution", resolutionParams , resolutionResult);
+                   if (resolutionResult["success"].Boolean())
+                   {
+                       unsigned int resWidth, resHeight;
+                       resolution = resolutionResult.Get("resolution").String();
+                       if (strstr(resolution.c_str(),"720"))
+                       {
+                           resWidth = 1280;
+                           resHeight = 720;
+                       }
+                       else
+                       {
+                           resWidth = 1920;
+                           resHeight = 1080;
+                       }
+                       std::cout << "setScreenResolution "<< resWidth << " "<< resHeight << "\n" ;
+                       setScreenResolution(resWidth, resHeight);
+                   }
+                   else
+                   {
+                       std::cout << "Display Settings getCurrentResolution failed:"<< "\n";
+                   }
+                }
+            }
 
             bool waitForPersistentStore = false;
             char* waitValue = getenv("RDKSHELL_WAIT_FOR_PERSISTENT_STORE");
@@ -1351,6 +1411,51 @@ namespace WPEFramework {
                 }
             }
         }
+
+	 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getDisplaySettingsPlugin()
+        {
+            string query = "token=" + sThunderSecurityToken;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
+            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.DisplaySettings.1", "", false, query);
+        }
+
+        void RDKShell::onResolutionChanged(const JsonObject& params)
+        {
+            std::string  eventParams= "";
+            unsigned int resWidth, resHeight;
+            string resolution;
+            bool result = false;
+            params.ToString(eventParams);
+            std::cout << "resolution changed eventParams: " << eventParams << endl;
+            std::vector<std::string> clientList;
+            unsigned int newW=0, newH=0; // read these from resolution
+            gRdkShellMutex.lock();
+            resolution = params.Get("resolution").String();
+            if (strstr(resolution.c_str(),"720"))
+            {
+               std::cout<<"resolution is 720"<< std::endl;
+                resWidth = 1280;
+                resHeight = 720;
+            }
+            else
+            {
+               std:cout<<"resoltion is 1080"<< std::endl;
+                resWidth = 1920;
+                resHeight = 1080;
+            }
+            CompositorController::getClients(clientList);
+            for (size_t i=0; i<clientList.size(); i++)
+            {
+                unsigned int x=0,y=0,w=0,h=0;
+                std::string client = clientList[i].c_str();
+                CompositorController::getBounds(client, x, y, w, h);
+                CompositorController::setBounds(client, x, y, newW, newH);
+            }
+            gRdkShellMutex.unlock();
+            result=  setScreenResolution(resWidth, resHeight);
+            std::cout<<" result of setscreen resolution"<< result << std::endl;
+        }
+
 
         void RDKShell::RdkShellListener::onApplicationLaunched(const std::string& client)
         {
@@ -6209,6 +6314,7 @@ namespace WPEFramework {
                     std::cout << "Stopped SystemServices connection timer" << std::endl;
                 }
             }
+
             else
             {
                 if (Core::ERROR_NONE == subscribeForSystemEvent("onSystemPowerStateChanged"))
@@ -6216,8 +6322,41 @@ namespace WPEFramework {
                     m_timer.stop();
                     std::cout << "Stopped SystemServices connection timer" << std::endl;
                 }
+		 if (Core::ERROR_NONE == subscribeForResolutionEvent("resolutionChanged"))
+                {
+                     m_timer.stop();
+                     std::cout << "stopped resolutionChanged connection timer" << std::endl;
+                }
+
             }
         }
+
+	 int32_t RDKShell::subscribeForResolutionEvent(std::string event)
+        {
+            int32_t status = Core::ERROR_GENERAL;
+            dsPlugin = getDisplaySettingsPlugin();
+            if (!dsPlugin)
+            {
+                std::cout << "Display Settings initialization failed\n";
+            }
+            else
+            {
+                std::cout<<"dsplugin in resolution event is true\n";
+                std::string eventName1("resolutionChanged");
+                status = dsPlugin->Subscribe<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, _T(eventName1), &RDKShell::onResolutionChanged, this);
+                std::cout<<"status value is" << status << std::endl;
+                if (status == 0)
+                {
+                    std::cout << "RDKShell subscribed to resolutionChanged event " << std::endl;
+                }
+                JsonObject resolutionParams;
+            JsonObject resolutionResult;
+            string resolution;
+            dsPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getCurrentResolution", resolutionParams , resolutionResult);
+             }
+           return status;
+        }
+
 
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
