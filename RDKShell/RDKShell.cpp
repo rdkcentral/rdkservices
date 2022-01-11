@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
+#include <rdkshell/logger.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -114,7 +115,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
-
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -780,7 +782,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
 
-            m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -1264,6 +1268,13 @@ namespace WPEFramework {
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
+	    std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            std::vector<std::string>::iterator ptr;
+            for(ptr=clientList.begin();ptr!=clientList.end();ptr++)
+            {
+               RdkShell::CompositorController::removeListener((*ptr),mEventListener);
+            }
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -2956,6 +2967,10 @@ namespace WPEFramework {
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
+                if (parameters.HasLabel("type"))
+                {
+                    type = parameters["type"].String();
+                }
                 string version = "0.0";
                 string uri;
                 int32_t x = 0;
@@ -2967,7 +2982,25 @@ namespace WPEFramework {
                 bool focused = true;
                 string configuration;
                 string behind;
-                string displayName = "wst-" + callsign;
+
+                // Ensure cloned plugin displays are in a sub-dir based on
+                // plugin classname
+                string displayName;
+                if (type.empty())
+                {
+                    displayName = "wst-" + callsign;
+                }
+                else
+                {
+                    string xdgDir;
+                    Core::SystemInfo::GetEnvironment(_T("XDG_RUNTIME_DIR"), xdgDir);
+                    string displaySubdir = xdgDir + "/" + type;
+                    Core::Directory(displaySubdir.c_str()).CreatePath();
+
+                    // don't add XDG_RUNTIME_DIR to display name
+                    displayName = type + "/" + "wst-" + callsign;
+                }
+
                 if (gRdkShellSurfaceModeEnabled)
                 {
                     displayName = "rdkshell_display";
@@ -3193,9 +3226,36 @@ namespace WPEFramework {
                     {
                         setSuspendResumeStateOnLaunch = false;
                     }
+
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby rfc false - launching netflix in local mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Local");
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading netflix dobby rfc failed " << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for netflix container mode " << std::endl;
+#endif
                 }
 
-                if (type == "Cobalt")
+                if (!type.empty() && type == "Cobalt")
                 {
                     if (configuration.find("\"preload\"") == std::string::npos)
                     {
@@ -3204,6 +3264,64 @@ namespace WPEFramework {
                         std::cout << "setting Cobalt preload: " << preload << "\n";
                         configSet["preload"] = JsonValue(preload);
                     }
+
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby rfc false - launching cobalt in local mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading cobalt dobby rfc failed " << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp" || type == "SearchAndDiscoveryApp" ))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
                 }
 
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
@@ -4992,6 +5110,37 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             returnResponse(result);
         }
+
+        uint32_t RDKShell::enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                bool enable = parameters["enable"].Boolean();
+                enableLogsFlushing(enable);
+                result = true;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+           LOGINFOMETHOD();
+
+            bool enabled = false;
+            getLogsFlushingEnabled(enabled);
+            response["enabled"] = enabled;
+
+            returnResponse(true);
+        }
         // Registered methods end
 
         // Events begin
@@ -6113,6 +6262,21 @@ namespace WPEFramework {
 
             return status;
         }
+        
+	void RDKShell::enableLogsFlushing(const bool enable)
+        {
+            gRdkShellMutex.lock();
+            Logger::enableFlushing(enable);
+            gRdkShellMutex.unlock();
+        }
+
+        void RDKShell::getLogsFlushingEnabled(bool &enabled)
+        {
+            gRdkShellMutex.lock();
+            enabled = Logger::isFlushingEnabled();
+            gRdkShellMutex.unlock();
+        }
+
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
