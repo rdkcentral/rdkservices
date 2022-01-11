@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.UsbAccess plugin for Thunder framework.
+A org.rdk.UsbAccess plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkUsbAccess.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [UsbAccess.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/UsbAccess.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -91,12 +99,17 @@ UsbAccess interface methods:
 | [getFileList](#method.getFileList) | Gets a list of files and folders from the specified directory or path |
 | [getMounted](#method.getMounted) | (Version 2) Returns a list of mounted USB devices |
 | [updateFirmware](#method.updateFirmware) | (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method |
+| [ArchiveLogs](#method.ArchiveLogs) | (Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format |
 
 
 <a name="method.clearLink"></a>
-## *clearLink <sup>method</sup>*
+## *clearLink [<sup>method</sup>](#head.Methods)*
 
 Clears or removes the symbolic link created by the `createLink` method.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -117,7 +130,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.clearLink"
 }
 ```
@@ -127,7 +140,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true,
         "error": "could not remove symlink"
@@ -136,9 +149,13 @@ This method takes no parameters.
 ```
 
 <a name="method.createLink"></a>
-## *createLink <sup>method</sup>*
+## *createLink [<sup>method</sup>](#head.Methods)*
 
-Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`.
+Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`. 
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -160,7 +177,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.createLink"
 }
 ```
@@ -170,7 +187,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "baseURL": "http://localhost/usbdrive",
         "success": true,
@@ -180,10 +197,14 @@ This method takes no parameters.
 ```
 
 <a name="method.getAvailableFirmwareFiles"></a>
-## *getAvailableFirmwareFiles <sup>method</sup>*
+## *getAvailableFirmwareFiles [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  
 Firmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -205,7 +226,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.getAvailableFirmwareFiles"
 }
 ```
@@ -215,7 +236,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "availableFirmwareFiles": [
             "/tmp/usbmnts/sda1/HSTP11MWR_4.11p5s1_VBN_sdy.bin"
@@ -226,9 +247,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getFileList"></a>
-## *getFileList <sup>method</sup>*
+## *getFileList [<sup>method</sup>](#head.Methods)*
 
 Gets a list of files and folders from the specified directory or path.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -256,10 +281,10 @@ Gets a list of files and folders from the specified directory or path.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.getFileList",
     "params": {
-        "path": ""
+        "path": "..."
     }
 }
 ```
@@ -269,7 +294,7 @@ Gets a list of files and folders from the specified directory or path.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "contents": [
             {
@@ -284,9 +309,13 @@ Gets a list of files and folders from the specified directory or path.
 ```
 
 <a name="method.getMounted"></a>
-## *getMounted <sup>method</sup>*
+## *getMounted [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns a list of mounted USB devices.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -308,7 +337,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.getMounted"
 }
 ```
@@ -318,7 +347,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "mounted": [
             "/tmp/usbmnts/sda"
@@ -329,9 +358,13 @@ This method takes no parameters.
 ```
 
 <a name="method.updateFirmware"></a>
-## *updateFirmware <sup>method</sup>*
+## *updateFirmware [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -355,7 +388,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.UsbAccess.1.updateFirmware",
     "params": {
         "fileName": "/tmp/usbmnts/sda/this_is_test.bin"
@@ -368,10 +401,57 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true,
         "error": "invalid filename"
+    }
+}
+```
+
+<a name="method.ArchiveLogs"></a>
+## *ArchiveLogs [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onArchiveLogs`| Triggered to archive the device logs and returns the status of the archive |.
+
+Also see: [onArchiveLogs](#event.onArchiveLogs)
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UsbAccess.1.ArchiveLogs"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
     }
 }
 ```
@@ -387,11 +467,12 @@ UsbAccess interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onUsbMountChanged](#event.onUsbMountChanged) | (Version 2) Triggered when a USB drive is mounted or unmounted |
+| [onUSBMountChanged](#event.onUSBMountChanged) | (Version 2) Triggered when a USB drive is mounted or unmounted |
+| [onArchiveLogs](#event.onArchiveLogs) | (Version 2) Triggered to archive the device logs and returns the status of the archive |
 
 
-<a name="event.onUsbMountChanged"></a>
-## *onUsbMountChanged <sup>event</sup>*
+<a name="event.onUSBMountChanged"></a>
+## *onUSBMountChanged [<sup>event</sup>](#head.Notifications)*
 
 (Version 2) Triggered when a USB drive is mounted or unmounted.
 
@@ -408,10 +489,36 @@ UsbAccess interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onUsbMountChanged",
+    "method": "client.events.1.onUSBMountChanged",
     "params": {
         "mounted": true,
         "device": "/dev/sda1"
+    }
+}
+```
+
+<a name="event.onArchiveLogs"></a>
+## *onArchiveLogs [<sup>event</sup>](#head.Notifications)*
+
+(Version 2) Triggered to archive the device logs and returns the status of the archive.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.error | string | Specifies the status of upload logs (must be one of the following: *script error*, *none*, *Locked*, *No USB*, *Writing Error*) |
+| params.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onArchiveLogs",
+    "params": {
+        "error": "none",
+        "success": true
     }
 }
 ```
