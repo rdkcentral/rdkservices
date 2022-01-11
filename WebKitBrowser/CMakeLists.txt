@@ -128,12 +128,12 @@ set(SOURCE_LIST
     WebKitBrowser.cpp
     WebKitBrowserJsonRpc.cpp
     WebKitImplementation.cpp
+    Tags.cpp
 )
 
 if(NOT DEFINED WEBKIT_GLIB_API)
     set(SOURCE_LIST
         ${SOURCE_LIST}
-        InjectedBundle/Tags.cpp
         InjectedBundle/Utils.cpp
 )
 endif()
@@ -179,8 +179,12 @@ install(
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins
     COMPONENT ${MODULE_NAME})
 
-# also build injected bundle
-add_subdirectory(InjectedBundle)
+if(WEBKIT_GLIB_API)
+    add_subdirectory(Extension)
+else()
+    # also build injected bundle
+    add_subdirectory(InjectedBundle)
+endif()
 
 # resolution handling
 if(PLUGIN_WEBKITBROWSER_RESOLUTION EQUAL "720p")

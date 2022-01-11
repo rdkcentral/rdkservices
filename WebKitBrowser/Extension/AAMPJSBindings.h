@@ -16,31 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef __NOTIFYH
-#define __NOTIFYH
 
-#include "JavaScriptFunctionType.h"
-#include "../Tags.h"
+#pragma once
+
+#include <wpe/webkit-web-extension.h>
 
 namespace WPEFramework {
 namespace JavaScript {
-    namespace Functions {
+namespace AAMP {
 
-        class NotifyWPEFramework {
-        public:
-            NotifyWPEFramework();
+void LoadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame);
+void UnloadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame);
 
-            JSValueRef HandleMessage(JSContextRef context, JSObjectRef,
-                JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef*);
-
-            static inline string GetMessageName()
-            {
-                return Tags::Notification;
-            }
-        };
-    }
-}
-}
-
-#endif // __NOTIFYH
+}  // namespace AAMP
+}  // namespace JavaScript
+}  // namespace WPEFramework
