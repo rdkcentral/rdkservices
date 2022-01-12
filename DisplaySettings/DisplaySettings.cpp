@@ -1039,6 +1039,12 @@ namespace WPEFramework {
             vector<string> supportedSettopResolutions;
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 list<string> resolutions;
                 device.getSettopSupportedResolutions(resolutions);
@@ -1157,8 +1163,16 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
             string zoomSetting = "unknown";
+
+            bool success = true;
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 // TODO: why is this always the first one in the list
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 zoomSetting = decoder.getDFC().getName();
@@ -1166,12 +1180,13 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                success = false;
             }
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
             response["zoomSetting"] = zoomSetting;
-            returnResponse(true);
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
@@ -1187,6 +1202,12 @@ namespace WPEFramework {
 #ifdef USE_IARM
                 zoomSetting = svc2iarm(zoomSetting);
 #endif
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
@@ -1725,6 +1746,12 @@ namespace WPEFramework {
 
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 device.getHDRCapabilities(&capabilities);
             }
@@ -4714,6 +4741,12 @@ namespace WPEFramework {
 
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    return videoFormats;
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 device.getHDRCapabilities(&capabilities);
             }
