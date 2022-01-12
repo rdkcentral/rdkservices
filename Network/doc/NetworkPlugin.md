@@ -117,6 +117,10 @@ Network interface methods:
 
 Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -158,6 +162,10 @@ This method takes no parameters.
 ## *getInterfaces [<sup>method</sup>](#head.Methods)*
 
 Returns a list of interfaces supported by this device including their state.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -212,6 +220,10 @@ This method takes no parameters.
 ## *getIPSettings [<sup>method</sup>](#head.Methods)*
 
 Gets the IP setting for the given interface.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -277,6 +289,10 @@ Gets the IP setting for the given interface.
 
 Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -322,6 +338,10 @@ This method takes no parameters.
 
 Get standard string `RDK-20093`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -364,6 +384,10 @@ This method takes no parameters.
 
 Gets the IP address of the default interface.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -405,6 +429,10 @@ This method takes no parameters.
 ## *getSTBIPFamily [<sup>method</sup>](#head.Methods)*
 
 Gets the IP address of the default interface by address family.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -454,6 +482,10 @@ Gets the IP address of the default interface by address family.
 
 Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 This method takes no parameters.
@@ -495,6 +527,10 @@ This method takes no parameters.
 ## *isInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
 Whether the specified interface is enabled.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -543,6 +579,10 @@ Whether the specified interface is enabled.
 ## *ping [<sup>method</sup>](#head.Methods)*
 
 Pings the specified endpoint with the specified number of packets.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -614,6 +654,10 @@ Pings the specified endpoint with the specified number of packets.
 
 Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -684,6 +728,10 @@ Pings the specified named endpoint with the specified number of packets. Only na
 
 Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -732,6 +780,15 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 ## *setDefaultInterface [<sup>method</sup>](#head.Methods)*
 
 Sets the default interface. The call fails if the interface is not enabled.
+ 
+### Events
+ 
+| Event | Description | 
+| :----------- | :----------- |
+| `onDefaultInterfaceChanged` | Triggered when previous interface (oldInterfaceName) name was changed |
+| `onConnectionStatusChanged` | Triggered when the interface status is changed. Old interface status changed to `DISCONNECTED` and new interface status change to `CONNECTED` |.
+
+Also see: [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged), [onConnectionStatusChanged](#event.onConnectionStatusChanged)
 
 ### Parameters
 
@@ -780,6 +837,14 @@ Sets the default interface. The call fails if the interface is not enabled.
 ## *setInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables the specified interface.
+ 
+### Events 
+
+| Event | Description | 
+| :----------- | :----------- |
+| `onInterfaceStatusChanged` | Triggered when an interface becomes enabled or disabled |.
+
+Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged)
 
 ### Parameters
 
@@ -830,6 +895,14 @@ Enables the specified interface.
 ## *setIPSettings [<sup>method</sup>](#head.Methods)*
 
 Sets the IP settings.
+ 
+### Events 
+
+| Event | Description | 
+| :----------- | :----------- |
+| `onIPAddressStatusChanged` | Triggered when an IP address is assigned or lost |.
+
+Also see: [onIPAddressStatusChanged](#event.onIPAddressStatusChanged)
 
 ### Parameters
 
@@ -893,6 +966,10 @@ Sets the IP settings.
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
+### Events 
+
+No Events.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -946,6 +1023,10 @@ Traces the specified endpoint with the specified number of packets using `tracer
 ## *traceNamedEndpoint [<sup>method</sup>](#head.Methods)*
 
 Traces the specified named endpoint with the specified number of packets using `traceroute`.
+
+### Events 
+
+No Events.
 
 ### Parameters
 
@@ -1017,15 +1098,6 @@ Network interface events:
 ## *onInterfaceStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an interface becomes enabled or disabled.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
-| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
 
 ### Parameters
 
@@ -1052,14 +1124,6 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabl
 ## *onConnectionStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a connection is made or lost.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) method.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface).
 
 ### Parameters
 
@@ -1086,15 +1150,6 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
 ## *onIPAddressStatusChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an IP Address is assigned or lost.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
-| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
 
 ### Parameters
 
@@ -1125,14 +1180,6 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#m
 ## *onDefaultInterfaceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
- 
-### Methods
-  
-| Method | Description | 
-| :----------- | :----------- |
-| `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
- 
-Also see: [setDefaultInterface](#method.setDefaultInterface).
 
 ### Parameters
 
