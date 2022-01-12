@@ -755,12 +755,17 @@ namespace WPEFramework {
                                     }
                                     else if(types & dsAUDIOARCSUPPORT_ARC)  {
                                       {
-                                        //No need to check the ARC routing state. Request ARC initiation irrespective of state
+                                         if (isCecEnabled == true)
+                                         {
+                                            //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send ARC initiation request... \n", __FUNCTION__);
                                             std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
+                                         }else {
+					    LOGINFO("%s: cec is disabled, ARC initiation not possible \n", __FUNCTION__);
+				         }
                                       }
                                     }
                                     else {
@@ -802,13 +807,17 @@ namespace WPEFramework {
                                    else if (types & dsAUDIOARCSUPPORT_ARC) {
                                        //Dummy ARC intiation request
                                       {
+					 if (isCecEnabled == true)
+					 {
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
-                                            LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
+                                            LOGINFO("%s: cecEnabled is true, Send dummy ARC initiation request... \n", __FUNCTION__);
                                             std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
-
+					 }else {
+					    LOGINFO("%s: cec is disabled, ARC initiation not possible \n", __FUNCTION__);
+					 }
                                       }
                                    }
                                    else {
