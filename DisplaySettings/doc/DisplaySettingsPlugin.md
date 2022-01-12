@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.DisplaySettings plugin for Thunder framework.
+A org.rdk.DisplaySettings plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -75,6 +76,13 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *org.rdk.DisplaySettings* |
 | locator | string | Library name: *libWPEFrameworkDisplaySettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [DisplaySettings.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DisplaySettings.json)
 
 <a name="head.Methods"></a>
 # Methods
@@ -161,7 +169,7 @@ DisplaySettings interface methods:
 
 
 <a name="method.enableSurroundDecoder"></a>
-## *enableSurroundDecoder <sup>method</sup>*
+## *enableSurroundDecoder [<sup>method</sup>](#head.Methods)*
 
 Enables or disables Surround Decoder capability. The Surround Decoder is an upmixer that takes stereo music content, or surround-encoded two-channel movie content, and creates a high-quality multichannel upmix. If the Surround Decoder is enabled, two-channel signals and 5.1-channel signals are upmixed to 5.1.2.
  
@@ -213,7 +221,7 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 ```
 
 <a name="method.getActiveInput"></a>
-## *getActiveInput <sup>method</sup>*
+## *getActiveInput [<sup>method</sup>](#head.Methods)*
 
 Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`).
  
@@ -265,7 +273,7 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 ```
 
 <a name="method.getAudioDelay"></a>
-## *getAudioDelay <sup>method</sup>*
+## *getAudioDelay [<sup>method</sup>](#head.Methods)*
 
 Returns the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
  
@@ -317,7 +325,7 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 ```
 
 <a name="method.getAudioDelayOffset"></a>
-## *getAudioDelayOffset <sup>method</sup>*
+## *getAudioDelayOffset [<sup>method</sup>](#head.Methods)*
 
 Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
  
@@ -369,7 +377,7 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 ```
 
 <a name="method.getAudioFormat"></a>
-## *getAudioFormat <sup>method</sup>*
+## *getAudioFormat [<sup>method</sup>](#head.Methods)*
 
 Returns the currently set audio format.
  
@@ -420,7 +428,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getBassEnhancer"></a>
-## *getBassEnhancer <sup>method</sup>*
+## *getBassEnhancer [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of the Bass Enhancer settings.
  
@@ -474,7 +482,7 @@ Returns the current status of the Bass Enhancer settings.
 ```
 
 <a name="method.getConnectedAudioPorts"></a>
-## *getConnectedAudioPorts <sup>method</sup>*
+## *getConnectedAudioPorts [<sup>method</sup>](#head.Methods)*
 
 Returns connected audio output ports (a subset of the ports supported on the device). For SPDIF supported platforms, SPDIF port is always considered connected. HDMI port may or may not be connected.
  
@@ -523,7 +531,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getConnectedVideoDisplays"></a>
-## *getConnectedVideoDisplays <sup>method</sup>*
+## *getConnectedVideoDisplays [<sup>method</sup>](#head.Methods)*
 
 Returns connected video displays.
  
@@ -572,7 +580,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getCurrentOutputSettings"></a>
-## *getCurrentOutputSettings <sup>method</sup>*
+## *getCurrentOutputSettings [<sup>method</sup>](#head.Methods)*
 
 Returns current output settings.
  
@@ -626,7 +634,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getCurrentResolution"></a>
-## *getCurrentResolution <sup>method</sup>*
+## *getCurrentResolution [<sup>method</sup>](#head.Methods)*
 
 Returns the current resolution on the selected video display port.
  
@@ -678,7 +686,7 @@ Returns the current resolution on the selected video display port.
 ```
 
 <a name="method.getDefaultResolution"></a>
-## *getDefaultResolution <sup>method</sup>*
+## *getDefaultResolution [<sup>method</sup>](#head.Methods)*
 
 Gets the default resolution supported by the HDMI0 video output port.
  
@@ -724,7 +732,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getDialogEnhancement"></a>
-## *getDialogEnhancement <sup>method</sup>*
+## *getDialogEnhancement [<sup>method</sup>](#head.Methods)*
 
 Returns the current Dialog Enhancer level (port HDMI0).
  
@@ -778,7 +786,7 @@ Returns the current Dialog Enhancer level (port HDMI0).
 ```
 
 <a name="method.getDolbyVolumeMode"></a>
-## *getDolbyVolumeMode <sup>method</sup>*
+## *getDolbyVolumeMode [<sup>method</sup>](#head.Methods)*
 
 Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0).
  
@@ -824,7 +832,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getDRCMode"></a>
-## *getDRCMode <sup>method</sup>*
+## *getDRCMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Dynamic Range Control mode.
  
@@ -876,7 +884,7 @@ Returns the current Dynamic Range Control mode.
 ```
 
 <a name="method.getEnableAudioPort"></a>
-## *getEnableAudioPort <sup>method</sup>*
+## *getEnableAudioPort [<sup>method</sup>](#head.Methods)*
 
  Returns the current status of the specified input audio port.
  
@@ -928,7 +936,7 @@ Returns the current Dynamic Range Control mode.
 ```
 
 <a name="method.getGain"></a>
-## *getGain <sup>method</sup>*
+## *getGain [<sup>method</sup>](#head.Methods)*
 
 Returns the current gain value.
  
@@ -980,7 +988,7 @@ Returns the current gain value.
 ```
 
 <a name="method.getGraphicEqualizerMode"></a>
-## *getGraphicEqualizerMode <sup>method</sup>*
+## *getGraphicEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Graphic Equalizer Mode setting (port HDMI0).
  
@@ -1034,7 +1042,7 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 ```
 
 <a name="method.getIntelligentEqualizerMode"></a>
-## *getIntelligentEqualizerMode <sup>method</sup>*
+## *getIntelligentEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Returns the current Intelligent Equalizer Mode setting (port HDMI0).
  
@@ -1088,7 +1096,7 @@ Returns the current Intelligent Equalizer Mode setting (port HDMI0).
 ```
 
 <a name="method.getMISteering"></a>
-## *getMISteering <sup>method</sup>*
+## *getMISteering [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of Media Intelligence Steering settings.
  
@@ -1140,7 +1148,7 @@ Returns the current status of Media Intelligence Steering settings.
 ```
 
 <a name="method.getMS12AudioCompression"></a>
-## *getMS12AudioCompression <sup>method</sup>*
+## *getMS12AudioCompression [<sup>method</sup>](#head.Methods)*
 
 Returns the current audio compression settings.
  
@@ -1194,7 +1202,7 @@ Returns the current audio compression settings.
 ```
 
 <a name="method.getMS12AudioProfile"></a>
-## *getMS12AudioProfile <sup>method</sup>*
+## *getMS12AudioProfile [<sup>method</sup>](#head.Methods)*
 
 Returns the current MS12 audio profile settings.
  
@@ -1246,7 +1254,7 @@ Returns the current MS12 audio profile settings.
 ```
 
 <a name="method.getMuted"></a>
-## *getMuted <sup>method</sup>*
+## *getMuted [<sup>method</sup>](#head.Methods)*
 
 Returns whether audio is muted on a given port.
  
@@ -1298,7 +1306,7 @@ Returns whether audio is muted on a given port.
 ```
 
 <a name="method.getSettopAudioCapabilities"></a>
-## *getSettopAudioCapabilities <sup>method</sup>*
+## *getSettopAudioCapabilities [<sup>method</sup>](#head.Methods)*
 
 Returns the set-top audio capabilities for the specified audio port.
  
@@ -1353,7 +1361,7 @@ Returns the set-top audio capabilities for the specified audio port.
 ```
 
 <a name="method.getSettopHDRSupport"></a>
-## *getSettopHDRSupport <sup>method</sup>*
+## *getSettopHDRSupport [<sup>method</sup>](#head.Methods)*
 
 Returns an HDR support object (list of standards that the STB supports).
  
@@ -1404,7 +1412,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSettopMS12Capabilities"></a>
-## *getSettopMS12Capabilities <sup>method</sup>*
+## *getSettopMS12Capabilities [<sup>method</sup>](#head.Methods)*
 
 Returns the set-top MS12 audio capabilities for the specified audio port.
  
@@ -1459,7 +1467,7 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 ```
 
 <a name="method.getSinkAtmosCapability"></a>
-## *getSinkAtmosCapability <sup>method</sup>*
+## *getSinkAtmosCapability [<sup>method</sup>](#head.Methods)*
 
 Returns the ATMOS capability of the sink (HDMI0).
  
@@ -1505,7 +1513,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSoundMode"></a>
-## *getSoundMode <sup>method</sup>*
+## *getSoundMode [<sup>method</sup>](#head.Methods)*
 
 Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as a safe default.
  
@@ -1557,7 +1565,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 ```
 
 <a name="method.getSupportedAudioModes"></a>
-## *getSupportedAudioModes <sup>method</sup>*
+## *getSupportedAudioModes [<sup>method</sup>](#head.Methods)*
 
 Returns a list of strings containing the supported audio modes. If `Null` or empty, this returns the supported audio modes of the audio processor (regardless of the the output port).  
 If a port name is specified, this returns the audio output modes supported by the connected sink device (EDID based). If the port is not connected, the return value is same as if `Null` is specified as the parameter.  
@@ -1617,7 +1625,7 @@ For **Auto** mode in DS5, this API has the following extra specification:
 ```
 
 <a name="method.getSupportedAudioPorts"></a>
-## *getSupportedAudioPorts <sup>method</sup>*
+## *getSupportedAudioPorts [<sup>method</sup>](#head.Methods)*
 
 Returns all audio ports supported on the device (all ports that are physically present).
  
@@ -1666,7 +1674,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSupportedMS12AudioProfiles"></a>
-## *getSupportedMS12AudioProfiles <sup>method</sup>*
+## *getSupportedMS12AudioProfiles [<sup>method</sup>](#head.Methods)*
 
 Returns list of platform supported MS12 audio profiles for the specified audio port.
  
@@ -1721,7 +1729,7 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 ```
 
 <a name="method.getSupportedResolutions"></a>
-## *getSupportedResolutions <sup>method</sup>*
+## *getSupportedResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported resolutions on the selected video display port (both TV and STB) by its name.
  
@@ -1776,7 +1784,7 @@ Returns supported resolutions on the selected video display port (both TV and ST
 ```
 
 <a name="method.getSupportedSettopResolutions"></a>
-## *getSupportedSettopResolutions <sup>method</sup>*
+## *getSupportedSettopResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported STB resolutions.
  
@@ -1825,7 +1833,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSupportedTvResolutions"></a>
-## *getSupportedTvResolutions <sup>method</sup>*
+## *getSupportedTvResolutions [<sup>method</sup>](#head.Methods)*
 
 Returns supported TV resolutions on the selected video display port.
  
@@ -1880,7 +1888,7 @@ Returns supported TV resolutions on the selected video display port.
 ```
 
 <a name="method.getSupportedVideoDisplays"></a>
-## *getSupportedVideoDisplays <sup>method</sup>*
+## *getSupportedVideoDisplays [<sup>method</sup>](#head.Methods)*
 
 Returns all video ports supported on the device (all ports that are physically present).
  
@@ -1929,7 +1937,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getSurroundVirtualizer"></a>
-## *getSurroundVirtualizer <sup>method</sup>*
+## *getSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current surround virtualizer boost settings.
  
@@ -1983,7 +1991,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getTVHDRCapabilities"></a>
-## *getTVHDRCapabilities <sup>method</sup>*
+## *getTVHDRCapabilities [<sup>method</sup>](#head.Methods)*
 
 Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  
 * 0 - HDRSTANDARD_NONE  
@@ -2034,7 +2042,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getTvHDRSupport"></a>
-## *getTvHDRSupport <sup>method</sup>*
+## *getTvHDRSupport [<sup>method</sup>](#head.Methods)*
 
 Returns an HDR support object (list of standards that the TV supports).
  
@@ -2085,7 +2093,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getVideoFormat"></a>
-## *getVideoFormat <sup>method</sup>*
+## *getVideoFormat [<sup>method</sup>](#head.Methods)*
 
 Returns the current and supported video formats.
  
@@ -2136,7 +2144,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getVideoPortStatusInStandby"></a>
-## *getVideoPortStatusInStandby <sup>method</sup>*
+## *getVideoPortStatusInStandby [<sup>method</sup>](#head.Methods)*
 
 Returns video port status in standby mode (failure if the port name is missing).
  
@@ -2190,7 +2198,7 @@ Returns video port status in standby mode (failure if the port name is missing).
 ```
 
 <a name="method.getVolumeLevel"></a>
-## *getVolumeLevel <sup>method</sup>*
+## *getVolumeLevel [<sup>method</sup>](#head.Methods)*
 
 Returns the current volume level.
  
@@ -2242,7 +2250,7 @@ Returns the current volume level.
 ```
 
 <a name="method.getVolumeLeveller"></a>
-## *getVolumeLeveller <sup>method</sup>*
+## *getVolumeLeveller [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the current Volume Leveller setting.
  
@@ -2296,7 +2304,7 @@ Returns the current volume level.
 ```
 
 <a name="method.getZoomSetting"></a>
-## *getZoomSetting <sup>method</sup>*
+## *getZoomSetting [<sup>method</sup>](#head.Methods)*
 
 Returns the zoom setting value.
  
@@ -2342,7 +2350,7 @@ This method takes no parameters.
 ```
 
 <a name="method.isConnectedDeviceRepeater"></a>
-## *isConnectedDeviceRepeater <sup>method</sup>*
+## *isConnectedDeviceRepeater [<sup>method</sup>](#head.Methods)*
 
 Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater.
  
@@ -2388,7 +2396,7 @@ This method takes no parameters.
 ```
 
 <a name="method.isSurroundDecoderEnabled"></a>
-## *isSurroundDecoderEnabled <sup>method</sup>*
+## *isSurroundDecoderEnabled [<sup>method</sup>](#head.Methods)*
 
 Returns the current status of Surround Decoder.
  
@@ -2440,7 +2448,7 @@ Returns the current status of Surround Decoder.
 ```
 
 <a name="method.readEDID"></a>
-## *readEDID <sup>method</sup>*
+## *readEDID [<sup>method</sup>](#head.Methods)*
 
 Reads the EDID from the connected HDMI (output) device. Returns a key of `EDID` with a value of the base64 encoded byte array string representing the EDID.
  
@@ -2486,7 +2494,7 @@ This method takes no parameters.
 ```
 
 <a name="method.readHostEDID"></a>
-## *readHostEDID <sup>method</sup>*
+## *readHostEDID [<sup>method</sup>](#head.Methods)*
 
 Reads the EDID of the host. Returns a key of `EDID` with a value of the base64 encoded raw byte array string representing the EDID.
  
@@ -2532,7 +2540,7 @@ This method takes no parameters.
 ```
 
 <a name="method.resetBassEnhancer"></a>
-## *resetBassEnhancer <sup>method</sup>*
+## *resetBassEnhancer [<sup>method</sup>](#head.Methods)*
 
 Resets the dialog enhancer level to its default bassboost value.
  
@@ -2582,7 +2590,7 @@ Resets the dialog enhancer level to its default bassboost value.
 ```
 
 <a name="method.resetDialogEnhancement"></a>
-## *resetDialogEnhancement <sup>method</sup>*
+## *resetDialogEnhancement [<sup>method</sup>](#head.Methods)*
 
 Resets the dialog enhancer level to its default enhancer level.
  
@@ -2632,7 +2640,7 @@ Resets the dialog enhancer level to its default enhancer level.
 ```
 
 <a name="method.resetSurroundVirtualizer"></a>
-## *resetSurroundVirtualizer <sup>method</sup>*
+## *resetSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
 
 Resets the surround virtualizer to its default boost value.
  
@@ -2682,7 +2690,7 @@ Resets the surround virtualizer to its default boost value.
 ```
 
 <a name="method.resetVolumeLeveller"></a>
-## *resetVolumeLeveller <sup>method</sup>*
+## *resetVolumeLeveller [<sup>method</sup>](#head.Methods)*
 
 Resets the Volume Leveller level to default volume value.
  
@@ -2732,7 +2740,7 @@ Resets the Volume Leveller level to default volume value.
 ```
 
 <a name="method.setAudioAtmosOutputMode"></a>
-## *setAudioAtmosOutputMode <sup>method</sup>*
+## *setAudioAtmosOutputMode [<sup>method</sup>](#head.Methods)*
 
 Sets ATMOS audio output mode (on HDMI0).
  
@@ -2782,7 +2790,7 @@ Sets ATMOS audio output mode (on HDMI0).
 ```
 
 <a name="method.setAudioDelay"></a>
-## *setAudioDelay <sup>method</sup>*
+## *setAudioDelay [<sup>method</sup>](#head.Methods)*
 
 Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
  
@@ -2834,7 +2842,7 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 ```
 
 <a name="method.setAudioDelayOffset"></a>
-## *setAudioDelayOffset <sup>method</sup>*
+## *setAudioDelayOffset [<sup>method</sup>](#head.Methods)*
 
 Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
  
@@ -2886,7 +2894,7 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 ```
 
 <a name="method.setBassEnhancer"></a>
-## *setBassEnhancer <sup>method</sup>*
+## *setBassEnhancer [<sup>method</sup>](#head.Methods)*
 
 Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.
  
@@ -2938,7 +2946,7 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 ```
 
 <a name="method.setCurrentResolution"></a>
-## *setCurrentResolution <sup>method</sup>*
+## *setCurrentResolution [<sup>method</sup>](#head.Methods)*
 
 Sets the current resolution.
  
@@ -2958,6 +2966,7 @@ Also see: [resolutionPreChange](#event.resolutionPreChange), [resolutionChanged]
 | params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 | params.resolution | string | Video display resolution |
 | params?.persist | boolean | <sup>*(optional)*</sup> Persists the resolution |
+| params?.ignoreEdid | boolean | <sup>*(optional)*</sup> Ignore the supported resolutions as transmitted by the connected TV EDID |
 
 ### Result
 
@@ -2978,7 +2987,8 @@ Also see: [resolutionPreChange](#event.resolutionPreChange), [resolutionChanged]
     "params": {
         "videoDisplay": "HDMI0",
         "resolution": "1080p",
-        "persist": true
+        "persist": true,
+        "ignoreEdid": true
     }
 }
 ```
@@ -2996,7 +3006,7 @@ Also see: [resolutionPreChange](#event.resolutionPreChange), [resolutionChanged]
 ```
 
 <a name="method.setDialogEnhancement"></a>
-## *setDialogEnhancement <sup>method</sup>*
+## *setDialogEnhancement [<sup>method</sup>](#head.Methods)*
 
 Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separately from other background content, without increasing the loudness.The method fails if no value is set.
  
@@ -3048,7 +3058,7 @@ Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separat
 ```
 
 <a name="method.setDolbyVolumeMode"></a>
-## *setDolbyVolumeMode <sup>method</sup>*
+## *setDolbyVolumeMode [<sup>method</sup>](#head.Methods)*
 
 Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
  
@@ -3098,7 +3108,7 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 ```
 
 <a name="method.setDRCMode"></a>
-## *setDRCMode <sup>method</sup>*
+## *setDRCMode [<sup>method</sup>](#head.Methods)*
 
 Sets the Dynamic Range Control (DRC) setting. DRC is a compression control applied to audio to limit the dynamic range to suit a specific listening situation. For default settings, RF mode is preferred for two-channel outputs (television speaker or headphone) and Line mode for multichannel outputs.
  
@@ -3150,7 +3160,7 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 ```
 
 <a name="method.setEnableAudioPort"></a>
-## *setEnableAudioPort <sup>method</sup>*
+## *setEnableAudioPort [<sup>method</sup>](#head.Methods)*
 
 Enable or disable the specified audio port based on the input audio port name. This feature provides the consumer with a single user control to enable or disable the specified audio port.
  
@@ -3202,7 +3212,7 @@ Enable or disable the specified audio port based on the input audio port name. T
 ```
 
 <a name="method.setGain"></a>
-## *setGain <sup>method</sup>*
+## *setGain [<sup>method</sup>](#head.Methods)*
 
 Adjusts the gain on a specific port.
  
@@ -3254,7 +3264,7 @@ Adjusts the gain on a specific port.
 ```
 
 <a name="method.setGraphicEqualizerMode"></a>
-## *setGraphicEqualizerMode <sup>method</sup>*
+## *setGraphicEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer that allows the end user to customize the sonic qualities of the system.
  
@@ -3306,7 +3316,7 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 ```
 
 <a name="method.setIntelligentEqualizerMode"></a>
-## *setIntelligentEqualizerMode <sup>method</sup>*
+## *setIntelligentEqualizerMode [<sup>method</sup>](#head.Methods)*
 
 Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer continuously monitors the audio spectrum and adjusts its equalization filter to transform the original audio tone into desired tone.
  
@@ -3358,7 +3368,7 @@ Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer conti
 ```
 
 <a name="method.setMISteering"></a>
-## *setMISteering <sup>method</sup>*
+## *setMISteering [<sup>method</sup>](#head.Methods)*
 
 Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audio content and steers the Volume Leveler, the Dialogue Enhancer, the Intelligent Equalizer, and the Speaker Virtualizer, based on the type of audio content.
  
@@ -3410,7 +3420,7 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 ```
 
 <a name="method.setMS12AudioCompression"></a>
-## *setMS12AudioCompression <sup>method</sup>*
+## *setMS12AudioCompression [<sup>method</sup>](#head.Methods)*
 
 Sets the audio dynamic range compression level (port HDMI0).
  
@@ -3462,7 +3472,7 @@ Sets the audio dynamic range compression level (port HDMI0).
 ```
 
 <a name="method.setMS12AudioProfile"></a>
-## *setMS12AudioProfile <sup>method</sup>*
+## *setMS12AudioProfile [<sup>method</sup>](#head.Methods)*
 
 Sets the selected MS12 audio profile.
  
@@ -3514,7 +3524,7 @@ Sets the selected MS12 audio profile.
 ```
 
 <a name="method.setMuted"></a>
-## *setMuted <sup>method</sup>*
+## *setMuted [<sup>method</sup>](#head.Methods)*
 
 Mutes or unmutes audio on a specific port.
  
@@ -3566,7 +3576,7 @@ Mutes or unmutes audio on a specific port.
 ```
 
 <a name="method.setScartParameter"></a>
-## *setScartParameter <sup>method</sup>*
+## *setScartParameter [<sup>method</sup>](#head.Methods)*
 
 Sets SCART parameters.  
    
@@ -3628,7 +3638,7 @@ Possible values:
 ```
 
 <a name="method.setSoundMode"></a>
-## *setSoundMode <sup>method</sup>*
+## *setSoundMode [<sup>method</sup>](#head.Methods)*
 
 Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.
  
@@ -3682,7 +3692,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```
 
 <a name="method.setSurroundVirtualizer"></a>
-## *setSurroundVirtualizer <sup>method</sup>*
+## *setSurroundVirtualizer [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.
  
@@ -3736,7 +3746,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ```
 
 <a name="method.setVideoPortStatusInStandby"></a>
-## *setVideoPortStatusInStandby <sup>method</sup>*
+## *setVideoPortStatusInStandby [<sup>method</sup>](#head.Methods)*
 
 Sets the specified video port status to be used in standby mode (failure if the port name is missing).
  
@@ -3790,7 +3800,7 @@ Sets the specified video port status to be used in standby mode (failure if the 
 ```
 
 <a name="method.setVolumeLevel"></a>
-## *setVolumeLevel <sup>method</sup>*
+## *setVolumeLevel [<sup>method</sup>](#head.Methods)*
 
 Adjusts the Volume Level on a specific port.
  
@@ -3842,7 +3852,7 @@ Adjusts the Volume Level on a specific port.
 ```
 
 <a name="method.setVolumeLeveller"></a>
-## *setVolumeLeveller <sup>method</sup>*
+## *setVolumeLeveller [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Sets the Volume Leveller level. Volume Leveller is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
  
@@ -3896,7 +3906,7 @@ Adjusts the Volume Level on a specific port.
 ```
 
 <a name="method.setZoomSetting"></a>
-## *setZoomSetting <sup>method</sup>*
+## *setZoomSetting [<sup>method</sup>](#head.Methods)*
 
 Sets the current zoom value.
  
@@ -3968,7 +3978,7 @@ DisplaySettings interface events:
 
 
 <a name="event.activeInputChanged"></a>
-## *activeInputChanged <sup>event</sup>*
+## *activeInputChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered on active input change (RxSense).
 
@@ -3992,7 +4002,7 @@ Triggered on active input change (RxSense).
 ```
 
 <a name="event.audioFormatChanged"></a>
-## *audioFormatChanged <sup>event</sup>*
+## *audioFormatChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the configured audio format changes.
 
@@ -4021,7 +4031,7 @@ Triggered when the configured audio format changes.
 ```
 
 <a name="event.connectedAudioPortUpdated"></a>
-## *connectedAudioPortUpdated <sup>event</sup>*
+## *connectedAudioPortUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the connected audio port is updated.
 
@@ -4047,7 +4057,7 @@ Triggered when the connected audio port is updated.
 ```
 
 <a name="event.connectedVideoDisplaysUpdated"></a>
-## *connectedVideoDisplaysUpdated <sup>event</sup>*
+## *connectedVideoDisplaysUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the connected video display is updated and returns the connected video displays.
 
@@ -4074,7 +4084,7 @@ Triggered when the connected video display is updated and returns the connected 
 ```
 
 <a name="event.resolutionChanged"></a>
-## *resolutionChanged <sup>event</sup>*
+## *resolutionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the resolution is changed by the user and returns the current resolution.
 
@@ -4104,7 +4114,7 @@ Triggered when the resolution is changed by the user and returns the current res
 ```
 
 <a name="event.resolutionPreChange"></a>
-## *resolutionPreChange <sup>event</sup>*
+## *resolutionPreChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered on resolution pre-change.
 
@@ -4122,7 +4132,7 @@ This event carries no parameters.
 ```
 
 <a name="event.zoomSettingUpdated"></a>
-## *zoomSettingUpdated <sup>event</sup>*
+## *zoomSettingUpdated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the zoom setting changes and returns the zoom setting values for all video display types.
 
@@ -4148,7 +4158,7 @@ Triggered when the zoom setting changes and returns the zoom setting values for 
 ```
 
 <a name="event.videoFormatChanged"></a>
-## *videoFormatChanged <sup>event</sup>*
+## *videoFormatChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port.
 
