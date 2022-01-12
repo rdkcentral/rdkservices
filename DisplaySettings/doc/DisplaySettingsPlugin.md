@@ -13,7 +13,6 @@ A org.rdk.DisplaySettings plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,13 +75,6 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *org.rdk.DisplaySettings* |
 | locator | string | Library name: *libWPEFrameworkDisplaySettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [DisplaySettings.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DisplaySettings.json)
 
 <a name="head.Methods"></a>
 # Methods
@@ -158,6 +150,7 @@ DisplaySettings interface methods:
 | [setMISteering](#method.setMISteering) | Enables or Disables Media Intelligent Steering |
 | [setMS12AudioCompression](#method.setMS12AudioCompression) | Sets the audio dynamic range compression level (port HDMI0) |
 | [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
+| [setMS12ProfileSettingsOverride](#method.setMS12ProfileSettingsOverride) | Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode) |
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
@@ -3507,6 +3500,60 @@ Sets the selected MS12 audio profile.
     "params": {
         "audioPort": "SPEAKER0",
         "ms12AudioProfile": "Game"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setMS12ProfileSettingsOverride"></a>
+## *setMS12ProfileSettingsOverride [<sup>method</sup>](#head.Methods)*
+
+Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioPort | string | Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.operation | string | The audio profile state |
+| params.profileName | string | An MS12 audio profile name from `getSupportedMS12AudioProfile` |
+| params.ms12SettingsName | string | An ms12 setting name |
+| params.ms12SettingsValue | string | The value to set |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setMS12ProfileSettingsOverride",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "operation": "...",
+        "profileName": "Sports",
+        "ms12SettingsName": "Dialog Enhance",
+        "ms12SettingsValue": "On"
     }
 }
 ```
