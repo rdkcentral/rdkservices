@@ -20,10 +20,12 @@
 #include "Module.h"
 #include "AAMPJSBindings.h"
 
+#include <JavaScriptCore/JavaScript.h>
+
 extern "C" {
-    // FIXME: this is wrong, AAMP requires JSGlobalContextRef
-    void aamp_LoadJSController(JSCContext* jsContext);
-    void aamp_UnloadJSController(JSCContext* jsContext);
+    void aamp_LoadJSController(JSGlobalContextRef context);
+    void aamp_UnloadJSController(JSGlobalContextRef context);
+    JSGlobalContextRef jscContextGetJSContext(JSCContext*);
 }
 
 namespace WPEFramework {
@@ -37,9 +39,16 @@ bool CanInjectJSBindings(const char* url) {
     if (url == nullptr)
         return false;
 
+    if (g_strrstr(url, "://") == nullptr)
+       return false;
+
+    std::string hostStr;
+
     SoupURI* uri = soup_uri_new(url);
-    std::string hostStr = g_strdup(uri->host);
-    soup_uri_free(uri);
+    if (uri) {
+        hostStr = g_strdup(uri->host);
+        soup_uri_free(uri);
+    }
 
     if (hostStr.empty())
         return false;
@@ -55,38 +64,32 @@ bool CanInjectJSBindings(const char* url) {
 }
 
 void LoadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame) {
-
-  // FIXME:
-  g_warning("AAMP GLib-JS bindings not supported yet");
-  return;
-
     if (webkit_frame_is_main_frame(frame) == false)
         return;
+
+    UnloadJSBindings(world, frame);
 
     const char* url = webkit_frame_get_uri(frame);
     bool canInject = CanInjectJSBindings(url);
     if (canInject) {
         JSCContext* jsContext = webkit_frame_get_js_context_for_script_world(frame, world);
-        aamp_LoadJSController(jsContext);
+        aamp_LoadJSController(jscContextGetJSContext(jsContext));
         g_object_unref(jsContext);
+
+        g_object_set_data(G_OBJECT(world), "has-aamp", GINT_TO_POINTER(1));
     }
 }
 
 void UnloadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame) {
-
-  // FIXME:
-  g_warning("AAMP GLib-JS bindings not supported yet");
-  return;
-
     if (webkit_frame_is_main_frame(frame) == false)
         return;
 
+    int p = GPOINTER_TO_INT(g_object_steal_data(G_OBJECT(world), "has-aamp"));
+    if (p != 1)
+        return;
+
     JSCContext* jsContext = webkit_frame_get_js_context_for_script_world(frame, world);
-    JSCValue* jsObject = jsc_context_get_value(jsContext, "AAMP");
-    if (jsObject != nullptr) {
-        aamp_UnloadJSController(jsContext);
-        g_object_unref(jsObject);
-    }
+    aamp_UnloadJSController(jscContextGetJSContext(jsContext));
     g_object_unref(jsContext);
 }
 
