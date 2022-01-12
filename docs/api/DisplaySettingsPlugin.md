@@ -2960,6 +2960,7 @@ Also see: [resolutionPreChange](#resolutionPreChange), [resolutionChanged](#reso
 | params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
 | params.resolution | string | Video display resolution |
 | params?.persist | boolean | <sup>*(optional)*</sup> Persists the resolution |
+| params?.ignoreEdid | boolean | <sup>*(optional)*</sup> Ignore the supported resolutions as transmitted by the connected TV EDID |
 
 ### Result
 
@@ -2980,7 +2981,8 @@ Also see: [resolutionPreChange](#resolutionPreChange), [resolutionChanged](#reso
     "params": {
         "videoDisplay": "HDMI0",
         "resolution": "1080p",
-        "persist": true
+        "persist": true,
+        "ignoreEdid": true
     }
 }
 ```
