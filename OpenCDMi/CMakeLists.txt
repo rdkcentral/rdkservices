@@ -37,9 +37,14 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 add_library(${MODULE_NAME} SHARED 
         OCDM.cpp
         OCDMJsonRpc.cpp
+        Module.cpp)
+
+add_library(${MODULE_NAME}Service SHARED
         CENCParser.cpp
         FrameworkRPC.cpp
         Module.cpp)
+
+add_dependencies(${MODULE_NAME} ${MODULE_NAME}Service)
 
 # avoid -as-needed flag being set, this will break linking to libocdm.so
 string(REPLACE "-Wl,--as-needed" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
@@ -49,16 +54,29 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+set_target_properties(${MODULE_NAME}Service PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME}Service PRIVATE ../helpers)
 target_link_libraries(${MODULE_NAME} 
         PRIVATE
                 CompileSettingsDebug::CompileSettingsDebug
                 ${NAMESPACE}Plugins::${NAMESPACE}Plugins 
+                ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+target_link_libraries(${MODULE_NAME}Service
+        PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 ${NAMESPACE}Definitions::${NAMESPACE}Definitions
                 ocdm::ocdm)
 # Library definition section
 install(TARGETS ${MODULE_NAME} 
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+install(TARGETS ${MODULE_NAME}Service
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/services)
 
 if("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
    # Desktop case: not cross compiling
