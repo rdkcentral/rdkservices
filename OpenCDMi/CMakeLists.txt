@@ -66,7 +66,8 @@ target_include_directories(${PLUGIN_OCDM_IMPLEMENTATION} PRIVATE ../helpers)
 target_link_libraries(${MODULE_NAME}
         PRIVATE
                 CompileSettingsDebug::CompileSettingsDebug
-                ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 target_link_libraries(${PLUGIN_OCDM_IMPLEMENTATION}
         PRIVATE
                 CompileSettingsDebug::CompileSettingsDebug
