@@ -107,6 +107,11 @@ if (BUILD_XI1)
         message("Building for US variant")
     endif()
 
+    if (LOGUPLOAD_BEFORE_DEEPSLEEP)
+        message("Enabling LOGUPLOAD_BEFORE_DEEPSLEEP")
+        add_definitions (-DLOGUPLOAD_BEFORE_DEEPSLEEP)
+    endif()
+
     add_definitions (-DENABLE_DEEP_SLEEP)
     add_definitions (-DUSE_XI1_MORE_DEFINITIONS)
     add_definitions (-DUSE_UIMAF)
