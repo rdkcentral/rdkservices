@@ -119,6 +119,12 @@ namespace WPEFramework {
 
                 int m_FwUpdateState_LatestEvent;
 
+                bool m_networkStandbyMode;
+                bool m_networkStandbyModeValid;
+
+                std::string m_powerStateBeforeReboot;
+                bool m_powerStateBeforeRebootValid;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
@@ -126,6 +132,8 @@ namespace WPEFramework {
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
 		bool getModelName(const string& parameter, JsonObject& response);
+                std::string m_ManufacturerData;
+                bool m_ManufacturerDataValid;
 #endif
             public:
                 SystemServices();
@@ -150,6 +158,7 @@ namespace WPEFramework {
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
                 void onPwrMgrReboot(string requestedApp, string rebootReason);
+                void onNetorkModeChanged(bool betworkStandbyMode);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();

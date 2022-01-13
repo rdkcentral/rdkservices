@@ -299,6 +299,12 @@ namespace WPEFramework {
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
+            m_networkStandbyModeValid = false;
+            m_powerStateBeforeRebootValid = false;
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+            m_ManufacturerDataValid = false;
+#endif
+
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -452,6 +458,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_MODECHANGED, _powerEventHandler));
+                
                 
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
@@ -700,6 +708,12 @@ namespace WPEFramework {
             params["rebootReason"] = rebootReason;
 
             sendNotify(EVT_ONREBOOTREQUEST, params);
+        }
+
+        void SystemServices::onNetorkModeChanged(bool betworkStandbyMode)
+        {
+            m_networkStandbyMode = betworkStandbyMode;
+            m_networkStandbyModeValid = true;
         }
 
         /**
@@ -965,6 +979,12 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 
+            if (m_ManufacturerDataValid) {
+                response[parameter.c_str()] = m_ManufacturerData;
+                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerData.c_str());
+                return true;
+            }
+
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
@@ -982,6 +1002,8 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response[parameter.c_str()] = string(param.buffer);
                 status = true;
+                m_ManufacturerData = param.buffer;
+                m_ManufacturerDataValid = true;
             } else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
@@ -1449,6 +1471,7 @@ namespace WPEFramework {
 
                  if (IARM_RESULT_SUCCESS == res) {
                      status = true;
+                     m_networkStandbyModeValid = false;
                  } else {
                      status = false;
                  }
@@ -1468,20 +1491,31 @@ namespace WPEFramework {
             JsonObject& response)
         {
             bool retVal = false;
-            IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                   IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
-                                   sizeof(param));
-            bool nwStandby = param.bStandbyMode;
 
-            LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
-                     nwStandby?("Enabled"):("Disabled"));
-            response["nwStandby"] = nwStandby;
-            if (IARM_RESULT_SUCCESS == res) {
+            if (m_networkStandbyModeValid) {
+                response["nwStandby"] = m_networkStandbyMode;
                 retVal = true;
-            } else {
-                retVal = false;
+                LOGINFO("Got cached NetworkStandbyMode: '%s'", m_networkStandbyMode ? "true" : "false");
             }
+            else {
+                IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                       IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
+                                       sizeof(param));
+                bool nwStandby = param.bStandbyMode;
+    
+                LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
+                         nwStandby?("Enabled"):("Disabled"));
+                response["nwStandby"] = nwStandby;
+                if (IARM_RESULT_SUCCESS == res) {
+                    retVal = true;
+                    m_networkStandbyMode = nwStandby;
+                    m_networkStandbyModeValid = true;
+                } else {
+                    retVal = false;
+                }
+            }
+
             returnResponse(retVal);
         }
 
@@ -3323,19 +3357,29 @@ namespace WPEFramework {
             JsonObject& response)
         {
             bool retVal = false;
-            IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                   IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
-                                   sizeof(param));
 
-            LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
-                     param.powerStateBeforeReboot);
-            response["state"] = string (param.powerStateBeforeReboot);
-            if (IARM_RESULT_SUCCESS == res) {
+            if (m_powerStateBeforeRebootValid) {
+                response["state"] = m_powerStateBeforeReboot;
                 retVal = true;
+                LOGINFO("Got cached powerStateBeforeReboot: '%s'", m_powerStateBeforeReboot.c_str());
             } else {
-                retVal = false;
+                IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                       IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
+                                       sizeof(param));
+    
+                LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
+                         param.powerStateBeforeReboot);
+                response["state"] = string (param.powerStateBeforeReboot);
+                if (IARM_RESULT_SUCCESS == res) {
+                    retVal = true;
+                    m_powerStateBeforeReboot = param.powerStateBeforeReboot;
+                    m_powerStateBeforeRebootValid = true;
+                } else {
+                    retVal = false;
+                }
             }
+
             returnResponse(retVal);
         }
 
@@ -3467,6 +3511,19 @@ namespace WPEFramework {
                     }
 
                     break;
+
+            case  IARM_BUS_PWRMGR_EVENT_NETWORK_MODECHANGED:
+                {
+                    IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+
+                    if (SystemServices::_instance) {
+                        SystemServices::_instance->onNetorkModeChanged(eventData->data.bNetworkStandbyMode);
+                    } else {
+                        LOGERR("SystemServices::_instance is NULL.\n");
+                    }
+                }
+
+                break;
             }
         }
 
