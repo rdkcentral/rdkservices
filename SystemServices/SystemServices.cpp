@@ -303,8 +303,8 @@ namespace WPEFramework {
             m_powerStateBeforeRebootValid = false;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             m_ManufacturerDataValid = false;
+            m_m_MfgSerialNumberValid = false;
 #endif
-
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -957,6 +957,12 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService getMfgSerialNumber query");
 
+            if (m_MfgSerialNumberValid) {
+                response["mfgSerialNumber"] = m_ManufacturerData;
+                LOGWARN("Got cached MfgSerialNumber %s", m_MfgSerialNumber.c_str());
+                returnResponse(true);
+            }
+
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
@@ -967,6 +973,10 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response["mfgSerialNumber"] = string(param.buffer);
                 status = true;
+
+                m_MfgSerialNumber = string(param.buffer);
+                m_m_MfgSerialNumberValid = true;
+
                 LOGWARN("SystemService getMfgSerialNumber Manufacturing Serial Number: %s", param.buffer);
             } else {
                 LOGERR("SystemService getMfgSerialNumber Manufacturing Serial Number: NULL");
