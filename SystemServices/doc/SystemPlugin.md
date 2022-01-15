@@ -2504,7 +2504,7 @@ Sets the temperature threshold values. Not supported on all devices.
     "id": 1234567890,
     "method": "org.rdk.System.1.setTemperatureThresholds",
     "params": {
-        "Thresholds": {
+        "thresholds": {
             "WARN": "100.000000",
             "MAX": "110.000000"
         }
