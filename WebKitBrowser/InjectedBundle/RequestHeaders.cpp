@@ -31,6 +31,10 @@
 
 #include "Utils.h"
 
+#if defined(ENABLE_AAMP_JSBINDINGS)
+#include "AAMPJSBindings.h"
+#endif
+
 namespace WPEFramework {
 namespace WebKit {
 
@@ -86,7 +90,12 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
         if (newHeaders.empty())
             RemoveRequestHeaders(page);
         else
+	{
+#if defined(ENABLE_AAMP_JSBINDINGS)
+            JavaScript::AAMP::SetHttpHeader(newHeaders);
+#endif
             s_pageHeaders[page] = std::move(newHeaders);
+	}
     }
 }
 

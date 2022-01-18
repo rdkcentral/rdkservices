@@ -23,6 +23,7 @@
 extern "C" {
     void aamp_LoadJSController(JSGlobalContextRef context);
     void aamp_UnloadJSController(JSGlobalContextRef context);
+    void aamp_SetHttpHeaders(const std::vector<std::pair<std::string, std::string>> & Headers);
 }
 
 namespace WPEFramework {
@@ -72,6 +73,12 @@ void UnloadJSBindings(WKBundleFrameRef frame) {
             aamp_UnloadJSController(context);
     }
 }
+
+void SetHttpHeader(const std::vector<std::pair<std::string, std::string>> & Headers)
+{
+    aamp_SetHttpHeaders(Headers);
+}
+
 
 }  // namespace AAMP
 }  // namespace JavaScript

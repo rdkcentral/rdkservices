@@ -30,6 +30,8 @@ void LoadJSBindings(WKBundleFrameRef frame);
 
 void UnloadJSBindings(WKBundleFrameRef frame);
 
+void SetHttpHeader(const std::vector<std::pair<std::string, std::string>> & Headers);
+
 }  // namespace AAMP
 }  // namespace JavaScript
 }  // namespace WPEFramework
