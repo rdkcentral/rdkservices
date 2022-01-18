@@ -33,6 +33,7 @@ TEST(LocationSyncTest, test) {
     WPEFramework::Core::ProxyType<WorkerPoolImplementation> _engine;
     _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
     WPEFramework::Core::IWorkerPool::Assign(&(*_engine));
+    _engine->Run();
 
     // create plugin
 
@@ -42,6 +43,7 @@ TEST(LocationSyncTest, test) {
     WPEFramework::Core::JSONRPC::Handler& handler = *locationSync;
 
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("sync")));
+    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("location")));
 
     // init plugin
 
