@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Messenger.cpp" />
     <ClCompile Include="MessengerJsonRpc.cpp" />
+    <ClCompile Include="MessengerSecurity.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="RoomMaintainer.cpp" />
   </ItemGroup>

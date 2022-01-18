@@ -15,8 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME Messenger)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(Messenger)
+
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+project_version(1.0.0)
+
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
+
+set(PLUGIN_MESSENGER_AUTOSTART "true" CACHE STRING "Automatically start Messenger plugin")
+set(PLUGIN_MESSENGER_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process")
+
+# deprecated/legacy flags support
+if(PLUGIN_MESSENGER_OUTOFPROCESS STREQUAL "false")
+    set(PLUGIN_MESSENGER_MODE "Off" CACHE STRING "Process mode"  FORCE)
+    unset(PLUGIN_MESSENGER_OUTOFPROCESS CACHE)
+endif()
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
@@ -42,5 +60,5 @@ target_link_libraries(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+write_config()
 

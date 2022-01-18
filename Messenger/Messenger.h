@@ -37,6 +37,10 @@ namespace Plugin {
         Messenger(const Messenger&) = delete;
         Messenger& operator=(const Messenger&) = delete;
 
+#ifdef __WINDOWS__
+#pragma warning(disable : 4355)
+#endif
+
         Messenger()
             : PluginHost::JSONRPCSupportsEventStatus(std::bind(&Messenger::CheckToken, this,
                     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
@@ -48,6 +52,9 @@ namespace Plugin {
         {
             RegisterAll();
         }
+#ifdef __WINDOWS__
+#pragma warning(default : 4355)
+#endif
 
         ~Messenger()
         {
@@ -183,7 +190,7 @@ namespace Plugin {
         void event_roomupdate(const string& room, const JsonData::Messenger::RoomupdateParamsData::ActionType& action);
         void event_userupdate(const string& id, const string& user, const JsonData::Messenger::UserupdateParamsData::ActionType& action);
         void event_message(const string& id, const string& user, const string& message);
-        bool CheckToken(const string& token, const string& method, const string& parameters);
+        PluginHost::JSONRPC::classification CheckToken(const string& token, const string& method, const string& parameters);
 
         uint32_t _connectionId;
         PluginHost::IShell* _service;

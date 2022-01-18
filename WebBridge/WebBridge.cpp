@@ -24,7 +24,7 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(WebBridge, 1, 0);
 
-    class EXTERNAL Registration : public Core::JSON::Container {
+    class Registration : public Core::JSON::Container {
     private:
         Registration(const Registration&) = delete;
         Registration& operator=(const Registration&) = delete;
@@ -46,6 +46,47 @@ namespace Plugin {
         Core::JSON::String Event;
         Core::JSON::String Callsign;
     };
+    class Message : public Core::JSONRPC::Message {
+    public:
+        class CallContext : public Core::JSON::Container {
+        public:
+            CallContext(const CallContext&) = delete;
+            CallContext& operator= (const CallContext&) = delete;
+
+            CallContext()
+                : Core::JSON::Container()
+                , Callsign()
+                , ChannelId(0)
+                , Token()
+                , OriginalId(0) {
+                Add(_T("callsign"), &Callsign);
+                Add(_T("channel"), &ChannelId);
+                Add(_T("token"), &Token);
+                Add(_T("id"), &OriginalId);
+            }
+
+        public:
+            Core::JSON::String Callsign;
+            Core::JSON::DecUInt32 ChannelId;
+            Core::JSON::String Token;
+            Core::JSON::DecUInt32 OriginalId;
+        };
+
+    public:
+        Message(const Message&) = delete;
+        Message& operator= (const Message&) = delete;
+
+        Message()
+            : Core::JSONRPC::Message() {
+            Add(_T("context"), &Context);
+        }
+        ~Message() override = default;
+
+    public:
+        CallContext Context;
+    };
+
+    static Core::ProxyPoolType<Message> g_BridgeMessages(8);
 
     // -------------------------------------------------------------------------------------------------------
     //   IPluginExtended methods
@@ -86,9 +127,12 @@ namespace Plugin {
 
         // The expectation is that the JavaScript service opens up a connection to us, so we can forward the 
         // incomming requests, to be handled by the Service.
-        if ((channel.Protocol() == _T("json")) && (_javascriptService == 0)) {
-            _javascriptService = channel.Id();
-            assigned = true;
+        if (_javascriptService == 0) {
+            Web::ProtocolsArray protocols = channel.Protocols();
+            if (std::find(protocols.begin(), protocols.end(), string(_T("json"))) != protocols.end()) {
+                _javascriptService = channel.Id();
+                assigned = true;
+            }
         }
         return(assigned);
     }
@@ -102,12 +146,12 @@ namespace Plugin {
     // -------------------------------------------------------------------------------------------------------
     //   IDispatcher methods
     // -------------------------------------------------------------------------------------------------------
-    Core::ProxyType<Core::JSONRPC::Message> WebBridge::Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& inbound) /* override */
+    Core::ProxyType<Core::JSONRPC::Message> WebBridge::Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& inbound) /* override */
     {
         string method;
         Registration info;
 
-        Core::ProxyType<Core::JSONRPC::Message> message(PluginHost::IFactories::Instance().JSONRPC());
+        Core::ProxyType<Message> message(g_BridgeMessages.Element());
         string designator(inbound.Designator.Value());
 
         if (inbound.Id.IsSet() == true) {
@@ -130,11 +174,11 @@ namespace Plugin {
             break;
         case state::STATE_REGISTRATION:
             info.FromString(inbound.Parameters.Value());
-            Subscribe(channelId, info.Event.Value(), info.Callsign.Value(), *message);
+            Subscribe(context.ChannelId(), info.Event.Value(), info.Callsign.Value(), *message);
             break;
         case state::STATE_UNREGISTRATION:
             info.FromString(inbound.Parameters.Value());
-            Unsubscribe(channelId, info.Event.Value(), info.Callsign.Value(), *message);
+            Unsubscribe(context.ChannelId(), info.Event.Value(), info.Callsign.Value(), *message);
             break;
         case state::STATE_EXISTS:
             message->Result = Core::NumberType<uint32_t>(Core::ERROR_UNKNOWN_KEY).Text();
@@ -144,18 +188,22 @@ namespace Plugin {
             break;
         case state::STATE_CUSTOM:
             // Let's on behalf of the request forward it and update 
-            uint32_t newId = Core::InterlockedIncrement(_sequenceId);
+            uint32_t newId = Core::_InterlockedIncrement(_sequenceId);
             Core::Time waitTill = Core::Time::Now() + _timeOut;
 
             _pendingRequests.emplace(std::piecewise_construct,
                 std::forward_as_tuple(newId),
-                std::forward_as_tuple(channelId, message->Id.Value(), waitTill));
+                std::forward_as_tuple(context.ChannelId(), message->Id.Value(), waitTill));
 
             message->Id = newId;
             message->Parameters = inbound.Parameters;
             message->Designator = inbound.Designator;
+            message->Context.Callsign = _callsign;
+            message->Context.ChannelId = context.ChannelId();
+            message->Context.OriginalId = context.Sequence();
+            message->Context.Token = context.Token();
 
-            TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), message->Id.Value(), channelId, method.c_str()));
+            TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), message->Id.Value(), context.ChannelId(), method.c_str()));
 
             _service->Submit(_javascriptService, Core::ProxyType<Core::JSON::IElement>(message));
 
@@ -163,13 +211,13 @@ namespace Plugin {
             message.Release();
 
             if (_timeOut != 0) {
-                _cleaner.Schedule(waitTill);
+                _cleaner.Reschedule(waitTill);
             }
 
             break;
         }
 
-        return message;
+        return (Core::ProxyType<Core::JSONRPC::Message>(message));
     }
 
     void WebBridge::Activate(PluginHost::IShell* /* service */) /* override */ {
@@ -239,7 +287,7 @@ namespace Plugin {
 
                     // Oke, there is someone waiting for a response!
                     message->Id = requestId;
-                    _service->Submit(channelId, Core::proxy_cast<Core::JSON::IElement>(message));
+                    _service->Submit(channelId, Core::ProxyType<Core::JSON::IElement>(message));
                 }
             }
         }
@@ -281,7 +329,7 @@ namespace Plugin {
         _adminLock.Unlock();
 
         if (nextSlot.IsValid()) {
-            _cleaner.Schedule(nextSlot);
+            _cleaner.Reschedule(nextSlot);
         }
     }
 
