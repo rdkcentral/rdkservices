@@ -20,29 +20,29 @@ project(RdkServicesTest)
 
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(${NAMESPACE}Protocols REQUIRED)
-find_package(${NAMESPACE}SecurityUtil REQUIRED)
+find_package(${NAMESPACE}Plugins REQUIRED)
 
-find_package(GTest REQUIRED)
-
-file(GLOB TEST_FILES
-        ../PersistentStore/PersistentStoreTest.cpp
-        ../SecurityAgent/SecurityAgentTest.cpp
-        ../LoggingPreferences/LoggingPreferencesTest.cpp
-        )
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+FetchContent_MakeAvailable(googletest)
 
 add_executable(${PROJECT_NAME}
-        ${TEST_FILES}
+        Tests/LocationSyncTest.cpp
+        Tests/PersistentStoreTest.cpp
         Module.cpp
-        Source/Link.cpp
-        Source/Web.cpp
-        Source/Token.cpp
         )
 
+include_directories(../LocationSync ../PersistentStore)
+link_directories(../LocationSync ../PersistentStore)
+
 target_link_libraries(${PROJECT_NAME}
-        GTest::GTest GTest::Main
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
+        gtest_main
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}LocationSync
+        ${NAMESPACE}PersistentStore
         )
 
 target_include_directories(${PROJECT_NAME}
