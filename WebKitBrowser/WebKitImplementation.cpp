@@ -2134,7 +2134,7 @@ static GSourceFuncs _handlerIntervention =
                 g_object_unref(websiteDataManager);
             }
 
-            if (_config.InjectedBundle.Value().empty() == false) {
+            if (_dataPath.empty() == false) {
                 // Set up injected bundle. Will be loaded once WPEWebProcess is started.
                 g_signal_connect(context, "initialize-web-extensions", G_CALLBACK(initializeWebExtensionsCallback), this);
             }
