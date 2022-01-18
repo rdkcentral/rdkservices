@@ -1833,19 +1833,22 @@ namespace WPEFramework
 						if ( _instance->deviceList[i].m_isDevicePresent ) {
 							disconnected.push_back(i);
 						}
-						//LOGWARN("Ping caught %s \r\n",e.what());
+						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
 						usleep(50000);
 						continue;
 					}
 					  catch(Exception &e)
 					  {
-						LOGINFO("Ping caught %s \r\n",e.what());
+						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+                                                usleep(50000);
+                                                continue;
 					  }
 					  
 					  /* If we get ACK, then the device is present in the network*/
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {
 					  	connected.push_back(i);
+                                                LOGWARN("Ping success, added device: 0x%x \r\n", i);
 					  }
 					  usleep(50000);      
 				}
