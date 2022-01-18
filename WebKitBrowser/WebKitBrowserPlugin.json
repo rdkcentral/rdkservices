@@ -14,6 +14,10 @@
             "configuration": {
                 "type": "object",
                 "properties": {
+                    "browserversion": {
+                        "description": "Browser version specified in semver (https://semver.org) that is assigned by the team porting the browser, e.g. 2.22.0",
+                        "type": "string"
+                    },
                     "useragent": {
                         "description": "The UserAgent used during communication with the web server",
                         "type": "string"
