@@ -22,6 +22,7 @@
 #include "Module.h"
 
 #include "Config.h"
+#include "SystemInfo.h"
 
 namespace RdkServicesTest {
 
@@ -209,7 +210,7 @@ public:
 public:
     WPEFramework::PluginHost::ISubSystem* SubSystems() override
     {
-        return (nullptr);
+        return (&subSystem);
     }
     uint32_t Submit(const uint32_t id, const WPEFramework::Core::ProxyType <WPEFramework::Core::JSON::IElement>& response) override
     {
@@ -273,6 +274,7 @@ private:
     state _state;
     Config _config;
     reason _reason;
+    WPEFramework::Core::Sink<SystemInfo> subSystem;
 };
 
 } // namespace RdkServicesTest
