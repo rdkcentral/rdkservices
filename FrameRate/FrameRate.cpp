@@ -118,15 +118,35 @@ namespace WPEFramework
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
+	    bool retValue = false;
+	    try{
+                if (parameters.HasLabel("frequency"))
+                {
+                        int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
+                        fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
+                        if( fpsFrequencyInMilliseconds >= 100) // make sure min freq is 100 and not less than that.
+                        {
+                                setCollectionFrequency(fpsFrequencyInMilliseconds);
+                                retValue = true;
+                        }
+                        else{
+                            LOGWARN("Minimum FrameRate is 100.");
+                            retValue = false;
+                        }
+                }
+                else{
+                     LOGWARN("Please enter valid FrameRate Parameter name.");
+                     retValue = false;
+                    }
+             }
+             catch(...)
+             {
+                LOGERR("Please enter valid FrameRate value");
+                retValue = false;
+             }
+
+             returnResponse(retValue);
             
-            int fpsFrequencyInMilliseconds = DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS;
-            if (parameters.HasLabel("frequency"))
-            {
-                fpsFrequencyInMilliseconds = std::stod(parameters["frequency"].String());
-            }
-            setCollectionFrequency(fpsFrequencyInMilliseconds);
-            
-            returnResponse(true);
         }
         
         uint32_t FrameRate::startFpsCollectionWrapper(const JsonObject& parameters, JsonObject& response)
@@ -155,12 +175,30 @@ namespace WPEFramework
             
             if (!parameters.HasLabel("newFpsValue"))
             {
+		LOGWARN("Please enter valid Fps Parameter name.");
                 returnResponse(false);
             }
-            
-            updateFps(parameters["newFpsValue"].Number());
 
-            returnResponse(true);
+	    bool retValue = false;
+	    try{
+		int fpsValue = std::stod(parameters["newFpsValue"].String());
+		if(fpsValue >= 0){
+			updateFps(fpsValue);
+			retValue = true;
+		}
+		else{
+			LOGWARN("Please enter valid new Fps value.");
+			retValue = false;
+		}
+	    }
+	    catch(...)
+	    {
+		LOGERR("Please enter valid Fps value");
+	   	retValue = false;
+	    }
+            returnResponse(retValue);
+            
+
         }
         
 	uint32_t FrameRate::setFrmMode(const JsonObject& parameters, JsonObject& response)
