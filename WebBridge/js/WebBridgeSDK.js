@@ -180,10 +180,12 @@ class ServiceManager {
         console.log("<<< " + e.data);
         req = JSON.parse(e.data);
         res.id = req.id;
-        if (req.call_ctx != undefined) {
-          res.call_ctx = req.call_ctx;
+        var params = req.params;
+        if (params.context != undefined) {
+          res.context = params.context;
         }
-        service.service._callMethodByName(req.method, req.params).then(value => {
+        var clientrequest = params.request;
+        service.service._callMethodByName(clientrequest.method, clientrequest.params).then(value => {
           res.result = value;
           self._sendResponse(service.websocket, res);
         }).catch(ex => {
