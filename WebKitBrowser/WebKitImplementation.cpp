@@ -2134,7 +2134,7 @@ static GSourceFuncs _handlerIntervention =
                 g_object_unref(websiteDataManager);
             }
 
-            if (_config.InjectedBundle.Value().empty() == false) {
+            if (_dataPath.empty() == false) {
                 // Set up injected bundle. Will be loaded once WPEWebProcess is started.
                 g_signal_connect(context, "initialize-web-extensions", G_CALLBACK(initializeWebExtensionsCallback), this);
             }
@@ -2212,6 +2212,11 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(userContentManager, "script-message-received::wpeNotifyWPEFramework",
                 reinterpret_cast<GCallback>(wpeNotifyWPEFrameworkMessageReceivedCallback), this);
             webkit_user_content_manager_register_script_message_handler(userContentManager, "wpeNotifyWPEFramework");
+
+            if (_config.Transparent.Value() == true) {
+                WebKitColor transparent { 0, 0, 0, 0};
+                webkit_web_view_set_background_color(_view, &transparent);
+            }
 
             g_signal_connect(_view, "decide-policy", reinterpret_cast<GCallback>(decidePolicyCallback), this);
             g_signal_connect(_view, "notify::uri", reinterpret_cast<GCallback>(uriChangedCallback), this);

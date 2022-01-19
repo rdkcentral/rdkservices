@@ -1737,6 +1737,12 @@
                         "summary":"Persists the resolution",
                         "type": "boolean",
                         "example": true
+                    },
+                    "ignoreEdid": {
+                        "summary": "Ignore the supported resolutions as transmitted by the connected TV EDID",
+                        "type": "boolean",
+                        "default": false,
+                        "example": true
                     }
                 },
                 "required": [
@@ -1948,6 +1954,47 @@
                 },
                 "required": [
                     "ms12AudioProfile"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMS12ProfileSettingsOverride":{
+            "summary": "Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "operation": {
+                        "summary": "The audio profile state",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "profileName": {
+                        "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
+                         "type": "string",
+                        "example": "Sports"
+                    },
+                    "ms12SettingsName": {
+                        "summary": "An ms12 setting name",
+                        "type": "string",
+                        "example": "Dialog Enhance"
+                    },
+                    "ms12SettingsValue": {
+                        "summary": "The value to set",
+                        "type": "string",
+                        "example": "On"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "operation",
+                    "profileName",
+                    "ms12SettingsName",
+                    "ms12SettingsValue"
                 ]
             },
             "result": {
