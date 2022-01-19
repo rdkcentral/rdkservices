@@ -2545,7 +2545,7 @@ namespace WPEFramework
         {
             bool gotLogicalAddress = false;
             int addr = LogicalAddress::TV;
-            int i;
+            int i, j;
             if (!(_instance->smConnection))
                 return;
 
@@ -2572,7 +2572,7 @@ namespace WPEFramework
                 if (gotLogicalAddress)
                 {
                     break;
-                }                
+                }
                 addr = LogicalAddress::SPECIFIC_USE;
             }
 
