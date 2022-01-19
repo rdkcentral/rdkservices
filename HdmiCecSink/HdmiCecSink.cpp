@@ -68,7 +68,7 @@
 #define HDMICECSINK_PING_INTERVAL_MS 				10000
 #define HDMICECSINK_WAIT_FOR_HDMI_IN_MS 			1000
 #define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		200
-#define HDMICECSINK_NUMBER_TV_ADDR 					5
+#define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARCPORT                               1
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
@@ -1834,13 +1834,13 @@ namespace WPEFramework
 						if ( _instance->deviceList[i].m_isDevicePresent ) {
 							disconnected.push_back(i);
 						}
-						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+						//LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
 						usleep(50000);
 						continue;
 					}
 					  catch(Exception &e)
 					  {
-						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+						///LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
                                                 usleep(50000);
                                                 continue;
 					  }
@@ -1849,7 +1849,7 @@ namespace WPEFramework
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {
 					  	connected.push_back(i);
-                                                LOGWARN("Ping success, added device: 0x%x \r\n", i);
+                                                //LOGWARN("Ping success, added device: 0x%x \r\n", i);
 					  }
 					  usleep(50000);      
 				}
@@ -2541,47 +2541,54 @@ namespace WPEFramework
 			}
         }
 
-		void HdmiCecSink::allocateLAforTV()
+        void HdmiCecSink::allocateLAforTV()
         {
-        	bool gotLogicalAddress = false;
-			int addr = LogicalAddress::TV;
-			int i;
-                if(!(_instance->smConnection))
-                    return;
-			
-			for (i = 0; i < HDMICECSINK_NUMBER_TV_ADDR; i++)
-			{
-        	/* poll for TV logical address */
-			  try {
-			   	smConnection->poll(LogicalAddress(addr), Throw_e());
-			  }
-			  catch(CECNoAckException &e )
-			  {
-				LOGWARN("Poll caught %s \r\n",e.what());
-				gotLogicalAddress = true;
-				break;
-			  }
-			 catch(Exception &e)
-			 {
-				LOGWARN("Poll caught %s \r\n",e.what());
-                                usleep(500000);
-			 }
-			 addr = LogicalAddress::SPECIFIC_USE;
-        	}
+            bool gotLogicalAddress = false;
+            int addr = LogicalAddress::TV;
+            int i;
+            if (!(_instance->smConnection))
+                return;
 
-			if ( gotLogicalAddress )
-			{
-				m_logicalAddressAllocated = addr;
-			}
-			else
-			{
-				m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
-			}
+            for (i = 0; i< HDMICECSINK_NUMBER_TV_ADDR; i++)
+            {
+                /* poll for TV logical address - retry 5 times*/
+                for (j = 0; j < 5; j++)
+                {
+                    try {
+                        smConnection->poll(LogicalAddress(addr), Throw_e());
+                    }
+                    catch(CECNoAckException &e )
+                    {
+                        LOGWARN("Poll caught %s \r\n",e.what());
+                        gotLogicalAddress = true;
+                        break;
+                    }
+                    catch(Exception &e)
+                    {
+                        LOGWARN("Poll caught %s \r\n",e.what());
+                        usleep(500000);
+                    }
+                }
+                if (gotLogicalAddress)
+                {
+                    break;
+                }                
+                addr = LogicalAddress::SPECIFIC_USE;
+            }
 
-			LOGWARN("Logical Address for TV 0x%x \r\n",m_logicalAddressAllocated);
+            if ( gotLogicalAddress )
+            {
+                m_logicalAddressAllocated = addr;
+            }
+            else
+            {
+                m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
+            }
+
+            LOGWARN("Logical Address for TV 0x%x \r\n",m_logicalAddressAllocated);
         }
-		
-		void HdmiCecSink::allocateLogicalAddress(int deviceType)
+
+        void HdmiCecSink::allocateLogicalAddress(int deviceType)
         {
         	if( deviceType == DeviceType::TV )
         	{
