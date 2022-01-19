@@ -68,7 +68,7 @@
 #define HDMICECSINK_PING_INTERVAL_MS 				10000
 #define HDMICECSINK_WAIT_FOR_HDMI_IN_MS 			1000
 #define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		200
-#define HDMICECSINK_NUMBER_TV_ADDR 					2
+#define HDMICECSINK_NUMBER_TV_ADDR 					5
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARCPORT                               1
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
@@ -2549,7 +2549,7 @@ namespace WPEFramework
                 if(!(_instance->smConnection))
                     return;
 			
-			for ( i =0; i<5; i++ )
+			for (i = 0; i < HDMICECSINK_NUMBER_TV_ADDR; i++)
 			{
         	/* poll for TV logical address */
 			  try {
