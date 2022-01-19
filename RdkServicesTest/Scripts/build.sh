@@ -109,6 +109,7 @@ buildAndInstallRdkservices() {
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_LOCATIONSYNC=ON -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
     -DPLUGIN_PERSISTENTSTORE=ON \
+    -DPLUGIN_SECURITYAGENT=ON -DSECURITY_TESTING_MODE \
     -DRDK_SERVICES_TEST=ON
 
   make -C build/rdkservices && make -C build/rdkservices install
