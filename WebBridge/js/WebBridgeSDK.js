@@ -180,8 +180,8 @@ class ServiceManager {
         console.log("<<< " + e.data);
         req = JSON.parse(e.data);
         res.id = req.id;
-        if (req.call_ctx != undefined) {
-          res.call_ctx = req.call_ctx;
+        if (req.context != undefined) {
+          res.context = req.context;
         }
         service.service._callMethodByName(req.method, req.params).then(value => {
           res.result = value;
