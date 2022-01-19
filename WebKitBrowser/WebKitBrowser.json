@@ -230,6 +230,7 @@
         },
         "headers": {
             "summary": "Headers to send on all requests that the browser makes",
+            "description": "Use this property to send on all requests that the browser makes.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "array",
                 "items": {
@@ -252,6 +253,7 @@
         },
         "httpcookieacceptpolicy": {
             "summary": "HTTP cookies accept policy",
+            "description": "Use this property to accept HTTP cookie policy.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "string",
                 "enum": [
@@ -271,6 +273,7 @@
         },
         "languages": {
             "summary": "User preferred languages",
+            "description": "Use this property to return User preferred languages.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "array",
                 "items": {
@@ -281,6 +284,7 @@
         },
         "localstorageenabled":{
             "summary": "Local storage availability",
+            "description": "Use this property to return Local storage availability.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "boolean",
                 "example": false
@@ -288,8 +292,9 @@
         },
         "state": {
             "summary": "Running state of the service",
+            "description": "Use this property to return the running state of the service.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `statechange`| Triggered if the state of the service changes.|",
             "events": [
-                "statechanged"
+                "statechange"
             ],
             "params": {
                 "type": "string",
@@ -302,6 +307,7 @@
         },
         "url": {
             "summary": "URL loaded in the browser",
+            "description": "Use this property to load URL in the browser.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `urlchange`| Triggered if the URL changes in the browser | \n |`loadfinished`| Triggered if the `urlchange` event returns `true` as URL loaded successfully |\n |`loadfailed`| Triggered if the `urlchange` event returns `false` as URL failed to load |",
             "events": [
                 "urlchange"
             ],
@@ -318,6 +324,7 @@
         },
         "useragent": {
             "summary": "`UserAgent` string used by the browser",
+            "description": "Use this property to return `UserAgent` string used by the browser.\n \n### Events \n\n No Events. ",
             "params": {
                 "type": "string",
                 "example": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WP"
@@ -325,6 +332,7 @@
         },
         "visibility": {
             "summary": "Current browser visibility",
+            "description": "Use this property to return visibilty status of current browser.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `visibilitychange`| Triggered if the browser visibility changes.|",
             "events": [
                 "visibilitychange"
             ],
@@ -342,7 +350,7 @@
     },
     "methods": {
         "bridgeevent": {
-            "summary": "Sends a legacy `$badger` event",
+            "summary": "Sends a legacy `$badger` event.\n \n### Events \n\n No Events.",
             "params": {
                 "summary": "A base64 encoded JSON string response to be delivered to the `window.$badger.event(handlerId, json)` method",
                 "type": "string",
@@ -353,7 +361,7 @@
             }
         },
         "bridgereply":{
-            "summary": "A response for legacy `$badger`.",
+            "summary": "A response for legacy `$badger`.\n \n### Events \n\n No Events.",
             "params": {
                 "summary": "A base64 encoded JSON string response to be delivered to the `$badger.callback(pid, success, json)` method",
                 "type": "string",
@@ -364,8 +372,7 @@
             }
         },
         "delete": {
-            "summary": "Removes the contents of a directory from the persistent storage",
-            "description": "Use this method to recursively delete contents of a directory",
+            "summary": "Removes the contents of a directory recursively from the persistent storage.\n \n### Events \n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
