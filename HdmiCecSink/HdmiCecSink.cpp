@@ -1840,7 +1840,7 @@ namespace WPEFramework
 					}
 					  catch(Exception &e)
 					  {
-						///LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
                                                 usleep(50000);
                                                 continue;
 					  }
