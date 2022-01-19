@@ -2206,6 +2206,11 @@ static GSourceFuncs _handlerIntervention =
                 reinterpret_cast<GCallback>(wpeNotifyWPEFrameworkMessageReceivedCallback), this);
             webkit_user_content_manager_register_script_message_handler(userContentManager, "wpeNotifyWPEFramework");
 
+            if (_config.Transparent.Value() == true) {
+                WebKitColor transparent { 0, 0, 0, 0};
+                webkit_web_view_set_background_color(_view, &transparent);
+            }
+
             g_signal_connect(_view, "decide-policy", reinterpret_cast<GCallback>(decidePolicyCallback), this);
             g_signal_connect(_view, "notify::uri", reinterpret_cast<GCallback>(uriChangedCallback), this);
             g_signal_connect(_view, "load-changed", reinterpret_cast<GCallback>(loadChangedCallback), this);
