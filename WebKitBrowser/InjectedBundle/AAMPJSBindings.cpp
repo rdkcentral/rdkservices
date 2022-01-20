@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
+#include <string>
 #include "AAMPJSBindings.h"
 
 #include "Utils.h"
@@ -23,6 +25,8 @@
 extern "C" {
     void aamp_LoadJSController(JSGlobalContextRef context);
     void aamp_UnloadJSController(JSGlobalContextRef context);
+    void aamp_SetHttpHeadersInit();
+    void aamp_SetHttpHeaders(const char* name, const char* value);
 }
 
 namespace WPEFramework {
@@ -70,9 +74,18 @@ void UnloadJSBindings(WKBundleFrameRef frame) {
         JSStringRef aampStr = JSStringCreateWithUTF8CString("AAMP");
         if (JSObjectHasProperty(context, global, aampStr))
             aamp_UnloadJSController(context);
-        JSStringRelease(aampStr);
     }
 }
+
+void SetHttpHeader(const std::vector<std::pair<std::string, std::string>> & Headers)
+{
+    aamp_SetHttpHeadersInit();
+
+    for (const auto& hItem : Headers ) {
+        aamp_SetHttpHeaders(hItem.first.c_str(), hItem.second.c_str());
+    }
+}
+
 
 }  // namespace AAMP
 }  // namespace JavaScript
