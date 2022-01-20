@@ -32,7 +32,7 @@ private:
 
 public:
     SystemInfo()
-            :_internet(nullptr), _location(nullptr) { }
+            :_flags(0) { }
     virtual ~SystemInfo() = default;
 
 public:
@@ -45,64 +45,38 @@ public:
 
     virtual void Set(const subsystem type, WPEFramework::Core::IUnknown* information) override
     {
-        switch (type) {
-        case INTERNET: {
-            WPEFramework::PluginHost::ISubSystem::IInternet* info = (information!=nullptr ? information
-                    ->QueryInterface<WPEFramework::PluginHost::ISubSystem::IInternet>() : nullptr);
+        _subsystems.emplace(type, information);
 
-            _internet = info;
-
-            break;
+        if (type>=NEGATIVE_START) {
+            _flags &= ~(1 << (type-NEGATIVE_START));
         }
-        case LOCATION: {
-            WPEFramework::PluginHost::ISubSystem::ILocation* info = (information!=nullptr ? information
-                    ->QueryInterface<WPEFramework::PluginHost::ISubSystem::ILocation>() : nullptr);
-
-            _location = info;
-
-            break;
-        }
-
-        default: {
-            ASSERT(false && "Unknown Event");
-        }
+        else {
+            _flags |= (1 << type);
         }
     }
     virtual const WPEFramework::Core::IUnknown* Get(const subsystem type) const override
     {
         const WPEFramework::Core::IUnknown* result(nullptr);
 
-        switch (type) {
-        case INTERNET: {
-            result = _internet;
-            break;
-        }
-        case LOCATION: {
-            result = _location;
-            break;
-        }
-        default: {
-            ASSERT(false && "Unknown Event");
-        }
+        auto it = _subsystems.find(type);
+        if (it!=_subsystems.end()) {
+            result = it->second;
         }
 
         return result;
     }
     virtual bool IsActive(const subsystem type) const override
     {
-        return (true);
+        return ((type<END_LIST) && ((_flags & (1 << type))!=0));
     };
-
-    virtual void AddRef() const { }
-    virtual uint32_t Release() const { return (0); }
 
     BEGIN_INTERFACE_MAP(SystemInfo)
     INTERFACE_ENTRY(WPEFramework::PluginHost::ISubSystem)
     END_INTERFACE_MAP
 
 private:
-    WPEFramework::PluginHost::ISubSystem::IInternet* _internet;
-    WPEFramework::PluginHost::ISubSystem::ILocation* _location;
+    std::map<subsystem, WPEFramework::Core::IUnknown*> _subsystems;
+    uint32_t _flags;
 };
 
 } // namespace RdkServicesTest
