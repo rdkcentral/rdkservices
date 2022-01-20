@@ -33,12 +33,13 @@ private:
 
         JSONConfig()
                 :Prefix(_T("Service")),
-                 PersistentPath(), DataPath(), VolatilePath(_T("/tmp"))
+                 PersistentPath(), DataPath(), VolatilePath(_T("/tmp")), ProxyStubPath()
         {
             Add(_T("prefix"), &Prefix);
             Add(_T("persistentpath"), &PersistentPath);
             Add(_T("datapath"), &DataPath);
             Add(_T("volatilepath"), &VolatilePath);
+            Add(_T("proxystubpath"), &ProxyStubPath);
         }
         ~JSONConfig() override = default;
 
@@ -47,6 +48,7 @@ private:
         WPEFramework::Core::JSON::String PersistentPath;
         WPEFramework::Core::JSON::String DataPath;
         WPEFramework::Core::JSON::String VolatilePath;
+        WPEFramework::Core::JSON::String ProxyStubPath;
     };
 
 public:
@@ -65,6 +67,7 @@ public:
             _volatilePath = WPEFramework::Core::Directory::Normalize(config.VolatilePath.Value());
             _persistentPath = WPEFramework::Core::Directory::Normalize(config.PersistentPath.Value());
             _dataPath = WPEFramework::Core::Directory::Normalize(config.DataPath.Value());
+            _proxyStubPath = WPEFramework::Core::Directory::Normalize(config.ProxyStubPath.Value());
         }
     }
     ~Config()
@@ -88,12 +91,17 @@ public:
     {
         return (_dataPath);
     }
+    inline const string& ProxyStubPath() const
+    {
+        return (_proxyStubPath);
+    }
 
 private:
     string _webPrefix;
     string _volatilePath;
     string _persistentPath;
     string _dataPath;
+    string _proxyStubPath;
 };
 
 } // namespace RdkServicesTest

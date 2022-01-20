@@ -30,15 +30,13 @@ namespace RdkServicesTest {
 TEST(LocationSyncTest, test) {
     // assign worker pool
 
-    WPEFramework::Core::ProxyType<WorkerPoolImplementation> _engine;
-    _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
+    auto _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
     WPEFramework::Core::IWorkerPool::Assign(&(*_engine));
     _engine->Run();
 
     // create plugin
 
-    WPEFramework::Core::ProxyType <WPEFramework::Plugin::LocationSync> locationSync;
-    locationSync = WPEFramework::Core::ProxyType <WPEFramework::Plugin::LocationSync>::Create();
+    auto locationSync = WPEFramework::Core::ProxyType <WPEFramework::Plugin::LocationSync>::Create();
 
     WPEFramework::Core::JSONRPC::Handler& handler = *locationSync;
 
@@ -62,8 +60,8 @@ TEST(LocationSyncTest, test) {
     plugin.IElement::FromFile(pluginConf, error);
     EXPECT_FALSE(error.IsSet());
 
-    WPEFramework::Core::ProxyType <Service> service;
-    service = WPEFramework::Core::ProxyType <Service>::Create(server, plugin);
+    auto service = WPEFramework::Core::ProxyType <Service>::Create(server, plugin);
+
     EXPECT_EQ(string(""), locationSync->Initialize(&(*service)));
 
     // invoke plugin
@@ -73,6 +71,31 @@ TEST(LocationSyncTest, test) {
     string response;
     EXPECT_EQ(WPEFramework::Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
     EXPECT_EQ(response, _T(""));
+
+    // probe in progress
+
+    WPEFramework::PluginHost::ISubSystem* subSystem = service->SubSystems();
+
+    WPEFramework::Core::Event wait(false, true);
+    for (int i = 0; ((subSystem->Get(WPEFramework::PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
+        wait.Lock(10);
+    }
+
+    EXPECT_TRUE(subSystem->Get(WPEFramework::PluginHost::ISubSystem::LOCATION) != nullptr);
+    EXPECT_TRUE(subSystem->Get(WPEFramework::PluginHost::ISubSystem::INTERNET) != nullptr);
+
+    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Invoke(connection, _T("location"), _T(""), response));
+    EXPECT_TRUE(response.empty() == false);
+//    EXPECT_EQ(response, _T("{\"city\":\"Odessa\",\"country\":\"UA\",\"region\":\"51\",\"timezone\":\"EET-2EEST,M3.5.0/3,M10.5.0/4\",\"publicip\":\"195.64.234.239\"}"));
+
+    // clean up
+
+    locationSync->Deinitialize(&(*service));
+    locationSync.Release();
+    service.Release();
+
+    WPEFramework::Core::IWorkerPool::Assign(nullptr);
+    _engine.Release();
 }
 
 } // namespace RdkServicesTest
