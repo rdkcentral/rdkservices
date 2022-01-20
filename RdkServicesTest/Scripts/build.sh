@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
 
@@ -109,7 +111,7 @@ buildAndInstallRdkservices() {
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_LOCATIONSYNC=ON -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
     -DPLUGIN_PERSISTENTSTORE=ON \
-    -DPLUGIN_SECURITYAGENT=ON -DSECURITY_TESTING_MODE \
+    -DPLUGIN_SECURITYAGENT=ON \
     -DRDK_SERVICES_TEST=ON
 
   make -C build/rdkservices && make -C build/rdkservices install
@@ -146,5 +148,7 @@ buildAndInstallThunderInterfaces
 checkWPEFramework
 
 buildAndInstallRdkservices
+
+echo "==== DONE ===="
 
 exit 0
