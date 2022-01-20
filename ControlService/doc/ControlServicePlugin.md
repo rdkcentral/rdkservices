@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.ControlService plugin for Thunder framework.
+A org.rdk.ControlService plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: ** |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [ControlService.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/ControlService.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -86,11 +94,13 @@ ControlService interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [canFindMyRemote](#method.canFindMyRemote) | Checks if the Control Manager can search for the remote |
+| [checkRf4ceChipConnectivity](#method.checkRf4ceChipConnectivity) | Checks Rf4ce chip connectivity status |
 | [endPairingMode](#method.endPairingMode) | Leaves pairing mode |
-| [findLastUsedRemote](#method.findLastUsedRemote) | Searches for the remote |
+| [findLastUsedRemote](#method.findLastUsedRemote) | Searches for the last used remote |
 | [getAllRemoteData](#method.getAllRemoteData) | Returns all remote data |
 | [getLastKeypressSource](#method.getLastKeypressSource) | Returns last key press source data |
 | [getLastPairedRemoteData](#method.getLastPairedRemoteData) | Returns all remote data for the last paired remote |
+| [getQuirks](#method.getQuirks) | Gets quirks |
 | [getSingleRemoteData](#method.getSingleRemoteData) | Returns all remote data for the specified remote |
 | [getValues](#method.getValues) | Returns remote setting values |
 | [setValues](#method.setValues) | Sets remote setting values |
@@ -98,9 +108,13 @@ ControlService interface methods:
 
 
 <a name="method.canFindMyRemote"></a>
-## *canFindMyRemote <sup>method</sup>*
+## *canFindMyRemote [<sup>method</sup>](#head.Methods)*
 
-Checks if the Control Manager can search for the remote.
+Checks if the Control Manager can search for the remote. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -123,7 +137,7 @@ Checks if the Control Manager can search for the remote.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.canFindMyRemote",
     "params": {}
 }
@@ -134,7 +148,7 @@ Checks if the Control Manager can search for the remote.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "result": true,
         "success": true
@@ -142,10 +156,63 @@ Checks if the Control Manager can search for the remote.
 }
 ```
 
-<a name="method.endPairingMode"></a>
-## *endPairingMode <sup>method</sup>*
+<a name="method.checkRf4ceChipConnectivity"></a>
+## *checkRf4ceChipConnectivity [<sup>method</sup>](#head.Methods)*
 
-Leaves pairing mode.
+Checks Rf4ce chip connectivity status. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | An empty `params` object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.rf4ceChipConnected | integer | The rf4ce chip connectivity status |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.ControlService.1.checkRf4ceChipConnectivity",
+    "params": {}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "rf4ceChipConnected": 1,
+        "success": true
+    }
+}
+```
+
+<a name="method.endPairingMode"></a>
+## *endPairingMode [<sup>method</sup>](#head.Methods)*
+
+Leaves pairing mode. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -169,7 +236,7 @@ Leaves pairing mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.endPairingMode",
     "params": {}
 }
@@ -180,7 +247,7 @@ Leaves pairing mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "bindStatus": 1,
         "status_code": 0,
@@ -190,9 +257,16 @@ Leaves pairing mode.
 ```
 
 <a name="method.findLastUsedRemote"></a>
-## *findLastUsedRemote <sup>method</sup>*
+## *findLastUsedRemote [<sup>method</sup>](#head.Methods)*
 
-Searches for the remote.
+Searches for the last used remote.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onControl`| Triggered when the last used remote is successfully found |.
+
+Also see: [onControl](#event.onControl)
 
 ### Parameters
 
@@ -200,7 +274,6 @@ Searches for the remote.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.timeOutPeriod | integer | The timeout interval in milliseconds |
-| params.bOnlyLastUsed | boolean | Whether to use the last controller ID |
 
 ### Result
 
@@ -217,11 +290,10 @@ Searches for the remote.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.findLastUsedRemote",
     "params": {
-        "timeOutPeriod": 100,
-        "bOnlyLastUsed": true
+        "timeOutPeriod": 20
     }
 }
 ```
@@ -231,7 +303,7 @@ Searches for the remote.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "status_code": 0,
         "success": true
@@ -240,9 +312,13 @@ Searches for the remote.
 ```
 
 <a name="method.getAllRemoteData"></a>
-## *getAllRemoteData <sup>method</sup>*
+## *getAllRemoteData [<sup>method</sup>](#head.Methods)*
 
-Returns all remote data.
+Returns all remote data. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -273,6 +349,81 @@ Returns all remote data.
 | result.stbLastOtherBindErrorTimestamp | integer | The last other bind error timestamp |
 | result.bHasIrRemotePreviousDay | boolean | `true` or `false` |
 | result.bHasIrRemoteCurrentDay | boolean | `true` or `false` |
+| result?.remoteData | object | <sup>*(optional)*</sup>  |
+| result?.remoteData?.remoteId | integer | <sup>*(optional)*</sup> The remote control identifier |
+| result?.remoteData?.remoteMACAddress | string | <sup>*(optional)*</sup> The MAC address of remote |
+| result?.remoteData?.remoteModel | string | <sup>*(optional)*</sup> The remote model |
+| result?.remoteData?.remoteModelVersion | string | <sup>*(optional)*</sup> The version of remote model |
+| result?.remoteData?.batteryLevelLoaded | string | <sup>*(optional)*</sup> The loaded battery level |
+| result?.remoteData?.batteryLevelPercentage | integer | <sup>*(optional)*</sup> The battery percentage |
+| result?.remoteData?.batteryLastEvent | integer | <sup>*(optional)*</sup> The battery last event |
+| result?.remoteData?.batteryLastEventTimestamp | integer | <sup>*(optional)*</sup> The timestamp of last battery event (in milliseconds) |
+| result?.remoteData?.numVoiceCommandsPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands the previous day |
+| result?.remoteData?.numVoiceCommandsCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands the current day |
+| result?.remoteData?.numVoiceShortUtterancesPreviousDay | integer | <sup>*(optional)*</sup> Number of short voice commands the previous day |
+| result?.remoteData?.numVoiceShortUtterancesCurrentDay | integer | <sup>*(optional)*</sup> Number of short voice commands the current day |
+| result?.remoteData?.numVoicePacketsSentPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the previous day |
+| result?.remoteData?.numVoicePacketsSentCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the current day |
+| result?.remoteData?.numVoicePacketsLostPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the previous day |
+| result?.remoteData?.numVoicePacketsLostCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the current day |
+| result?.remoteData?.aveVoicePacketLossPreviousDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the previous day |
+| result?.remoteData?.aveVoicePacketLossCurrentDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the current day |
+| result?.remoteData?.numVoiceCmdsHighLossPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the previous day |
+| result?.remoteData?.numVoiceCmdsHighLossCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the current day |
+| result?.remoteData?.versionInfoSw | string | <sup>*(optional)*</sup> The software version of remote |
+| result?.remoteData?.versionInfoHw | string | <sup>*(optional)*</sup> The hardware version of remote |
+| result?.remoteData?.versionInfoIrdb | string | <sup>*(optional)*</sup> The IR database version of remote |
+| result?.remoteData?.irdbType | integer | <sup>*(optional)*</sup> The IR database type |
+| result?.remoteData?.irdbState | integer | <sup>*(optional)*</sup> The state of IR database |
+| result?.remoteData?.programmedTvIRCode | string | <sup>*(optional)*</sup> The IR code programmed for TV |
+| result?.remoteData?.programmedAvrIRCode | string | <sup>*(optional)*</sup> The IR code programmed for AVR |
+| result?.remoteData?.lastCommandTimeDate | integer | <sup>*(optional)*</sup> The time when last key was pressed |
+| result?.remoteData?.rf4ceRemoteSocMfr | string | <sup>*(optional)*</sup> The remote chipset manufacturer |
+| result?.remoteData?.remoteMfr | string | <sup>*(optional)*</sup> The remote manufacturer |
+| result?.remoteData?.signalStrengthPercentage | integer | <sup>*(optional)*</sup> The percentage of signal strength |
+| result?.remoteData?.linkQuality | integer | <sup>*(optional)*</sup> The link quality |
+| result?.remoteData?.howRemoteIsPaired | string | <sup>*(optional)*</sup> The binding type of remote |
+| result?.remoteData?.bHasCheckedIn | boolean | <sup>*(optional)*</sup> `true` if the remote has checkedin for update and `false` otherwise |
+| result?.remoteData?.bHasRemoteBeenUpdated | boolean | <sup>*(optional)*</sup> `true` if the remote's firmware is updated and `false` otherwise |
+| result?.remoteData?.bIrdbDownloadSupported | boolean | <sup>*(optional)*</sup> `true` if the IR database download is supported and `false` otherwise |
+| result?.remoteData?.pairingTimestamp | integer | <sup>*(optional)*</sup> The binding time (in milliseconds) |
+| result?.remoteData?.lastRebootErrorCode | integer | <sup>*(optional)*</sup> The error code for previous reboot (in milliseconds) |
+| result?.remoteData?.lastRebootTimestamp | integer | <sup>*(optional)*</sup> The previous reboot time (in milliseconds) |
+| result?.remoteData?.securityType | integer | <sup>*(optional)*</sup> The security type |
+| result?.remoteData?.bHasBattery | boolean | <sup>*(optional)*</sup> `true` if remote has battery and `false` otherwise |
+| result?.remoteData?.batteryChangedTimestamp | integer | <sup>*(optional)*</sup> The time of battery change (in milliseconds) |
+| result?.remoteData?.batteryChangedActualPercentage | integer | <sup>*(optional)*</sup> The battery changed actual percentage |
+| result?.remoteData?.batteryChangedUnloadedVoltage | string | <sup>*(optional)*</sup> The battery changed unloaded voltage |
+| result?.remoteData?.battery75PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 75% (in milliseconds) |
+| result?.remoteData?.battery75PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 75% battery |
+| result?.remoteData?.battery75PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 75% battery |
+| result?.remoteData?.battery50PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 50% (in milliseconds) |
+| result?.remoteData?.battery50PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 50% battery |
+| result?.remoteData?.battery50PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 50% battery |
+| result?.remoteData?.battery25PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 25% (in milliseconds) |
+| result?.remoteData?.battery25PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 25% battery |
+| result?.remoteData?.battery25PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 25% battery |
+| result?.remoteData?.battery5PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 5% (in milliseconds) |
+| result?.remoteData?.battery5PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 5% battery |
+| result?.remoteData?.battery5PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 5% battery |
+| result?.remoteData?.battery0PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp for 0% battery (in milliseconds) |
+| result?.remoteData?.battery0PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 0% battery |
+| result?.remoteData?.battery0PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 0% battery |
+| result?.remoteData?.batteryVoltageLargeJumpCounter | integer | <sup>*(optional)*</sup> Number of large voltage jumps in battery |
+| result?.remoteData?.batteryVoltageLargeDeclineDetected | boolean | <sup>*(optional)*</sup> `true` if large voltage decline in battery is detected, otherwise `false` |
+| result?.remoteData?.bHasDSP | boolean | <sup>*(optional)*</sup> `true` if remote has digital signal processor and `false` otherwise |
+| result?.remoteData?.averageTimeInPrivacyMode | integer | <sup>*(optional)*</sup> Average time in privacy mode (in milliseconds) |
+| result?.remoteData?.bInPrivacyMode | boolean | <sup>*(optional)*</sup> `true` if remote is in privacy mode and `false` otherwise |
+| result?.remoteData?.averageSNR | integer | <sup>*(optional)*</sup> Average signal to noise ratio |
+| result?.remoteData?.averageKeywordConfidence | integer | <sup>*(optional)*</sup> Average keyword confidence |
+| result?.remoteData?.totalNumberOfMicsWorking | integer | <sup>*(optional)*</sup> Number of mics working |
+| result?.remoteData?.totalNumberOfSpeakersWorking | integer | <sup>*(optional)*</sup> Number of speakers working |
+| result?.remoteData?.endOfSpeechInitialTimeoutCount | integer | <sup>*(optional)*</sup> Initial time out count after end of speech |
+| result?.remoteData?.endOfSpeechTimeoutCount | integer | <sup>*(optional)*</sup> Time out count after end of speech |
+| result?.remoteData?.uptimeStartTime | integer | <sup>*(optional)*</sup> Start of uptime (in milliseconds) |
+| result?.remoteData?.uptimeInSeconds | integer | <sup>*(optional)*</sup> Uptime (in seconds) |
+| result?.remoteData?.privacyTimeInSeconds | integer | <sup>*(optional)*</sup> Privacy time (in seconds) |
+| result?.remoteData?.versionDSPBuildId | string | <sup>*(optional)*</sup> Version of dsp build ID |
 | result.status_code | integer | An operations status code |
 | result.success | boolean | Whether the request succeeded |
 
@@ -283,7 +434,7 @@ Returns all remote data.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.getAllRemoteData",
     "params": {}
 }
@@ -294,7 +445,7 @@ Returns all remote data.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "stbRf4ceMACAddress": "0x00155F00205E1XXX",
         "stbRf4ceSocMfr": "GP502KXBG",
@@ -305,15 +456,91 @@ Returns all remote data.
         "stbNumPairedRemotes": 0,
         "stbNumScreenBindFailures": 1,
         "stbLastScreenBindErrorCode": 1,
-        "stbLastScreenBindErrorRemoteType": "",
+        "stbLastScreenBindErrorRemoteType": "...",
         "stbLastScreenBindErrorTimestamp": 1589356931000,
         "stbNumOtherBindFailures": 3,
         "stbLastOtherBindErrorCode": 1,
-        "stbLastOtherBindErrorRemoteType": "",
+        "stbLastOtherBindErrorRemoteType": "...",
         "stbLastOtherBindErrorBindType": 2,
         "stbLastOtherBindErrorTimestamp": 1589359161000,
         "bHasIrRemotePreviousDay": false,
         "bHasIrRemoteCurrentDay": false,
+        "remoteData": {
+            "remoteId": 1,
+            "remoteMACAddress": "0x00155F011C7F7359",
+            "remoteModel": "XR15",
+            "remoteModelVersion": "v1",
+            "batteryLevelLoaded": "2.619608",
+            "batteryLevelPercentage": 60,
+            "batteryLastEvent": 0,
+            "batteryLastEventTimestamp": 1602879639000,
+            "numVoiceCommandsPreviousDay": 0,
+            "numVoiceCommandsCurrentDay": 0,
+            "numVoiceShortUtterancesPreviousDay": 0,
+            "numVoiceShortUtterancesCurrentDay": 0,
+            "numVoicePacketsSentPreviousDay": 0,
+            "numVoicePacketsSentCurrentDay": 0,
+            "numVoicePacketsLostPreviousDay": 0,
+            "numVoicePacketsLostCurrentDay": 0,
+            "aveVoicePacketLossPreviousDay": "0.000000",
+            "aveVoicePacketLossCurrentDay": "0.000000",
+            "numVoiceCmdsHighLossPreviousDay": 0,
+            "numVoiceCmdsHighLossCurrentDay": 0,
+            "versionInfoSw": "2.0.1.2",
+            "versionInfoHw": "2.3.1.0",
+            "versionInfoIrdb": "4.3.2.0",
+            "irdbType": 0,
+            "irdbState": 3,
+            "programmedTvIRCode": "12731",
+            "programmedAvrIRCode": "31360",
+            "lastCommandTimeDate": 1580263335000,
+            "rf4ceRemoteSocMfr": "QORVO",
+            "remoteMfr": "RS",
+            "signalStrengthPercentage": 50,
+            "linkQuality": 0,
+            "howRemoteIsPaired": "manual",
+            "bHasCheckedIn": true,
+            "bHasRemoteBeenUpdated": true,
+            "bIrdbDownloadSupported": true,
+            "pairingTimestamp": 1538782229000,
+            "lastRebootErrorCode": 1538782229000,
+            "lastRebootTimestamp": 12342000,
+            "securityType": 0,
+            "bHasBattery": true,
+            "batteryChangedTimestamp": 1641294389000,
+            "batteryChangedActualPercentage": 64,
+            "batteryChangedUnloadedVoltage": "2.729412",
+            "battery75PercentTimestamp": 1641294389000,
+            "battery75PercentActualPercentage": 64,
+            "battery75PercentUnloadedVoltage": "2.729412",
+            "battery50PercentTimestamp": 0,
+            "battery50PercentActualPercentage": 0,
+            "battery50PercentUnloadedVoltage": "0.000000",
+            "battery25PercentTimestamp": 0,
+            "battery25PercentActualPercentage": 0,
+            "battery25PercentUnloadedVoltage": "0.000000",
+            "battery5PercentTimestamp": 0,
+            "battery5PercentActualPercentage": 0,
+            "battery5PercentUnloadedVoltage": "0.000000",
+            "battery0PercentTimestamp": 0,
+            "battery0PercentActualPercentage": 0,
+            "battery0PercentUnloadedVoltage": "0.000000",
+            "batteryVoltageLargeJumpCounter": 0,
+            "batteryVoltageLargeDeclineDetected": false,
+            "bHasDSP": false,
+            "averageTimeInPrivacyMode": 0,
+            "bInPrivacyMode": false,
+            "averageSNR": 0,
+            "averageKeywordConfidence": 0,
+            "totalNumberOfMicsWorking": 0,
+            "totalNumberOfSpeakersWorking": 0,
+            "endOfSpeechInitialTimeoutCount": 0,
+            "endOfSpeechTimeoutCount": 0,
+            "uptimeStartTime": 1641460244000,
+            "uptimeInSeconds": 0,
+            "privacyTimeInSeconds": 0,
+            "versionDSPBuildId": "..."
+        },
         "status_code": 0,
         "success": true
     }
@@ -321,9 +548,13 @@ Returns all remote data.
 ```
 
 <a name="method.getLastKeypressSource"></a>
-## *getLastKeypressSource <sup>method</sup>*
+## *getLastKeypressSource [<sup>method</sup>](#head.Methods)*
 
-Returns last key press source data. The data, if any, is returned as part of the `result` object.
+Returns last key press source data. The data, if any, is returned as part of the `result` object. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -336,6 +567,13 @@ Returns last key press source data. The data, if any, is returned as part of the
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.remoteId | integer | The remote control identifier |
+| result.timestamp | integer | The timestamp of last key press (in milliseconds) |
+| result.sourceName | string | The source name |
+| result.sourceType | string | The source type |
+| result.sourceKeyCode | integer | The source keycode |
+| result.bIsScreenBindMode | boolean | `true` if screen bind mode is ON and `false` otherwise |
+| result.remoteKeypadConfig | integer | The remote keypad configuration |
 | result.status_code | integer | An operations status code |
 | result.success | boolean | Whether the request succeeded |
 
@@ -346,7 +584,7 @@ Returns last key press source data. The data, if any, is returned as part of the
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.getLastKeypressSource",
     "params": {}
 }
@@ -357,8 +595,15 @@ Returns last key press source data. The data, if any, is returned as part of the
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
+        "remoteId": 1,
+        "timestamp": 1598470622000,
+        "sourceName": "XR15-10",
+        "sourceType": "RF",
+        "sourceKeyCode": 133,
+        "bIsScreenBindMode": true,
+        "remoteKeypadConfig": 1,
         "status_code": 0,
         "success": true
     }
@@ -366,9 +611,13 @@ Returns last key press source data. The data, if any, is returned as part of the
 ```
 
 <a name="method.getLastPairedRemoteData"></a>
-## *getLastPairedRemoteData <sup>method</sup>*
+## *getLastPairedRemoteData [<sup>method</sup>](#head.Methods)*
 
-Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.
+Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -381,6 +630,81 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.remoteData | object | <sup>*(optional)*</sup>  |
+| result?.remoteData?.remoteId | integer | <sup>*(optional)*</sup> The remote control identifier |
+| result?.remoteData?.remoteMACAddress | string | <sup>*(optional)*</sup> The MAC address of remote |
+| result?.remoteData?.remoteModel | string | <sup>*(optional)*</sup> The remote model |
+| result?.remoteData?.remoteModelVersion | string | <sup>*(optional)*</sup> The version of remote model |
+| result?.remoteData?.batteryLevelLoaded | string | <sup>*(optional)*</sup> The loaded battery level |
+| result?.remoteData?.batteryLevelPercentage | integer | <sup>*(optional)*</sup> The battery percentage |
+| result?.remoteData?.batteryLastEvent | integer | <sup>*(optional)*</sup> The battery last event |
+| result?.remoteData?.batteryLastEventTimestamp | integer | <sup>*(optional)*</sup> The timestamp of last battery event (in milliseconds) |
+| result?.remoteData?.numVoiceCommandsPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands the previous day |
+| result?.remoteData?.numVoiceCommandsCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands the current day |
+| result?.remoteData?.numVoiceShortUtterancesPreviousDay | integer | <sup>*(optional)*</sup> Number of short voice commands the previous day |
+| result?.remoteData?.numVoiceShortUtterancesCurrentDay | integer | <sup>*(optional)*</sup> Number of short voice commands the current day |
+| result?.remoteData?.numVoicePacketsSentPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the previous day |
+| result?.remoteData?.numVoicePacketsSentCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the current day |
+| result?.remoteData?.numVoicePacketsLostPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the previous day |
+| result?.remoteData?.numVoicePacketsLostCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the current day |
+| result?.remoteData?.aveVoicePacketLossPreviousDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the previous day |
+| result?.remoteData?.aveVoicePacketLossCurrentDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the current day |
+| result?.remoteData?.numVoiceCmdsHighLossPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the previous day |
+| result?.remoteData?.numVoiceCmdsHighLossCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the current day |
+| result?.remoteData?.versionInfoSw | string | <sup>*(optional)*</sup> The software version of remote |
+| result?.remoteData?.versionInfoHw | string | <sup>*(optional)*</sup> The hardware version of remote |
+| result?.remoteData?.versionInfoIrdb | string | <sup>*(optional)*</sup> The IR database version of remote |
+| result?.remoteData?.irdbType | integer | <sup>*(optional)*</sup> The IR database type |
+| result?.remoteData?.irdbState | integer | <sup>*(optional)*</sup> The state of IR database |
+| result?.remoteData?.programmedTvIRCode | string | <sup>*(optional)*</sup> The IR code programmed for TV |
+| result?.remoteData?.programmedAvrIRCode | string | <sup>*(optional)*</sup> The IR code programmed for AVR |
+| result?.remoteData?.lastCommandTimeDate | integer | <sup>*(optional)*</sup> The time when last key was pressed |
+| result?.remoteData?.rf4ceRemoteSocMfr | string | <sup>*(optional)*</sup> The remote chipset manufacturer |
+| result?.remoteData?.remoteMfr | string | <sup>*(optional)*</sup> The remote manufacturer |
+| result?.remoteData?.signalStrengthPercentage | integer | <sup>*(optional)*</sup> The percentage of signal strength |
+| result?.remoteData?.linkQuality | integer | <sup>*(optional)*</sup> The link quality |
+| result?.remoteData?.howRemoteIsPaired | string | <sup>*(optional)*</sup> The binding type of remote |
+| result?.remoteData?.bHasCheckedIn | boolean | <sup>*(optional)*</sup> `true` if the remote has checkedin for update and `false` otherwise |
+| result?.remoteData?.bHasRemoteBeenUpdated | boolean | <sup>*(optional)*</sup> `true` if the remote's firmware is updated and `false` otherwise |
+| result?.remoteData?.bIrdbDownloadSupported | boolean | <sup>*(optional)*</sup> `true` if the IR database download is supported and `false` otherwise |
+| result?.remoteData?.pairingTimestamp | integer | <sup>*(optional)*</sup> The binding time (in milliseconds) |
+| result?.remoteData?.lastRebootErrorCode | integer | <sup>*(optional)*</sup> The error code for previous reboot (in milliseconds) |
+| result?.remoteData?.lastRebootTimestamp | integer | <sup>*(optional)*</sup> The previous reboot time (in milliseconds) |
+| result?.remoteData?.securityType | integer | <sup>*(optional)*</sup> The security type |
+| result?.remoteData?.bHasBattery | boolean | <sup>*(optional)*</sup> `true` if remote has battery and `false` otherwise |
+| result?.remoteData?.batteryChangedTimestamp | integer | <sup>*(optional)*</sup> The time of battery change (in milliseconds) |
+| result?.remoteData?.batteryChangedActualPercentage | integer | <sup>*(optional)*</sup> The battery changed actual percentage |
+| result?.remoteData?.batteryChangedUnloadedVoltage | string | <sup>*(optional)*</sup> The battery changed unloaded voltage |
+| result?.remoteData?.battery75PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 75% (in milliseconds) |
+| result?.remoteData?.battery75PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 75% battery |
+| result?.remoteData?.battery75PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 75% battery |
+| result?.remoteData?.battery50PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 50% (in milliseconds) |
+| result?.remoteData?.battery50PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 50% battery |
+| result?.remoteData?.battery50PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 50% battery |
+| result?.remoteData?.battery25PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 25% (in milliseconds) |
+| result?.remoteData?.battery25PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 25% battery |
+| result?.remoteData?.battery25PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 25% battery |
+| result?.remoteData?.battery5PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 5% (in milliseconds) |
+| result?.remoteData?.battery5PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 5% battery |
+| result?.remoteData?.battery5PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 5% battery |
+| result?.remoteData?.battery0PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp for 0% battery (in milliseconds) |
+| result?.remoteData?.battery0PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 0% battery |
+| result?.remoteData?.battery0PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 0% battery |
+| result?.remoteData?.batteryVoltageLargeJumpCounter | integer | <sup>*(optional)*</sup> Number of large voltage jumps in battery |
+| result?.remoteData?.batteryVoltageLargeDeclineDetected | boolean | <sup>*(optional)*</sup> `true` if large voltage decline in battery is detected, otherwise `false` |
+| result?.remoteData?.bHasDSP | boolean | <sup>*(optional)*</sup> `true` if remote has digital signal processor and `false` otherwise |
+| result?.remoteData?.averageTimeInPrivacyMode | integer | <sup>*(optional)*</sup> Average time in privacy mode (in milliseconds) |
+| result?.remoteData?.bInPrivacyMode | boolean | <sup>*(optional)*</sup> `true` if remote is in privacy mode and `false` otherwise |
+| result?.remoteData?.averageSNR | integer | <sup>*(optional)*</sup> Average signal to noise ratio |
+| result?.remoteData?.averageKeywordConfidence | integer | <sup>*(optional)*</sup> Average keyword confidence |
+| result?.remoteData?.totalNumberOfMicsWorking | integer | <sup>*(optional)*</sup> Number of mics working |
+| result?.remoteData?.totalNumberOfSpeakersWorking | integer | <sup>*(optional)*</sup> Number of speakers working |
+| result?.remoteData?.endOfSpeechInitialTimeoutCount | integer | <sup>*(optional)*</sup> Initial time out count after end of speech |
+| result?.remoteData?.endOfSpeechTimeoutCount | integer | <sup>*(optional)*</sup> Time out count after end of speech |
+| result?.remoteData?.uptimeStartTime | integer | <sup>*(optional)*</sup> Start of uptime (in milliseconds) |
+| result?.remoteData?.uptimeInSeconds | integer | <sup>*(optional)*</sup> Uptime (in seconds) |
+| result?.remoteData?.privacyTimeInSeconds | integer | <sup>*(optional)*</sup> Privacy time (in seconds) |
+| result?.remoteData?.versionDSPBuildId | string | <sup>*(optional)*</sup> Version of dsp build ID |
 | result.status_code | integer | An operations status code |
 | result.success | boolean | Whether the request succeeded |
 
@@ -391,7 +715,7 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.getLastPairedRemoteData",
     "params": {}
 }
@@ -402,18 +726,150 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
+        "remoteData": {
+            "remoteId": 1,
+            "remoteMACAddress": "0x00155F011C7F7359",
+            "remoteModel": "XR15",
+            "remoteModelVersion": "v1",
+            "batteryLevelLoaded": "2.619608",
+            "batteryLevelPercentage": 60,
+            "batteryLastEvent": 0,
+            "batteryLastEventTimestamp": 1602879639000,
+            "numVoiceCommandsPreviousDay": 0,
+            "numVoiceCommandsCurrentDay": 0,
+            "numVoiceShortUtterancesPreviousDay": 0,
+            "numVoiceShortUtterancesCurrentDay": 0,
+            "numVoicePacketsSentPreviousDay": 0,
+            "numVoicePacketsSentCurrentDay": 0,
+            "numVoicePacketsLostPreviousDay": 0,
+            "numVoicePacketsLostCurrentDay": 0,
+            "aveVoicePacketLossPreviousDay": "0.000000",
+            "aveVoicePacketLossCurrentDay": "0.000000",
+            "numVoiceCmdsHighLossPreviousDay": 0,
+            "numVoiceCmdsHighLossCurrentDay": 0,
+            "versionInfoSw": "2.0.1.2",
+            "versionInfoHw": "2.3.1.0",
+            "versionInfoIrdb": "4.3.2.0",
+            "irdbType": 0,
+            "irdbState": 3,
+            "programmedTvIRCode": "12731",
+            "programmedAvrIRCode": "31360",
+            "lastCommandTimeDate": 1580263335000,
+            "rf4ceRemoteSocMfr": "QORVO",
+            "remoteMfr": "RS",
+            "signalStrengthPercentage": 50,
+            "linkQuality": 0,
+            "howRemoteIsPaired": "manual",
+            "bHasCheckedIn": true,
+            "bHasRemoteBeenUpdated": true,
+            "bIrdbDownloadSupported": true,
+            "pairingTimestamp": 1538782229000,
+            "lastRebootErrorCode": 1538782229000,
+            "lastRebootTimestamp": 12342000,
+            "securityType": 0,
+            "bHasBattery": true,
+            "batteryChangedTimestamp": 1641294389000,
+            "batteryChangedActualPercentage": 64,
+            "batteryChangedUnloadedVoltage": "2.729412",
+            "battery75PercentTimestamp": 1641294389000,
+            "battery75PercentActualPercentage": 64,
+            "battery75PercentUnloadedVoltage": "2.729412",
+            "battery50PercentTimestamp": 0,
+            "battery50PercentActualPercentage": 0,
+            "battery50PercentUnloadedVoltage": "0.000000",
+            "battery25PercentTimestamp": 0,
+            "battery25PercentActualPercentage": 0,
+            "battery25PercentUnloadedVoltage": "0.000000",
+            "battery5PercentTimestamp": 0,
+            "battery5PercentActualPercentage": 0,
+            "battery5PercentUnloadedVoltage": "0.000000",
+            "battery0PercentTimestamp": 0,
+            "battery0PercentActualPercentage": 0,
+            "battery0PercentUnloadedVoltage": "0.000000",
+            "batteryVoltageLargeJumpCounter": 0,
+            "batteryVoltageLargeDeclineDetected": false,
+            "bHasDSP": false,
+            "averageTimeInPrivacyMode": 0,
+            "bInPrivacyMode": false,
+            "averageSNR": 0,
+            "averageKeywordConfidence": 0,
+            "totalNumberOfMicsWorking": 0,
+            "totalNumberOfSpeakersWorking": 0,
+            "endOfSpeechInitialTimeoutCount": 0,
+            "endOfSpeechTimeoutCount": 0,
+            "uptimeStartTime": 1641460244000,
+            "uptimeInSeconds": 0,
+            "privacyTimeInSeconds": 0,
+            "versionDSPBuildId": "..."
+        },
         "status_code": 0,
         "success": true
     }
 }
 ```
 
-<a name="method.getSingleRemoteData"></a>
-## *getSingleRemoteData <sup>method</sup>*
+<a name="method.getQuirks"></a>
+## *getQuirks [<sup>method</sup>](#head.Methods)*
 
-Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.
+Gets quirks. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | An empty `params` object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.quirks | array | The list of quirks |
+| result.quirks[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.ControlService.1.getQuirks",
+    "params": {}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "quirks": [
+            "DELIA-43686, RDK-28767, RDK-31263, RDK-32347"
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="method.getSingleRemoteData"></a>
+## *getSingleRemoteData [<sup>method</sup>](#head.Methods)*
+
+Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -427,6 +883,81 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.remoteData | object | <sup>*(optional)*</sup>  |
+| result?.remoteData?.remoteId | integer | <sup>*(optional)*</sup> The remote control identifier |
+| result?.remoteData?.remoteMACAddress | string | <sup>*(optional)*</sup> The MAC address of remote |
+| result?.remoteData?.remoteModel | string | <sup>*(optional)*</sup> The remote model |
+| result?.remoteData?.remoteModelVersion | string | <sup>*(optional)*</sup> The version of remote model |
+| result?.remoteData?.batteryLevelLoaded | string | <sup>*(optional)*</sup> The loaded battery level |
+| result?.remoteData?.batteryLevelPercentage | integer | <sup>*(optional)*</sup> The battery percentage |
+| result?.remoteData?.batteryLastEvent | integer | <sup>*(optional)*</sup> The battery last event |
+| result?.remoteData?.batteryLastEventTimestamp | integer | <sup>*(optional)*</sup> The timestamp of last battery event (in milliseconds) |
+| result?.remoteData?.numVoiceCommandsPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands the previous day |
+| result?.remoteData?.numVoiceCommandsCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands the current day |
+| result?.remoteData?.numVoiceShortUtterancesPreviousDay | integer | <sup>*(optional)*</sup> Number of short voice commands the previous day |
+| result?.remoteData?.numVoiceShortUtterancesCurrentDay | integer | <sup>*(optional)*</sup> Number of short voice commands the current day |
+| result?.remoteData?.numVoicePacketsSentPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the previous day |
+| result?.remoteData?.numVoicePacketsSentCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets sent the current day |
+| result?.remoteData?.numVoicePacketsLostPreviousDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the previous day |
+| result?.remoteData?.numVoicePacketsLostCurrentDay | integer | <sup>*(optional)*</sup> Number of voice packets lost the current day |
+| result?.remoteData?.aveVoicePacketLossPreviousDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the previous day |
+| result?.remoteData?.aveVoicePacketLossCurrentDay | string | <sup>*(optional)*</sup> Average number of voice packets lost the current day |
+| result?.remoteData?.numVoiceCmdsHighLossPreviousDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the previous day |
+| result?.remoteData?.numVoiceCmdsHighLossCurrentDay | integer | <sup>*(optional)*</sup> Number of voice commands exceeding packet loss threshold the current day |
+| result?.remoteData?.versionInfoSw | string | <sup>*(optional)*</sup> The software version of remote |
+| result?.remoteData?.versionInfoHw | string | <sup>*(optional)*</sup> The hardware version of remote |
+| result?.remoteData?.versionInfoIrdb | string | <sup>*(optional)*</sup> The IR database version of remote |
+| result?.remoteData?.irdbType | integer | <sup>*(optional)*</sup> The IR database type |
+| result?.remoteData?.irdbState | integer | <sup>*(optional)*</sup> The state of IR database |
+| result?.remoteData?.programmedTvIRCode | string | <sup>*(optional)*</sup> The IR code programmed for TV |
+| result?.remoteData?.programmedAvrIRCode | string | <sup>*(optional)*</sup> The IR code programmed for AVR |
+| result?.remoteData?.lastCommandTimeDate | integer | <sup>*(optional)*</sup> The time when last key was pressed |
+| result?.remoteData?.rf4ceRemoteSocMfr | string | <sup>*(optional)*</sup> The remote chipset manufacturer |
+| result?.remoteData?.remoteMfr | string | <sup>*(optional)*</sup> The remote manufacturer |
+| result?.remoteData?.signalStrengthPercentage | integer | <sup>*(optional)*</sup> The percentage of signal strength |
+| result?.remoteData?.linkQuality | integer | <sup>*(optional)*</sup> The link quality |
+| result?.remoteData?.howRemoteIsPaired | string | <sup>*(optional)*</sup> The binding type of remote |
+| result?.remoteData?.bHasCheckedIn | boolean | <sup>*(optional)*</sup> `true` if the remote has checkedin for update and `false` otherwise |
+| result?.remoteData?.bHasRemoteBeenUpdated | boolean | <sup>*(optional)*</sup> `true` if the remote's firmware is updated and `false` otherwise |
+| result?.remoteData?.bIrdbDownloadSupported | boolean | <sup>*(optional)*</sup> `true` if the IR database download is supported and `false` otherwise |
+| result?.remoteData?.pairingTimestamp | integer | <sup>*(optional)*</sup> The binding time (in milliseconds) |
+| result?.remoteData?.lastRebootErrorCode | integer | <sup>*(optional)*</sup> The error code for previous reboot (in milliseconds) |
+| result?.remoteData?.lastRebootTimestamp | integer | <sup>*(optional)*</sup> The previous reboot time (in milliseconds) |
+| result?.remoteData?.securityType | integer | <sup>*(optional)*</sup> The security type |
+| result?.remoteData?.bHasBattery | boolean | <sup>*(optional)*</sup> `true` if remote has battery and `false` otherwise |
+| result?.remoteData?.batteryChangedTimestamp | integer | <sup>*(optional)*</sup> The time of battery change (in milliseconds) |
+| result?.remoteData?.batteryChangedActualPercentage | integer | <sup>*(optional)*</sup> The battery changed actual percentage |
+| result?.remoteData?.batteryChangedUnloadedVoltage | string | <sup>*(optional)*</sup> The battery changed unloaded voltage |
+| result?.remoteData?.battery75PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 75% (in milliseconds) |
+| result?.remoteData?.battery75PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 75% battery |
+| result?.remoteData?.battery75PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 75% battery |
+| result?.remoteData?.battery50PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 50% (in milliseconds) |
+| result?.remoteData?.battery50PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 50% battery |
+| result?.remoteData?.battery50PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 50% battery |
+| result?.remoteData?.battery25PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 25% (in milliseconds) |
+| result?.remoteData?.battery25PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 25% battery |
+| result?.remoteData?.battery25PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 25% battery |
+| result?.remoteData?.battery5PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp when battery was 5% (in milliseconds) |
+| result?.remoteData?.battery5PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 5% battery |
+| result?.remoteData?.battery5PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 5% battery |
+| result?.remoteData?.battery0PercentTimestamp | integer | <sup>*(optional)*</sup> The timestamp for 0% battery (in milliseconds) |
+| result?.remoteData?.battery0PercentActualPercentage | integer | <sup>*(optional)*</sup> The actual percentage for 0% battery |
+| result?.remoteData?.battery0PercentUnloadedVoltage | string | <sup>*(optional)*</sup> The unloaded voltage of 0% battery |
+| result?.remoteData?.batteryVoltageLargeJumpCounter | integer | <sup>*(optional)*</sup> Number of large voltage jumps in battery |
+| result?.remoteData?.batteryVoltageLargeDeclineDetected | boolean | <sup>*(optional)*</sup> `true` if large voltage decline in battery is detected, otherwise `false` |
+| result?.remoteData?.bHasDSP | boolean | <sup>*(optional)*</sup> `true` if remote has digital signal processor and `false` otherwise |
+| result?.remoteData?.averageTimeInPrivacyMode | integer | <sup>*(optional)*</sup> Average time in privacy mode (in milliseconds) |
+| result?.remoteData?.bInPrivacyMode | boolean | <sup>*(optional)*</sup> `true` if remote is in privacy mode and `false` otherwise |
+| result?.remoteData?.averageSNR | integer | <sup>*(optional)*</sup> Average signal to noise ratio |
+| result?.remoteData?.averageKeywordConfidence | integer | <sup>*(optional)*</sup> Average keyword confidence |
+| result?.remoteData?.totalNumberOfMicsWorking | integer | <sup>*(optional)*</sup> Number of mics working |
+| result?.remoteData?.totalNumberOfSpeakersWorking | integer | <sup>*(optional)*</sup> Number of speakers working |
+| result?.remoteData?.endOfSpeechInitialTimeoutCount | integer | <sup>*(optional)*</sup> Initial time out count after end of speech |
+| result?.remoteData?.endOfSpeechTimeoutCount | integer | <sup>*(optional)*</sup> Time out count after end of speech |
+| result?.remoteData?.uptimeStartTime | integer | <sup>*(optional)*</sup> Start of uptime (in milliseconds) |
+| result?.remoteData?.uptimeInSeconds | integer | <sup>*(optional)*</sup> Uptime (in seconds) |
+| result?.remoteData?.privacyTimeInSeconds | integer | <sup>*(optional)*</sup> Privacy time (in seconds) |
+| result?.remoteData?.versionDSPBuildId | string | <sup>*(optional)*</sup> Version of dsp build ID |
 | result.status_code | integer | An operations status code |
 | result.success | boolean | Whether the request succeeded |
 
@@ -437,7 +968,7 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.getSingleRemoteData",
     "params": {
         "remoteId": 1
@@ -450,8 +981,84 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
+        "remoteData": {
+            "remoteId": 1,
+            "remoteMACAddress": "0x00155F011C7F7359",
+            "remoteModel": "XR15",
+            "remoteModelVersion": "v1",
+            "batteryLevelLoaded": "2.619608",
+            "batteryLevelPercentage": 60,
+            "batteryLastEvent": 0,
+            "batteryLastEventTimestamp": 1602879639000,
+            "numVoiceCommandsPreviousDay": 0,
+            "numVoiceCommandsCurrentDay": 0,
+            "numVoiceShortUtterancesPreviousDay": 0,
+            "numVoiceShortUtterancesCurrentDay": 0,
+            "numVoicePacketsSentPreviousDay": 0,
+            "numVoicePacketsSentCurrentDay": 0,
+            "numVoicePacketsLostPreviousDay": 0,
+            "numVoicePacketsLostCurrentDay": 0,
+            "aveVoicePacketLossPreviousDay": "0.000000",
+            "aveVoicePacketLossCurrentDay": "0.000000",
+            "numVoiceCmdsHighLossPreviousDay": 0,
+            "numVoiceCmdsHighLossCurrentDay": 0,
+            "versionInfoSw": "2.0.1.2",
+            "versionInfoHw": "2.3.1.0",
+            "versionInfoIrdb": "4.3.2.0",
+            "irdbType": 0,
+            "irdbState": 3,
+            "programmedTvIRCode": "12731",
+            "programmedAvrIRCode": "31360",
+            "lastCommandTimeDate": 1580263335000,
+            "rf4ceRemoteSocMfr": "QORVO",
+            "remoteMfr": "RS",
+            "signalStrengthPercentage": 50,
+            "linkQuality": 0,
+            "howRemoteIsPaired": "manual",
+            "bHasCheckedIn": true,
+            "bHasRemoteBeenUpdated": true,
+            "bIrdbDownloadSupported": true,
+            "pairingTimestamp": 1538782229000,
+            "lastRebootErrorCode": 1538782229000,
+            "lastRebootTimestamp": 12342000,
+            "securityType": 0,
+            "bHasBattery": true,
+            "batteryChangedTimestamp": 1641294389000,
+            "batteryChangedActualPercentage": 64,
+            "batteryChangedUnloadedVoltage": "2.729412",
+            "battery75PercentTimestamp": 1641294389000,
+            "battery75PercentActualPercentage": 64,
+            "battery75PercentUnloadedVoltage": "2.729412",
+            "battery50PercentTimestamp": 0,
+            "battery50PercentActualPercentage": 0,
+            "battery50PercentUnloadedVoltage": "0.000000",
+            "battery25PercentTimestamp": 0,
+            "battery25PercentActualPercentage": 0,
+            "battery25PercentUnloadedVoltage": "0.000000",
+            "battery5PercentTimestamp": 0,
+            "battery5PercentActualPercentage": 0,
+            "battery5PercentUnloadedVoltage": "0.000000",
+            "battery0PercentTimestamp": 0,
+            "battery0PercentActualPercentage": 0,
+            "battery0PercentUnloadedVoltage": "0.000000",
+            "batteryVoltageLargeJumpCounter": 0,
+            "batteryVoltageLargeDeclineDetected": false,
+            "bHasDSP": false,
+            "averageTimeInPrivacyMode": 0,
+            "bInPrivacyMode": false,
+            "averageSNR": 0,
+            "averageKeywordConfidence": 0,
+            "totalNumberOfMicsWorking": 0,
+            "totalNumberOfSpeakersWorking": 0,
+            "endOfSpeechInitialTimeoutCount": 0,
+            "endOfSpeechTimeoutCount": 0,
+            "uptimeStartTime": 1641460244000,
+            "uptimeInSeconds": 0,
+            "privacyTimeInSeconds": 0,
+            "versionDSPBuildId": "..."
+        },
         "status_code": 0,
         "success": true
     }
@@ -459,9 +1066,13 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 ```
 
 <a name="method.getValues"></a>
-## *getValues <sup>method</sup>*
+## *getValues [<sup>method</sup>](#head.Methods)*
 
-Returns remote setting values.
+Returns remote setting values. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -492,7 +1103,7 @@ Returns remote setting values.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.getValues",
     "params": {}
 }
@@ -503,7 +1114,7 @@ Returns remote setting values.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportsASB": true,
         "enableASB": false,
@@ -520,23 +1131,26 @@ Returns remote setting values.
 ```
 
 <a name="method.setValues"></a>
-## *setValues <sup>method</sup>*
+## *setValues [<sup>method</sup>](#head.Methods)*
 
-Sets remote setting values.
+Sets remote setting values. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.supportsASB | boolean | Whether the remote supports ASB |
-| params.enableASB | boolean | Whether ASB is enabled |
-| params.enableOpenChime | boolean | Whether the open chime is enabled |
-| params.enableCloseChime | boolean | Whether the close chime is enabled |
-| params.enablePrivacyChime | boolean | Whether the privacy chime is enabled |
-| params.conversationalMode | integer | The conversational mode |
-| params.chimeVolume | integer | The chime volume |
-| params.irCommandRepeats | integer | The number of command repeats |
+| params?.enableASB | boolean | <sup>*(optional)*</sup> Whether ASB is enabled |
+| params?.enableOpenChime | boolean | <sup>*(optional)*</sup> Whether the open chime is enabled |
+| params?.enableCloseChime | boolean | <sup>*(optional)*</sup> Whether the close chime is enabled |
+| params?.enablePrivacyChime | boolean | <sup>*(optional)*</sup> Whether the privacy chime is enabled |
+| params?.conversationalMode | integer | <sup>*(optional)*</sup> The conversational mode |
+| params?.chimeVolume | integer | <sup>*(optional)*</sup> The chime volume |
+| params?.irCommandRepeats | integer | <sup>*(optional)*</sup> The number of command repeats |
 
 ### Result
 
@@ -553,10 +1167,9 @@ Sets remote setting values.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.setValues",
     "params": {
-        "supportsASB": true,
         "enableASB": false,
         "enableOpenChime": false,
         "enableCloseChime": true,
@@ -573,7 +1186,7 @@ Sets remote setting values.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "status_code": 0,
         "success": true
@@ -582,9 +1195,13 @@ Sets remote setting values.
 ```
 
 <a name="method.startPairingMode"></a>
-## *startPairingMode <sup>method</sup>*
+## *startPairingMode [<sup>method</sup>](#head.Methods)*
 
-Enters pairing mode.
+Enters pairing mode. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -609,7 +1226,7 @@ Enters pairing mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ControlService.1.startPairingMode",
     "params": {
         "pairingMode": 0,
@@ -623,7 +1240,7 @@ Enters pairing mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "status_code": 0,
         "success": true
@@ -650,7 +1267,7 @@ ControlService interface events:
 
 
 <a name="event.onControl"></a>
-## *onControl <sup>event</sup>*
+## *onControl [<sup>event</sup>](#head.Notifications)*
 
 Triggered on control manager events.
 
@@ -674,15 +1291,15 @@ Triggered on control manager events.
     "params": {
         "remoteId": 1,
         "eventValue": 0,
-        "eventSource": "",
-        "eventType": "",
-        "eventData": ""
+        "eventSource": "...",
+        "eventType": "...",
+        "eventData": "..."
     }
 }
 ```
 
 <a name="event.onXRConfigurationComplete"></a>
-## *onXRConfigurationComplete <sup>event</sup>*
+## *onXRConfigurationComplete [<sup>event</sup>](#head.Notifications)*
 
 Triggered on control manager configuration complete event.
 
@@ -712,7 +1329,7 @@ Triggered on control manager configuration complete event.
 ```
 
 <a name="event.onXRPairingStart"></a>
-## *onXRPairingStart <sup>event</sup>*
+## *onXRPairingStart [<sup>event</sup>](#head.Notifications)*
 
 Triggered on control manager validation/pairing key press event.
 
@@ -746,7 +1363,7 @@ Triggered on control manager validation/pairing key press event.
 ```
 
 <a name="event.onXRValidationComplete"></a>
-## *onXRValidationComplete <sup>event</sup>*
+## *onXRValidationComplete [<sup>event</sup>](#head.Notifications)*
 
 Triggered on control manager validation/pairing end event.  
 Validation status codes:  
@@ -782,7 +1399,7 @@ Validation status codes:
 ```
 
 <a name="event.onXRValidationUpdate"></a>
-## *onXRValidationUpdate <sup>event</sup>*
+## *onXRValidationUpdate [<sup>event</sup>](#head.Notifications)*
 
 Triggered on control manager events.
 

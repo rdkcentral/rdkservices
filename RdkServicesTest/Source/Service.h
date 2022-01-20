@@ -119,7 +119,8 @@ public:
 
     Service(const RdkServicesTest::Config& server, const WPEFramework::Plugin::Config& plugin)
             :_state(DEACTIVATED),
-             _config(plugin, server.WebPrefix(), server.PersistentPath(), server.DataPath(), server.VolatilePath())
+             _config(plugin, server.WebPrefix(), server.PersistentPath(), server.DataPath(), server.VolatilePath()),
+             _proxyStubPath(server.ProxyStubPath())
     {
         if ((plugin.Startup.IsSet()==true) && (plugin.Startup.Value()==WPEFramework::Plugin::Config::UNAVAILABLE)) {
             _state = UNAVAILABLE;
@@ -210,9 +211,14 @@ public:
 public:
     WPEFramework::PluginHost::ISubSystem* SubSystems() override
     {
-        return (&subSystem);
+        WPEFramework::PluginHost::ISubSystem* result = (&subSystem);
+
+        result->AddRef();
+
+        return result;
     }
-    uint32_t Submit(const uint32_t id, const WPEFramework::Core::ProxyType <WPEFramework::Core::JSON::IElement>& response) override
+    uint32_t Submit(const uint32_t id,
+            const WPEFramework::Core::ProxyType <WPEFramework::Core::JSON::IElement>& response) override
     {
         return (WPEFramework::Core::ERROR_NONE);
     }
@@ -245,7 +251,7 @@ public:
     }
     string ProxyStubPath() const override
     {
-        return (string());
+        return (_proxyStubPath);
     }
     string HashKey() const override
     {
@@ -274,7 +280,8 @@ private:
     state _state;
     Config _config;
     reason _reason;
-    WPEFramework::Core::Sink<SystemInfo> subSystem;
+    WPEFramework::Core::Sink <SystemInfo> subSystem;
+    const string _proxyStubPath;
 };
 
 } // namespace RdkServicesTest
