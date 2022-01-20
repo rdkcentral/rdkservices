@@ -144,6 +144,7 @@ DisplaySettings interface methods:
 | [setDolbyVolumeMode](#method.setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#method.setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
 | [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port name |
+| [setForceHDRMode](#method.setForceHDRMode) | Enables or disables the force HDR mode |
 | [setGain](#method.setGain) | Adjusts the gain on a specific port |
 | [setGraphicEqualizerMode](#method.setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
 | [setIntelligentEqualizerMode](#method.setIntelligentEqualizerMode) | Sets the Intelligent Equalizer Mode (port HDMI0) |
@@ -3186,6 +3187,56 @@ Enable or disable the specified audio port based on the input audio port name. T
     "params": {
         "audioPort": "HDMI0",
         "enable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setForceHDRMode"></a>
+## *setForceHDRMode [<sup>method</sup>](#head.Methods)*
+
+Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.hdr_mode | boolean | <sup>*(optional)*</sup> `true` to force the HDR format or `false` to reset the mode to the default |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setForceHDRMode",
+    "params": {
+        "hdr_mode": true
     }
 }
 ```
