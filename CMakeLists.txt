@@ -66,10 +66,6 @@ if(PLUGIN_MAINTENANCEMANAGER)
     add_subdirectory(MaintenanceManager)
 endif()
 
-if(PLUGIN_HOMENETWORKING)
-    add_subdirectory(HomeNetworking)
-endif()
-
 if(PLUGIN_NETWORK)
     add_subdirectory(Network)
 endif()
@@ -125,10 +121,6 @@ endif()
 
 if(PLUGIN_SCREENCAPTURE)
     add_subdirectory(ScreenCapture)
-endif()
-
-if(PLUGIN_WEBSOCKETPROXY)
-    add_subdirectory(WebSocketProxy)
 endif()
 
 if(PLUGIN_ACTIVITYMONITOR)
@@ -231,10 +223,6 @@ if(PLUGIN_CONTINUEWATCHING)
     add_subdirectory(ContinueWatching)
 endif()
 
-#if(HAS_API_APPLICATION)
-#    add_subdirectory(Application)
-#endif()
-
 if(PLUGIN_STATEOBSERVER)
     add_subdirectory(StateObserver)
 endif()
@@ -253,10 +241,6 @@ endif()
 
 if(PLUGIN_PLATFORMPLAYER)
     add_subdirectory(PlatformPlayer)
-endif()
-
-if(PLUGIN_LINEARSEGMENTEDADVERTISING)
-    add_subdirectory(LinearSegmentedAdvertising)
 endif()
 
 if(PLUGIN_DEEPLINK)
