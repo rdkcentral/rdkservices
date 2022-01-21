@@ -22,10 +22,15 @@
             "type": "integer",
             "example": 2
         },
-        "error": {
+        "error_i": {
             "summary": "The error state",
             "type": "integer",
-            "example": 0                           
+            "example": 0                         
+        },
+        "error_s": {
+            "summary": "The error state",
+            "type": "string",
+            "example": "none"  
         },
         "propertyNames": {
             "summary": "The fully qualified property name",
@@ -54,7 +59,7 @@
     },
     "methods": {
         "getApiVersionNumber":{
-            "summary": "Returns the API version number",
+            "summary": "Returns the API version number.\n \n### Events \n\n No Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -72,7 +77,7 @@
             }
         },
         "getName": {
-            "summary": "Returns the plugin name",
+            "summary": "Returns the plugin name.\n \n### Events \n\n No Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -92,7 +97,7 @@
             }
         },
         "getRegisteredPropertyNames": {
-            "summary": "Returns all properties which have active listeners",
+            "summary": "Returns all properties which have active listeners.\n \n### Events \n\n No Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -115,7 +120,7 @@
             }
         },
         "getValues": {
-            "summary": "Returns the values and errors for the specified properties.  \n**Error Code of Properties**  \n* `com.comcast.channel_map` - RDK-03005  \n* `com.comcast.card.disconnected` - RDK-03007  \n* `com.comcast.cmac` - RDK-03002  \n* `com.comcast.time_source` - RDK-03006  \n* `com.comcast.estb_ip` - RDK-03009  \n* `com.comcast.ecm_ip` - RDK-03004  \n* `com.comcast.dsg_ca_tunnel` - RDK-03003  \n* `com.comcast.cable_card` - RDK-03001",
+            "summary": "Returns the values and errors for the specified properties.  \n**Error Code of Properties**  \n* `com.comcast.channel_map` - RDK-03005  \n* `com.comcast.card.disconnected` - RDK-03007  \n* `com.comcast.cmac` - RDK-03002  \n* `com.comcast.time_source` - RDK-03006  \n* `com.comcast.estb_ip` - RDK-03009  \n* `com.comcast.ecm_ip` - RDK-03004  \n* `com.comcast.dsg_ca_tunnel` - RDK-03003  \n* `com.comcast.cable_card` - RDK-03001.\n \n### Events \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -143,7 +148,7 @@
                                     "$ref": "#/definitions/value"
                                 },
                                 "error": {
-                                    "$ref": "#/definitions/error"                           
+                                    "$ref": "#/definitions/error_s"                           
                                 }
                             },
                             "required": [
@@ -164,7 +169,7 @@
             }
         },
         "registerListeners":{
-            "summary": "Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.",
+            "summary": "Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.\n \n### Events \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -192,7 +197,7 @@
                                     "$ref": "#/definitions/value"
                                 },
                                 "error": {
-                                    "$ref": "#/definitions/error"                           
+                                    "$ref": "#/definitions/error_s"                           
                                 }
                             },
                             "required": [
@@ -213,7 +218,7 @@
             }    
         },         
         "setApiVersionNumber": {
-            "summary": "Sets the API version number",
+            "summary": "Sets the API version number.\n \n### Events \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -230,7 +235,7 @@
             }
         },
         "unregisterListeners": {
-            "summary": "Removes the listeners on the specified properties. The properties are removed from the registered properties list",
+            "summary": "Removes the listeners on the specified properties. The properties are removed from the registered properties list.\n \n### Events \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -260,7 +265,7 @@
                         "$ref": "#/definitions/value"
                     },
                     "error": {
-                        "$ref": "#/definitions/error"                           
+                        "$ref": "#/definitions/error_i"                           
                     }
                 },
                 "required": [
