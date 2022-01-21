@@ -1836,6 +1836,23 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setForceHDRMode": {
+            "summary": "Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.\n \n### Event \n\n No Events.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "hdr_mode": {
+                        "summary": "`true` to force the HDR format or `false` to reset the mode to the default.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setGain":{
             "summary": "Adjusts the gain on a specific port.\n \n### Event \n\n No Events.",
             "params": {

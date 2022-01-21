@@ -66,7 +66,7 @@ TEST(PersistentStoreTest, test) {
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    // de-init plugin
+    // clean up
 
     persistentStore->Deinitialize(nullptr);
 }

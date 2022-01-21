@@ -32,17 +32,19 @@ FetchContent_MakeAvailable(googletest)
 add_executable(${PROJECT_NAME}
         Tests/LocationSyncTest.cpp
         Tests/PersistentStoreTest.cpp
+        Tests/SecurityAgentTest.cpp
         Module.cpp
         )
 
-include_directories(../LocationSync ../PersistentStore)
-link_directories(../LocationSync ../PersistentStore)
+include_directories(../LocationSync ../PersistentStore ../SecurityAgent)
+link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
         gtest_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
+        ${NAMESPACE}SecurityAgent
         )
 
 target_include_directories(${PROJECT_NAME}
