@@ -1169,8 +1169,6 @@ namespace WPEFramework
 
 				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
 
-				sendPowerOFFCommand(phy_addr);
-				sendPowerONCommand(phy_addr);
 				setStreamPath(phy_addr);
 				returnResponse(true);
             }
