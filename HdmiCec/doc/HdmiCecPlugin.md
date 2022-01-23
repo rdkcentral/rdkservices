@@ -6,14 +6,13 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-A org.rdk.HdmiCec plugin for Thunder framework.
+org.rdk.HdmiCec plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -77,13 +76,6 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkHdmiCec.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [HdmiCec.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/HdmiCec.json)
-
 <a name="head.Methods"></a>
 # Methods
 
@@ -94,20 +86,15 @@ HdmiCec interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getCECAddresses](#method.getCECAddresses) | Returns the HDMI-CEC addresses that are assigned to the local device |
-| [getDeviceList](#method.getDeviceList) | Gets the list of number of CEC enabled devices connected and system information for each device |
 | [getEnabled](#method.getEnabled) | Returns whether HDMI-CEC is enabled |
 | [sendMessage](#method.sendMessage) | Writes HDMI-CEC frame to the driver |
-| [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC driver |
+| [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC |
 
 
 <a name="method.getCECAddresses"></a>
-## *getCECAddresses [<sup>method</sup>](#head.Methods)*
+## *getCECAddresses <sup>method</sup>*
 
 Returns the HDMI-CEC addresses that are assigned to the local device.
-  
-### Event 
-
- No Events.
 
 ### Parameters
 
@@ -134,7 +121,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "org.rdk.HdmiCec.1.getCECAddresses"
 }
 ```
@@ -144,7 +131,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "CECAddresses": {
             "physicalAddress": [
@@ -162,72 +149,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getDeviceList"></a>
-## *getDeviceList [<sup>method</sup>](#head.Methods)*
-
-Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.
-  
-### Event 
-
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.numberofdevices | integer | number of devices in the `deviceList` array |
-| result.deviceList | array | Object [] of information about each device |
-| result.deviceList[#] | object |  |
-| result.deviceList[#].logicalAddress | integer | Logical address of the device |
-| result.deviceList[#].osdName | string | OSD name of the device |
-| result.deviceList[#].vendorID | string | Vendor ID of the device |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.HdmiCec.1.getDeviceList"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "numberofdevices": 1,
-        "deviceList": [
-            {
-                "logicalAddress": 0,
-                "osdName": "TV",
-                "vendorID": "00f0"
-            }
-        ],
-        "success": true
-    }
-}
-```
-
 <a name="method.getEnabled"></a>
-## *getEnabled [<sup>method</sup>](#head.Methods)*
+## *getEnabled <sup>method</sup>*
 
 Returns whether HDMI-CEC is enabled.
-  
-### Event 
-
- No Events.
 
 ### Parameters
 
@@ -248,7 +173,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "org.rdk.HdmiCec.1.getEnabled"
 }
 ```
@@ -258,7 +183,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "enabled": false,
         "success": true
@@ -267,16 +192,9 @@ This method takes no parameters.
 ```
 
 <a name="method.sendMessage"></a>
-## *sendMessage [<sup>method</sup>](#head.Methods)*
+## *sendMessage <sup>method</sup>*
 
 Writes HDMI-CEC frame to the driver.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMessage`|Triggered when a message is sent from an HDMI device|.
-
-Also see: [onMessage](#event.onMessage)
 
 ### Parameters
 
@@ -299,7 +217,7 @@ Also see: [onMessage](#event.onMessage)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "org.rdk.HdmiCec.1.sendMessage",
     "params": {
         "message": "1234567890"
@@ -312,7 +230,7 @@ Also see: [onMessage](#event.onMessage)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "success": true
     }
@@ -320,13 +238,9 @@ Also see: [onMessage](#event.onMessage)
 ```
 
 <a name="method.setEnabled"></a>
-## *setEnabled [<sup>method</sup>](#head.Methods)*
+## *setEnabled <sup>method</sup>*
 
-Enables or disables HDMI-CEC driver.
-  
-### Event 
-
- No Events.
+Enables or disables HDMI-CEC.
 
 ### Parameters
 
@@ -349,7 +263,7 @@ Enables or disables HDMI-CEC driver.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "org.rdk.HdmiCec.1.setEnabled",
     "params": {
         "enabled": false
@@ -362,7 +276,7 @@ Enables or disables HDMI-CEC driver.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "success": true
     }
@@ -382,13 +296,10 @@ HdmiCec interface events:
 | :-------- | :-------- |
 | [cecAddressesChanged](#event.cecAddressesChanged) | Triggered when the address of the host CEC device has changed |
 | [onMessage](#event.onMessage) | Triggered when a message is sent from an HDMI device |
-| [onDeviceAdded](#event.onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
-| [onDeviceInfoUpdated](#event.onDeviceInfoUpdated) | Triggered when device information changes (vendorID, osdName) |
-| [onDeviceRemoved](#event.onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
 
 
 <a name="event.cecAddressesChanged"></a>
-## *cecAddressesChanged [<sup>event</sup>](#head.Notifications)*
+## *cecAddressesChanged <sup>event</sup>*
 
 Triggered when the address of the host CEC device has changed.
 
@@ -418,7 +329,7 @@ Triggered when the address of the host CEC device has changed.
 ```
 
 <a name="event.onMessage"></a>
-## *onMessage [<sup>event</sup>](#head.Notifications)*
+## *onMessage <sup>event</sup>*
 
 Triggered when a message is sent from an HDMI device.
 
@@ -437,78 +348,6 @@ Triggered when a message is sent from an HDMI device.
     "method": "client.events.1.onMessage",
     "params": {
         "message": "1234567890"
-    }
-}
-```
-
-<a name="event.onDeviceAdded"></a>
-## *onDeviceAdded [<sup>event</sup>](#head.Notifications)*
-
-Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information such as OSD name and vendor ID is collected.The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceAdded",
-    "params": {
-        "logicalAddress": 0
-    }
-}
-```
-
-<a name="event.onDeviceInfoUpdated"></a>
-## *onDeviceInfoUpdated [<sup>event</sup>](#head.Notifications)*
-
-Triggered when device information changes (vendorID, osdName).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceInfoUpdated",
-    "params": {
-        "logicalAddress": 0
-    }
-}
-```
-
-<a name="event.onDeviceRemoved"></a>
-## *onDeviceRemoved [<sup>event</sup>](#head.Notifications)*
-
-Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceRemoved",
-    "params": {
-        "logicalAddress": 0
     }
 }
 ```
