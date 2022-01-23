@@ -25,6 +25,21 @@
             "type": "string",
             "example": "1234567890" 
         },
+        "logicalAddress":{
+            "summary": "Logical address of the device",
+            "type":"integer",
+            "example": 0
+        },
+        "osdName":{
+            "summary": "OSD name of the device",
+            "type":"string",
+            "example": "TV"
+        },
+        "vendorID":{
+            "summary": "Vendor ID of the device",
+            "type":"string",
+            "example": "00f0"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -44,7 +59,7 @@
     },
     "methods": {
         "getCECAddresses":{
-            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device",
+            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device.\n  \n### Event \n\n No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -94,8 +109,53 @@
                 ]
             }
         },
+        "getDeviceList":{
+            "summary": "Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.\n  \n### Event \n\n No Events",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "numberofdevices": {
+                        "summary": "number of devices in the `deviceList` array", 
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "deviceList":{
+                        "summary": "Object [] of information about each device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "logicalAddress": {
+                                    "$ref": "#/definitions/logicalAddress"
+                                },
+                                "osdName":{
+                                    "$ref": "#/definitions/osdName"
+                                },
+                                "vendorID":{
+                                    "$ref": "#/definitions/vendorID"
+                                }
+                           
+                            },
+                            "required": [
+                                "logicalAddress",
+                                "osdName",
+                                "vendorID"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "numberofdevices",
+                    "deviceList",
+                    "success"
+                ]
+            }
+        },
         "getEnabled": {
-            "summary": "Returns whether HDMI-CEC is enabled",
+            "summary": "Returns whether HDMI-CEC is enabled.\n  \n### Event \n\n No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -113,7 +173,10 @@
             }
         },
         "sendMessage":{
-            "summary": "Writes HDMI-CEC frame to the driver",
+            "summary": "Writes HDMI-CEC frame to the driver.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMessage`|Triggered when a message is sent from an HDMI device|",
+             "events": [
+                    "onMessage"
+            ],
             "params": {
                 "type":"object",
                 "properties": {
@@ -130,7 +193,7 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC",
+            "summary": "Enables or disables HDMI-CEC driver.\n  \n### Event \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -179,6 +242,48 @@
                 },
                 "required": [
                     "message"
+                ]
+            }
+        },
+        "onDeviceAdded": {
+            "summary": "Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information such as OSD name and vendor ID is collected.The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onDeviceInfoUpdated": {
+            "summary": "Triggered when device information changes (vendorID, osdName)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }            
+        },
+        "onDeviceRemoved": {
+            "summary": "Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
                 ]
             }
         }
