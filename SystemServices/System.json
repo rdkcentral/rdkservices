@@ -246,6 +246,11 @@
                 }
             }
         },
+        "graceInterval": {
+            "summary": "The over temperature grace interval",
+            "type": "string",
+            "example": "600"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -684,6 +689,24 @@
                 ]
             }
         },
+        "getOvertempGraceInterval": {
+            "summary": "Returns the over-temperature grace interval value. Not supported on all devices.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "graceInterval": {
+                        "$ref": "#/definitions/graceInterval"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "graceInterval",
+                    "success"
+                ]
+            }
+        },
         "getPowerState":{
             "summary": "Returns the power state of the device",
             "result": {
@@ -957,7 +980,7 @@
             }
         },
         "getTemperatureThresholds":{
-            "summary": "Returns temperature threshold values. Not supported on all devices",
+            "summary": "Returns temperature threshold values. Not supported on all devices.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1421,6 +1444,23 @@
                 },
                 "required": [
                     "Opt-Out"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setOvertempGraceInterval":{
+            "summary": "Sets the over-temperature grace interval value. Not supported on all devices.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "graceInterval": {
+                        "$ref": "#/definitions/graceInterval"
+                    }
+                },
+                "required": [
+                    "graceInterval"
                 ]
             },
             "result": {
