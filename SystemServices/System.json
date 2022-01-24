@@ -1472,7 +1472,7 @@
             "params": {
                 "type":"object",
                 "properties": {
-                    "Thresholds" :{
+                    "thresholds" :{
                         "type": "object",
                         "properties": {
                             "WARN": {
@@ -1489,7 +1489,7 @@
                     }
                 },
                 "required": [
-                    "Thresholds"
+                    "thresholds"
                 ]
             },
             "result": {
