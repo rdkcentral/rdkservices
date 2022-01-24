@@ -303,7 +303,7 @@ namespace WPEFramework {
             m_powerStateBeforeRebootValid = false;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             m_ManufacturerDataValid = false;
-            m_m_MfgSerialNumberValid = false;
+            m_MfgSerialNumberValid = false;
 #endif
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
@@ -975,7 +975,7 @@ namespace WPEFramework {
                 status = true;
 
                 m_MfgSerialNumber = string(param.buffer);
-                m_m_MfgSerialNumberValid = true;
+                m_MfgSerialNumberValid = true;
 
                 LOGWARN("SystemService getMfgSerialNumber Manufacturing Serial Number: %s", param.buffer);
             } else {

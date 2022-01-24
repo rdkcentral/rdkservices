@@ -135,7 +135,7 @@ namespace WPEFramework {
                 std::string m_ManufacturerData;
                 bool m_ManufacturerDataValid;
                 std::string m_MfgSerialNumber;
-                bool m_m_MfgSerialNumberValid;
+                bool m_MfgSerialNumberValid;
 #endif
             public:
                 SystemServices();
