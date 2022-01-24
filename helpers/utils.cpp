@@ -357,10 +357,15 @@ Utils::ThreadRAII::~ThreadRAII()
     }
 }
 
-bool Utils::isValidInt(char* x)
+bool Utils::isValidInt(char* x, bool negativeIntAllowed /*= false*/)
 {
     bool Checked = true;
     int i = 0;
+
+    if(negativeIntAllowed && (x[0] == '-')) {
+        i = 1;
+    }
+
     do
     {
         //valid digit?
