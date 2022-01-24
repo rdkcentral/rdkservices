@@ -168,7 +168,8 @@
                 "firmwareUpdateDisabled": {
                     "type": "boolean"
                 }
-            }
+            },
+            "required": []
         },
         "webBrowser": {
             "type": "object",
@@ -244,7 +245,8 @@
                     "type": "boolean",
                     "example": true
                 }
-            }
+            },
+            "required": []
         },
         "graceInterval": {
             "summary": "The over temperature grace interval",
