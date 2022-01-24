@@ -21,7 +21,6 @@
 
 #include "Module.h"
 #include "AccessControlList.h"
-#include <securityagent/IPCSecurityToken.h>
 
 #include <interfaces/json/JsonData_SecurityAgent.h>
 

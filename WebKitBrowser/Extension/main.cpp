@@ -156,6 +156,11 @@ private:
                 G_CALLBACK(userMessageReceivedCallback), nullptr);
         g_signal_connect(page, "send-request",
                 G_CALLBACK(sendRequestCallback), nullptr);
+
+#ifdef  ENABLE_AAMP_JSBINDINGS
+        g_signal_connect(page, "did-start-provisional-load-for-frame",
+                G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
+#endif
     }
     static void consoleMessageSentCallback(WebKitWebPage* page, WebKitConsoleMessage* message)
     {
@@ -183,6 +188,15 @@ private:
         WebKit::ApplyRequestHeaders(page, request);
         return FALSE;
     }
+
+#ifdef  ENABLE_AAMP_JSBINDINGS
+    static gboolean didStartProvisionalLoadForFrame(WebKitWebPage* page, WebKitFrame* frame)
+    {
+      if (webkit_frame_is_main_frame(frame))
+          JavaScript::AAMP::UnloadJSBindings(webkit_script_world_get_default(), frame);
+      return FALSE;
+    }
+#endif
 
 private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
