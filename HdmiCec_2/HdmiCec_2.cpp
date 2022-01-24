@@ -476,6 +476,10 @@ namespace WPEFramework
        void HdmiCec_2::Deinitialize(PluginHost::IShell* /* service */)
        {
            LOGWARN("Deinitialize CEC_2");
+           if(true == getEnabled())
+           {
+               setEnabled(false);
+           }
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
            DeinitializeIARM();
