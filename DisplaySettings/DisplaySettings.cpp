@@ -3768,6 +3768,11 @@ namespace WPEFramework {
             return m_powerState;
         }
 
+        void DisplaySettings::initAudioPortsWorker(void)
+        {
+            DisplaySettings::_instance->InitAudioPorts();
+        }
+
         void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!DisplaySettings::_instance)
@@ -3783,7 +3788,20 @@ namespace WPEFramework {
                              eventData->data.state.curState, eventData->data.state.newState);
                 m_powerState = eventData->data.state.newState;
                 if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
-                    DisplaySettings::_instance->InitAudioPorts();
+	            try
+                    {
+		        LOGWARN("creating worker thread for initAudioPortsWorker ");
+		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
+			audioPortInitThread.detach();
+                    }
+                    catch(const std::system_error& e)
+                    {
+                        LOGERR("system_error exception in thread creation: %s", e.what());
+                    }
+                    catch(const std::exception& e)
+                    {
+                        LOGERR("exception in thread creation : %s", e.what());
+                    }
                 }
 
 		else {
