@@ -25,6 +25,7 @@
 #include "Module.h"
 #include "NetUtils.h"
 #include "utils.h"
+#include "AbstractPlugin.h"
 #include "upnpdiscoverymanager.h"
 
 

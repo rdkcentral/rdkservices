@@ -745,6 +745,15 @@ namespace WPEFramework
                 getStringParameter("interface", interface);
                 getStringParameter("ipversion", ipversion);
             }
+	    for(uint8_t ver = 1; ver <= m_currVersion; ver++)
+            {
+                auto handler = m_versionHandlers.find(ver);
+                if(handler != m_versionHandlers.end())
+                {
+                    LOGINFO("%s :: Enabled = %d  --> %d   %d",__FUNCTION__,handler,m_currVersion,ver);
+                }
+            }
+
             IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
             strncpy(iarmData.interface, interface.c_str(), 16);
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
