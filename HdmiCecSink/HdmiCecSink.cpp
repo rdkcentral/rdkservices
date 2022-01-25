@@ -581,8 +581,20 @@ namespace WPEFramework
 			LOGINFO("Check the HDMI State \n");
 
 			CheckHdmiInState();
-			    
-            if (cecSettingEnabled)
+
+            int cecMgrIsAvailableParam;
+            err = IARM_Bus_Call(IARM_BUS_CECMGR_NAME,
+                            IARM_BUS_CECMGR_API_isAvailable,
+                            (void *)&cecMgrIsAvailableParam,
+                            sizeof(cecMgrIsAvailableParam));
+
+	    if(err == IARM_RESULT_SUCCESS) {
+                LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
+            }
+	    else {
+                LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
+            }
+            if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
             {
                try
                {
@@ -679,6 +691,7 @@ namespace WPEFramework
                 {
                     case IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED:
                     {
+			LOGINFO("Received IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED event \r\n");
                         HdmiCecSink::_instance->onCECDaemonInit();
                     }
                     break;
@@ -797,12 +810,14 @@ namespace WPEFramework
        {
             if(true == getEnabled())
             {
+		LOGINFO("CEC getEnabled() already TRUE. Disable and enable CEC again\n ");
                 setEnabled(false);
                 setEnabled(true);
             }
             else
             {
-                /*Do nothing as CEC is not already enabled*/
+		LOGINFO("CEC getEnabled() FALSE. Enable CEC\n ");
+                setEnabled(true);
             }
        }
 
