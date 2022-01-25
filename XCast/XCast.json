@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "XCast API", 
@@ -56,7 +56,7 @@
     },
     "methods": {
         "getApiVersionNumber":{
-            "summary": "Gets the API version",
+            "summary": "Gets the API version.\n  \n### Events \n\n No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -76,7 +76,7 @@
             }
         },
         "getEnabled":{
-            "summary": "Reports whether xcast is enabled or disabled",
+            "summary": "Reports whether xcast is enabled or disabled.\n  \n### Events \n\n No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -94,7 +94,7 @@
             }
         },
         "getFriendlyName":{
-            "summary": "Gets the human readable name for the implementation",
+            "summary": "Returns the friendly name set by setFriendlyName API.\n  \n### Events \n\n No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -112,7 +112,7 @@
             }
         },
         "getStandbyBehavior":{
-            "summary": "Gets the expected xcast behavior in standby mode",
+            "summary": "Gets the expected xcast behavior in standby mode.\n  \n### Events \n\n No Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -130,7 +130,7 @@
             }
         },
         "onApplicationStateChanged":{
-            "summary": "provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  \n Client Error Mapping Example:  \n| Error | Description | HTTP Status Codes |  \n | :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |",
+            "summary": "provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  \n Client Error Mapping Example:  \n| Error | Description | HTTP Status Codes |  \n | :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |. \n  \n### Events \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -161,7 +161,7 @@
             }
         },
         "registerApplications": {
-            "summary": "Registers an application",
+            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.\n  \n### Events \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -180,7 +180,7 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables xcast",
+            "summary": "Enables or disables xcast.\n  \n### Events \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -197,7 +197,7 @@
             }
         },
         "setFriendlyName":{
-            "summary": "Sets a name for the implementation",
+            "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.\n  \n### Events \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
@@ -214,7 +214,7 @@
             }
         },
         "setStandbyBehavior":{
-            "summary": "Sets the expected xcast behavior in standby mode",
+            "summary": "Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.\n  \n### Events \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
