@@ -438,11 +438,11 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* /* service */)
         {
-	   LOGERR("Enetering DisplaySettings::Deinitialize");
+	   LOGINFO("Enetering DisplaySettings::Deinitialize");
 	   isCecArcRoutingThreadEnabled = false;
 	   {
             std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-            LOGERR("DisplaySettings::Deinitialize %d", __LINE__);
+            LOGINFO("DisplaySettings::Deinitialize %d", __LINE__);
             m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 	    m_cecArcRoutingThreadRun = true;
             arcRoutingCV.notify_one();
@@ -1944,7 +1944,7 @@ namespace WPEFramework {
                 success = false;
             }
 
-            LOGERR("\nLeaving_ DisplaySettings::%s\n", __FUNCTION__);
+            LOGINFO("Leaving_ DisplaySettings::%s\n", __FUNCTION__);
             returnResponse(success);
         }
 
