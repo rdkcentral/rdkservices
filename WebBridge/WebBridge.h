@@ -132,19 +132,26 @@ namespace Plugin {
         using PendingMap = std::map<uint32_t, Request>;
 
     public:
+        enum context : uint8_t {
+            NONE,
+            ADDED,
+            WRAPPED
+        };
         class Config : public Core::JSON::Container {
         public:
             Config()
                 : Core::JSON::Container()
                 , TimeOut(3000)
+                , Context(context::NONE)
             {
                 Add(_T("timeout"), &TimeOut);
+                Add(_T("context"), &Context);
             }
             ~Config() override = default;
 
         public:
-            Core::JSON::String Bind;
             Core::JSON::DecUInt16 TimeOut;
+            Core::JSON::EnumType<context> Context;
         };
 
     public:
@@ -157,6 +164,7 @@ namespace Plugin {
         WebBridge()
             : _adminLock()
             , _skipURL(0)
+            , _mode(context::NONE)
             , _service(nullptr)
             , _callsign()
             , _supportedVersions()
@@ -212,7 +220,6 @@ namespace Plugin {
         Core::ProxyType<Core::JSON::IElement> Inbound(const string& identifier) override;
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
         Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) override;
-
 
     private:
         void Cleanup();
@@ -334,6 +341,7 @@ namespace Plugin {
     private:
         Core::CriticalSection _adminLock;
         uint8_t _skipURL;
+        context _mode;
         PluginHost::IShell* _service;
         string _callsign;
         VersionMap _supportedVersions;

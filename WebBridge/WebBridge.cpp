@@ -20,16 +20,24 @@
 #include "WebBridge.h"
 
 namespace WPEFramework {
+
+    ENUM_CONVERSION_BEGIN(Plugin::WebBridge::context)
+
+        { Plugin::WebBridge::context::NONE,    _TXT("none")    },
+        { Plugin::WebBridge::context::ADDED,   _TXT("added")   },
+        { Plugin::WebBridge::context::WRAPPED, _TXT("wrapped") },
+
+    ENUM_CONVERSION_END(Plugin::WebBridge::context);
+
 namespace Plugin {
 
     SERVICE_REGISTRATION(WebBridge, 1, 0);
 
     class Registration : public Core::JSON::Container {
-    private:
+    public:
         Registration(const Registration&) = delete;
         Registration& operator=(const Registration&) = delete;
 
-    public:
         Registration()
             : Core::JSON::Container()
             , Event()
@@ -38,9 +46,7 @@ namespace Plugin {
             Add(_T("event"), &Event);
             Add(_T("id"), &Callsign);
         }
-        ~Registration()
-        {
-        }
+        ~Registration() override = default;
 
     public:
         Core::JSON::String Event;
@@ -64,6 +70,7 @@ namespace Plugin {
                 Add(_T("token"), &Token);
                 Add(_T("id"), &OriginalId);
             }
+            ~CallContext() override = default;
 
         public:
             Core::JSON::String Callsign;
@@ -79,11 +86,22 @@ namespace Plugin {
         Message()
             : Core::JSONRPC::Message() {
             Add(_T("context"), &Context);
+            Add(_T("request"), &Request);
+            Add(_T("response"), &Response);
+        }
+        Message(const Core::JSONRPC::Message& inbound)
+            : Core::JSONRPC::Message() 
+            , Request(inbound) {
+            Add(_T("context"), &Context);
+            Add(_T("request"), &Request);
+            Add(_T("response"), &Response);
         }
         ~Message() override = default;
 
     public:
         CallContext Context;
+        Core::JSONRPC::Message Request;
+        Core::JSONRPC::Message Response;
     };
 
     static Core::ProxyPoolType<Message> g_BridgeMessages(8);
@@ -103,6 +121,7 @@ namespace Plugin {
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _callsign = service->Callsign();
         _service = service;
+        _mode = config.Context.Value();
         _timeOut = (config.TimeOut.Value() * Core::Time::TicksPerMillisecond);
 
         // On success return empty, to indicate there is no error text.
@@ -196,14 +215,34 @@ namespace Plugin {
                 std::forward_as_tuple(context.ChannelId(), message->Id.Value(), waitTill));
 
             message->Id = newId;
-            message->Parameters = inbound.Parameters;
-            message->Designator = inbound.Designator;
-            message->Context.Callsign = _callsign;
-            message->Context.ChannelId = context.ChannelId();
-            message->Context.OriginalId = context.Sequence();
-            message->Context.Token = context.Token();
 
-            TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), message->Id.Value(), context.ChannelId(), method.c_str()));
+            switch (_mode) {
+            case WebBridge::context::ADDED: {
+                message->Context.ChannelId = context.ChannelId();
+                message->Context.OriginalId = context.Sequence();
+                message->Context.Token = context.Token();
+                message->Context.Callsign = _callsign;
+            }
+            case WebBridge::context::NONE: {
+                message->Parameters = inbound.Parameters;
+                message->Designator = inbound.Designator;
+                break;
+            }
+            case WebBridge::context::WRAPPED: {
+                Message wrapper(inbound);
+
+                wrapper.Context.ChannelId = context.ChannelId();
+                wrapper.Context.Token = context.Token();
+
+                string fullParameters;
+                wrapper.ToString(fullParameters);
+                message->Parameters = fullParameters;
+                message->Designator = _callsign;
+                break;
+            }
+            }
+
+            TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), newId, context.ChannelId(), method.c_str()));
 
             _service->Submit(_javascriptService, Core::ProxyType<Core::JSON::IElement>(message));
 
