@@ -141,6 +141,7 @@ namespace WPEFramework {
             uint32_t setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response);
             void InitAudioPorts();
             void AudioPortsReInitialize();
+            static void initAudioPortsWorker(void);
             //End methods
 
             //Begin events
