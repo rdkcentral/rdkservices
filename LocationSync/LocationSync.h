@@ -21,6 +21,7 @@
 #define LOCATIONSYNC_LOCATIONSYNC_H
 
 #include "LocationService.h"
+#include <interfaces/ITimeZone.h>
 #include <interfaces/json/JsonData_LocationSync.h>
 #include "Module.h"
 
@@ -167,6 +168,84 @@ namespace Plugin {
         };
 
     private:
+        class TZ {
+        public:
+            TZ() : _sync(true) {}
+
+            static TZ& Instance()
+            {
+                static TZ& _instance = Core::SingletonType<TZ>::Instance();
+                return (_instance);
+            }
+
+            void Set(const string &value, bool synced)
+            {
+                Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
+
+                if ((value.empty() == false) && (!synced || _sync)) {
+                    if (!synced && _sync) {
+
+                        // time zone set explicitly, no need to sync
+
+                        _sync = false;
+                    }
+
+                    Core::SystemInfo::SetEnvironment(_T("TZ"), value);
+                }
+            }
+
+        private:
+            bool _sync;
+            Core::CriticalSection _adminLock;
+        };
+
+        class TimeZoneNotification : protected Exchange::ITimeZone::INotification {
+        private:
+            TimeZoneNotification(const TimeZoneNotification&) = delete;
+            TimeZoneNotification& operator=(const TimeZoneNotification&) = delete;
+
+        public:
+            TimeZoneNotification() : _client(nullptr) { }
+            ~TimeZoneNotification() = default;
+
+        public:
+            void Initialize(Exchange::ITimeZone* client)
+            {
+                ASSERT(_client == nullptr);
+                ASSERT(client != nullptr);
+
+                _client = client;
+                _client->AddRef();
+                _client->Register(this);
+            }
+            void Deinitialize()
+            {
+                ASSERT(_client != nullptr);
+
+                if (_client != nullptr) {
+                    _client->Unregister(this);
+                    _client->Release();
+                    _client = nullptr;
+                }
+            }
+
+        public:
+            // ITimeZone::INotification methods
+
+            virtual void TimeZoneChanged(const string &timeZone) override
+            {
+                TZ::Instance().Set(timeZone, false);
+            }
+
+            BEGIN_INTERFACE_MAP(TimeZoneNotification)
+            INTERFACE_ENTRY(Exchange::ITimeZone::INotification)
+            END_INTERFACE_MAP
+
+        private:
+            Exchange::ITimeZone* _client;
+        };
+
+    private:
         LocationSync(const LocationSync&) = delete;
         LocationSync& operator=(const LocationSync&) = delete;
 
@@ -179,6 +258,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::ITimeZone, _timeZone)
         END_INTERFACE_MAP
 
     public:
@@ -207,6 +287,8 @@ namespace Plugin {
         string _source;
         Core::Sink<Notification> _sink;
         PluginHost::IShell* _service;
+        Exchange::ITimeZone* _timeZone;
+        Core::Sink<TimeZoneNotification> _timeZoneSink;
     };
 
 } // namespace Plugin

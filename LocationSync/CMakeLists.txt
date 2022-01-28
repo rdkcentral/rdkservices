@@ -28,6 +28,7 @@ add_library(${MODULE_NAME} SHARED
     LocationSync.cpp
     LocationService.cpp
     LocationSyncJsonRpc.cpp
+        TimeZone.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
