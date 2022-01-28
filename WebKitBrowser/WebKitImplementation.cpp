@@ -520,6 +520,7 @@ static GSourceFuncs _handlerIntervention =
                 : Core::JSON::Container()
                 , WebkitDebug()
                 , GstDebug()
+                , GstNoColor()
                 , MixedContentWhitelist()
                 , UserAgent()
                 , URL(_T("http://www.google.com"))
@@ -573,6 +574,7 @@ static GSourceFuncs _handlerIntervention =
             {
                 Add(_T("webkitdebug"), &WebkitDebug);
                 Add(_T("gstdebug"), &GstDebug);
+                Add(_T("gstnocolor"), &GstNoColor);
                 Add(_T("mixedcontentwhitelist"), &MixedContentWhitelist);
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -634,6 +636,7 @@ static GSourceFuncs _handlerIntervention =
         public:
             Core::JSON::String WebkitDebug;
             Core::JSON::String GstDebug;
+            Core::JSON::Boolean GstNoColor;
             Core::JSON::String MixedContentWhitelist;
             Core::JSON::String UserAgent;
             Core::JSON::String URL;
@@ -2195,6 +2198,10 @@ static GSourceFuncs _handlerIntervention =
             // GST_DEBUG
             if (_config.GstDebug.Value().empty() == false)
                Core::SystemInfo::SetEnvironment(_T("GST_DEBUG"), _config.GstDebug.Value(), !environmentOverride);
+
+            // GST_DEBUG_NO_COLOR
+            if (_config.GstNoColor.IsSet())
+                Core::SystemInfo::SetEnvironment(_T("GST_DEBUG_NO_COLOR"), _T("1"), !environmentOverride);
 
             // Allow running mixed content for whitelisted URLs
             if (_config.MixedContentWhitelist.Value().empty() == false)
