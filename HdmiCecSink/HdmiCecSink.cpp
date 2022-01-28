@@ -808,17 +808,22 @@ namespace WPEFramework
 
        void HdmiCecSink::onCECDaemonInit()
        {
-            if(true == getEnabled())
-            {
-		LOGINFO("CEC getEnabled() already TRUE. Disable and enable CEC again\n ");
-                setEnabled(false);
-                setEnabled(true);
-            }
-            else
-            {
-		LOGINFO("CEC getEnabled() FALSE. Enable CEC\n ");
-                setEnabled(true);
-            }
+           if(cecSettingEnabled) {
+                if(true == getEnabled())
+                {
+		    LOGINFO("CEC getEnabled() already TRUE. Disable and enable CEC again\n ");
+                    setEnabled(false);
+                    setEnabled(true);
+                }
+                else
+                {
+		    LOGINFO("CEC getEnabled() FALSE. Enable CEC\n ");
+                    setEnabled(true);
+                }
+           }
+           else {
+               LOGINFO("cecSettingEnabled FALSE. Do Nothing....\n ");
+           }
        }
 
        void HdmiCecSink::cecStatusUpdated(void *evtStatus)
