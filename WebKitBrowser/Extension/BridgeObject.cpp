@@ -67,7 +67,11 @@ static void CallBridge(WebKitWebPage* page, const char* scriptSrc, WebKitUserMes
     if (g_utf8_validate(decoded, decodedLen, nullptr) == FALSE) {
         TRACE_GLOBAL(Trace::Error, (_T("Decoded message is not a valid UTF8 string!")));
         gchar *tmp = decoded;
+#if GLIB_CHECK_VERSION(2, 52, 0)
         decoded = g_utf8_make_valid(tmp, decodedLen);
+#else
+        decoded = g_strdup("[Invalid UTF-8]");
+#endif
         g_free(tmp);
         decodedLen = strlen(decoded);
     }
