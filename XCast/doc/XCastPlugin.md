@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.Xcast plugin for Thunder framework.
+A org.rdk.Xcast plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkXCast.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [XCast.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/XCast.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -87,19 +95,23 @@ XCast interface methods:
 | :-------- | :-------- |
 | [getApiVersionNumber](#method.getApiVersionNumber) | Gets the API version |
 | [getEnabled](#method.getEnabled) | Reports whether xcast is enabled or disabled |
-| [getFriendlyName](#method.getFriendlyName) | Gets the human readable name for the implementation |
+| [getFriendlyName](#method.getFriendlyName) | Returns the friendly name set by setFriendlyName API |
 | [getStandbyBehavior](#method.getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
 | [onApplicationStateChanged](#method.onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
 | [registerApplications](#method.registerApplications) | Registers an application |
 | [setEnabled](#method.setEnabled) | Enables or disables xcast |
-| [setFriendlyName](#method.setFriendlyName) | Sets a name for the implementation |
+| [setFriendlyName](#method.setFriendlyName) | Sets the friendly name of device |
 | [setStandbyBehavior](#method.setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
 
 
 <a name="method.getApiVersionNumber"></a>
-## *getApiVersionNumber <sup>method</sup>*
+## *getApiVersionNumber [<sup>method</sup>](#head.Methods)*
 
 Gets the API version.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -120,7 +132,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.getApiVersionNumber"
 }
 ```
@@ -130,7 +142,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "version": 1,
         "success": true
@@ -139,9 +151,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getEnabled"></a>
-## *getEnabled <sup>method</sup>*
+## *getEnabled [<sup>method</sup>](#head.Methods)*
 
 Reports whether xcast is enabled or disabled.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -162,7 +178,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.getEnabled"
 }
 ```
@@ -172,7 +188,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enabled": true,
         "success": true
@@ -181,9 +197,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getFriendlyName"></a>
-## *getFriendlyName <sup>method</sup>*
+## *getFriendlyName [<sup>method</sup>](#head.Methods)*
 
-Gets the human readable name for the implementation.
+Returns the friendly name set by setFriendlyName API.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -204,7 +224,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.getFriendlyName"
 }
 ```
@@ -214,7 +234,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "friendlyname": "xdial",
         "success": true
@@ -223,9 +243,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getStandbyBehavior"></a>
-## *getStandbyBehavior <sup>method</sup>*
+## *getStandbyBehavior [<sup>method</sup>](#head.Methods)*
 
 Gets the expected xcast behavior in standby mode.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -246,7 +270,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.getStandbyBehavior"
 }
 ```
@@ -256,7 +280,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "standbybehavior": "active",
         "success": true
@@ -265,7 +289,7 @@ This method takes no parameters.
 ```
 
 <a name="method.onApplicationStateChanged"></a>
-## *onApplicationStateChanged <sup>method</sup>*
+## *onApplicationStateChanged [<sup>method</sup>](#head.Methods)*
 
 provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  
  Client Error Mapping Example:  
@@ -275,7 +299,11 @@ provides notification whenever an application changes state (due to user activit
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |.
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |. 
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -301,13 +329,13 @@ provides notification whenever an application changes state (due to user activit
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
         "applicationId": "1234",
-        "error": ""
+        "error": "..."
     }
 }
 ```
@@ -317,7 +345,7 @@ provides notification whenever an application changes state (due to user activit
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -325,9 +353,13 @@ provides notification whenever an application changes state (due to user activit
 ```
 
 <a name="method.registerApplications"></a>
-## *registerApplications <sup>method</sup>*
+## *registerApplications [<sup>method</sup>](#head.Methods)*
 
-Registers an application.
+Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -350,7 +382,7 @@ Registers an application.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.registerApplications",
     "params": {
         "applications": "NetflixApp"
@@ -363,7 +395,7 @@ Registers an application.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -371,9 +403,13 @@ Registers an application.
 ```
 
 <a name="method.setEnabled"></a>
-## *setEnabled <sup>method</sup>*
+## *setEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables or disables xcast.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -396,7 +432,7 @@ Enables or disables xcast.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.setEnabled",
     "params": {
         "enabled": true
@@ -409,7 +445,7 @@ Enables or disables xcast.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -417,9 +453,13 @@ Enables or disables xcast.
 ```
 
 <a name="method.setFriendlyName"></a>
-## *setFriendlyName <sup>method</sup>*
+## *setFriendlyName [<sup>method</sup>](#head.Methods)*
 
-Sets a name for the implementation.
+Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -442,7 +482,7 @@ Sets a name for the implementation.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.setFriendlyName",
     "params": {
         "friendlyname": "xdial"
@@ -455,7 +495,7 @@ Sets a name for the implementation.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -463,9 +503,13 @@ Sets a name for the implementation.
 ```
 
 <a name="method.setStandbyBehavior"></a>
-## *setStandbyBehavior <sup>method</sup>*
+## *setStandbyBehavior [<sup>method</sup>](#head.Methods)*
 
-Sets the expected xcast behavior in standby mode.
+Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
+  
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -488,7 +532,7 @@ Sets the expected xcast behavior in standby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Xcast.1.setStandbyBehavior",
     "params": {
         "standbybehavior": "active"
@@ -501,7 +545,7 @@ Sets the expected xcast behavior in standby mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -527,7 +571,7 @@ XCast interface events:
 
 
 <a name="event.onApplicationHideRequest"></a>
-## *onApplicationHideRequest <sup>event</sup>*
+## *onApplicationHideRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the cast service receives a hide request from a client. This is a request to hide an application from the foreground (suspend/run in background).  
 Upon hiding the application, the resident application is responsible for calling the `onApplicationStateChanged` method if hiding the application changes its running state.
@@ -554,7 +598,7 @@ Upon hiding the application, the resident application is responsible for calling
 ```
 
 <a name="event.onApplicationLaunchRequest"></a>
-## *onApplicationLaunchRequest <sup>event</sup>*
+## *onApplicationLaunchRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the cast service receives a launch request from a client. This is a request to launch an application. The resident application can determine if the application should be launched based on the current context. If the application is not already running, the requested application is started. If the application is already running and is in background mode, the requested application enters foreground mode (`optimus::running`, `xcast::running`). If the application is already in foreground mode, the request does not change the application state.  
 Upon launching the application, the resident application is responsible for calling the `onApplicationStateChanged` method, which sends the notification back to the XCast client (for example, `Dial`).
@@ -584,7 +628,7 @@ Upon launching the application, the resident application is responsible for call
 ```
 
 <a name="event.onApplicationResumeRequest"></a>
-## *onApplicationResumeRequest <sup>event</sup>*
+## *onApplicationResumeRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the cast service receives a resume request from a client. This is a request to resume an application.  
 Upon resuming the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
@@ -611,7 +655,7 @@ Upon resuming the application, the resident application is responsible for calli
 ```
 
 <a name="event.onApplicationStateRequest"></a>
-## *onApplicationStateRequest <sup>event</sup>*
+## *onApplicationStateRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the cast service needs an update of the application state.  
 The resident application is responsible for calling the `onApplicationStateChanged` method indicating the current state.
@@ -638,7 +682,7 @@ The resident application is responsible for calling the `onApplicationStateChang
 ```
 
 <a name="event.onApplicationStopRequest"></a>
-## *onApplicationStopRequest <sup>event</sup>*
+## *onApplicationStopRequest [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the cast service receives a stop request from a client. This is a request to stop an application. If the application is already running and either in foreground or background mode, then the requested application is destroyed (`optimus::destroyed`, `xcast::stopped`). If the application is not running, this request triggers an error `onApplicationStateChanged` message with `Invalid`.  
 Upon stopping the application, the resident application is responsible for calling the `onApplicationStateChanged` method.
