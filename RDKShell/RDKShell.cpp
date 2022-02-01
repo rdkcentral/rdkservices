@@ -398,6 +398,7 @@ namespace WPEFramework {
         std::mutex gRdkShellMutex;
         std::mutex gPluginDataMutex;
         std::mutex gLaunchDestroyMutex;
+        std::mutex gDestroyMutex;
 
         std::mutex gLaunchMutex;
         int32_t gLaunchCount = 0;
@@ -3553,19 +3554,46 @@ namespace WPEFramework {
                 uint32_t status;
                 const string callsign = parameters["callsign"].String();
                 std::cout << "about to suspend " << callsign << std::endl;
-
-                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
-                if (stateControl) {
-                  stateControl->Request(PluginHost::IStateControl::SUSPEND);
-                  stateControl->Release();
-                  status = Core::ERROR_NONE;
-                } else {
-                  WPEFramework::Core::JSON::String stateString;
-                  stateString = "suspended";
-                  const string callsignWithVersion = callsign + ".1";
-                  status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+		string client;
+                if (parameters.HasLabel("client"))
+                {
+                    client = parameters["client"].String();
                 }
-
+                else
+                {
+                    client = parameters["callsign"].String();
+                }
+                bool isApplicationBeingDestroyed = false;
+            	gLaunchDestroyMutex.lock();
+            	if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            	{
+                    isApplicationBeingDestroyed = true;
+            	}
+            	gLaunchDestroyMutex.unlock();
+            	if (isApplicationBeingDestroyed)
+            	{
+                    std::cout << "ignoring suspend for " << client << " as it is being destroyed " << std::endl;
+		    result=false;
+		    response["message"] = "failed to suspend application";
+                    returnResponse(result);
+            	}
+                gDestroyMutex.lock();
+                PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
+                if (stateControl)
+		{
+                    stateControl->Request(PluginHost::IStateControl::SUSPEND);
+                    stateControl->Release();
+                    gDestroyMutex.unlock();
+                    status = Core::ERROR_NONE;
+                }
+		else
+		{
+                    gDestroyMutex.unlock();
+                    WPEFramework::Core::JSON::String stateString;
+                    stateString = "suspended";
+                    const string callsignWithVersion = callsign + ".1";
+                    status = getThunderControllerClient(callsignWithVersion)->Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
                 if (status > 0)
                 {
                     std::cout << "failed to suspend " << callsign << ".  status: " << status << std::endl;
@@ -3618,7 +3646,9 @@ namespace WPEFramework {
                 joParams.Set("callsign",callsign.c_str());
                 JsonObject joResult;
                 auto thunderController = getThunderControllerClient();
+                gDestroyMutex.lock();
                 uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
+                gDestroyMutex.unlock();
                 if (status > 0)
                 {
                     std::cout << "failed to destroy " << callsign << ".  status: " << status << std::endl;
@@ -5675,7 +5705,19 @@ namespace WPEFramework {
             }
             ret = CompositorController::setVisibility(client, visible);
             gRdkShellMutex.unlock();
-
+            
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setvisibility for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
             std::map<std::string, PluginData> activePluginsData;
             gPluginDataMutex.lock();
             activePluginsData = gActivePluginsData;
@@ -5688,6 +5730,18 @@ namespace WPEFramework {
                 {
                     std::cout << "setting the visiblity of " << client << " to " << visible << std::endl;
                     uint32_t status = 0;
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(client) != gDestroyApplications.end())
+                    {
+                        isApplicationBeingDestroyed = true;
+                    }
+                    gLaunchDestroyMutex.unlock();
+					if (isApplicationBeingDestroyed)
+                    {
+                        std::cout << "ignoring setvisibility for " << client << " as it is being destroyed " << std::endl;
+						return false;
+                    }
+                    gDestroyMutex.lock();
                     Exchange::IWebBrowser *browser = mCurrentService->QueryInterfaceByCallsign<Exchange::IWebBrowser>(client);
                     if (browser != NULL)
                     {
@@ -5698,9 +5752,10 @@ namespace WPEFramework {
                     {
                         status = 1;
                     }
+                    gDestroyMutex.unlock();
                     if (status > 0)
                     {
-                        std::cout << "failed to set visibility proprty to browser " << client << " with status code " << status << std::endl;
+                        std::cout << "failed to set visibility property to browser " << client << " with status code " << status << std::endl;
                     }
                 }
             }
