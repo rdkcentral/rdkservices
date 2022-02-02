@@ -27,23 +27,26 @@ namespace Plugin {
 
         _file = file;
 
-        auto timeZone = GetTimeZone();
+        string timeZone;
 
-        if (timeZone.empty() == false) {
+        if ((GetTimeZone(timeZone) == Core::ERROR_NONE) &&
+            (timeZone.empty() == false)) {
             TimeZoneChanged(timeZone);
         }
     }
 
-    void TimeZone::Register(Exchange::ITimeZone::INotification *notification) {
+    uint32_t TimeZone::Register(Exchange::ITimeZone::INotification *notification) {
         Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
 
         ASSERT(std::find(_clients.begin(), _clients.end(), notification) == _clients.end());
 
         notification->AddRef();
         _clients.push_back(notification);
+
+        return Core::ERROR_NONE;
     }
 
-    void TimeZone::Unregister(Exchange::ITimeZone::INotification *notification) {
+    uint32_t TimeZone::Unregister(Exchange::ITimeZone::INotification *notification) {
         Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
 
         std::list<Exchange::ITimeZone::INotification *>::iterator
@@ -55,17 +58,25 @@ namespace Plugin {
             notification->Release();
             _clients.erase(index);
         }
+
+        return Core::ERROR_NONE;
     }
 
-    string TimeZone::GetTimeZone() {
-        string result;
+    uint32_t TimeZone::GetTimeZone(string &timeZone) const {
+        uint32_t result;
 
         Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
 
-        if (_file.empty() == false) {
+        if (_file.empty() == true) {
+            result = Core::ERROR_ILLEGAL_STATE;
+        } else {
             Core::File file(_file);
 
-            if (file.Exists() && file.Open(true)) {
+            if ((file.Exists() == false) || (file.Open(true) == false)) {
+                result = Core::ERROR_NOT_EXIST;
+            } else {
+                timeZone.clear();
+
                 const uint32_t bufLen = 16;
 
                 uint32_t len;
@@ -75,32 +86,41 @@ namespace Plugin {
                     len = file.Read(reinterpret_cast<uint8_t *>(buffer), bufLen);
 
                     if (len > 0) {
-                        result.append(buffer, len);
+                        timeZone.append(buffer, len);
                     }
                 } while (len == bufLen);
+
+                result = Core::ERROR_NONE;
             }
         }
 
         return result;
     }
 
-    bool TimeZone::SetTimeZone(const string &timeZone) {
-        bool result = false;
+    uint32_t TimeZone::SetTimeZone(const string &timeZone) {
+        uint32_t result;
 
         Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
 
-        if (_file.empty() == false) {
+        if (_file.empty() == true) {
+            result = Core::ERROR_ILLEGAL_STATE;
+        } else {
             Core::File file(_file);
 
-            if (file.Create()) {
+            if (file.Create() == false) {
+                result = Core::ERROR_NOT_EXIST;
+            } else {
                 auto bufLen = timeZone.size();
 
                 auto len = file.Write(
                     reinterpret_cast<const uint8_t *>(timeZone.data()), bufLen);
 
-                if (len == bufLen) {
+                if (len != bufLen) {
+                    result = Core::ERROR_WRITE_ERROR;
+                } else {
                     TimeZoneChanged(timeZone);
-                    result = true;
+
+                    result = Core::ERROR_NONE;
                 }
             }
         }

@@ -2126,8 +2126,9 @@ namespace WPEFramework {
                     auto service = m_shellService->
                         QueryInterfaceByCallsign<Exchange::ITimeZone>("LocationSync");
 
-                    if (service != nullptr) {
-                        resp = service->SetTimeZone(timeZone);
+                    if ((service != nullptr) &&
+                        (service->SetTimeZone(timeZone) == Core::ERROR_NONE)) {
+                        resp = true;
                     }
                 }
             } else {
@@ -2146,9 +2147,11 @@ namespace WPEFramework {
                 QueryInterfaceByCallsign<Exchange::ITimeZone>("LocationSync");
 
             if (service != nullptr) {
-                string timeZone = service->GetTimeZone();
+                string timeZone;
 
-                if (timeZone.empty() || (timeZone == "null")) {
+                if ((service->GetTimeZone(timeZone) != Core::ERROR_NONE) ||
+                    timeZone.empty() ||
+                    (timeZone == "null")) {
                     LOGERR("Empty timeZone received.");
                 } else {
                     response["timeZone"] = timeZone;

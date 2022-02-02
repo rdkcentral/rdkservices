@@ -40,11 +40,10 @@ namespace Plugin {
     public:
         // ITimeZone methods
 
-        virtual void Register(Exchange::ITimeZone::INotification *notification) override;
-        virtual void Unregister(Exchange::ITimeZone::INotification *notification) override;
-
-        virtual string GetTimeZone() override;
-        virtual bool SetTimeZone(const string &timeZone) override;
+        virtual uint32_t Register(Exchange::ITimeZone::INotification *notification) override;
+        virtual uint32_t Unregister(Exchange::ITimeZone::INotification *notification) override;
+        virtual uint32_t GetTimeZone(string &timeZone) const override;
+        virtual uint32_t SetTimeZone(const string &timeZone) override;
 
         BEGIN_INTERFACE_MAP(TimeZone)
         INTERFACE_ENTRY(Exchange::ITimeZone)
@@ -55,7 +54,7 @@ namespace Plugin {
 
     private:
         string _file;
-        Core::CriticalSection _adminLock;
+        mutable Core::CriticalSection _adminLock;
         std::list<Exchange::ITimeZone::INotification *> _clients;
     };
 
