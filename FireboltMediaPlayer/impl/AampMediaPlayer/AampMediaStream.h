@@ -59,7 +59,7 @@ namespace WPEFramework {
             // Thread Interface
             uint32_t Worker() override;
 
-            mutable Core::CriticalSection _adminLock;
+            mutable Core::CriticalSection _adminLock, _notificationRelease;
             Exchange::IMediaPlayer::IMediaStream::INotification *_notification;
             PlayerInstanceAAMP *_aampPlayer;
             AampEventListener *_aampEventListener;
