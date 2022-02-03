@@ -488,7 +488,7 @@ namespace WPEFramework {
 
         AampMediaStream::AampMediaStream()
         : _adminLock()
-	, _notificationRelease() //Lock
+        , _notificationRelease() //Lock
         , _notification(nullptr)
         , _aampPlayer(nullptr)
         , _aampEventListener(nullptr)
@@ -523,12 +523,12 @@ namespace WPEFramework {
                 return;
             }
 
-	    _notificationRelease.Lock();
+             _notificationRelease.Lock();
             if (_notification != nullptr) {
                 _notification->Release();
                 _notification = nullptr;
             }
-	    _notificationRelease.Unlock();
+            _notificationRelease.Unlock();
             _adminLock.Unlock();
             _aampPlayer->Stop();
             Block();
@@ -664,14 +664,14 @@ namespace WPEFramework {
         {
             LOGINFO();
             _adminLock.Lock();
-	    
-	    _notificationRelease.Lock();
+
+            _notificationRelease.Lock();
             if (_notification != nullptr) {
                 _notification->Release();
             }
-	    _notificationRelease.Unlock();
-	    
-	    if (notification != nullptr) {
+            _notificationRelease.Unlock();
+
+            if (notification != nullptr) {
                 notification->AddRef();
             }
             _notification = notification;
@@ -686,11 +686,9 @@ namespace WPEFramework {
 
             if (_notification != nullptr
                     && _notification == notification) {
-	        _notificationRelease.Lock();
-	        _notification->Release();
-		_notificationRelease.Unlock();
-		
-		notification->Release();
+                _notificationRelease.Lock();
+                _notification->Release();
+                _notificationRelease.Unlock();
                 _notification = nullptr;
             }
             _adminLock.Unlock();
@@ -707,14 +705,14 @@ namespace WPEFramework {
                 _adminLock.Unlock();
                 return;
             }
-	    // deep copy
-	    string eventForNotification = eventName.c_str();
-	    string parametersForNotification = parameters.c_str();
-	    _adminLock.Unlock();
-	    
-	    _notificationRelease.Lock();
-	    _notification->Event(eventForNotification, parametersForNotification);
-	    _notificationRelease.Unlock();
+            // deep copy
+            string eventForNotification = eventName.c_str();
+            string parametersForNotification = parameters.c_str();
+            _adminLock.Unlock();
+
+            _notificationRelease.Lock();
+            _notification->Event(eventForNotification, parametersForNotification);
+            _notificationRelease.Unlock();
         }
 
         // Thread overrides
