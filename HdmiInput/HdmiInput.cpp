@@ -48,6 +48,8 @@
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 #define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 
+#define HDMIINPUT_DEFAULT_NUM_OF_INPUTS (3)
+
 using namespace std;
 
 namespace WPEFramework
@@ -62,7 +64,8 @@ namespace WPEFramework
         : AbstractPlugin(2)
         {
             HdmiInput::_instance = this;
-
+            m_numberOfHdmiinputs = HDMIINPUT_DEFAULT_NUM_OF_INPUTS;
+            m_numberOfHdmiinputsValid = false;
             InitializeIARM();
 
             registerMethod(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
@@ -86,6 +89,7 @@ namespace WPEFramework
         void HdmiInput::Deinitialize(PluginHost::IShell* /* service */)
         {
             HdmiInput::_instance = nullptr;
+            m_numberOfHdmiinputsValid = false;
 
             DeinitializeIARM();
         }
@@ -297,7 +301,13 @@ namespace WPEFramework
             JsonArray list;
             try
             {
-                int num = device::HdmiInput::getInstance().getNumberOfInputs();
+                //int num = device::HdmiInput::getInstance().getNumberOfInputs();
+                if (!m_numberOfHdmiinputsValid) {
+                    LOGINFO("Reading numberOfHdmiinputs from HAL");
+                    m_numberOfHdmiinputs = device::HdmiInput::getInstance().getNumberOfInputs();
+                    m_numberOfHdmiinputsValid = true;
+                }
+                int num = m_numberOfHdmiinputs;
                 if (num > 0) {
                     int i = 0;
                     for (i = 0; i < num; i++) {

@@ -30,6 +30,9 @@
 #include "libIBusDaemon.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
+#include <vector>
+
+using std::vector;
 
 namespace WPEFramework {
 
@@ -219,6 +222,8 @@ namespace WPEFramework {
             };
 
             int m_currentArcRoutingState; 
+            vector<string> m_supportedAudioPorts;
+            bool m_supportedAudioPortsValid;
 
         public:
             static DisplaySettings* _instance;

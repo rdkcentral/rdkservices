@@ -98,6 +98,9 @@ namespace WPEFramework {
 
         public:
             static HdmiInput* _instance;
+        private:
+            int m_numberOfHdmiinputs;
+            bool m_numberOfHdmiinputsValid;
         };
 	} // namespace Plugin
 } // namespace WPEFramework

@@ -146,6 +146,7 @@ namespace WPEFramework {
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
+            m_supportedAudioPortsValid = false;
 
             registerMethod("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
             registerMethod("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
@@ -244,6 +245,7 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO("dtor");
+            m_supportedAudioPortsValid = false;
             if ( m_timer.isActive()) {
                 m_timer.stop();
             }
@@ -1074,22 +1076,26 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSupportedAudioPorts(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"success":true,"supportedAudioPorts":["HDMI0"]}
             LOGINFOMETHOD();
-            vector<string> supportedAudioPorts;
-            try
-            {
-                device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
-                for (size_t i = 0; i < aPorts.size(); i++)
+            if (!m_supportedAudioPortsValid) {
+                LOGINFO("Reading supportedAudioPorts from HAL");
+                m_supportedAudioPorts.clear ();
+                try
                 {
-                    device::AudioOutputPort &vPort = aPorts.at(i);
-                    string portName  = vPort.getName();
-                    vectorSet(supportedAudioPorts,portName);
+                    device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                    for (size_t i = 0; i < aPorts.size(); i++)
+                    {
+                        device::AudioOutputPort &vPort = aPorts.at(i);
+                        string portName  = vPort.getName();
+                        vectorSet(m_supportedAudioPorts,portName);
+                    }
                 }
+                catch(const device::Exception& err)
+                {
+                    LOG_DEVICE_EXCEPTION0();
+                }
+                m_supportedAudioPortsValid = true;
             }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION0();
-            }
-            setResponseArray(response, "supportedAudioPorts", supportedAudioPorts);
+            setResponseArray(response, "supportedAudioPorts", m_supportedAudioPorts);
             returnResponse(true);
         }
 
