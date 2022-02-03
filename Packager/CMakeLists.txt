@@ -20,15 +20,6 @@ set(MODULE_NAME WPEFramework${PLUGIN_NAME})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(PLUGIN_PACKAGER_AUTOSTART "true" CACHE STRING "Automatically start Packager plugin")
-set(PLUGIN_PACKAGER_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-
-# deprecated/legacy flags support
-if(PLUGIN_PACKAGER_OUTOFPROCESS STREQUAL "false")
-    set(PLUGIN_PACKAGER_MODE "Off" CACHE STRING "Process mode"  FORCE)
-    unset(PLUGIN_PACKAGER_OUTOFPROCESS CACHE)
-endif()
-
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(libprovision QUIET)
 find_package(LibOPKG REQUIRED)
