@@ -657,65 +657,68 @@ namespace WPEFramework
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
                 iarmData.isSupported = false;
 
-                RFC_ParamData_t param;
-                if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
+                if (!autoconfig)
                 {
-                    if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
                     {
-                        iarmData.isSupported  = true;
+                        if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                        {
+                            iarmData.isSupported  = true;
+                        }
                     }
-                }
-                if (false == iarmData.isSupported)
-                {
-                    LOGWARN("Manual IP Settings not Enabled..\n");
-                    response["supported"] = iarmData.isSupported;
-                    result = false;
-                    returnResponse(result)
-                }
-                bool mask_validation;
-                mask_validation = isValidCIDRv4(netmask.c_str());
-                if (false == mask_validation)
-                {
-                    LOGWARN("Netmask is not valid ..\n");
-                    response["supported"] = iarmData.isSupported;
-                    result = false;
-                    returnResponse(result)
-                }
+                    if (false == iarmData.isSupported)
+                    {
+                        LOGWARN("Manual IP Settings not Enabled..\n");
+                        response["supported"] = iarmData.isSupported;
+                        result = false;
+                        returnResponse(result)
+                    }
+                    bool mask_validation;
+                    mask_validation = isValidCIDRv4(netmask.c_str());
+                    if (false == mask_validation)
+                    {
+                        LOGWARN("Netmask is not valid ..\n");
+                        response["supported"] = iarmData.isSupported;
+                        result = false;
+                        returnResponse(result)
+                    }
 
-                if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
-                    inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
-                    inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
-                {
-                    broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
-                    broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
+                    if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
+                        inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
+                        inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
+                    {
+                        broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
+                        broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
 
-                    if (ip_address.s_addr == gateway_address.s_addr)
-                    {
-                        LOGWARN("Interface and Gateway IP are same , return false \n");
-                        response["supported"] = iarmData.isSupported;
-                        result = false;
-                        returnResponse(result)
-                    }
-                    if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
-                    {
-                        LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
-                        response["supported"] = iarmData.isSupported;
-                        result = false;
-                        returnResponse(result)
-                    }
-                    if (ip_address.s_addr == broadcast_addr1.s_addr)
-                    {
-                        LOGWARN("Interface and Broadcast IP is same, return false \n");
-                        response["supported"] = iarmData.isSupported;
-                        result = false;
-                        returnResponse(result)
-                    }
-                    if (gateway_address.s_addr == broadcast_addr2.s_addr)
-                    {
-                        LOGWARN("Gateway and Broadcast IP is same, return false \n");
-                        response["supported"] = iarmData.isSupported;
-                        result = false;
-                        returnResponse(result)
+                        if (ip_address.s_addr == gateway_address.s_addr)
+                        {
+                            LOGWARN("Interface and Gateway IP are same , return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
+                        {
+                            LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (ip_address.s_addr == broadcast_addr1.s_addr)
+                        {
+                            LOGWARN("Interface and Broadcast IP is same, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (gateway_address.s_addr == broadcast_addr2.s_addr)
+                        {
+                            LOGWARN("Gateway and Broadcast IP is same, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
                     }
                 }
                 if (IARM_RESULT_SUCCESS ==

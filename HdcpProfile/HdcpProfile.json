@@ -79,7 +79,7 @@
     },
     "methods": {
         "getHDCPStatus": {
-            "summary": "Returns HDCP-related data.  \n**hdcpReason Argument Values**  \n* `0`: HDMI cable is not connected or rx sense status is `off`  \n* `1`: If rx device connected with power on state, then this should be the initial status  \n* `2`: HDCP success  \n* `3`:  After multiple retries, the platform should transition to this state  \n* `4`:  Platform in HDCP process   \n* `5`: Expected when `dsEnableVideoPort` is called with enable status `false`",
+            "summary": "Returns HDCP-related data.  \n**hdcpReason Argument Values**  \n* `0`: HDMI cable is not connected or rx sense status is `off`  \n* `1`: Rx device is connected with power ON state, and HDCP authentication is not initiated  \n* `2`: HDCP success  \n* `3`:  HDCP authentication failed after multiple retries  \n* `4`:  HDCP authentication in progress   \n* `5`: HDMI video port is disabled. \n \n### Events\n \nNo Events",
             "result": {
                 "type":"object",
                 "properties": {
@@ -97,7 +97,7 @@
             }
         },
         "getSettopHDCPSupport": {
-            "summary": "Returns which version of HDCP is supported by the STB",
+            "summary": "Returns which version of HDCP is supported by the STB. \n \n### Events\n \nNo Events",
             "result":{
                 "type":"object",
                 "properties": {

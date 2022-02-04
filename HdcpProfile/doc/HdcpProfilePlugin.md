@@ -6,13 +6,14 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.HdcpProfile plugin for Thunder framework.
+A org.rdk.HdcpProfile plugin for Thunder framework.
 
 ### Table of Contents
 
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkHdcpProfile.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [HdcpProfile.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/HdcpProfile.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -90,16 +98,20 @@ HdcpProfile interface methods:
 
 
 <a name="method.getHDCPStatus"></a>
-## *getHDCPStatus <sup>method</sup>*
+## *getHDCPStatus [<sup>method</sup>](#head.Methods)*
 
 Returns HDCP-related data.  
 **hdcpReason Argument Values**  
 * `0`: HDMI cable is not connected or rx sense status is `off`  
-* `1`: If rx device connected with power on state, then this should be the initial status  
+* `1`: Rx device is connected with power ON state, and HDCP authentication is not initiated  
 * `2`: HDCP success  
-* `3`:  After multiple retries, the platform should transition to this state  
-* `4`:  Platform in HDCP process   
-* `5`: Expected when `dsEnableVideoPort` is called with enable status `false`.
+* `3`:  HDCP authentication failed after multiple retries  
+* `4`:  HDCP authentication in progress   
+* `5`: HDMI video port is disabled. 
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -127,7 +139,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdcpProfile.1.getHDCPStatus"
 }
 ```
@@ -137,7 +149,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "HDCPStatus": {
             "isConnected": false,
@@ -154,9 +166,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getSettopHDCPSupport"></a>
-## *getSettopHDCPSupport <sup>method</sup>*
+## *getSettopHDCPSupport [<sup>method</sup>](#head.Methods)*
 
-Returns which version of HDCP is supported by the STB.
+Returns which version of HDCP is supported by the STB. 
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
@@ -178,7 +194,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.HdcpProfile.1.getSettopHDCPSupport"
 }
 ```
@@ -188,7 +204,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "supportedHDCPVersion": "2.2",
         "isHDCPSupported": true,
@@ -212,7 +228,7 @@ HdcpProfile interface events:
 
 
 <a name="event.onDisplayConnectionChanged"></a>
-## *onDisplayConnectionChanged <sup>event</sup>*
+## *onDisplayConnectionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotPlug` event.
 
