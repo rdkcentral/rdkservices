@@ -230,6 +230,9 @@ namespace Plugin {
             }
             case WebBridge::context::WRAPPED: {
                 Message wrapper(inbound);
+                wrapper.Remove(_T("response"));
+                message->Remove(_T("request"));
+                message->Remove(_T("response"));
 
                 wrapper.Context.ChannelId = context.ChannelId();
                 wrapper.Context.Token = context.Token();
