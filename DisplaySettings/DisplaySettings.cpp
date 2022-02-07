@@ -932,6 +932,10 @@ namespace WPEFramework {
         {
 
             LOGINFO("%s \n", __FUNCTION__);
+            if (data == NULL) {
+                LOGERR("data is NULL, return !!!\n");
+                return;
+            }
             switch (eventId) {
                 case IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED:
                   {
@@ -957,9 +961,8 @@ namespace WPEFramework {
                   break;
                 case IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED:
                   {
-                    std::string pLang = "DEF";
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                    pLang = eventData->data.AudioLanguageInfo.audioLanguage;
+                    std::string pLang = eventData->data.AudioLanguageInfo.audioLanguage;
                     LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED. Primary Language: %s \n", pLang);
                     if(DisplaySettings::_instance) {
                         DisplaySettings::_instance->notifyPrimaryLanguageChange(pLang);
@@ -968,9 +971,8 @@ namespace WPEFramework {
                   break;
                 case IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED:
                   {
-                    std::string sLang = "DEF";
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                    sLang = eventData->data.AudioLanguageInfo.audioLanguage;
+                    std::string sLang = eventData->data.AudioLanguageInfo.audioLanguage;
                     LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED. Secondary Language: %s \n", sLang);
                     if(DisplaySettings::_instance) {
                         DisplaySettings::_instance->notifySecondaryLanguageChange(sLang);
@@ -978,7 +980,7 @@ namespace WPEFramework {
                   }
                   break;
                 default:
-                    LOGERR("Invalid event ID\n");
+                    LOGERR("Unhandled Event... \n");
                     break;
            }
         }
@@ -2441,20 +2443,20 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
                 dsVolumeLeveller_t VolumeLeveller;
-                bool isIntiger = Utils::isValidInt ((char*)sVolumeLeveller.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sVolumeLeveller.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("level should be an integer");
+                    LOGWARN("level should be an unsigned integer");
                     returnResponse(false);
                 }
 
                 try {
-                        VolumeLeveller.level = stoi(sVolumeLeveller);
-			if(VolumeLeveller.level == 0) {
-				VolumeLeveller.mode = 0; //Off
-			}
-			else {
-				VolumeLeveller.mode = 1; //On
-			}
+                    VolumeLeveller.level = stoi(sVolumeLeveller);
+                    if(VolumeLeveller.level == 0) {
+                        VolumeLeveller.mode = 0; //Off
+                    }
+                    else {
+                        VolumeLeveller.mode = 1; //On
+                    }
                 }catch (const device::Exception& err) {
                         LOG_DEVICE_EXCEPTION1(sVolumeLeveller);
                         returnResponse(false);
@@ -2481,8 +2483,8 @@ namespace WPEFramework {
 		string sMode = parameters["mode"].String();
                 string sLevel = parameters["level"].String();
                 dsVolumeLeveller_t volumeLeveller;
-                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sMode.c_str()) == false)) {
-                    LOGWARN("mode and level should be an integer");
+                if ((Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false) || (Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false)) {
+                    LOGWARN("mode and level should be an unsigned integer");
                     returnResponse(false);
                 }
 
@@ -2557,9 +2559,9 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
-                bool isIntiger = Utils::isValidInt ((char*)sBassBoost.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sBassBoost.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("bassBoost should be an integer");
+                    LOGWARN("bassBoost should be an unsigned integer");
                     returnResponse(false);
                 }
                 try {
@@ -2589,9 +2591,9 @@ namespace WPEFramework {
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
                dsSurroundVirtualizer_t surroundVirtualizer;
-               bool isIntiger = Utils::isValidInt ((char*)sSurroundVirtualizer.c_str());
+               bool isIntiger = Utils::isValidUnsignedInt ((char*)sSurroundVirtualizer.c_str());
                if (false == isIntiger) {
-                   LOGWARN("boost should be an integer");
+                   LOGWARN("boost should be an unsigned integer");
                    returnResponse(false);
                }
 
@@ -2630,8 +2632,8 @@ namespace WPEFramework {
                 string sBoost = parameters["boost"].String();
                 dsSurroundVirtualizer_t surroundVirtualizer;
 
-                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sBoost.c_str()) == false)) {
-                    LOGWARN("mode and boost value should be an integer");
+                if ((Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false) || (Utils::isValidUnsignedInt ((char*)sBoost.c_str()) == false)) {
+                    LOGWARN("mode and boost value should be an unsigned integer");
                     returnResponse(false);
                 }
 
@@ -2791,9 +2793,9 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "DRCMode");
                 string sDRCMode = parameters["DRCMode"].String();
                 int DRCMode = 0;
-                bool isIntiger = Utils::isValidInt ((char*)sDRCMode.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sDRCMode.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("DRCMode should be an integer");
+                    LOGWARN("DRCMode should be an unsigned integer");
                     returnResponse(false);
                 }
                 try {
@@ -3253,7 +3255,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "mixerBalance");
                 string sMixerBalance = parameters["mixerBalance"].String();
                 int mixerBalance = 0;
-                bool isIntiger = Utils::isValidInt ((char*)sMixerBalance.c_str(), true);
+                bool isIntiger = Utils::isValidInt ((char*)sMixerBalance.c_str());
                 if (false == isIntiger) {
                     LOGWARN("mixerBalance should be an integer");
                     returnResponse(false);

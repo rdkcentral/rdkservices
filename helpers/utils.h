@@ -371,7 +371,8 @@ namespace Utils
     bool isPluginActivated(const char* callSign);
 
     bool getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput);
-    bool isValidInt(char* x, bool negativeIntAllowed = false);
+    bool isValidInt(char* x);
+    bool isValidUnsignedInt(char* x);
     void syncPersistFile (const string file);
     void persistJsonSettings(const string file, const string strKey, const JsonValue& jsValue);
 
