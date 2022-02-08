@@ -209,6 +209,15 @@ namespace WPEFramework {
             registerMethod("resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
             registerMethod("resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
 
+            registerMethod("setAssociatedAudioMixing", &DisplaySettings::setAssociatedAudioMixing, this);
+            registerMethod("getAssociatedAudioMixing", &DisplaySettings::getAssociatedAudioMixing, this);
+            registerMethod("setFaderControl", &DisplaySettings::setFaderControl, this);
+            registerMethod("getFaderControl", &DisplaySettings::getFaderControl, this);
+            registerMethod("setPrimaryLanguage", &DisplaySettings::setPrimaryLanguage, this);
+            registerMethod("getPrimaryLanguage", &DisplaySettings::getPrimaryLanguage, this);
+            registerMethod("setSecondaryLanguage", &DisplaySettings::setSecondaryLanguage, this);
+            registerMethod("getSecondaryLanguage", &DisplaySettings::getSecondaryLanguage, this);
+
             registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
             registerMethod("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
@@ -486,6 +495,10 @@ namespace WPEFramework {
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
  
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 if (res == IARM_RESULT_SUCCESS)
@@ -914,7 +927,64 @@ namespace WPEFramework {
                   break;
            }  
         }  
- 
+
+        void DisplaySettings::dsSettingsChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+
+            LOGINFO("%s \n", __FUNCTION__);
+            if (data == NULL) {
+                LOGERR("data is NULL, return !!!\n");
+                return;
+            }
+            switch (eventId) {
+                case IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED:
+                  {
+                    bool mixing = false;
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    mixing = eventData->data.AssociatedAudioMixingInfo.mixing;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED. Associated Audio Mixing: %d \n", mixing);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifyAssociatedAudioMixingChange(mixing);
+                    }
+                  }
+                  break;
+                case IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED:
+                  {
+                    int mixerbalance = 0;
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    mixerbalance = eventData->data.FaderControlInfo.mixerbalance;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED. Fader Control: %d \n", mixerbalance);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifyFaderControlChange(mixerbalance);
+                    }
+                  }
+                  break;
+                case IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED:
+                  {
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    std::string pLang = eventData->data.AudioLanguageInfo.audioLanguage;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED. Primary Language: %s \n", pLang);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifyPrimaryLanguageChange(pLang);
+                    }
+                  }
+                  break;
+                case IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED:
+                  {
+                    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                    std::string sLang = eventData->data.AudioLanguageInfo.audioLanguage;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED. Secondary Language: %s \n", sLang);
+                    if(DisplaySettings::_instance) {
+                        DisplaySettings::_instance->notifySecondaryLanguageChange(sLang);
+                    }
+                  }
+                  break;
+                default:
+                    LOGERR("Unhandled Event... \n");
+                    break;
+           }
+        }
+
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
         {
             JsonArray arr;
@@ -2098,6 +2168,34 @@ namespace WPEFramework {
             sendNotify("videoFormatChanged", params);
         }
 
+        void DisplaySettings::notifyAssociatedAudioMixingChange(bool mixing)
+        {
+             JsonObject params;
+             params["mixing"] = mixing;
+             sendNotify("associatedAudioMixingChanged", params);
+        }
+
+        void DisplaySettings::notifyFaderControlChange(bool mixerbalance)
+        {
+             JsonObject params;
+             params["mixerBalance"] = mixerbalance;
+             sendNotify("faderControlChanged", params);
+        }
+
+        void DisplaySettings::notifyPrimaryLanguageChange(std::string pLang)
+        {
+             JsonObject params;
+             params["primaryLanguage"] = pLang;
+             sendNotify("primaryLanguageChanged", params);
+        }
+
+        void DisplaySettings::notifySecondaryLanguageChange(std::string sLang)
+        {
+             JsonObject params;
+             params["secondaryLanguage"] = sLang;
+             sendNotify("secondaryLanguageChanged", params);
+        }
+
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
@@ -2345,20 +2443,20 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
                 dsVolumeLeveller_t VolumeLeveller;
-                bool isIntiger = Utils::isValidInt ((char*)sVolumeLeveller.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sVolumeLeveller.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("level should be an integer");
+                    LOGWARN("level should be an unsigned integer");
                     returnResponse(false);
                 }
 
                 try {
-                        VolumeLeveller.level = stoi(sVolumeLeveller);
-			if(VolumeLeveller.level == 0) {
-				VolumeLeveller.mode = 0; //Off
-			}
-			else {
-				VolumeLeveller.mode = 1; //On
-			}
+                    VolumeLeveller.level = stoi(sVolumeLeveller);
+                    if(VolumeLeveller.level == 0) {
+                        VolumeLeveller.mode = 0; //Off
+                    }
+                    else {
+                        VolumeLeveller.mode = 1; //On
+                    }
                 }catch (const device::Exception& err) {
                         LOG_DEVICE_EXCEPTION1(sVolumeLeveller);
                         returnResponse(false);
@@ -2385,8 +2483,8 @@ namespace WPEFramework {
 		string sMode = parameters["mode"].String();
                 string sLevel = parameters["level"].String();
                 dsVolumeLeveller_t volumeLeveller;
-                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sMode.c_str()) == false)) {
-                    LOGWARN("mode and level should be an integer");
+                if ((Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false) || (Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false)) {
+                    LOGWARN("mode and level should be an unsigned integer");
                     returnResponse(false);
                 }
 
@@ -2461,9 +2559,9 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
-                bool isIntiger = Utils::isValidInt ((char*)sBassBoost.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sBassBoost.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("bassBoost should be an integer");
+                    LOGWARN("bassBoost should be an unsigned integer");
                     returnResponse(false);
                 }
                 try {
@@ -2493,9 +2591,9 @@ namespace WPEFramework {
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
                dsSurroundVirtualizer_t surroundVirtualizer;
-               bool isIntiger = Utils::isValidInt ((char*)sSurroundVirtualizer.c_str());
+               bool isIntiger = Utils::isValidUnsignedInt ((char*)sSurroundVirtualizer.c_str());
                if (false == isIntiger) {
-                   LOGWARN("boost should be an integer");
+                   LOGWARN("boost should be an unsigned integer");
                    returnResponse(false);
                }
 
@@ -2534,8 +2632,8 @@ namespace WPEFramework {
                 string sBoost = parameters["boost"].String();
                 dsSurroundVirtualizer_t surroundVirtualizer;
 
-                if ((Utils::isValidInt ((char*)sMode.c_str()) == false) || (Utils::isValidInt ((char*)sBoost.c_str()) == false)) {
-                    LOGWARN("mode and boost value should be an integer");
+                if ((Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false) || (Utils::isValidUnsignedInt ((char*)sBoost.c_str()) == false)) {
+                    LOGWARN("mode and boost value should be an unsigned integer");
                     returnResponse(false);
                 }
 
@@ -2695,9 +2793,9 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "DRCMode");
                 string sDRCMode = parameters["DRCMode"].String();
                 int DRCMode = 0;
-                bool isIntiger = Utils::isValidInt ((char*)sDRCMode.c_str());
+                bool isIntiger = Utils::isValidUnsignedInt ((char*)sDRCMode.c_str());
                 if (false == isIntiger) {
-                    LOGWARN("DRCMode should be an integer");
+                    LOGWARN("DRCMode should be an unsigned integer");
                     returnResponse(false);
                 }
                 try {
@@ -3087,6 +3185,251 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedMS12AudioProfiles", supportedProfiles);
             returnResponse(true);
+        }
+
+
+        uint32_t DisplaySettings::setAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "mixing");
+                string sMixing = parameters["mixing"].String();
+                bool mixing = false;
+                try {
+                        mixing = parameters["mixing"].Boolean();
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMixing);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                    if (device::Host::getInstance().isHDMIOutPortPresent())
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setAssociatedAudioMixing(mixing);
+                    }
+                    else {
+                        device::Host::getInstance().setAssociatedAudioMixing(mixing);
+                    }
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION2(audioPort, sMixing);
+                        success = false;
+                }
+                returnResponse(success)
+        }
+
+
+
+        uint32_t DisplaySettings::getAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                bool success = true;
+                bool mixing = false;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                    if (device::Host::getInstance().isHDMIOutPortPresent())
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.getAssociatedAudioMixing(&mixing);
+                    }
+                    else {
+                        device::Host::getInstance().getAssociatedAudioMixing(&mixing);
+                    }
+                    response["mixing"] = mixing;
+                }
+                catch (const device::Exception& err)
+                {
+                    LOG_DEVICE_EXCEPTION1(audioPort);
+                    success = false;
+                }
+                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setFaderControl(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                returnIfParamNotFound(parameters, "mixerBalance");
+                string sMixerBalance = parameters["mixerBalance"].String();
+                int mixerBalance = 0;
+                bool isIntiger = Utils::isValidInt ((char*)sMixerBalance.c_str());
+                if (false == isIntiger) {
+                    LOGWARN("mixerBalance should be an integer");
+                    returnResponse(false);
+                }
+                try {
+                        mixerBalance = stoi(sMixerBalance);
+                }catch (const device::Exception& err) {
+                        LOG_DEVICE_EXCEPTION1(sMixerBalance);
+                        returnResponse(false);
+                }
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                try
+                {
+                    if (device::Host::getInstance().isHDMIOutPortPresent())
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setFaderControl(mixerBalance);
+                    }
+                    else {
+                        device::Host::getInstance().setFaderControl(mixerBalance);
+                    }
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION2(audioPort, sMixerBalance);
+                        success = false;
+                }
+                returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getFaderControl(const JsonObject& parameters, JsonObject& response)
+        {
+                LOGINFOMETHOD();
+                bool success = true;
+                string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+                int mixerBalance = 0;
+                try
+                {
+                    if (device::Host::getInstance().isHDMIOutPortPresent())
+                    {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.getFaderControl(&mixerBalance);
+                    }
+                    else {
+                        device::Host::getInstance().getFaderControl(&mixerBalance);
+                    }
+                    response["mixerBalance"] = mixerBalance;
+                }
+                catch (const device::Exception& err)
+                {
+                        LOG_DEVICE_EXCEPTION1(audioPort);
+                        success = false;
+                }
+                returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setPrimaryLanguage (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "lang");
+            string primaryLanguage = parameters["lang"].String();
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    aPort.setPrimaryLanguage(primaryLanguage);
+		}
+                else {
+                    device::Host::getInstance().setPrimaryLanguage(primaryLanguage);
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, primaryLanguage);
+                success = false;
+            }
+
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getPrimaryLanguage (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+            string primaryLanguage;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    aPort.getPrimaryLanguage(primaryLanguage);
+                }
+                else {
+                    device::Host::getInstance().getPrimaryLanguage(primaryLanguage);
+                }
+                response["lang"] = primaryLanguage;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["lang"] = "None";
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setSecondaryLanguage (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "lang");
+            string secondaryLanguage = parameters["lang"].String();
+
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    aPort.setSecondaryLanguage(secondaryLanguage);
+                }
+                else {
+                    device::Host::getInstance().setSecondaryLanguage(secondaryLanguage);
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(audioPort, secondaryLanguage);
+                success = false;
+            }
+
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::getSecondaryLanguage (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+            string secondaryLanguage;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
+            try
+            {
+                if (device::Host::getInstance().isHDMIOutPortPresent())
+                {
+                    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    aPort.getSecondaryLanguage(secondaryLanguage);
+                }
+                else {
+                    device::Host::getInstance().getSecondaryLanguage(secondaryLanguage);
+                }
+                response["lang"] = secondaryLanguage;
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(audioPort);
+                response["lang"] = "None";
+                success = false;
+            }
+            returnResponse(success);
         }
 
 
