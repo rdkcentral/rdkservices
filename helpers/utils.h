@@ -179,6 +179,15 @@
         param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
 }
 
+#define getDefaultBoolParameter(paramName, param, default) { \
+    if (parameters.HasLabel(paramName)) { \
+        if (Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
+            param = parameters[paramName].Boolean(); \
+        else \
+            param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
+     } else param = default; \
+}
+
 #define getStringParameter(paramName, param) { \
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
@@ -407,7 +416,7 @@ namespace Utils
 #endif
         };
 
-        static void sendError(char* format, ...)
+        static void sendError(const char* format, ...)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
             va_list parameters;
