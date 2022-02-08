@@ -142,6 +142,31 @@
             "summary": "Update `RDK-20093` string",
             "type": "string",
             "example": "RDK-20093"
+	},
+	"server":{
+            "summary": "STUN server",
+            "type": "string",
+            "example": "global.stun.twilio.com"
+        },
+        "port":{
+            "summary": "STUN server port",
+            "type": "integer",
+            "example": "3478"
+        },
+        "sync":{
+            "summary": "STUN server sync",
+            "type": "boolean",
+            "example": "true"
+        },
+        "timeout":{
+            "summary": "STUN server bind timeout",
+            "type": "integer",
+            "example": "30"
+        },
+        "cache_timeout":{
+            "summary": "STUN server cache timeout",
+            "type": "integer",
+            "example": "0"
         }
     },
     "methods": {
@@ -690,6 +715,61 @@
                 "required": [
                     "supported",
                     "success"  
+                ]
+            }
+        },
+         "getPublicIP":{
+            "summary": "Determine WAN ip address",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/definitions/server"
+                    },
+                    "port": {
+                        "$ref": "#/definitions/port"
+                    },
+                    "iface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipv6": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "sync": {
+                        "$ref": "#/definitions/sync"
+                    },
+                    "timeout": {
+                        "$ref": "#/definitions/timeout"
+                    },
+                    "cache_timeout": {
+                        "$ref": "#/definitions/cache_timeout"
+                    }
+                },
+                "required": [
+                    "server",
+                    "port",
+                    "iface",
+                    "ipv6",
+                    "sync",
+                    "timeout",
+                    "cache_timeout"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "public_ip":{
+                        "summary": "Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip",
+                        "type":"string",
+                        "example": "69.136.49.95"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+	       },
+                "required": [
+                    "public_ip",
+                    "success"
                 ]
             }
         },
