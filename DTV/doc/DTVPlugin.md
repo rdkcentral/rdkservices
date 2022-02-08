@@ -13,7 +13,6 @@ A DTV plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -80,13 +79,6 @@ The table below lists configuration options of the plugin.
 | configuration | object | <sup>*(optional)*</sup>  |
 | configuration?.subtitleprocessing | boolean | <sup>*(optional)*</sup> Enable subtitle processing |
 | configuration?.teletextproessing | boolean | <sup>*(optional)*</sup> Enable teletext processing |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [DTV.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/DTV.json)
 
 <a name="head.Methods"></a>
 # Methods
