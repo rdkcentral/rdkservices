@@ -13,7 +13,6 @@ A SecurityAgent plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 
 <a name="head.Introduction"></a>
@@ -78,13 +77,6 @@ The table below lists configuration options of the plugin.
 | configuration | object | <sup>*(optional)*</sup>  |
 | configuration?.acl | string | <sup>*(optional)*</sup> ACL |
 | configuration?.connector | string | <sup>*(optional)*</sup> Connector |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [SecurityAgent.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/SecurityAgent.json)
 
 <a name="head.Methods"></a>
 # Methods
