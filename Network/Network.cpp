@@ -824,28 +824,7 @@ namespace WPEFramework
             bool result = false;
 
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
-            string server, iface;
-
-            getDefaultStringParameter("server", server, "");
-            if (server.length() > MAX_HOST_NAME_LEN - 1)
-            {
-                LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
-                returnResponse(false)               
-            }
-
-            getDefaultNumberParameter("port", iarmData.port, 0);
-
-            /*only makes sense to get both server and port or neither*/
-            if (!server.empty() && !iarmData.port)
-            {
-                LOGWARN("invalid args: port missing");
-                returnResponse(false)
-            } 
-            if (iarmData.port && server.empty())
-            {
-                LOGWARN("invalid args: server missing");
-                returnResponse(false)
-            }
+            string iface;
 
             getDefaultStringParameter("iface", iface, "");
             if (iface.length() > 16 - 1)
@@ -861,17 +840,12 @@ namespace WPEFramework
             }
 
             getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
-            getDefaultBoolParameter("sync", iarmData.sync, true);
-            getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
-            getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
 
-            strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
             strncpy(iarmData.interface, iface.c_str(), 16);
 
             iarmData.public_ip[0] = '\0';
 
-            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u timeout=%u cache_timeout=%u\n", 
-                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.bind_timeout, iarmData.cache_timeout);
+            LOGWARN("getPublicIP called with iface=%s ipv6=%u\n",iarmData.interface, iarmData.ipv6);
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
             {
