@@ -24,6 +24,10 @@
 
 using namespace std;
 
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+const string WPEFramework::Plugin::Network::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
+
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
@@ -146,10 +150,12 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, 1, 0);
+	SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
         Network* Network::_instance = nullptr;
 
-        Network::Network() : PluginHost::JSONRPC()
+        Network::Network()
+	: AbstractPlugin(Network::API_VERSION_NUMBER_MAJOR)
+        , apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
 
@@ -174,13 +180,14 @@ namespace WPEFramework
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
             Register("setIPSettings", &Network::setIPSettings, this);
-            Register("getIPSettings", &Network::getIPSettings, this);
+            registerMethod("getIPSettings", &Network::getIPSettings, this,{2});
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
             Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
             Register("getPublicIP", &Network::getPublicIP, this);
+	    registerMethod(METHOD_GET_API_VERSION_NUMBER, &Network::getApiVersionNumber, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -830,9 +837,9 @@ namespace WPEFramework
             if (iface.length() > 16 - 1)
             {
                 LOGWARN("invalid args: interface exceeds max length of 16");
-                returnResponse(false)               
+                returnResponse(false)
             }
-	    
+
             if (!(strcmp (iface.c_str(), "ETHERNET") == 0 || strcmp (iface.c_str(), "WIFI") == 0))
             {
                 LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_getPublicIP, iface.c_str());
@@ -853,6 +860,13 @@ namespace WPEFramework
                 result = true;
             }
             returnResponse(result)
+	}
+
+	uint32_t Network::getApiVersionNumber(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            response["version"] = apiVersionNumber;
+            returnResponse(true);
         }
 
         /*
