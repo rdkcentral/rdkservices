@@ -82,6 +82,7 @@ namespace WPEFramework {
             uint32_t getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t setForceHDRMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setHDRDisable(const JsonObject& parameters, JsonObject& response);
             //End methods
             uint32_t setMS12AudioCompression(const JsonObject& parameters, JsonObject& response);
             uint32_t getMS12AudioCompression(const JsonObject& parameters, JsonObject& response);

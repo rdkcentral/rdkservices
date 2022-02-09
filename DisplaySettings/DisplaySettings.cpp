@@ -225,6 +225,7 @@ namespace WPEFramework {
             registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethod("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
+            registerMethod("setHDRDisable", &DisplaySettings::setHDRDisable, this);
             registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
             registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
             registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
@@ -3773,6 +3774,26 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+	uint32_t DisplaySettings::setHDRDisable(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "hdrDisable");
+
+            bool bhdrDisable = parameters["hdrDisable"].Boolean();
+            bool success = true;
+
+            try
+            {
+                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                device.forceDisableHDRSupport(bhdrDisable);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+            returnResponse(success);
+        }
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
