@@ -23,6 +23,7 @@ namespace WPEFramework {
             // Build QueryInterface implementation, specifying all possible interfaces to be returned.
             BEGIN_INTERFACE_MAP(PersistentStore)
             INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
         public:

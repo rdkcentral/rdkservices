@@ -166,7 +166,9 @@ namespace WPEFramework
 
         uint32_t Telemetry::logApplicationEvent(const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFOMETHOD();
+            // Temporary disabled since current DCA format doesn't allow grepping log statements with json formatted strings
+            //LOGINFOMETHOD();
+            LOGINFO();
 
             if (parameters.HasLabel("eventName") && parameters.HasLabel("eventValue"))
             {
@@ -175,6 +177,8 @@ namespace WPEFramework
 
                 string eventValue;
                 getStringParameter("eventValue", eventValue);
+
+                LOGINFO("eventName:'%s', eventValue:'%s'", eventName.c_str(), eventValue.c_str());
 
                 LOGT2((char *)eventName.c_str(), (char *)eventValue.c_str());
             }
