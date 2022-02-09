@@ -13,7 +13,6 @@ A org.rdk.HdmiInput plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,13 +75,6 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *org.rdk.HdmiInput* |
 | locator | string | Library name: *libWPEFrameworkHdmiInput.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [HdmiInput.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/HdmiInput.json)
 
 <a name="head.Methods"></a>
 # Methods
