@@ -178,7 +178,7 @@ namespace WPEFramework
                 string eventValue;
                 getStringParameter("eventValue", eventValue);
 
-                LOGINFO("eventName:'%s', eventValue:'%s'", eventName.c_str(), eventValue.c_str());
+                LOGINFO("eventName:%s, eventValue:%s", eventName.c_str(), eventValue.c_str());
 
                 LOGT2((char *)eventName.c_str(), (char *)eventValue.c_str());
             }
