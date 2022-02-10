@@ -295,9 +295,15 @@ namespace WPEFramework {
                         LOGWARN("Audio Port : [%s] Getting enable persist value failed. Proceeding with true\n", portName.c_str());
                     }
                     LOGWARN("Audio Port : [%s] InitAudioPorts isPortPersistenceValEnabled:%d\n", portName.c_str(), isPortPersistenceValEnabled);
+                    try {
+                        m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceConnectedStatus();
+                    }
+                    catch (const device::Exception& err){
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    } 
                     if (portName == "HDMI_ARC0") {
                         //Set audio port config. ARC will be set up by onTimer()		
-                        if(isPortPersistenceValEnabled) { 
+                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) { 
                             m_audioOutputPortConfig["HDMI_ARC"] = true;
                         }
                         else {
@@ -311,12 +317,6 @@ namespace WPEFramework {
 
 			try {
 		    		isCecEnabled = getHdmiCecSinkCecEnableStatus();
-			}
-			catch (const device::Exception& err){
-				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
-			}
-			try {
-		    		m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceConnectedStatus();
 			}
 			catch (const device::Exception& err){
 				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
@@ -394,7 +394,7 @@ namespace WPEFramework {
   
                         aPortHdmiEnableParam.Set(_T("audioPort"), portName); //aPortHdmiEnableParam.Set(_T("audioPort"),"HDMI0");
                         //Get value from ds srv persistence
-                        if(isPortPersistenceValEnabled) {
+                        if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
                             aPortHdmiEnableParam.Set(_T("enable"),true);
                         }
                         else {
