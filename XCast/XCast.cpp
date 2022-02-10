@@ -71,7 +71,7 @@ namespace Plugin {
 SERVICE_REGISTRATION(XCast, 1, 0);
 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
-static unsigned int locateCastObjectRetryCount = 0;
+static unsigned long long locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
 bool XCast::m_xcastEnable= false;
 string XCast::m_friendlyName = "";
