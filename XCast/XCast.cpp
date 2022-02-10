@@ -71,7 +71,7 @@ namespace Plugin {
 SERVICE_REGISTRATION(XCast, 1, 0);
 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
-static int locateCastObjectRetryCount = 0;
+static unsigned int locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
 bool XCast::m_xcastEnable= false;
 string XCast::m_friendlyName = "";
@@ -373,10 +373,7 @@ void XCast::onLocateCastTimer()
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
-        if(locateCastObjectRetryCount < 4)
-        {
-            locateCastObjectRetryCount++;
-        }
+        locateCastObjectRetryCount++;
         if(locateCastObjectRetryCount == 1)
         {
             LOGINFO("Retry after 5 sec...");
@@ -392,7 +389,7 @@ void XCast::onLocateCastTimer()
             LOGINFO("Retry after 30 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS);
         }
-        if(locateCastObjectRetryCount == 4)
+        if(locateCastObjectRetryCount >= 4)
         {
             LOGINFO("Retry after 60 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
