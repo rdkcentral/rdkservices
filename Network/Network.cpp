@@ -24,6 +24,10 @@
 
 using namespace std;
 
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+const string WPEFramework::Plugin::Network::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
+
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
@@ -146,10 +150,12 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, 1, 0);
+	SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
         Network* Network::_instance = nullptr;
 
-        Network::Network() : PluginHost::JSONRPC()
+        Network::Network()
+	: AbstractPlugin(Network::API_VERSION_NUMBER_MAJOR)
+        , apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
 
@@ -174,13 +180,14 @@ namespace WPEFramework
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
             Register("setIPSettings", &Network::setIPSettings, this);
-            Register("getIPSettings", &Network::getIPSettings, this);
+            registerMethod("getIPSettings", &Network::getIPSettings, this,{2});
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
             Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
             Register("getPublicIP", &Network::getPublicIP, this);
+	    registerMethod(METHOD_GET_API_VERSION_NUMBER, &Network::getApiVersionNumber, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -824,36 +831,15 @@ namespace WPEFramework
             bool result = false;
 
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
-            string server, iface;
-
-            getDefaultStringParameter("server", server, "");
-            if (server.length() > MAX_HOST_NAME_LEN - 1)
-            {
-                LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
-                returnResponse(false)               
-            }
-
-            getDefaultNumberParameter("port", iarmData.port, 0);
-
-            /*only makes sense to get both server and port or neither*/
-            if (!server.empty() && !iarmData.port)
-            {
-                LOGWARN("invalid args: port missing");
-                returnResponse(false)
-            } 
-            if (iarmData.port && server.empty())
-            {
-                LOGWARN("invalid args: server missing");
-                returnResponse(false)
-            }
+            string iface;
 
             getDefaultStringParameter("iface", iface, "");
             if (iface.length() > 16 - 1)
             {
                 LOGWARN("invalid args: interface exceeds max length of 16");
-                returnResponse(false)               
+                returnResponse(false)
             }
-	    
+
             if (!(strcmp (iface.c_str(), "ETHERNET") == 0 || strcmp (iface.c_str(), "WIFI") == 0))
             {
                 LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_getPublicIP, iface.c_str());
@@ -861,17 +847,12 @@ namespace WPEFramework
             }
 
             getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
-            getDefaultBoolParameter("sync", iarmData.sync, true);
-            getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
-            getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
 
-            strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
             strncpy(iarmData.interface, iface.c_str(), 16);
 
             iarmData.public_ip[0] = '\0';
 
-            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u timeout=%u cache_timeout=%u\n", 
-                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.bind_timeout, iarmData.cache_timeout);
+            LOGWARN("getPublicIP called with iface=%s ipv6=%u\n",iarmData.interface, iarmData.ipv6);
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
             {
@@ -879,6 +860,13 @@ namespace WPEFramework
                 result = true;
             }
             returnResponse(result)
+	}
+
+	uint32_t Network::getApiVersionNumber(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            response["version"] = apiVersionNumber;
+            returnResponse(true);
         }
 
         /*

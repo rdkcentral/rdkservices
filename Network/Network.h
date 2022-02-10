@@ -26,7 +26,7 @@
 #include "NetUtils.h"
 #include "utils.h"
 #include "upnpdiscoverymanager.h"
-
+#include "AbstractPlugin.h"
 
 // Define this to use netlink calls (where there may be an alternative method but netlink could provide
 // the information or perform the action required)
@@ -47,8 +47,8 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Network : public PluginHost::IPlugin, public PluginHost::JSONRPC {
-        private:
+	class Network : public AbstractPlugin {
+	private:
 
             // We do not allow this plugin to be copied !!
             Network(const Network&) = delete;
@@ -75,6 +75,7 @@ namespace WPEFramework {
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
@@ -113,9 +114,12 @@ namespace WPEFramework {
         public:
             static Network *_instance;
             static Network *getInstance() {return _instance;}
+	    static const short API_VERSION_NUMBER_MAJOR;
+	    static const short API_VERSION_NUMBER_MINOR;
 
         private:
             NetUtils m_netUtils;
+	    uint32_t apiVersionNumber;
         };
     } // namespace Plugin
 } // namespace WPEFramework
