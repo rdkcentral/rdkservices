@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkVoiceControl.so",
+ "classname":"VoiceControl",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.VoiceControl",
+ "autostart":false
+}
