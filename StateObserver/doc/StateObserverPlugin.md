@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-com.comcast.StateObserver plugin for Thunder framework.
+A com.comcast.StateObserver plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -95,9 +95,13 @@ StateObserver interface methods:
 
 
 <a name="method.getApiVersionNumber"></a>
-## *getApiVersionNumber <sup>method</sup>*
+## *getApiVersionNumber [<sup>method</sup>](#head.Methods)*
 
 Returns the API version number.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -118,7 +122,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.getApiVersionNumber"
 }
 ```
@@ -128,7 +132,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "version": 1,
         "success": true
@@ -137,9 +141,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getName"></a>
-## *getName <sup>method</sup>*
+## *getName [<sup>method</sup>](#head.Methods)*
 
 Returns the plugin name.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -160,7 +168,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.getName"
 }
 ```
@@ -170,7 +178,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "name": "com.comcast.StateObserver",
         "success": true
@@ -179,9 +187,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getRegisteredPropertyNames"></a>
-## *getRegisteredPropertyNames <sup>method</sup>*
+## *getRegisteredPropertyNames [<sup>method</sup>](#head.Methods)*
 
 Returns all properties which have active listeners.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -203,7 +215,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.getRegisteredPropertyNames"
 }
 ```
@@ -213,7 +225,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "properties": [
             "com.comcast.channel_map"
@@ -224,7 +236,7 @@ This method takes no parameters.
 ```
 
 <a name="method.getValues"></a>
-## *getValues <sup>method</sup>*
+## *getValues [<sup>method</sup>](#head.Methods)*
 
 Returns the values and errors for the specified properties.  
 **Error Code of Properties**  
@@ -236,6 +248,10 @@ Returns the values and errors for the specified properties.
 * `com.comcast.ecm_ip` - RDK-03004  
 * `com.comcast.dsg_ca_tunnel` - RDK-03003  
 * `com.comcast.cable_card` - RDK-03001.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -254,7 +270,7 @@ Returns the values and errors for the specified properties.
 | result.properties[#] | object |  |
 | result.properties[#].propertyName | string | The fully qualified property name |
 | result.properties[#].value | integer | The property value |
-| result.properties[#].error | integer | The error state |
+| result.properties[#].error | string | The error state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -264,7 +280,7 @@ Returns the values and errors for the specified properties.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.getValues",
     "params": {
         "propertyNames": [
@@ -279,13 +295,13 @@ Returns the values and errors for the specified properties.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "properties": [
             {
                 "propertyName": "com.comcast.channel_map",
                 "value": 2,
-                "error": 0
+                "error": "none"
             }
         ],
         "success": true
@@ -294,9 +310,13 @@ Returns the values and errors for the specified properties.
 ```
 
 <a name="method.registerListeners"></a>
-## *registerListeners <sup>method</sup>*
+## *registerListeners [<sup>method</sup>](#head.Methods)*
 
 Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -315,7 +335,7 @@ Register a listener on the specified properties for value change notifications. 
 | result.properties[#] | object |  |
 | result.properties[#].propertyName | string | The fully qualified property name |
 | result.properties[#].value | integer | The property value |
-| result.properties[#].error | integer | The error state |
+| result.properties[#].error | string | The error state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -325,7 +345,7 @@ Register a listener on the specified properties for value change notifications. 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.registerListeners",
     "params": {
         "propertyNames": [
@@ -340,13 +360,13 @@ Register a listener on the specified properties for value change notifications. 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "properties": [
             {
                 "propertyName": "com.comcast.channel_map",
                 "value": 2,
-                "error": 0
+                "error": "none"
             }
         ],
         "success": true
@@ -355,9 +375,13 @@ Register a listener on the specified properties for value change notifications. 
 ```
 
 <a name="method.setApiVersionNumber"></a>
-## *setApiVersionNumber <sup>method</sup>*
+## *setApiVersionNumber [<sup>method</sup>](#head.Methods)*
 
 Sets the API version number.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -380,7 +404,7 @@ Sets the API version number.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.setApiVersionNumber",
     "params": {
         "version": 1
@@ -393,7 +417,7 @@ Sets the API version number.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -401,9 +425,13 @@ Sets the API version number.
 ```
 
 <a name="method.unregisterListeners"></a>
-## *unregisterListeners <sup>method</sup>*
+## *unregisterListeners [<sup>method</sup>](#head.Methods)*
 
 Removes the listeners on the specified properties. The properties are removed from the registered properties list.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -427,7 +455,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "com.comcast.StateObserver.1.unregisterListeners",
     "params": {
         "propertyNames": [
@@ -442,7 +470,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -464,7 +492,7 @@ StateObserver interface events:
 
 
 <a name="event.propertyChanged"></a>
-## *propertyChanged <sup>event</sup>*
+## *propertyChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered whenever a device property value changes. A handler function is called which then sends out a notification about the change.
 

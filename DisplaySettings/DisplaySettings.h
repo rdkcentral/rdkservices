@@ -128,6 +128,15 @@ namespace WPEFramework {
             uint32_t getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response);
             uint32_t getEnableAudioPort(const JsonObject& parameters, JsonObject& response);
 
+	    uint32_t setAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response);
+            uint32_t getAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFaderControl(const JsonObject& parameters, JsonObject& response);
+            uint32_t getFaderControl(const JsonObject& parameters, JsonObject& response);
+            uint32_t setPrimaryLanguage(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPrimaryLanguage(const JsonObject& parameters, JsonObject& response);
+            uint32_t setSecondaryLanguage(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSecondaryLanguage(const JsonObject& parameters, JsonObject& response);
+
 	    uint32_t getAudioFormat(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
 	    uint32_t setVolumeLeveller2(const JsonObject& parameters, JsonObject& response);
@@ -141,6 +150,7 @@ namespace WPEFramework {
             uint32_t setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response);
             void InitAudioPorts();
             void AudioPortsReInitialize();
+            static void initAudioPortsWorker(void);
             //End methods
 
             //Begin events
@@ -151,6 +161,10 @@ namespace WPEFramework {
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void notifyAudioFormatChange(dsAudioFormat_t audioFormat);
+            void notifyAssociatedAudioMixingChange(bool mixing);
+            void notifyFaderControlChange(bool mixerbalance);
+            void notifyPrimaryLanguageChange(std::string pLang);
+            void notifySecondaryLanguageChange(std::string sLang);
 	    void notifyVideoFormatChange(dsHDRStandard_t videoFormat);
 	    void onARCInitiationEventHandler(const JsonObject& parameters);
             void onARCTerminationEventHandler(const JsonObject& parameters);
@@ -175,6 +189,7 @@ namespace WPEFramework {
 	    static void formatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            static void dsSettingsChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void getConnectedVideoDisplaysHelper(std::vector<string>& connectedDisplays);
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             const char *getVideoFormatTypeToString(dsHDRStandard_t format);

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #include <vector>
 #include <map>
@@ -13,18 +11,29 @@ namespace WPEFramework {
 
     namespace Plugin {
 
-        class PersistentStore :  public AbstractPlugin {
+        class PersistentStore : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        private:
+            PersistentStore(const PersistentStore&) = delete;
+            PersistentStore& operator=(const PersistentStore&) = delete;
+
         public:
             PersistentStore();
             virtual ~PersistentStore();
+
+            // Build QueryInterface implementation, specifying all possible interfaces to be returned.
+            BEGIN_INTERFACE_MAP(PersistentStore)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
+        public:
+            //   IPlugin methods
+            // -------------------------------------------------------------------------------------------------------
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
 
-        public/*members*/:
-            static PersistentStore* _instance;
-
-        public /*constants*/:
+        private/*constants*/:
             static const short API_VERSION_NUMBER_MAJOR;
             static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
@@ -46,8 +55,6 @@ namespace WPEFramework {
             static const int64_t MAX_VALUE_SIZE_BYTES;
 
         private/*registered methods (wrappers)*/:
-
-            //methods ("parameters" here is "params" from the curl request)
             uint32_t setValueWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getValueWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t deleteKeyWrapper(const JsonObject& parameters, JsonObject& response);
@@ -58,9 +65,6 @@ namespace WPEFramework {
             uint32_t flushCacheWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
-            PersistentStore(const PersistentStore&) = delete;
-            PersistentStore& operator=(const PersistentStore&) = delete;
-
             bool setValue(const string& ns, const string& key, const string& value);
             bool getValue(const string& ns, const string& key, string& value);
             bool deleteKey(const string& ns, const string& key);
@@ -75,6 +79,7 @@ namespace WPEFramework {
             void vacuum();
             bool init(const char* filename, const char* key = nullptr);
 
+        private:
             void* mData;
             std::mutex mLock;
             std::atomic<int> mReading;

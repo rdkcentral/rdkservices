@@ -66,10 +66,6 @@ if(PLUGIN_MAINTENANCEMANAGER)
     add_subdirectory(MaintenanceManager)
 endif()
 
-if(PLUGIN_HOMENETWORKING)
-    add_subdirectory(HomeNetworking)
-endif()
-
 if(PLUGIN_NETWORK)
     add_subdirectory(Network)
 endif()
@@ -253,10 +249,6 @@ endif()
 
 if(PLUGIN_PLATFORMPLAYER)
     add_subdirectory(PlatformPlayer)
-endif()
-
-if(PLUGIN_LINEARSEGMENTEDADVERTISING)
-    add_subdirectory(LinearSegmentedAdvertising)
 endif()
 
 if(PLUGIN_DEEPLINK)

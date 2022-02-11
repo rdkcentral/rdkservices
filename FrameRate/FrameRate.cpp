@@ -152,15 +152,32 @@ namespace WPEFramework
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
-            
-            if (!parameters.HasLabel("newFpsValue"))
+	    if (!parameters.HasLabel("newFpsValue"))
             {
+                LOGWARN("Please enter valid Fps Parameter name.");
                 returnResponse(false);
             }
-            
-            updateFps(parameters["newFpsValue"].Number());
 
-            returnResponse(true);
+            bool retValue = false;
+            try{
+                int fpsValue = std::stod(parameters["newFpsValue"].String());
+                if(fpsValue >= 0){
+                        updateFps(fpsValue);
+                        retValue = true;
+                }
+                else{
+                        LOGWARN("Please enter valid new Fps value.");
+                        retValue = false;
+                }
+            }
+            catch(...)
+            {
+                LOGERR("Please enter valid Fps value");
+                retValue = false;
+            }
+            returnResponse(retValue);
+
+            
         }
         
 	uint32_t FrameRate::setFrmMode(const JsonObject& parameters, JsonObject& response)
