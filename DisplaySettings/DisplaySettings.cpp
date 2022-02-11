@@ -4210,13 +4210,13 @@ namespace WPEFramework {
                   }
 
 		  {
-                    lock_guard<mutex> lck(m_callMutex);
-                    if ( m_timer.isActive()) {
-                        m_timer.stop();
+                    std::lock_guard<mutex> lck(DisplaySettings::_instance->m_callMutex);
+                    if ( DisplaySettings::_instance->m_timer.isActive()) {
+                        DisplaySettings::_instance->m_timer.stop();
                     }
 
-                    if ( m_AudioDeviceDetectTimer.isActive()) {
-                        m_AudioDeviceDetectTimer.stop();
+                    if ( DisplaySettings::_instance->m_AudioDeviceDetectTimer.isActive()) {
+                        DisplaySettings::_instance->m_AudioDeviceDetectTimer.stop();
                     }
                   }
 
