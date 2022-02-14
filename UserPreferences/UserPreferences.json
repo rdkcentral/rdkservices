@@ -30,7 +30,7 @@
         }
     },
     "methods": {
-        "getUILanguage ":{
+        "getUILanguage":{
             "summary": "Returns the preferred user interface language",
             "result": {
                 "type": "object",
