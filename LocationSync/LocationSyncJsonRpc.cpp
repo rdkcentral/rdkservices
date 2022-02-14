@@ -17,9 +17,9 @@
  * limitations under the License.
  */
  
+#include "Module.h"
 #include <interfaces/json/JsonData_LocationSync.h>
 #include "LocationSync.h"
-#include "Module.h"
 
 namespace WPEFramework {
 
@@ -68,24 +68,27 @@ namespace Plugin {
     // Property: location - Location information
     // Return codes:
     //  - ERROR_NONE: Success
+    //  - ERROR_UNAVAILABLE: Internet/Location info not available
     uint32_t LocationSync::get_location(LocationData& response) const
     {
+        uint32_t status = Core::ERROR_UNAVAILABLE;
         PluginHost::ISubSystem* subSystem = _service->SubSystems();
         ASSERT(subSystem != nullptr);
 
         const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
         const PluginHost::ISubSystem::ILocation* location(subSystem->Get<PluginHost::ISubSystem::ILocation>());
 
-        ASSERT(internet != nullptr);
-        ASSERT(location != nullptr);
+        if ((internet != nullptr) && (location != nullptr)) {
+            response.Publicip = internet->PublicIPAddress();
 
-        response.Publicip = internet->PublicIPAddress();
-        response.Timezone = location->TimeZone();
-        response.Region = location->Region();
-        response.Country = location->Country();
-        response.City = location->City();
+            response.Timezone = location->TimeZone();
+            response.Region = location->Region();
+            response.Country = location->Country();
+            response.City = location->City();
+            status = Core::ERROR_NONE;
+        }
 
-        return Core::ERROR_NONE;
+        return status;
     }
 
     // Event: locationchange - Signals a location change

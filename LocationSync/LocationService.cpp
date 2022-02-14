@@ -23,7 +23,7 @@ namespace WPEFramework {
 namespace Plugin {
 
     struct IGeography {
-        virtual ~IGeography() {}
+        virtual ~IGeography() = default;
 
         virtual string Country() const = 0;
         virtual string City() const = 0;
@@ -32,182 +32,236 @@ namespace Plugin {
         virtual string Latitude() const = 0;
         virtual string Longitude() const = 0;
         virtual string IP() const = 0;
-        virtual void Updated() = 0;
+        virtual void FromString(const string&) = 0;
     };
 
-    class Geography : public IGeography, public Core::JSON::Container {
-
+    // http://ip-api.com/json
+    // {
+    //  "status":"success",
+    //  "country":"Netherlands",
+    //  "countryCode":"NL",
+    //  "region":"GE",
+    //  "regionName":"Gelderland",
+    //  "city":"Wijchen",
+    //  "lat":"51.798",
+    //  "lon":"5.726",
+    //  "zip":"6605",
+    //  "timezone":"Europe/Amsterdam",
+    //  "isp":"T-Mobile Thuis BV",
+    //  "org":"T-Mobile Thuis BV",
+    //  "as":"AS50266 T-Mobile Thuis BV",
+    //  "query":"85.146.148.211"
+    // }
+    class IPAPI: public IGeography {
     private:
-        Geography& operator=(const Geography&) = delete;
+        class Data : public Core::JSON::Container {
+        public:
+            Data(const Data&) = delete;
+            Data& operator=(const Data&) = delete;
 
-    public:
-        Geography()
-            : Core::JSON::Container()
-            , _country()
-            , _city()
-            , _region()
-            , _timeZone()
-            , _latitude()
-            , _IP()
-            , _longitude()
-        {
-            Add(_T("country"), &_country);
-            Add(_T("city"), &_city);
-            Add(_T("region"), &_region);
-
-            // ip-api.com specific
-            Add(_T("tz"), &_timeZone);
-            Add(_T("ll"), &_latitude);
-
-            // ip-api.com specific
-            Add(_T("timezone"), &_timeZone);
-            Add(_T("query"), &_IP);
-            Add(_T("lat"), &_latitude);
-            Add(_T("lon"), &_longitude);
-        }
-        Geography(const Geography& copy)
-            : Core::JSON::Container()
-            , _country(copy._country)
-            , _city(copy._city)
-            , _region(copy._region)
-            , _timeZone(copy._timeZone)
-            , _latitude(copy._latitude)
-            , _IP(copy._IP)
-            , _longitude(copy._longitude)
-        {
-            Add(_T("country"), &_country);
-            Add(_T("city"), &_city);
-            Add(_T("region"), &_region);
-
-            // ip-api.com specific
-            Add(_T("tz"), &_timeZone);
-            Add(_T("ll"), &_latitude);
-
-            // ip-api.com specific
-            Add(_T("timezone"), &_timeZone);
-            Add(_T("query"), &_IP);
-            Add(_T("lat"), &_latitude);
-            Add(_T("lon"), &_longitude);
-        }
-        virtual ~Geography()
-        {
-        }
-
-    public:
-        virtual string Country() const
-        {
-            return (_country.Value());
-        }
-        virtual string City() const
-        {
-            return (_city.Value());
-        }
-        virtual string Region() const
-        {
-            return (_region.Value());
-        }
-        virtual string TimeZone() const
-        {
-            return (_timeZone.Value());
-        }
-        virtual string Latitude() const
-        {
-            return (_latitude.Value());
-        }
-        virtual string Longitude() const
-        {
-            return (_longitude.Value());
-        }
-        virtual string IP() const
-        {
-            return (_IP.Value());
-        }
-        virtual void Updated()
-        {
-        }
-
-        inline void Location(const string& latitude, const string& longitude)
-        {
-            _latitude = latitude;
-            _longitude = longitude;
-        }
-
-    private:
-        Core::JSON::String _country;
-        Core::JSON::String _city;
-        Core::JSON::String _region;
-        Core::JSON::String _timeZone;
-        Core::JSON::String _latitude;
-
-        // ip-api.com specific
-        Core::JSON::String _IP;
-        Core::JSON::String _longitude;
-    };
-
-    class Response : public IGeography, public Core::JSON::Container {
-    private:
-        Response(const Response&) = delete;
-        Response& operator=(const Response&) = delete;
-
-    public:
-        Response()
-            : Core::JSON::Container()
-            , _IP()
-            , _ping()
-            , _geo()
-        {
-            Add(_T("ip"), &_IP);
-            Add(_T("ping"), &_ping);
-            Add(_T("geo"), &_geo);
-        }
-        virtual ~Response()
-        {
-        }
-
-    public:
-        virtual string Country() const
-        {
-            return (_geo.Country());
-        }
-        virtual string City() const
-        {
-            return (_geo.City());
-        }
-        virtual string Region() const
-        {
-            return (_geo.Region());
-        }
-        virtual string TimeZone() const
-        {
-            return (_geo.TimeZone());
-        }
-        virtual string Latitude() const
-        {
-            return (_geo.Latitude());
-        }
-        virtual string Longitude() const
-        {
-            return (_geo.Longitude());
-        }
-        virtual string IP() const
-        {
-            return (_IP.Value());
-        }
-        virtual void Updated()
-        {
-            string info = _geo.Latitude();
-
-            size_t location = info.find(',', 1);
-
-            if (location != string::npos) {
-                _geo.Location(info.substr(1, location - 1), info.substr(location + 1, info.length() - location - 2));
+            Data()
+                : Core::JSON::Container()
+                , Country()
+                , City()
+                , Region()
+                , TimeZone()
+                , Latitude()
+                , Longitude()
+                , IP()
+            {
+                Add(_T("country"), &Country);
+                Add(_T("city"), &City);
+                Add(_T("regionName"), &Region);
+                Add(_T("timezone"), &TimeZone);
+                Add(_T("latitude"), &Latitude);
+                Add(_T("longitude"), &Longitude);
+                Add(_T("query"), &IP);
             }
+            ~Data() override = default;
+
+        public:
+            Core::JSON::String Country;
+            Core::JSON::String City;
+            Core::JSON::String Region;
+            Core::JSON::String TimeZone;
+            Core::JSON::String Latitude;
+            Core::JSON::String Longitude;
+            Core::JSON::String IP;
+        };
+
+    public:
+        IPAPI(const IPAPI&) = delete;
+        IPAPI& operator= (const IPAPI&) = delete;
+
+        IPAPI() = default;
+        ~IPAPI() override = default;
+
+    public:
+        string Country() const override
+        {
+            return (_data.Country.Value());
+        }
+        string City() const override
+        {
+            return (_data.City.Value());
+        }
+        string Region() const override
+        {
+            return (_data.Region.Value());
+        }
+        string TimeZone() const override
+        {
+            return (_data.TimeZone.Value());
+        }
+        string Latitude() const override
+        {
+            return (_data.Latitude.Value());
+        }
+        string Longitude() const override
+        {
+            return (_data.Longitude.Value());
+        }
+        string IP() const override
+        {
+            return (_data.IP.Value());
+        }
+        void FromString(const string& data) override {
+            TRACE(Trace::Information, (_T("IPAPI: Received a response: [%s]!"), data.c_str()));
+            _data.FromString(data);
         }
 
     private:
-        Core::JSON::String _IP;
-        Core::JSON::Boolean _ping;
-        Geography _geo;
+        Data _data;
+    };
+
+    // http://jsonip.metrological.com/?maf=true
+    // {
+    //  "ip":"85.146.148.211",
+    //  "ping":true,
+    //  "geo":
+    //  {
+    //   "country":"NL",
+    //   "city":"Elst",
+    //   "region":"GE",
+    //   "tz":"CET-1CEST,M3.5.0,M10.5.0/3",
+    //   "ll":
+    //   [
+    //    51.9201,
+    //    5.836
+    //   ]
+    //  }
+    // }
+    class Metrological : public IGeography {
+    private:
+        class Data : public Core::JSON::Container {
+        public:
+            class Geography : public Core::JSON::Container {
+            public:
+                Geography(const Geography&) = delete;
+                Geography& operator=(const Geography&) = delete;
+
+                Geography()
+                    : Core::JSON::Container()
+                    , Country()
+                    , City()
+                    , Region()
+                    , TimeZone()
+                    , Latitude()
+                    , Longitude()
+                    , _LL()
+                {
+                    Add(_T("country"), &Country);
+                    Add(_T("city"), &City);
+                    Add(_T("region"), &Region);
+                    Add(_T("tz"), &TimeZone);
+                    Add(_T("lat"), &Latitude);
+                    Add(_T("lon"), &Longitude);
+                    Add(_T("ll"), &_LL);
+                }
+                ~Geography() override = default;
+
+          public:
+                Core::JSON::String Country;
+                Core::JSON::String City;
+                Core::JSON::String Region;
+                Core::JSON::String TimeZone;
+                Core::JSON::String Latitude;
+                Core::JSON::String Longitude;
+
+            private:
+                Core::JSON::ArrayType<Core::JSON::Double> _LL;
+            };
+
+        public:
+            Data(const Data&) = delete;
+            Data& operator= (const Data&) = delete;
+
+            Data()
+                : Core::JSON::Container()
+                , IP()
+                , Geo()
+                , Ping()
+            {
+                Add(_T("ip"), &IP);
+                Add(_T("geo"), &Geo);
+                Add(_T("ping"), &Ping);
+            }
+            ~Data() override = default;
+
+        public:
+            Core::JSON::String IP;
+            Geography Geo;
+            Core::JSON::Boolean Ping;
+        };
+
+    public:
+        Metrological(const Metrological&) = delete;
+        Metrological& operator= (const Metrological&) = delete;
+
+        Metrological() = default;
+        ~Metrological() override = default;
+
+    public:
+        string Country() const override
+        {
+            return (_data.Geo.Country.Value());
+        }
+        string City() const override
+        {
+            return (_data.Geo.City.Value());
+        }
+        string Region() const override
+        {
+            return (_data.Geo.Region.Value());
+        }
+        string TimeZone() const override
+        {
+            return (_data.Geo.TimeZone.Value());
+        }
+        string Latitude() const override
+        {
+            return (_data.Geo.Latitude.Value());
+        }
+        string Longitude() const
+        {
+            return (_data.Geo.Longitude.Value());
+        }
+        string IP() const override
+        {
+            return (_data.IP.Value());
+        }
+        void FromString(const string& data) override {
+            TRACE(Trace::Information, (_T("Metrological: Received a response: [%s]!"), data.c_str()));
+
+            _data.IElement::FromString(data);
+
+            string parsed;
+            _data.IElement::ToString(parsed);
+            TRACE(Trace::Information, (_T("Metrological: reverted response: [%s]!"), parsed.c_str()));
+        }
+
+    private:
+        Data _data;
     };
 
     static Core::ProxyPoolType<Web::Response> g_Factory(1);
@@ -241,13 +295,12 @@ namespace Plugin {
     };
 
     DomainConstructor g_domainFactory[] = {
-        { _TXT("jsonip.metrological.com"), []() -> Core::ProxyType<IGeography> { return Core::ProxyType<Plugin::IGeography>(Core::ProxyType<Web::JSONBodyType<Response>>::Create()); } },
-        { _TXT("ip-api.com"), []() -> Core::ProxyType<IGeography> { return Core::ProxyType<Plugin::IGeography>(Core::ProxyType<Web::JSONBodyType<Geography>>::Create()); } }
+        { _TXT("jsonip.metrological.com"), []() -> Core::ProxyType<IGeography> { return (Core::ProxyType<IGeography>(Core::ProxyType<Plugin::Metrological>::Create())); } },
+        { _TXT("ip-api.com"), []() -> Core::ProxyType<IGeography> { return (Core::ProxyType<IGeography>(Core::ProxyType<Plugin::IPAPI>::Create())); } }
     };
 
     static DomainConstructor* FindDomain(const Core::URL& domain)
     {
-
         uint32_t index = 0;
 
         while ((index < (sizeof(g_domainFactory) / sizeof(DomainConstructor))) && (domain.IsDomain(g_domainFactory[index].domainName, g_domainFactory[index].length) == false)) {
@@ -282,7 +335,7 @@ namespace Plugin {
 #pragma warning(default : 4355)
 #endif
 
-    /* virtual */ LocationService::~LocationService()
+    LocationService::~LocationService() /* override */
     {
 
         Stop();
@@ -315,7 +368,6 @@ namespace Plugin {
 
                     const string hostName(info.Host().Value());
 
-
                     _state = ACTIVE;
 
                     // it runs till zero, so subtract by definition 1 :-)
@@ -340,7 +392,6 @@ namespace Plugin {
                         _request->Query = info.Query().Value();
                     }
 
-                    string fullRequest; _request->ToString(fullRequest);
                     _infoCarrier = constructor->factory();
 
                     _activity.Submit();
@@ -378,21 +429,26 @@ namespace Plugin {
     }
 
     // Methods to extract and insert data into the socket buffers
-    /* virtual */ void LocationService::LinkBody(Core::ProxyType<Web::Response>& element)
+    void LocationService::LinkBody(Core::ProxyType<Web::Response>& element) /* override */
     {
         if (element->ErrorCode == Web::STATUS_OK) {
 
             ASSERT(_infoCarrier.IsValid() == true);
 
-            element->Body<Web::IBody>(Core::proxy_cast<Web::IBody>(_infoCarrier));
+            element->Body<Web::IBody>(Core::proxy_cast<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
         }
     }
 
-    /* virtual */ void LocationService::Received(Core::ProxyType<Web::Response>& element)
+    void LocationService::Received(Core::ProxyType<Web::Response>& element) /* override */
     {
-        if (element->HasBody() == true) {
+        Core::ProxyType<Web::TextBody> textInfo = element->Body<Web::TextBody>();
 
-            // ASSERT(element->Body<Web::JSONBodyType<IGeography> >() == _response);
+        if (textInfo.IsValid() == false) {
+            TRACE(Trace::Information, (_T("Got a response but had an empty body!")));
+        }
+        else {
+
+            _infoCarrier->FromString(*textInfo);
 
             _adminLock.Lock();
 
@@ -419,19 +475,15 @@ namespace Plugin {
 
             Core::NodeId node(_publicIPAddress.c_str(), Core::NodeId::TYPE_UNSPECIFIED);
 
-            if (node.IsValid() == true) {
-
+            if (node.IsValid() != true) {
+                TRACE(Trace::Information, (_T("Could not determine the external public IP address [%s]"), _publicIPAddress.c_str()));
+            }
+            else {
                 if (node.Type() == Core::NodeId::TYPE_IPV4) {
                     Core::NodeId::ClearIPV6Enabled();
                 }
 
-                TRACE(Trace::Information, (_T("Network connectivity established on %s. ip: %s, tz: %s, country: %s"),
-                    node.Type() == Core::NodeId::TYPE_IPV4 ? _T("IPv4") : _T("IP6"),
-                    _publicIPAddress.c_str(),
-                    _timeZone.c_str(),
-                    _country.c_str()));
-
-                TRACE(Trace::Information, (_T("LocationSync: Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
+                TRACE(Trace::Information, (_T("Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
                 _callback->Dispatch();
             }
 
@@ -440,27 +492,26 @@ namespace Plugin {
             _infoCarrier.Release();
 
             _adminLock.Unlock();
-        } else {
-            TRACE(Trace::Information, (_T("Got a response but had an empty body. %d"), __LINE__));
         }
 
         // Finish the cycle..
         _activity.Submit();
     }
 
-    /* virtual */ void LocationService::Send(const Core::ProxyType<Web::Request>& element)
+    void LocationService::Send(const Core::ProxyType<Web::Request>& element VARIABLE_IS_NOT_USED) /* override */
     {
         // Not much to do, just so we know we are done...
         ASSERT(element == _request);
     }
 
     // Signal a state change, Opened, Closed or Accepted
-    /* virtual */ void LocationService::StateChange()
+    void LocationService::StateChange() /* override */
     {
         if (Link().IsOpen() == true) {
 
             // Send out a trigger to send the request
             Submit(_request);
+            TRACE(Trace::Information, (_T("Connection open, Location requets submitted.")));
         } else if (Link().HasError() == true) {
             Close(0);
 
@@ -474,7 +525,7 @@ namespace Plugin {
     {
         uint32_t result = Core::infinite;
 
-        if ((IsClosed() == false) || (Close(100) != Core::ERROR_NONE)) {
+        if ((Close(100) != Core::ERROR_NONE) || (IsClosed() == false)) {
 
             result = 500; // ms...Check again..
         } else {
