@@ -13,7 +13,6 @@ A LocationSync plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -81,13 +80,6 @@ The table below lists configuration options of the plugin.
 | configuration?.interval | number | <sup>*(optional)*</sup> Maximum time duration between each request to the Location Server (default: 10) |
 | configuration?.retries | number | <sup>*(optional)*</sup> Maximum number of request reties to the Location Server (default:20) |
 | configuration?.source | string | <sup>*(optional)*</sup> URI of the Location Server (default:"location.webplatformforembedded.org") |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [LocationSync.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/LocationSync.json)
 
 <a name="head.Methods"></a>
 # Methods

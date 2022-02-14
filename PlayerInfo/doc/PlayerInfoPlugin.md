@@ -13,7 +13,6 @@ A PlayerInfo plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Properties](#head.Properties)
 - [Notifications](#head.Notifications)
@@ -77,13 +76,6 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *PlayerInfo* |
 | locator | string | Library name: *libWPEPlayerInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [PlayerInfo.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/PlayerInfo.json)
 
 <a name="head.Methods"></a>
 # Methods
