@@ -199,7 +199,15 @@ namespace WPEFramework
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
                 char c;
-                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+                uint32_t retry = 0;
+                do{
+                    retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
+                    if(retVal != IARM_RESULT_SUCCESS){
+                        LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin");
+                        usleep(500*1000);
+                        retry++;
+                    }
+                }while((retVal != IARM_RESULT_SUCCESS) && (retry < 20));
 #endif
 
                 if(retVal != IARM_RESULT_SUCCESS)
