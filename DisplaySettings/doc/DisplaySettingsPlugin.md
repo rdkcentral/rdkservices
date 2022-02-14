@@ -284,7 +284,7 @@ Returns whether associated audio mixing is enabled or disabled.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 
 ### Result
 
@@ -995,7 +995,7 @@ Returns the current audio mixer balance setting.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 
 ### Result
 
@@ -1413,7 +1413,7 @@ Returns the current primary language.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 
 ### Result
 
@@ -1461,7 +1461,7 @@ Returns the current secondary language.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 
 ### Result
 
@@ -2950,7 +2950,7 @@ Also see: [associatedAudioMixingChanged](#event.associatedAudioMixingChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 | params.mixing | boolean | Whether associated audio mixing is enabled (`true`) or disabled (`false`) |
 
 ### Result
@@ -3477,7 +3477,7 @@ Also see: [faderControlChanged](#event.faderControlChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 | params.mixerBalance | integer | The audi mixer balance. The value should be between -32 to +32 |
 
 ### Result
@@ -4000,7 +4000,7 @@ Also see: [primaryLanguageChanged](#event.primaryLanguageChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 | params.lang | string | The 3 letter language code as per ISO 639 |
 
 ### Result
@@ -4118,7 +4118,7 @@ Also see: [secondaryLanguageChanged](#event.secondaryLanguageChanged)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
 | params.lang | string | The 3 letter language code as per ISO 639 |
 
 ### Result

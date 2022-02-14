@@ -54,6 +54,13 @@
             "type": "string",
             "example": "SPEAKER0"
         },
+        "audioPort2": {
+            "summary": "Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration.",
+            "default": "HDMI0",
+            "type": "string",
+            "example": "SPEAKER0"
+        },
+
         "bassBoost": {
             "summary": "Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost",
             "type": "integer",
@@ -264,7 +271,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     }
                 },
                 "required": []
@@ -639,7 +646,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     }
                 },
                 "required": []
@@ -877,7 +884,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     }
                 },
                 "required": []
@@ -904,7 +911,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     }
                 },
                 "required": []
@@ -1709,7 +1716,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     },
                     "mixing": {
                         "$ref": "#/definitions/mixing"
@@ -1931,7 +1938,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     },
                     "mixerBalance": {
                         "$ref": "#/definitions/mixerBalance"
@@ -2156,7 +2163,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     },
                     "lang": {
                         "$ref": "#/definitions/lang"
@@ -2204,7 +2211,7 @@
                 "type":"object",
                 "properties": {
                     "audioPort": {
-                        "$ref": "#/definitions/audioPort1"
+                        "$ref": "#/definitions/audioPort2"
                     },
                     "lang": {
                         "$ref": "#/definitions/lang"
