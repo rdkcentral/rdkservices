@@ -696,10 +696,7 @@ namespace Plugin {
                             if (state == Source::LOADED) {
                                 if (index->second->Timestamp() < timeStamp) {
                                     timeStamp = index->second->Timestamp();
-
-                                    if (state == Source::LOADED) {
-                                        selected = index->second;
-                                    }
+                                    selected = index->second;
                                 }
                             } else if (state == Source::FAILURE) {
                                 // Oops this requires recovery, so let's flush

@@ -24,9 +24,9 @@
 #include <regex>
 
 // helper functions
-namespace {
+//namespace {
     
-    void ReplaceString(string& subject, const string& search,const string& replace) 
+    void inline ReplaceString(string& subject, const string& search,const string& replace)
     {
         size_t pos = 0;
         while ((pos = subject.find(search, pos)) != string::npos) {
@@ -35,7 +35,7 @@ namespace {
         }
     }
     
-    string CreateRegex(const string& input)
+    string inline CreateRegex(const string& input)
     {
         string regex = input;
         
@@ -46,7 +46,7 @@ namespace {
         return regex;
     }
     
-    string CreateUrlRegex(const string& input)
+    string inline CreateUrlRegex(const string& input)
     {
         string regex = input;
         
@@ -66,7 +66,7 @@ namespace {
         return regex;
     }
 
-    string GetUrlOrigin(const string& input)
+    string inline GetUrlOrigin(const string& input)
     {
         // see https://tools.ietf.org/html/rfc3986
         auto path = input.find('/', input.find("//") + 2);
@@ -78,7 +78,7 @@ namespace {
 
         return input.substr(0, end);
     }
-}
+//}
 
 namespace WPEFramework {
 namespace Plugin {
