@@ -22,12 +22,33 @@
 #include <curl/curl.h>
 #include <time.h>
 
-#include "utils.h"
-
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
+
+/**
+ * from utils.h
+ * TODO: cannot use utils.h because it has too many include-s
+ */
+#include <syscall.h>
+#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
+#define returnResponse(success) \
+    { \
+        response["success"] = success; \
+        LOGTRACEMETHODFIN(); \
+        return (Core::ERROR_NONE); \
+    }
+#define sendNotify(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s %s", event, json.c_str()); \
+    Notify(event,params); \
+}
 
 namespace WPEFramework
 {
@@ -54,16 +75,18 @@ namespace WPEFramework
         }
 
         DeviceDiagnostics::DeviceDiagnostics()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             DeviceDiagnostics::_instance = this;
 
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
+            Register(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
+            Register(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
+            Unregister(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION);
+            Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS);
         }
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
@@ -97,6 +120,11 @@ namespace WPEFramework
             EssRMgrDestroy(m_EssRMgr);
 #endif
             DeviceDiagnostics::_instance = nullptr;
+        }
+
+        string DeviceDiagnostics::Information() const
+        {
+            return (string());
         }
 
         uint32_t DeviceDiagnostics::getConfigurationWrapper(const JsonObject& parameters, JsonObject& response)
