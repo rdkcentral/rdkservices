@@ -20,11 +20,8 @@
 #include "FrameRate.h"
 #include "host.hpp"
 #include "exception.hpp"
-#include "utils.h"
-#include "dsError.h"
 #include "dsMgr.h"
 #include "libIBus.h"
-#include "libIBusDaemon.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -47,6 +44,95 @@
 #define DEFAULT_MIN_FPS_VALUE 60
 #define DEFAULT_MAX_FPS_VALUE -1
 
+/**
+ * from utils.h
+ * TODO: cannot use utils.h because it has too many include-s
+ */
+#include <syscall.h>
+#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
+#define LOG_DEVICE_EXCEPTION0() LOGWARN("Exception caught: code=%d message=%s", err.getCode(), err.what());
+#define LOG_DEVICE_EXCEPTION1(param1) LOGWARN("Exception caught" #param1 "=%s code=%d message=%s", param1.c_str(), err.getCode(), err.what());
+#define LOG_DEVICE_EXCEPTION2(param1, param2) LOGWARN("Exception caught " #param1 "=%s " #param2 "=%s code=%d message=%s", param1.c_str(), param2.c_str(), err.getCode(), err.what());
+#define returnResponse(success) \
+    { \
+        response["success"] = success; \
+        LOGTRACEMETHODFIN(); \
+        return (Core::ERROR_NONE); \
+    }
+#define returnIfParamNotFound(param, name) \
+    if (!param.HasLabel(name)) \
+    { \
+        LOGERR("No argument '%s'", name); \
+        returnResponse(false); \
+    }
+#define IARM_CHECK(FUNC) { \
+    if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
+        LOGINFO("IARM %s: %s", #FUNC, \
+            res == IARM_RESULT_INVALID_PARAM ? "invalid param" : ( \
+            res == IARM_RESULT_INVALID_STATE ? "invalid state" : ( \
+            res == IARM_RESULT_IPCCORE_FAIL ? "ipcore fail" : ( \
+            res == IARM_RESULT_OOM ? "oom" : "unknown")))); \
+    } \
+    else \
+    { \
+        LOGINFO("IARM %s: success", #FUNC); \
+    } \
+}
+
+namespace Utils {
+struct IARM {
+    static bool init();
+    static bool isConnected();
+
+    static const char* NAME;
+};
+
+const char* IARM::NAME = "Thunder_Plugins";
+
+bool IARM::isConnected() {
+    IARM_Result_t res;
+    int isRegistered = 0;
+    res = IARM_Bus_IsConnected(NAME, &isRegistered);
+    LOGINFO("IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
+
+    return (isRegistered == 1);
+}
+
+bool IARM::init() {
+    IARM_Result_t res;
+    bool result = false;
+
+    if (isConnected()) {
+        LOGINFO("IARM already connected");
+        result = true;
+    } else {
+        res = IARM_Bus_Init(NAME);
+        LOGINFO("IARM_Bus_Init: %d", res);
+        if (res == IARM_RESULT_SUCCESS ||
+            res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+
+            res = IARM_Bus_Connect();
+            LOGINFO("IARM_Bus_Connect: %d", res);
+            if (res == IARM_RESULT_SUCCESS ||
+                res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
+
+                result = isConnected();
+            } else {
+                LOGERR("IARM_Bus_Connect failure: %d", res);
+            }
+        } else {
+            LOGERR("IARM_Bus_Init failure: %d", res);
+        }
+    }
+
+    return result;
+}
+}
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -56,7 +142,7 @@ namespace WPEFramework
         FrameRate* FrameRate::_instance = nullptr;
 
         FrameRate::FrameRate()
-        : AbstractPlugin(2)
+            : PluginHost::JSONRPC()
           , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
           , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
           , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
@@ -67,16 +153,25 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-	    registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this, {2});
-            registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this, {2});
-            registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this, {2});
-            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this, {2});		
+            CreateHandler({2});
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this);
 
-            m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
+            m_reportFpsTimer.connect(std::bind(&FrameRate::onReportFpsTimer, this));
         }
 
         FrameRate::~FrameRate()
         {
+            Unregister(METHOD_SET_COLLECTION_FREQUENCY);
+            Unregister(METHOD_START_FPS_COLLECTION);
+            Unregister(METHOD_STOP_FPS_COLLECTION);
+            Unregister(METHOD_UPDATE_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_SET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_DISPLAY_FRAME_RATE);
+            GetHandler(2)->Unregister(METHOD_SET_DISPLAY_FRAME_RATE);
         }
 
 	const string FrameRate::Initialize(PluginHost::IShell * /* service */)
@@ -111,6 +206,11 @@ namespace WPEFramework
         {
 		DeinitializeIARM();
     		FrameRate::_instance = nullptr;
+        }
+
+        string FrameRate::Information() const
+        {
+            return (string());
         }
 
         uint32_t FrameRate::setCollectionFrequencyWrapper(const JsonObject& parameters, JsonObject& response)
@@ -392,8 +492,12 @@ namespace WPEFramework
             params["average"] = averageFps;
             params["min"] = minFps;
             params["max"] = maxFps;
-            
-            sendNotify(EVENT_FPS_UPDATE, params);
+
+            std::string json;
+            params.ToString(json);
+            LOGINFO("Notify %s %s", EVENT_FPS_UPDATE, json.c_str());
+            Notify(EVENT_FPS_UPDATE, params);
+            GetHandler(2)->Notify(EVENT_FPS_UPDATE, params);
         }
         
         void FrameRate::onReportFpsTimer()
@@ -437,7 +541,9 @@ namespace WPEFramework
 
         void FrameRate::frameRatePreChange()
         {
-            sendNotify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+            LOGINFO("Notify %s", EVENT_FRAMERATE_PRECHANGE);
+            Notify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+            GetHandler(2)->Notify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
         }
 
         void FrameRate::FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -450,7 +556,9 @@ namespace WPEFramework
 
         void FrameRate::frameRatePostChange()
         {
-            sendNotify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+            LOGINFO("Notify %s", EVENT_FRAMERATE_POSTCHANGE);
+            Notify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+            GetHandler(2)->Notify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
         }
 
         

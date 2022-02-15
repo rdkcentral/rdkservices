@@ -23,8 +23,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         socket_adaptor.cpp
         DataCapture.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
