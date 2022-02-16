@@ -22,12 +22,13 @@
 #include <mutex>
 
 #include "Module.h"
-#include "tptimer.h"
 #include "libIARM.h"
 
 namespace WPEFramework {
 
     namespace Plugin {
+
+        class TpTimer;
 
         class FrameRate : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
@@ -92,8 +93,7 @@ namespace WPEFramework {
             int m_totalFpsValues;
             int m_numberOfFpsUpdates;
             bool m_fpsCollectionInProgress;
-            //QTimer m_reportFpsTimer;
-            TpTimer m_reportFpsTimer;
+            Core::ProxyType<TpTimer> m_reportFpsTimer;
             int m_lastFpsValue;
             
             std::mutex m_callMutex;

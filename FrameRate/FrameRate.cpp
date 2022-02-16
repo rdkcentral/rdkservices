@@ -22,6 +22,7 @@
 #include "exception.hpp"
 #include "dsMgr.h"
 #include "libIBus.h"
+#include "tptimer.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -143,9 +144,14 @@ namespace WPEFramework
 
         FrameRate::FrameRate()
             : PluginHost::JSONRPC()
-          , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
-          , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
-          , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
+            , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
+            , m_minFpsValue(DEFAULT_MIN_FPS_VALUE)
+            , m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
+            , m_totalFpsValues(0)
+            , m_numberOfFpsUpdates(0)
+            , m_fpsCollectionInProgress(false)
+            , m_reportFpsTimer(Core::ProxyType<TpTimer>::Create())
+            , m_lastFpsValue(-1)
         {
             FrameRate::_instance = this;
 
@@ -159,7 +165,7 @@ namespace WPEFramework
             GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this);
             GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this);
 
-            m_reportFpsTimer.connect(std::bind(&FrameRate::onReportFpsTimer, this));
+            m_reportFpsTimer->connect(std::bind(&FrameRate::onReportFpsTimer, this));
         }
 
         FrameRate::~FrameRate()
@@ -397,9 +403,9 @@ namespace WPEFramework
             {
                 return false;
             }
-            if (m_reportFpsTimer.isActive())
+            if (m_reportFpsTimer->isActive())
             {
-                m_reportFpsTimer.stop();
+                m_reportFpsTimer->stop();
             }
             m_minFpsValue = DEFAULT_MIN_FPS_VALUE;
             m_maxFpsValue = DEFAULT_MAX_FPS_VALUE;
@@ -411,7 +417,7 @@ namespace WPEFramework
             {
                 fpsCollectionFrequency = MINIMUM_FPS_COLLECTION_TIME_IN_MILLISECONDS;
             }
-            m_reportFpsTimer.start(fpsCollectionFrequency);
+            m_reportFpsTimer->start(fpsCollectionFrequency);
             enableFpsCollection();
             return true;
         }
@@ -426,9 +432,9 @@ namespace WPEFramework
         */
         bool FrameRate::stopFpsCollection()
         {
-            if (m_reportFpsTimer.isActive())
+            if (m_reportFpsTimer->isActive())
             {
-                m_reportFpsTimer.stop();
+                m_reportFpsTimer->stop();
             }
             if (m_fpsCollectionInProgress)
             {
