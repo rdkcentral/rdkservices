@@ -321,7 +321,6 @@ namespace WPEFramework
             m_minFpsValue = DEFAULT_MIN_FPS_VALUE;
             m_maxFpsValue = DEFAULT_MAX_FPS_VALUE;
             m_totalFpsValues = 0;
-            m_numberOfFpsUpdates = 0;
             m_fpsCollectionInProgress = true;
             int fpsCollectionFrequency = m_fpsCollectionFrequencyInMs;
             if (fpsCollectionFrequency < MINIMUM_FPS_COLLECTION_TIME_IN_MILLISECONDS)
@@ -408,9 +407,8 @@ namespace WPEFramework
                 averageFps = (m_totalFpsValues / m_numberOfFpsUpdates);
                 minFps = m_minFpsValue;
                 maxFps = m_maxFpsValue;
-            	fpsCollectionUpdate(averageFps, minFps, maxFps);
             }
-
+            fpsCollectionUpdate(averageFps, minFps, maxFps);
             if (m_lastFpsValue >= 0)
             {
                 // store the last fps value just in case there are no updates
