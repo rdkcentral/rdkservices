@@ -91,6 +91,11 @@ if (SKY_BUILD)
     add_definitions (-DSKY_BUILD)
 endif()
 
+if (SUPPRESS_MAINTENANCE)
+    message("Enable SUPPRESS_MAINTENANCE")
+    add_definitions (-DSUPPRESS_MAINTENANCE)
+endif()
+
 if (BUILD_LLAMA)
     message("Building for LLAMA")
     add_definitions (-DBUILD_LLAMA)

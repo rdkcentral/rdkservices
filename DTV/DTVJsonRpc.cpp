@@ -30,7 +30,6 @@ extern "C"
 
    #include <app.h>
    #include <ap_cfg.h>
-   #include <ap_dbacc.h>
    #include <ap_cntrl.h>
 };
 
@@ -45,23 +44,34 @@ namespace WPEFramework
 
       void DTV::RegisterAll()
       {
+         // Version 1 properties, though some include additional info in version 2
          JSONRPC::Property<Core::JSON::DecUInt8>(_T("numberOfCountries"), &DTV::GetNumberOfCountries, nullptr, this);
          JSONRPC::Property<Core::JSON::ArrayType<CountryconfigData>>(_T("countryList"), &DTV::GetCountryList, nullptr, this);
          JSONRPC::Property<Core::JSON::DecUInt32>(_T("country"), &DTV::GetCountry, &DTV::SetCountry, this);
          JSONRPC::Property<Core::JSON::ArrayType<LnbsettingsInfo>>(_T("lnbList"), &DTV::GetLnbList, nullptr, this);
          JSONRPC::Property<Core::JSON::ArrayType<SatellitesettingsInfo>>(_T("satelliteList"), &DTV::GetSatelliteList, nullptr, this);
          JSONRPC::Property<Core::JSON::DecUInt16>(_T("numberOfServices"), &DTV::GetNumberOfServices, nullptr, this);
-         JSONRPC::Property<Core::JSON::ArrayType<ServiceData>>(_T("serviceList"), &DTV::GetServiceList, nullptr, this);
+         JSONRPC::Property<Core::JSON::ArrayType<ServiceInfo>>(_T("serviceList"), &DTV::GetServiceList, nullptr, this);
          JSONRPC::Property<NowNextEventsData>(_T("nowNextEvents"), &DTV::GetNowNextEvents, nullptr, this);
          JSONRPC::Property<Core::JSON::ArrayType<EiteventInfo>>(_T("scheduleEvents"), &DTV::GetScheduleEvents, nullptr, this);
          JSONRPC::Property<StatusData>(_T("status"), &DTV::GetStatus, nullptr, this);
 
+         // Version 2 properties
+         JSONRPC::Property<ServiceInfo>(_T("serviceInfo"), &DTV::GetServiceInfo, nullptr, this);
+         JSONRPC::Property<Core::JSON::ArrayType<ComponentData>>(_T("serviceComponents"), &DTV::GetServiceComponents, nullptr, this);
+         JSONRPC::Property<TransportInfo>(_T("transportInfo"), &DTV::GetTransportInfo, nullptr, this);
+         JSONRPC::Property<ExtendedeventinfoData>(_T("extendedEventInfo"), &DTV::GetExtendedEventInfo, nullptr, this);
+         JSONRPC::Property<SignalInfoData>(_T("signalInfo"), &DTV::GetSignalInfo, nullptr, this);
+
+         // Version 1 methods
          JSONRPC::Register<LnbsettingsInfo, Core::JSON::Boolean>(_T("addLnb"), &DTV::AddLnb, this);
          JSONRPC::Register<SatellitesettingsInfo, Core::JSON::Boolean>(_T("addSatellite"), &DTV::AddSatellite, this);
          JSONRPC::Register<StartServiceSearchParamsData, Core::JSON::Boolean>(_T("startServiceSearch"), &DTV::StartServiceSearch, this);
          JSONRPC::Register<FinishServiceSearchParamsData, Core::JSON::Boolean>(_T("finishServiceSearch"), &DTV::FinishServiceSearch, this);
          JSONRPC::Register<StartPlayingParamsData, Core::JSON::DecSInt32>(_T("startPlaying"), &DTV::StartPlaying, this);
          JSONRPC::Register<Core::JSON::DecSInt32, void>(_T("stopPlaying"), &DTV::StopPlaying, this);
+
+         // Version 2 methods
       }
 
       void DTV::UnregisterAll()
@@ -77,6 +87,11 @@ namespace WPEFramework
          JSONRPC::Unregister(_T("nowNextEvents"));
          JSONRPC::Unregister(_T("scheduleEvents"));
          JSONRPC::Unregister(_T("status"));
+         JSONRPC::Unregister(_T("serviceInfo"));
+         JSONRPC::Unregister(_T("serviceComponents"));
+         JSONRPC::Unregister(_T("transportInfo"));
+         JSONRPC::Unregister(_T("extendedEventInfo"));
+         JSONRPC::Unregister(_T("signalInfo"));
 
          // Methods
          JSONRPC::Unregister(_T("addLnb"));
@@ -112,10 +127,10 @@ namespace WPEFramework
 
          if ((num_countries != 0) && (country_names != NULL))
          {
-            CountryconfigData config;
-
             for (U8BIT index = 0; index < num_countries; index++)
             {
+               CountryconfigData config;
+
                config.Name = Core::ToString((char *)country_names[index]);
                config.Code = ACFG_GetCountryCode(index);
 
@@ -141,6 +156,7 @@ namespace WPEFramework
       // Property: country - set configured country using the ISO 3-character country code
       // Return codes:
       //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: country code isn't recognised by DVB stack
       uint32_t DTV::SetCountry(Core::JSON::DecUInt32 code) const
       {
          uint32_t result = Core::ERROR_BAD_REQUEST;
@@ -160,13 +176,14 @@ namespace WPEFramework
       uint32_t DTV::GetLnbList(Core::JSON::ArrayType<LnbsettingsInfo>& response) const
       {
          ADB_LNB_SETTINGS settings;
-         LnbsettingsInfo lnb;
 
          SYSLOG(Logging::Notification, (_T("DTV::GetLnbList")));
 
          void *lnb_ptr = ADB_GetNextLNB(NULL);
          while (lnb_ptr != NULL)
          {
+            LnbsettingsInfo lnb;
+
             ADB_GetLNBSettings(lnb_ptr, &settings);
 
             SetJsonString(settings.name, lnb.Name);
@@ -182,7 +199,7 @@ namespace WPEFramework
             lnb.Diseqcrepeats = settings.diseqc_repeats;
             lnb.U_switch = settings.u_switch;
             lnb.Unicablechannel = settings.unicable_chan;
-            lnb.Unicableinterface = settings.unicable_if;
+            lnb.Unicablefreq = settings.unicable_if;
 
             SYSLOG(Logging::Notification, (_T("DTV::GetLnbList: adding %s"), lnb.Name.Value().c_str()));
 
@@ -199,7 +216,6 @@ namespace WPEFramework
       //  - ERROR_NONE: Success
       uint32_t DTV::GetSatelliteList(Core::JSON::ArrayType<SatellitesettingsInfo>& response) const
       {
-         SatellitesettingsInfo sat;
          U16BIT longitude;
          void *lnb_ptr;
 
@@ -208,6 +224,8 @@ namespace WPEFramework
          void *sat_ptr = ADB_GetNextSatellite(NULL);
          while (sat_ptr != NULL)
          {
+            SatellitesettingsInfo sat;
+
             sat.Name = Core::ToString((char *)ADB_GetSatelliteName(sat_ptr));
 
             longitude = ADB_GetSatelliteLongitude(sat_ptr);
@@ -256,61 +274,59 @@ namespace WPEFramework
       // Property: serviceList - get service list
       // Return codes:
       //  - ERROR_NONE: Success
-      uint32_t DTV::GetServiceList(const string& tuner_type, Core::JSON::ArrayType<ServiceData>& response) const
+      uint32_t DTV::GetServiceList(const string& index, Core::JSON::ArrayType<ServiceInfo>& response) const
       {
-         U16BIT num_services;
-         void **slist;
-         E_STB_DP_SIGNAL_TYPE signal;
+         U16BIT onet_id, trans_id;
+         void *transport;
+         E_STB_DP_SIGNAL_TYPE signal = SIGNAL_NONE;
+         U16BIT num_services = 0;
+         void **slist = NULL;
 
-         SYSLOG(Logging::Notification, (_T("DTV::GetServiceList: %s"), tuner_type.c_str()));
+         SYSLOG(Logging::Notification, (_T("DTV::GetServiceList: %s"), index.c_str()));
 
-         switch(Core::EnumerateType<TunertypeType>(tuner_type.c_str()).Value())
+         // The index may be a doublet specifying a transport, or a tuner type
+         int num_args = std::sscanf(index.c_str(), "%hu.%hu", &onet_id, &trans_id);
+         if (num_args == 2)
          {
-            case TunertypeType::DVBS:
-               signal = SIGNAL_QPSK;
-               break;
-            case TunertypeType::DVBT:
-               signal = SIGNAL_COFDM;
-               break;
-            case TunertypeType::DVBC:
-               signal = SIGNAL_QAM;
-               break;
-            default:
-               signal = SIGNAL_NONE;
-               break;
+            transport = ADB_GetTransportFromIds(ADB_INVALID_DVB_ID, onet_id, trans_id);
+            if (transport != NULL)
+            {
+               ADB_GetTransportServiceList(transport, &slist, &num_services);
+            }
          }
+         else
+         {
+            // Check for a tuner type, otherwise all services will be returned
+            switch(Core::EnumerateType<TunertypeType>(index.c_str()).Value())
+            {
+               case TunertypeType::DVBS:
+                  signal = SIGNAL_QPSK;
+                  break;
+               case TunertypeType::DVBT:
+                  signal = SIGNAL_COFDM;
+                  break;
+               case TunertypeType::DVBC:
+                  signal = SIGNAL_QAM;
+                  break;
+               default:
+                  signal = SIGNAL_NONE;
+                  break;
+            }
 
-         ADB_GetServiceList(ADB_SERVICE_LIST_DIGITAL, &slist, &num_services);
+            ADB_GetServiceList(ADB_SERVICE_LIST_DIGITAL, &slist, &num_services);
+         }
 
          if ((slist != NULL) && (num_services != 0))
          {
-            ServiceData service;
             BOOLEAN is_sig2;
-            U8BIT *name;
-            U16BIT onet_id, trans_id, serv_id;
 
             for (U16BIT index = 0; index < num_services; index++)
             {
                if ((signal == SIGNAL_NONE) || (ADB_GetServiceSignalType(slist[index], &is_sig2) == signal))
                {
-                  if ((name = ADB_GetServiceShortName(slist[index], FALSE)) != NULL)
-                  {
-                     // Ignore the UTF-8 lead byte
-                     service.Shortname = (char *)(name + 1);
-                     STB_ReleaseUnicodeString(name);
-                  }
-                  else
-                  {
-                     service.Shortname = _T("");
-                  }
+                  ServiceInfo service;
 
-                  service.Lcn = ADB_GetServiceLcn(slist[index]);
-
-                  ADB_GetServiceIds(slist[index], &onet_id, &trans_id, &serv_id);
-
-                  service.Dvburi = std::to_string(onet_id) + "." + std::to_string(trans_id) +
-                     "." + std::to_string(serv_id);
-
+                  ExtractDvbServiceInfo(service, slist[index]);
                   response.Add(service);
                }
             }
@@ -324,6 +340,7 @@ namespace WPEFramework
       // Property: nowNextEvents - get the now & next EIT events for the defined service
       // Return codes:
       //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid service URI or service can't be found
       uint32_t DTV::GetNowNextEvents(const string& service_uri, NowNextEventsData& response) const
       {
          uint32_t result = Core::ERROR_BAD_REQUEST;
@@ -346,7 +363,7 @@ namespace WPEFramework
 
                   if (now != NULL)
                   {
-                     ExtractDvbEventInfo(now, response.Now);
+                     ExtractDvbEventInfo(response.Now, now);
                      ADB_ReleaseEventData(now);
                   }
                   else
@@ -356,7 +373,7 @@ namespace WPEFramework
 
                   if (next != NULL)
                   {
-                     ExtractDvbEventInfo(next, response.Next);
+                     ExtractDvbEventInfo(response.Next, next);
                      ADB_ReleaseEventData(next);
                   }
                   else
@@ -380,6 +397,7 @@ namespace WPEFramework
       //                            such that any events that start within this period will be returned.
       // Return codes:
       //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid service URI or service can't be found
       uint32_t DTV::GetScheduleEvents(const string& index, Core::JSON::ArrayType<EiteventInfo>& response) const
       {
          uint32_t result = Core::ERROR_BAD_REQUEST;
@@ -407,14 +425,15 @@ namespace WPEFramework
                   if (event_list != NULL)
                   {
                      U32BIT start_time;
-                     EiteventInfo event;
 
                      for (U16BIT i = 0; i < num_events; i++)
                      {
                         start_time = STB_GCConvertToTimestamp(ADB_GetEventStartDateTime(event_list[i]));
                         if ((start_time >= start_utc) && (start_time <= end_utc))
                         {
-                           ExtractDvbEventInfo(event_list[i], event);
+                           EiteventInfo event;
+
+                           ExtractDvbEventInfo(event, event_list[i]);
                            response.Add(event);
                         }
                         else if (start_time > end_utc)
@@ -439,6 +458,7 @@ namespace WPEFramework
       // Property: status - get the status for the given decode path
       // Return codes:
       //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid play handle
       uint32_t DTV::GetStatus(const string& index, StatusData& response) const
       {
          uint32_t result = Core::ERROR_BAD_REQUEST;
@@ -478,6 +498,192 @@ namespace WPEFramework
          return (result);
       }
 
+      /************************
+       * Version 2 properties
+       ************************/
+
+      // Property: serviceInfo - get service info
+      // Return codes:
+      //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid service URI or service can't be found
+      uint32_t DTV::GetServiceInfo(const string& index, ServiceInfo& response) const
+      {
+         uint32_t result = Core::ERROR_BAD_REQUEST;
+         U16BIT onet_id, trans_id, serv_id;
+
+         SYSLOG(Logging::Notification, (_T("DTV::GetServiceInfo: %s"), index.c_str()));
+
+         // The index must be a service's DVB triplet
+         int num_args = std::sscanf(index.c_str(), "%hu.%hu.%hu", &onet_id, &trans_id, &serv_id);
+         if (num_args == 3)
+         {
+            void *service = ADB_FindServiceByIds(onet_id, trans_id, serv_id);
+            if (service != NULL)
+            {
+               ExtractDvbServiceInfo(response, service);
+               result = Core::ERROR_NONE;
+            }
+         }
+
+         return (result);
+      }
+
+      // Property: serviceComponents - get service components
+      // Return codes:
+      //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid service URI or service can't be found
+      uint32_t DTV::GetServiceComponents(const string& index, Core::JSON::ArrayType<ComponentData>& response) const
+      {
+         uint32_t result = Core::ERROR_BAD_REQUEST;
+         U16BIT onet_id, trans_id, serv_id;
+
+         SYSLOG(Logging::Notification, (_T("DTV::GetServiceComponents: %s"), index.c_str()));
+
+         // The index must be a service's DVB triplet
+         int num_args = std::sscanf(index.c_str(), "%hu.%hu.%hu", &onet_id, &trans_id, &serv_id);
+         if (num_args == 3)
+         {
+            void *service = ADB_FindServiceByIds(onet_id, trans_id, serv_id);
+            if (service != NULL)
+            {
+               void **streams;
+               U16BIT num_streams;
+
+               ADB_GetStreamList(service, ADB_STREAM_LIST_ALL, &streams, &num_streams);
+
+               if ((streams != NULL) && (num_streams != 0))
+               {
+                  for (U16BIT index = 0; index < num_streams; index++)
+                  {
+                     ComponentData component;
+                     ExtractDvbStreamInfo(component, streams[index]);
+                     response.Add(component);
+                  }
+
+                  ADB_ReleaseStreamList(streams, num_streams);
+               }
+
+               result = Core::ERROR_NONE;
+            }
+         }
+
+         return (result);
+      }
+
+      // Property: transportInfo - get transport info
+      // Return codes:
+      //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid transport URI or transport can't be found
+      uint32_t DTV::GetTransportInfo(const string& index, TransportInfo& response) const
+      {
+         uint32_t result = Core::ERROR_BAD_REQUEST;
+         U16BIT onet_id, trans_id;
+
+         SYSLOG(Logging::Notification, (_T("DTV::GetTransportInfo: %s"), index.c_str()));
+
+         // The index must be a transport's DVB doublet
+         int num_args = std::sscanf(index.c_str(), "%hu.%hu", &onet_id, &trans_id);
+         if (num_args == 2)
+         {
+            void *transport = ADB_GetTransportFromIds(ADB_INVALID_DVB_ID, onet_id, trans_id);
+            if (transport != NULL)
+            {
+               ExtractDvbTransportInfo(response, transport);
+               result = Core::ERROR_NONE;
+            }
+         }
+
+         return (result);
+      }
+
+      // Property: extendedEventInfo - get extended EIT info for an event
+      // Return codes:
+      //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: invalid service URI, service can't be found, or event can't be found
+      uint32_t DTV::GetExtendedEventInfo(const string& index, ExtendedeventinfoData& response) const
+      {
+         uint32_t result = Core::ERROR_BAD_REQUEST;
+         U16BIT onet_id, trans_id, serv_id, event_id;
+
+         SYSLOG(Logging::Notification, (_T("DTV::GetExtendedEventInfo: %s"), index.c_str()));
+
+         // The index must be a service's DVB triplet followed by the event ID
+         int num_args = std::sscanf(index.c_str(), "%hu.%hu.%hu:%hu", &onet_id, &trans_id,
+            &serv_id, &event_id);
+         if (num_args == 4)
+         {
+            void *service = ADB_FindServiceByIds(onet_id, trans_id, serv_id);
+            if (service != NULL)
+            {
+               void *event = ADB_GetEvent(service, event_id);
+               if (event != NULL)
+               {
+                  U16BIT num_items;
+
+                  SetJsonString(ADB_GetEventExtendedDescription(event), response.Description, true);
+
+                  ADB_EVENT_ITEMIZED_INFO* items = ADB_GetEventItemizedDescription(event, &num_items);
+                  if ((items != NULL) && (num_items != 0))
+                  {
+                     for (U16BIT num = 0; num < num_items; num++)
+                     {
+                        ExtendedeventinfoData::ExtendedeventitemData ex_item;
+
+                        SetJsonString(items[num].item_description, ex_item.Description, false);
+                        SetJsonString(items[num].item, ex_item.Item, false);
+
+                        response.Items.Add(ex_item);
+                     }
+
+                     ADB_ReleaseEventItemizedInfo(items, num_items);
+                  }
+
+                  ADB_ReleaseEventData(event);
+
+                  result = Core::ERROR_NONE;
+               }
+            }
+         }
+
+         return(result);
+      }
+
+      // Property: signalInfo - locked status, strength and quality for the tuned play handle
+      // Return codes:
+      //  - ERROR_NONE: Success
+      //  - ERROR_BAD_REQUEST: no play handle given
+      uint32_t DTV::GetSignalInfo(const string& index, SignalInfoData& response) const
+      {
+         uint32_t result = Core::ERROR_BAD_REQUEST;
+
+         SYSLOG(Logging::Notification, (_T("DTV::GetSignalInfo: %s"), index.c_str()));
+
+         if (index.length() != 0)
+         {
+            U8BIT path = (U8BIT)atoi(index.c_str());
+            U8BIT tuner = STB_DPGetPathTuner(path);
+
+            response.Locked = (ACTL_IsTuned(path) ? true : false);
+
+            if (response.Locked && (tuner != INVALID_RES_ID))
+            {
+               response.Strength = STB_TuneGetSignalStrength(tuner);
+               response.Quality = STB_TuneGetDataIntegrity(tuner);
+            }
+            else
+            {
+               void *transport = ADB_GetTunedTransport(path);
+
+               response.Strength = ADB_GetTransportTunedStrength(transport);
+               response.Quality = ADB_GetTransportTunedQuality(transport);
+            }
+
+            result = Core::ERROR_NONE;
+         }
+
+         return(result);
+      }
+
       uint32_t DTV::AddLnb(const LnbsettingsInfo& lnb_settings, Core::JSON::Boolean& response)
       {
          uint32_t result = Core::ERROR_BAD_REQUEST;
@@ -504,7 +710,7 @@ namespace WPEFramework
          settings.diseqc_repeats = lnb_settings.Diseqcrepeats;
          settings.u_switch = lnb_settings.U_switch;
          settings.unicable_chan = lnb_settings.Unicablechannel;
-         settings.unicable_if = lnb_settings.Unicableinterface;
+         settings.unicable_if = lnb_settings.Unicablefreq;
 
          if (ADB_AddLNB(&settings) != NULL)
          {
@@ -605,7 +811,12 @@ namespace WPEFramework
                      tuning_params.u.sat.modulation = GetDvbsModulation(start_search.Dvbstuningparams.Modulation);
                      break;
                   case SIGNAL_COFDM:
-                     SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-T not supported")));
+                     SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-T")));
+                     tuning_params.freq = start_search.Dvbttuningparams.Frequency;
+                     tuning_params.u.terr.bwidth = GetDvbBandwidth(start_search.Dvbttuningparams.Bandwidth);
+                     tuning_params.u.terr.mode = GetDvbOfdmMode(start_search.Dvbttuningparams.Mode);
+                     tuning_params.u.terr.type = (start_search.Dvbttuningparams.Dvbt2 ? TERR_TYPE_DVBT2 : TERR_TYPE_DVBT);
+                     tuning_params.u.terr.plp_id = start_search.Dvbttuningparams.Plpid;
                      break;
                   case SIGNAL_QAM:
                      SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-C")));
@@ -682,6 +893,7 @@ namespace WPEFramework
          uint32_t result = Core::ERROR_BAD_REQUEST;
          U16BIT onet_id, trans_id, serv_id;
          void *service = NULL;
+         bool monitor_only = false;
 
          if (play_params.Dvburi.IsSet())
          {
@@ -699,9 +911,17 @@ namespace WPEFramework
             service = ADB_FindServiceByLcn(ADB_SERVICE_LIST_ALL, play_params.Lcn.Value(), FALSE);
          }
 
+         if (play_params.Monitoronly.IsSet())
+         {
+            monitor_only = play_params.Monitoronly;
+            SYSLOG(Logging::Notification, (_T("DTV::StartPlaying: monitor=%u"), monitor_only));
+         }
+
          if (service != NULL)
          {
-            U8BIT decode_path = ACTL_TuneToService(INVALID_RES_ID, NULL, service, FALSE, ACTL_PATH_PURPOSE_STREAM_LIVE);
+            E_ACTL_PATH_PURPOSE purpose = (monitor_only ? ACTL_PATH_PURPOSE_MONITOR_SI : ACTL_PATH_PURPOSE_STREAM_LIVE);
+
+            U8BIT decode_path = ACTL_TuneToService(INVALID_RES_ID, NULL, service, FALSE, purpose);
             if (decode_path != INVALID_RES_ID)
             {
                play_handle = decode_path;
@@ -735,6 +955,679 @@ namespace WPEFramework
       void DTV::EventSearchStatus(SearchstatusParamsData& params)
       {
          Notify(_T("searchstatus"), params);
+      }
+
+      void DTV::EventService(const string& event_name, ServiceupdatedParamsInfo& params)
+      {
+         Notify(event_name, params);
+      }
+
+      void DTV::EventEventChanged(EventchangedParamsData& params)
+      {
+         Notify(_T("eventchanged"), params);
+      }
+
+      void DTV::ExtractDvbServiceInfo(ServiceInfo& service, void *serv_ptr) const
+      {
+         U8BIT *name;
+         U16BIT onet_id, trans_id, serv_id;
+
+         if ((name = ADB_GetServiceFullName(serv_ptr, FALSE)) != NULL)
+         {
+            // Ignore the UTF-8 lead byte
+            service.Fullname = (char *)(name + 1);
+            STB_ReleaseUnicodeString(name);
+         }
+         else
+         {
+            service.Fullname = _T("");
+         }
+
+         if ((name = ADB_GetServiceShortName(serv_ptr, FALSE)) != NULL)
+         {
+            // Ignore the UTF-8 lead byte
+            service.Shortname = (char *)(name + 1);
+            STB_ReleaseUnicodeString(name);
+         }
+         else
+         {
+            service.Shortname = _T("");
+         }
+
+         ADB_GetServiceIds(serv_ptr, &onet_id, &trans_id, &serv_id);
+
+         service.Dvburi = std::to_string(onet_id) + "." + std::to_string(trans_id) +
+            "." + std::to_string(serv_id);
+
+         service.Servicetype = GetJsonServiceType(ADB_GetServiceType(serv_ptr));
+         service.Lcn = ADB_GetServiceLcn(serv_ptr);
+         service.Scrambled = (ADB_GetServiceScrambledFlag(serv_ptr) ? true : false);
+         service.Hascadescriptor = (ADB_GetServiceHasCaDesc(serv_ptr) ? true : false);
+         service.Hidden = (ADB_GetServiceHiddenFlag(serv_ptr) ? true : false);
+         service.Selectable = (ADB_GetServiceSelectableFlag(serv_ptr) ? true : false);
+         service.Runningstatus = GetJsonRunningStatus(ADB_GetServiceRunningStatus(serv_ptr));
+      }
+
+      void DTV::ExtractDvbStreamInfo(ComponentData& component, void *stream) const
+      {
+         ADB_STREAM_TYPE stream_type = ADB_GetStreamType(stream);
+
+         component.Type = GetJsonStreamType(stream_type);
+         component.Pid = ADB_GetStreamPID(stream);
+
+         U8BIT num_tags = ADB_GetStreamNumTags(stream);
+
+         for (U8BIT index = 0; index < num_tags; index++)
+         {
+            component.Tags.Add(ADB_GetStreamTag(stream, index));
+         }
+
+         if ((stream_type >= ADB_VIDEO_STREAM) && (stream_type <= ADB_AVS_VIDEO_STREAM))
+         {
+            component.Video.Codec = GetJsonStreamCodec(stream_type);
+         }
+         else if ((stream_type >= ADB_AUDIO_STREAM) && (stream_type <= ADB_EAC3_AUDIO_STREAM))
+         {
+            component.Audio.Codec = GetJsonStreamCodec(stream_type);
+            component.Audio.Language = GetJsonLanguageCode(ADB_GetAudioStreamLangCode(stream));
+            component.Audio.Type = GetJsonAudioType(ADB_GetAudioStreamType(stream));
+            component.Audio.Mode = GetJsonAudioMode(ADB_GetAudioStreamMode(stream));
+         }
+         else if (stream_type == ADB_SUBTITLE_STREAM)
+         {
+            component.Subtitles.Language = GetJsonLanguageCode(ADB_GetSubtitleStreamLangCode(stream));
+            component.Subtitles.Format = GetJsonSubtitleFormat(ADB_GetSubtitleStreamType(stream));
+            component.Subtitles.Compositionpage = ADB_GetSubtitleStreamCompositionPage(stream);
+            component.Subtitles.Ancillarypage = ADB_GetSubtitleStreamAncillaryPage(stream);
+         }
+         else if (stream_type == ADB_TTEXT_STREAM)
+         {
+            component.Teletext.Language = GetJsonLanguageCode(ADB_GetTtextStreamLangCode(stream));
+            component.Teletext.Type = ADB_GetTtextStreamType(stream);
+            component.Teletext.Magazine = ADB_GetTtextStreamMagazine(stream);
+            component.Teletext.Page = ADB_GetTtextStreamPage(stream);
+         }
+      }
+
+      void DTV::ExtractDvbTransportInfo(TransportInfo& transport, void *trans_ptr) const
+      {
+         E_STB_DP_SIGNAL_TYPE signal_type = ADB_GetTransportSignalType(trans_ptr);
+
+         transport.Tunertype = GetJsonTunerType(signal_type);
+         transport.Originalnetworkid = ADB_GetTransportOriginalNetworkId(trans_ptr);
+         transport.Transportid = ADB_GetTransportTid(trans_ptr);
+         transport.Strength = ADB_GetTransportTunedStrength(trans_ptr);
+         transport.Quality = ADB_GetTransportTunedQuality(trans_ptr);
+
+         switch (signal_type)
+         {
+            case SIGNAL_QPSK:
+               ExtractDvbsTuningParams(transport.Dvbstuningparams, trans_ptr);
+               break;
+            case SIGNAL_QAM:
+               ExtractDvbcTuningParams(transport.Dvbctuningparams, trans_ptr);
+               break;
+            case SIGNAL_COFDM:
+               ExtractDvbtTuningParams(transport.Dvbttuningparams, trans_ptr);
+               break;
+            default:
+               break;
+         }
+      }
+
+      void DTV::ExtractDvbsTuningParams(DvbstuningparamsInfo& tuning_params, void *transport) const
+      {
+         U32BIT frequency;
+         E_STB_DP_POLARITY polarity;
+         U16BIT symbol_rate;
+         E_STB_DP_FEC fec;
+         BOOLEAN dvb_s2;
+         E_STB_DP_MODULATION modulation;
+
+         ADB_GetTransportSatTuningParams(transport, &frequency, &polarity, &symbol_rate, &fec,
+            &dvb_s2, &modulation);
+
+         tuning_params.Frequency = frequency;
+         tuning_params.Polarity = GetJsonPolarity(polarity);
+         tuning_params.Symbolrate = symbol_rate;
+         tuning_params.Fec = GetJsonFec(fec);
+         tuning_params.Modulation = GetJsonDvbsModulation(modulation);
+         tuning_params.Dvbs2 = (dvb_s2 ? true : false);
+
+         void *satellite = ADB_GetTransportSatellite(transport);
+         if (satellite != NULL)
+         {
+            tuning_params.Satellite = Core::ToString(ADB_GetSatelliteName(satellite));
+         }
+      }
+
+      void DTV::ExtractDvbcTuningParams(DvbctuningparamsInfo& tuning_params, void *transport) const
+      {
+         U32BIT frequency;
+         E_STB_DP_CMODE modulation;
+         U16BIT symbol_rate;
+
+         ADB_GetTransportCableTuningParams(transport, &frequency, &modulation, &symbol_rate);
+
+         tuning_params.Frequency = frequency;
+         tuning_params.Symbolrate = symbol_rate;
+         tuning_params.Modulation = GetJsonDvbcModulation(modulation);
+      }
+
+      void DTV::ExtractDvbtTuningParams(DvbttuningparamsInfo& tuning_params, void *transport) const
+      {
+         E_STB_DP_TTYPE terr_type;
+         U32BIT frequency;
+         E_STB_DP_TMODE mode;
+         E_STB_DP_TBWIDTH bandwidth;
+         U8BIT plp_id;
+
+         ADB_GetTransportTerrestrialTuningParams(transport, &terr_type, &frequency, &mode,
+            &bandwidth, &plp_id);
+
+         tuning_params.Frequency = frequency;
+         tuning_params.Bandwidth = GetJsonBandwidth(bandwidth);
+         tuning_params.Mode = GetJsonOfdmMode(mode);
+         tuning_params.Dvbt2 = (terr_type == TERR_TYPE_DVBT2) ? true : false;
+         tuning_params.Plpid = plp_id;
+      }
+
+      Core::JSON::EnumType<PolarityType> DTV::GetJsonPolarity(E_STB_DP_POLARITY dvb_polarity) const
+      {
+         Core::JSON::EnumType<PolarityType> polarity;
+
+         switch (dvb_polarity)
+         {
+            case POLARITY_HORIZONTAL:
+               polarity = PolarityType::HORIZONTAL;
+               break;
+            case POLARITY_VERTICAL:
+               polarity = PolarityType::VERTICAL;
+               break;
+            case POLARITY_LEFT:
+               polarity = PolarityType::LEFT;
+               break;
+            case POLARITY_RIGHT:
+               polarity = PolarityType::RIGHT;
+               break;
+         }
+
+         return(polarity);
+      }
+
+      Core::JSON::EnumType<FecType> DTV::GetJsonFec(E_STB_DP_FEC dvb_fec) const
+      {
+         Core::JSON::EnumType<FecType> fec;
+
+         switch (dvb_fec)
+         {
+            case FEC_AUTOMATIC:
+               fec = FecType::FECAUTO;
+               break;
+            case FEC_1_2:
+               fec = FecType::FEC1_2;
+               break;
+            case FEC_2_3:
+               fec = FecType::FEC2_3;
+               break;
+            case FEC_3_4:
+               fec = FecType::FEC3_4;
+               break;
+            case FEC_5_6:
+               fec = FecType::FEC5_6;
+               break;
+            case FEC_7_8:
+               fec = FecType::FEC7_8;
+               break;
+            case FEC_1_4:
+               fec = FecType::FEC1_4;
+               break;
+            case FEC_1_3:
+               fec = FecType::FEC1_3;
+               break;
+            case FEC_2_5:
+               fec = FecType::FEC2_5;
+               break;
+            case FEC_8_9:
+               fec = FecType::FEC8_9;
+               break;
+            case FEC_9_10:
+               fec = FecType::FEC9_10;
+               break;
+            case FEC_3_5:
+               fec = FecType::FEC3_5;
+               break;
+            case FEC_4_5:
+               fec = FecType::FEC4_5;
+               break;
+         }
+
+         return(fec);
+      }
+
+      Core::JSON::EnumType<DvbsmodulationType> DTV::GetJsonDvbsModulation(E_STB_DP_MODULATION dvb_modulation) const
+      {
+         Core::JSON::EnumType<DvbsmodulationType> modulation;
+
+         switch (dvb_modulation)
+         {
+            case MOD_QPSK:
+               modulation = DvbsmodulationType::QPSK;
+               break;
+            case MOD_8PSK:
+               modulation = DvbsmodulationType::E8PSK;
+               break;
+            case MOD_16QAM:
+               modulation = DvbsmodulationType::E16QAM;
+               break;
+            case MOD_AUTO:
+            default:
+               modulation = DvbsmodulationType::AUTO;
+               break;
+         }
+
+         return(modulation);
+      }
+
+      Core::JSON::EnumType<DvbcmodulationType> DTV::GetJsonDvbcModulation(E_STB_DP_CMODE dvb_modulation) const
+      {
+         Core::JSON::EnumType<DvbcmodulationType> modulation;
+
+         switch (dvb_modulation)
+         {
+            case MODE_QAM_AUTO:
+               modulation = DvbcmodulationType::AUTO;
+               break;
+            case MODE_QAM_4:
+               modulation = DvbcmodulationType::E4QAM;
+               break;
+            case MODE_QAM_8:
+               modulation = DvbcmodulationType::E8QAM;
+               break;
+            case MODE_QAM_16:
+               modulation = DvbcmodulationType::E16QAM;
+               break;
+            case MODE_QAM_32:
+               modulation = DvbcmodulationType::E32QAM;
+               break;
+            case MODE_QAM_64:
+               modulation = DvbcmodulationType::E64QAM;
+               break;
+            case MODE_QAM_128:
+               modulation = DvbcmodulationType::E128QAM;
+               break;
+            case MODE_QAM_256:
+               modulation = DvbcmodulationType::E256QAM;
+               break;
+         }
+
+         return(modulation);
+      }
+
+      Core::JSON::EnumType<DvbtbandwidthType> DTV::GetJsonBandwidth(E_STB_DP_TBWIDTH dvb_bandwidth) const
+      {
+         Core::JSON::EnumType<DvbtbandwidthType> bandwidth;
+
+         switch (dvb_bandwidth)
+         {
+            case TBWIDTH_5MHZ:
+               bandwidth = DvbtbandwidthType::E5MHZ;
+               break;
+            case TBWIDTH_6MHZ:
+               bandwidth = DvbtbandwidthType::E6MHZ;
+               break;
+            case TBWIDTH_7MHZ:
+               bandwidth = DvbtbandwidthType::E7MHZ;
+               break;
+            case TBWIDTH_8MHZ:
+               bandwidth = DvbtbandwidthType::E8MHZ;
+               break;
+            case TBWIDTH_10MHZ:
+               bandwidth = DvbtbandwidthType::E10MHZ;
+               break;
+            case TBWIDTH_UNDEFINED:
+            default:
+               bandwidth = DvbtbandwidthType::UNDEFINED;
+               break;
+         }
+
+         return(bandwidth);
+      }
+
+      Core::JSON::EnumType<OfdmmodeType> DTV::GetJsonOfdmMode(E_STB_DP_TMODE dvb_mode) const
+      {
+         Core::JSON::EnumType<OfdmmodeType> mode;
+
+         switch (dvb_mode)
+         {
+            case MODE_COFDM_2K:
+               mode = OfdmmodeType::OFDM_2K;
+               break;
+            case MODE_COFDM_8K:
+               mode = OfdmmodeType::OFDM_8K;
+               break;
+            case MODE_COFDM_4K:
+               mode = OfdmmodeType::OFDM_4K;
+               break;
+            case MODE_COFDM_1K:
+               mode = OfdmmodeType::OFDM_1K;
+               break;
+            case MODE_COFDM_16K:
+               mode = OfdmmodeType::OFDM_16K;
+               break;
+            case MODE_COFDM_32K:
+               mode = OfdmmodeType::OFDM_32K;
+               break;
+            case MODE_COFDM_UNDEFINED:
+            default:
+               mode = OfdmmodeType::UNDEFINED;
+               break;
+         }
+
+         return(mode);
+      }
+
+      Core::JSON::EnumType<TunertypeType> DTV::GetJsonTunerType(E_STB_DP_SIGNAL_TYPE signal_type) const
+      {
+         Core::JSON::EnumType<TunertypeType> tuner_type;
+
+         switch (signal_type)
+         {
+            case SIGNAL_QPSK:
+               tuner_type = TunertypeType::DVBS;
+               break;
+            case SIGNAL_COFDM:
+               tuner_type = TunertypeType::DVBT;
+               break;
+            case SIGNAL_QAM:
+               tuner_type = TunertypeType::DVBC;
+               break;
+            case SIGNAL_NONE:
+            default:
+               tuner_type = TunertypeType::NONE;
+               break;
+         }
+
+         return(tuner_type);
+      }
+
+      Core::JSON::EnumType<ComponentData::TypeType> DTV::GetJsonStreamType(ADB_STREAM_TYPE type) const
+      {
+         Core::JSON::EnumType<ComponentData::TypeType> comp_type;
+
+         switch (type)
+         {
+            case ADB_VIDEO_STREAM:
+            case ADB_H264_VIDEO_STREAM:
+            case ADB_H265_VIDEO_STREAM:
+            case ADB_AVS_VIDEO_STREAM:
+               comp_type = ComponentData::TypeType::VIDEO;
+               break;
+            case ADB_AUDIO_STREAM:
+            case ADB_AAC_AUDIO_STREAM:
+            case ADB_HEAAC_AUDIO_STREAM:
+            case ADB_HEAACv2_AUDIO_STREAM:
+            case ADB_AC3_AUDIO_STREAM:
+            case ADB_EAC3_AUDIO_STREAM:
+               comp_type = ComponentData::TypeType::AUDIO;
+               break;
+            case ADB_SUBTITLE_STREAM:
+               comp_type = ComponentData::TypeType::SUBTITLES;
+               break;
+            case ADB_DATA_STREAM:
+               comp_type = ComponentData::TypeType::DATA;
+               break;
+            case ADB_TTEXT_STREAM:
+               comp_type = ComponentData::TypeType::TELETEXT;
+               break;
+         }
+
+         return(comp_type);
+      }
+
+      Core::JSON::EnumType<CodecType> DTV::GetJsonStreamCodec(ADB_STREAM_TYPE type) const
+      {
+         Core::JSON::EnumType<CodecType> codec;
+
+         switch (type)
+         {
+            case ADB_VIDEO_STREAM:
+               codec = CodecType::MPEG2;
+               break;
+            case ADB_H264_VIDEO_STREAM:
+               codec = CodecType::H264;
+               break;
+            case ADB_H265_VIDEO_STREAM:
+               codec = CodecType::H265;
+               break;
+            case ADB_AVS_VIDEO_STREAM:
+               codec = CodecType::AVS;
+               break;
+            case ADB_AUDIO_STREAM:
+               codec = CodecType::MPEG1;
+               break;
+            case ADB_AAC_AUDIO_STREAM:
+               codec = CodecType::AAC;
+               break;
+            case ADB_HEAAC_AUDIO_STREAM:
+               codec = CodecType::HEAAC;
+               break;
+            case ADB_HEAACv2_AUDIO_STREAM:
+               codec = CodecType::HEAACV2;
+               break;
+            case ADB_AC3_AUDIO_STREAM:
+               codec = CodecType::AC3;
+               break;
+            case ADB_EAC3_AUDIO_STREAM:
+               codec = CodecType::EAC3;
+               break;
+         }
+
+         return(codec);
+      }
+
+      Core::JSON::String DTV::GetJsonLanguageCode(U32BIT code) const
+      {
+         char lang[4];
+
+         lang[0] = (char)((code >> 16) & 0xff);
+         lang[1] = (char)((code >> 8) & 0xff);
+         lang[2] = (char)(code & 0xff);
+         lang[3] = '\0';
+
+         return(Core::JSON::String(lang));
+      }
+
+      Core::JSON::EnumType<ComponentData::AudioData::TypeType> DTV::GetJsonAudioType(ADB_AUDIO_TYPE type) const
+      {
+         Core::JSON::EnumType<ComponentData::AudioData::TypeType> audio_type;
+
+         switch (type)
+         {
+            case ADB_AUDIO_TYPE_UNDEFINED:
+               audio_type = ComponentData::AudioData::TypeType::UNDEFINED;
+               break;
+            case ADB_AUDIO_TYPE_CLEAN_EFFECTS:
+               audio_type = ComponentData::AudioData::TypeType::CLEAN;
+               break;
+            case ADB_AUDIO_TYPE_FOR_HEARING_IMPAIRED:
+               audio_type = ComponentData::AudioData::TypeType::HEARINGIMPAIRED;
+               break;
+            case ADB_AUDIO_TYPE_FOR_VISUALLY_IMPAIRED:
+               audio_type = ComponentData::AudioData::TypeType::VISUALLYIMPAIRED;
+               break;
+            default:
+               audio_type = ComponentData::AudioData::TypeType::UNKNOWN;
+               break;
+         }
+
+         return(audio_type);
+      }
+
+      Core::JSON::EnumType<ComponentData::AudioData::ModeType> DTV::GetJsonAudioMode(E_STB_DP_AUDIO_MODE mode) const
+      {
+         Core::JSON::EnumType<ComponentData::AudioData::ModeType> audio_mode;
+
+         switch (mode)
+         {
+            case AUDIO_STEREO:
+               audio_mode = ComponentData::AudioData::ModeType::STEREO;
+               break;
+            case AUDIO_LEFT:
+               audio_mode = ComponentData::AudioData::ModeType::LEFT;
+               break;
+            case AUDIO_RIGHT:
+               audio_mode = ComponentData::AudioData::ModeType::RIGHT;
+               break;
+            case AUDIO_MONO:
+               audio_mode = ComponentData::AudioData::ModeType::MONO;
+               break;
+            case AUDIO_MULTICHANNEL:
+               audio_mode = ComponentData::AudioData::ModeType::MULTICHANNEL;
+               break;
+            case AUDIO_UNDEF:
+            default:
+               audio_mode = ComponentData::AudioData::ModeType::UNDEFINED;
+               break;
+         }
+
+         return(audio_mode);
+      }
+
+      Core::JSON::EnumType<ComponentData::SubtitlesData::FormatType> DTV::GetJsonSubtitleFormat(ADB_SUBTITLE_TYPE type) const
+      {
+         Core::JSON::EnumType<ComponentData::SubtitlesData::FormatType> format;
+
+         switch (type)
+         {
+            case ADB_SUBTITLE_TYPE_DVB:
+               format = ComponentData::SubtitlesData::FormatType::DEFAULT;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_4_3:
+               format = ComponentData::SubtitlesData::FormatType::E4_3;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_16_9:
+               format = ComponentData::SubtitlesData::FormatType::E16_9;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_221_1:
+               format = ComponentData::SubtitlesData::FormatType::E221_1;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HD:
+               format = ComponentData::SubtitlesData::FormatType::HD;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HARD_HEARING:
+               format = ComponentData::SubtitlesData::FormatType::HARDOFHEARING;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_4_3:
+               format = ComponentData::SubtitlesData::FormatType::HARDOFHEARING4_3;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_16_9:
+               format = ComponentData::SubtitlesData::FormatType::HARDOFHEARING16_9;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_221_1:
+               format = ComponentData::SubtitlesData::FormatType::HARDOFHEARING221_1;
+               break;
+            case ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_HD:
+               format = ComponentData::SubtitlesData::FormatType::HARDOFHEARINGHD;
+               break;
+         }
+
+         return(format);
+      }
+
+      Core::JSON::EnumType<ServicetypeType> DTV::GetJsonServiceType(ADB_SERVICE_TYPE type) const
+      {
+         Core::JSON::EnumType<ServicetypeType> serv_type;
+
+         switch(type)
+         {
+            case ADB_SERVICE_TYPE_TV:
+               serv_type = ServicetypeType::TV;
+               break;
+            case ADB_SERVICE_TYPE_RADIO:
+               serv_type = ServicetypeType::RADIO;
+               break;
+            case ADB_SERVICE_TYPE_TELETEXT:
+               serv_type = ServicetypeType::TELETEXT;
+               break;
+            case ADB_SERVICE_TYPE_NVOD_REF:
+               serv_type = ServicetypeType::NVOD;
+               break;
+            case ADB_SERVICE_TYPE_NVOD_TIMESHIFT:
+               serv_type = ServicetypeType::NVOD_TIMESHIFT;
+               break;
+            case ADB_SERVICE_TYPE_MOSAIC:
+               serv_type = ServicetypeType::MOSAIC;
+               break;
+            case ADB_SERVICE_TYPE_AVC_RADIO:
+               serv_type = ServicetypeType::AVC_RADIO;
+               break;
+            case ADB_SERVICE_TYPE_AVC_MOSAIC:
+               serv_type = ServicetypeType::AVC_MOSAIC;
+               break;
+            case ADB_SERVICE_TYPE_DATA:
+               serv_type = ServicetypeType::DATA;
+               break;
+            case ADB_SERVICE_TYPE_MPEG2_HD:
+               serv_type = ServicetypeType::MPEG2_HD;
+               break;
+            case ADB_SERVICE_TYPE_AVC_SD_TV:
+               serv_type = ServicetypeType::AVC_SD_TV;
+               break;
+            case ADB_SERVICE_TYPE_AVC_SD_NVOD_TIMESHIFT:
+               serv_type = ServicetypeType::AVC_SD_NVOD_TIMESHIFT;
+               break;
+            case ADB_SERVICE_TYPE_AVC_SD_NVOD_REF:
+               serv_type = ServicetypeType::AVC_SD_NVOD;
+               break;
+            case ADB_SERVICE_TYPE_HD_TV:
+               serv_type = ServicetypeType::HD_TV;
+               break;
+            case ADB_SERVICE_TYPE_AVC_HD_NVOD_TIMESHIFT:
+               serv_type = ServicetypeType::AVC_HD_NVOD_TIMESHIFT;
+               break;
+            case ADB_SERVICE_TYPE_AVC_HD_NVOD_REF:
+               serv_type = ServicetypeType::AVC_HD_NVOD;
+               break;
+            case ADB_SERVICE_TYPE_UHD_TV:
+               serv_type = ServicetypeType::UHD_TV;
+               break;
+            default:
+               serv_type = ServicetypeType::UNKNOWN;
+               break;
+         }
+
+         return(serv_type);
+      }
+
+      Core::JSON::EnumType<RunningstatusType> DTV::GetJsonRunningStatus(U8BIT status) const
+      {
+         Core::JSON::EnumType<RunningstatusType> run_state;
+
+         switch(status)
+         {
+            case RUN_STATE_NOT_RUNNING:
+               run_state = RunningstatusType::NOTRUNNING;
+               break;
+            case RUN_STATE_STARTS_SOON:
+               run_state = RunningstatusType::STARTSSOON;
+               break;
+            case RUN_STATE_PAUSING:
+               run_state = RunningstatusType::PAUSING;
+               break;
+            case RUN_STATE_RUNNING:
+               run_state = RunningstatusType::RUNNING;
+               break;
+            case RUN_STATE_OFF_AIR:
+               run_state = RunningstatusType::OFFAIR;
+               break;
+            case RUN_STATE_UNDEFINED:
+            default:
+               run_state = RunningstatusType::UNDEFINED;
+               break;
+         }
+
+         return(run_state);
       }
 
       Core::JSON::EnumType<LnbtypeType> DTV::GetJsonLnbType(E_STB_DP_LNB_TYPE type) const
@@ -913,7 +1806,7 @@ namespace WPEFramework
          return(cswitch);
       }
 
-      E_STB_DP_SIGNAL_TYPE DTV::GetDvbSignalType(TunertypeType tuner_type) const
+      E_STB_DP_SIGNAL_TYPE DTV::GetDvbSignalType(Core::JSON::EnumType<TunertypeType> tuner_type) const
       {
          E_STB_DP_SIGNAL_TYPE signal;
 
@@ -936,22 +1829,22 @@ namespace WPEFramework
          return(signal);
       }
 
-      E_STB_DP_POLARITY DTV::GetDvbPolarity(StartServiceSearchParamsData::DvbstuningparamsData::PolarityType polarity_type) const
+      E_STB_DP_POLARITY DTV::GetDvbPolarity(Core::JSON::EnumType<PolarityType> polarity_type) const
       {
          E_STB_DP_POLARITY polarity;
 
          switch (polarity_type)
          {
-            case StartServiceSearchParamsData::DvbstuningparamsData::PolarityType::VERTICAL:
+            case PolarityType::VERTICAL:
                polarity = POLARITY_VERTICAL;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::PolarityType::LEFT:
+            case PolarityType::LEFT:
                polarity = POLARITY_LEFT;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::PolarityType::RIGHT:
+            case PolarityType::RIGHT:
                polarity = POLARITY_RIGHT;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::PolarityType::HORIZONTAL:
+            case PolarityType::HORIZONTAL:
             default:
                polarity = POLARITY_HORIZONTAL;
                break;
@@ -960,43 +1853,49 @@ namespace WPEFramework
          return(polarity);
       }
 
-      E_STB_DP_FEC DTV::GetDvbsFEC(StartServiceSearchParamsData::DvbstuningparamsData::FecType fec_type) const
+      E_STB_DP_FEC DTV::GetDvbsFEC(Core::JSON::EnumType<FecType> fec_type) const
       {
          E_STB_DP_FEC fec;
 
          switch (fec_type)
          {
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC1_2:
+            case FecType::FEC1_2:
                fec = FEC_1_2;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC2_3:
+            case FecType::FEC2_3:
                fec = FEC_2_3;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC3_4:
+            case FecType::FEC3_4:
                fec = FEC_3_4;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC5_6:
+            case FecType::FEC5_6:
                fec = FEC_5_6;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC7_8:
+            case FecType::FEC7_8:
                fec = FEC_7_8;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC1_4:
+            case FecType::FEC1_4:
                fec = FEC_1_4;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC1_3:
+            case FecType::FEC1_3:
                fec = FEC_1_3;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC2_5:
+            case FecType::FEC2_5:
                fec = FEC_2_5;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC8_9:
+            case FecType::FEC8_9:
                fec = FEC_8_9;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FEC9_10:
+            case FecType::FEC9_10:
                fec = FEC_9_10;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::FecType::FECAUTO:
+            case FecType::FEC3_5:
+               fec = FEC_3_5;
+               break;
+            case FecType::FEC4_5:
+               fec = FEC_4_5;
+               break;
+            case FecType::FECAUTO:
             default:
                fec = FEC_AUTOMATIC;
                break;
@@ -1005,22 +1904,22 @@ namespace WPEFramework
          return(fec);
       }
 
-      E_STB_DP_MODULATION DTV::GetDvbsModulation(StartServiceSearchParamsData::DvbstuningparamsData::DvbsmodulationType modulation_type) const
+      E_STB_DP_MODULATION DTV::GetDvbsModulation(Core::JSON::EnumType<DvbsmodulationType> modulation_type) const
       {
          E_STB_DP_MODULATION modulation;
 
          switch(modulation_type)
          {
-            case StartServiceSearchParamsData::DvbstuningparamsData::DvbsmodulationType::QPSK:
+            case DvbsmodulationType::QPSK:
                modulation = MOD_QPSK;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::DvbsmodulationType::E8PSK:
+            case DvbsmodulationType::E8PSK:
                modulation = MOD_8PSK;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::DvbsmodulationType::E16QAM:
+            case DvbsmodulationType::E16QAM:
                modulation = MOD_16QAM;
                break;
-            case StartServiceSearchParamsData::DvbstuningparamsData::DvbsmodulationType::AUTO:
+            case DvbsmodulationType::AUTO:
             default:
                modulation = MOD_AUTO;
                break;
@@ -1029,22 +1928,97 @@ namespace WPEFramework
          return(modulation);
       }
 
-      E_STB_DP_CMODE DTV::GetDvbcModulation(StartServiceSearchParamsData::DvbctuningparamsData::DvbcmodulationType modulation_type) const
+      E_STB_DP_TBWIDTH DTV::GetDvbBandwidth(Core::JSON::EnumType<DvbtbandwidthType> bandwidth_type) const
+      {
+         E_STB_DP_TBWIDTH bwidth;
+
+         switch (bandwidth_type)
+         {
+            case DvbtbandwidthType::E5MHZ:
+               bwidth = TBWIDTH_5MHZ;
+               break;
+            case DvbtbandwidthType::E6MHZ:
+               bwidth = TBWIDTH_6MHZ;
+               break;
+            case DvbtbandwidthType::E7MHZ:
+               bwidth = TBWIDTH_7MHZ;
+               break;
+            case DvbtbandwidthType::E8MHZ:
+               bwidth = TBWIDTH_8MHZ;
+               break;
+            case DvbtbandwidthType::E10MHZ:
+               bwidth = TBWIDTH_10MHZ;
+               break;
+            case DvbtbandwidthType::UNDEFINED:
+            default:
+               bwidth = TBWIDTH_UNDEFINED;
+               break;
+         }
+
+         return(bwidth);
+      }
+
+      E_STB_DP_TMODE DTV::GetDvbOfdmMode(Core::JSON::EnumType<OfdmmodeType> mode_type) const
+      {
+         E_STB_DP_TMODE mode;
+
+         switch (mode_type)
+         {
+            case OfdmmodeType::OFDM_1K:
+               mode = MODE_COFDM_1K;
+               break;
+            case OfdmmodeType::OFDM_2K:
+               mode = MODE_COFDM_2K;
+               break;
+            case OfdmmodeType::OFDM_4K:
+               mode = MODE_COFDM_4K;
+               break;
+            case OfdmmodeType::OFDM_8K:
+               mode = MODE_COFDM_8K;
+               break;
+            case OfdmmodeType::OFDM_16K:
+               mode = MODE_COFDM_16K;
+               break;
+            case OfdmmodeType::OFDM_32K:
+               mode = MODE_COFDM_32K;
+               break;
+            case OfdmmodeType::UNDEFINED:
+            default:
+               mode = MODE_COFDM_UNDEFINED;
+               break;
+         }
+
+         return(mode);
+      }
+
+      E_STB_DP_CMODE DTV::GetDvbcModulation(Core::JSON::EnumType<DvbcmodulationType> modulation_type) const
       {
          E_STB_DP_CMODE modulation;
 
          switch(modulation_type)
          {
-            case StartServiceSearchParamsData::DvbctuningparamsData::DvbcmodulationType::E64QAM:
+            case DvbcmodulationType::E4QAM:
+               modulation = MODE_QAM_4;
+               break;
+            case DvbcmodulationType::E8QAM:
+               modulation = MODE_QAM_8;
+               break;
+            case DvbcmodulationType::E16QAM:
+               modulation = MODE_QAM_16;
+               break;
+            case DvbcmodulationType::E32QAM:
+               modulation = MODE_QAM_32;
+               break;
+            case DvbcmodulationType::E64QAM:
                modulation = MODE_QAM_64;
                break;
-            case StartServiceSearchParamsData::DvbctuningparamsData::DvbcmodulationType::E128QAM:
+            case DvbcmodulationType::E128QAM:
                modulation = MODE_QAM_128;
                break;
-            case StartServiceSearchParamsData::DvbctuningparamsData::DvbcmodulationType::E256QAM:
+            case DvbcmodulationType::E256QAM:
                modulation = MODE_QAM_256;
                break;
-            case StartServiceSearchParamsData::DvbctuningparamsData::DvbcmodulationType::AUTO:
+            case DvbcmodulationType::AUTO:
             default:
                modulation = MODE_QAM_AUTO;
                break;
@@ -1075,17 +2049,31 @@ namespace WPEFramework
          return(sat_ptr);
       }
 
-      void DTV::ExtractDvbEventInfo(void *src_event, EiteventInfo& dest_event) const
+      void DTV::ExtractDvbEventInfo(EiteventInfo& event, void *dvb_event) const
       {
-         SetJsonString(ADB_GetEventName(src_event), dest_event.Name, true);
-         SetJsonString(ADB_GetEventDescription(src_event), dest_event.Shortdescription, true);
+         SetJsonString(ADB_GetEventName(dvb_event), event.Name, true);
+         SetJsonString(ADB_GetEventDescription(dvb_event), event.Shortdescription, true);
 
-         dest_event.Starttime = STB_GCConvertToTimestamp(ADB_GetEventStartDateTime(src_event));
+         event.Starttime = STB_GCConvertToTimestamp(ADB_GetEventStartDateTime(dvb_event));
 
-         U32DHMS dhms = ADB_GetEventDuration(src_event);
-         dest_event.Duration = ((DHMS_DAYS(dhms) * 24 + DHMS_HOUR(dhms)) * 60 + DHMS_MINS(dhms)) * 60 + DHMS_SECS(dhms);
+         U32DHMS dhms = ADB_GetEventDuration(dvb_event);
+         event.Duration = ((DHMS_DAYS(dhms) * 24 + DHMS_HOUR(dhms)) * 60 + DHMS_MINS(dhms)) * 60 + DHMS_SECS(dhms);
 
-         dest_event.Eventid = ADB_GetEventId(src_event);
+         event.Eventid = ADB_GetEventId(dvb_event);
+         event.Hassubtitles = (ADB_GetEventSubtitlesAvailFlag(dvb_event) ? true : false);
+         event.Hasaudiodescription = (ADB_GetEventAudioDescriptionFlag(dvb_event) ? true : false);
+         event.Parentalrating = ADB_GetEventParentalAge(dvb_event);
+         event.Hasextendedinfo = (ADB_GetEventHasExtendedDescription(dvb_event) ? true : false);
+
+         U8BIT content_len;
+         U8BIT *content_data = ADB_GetEventContentData(dvb_event, &content_len);
+         if ((content_len != 0) && (content_data != NULL))
+         {
+            for (U8BIT i = 0; i < content_len; i++)
+            {
+               event.Contentdata.Add(content_data[i]);
+            }
+         }
       }
 
       void DTV::SetJsonString(U8BIT *src_string, Core::JSON::String& out_string, bool free_src) const
