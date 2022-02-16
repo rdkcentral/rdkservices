@@ -126,10 +126,6 @@ if ! checkPip "python 3"; then
   exit 1
 fi
 
-if ! checkInstalled "glib-2.0"; then
-  echo "glib-2.0 should be installed (for PersistentStore)"
-  exit 1
-fi
 if ! checkInstalled "sqlite3"; then
   echo "sqlite3 should be installed (for PersistentStore)"
   exit 1

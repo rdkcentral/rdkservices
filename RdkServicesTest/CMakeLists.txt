@@ -32,6 +32,8 @@ FetchContent_MakeAvailable(googletest)
 add_executable(${PROJECT_NAME}
         Tests/LocationSyncTest.cpp
         Tests/PersistentStoreTest.cpp
+        Tests/SqliteStoreTest.cpp
+        Tests/CountingLockTest.cpp
         Tests/SecurityAgentTest.cpp
         Module.cpp
         )
@@ -40,7 +42,7 @@ include_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
-        gtest_main
+        gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
@@ -52,6 +54,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
         Source
+        Mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
