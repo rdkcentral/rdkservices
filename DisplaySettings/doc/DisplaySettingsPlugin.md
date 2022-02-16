@@ -144,12 +144,14 @@ DisplaySettings interface methods:
 | [setDolbyVolumeMode](#method.setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#method.setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
 | [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port name |
+| [setForceHDRMode](#method.setForceHDRMode) | Enables or disables the force HDR mode |
 | [setGain](#method.setGain) | Adjusts the gain on a specific port |
 | [setGraphicEqualizerMode](#method.setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
 | [setIntelligentEqualizerMode](#method.setIntelligentEqualizerMode) | Sets the Intelligent Equalizer Mode (port HDMI0) |
 | [setMISteering](#method.setMISteering) | Enables or Disables Media Intelligent Steering |
 | [setMS12AudioCompression](#method.setMS12AudioCompression) | Sets the audio dynamic range compression level (port HDMI0) |
 | [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
+| [setMS12ProfileSettingsOverride](#method.setMS12ProfileSettingsOverride) | Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode) |
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
@@ -3201,6 +3203,56 @@ Enable or disable the specified audio port based on the input audio port name. T
 }
 ```
 
+<a name="method.setForceHDRMode"></a>
+## *setForceHDRMode [<sup>method</sup>](#head.Methods)*
+
+Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.hdr_mode | boolean | <sup>*(optional)*</sup> `true` to force the HDR format or `false` to reset the mode to the default |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setForceHDRMode",
+    "params": {
+        "hdr_mode": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setGain"></a>
 ## *setGain <sup>method</sup>*
 
@@ -3497,6 +3549,60 @@ Sets the selected MS12 audio profile.
     "params": {
         "audioPort": "SPEAKER0",
         "ms12AudioProfile": "Game"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setMS12ProfileSettingsOverride"></a>
+## *setMS12ProfileSettingsOverride [<sup>method</sup>](#head.Methods)*
+
+Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.audioPort | string | Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.operation | string | The audio profile state |
+| params.profileName | string | An MS12 audio profile name from `getSupportedMS12AudioProfile` |
+| params.ms12SettingsName | string | An ms12 setting name |
+| params.ms12SettingsValue | string | The value to set |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setMS12ProfileSettingsOverride",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "operation": "...",
+        "profileName": "Sports",
+        "ms12SettingsName": "Dialog Enhance",
+        "ms12SettingsValue": "On"
     }
 }
 ```

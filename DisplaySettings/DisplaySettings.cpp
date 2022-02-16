@@ -295,9 +295,15 @@ namespace WPEFramework {
                         LOGWARN("Audio Port : [%s] Getting enable persist value failed. Proceeding with true\n", portName.c_str());
                     }
                     LOGWARN("Audio Port : [%s] InitAudioPorts isPortPersistenceValEnabled:%d\n", portName.c_str(), isPortPersistenceValEnabled);
+                    try {
+                        m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceConnectedStatus();
+                    }
+                    catch (const device::Exception& err){
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    } 
                     if (portName == "HDMI_ARC0") {
                         //Set audio port config. ARC will be set up by onTimer()		
-                        if(isPortPersistenceValEnabled) { 
+                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) { 
                             m_audioOutputPortConfig["HDMI_ARC"] = true;
                         }
                         else {
@@ -311,12 +317,6 @@ namespace WPEFramework {
 
 			try {
 		    		isCecEnabled = getHdmiCecSinkCecEnableStatus();
-			}
-			catch (const device::Exception& err){
-				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
-			}
-			try {
-		    		m_hdmiCecAudioDeviceDetected = getHdmiCecSinkAudioDeviceConnectedStatus();
 			}
 			catch (const device::Exception& err){
 				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
@@ -394,7 +394,7 @@ namespace WPEFramework {
   
                         aPortHdmiEnableParam.Set(_T("audioPort"), portName); //aPortHdmiEnableParam.Set(_T("audioPort"),"HDMI0");
                         //Get value from ds srv persistence
-                        if(isPortPersistenceValEnabled) {
+                        if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
                             aPortHdmiEnableParam.Set(_T("enable"),true);
                         }
                         else {
@@ -755,12 +755,17 @@ namespace WPEFramework {
                                     }
                                     else if(types & dsAUDIOARCSUPPORT_ARC)  {
                                       {
-                                        //No need to check the ARC routing state. Request ARC initiation irrespective of state
+                                         if (isCecEnabled == true)
+                                         {
+                                            //No need to check the ARC routing state. Request ARC initiation irrespective of state
                                             LOGINFO("%s: Send ARC initiation request... \n", __FUNCTION__);
                                             std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
+                                         }else {
+					    LOGINFO("%s: cec is disabled, ARC initiation not possible \n", __FUNCTION__);
+				         }
                                       }
                                     }
                                     else {
@@ -802,13 +807,17 @@ namespace WPEFramework {
                                    else if (types & dsAUDIOARCSUPPORT_ARC) {
                                        //Dummy ARC intiation request
                                       {
+					 if (isCecEnabled == true)
+					 {
                                         //No need to check the ARC routing state. Request ARC initiation irrespective of state
-                                            LOGINFO("%s: Send dummy ARC initiation request... \n", __FUNCTION__);
+                                            LOGINFO("%s: cecEnabled is true, Send dummy ARC initiation request... \n", __FUNCTION__);
                                             std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                                             DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
                                             DisplaySettings::_instance->arcRoutingCV.notify_one();
-
+					 }else {
+					    LOGINFO("%s: cec is disabled, ARC initiation not possible \n", __FUNCTION__);
+					 }
                                       }
                                    }
                                    else {
@@ -1039,6 +1048,12 @@ namespace WPEFramework {
             vector<string> supportedSettopResolutions;
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 list<string> resolutions;
                 device.getSettopSupportedResolutions(resolutions);
@@ -1157,8 +1172,16 @@ namespace WPEFramework {
         {   //sample servicemanager response:
             LOGINFOMETHOD();
             string zoomSetting = "unknown";
+
+            bool success = true;
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 // TODO: why is this always the first one in the list
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 zoomSetting = decoder.getDFC().getName();
@@ -1166,12 +1189,13 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                success = false;
             }
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
             response["zoomSetting"] = zoomSetting;
-            returnResponse(true);
+            returnResponse(success);
         }
 
         uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
@@ -1187,6 +1211,12 @@ namespace WPEFramework {
 #ifdef USE_IARM
                 zoomSetting = svc2iarm(zoomSetting);
 #endif
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 // TODO: why is this always the first one in the list?
                 device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
                 decoder.setDFC(zoomSetting);
@@ -1725,6 +1755,12 @@ namespace WPEFramework {
 
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    returnResponse(false);
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 device.getHDRCapabilities(&capabilities);
             }
@@ -3759,6 +3795,11 @@ namespace WPEFramework {
             return m_powerState;
         }
 
+        void DisplaySettings::initAudioPortsWorker(void)
+        {
+            DisplaySettings::_instance->InitAudioPorts();
+        }
+
         void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!DisplaySettings::_instance)
@@ -3774,7 +3815,20 @@ namespace WPEFramework {
                              eventData->data.state.curState, eventData->data.state.newState);
                 m_powerState = eventData->data.state.newState;
                 if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
-                    DisplaySettings::_instance->InitAudioPorts();
+	            try
+                    {
+		        LOGWARN("creating worker thread for initAudioPortsWorker ");
+		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
+			audioPortInitThread.detach();
+                    }
+                    catch(const std::system_error& e)
+                    {
+                        LOGERR("system_error exception in thread creation: %s", e.what());
+                    }
+                    catch(const std::exception& e)
+                    {
+                        LOGERR("exception in thread creation : %s", e.what());
+                    }
                 }
 
 		else {
@@ -4714,6 +4768,12 @@ namespace WPEFramework {
 
             try
             {
+                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                {
+                    LOGINFO("DSMGR_NOT_RUNNING");
+                    return videoFormats;
+                }
+
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 device.getHDRCapabilities(&capabilities);
             }

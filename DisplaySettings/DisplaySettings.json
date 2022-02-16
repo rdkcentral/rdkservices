@@ -1830,6 +1830,23 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setForceHDRMode": {
+            "summary": "Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.\n \n### Event \n\n No Events.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "hdr_mode": {
+                        "summary": "`true` to force the HDR format or `false` to reset the mode to the default.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setGain":{
             "summary": "Adjusts the gain on a specific port.\n \n### Event \n\n No Events.",
             "params": {
@@ -1948,6 +1965,47 @@
                 },
                 "required": [
                     "ms12AudioProfile"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setMS12ProfileSettingsOverride":{
+            "summary": "Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "operation": {
+                        "summary": "The audio profile state",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "profileName": {
+                        "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
+                         "type": "string",
+                        "example": "Sports"
+                    },
+                    "ms12SettingsName": {
+                        "summary": "An ms12 setting name",
+                        "type": "string",
+                        "example": "Dialog Enhance"
+                    },
+                    "ms12SettingsValue": {
+                        "summary": "The value to set",
+                        "type": "string",
+                        "example": "On"
+                    }
+                },
+                "required": [
+                    "audioPort",
+                    "operation",
+                    "profileName",
+                    "ms12SettingsName",
+                    "ms12SettingsValue"
                 ]
             },
             "result": {

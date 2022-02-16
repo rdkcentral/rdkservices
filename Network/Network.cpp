@@ -19,10 +19,13 @@
 
 #include "Network.h"
 #include <net/if.h>
+#include <arpa/inet.h>
+#include "utils.h"
 
 using namespace std;
 
 #define DEFAULT_PING_PACKETS 15
+#define CIDR_NETMASK_IP_LEN 32
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -30,6 +33,7 @@ using namespace std;
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
 #define MAX_IP_FAMILY_SIZE 10
+#define MAX_HOST_NAME_LEN 128
 #define MAX_ENDPOINTS 5
 #define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
@@ -46,6 +50,7 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
+#define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -62,7 +67,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
         char allNetworkInterfaces[INTERFACE_LIST];
-        char enableInterface[INTERFACE_SIZE];
+        char setInterface[INTERFACE_SIZE];
         char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
     };
     char interfaceCount;
@@ -125,6 +130,17 @@ typedef struct {
     char newInterface[16];
 } IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
 
+typedef struct
+{
+    char server[MAX_HOST_NAME_LEN];
+    uint16_t port;
+    bool ipv6;
+    char interface[16];
+    uint16_t bind_timeout;
+    uint16_t cache_timeout;
+    bool sync;
+    char public_ip[MAX_IP_ADDRESS_LEN];
+} IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
 
 namespace WPEFramework
 {
@@ -163,6 +179,8 @@ namespace WPEFramework
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
             Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
+
+            Register("getPublicIP", &Network::getPublicIP, this);
 
             m_netUtils.InitialiseNetUtils();
         }
@@ -223,8 +241,6 @@ namespace WPEFramework
             Unregister("getDefaultInterface");
             Unregister("setDefaultInterface");
             Unregister("getStbIp");
-            Unregister("setApiVersionNumber");
-            Unregister("getApiVersionNumber");
             Unregister("trace");
             Unregister("traceNamedEndpoint");
             Unregister("getNamedEndpoints");
@@ -234,6 +250,7 @@ namespace WPEFramework
             Unregister("getIPSettings");
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
+            Unregister("getPublicIP");
 
             Network::_instance = nullptr;
         }
@@ -242,6 +259,56 @@ namespace WPEFramework
         {
              return(string());
         }
+
+        bool Network::isValidCIDRv4(string buf)
+        {
+            string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
+                                                     "128.0.0.0",
+                                                     "192.0.0.0",
+                                                     "224.0.0.0",
+                                                     "240.0.0.0",
+                                                     "248.0.0.0",
+                                                     "252.0.0.0",
+                                                     "254.0.0.0",
+                                                     "255.0.0.0",
+                                                     "255.128.0.0",
+                                                     "255.192.0.0",
+                                                     "255.224.0.0",
+                                                     "255.240.0.0",
+                                                     "255.248.0.0",
+                                                     "255.252.0.0",
+                                                     "255.254.0.0",
+                                                     "255.255.0.0",
+                                                     "255.255.128.0",
+                                                     "255.255.192.0",
+                                                     "255.255.224.0",
+                                                     "255.255.240.0",
+                                                     "255.255.248.0",
+                                                     "255.255.252.0",
+                                                     "255.255.254.0",
+                                                     "255.255.255.0",
+                                                     "255.255.255.128",
+                                                     "255.255.255.192",
+                                                     "255.255.255.224",
+                                                     "255.255.255.240",
+                                                     "255.255.255.248",
+                                                     "255.255.255.252",
+                                                     "255.255.255.254",
+                                                     "255.255.255.255",
+                                                   };
+            int i = 0;
+            bool retval = false;
+            while(i < CIDR_NETMASK_IP_LEN)
+            {
+                if((buf.compare(CIDR_PREFIXES[i])) == 0)
+	        {
+                    retval = true;
+                    break;
+                }
+                i++;
+            }
+            return retval;
+	}
 
         // Wrapper methods
         uint32_t Network::getQuirks(const JsonObject& parameters, JsonObject& response)
@@ -311,10 +378,17 @@ namespace WPEFramework
                 bool persist = false;
 
                 getStringParameter("interface", interface)
+
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface.c_str());
+                    returnResponse (result)
+                }
+
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.persist = persist;
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
@@ -383,8 +457,14 @@ namespace WPEFramework
                 string interface = "";
                 getStringParameter("interface", interface)
 
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, interface.c_str());
+                    returnResponse (result)
+                }
+
                 IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-                strncpy(param.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
 
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                 {
@@ -410,11 +490,18 @@ namespace WPEFramework
                 bool persist = false;
 
                 getStringParameter("interface", interface)
+
+                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                {
+                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface.c_str());
+                    returnResponse (result)
+                }
+
                 getBoolParameter("enabled", enabled)
                 getBoolParameter("persist", persist)
 
                 IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.enableInterface, interface.c_str(), INTERFACE_SIZE);
+                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
                 iarmData.isInterfaceEnabled = enabled;
                 iarmData.persist = persist;
 
@@ -534,6 +621,8 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+            struct in_addr ip_address, gateway_address, mask;
+            struct in_addr broadcast_addr1, broadcast_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
                 (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
@@ -566,8 +655,72 @@ namespace WPEFramework
                 strncpy(iarmData.gateway, gateway.c_str(), 16);
                 strncpy(iarmData.primarydns, primarydns.c_str(), 16);
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
-                iarmData.isSupported = true;
+                iarmData.isSupported = false;
 
+                if (!autoconfig)
+                {
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
+                    {
+                        if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                        {
+                            iarmData.isSupported  = true;
+                        }
+                    }
+                    if (false == iarmData.isSupported)
+                    {
+                        LOGWARN("Manual IP Settings not Enabled..\n");
+                        response["supported"] = iarmData.isSupported;
+                        result = false;
+                        returnResponse(result)
+                    }
+                    bool mask_validation;
+                    mask_validation = isValidCIDRv4(netmask.c_str());
+                    if (false == mask_validation)
+                    {
+                        LOGWARN("Netmask is not valid ..\n");
+                        response["supported"] = iarmData.isSupported;
+                        result = false;
+                        returnResponse(result)
+                    }
+
+                    if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
+                        inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
+                        inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
+                    {
+                        broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
+                        broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
+
+                        if (ip_address.s_addr == gateway_address.s_addr)
+                        {
+                            LOGWARN("Interface and Gateway IP are same , return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
+                        {
+                            LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (ip_address.s_addr == broadcast_addr1.s_addr)
+                        {
+                            LOGWARN("Interface and Broadcast IP is same, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                        if (gateway_address.s_addr == broadcast_addr2.s_addr)
+                        {
+                            LOGWARN("Gateway and Broadcast IP is same, return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                        }
+                    }
+                }
                 if (IARM_RESULT_SUCCESS ==
                     IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
                                   sizeof(iarmData)))
@@ -666,6 +819,68 @@ namespace WPEFramework
             returnResponse(result);
         }
 
+        uint32_t Network::getPublicIP(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+
+            IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
+            string server, iface;
+
+            getDefaultStringParameter("server", server, "");
+            if (server.length() > MAX_HOST_NAME_LEN - 1)
+            {
+                LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
+                returnResponse(false)               
+            }
+
+            getDefaultNumberParameter("port", iarmData.port, 0);
+
+            /*only makes sense to get both server and port or neither*/
+            if (!server.empty() && !iarmData.port)
+            {
+                LOGWARN("invalid args: port missing");
+                returnResponse(false)
+            } 
+            if (iarmData.port && server.empty())
+            {
+                LOGWARN("invalid args: server missing");
+                returnResponse(false)
+            }
+
+            getDefaultStringParameter("iface", iface, "");
+            if (iface.length() > 16 - 1)
+            {
+                LOGWARN("invalid args: interface exceeds max length of 16");
+                returnResponse(false)               
+            }
+	    
+            if (!(strcmp (iface.c_str(), "ETHERNET") == 0 || strcmp (iface.c_str(), "WIFI") == 0))
+            {
+                LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_getPublicIP, iface.c_str());
+                returnResponse (result)
+            }
+
+            getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
+            getDefaultBoolParameter("sync", iarmData.sync, true);
+            getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
+            getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
+
+            strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
+            strncpy(iarmData.interface, iface.c_str(), 16);
+
+            iarmData.public_ip[0] = '\0';
+
+            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u timeout=%u cache_timeout=%u\n", 
+                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.bind_timeout, iarmData.cache_timeout);
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
+            {
+                response["public_ip"] = string(iarmData.public_ip);
+                result = true;
+            }
+            returnResponse(result)
+        }
+
         /*
          * Notifications
          */
@@ -722,12 +937,12 @@ namespace WPEFramework
         {
             if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
             {
-                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %ld.", owner, (int)eventId, data, len);
                 return;
             }
             if (data == nullptr || len == 0)
             {
-                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %ld.", (int)eventId, data, len);
                 return;
             }
 

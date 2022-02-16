@@ -85,15 +85,17 @@ Each RDK service has an instance of these schemas in the root of the service dir
             /doc/MyServicePlugin.md
 ```
 
-Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. Scripts are provided for both Linux and Windows. To generate the markdown:
+Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. See the Thunder [README](https://github.com/rdkcentral/Thunder/blob/master/README.md) for documentation and requirements.
+
+To generate the markdown:
 
 1. Clone the Thunder repository if it is not already on your system.
 2. Change directories to `Thunder/Tools/JsonGenerator`.
-3. Run the `GenerateDocs` script and provide the location of the service JSON plugin file as an argument. For example:
+3. Run `JsonGenerator.py` and provide the location of the service JSON plugin file using the `--docs` argument and the output directory using the `-o` argument. You must also include the `--no-interfaces-section` argument; otherwise, an interface section is added to the markdown that links back to the ThunderInterfaces project. Make certain that you are pointing to the plugin definition and not the interface definition. Here is an example of using the JsonGenerator tool:
 
-   `./GenerateDocs.sh ../../../rdkservices/MyService/MyServicePlugin.json`
+   `./JsonGenerator.py --docs ../../../rdkservices/MyService/MyServicePlugin.json  -o doc --no-interfaces-section --verbose $files`
 
-   The `MyServicePlugin.md` file is automatically written to the `/doc` folder.
+   The `MyServicePlugin.md` file is written to the `/doc` folder.
 
 Use the existing services as a guide when learning the structure of both the plugin and interface schemas.
 <br><br>

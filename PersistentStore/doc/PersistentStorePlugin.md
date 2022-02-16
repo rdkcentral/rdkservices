@@ -13,7 +13,6 @@ A org.rdk.PersistentStore plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,13 +75,6 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *org.rdk.PersistentStore* |
 | locator | string | Library name: *libWPEFrameworkPersistentStore.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
-
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [PersistentStore.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/PersistentStore.json)
 
 <a name="head.Methods"></a>
 # Methods

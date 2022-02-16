@@ -74,6 +74,7 @@ namespace WPEFramework {
             uint32_t getSTBIPFamily(const JsonObject& parameters, JsonObject& response);
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
@@ -83,6 +84,8 @@ namespace WPEFramework {
             static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+	    // Netmask Validation
+            bool isValidCIDRv4(std::string interface);
             // Internal methods
             bool _getDefaultInterface(std::string& interface, std::string& gateway);
 

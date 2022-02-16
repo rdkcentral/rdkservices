@@ -222,11 +222,7 @@ namespace WPEFramework {
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
-#if defined (SKY_BUILD)
-            bool internetConnectStatus = true;
-#else
             bool internetConnectStatus = isDeviceOnline();
-#endif
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
             /*  In an unsolicited maintenance we make sure only after
@@ -281,22 +277,19 @@ namespace WPEFramework {
             }
         }
 
-        bool MaintenanceManager::isDeviceOnline()
+        bool MaintenanceManager::checkNetwork()
         {
-            LOGINFO("Checking device has network connectivity\n");
-
-            if (false == Utils::isPluginActivated("org.rdk.Network")) {
-               sleep(30);
-               if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                   LOGINFO("Network plugin is not activated and considered as offline\n");
-                   return false;
-               }
-            }
-
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
-	    std::string token;
+            std::string token;
+
+            /* check if plugin active */
+            if (false == Utils::isPluginActivated("org.rdk.Network")) {
+                    LOGINFO("Network plugin is not activated \n");
+                    return false;
+            }
+
             Utils::SecurityToken::getSecurityToken(token);
 
             string query = "token=" + token;
@@ -308,14 +301,40 @@ namespace WPEFramework {
                     LOGINFO("%s call failed %d", callsign.c_str(), status);
                     return false;
                 } else if (joGetResult.HasLabel("connectedToInternet")) {
-                    LOGINFO("connectedToInternet status %d", joGetResult["connectedToInternet"].Boolean());
+                    LOGINFO("connectedToInternet status %s",(joGetResult["connectedToInternet"].Boolean())? "true":"false");
                     return joGetResult["connectedToInternet"].Boolean();
                 } else {
                     return false;
                 }
-	    }
+            }
+
             LOGINFO("thunder client failed");
             return false;
+        }
+
+        bool MaintenanceManager::isDeviceOnline()
+        {
+            bool network_available =  false;
+            LOGINFO("Checking device has network connectivity\n");
+
+            /* add 4 checks every 30 seconds */
+            int i=0;
+            do{
+                network_available = checkNetwork();
+                if ( !network_available ){
+                    sleep(30);
+                    i++;
+                    LOGINFO("Network retries [%d/4] \n",i);
+                }else{
+                    break;
+                }
+            }while( i < MAX_NETWORK_RETRIES );
+
+            if ( network_available ){
+                return true;
+            }else {
+                return false;
+            }
         }
 
         MaintenanceManager::~MaintenanceManager()
