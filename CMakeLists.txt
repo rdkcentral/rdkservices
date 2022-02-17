@@ -58,16 +58,17 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_VOICECONTROL)
+    add_subdirectory(VoiceControl)
+endif()
+
+
 if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()
 
 if(PLUGIN_MAINTENANCEMANAGER)
     add_subdirectory(MaintenanceManager)
-endif()
-
-if(PLUGIN_HOMENETWORKING)
-    add_subdirectory(HomeNetworking)
 endif()
 
 if(PLUGIN_NETWORK)
@@ -253,10 +254,6 @@ endif()
 
 if(PLUGIN_PLATFORMPLAYER)
     add_subdirectory(PlatformPlayer)
-endif()
-
-if(PLUGIN_LINEARSEGMENTEDADVERTISING)
-    add_subdirectory(LinearSegmentedAdvertising)
 endif()
 
 if(PLUGIN_DEEPLINK)

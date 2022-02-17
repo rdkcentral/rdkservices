@@ -54,6 +54,13 @@
             "type": "string",
             "example": "SPEAKER0"
         },
+        "audioPort2": {
+            "summary": "Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration.",
+            "default": "HDMI0",
+            "type": "string",
+            "example": "SPEAKER0"
+        },
+
         "bassBoost": {
             "summary": "Value between 0 and 100, where 0 means no bass boost (disabled) and 100 means max bass boost",
             "type": "integer",
@@ -176,6 +183,21 @@
             "type": "string",
             "example": "FULL"
         },
+        "mixing": {
+            "summary": "Whether associated audio mixing is enabled (`true`) or disabled (`false`).",
+            "type": "boolean",
+            "example": true
+        },
+        "mixerBalance": {
+            "summary": "The audi mixer balance. The value should be between -32 to +32.",
+            "type": "integer",
+            "example": 10
+        },
+        "lang": {
+            "summary": "The 3 letter language code as per ISO 639",
+            "type": "string",
+            "example": "eng"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -223,9 +245,7 @@
                         "$ref": "#/definitions/videoDisplay"
                     }
                 },
-                "required": [
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -241,6 +261,33 @@
                 },
                 "required": [
                     "activeInput",
+                    "success"
+                ]
+            }
+        },
+        "getAssociatedAudioMixing":{
+            "summary": "Returns whether associated audio mixing is enabled or disabled",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mixing": {
+                        "$ref": "#/definitions/mixing"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mixing",
                     "success"
                 ]
             }
@@ -334,9 +381,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -451,9 +496,7 @@
                         "$ref": "#/definitions/videoDisplay"
                     }
                 },
-                "required":[
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -499,9 +542,7 @@
                         "$ref":"#/definitions/audioPort1"
                     }
                 },
-                "required":[
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -551,9 +592,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -581,9 +620,7 @@
                         "$ref": "#/definitions/audioPort0"
                     }
                 },
-                "required": [
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -603,6 +640,33 @@
                 ]
             }
         },
+        "getFaderControl": {
+            "summary": "Returns the current audio mixer balance setting",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mixerBalance": {
+                        "$ref": "#/definitions/mixerBalance"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mixerBalance",
+                    "success"
+                ]
+            }
+        },
         "getGain":{
             "summary": "Returns the current gain value.\n \n### Event \n\n No Events.",
             "params": {
@@ -612,9 +676,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -641,9 +703,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -678,9 +738,7 @@
                         "$ref":"#/definitions/audioPort1"
                     }
                 },
-                "required":[
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -715,9 +773,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -744,9 +800,7 @@
                         "$ref":"#/definitions/audioPort1"
                     }
                 },
-                "required":[
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -779,9 +833,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -808,9 +860,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -828,6 +878,60 @@
                 ]
             }
         },
+        "getPrimaryLanguage": {
+            "summary": "Returns the current primary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "lang": {
+                        "$ref": "#/definitions/lang"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "lang",
+                    "success"
+                ]
+            }
+        },
+        "getSecondaryLanguage": {
+            "summary": "Returns the current secondary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    }
+                },
+                "required": []
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "lang": {
+                        "$ref": "#/definitions/lang"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "lang",
+                    "success"
+                ]
+            }
+        },
         "getSettopAudioCapabilities":{
             "summary": "Returns the set-top audio capabilities for the specified audio port.\n \n### Event \n\n No Events.",
             "params": {
@@ -837,9 +941,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -894,9 +996,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -948,9 +1048,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -977,9 +1075,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required":[
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1034,9 +1130,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1068,9 +1162,7 @@
                         "$ref": "#/definitions/videoDisplay"
                     }
                 },
-                "required": [
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1125,9 +1217,7 @@
                         "$ref": "#/definitions/videoDisplay"
                     }
                 },
-                "required":[
-                    " "
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1182,9 +1272,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1217,9 +1305,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1349,9 +1435,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1378,9 +1462,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1413,9 +1495,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1484,9 +1564,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1546,9 +1624,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1571,9 +1647,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1596,9 +1670,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1621,9 +1693,7 @@
                         "$ref": "#/definitions/audioPort1"
                     }
                 },
-                "required": [
-                    ""
-                ]
+                "required": []
             },
             "result": {
                 "type":"object",
@@ -1636,6 +1706,29 @@
                     "success"
                 ]
             } 
+        },
+        "setAssociatedAudioMixing":{
+            "summary": "Enables or disables associated audio mixing.  \n\n### Event  \n| Event | Description | \n| :----------- | :----------- |\n| `associatedAudioMixingChanged`|Triggered when associated audio mixing is enabled or disabled|",
+            "events": [
+                "associatedAudioMixingChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    },
+                    "mixing": {
+                        "$ref": "#/definitions/mixing"
+                    }
+                },
+                "required": [
+                    "mixing"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         },
         "setAudioAtmosOutputMode":{
             "summary": "Sets ATMOS audio output mode (on HDMI0).\n \n### Event \n\n No Events.",
@@ -1830,6 +1923,29 @@
                 "required": [
                     "audioPort",
                     "enable"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setFaderControl": {
+            "summary": "Sets the audio mixer balance.  \n\n### Event  \n| Event | Description | \n| :----------- | :----------- |\n| `faderControlChanged`|Triggered when the audio mixer balance is changed|",
+            "events": [
+                "faderControlChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    },
+                    "mixerBalance": {
+                        "$ref": "#/definitions/mixerBalance"
+                    }
+                },
+                "required": [
+                    "mixerBalance"
                 ]
             },
             "result": {
@@ -2038,8 +2154,31 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setPrimaryLanguage": {
+            "summary": "Sets the primary language.  \n\n### Event  \n| Event | Description | \n| :----------- | :----------- |\n| `primaryLanguageChanged`|Triggered when the primary language changes|",
+            "events": [
+                "primaryLanguageChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    },
+                    "lang": {
+                        "$ref": "#/definitions/lang"
+                    }
+                },
+                "required": [
+                    "lang"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setScartParameter":{
-            "summary": "Sets SCART parameters.  \n   \nPossible values:  \n| **Parameter** | **ParameterData** |  \n| `aspect_ratio` | `4x3` or `16x9` |  \n| `tv_startup` | `on` or `off` |  \n| `rgb` | `on` (disables cvbs) |  \n| `cvbs` | `on` (disables rgb) |  \n| `macrovision` | not implemented |  \n| `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  \n| `port` | `on` or `off` | \n \n### Event \n\n No Events.",
+            "summary": "Sets SCART parameters.  \n\nPossible SCART values:  \n| **Parameter** | **ParameterData** | \n| :----------- | :----------- |\n| `aspect_ratio` | `4x3` or `16x9` |  \n| `tv_startup` | `on` or `off` |  \n| `rgb` | `on` (disables cvbs) |  \n| `cvbs` | `on` (disables rgb) |  \n| `macrovision` | not implemented |  \n| `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  \n| `port` | `on` or `off` | \n\n### Event \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2057,6 +2196,29 @@
                 "required": [
                     "scartParameter",
                     "scartParameterDelay"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setSecondaryLanguage": {
+            "summary": "Sets the secondary language.  \n\n### Event  \n| Event | Description | \n| :----------- | :----------- |\n| `secondaryLanguageChanged`|Triggered when the secondary language changes|",
+            "events": [
+                "secondaryLanguageChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort2"
+                    },
+                    "lang": {
+                        "$ref": "#/definitions/lang"
+                    }
+                },
+                "required": [
+                    "lang"
                 ]
             },
             "result": {
@@ -2090,7 +2252,7 @@
             }
         },
         "setSurroundVirtualizer":{
-            "summary": "(Version 1)Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.\n \n### Event \n\n No Events.",
+            "summary": "(Version 1) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.\n \n### Event \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2190,7 +2352,7 @@
             }
         },
         "setVolumeLeveller":{
-            "summary": "(Version 1)Sets the Volume Leveller level. Volume Leveller is an advanced volume-control solution that maintains consistent playback levels for content from different sources.\n \n### Event \n\n No Events.",
+            "summary": "(Version 1) Sets the Volume Leveller level. Volume Leveller is an advanced volume-control solution that maintains consistent playback levels for content from different sources.\n \n### Event \n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2242,7 +2404,7 @@
                         "$ref": "#/definitions/zoomSetting"
                     }
                 },
-                "required":[
+                "required": [
                     "zoomSetting"
                 ]
             },
@@ -2265,6 +2427,20 @@
                 },
                 "required": [
                     "activeInput"
+                ]
+            }
+        },
+        "associatedAudioMixingChanged":{
+            "summary": "Triggered when associated audio mixing is enabled or disabled",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "mixing": {
+                        "$ref": "#/definitions/mixing"
+                    }
+                },
+                "required": [
+                    "mixing"
                 ]
             }
         },
@@ -2326,6 +2502,36 @@
                 ]
             }
         },
+        "faderControlChanged":{
+            "summary": "Triggered when the audio mixer balance is changed",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "mixerBalance": {
+                        "$ref": "#/definitions/mixerBalance"
+                    }
+                },
+                "required": [
+                    "mixerBalance"
+                ]
+            }
+        },
+        "primaryLanguageChanged":{
+            "summary": "Triggered when the primary language changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "primaryLanguage": {
+                        "summary": "The primary language",
+                        "type": "string",
+                        "example": "eng"
+                    }
+                },
+                "required": [
+                    "primaryLanguage"
+                ]
+            }
+        },
         "resolutionChanged":{
             "summary": "Triggered when the resolution is changed by the user and returns the current resolution",
             "params": {
@@ -2358,6 +2564,22 @@
         },
         "resolutionPreChange": {
             "summary": "Triggered on resolution pre-change"
+        },
+        "secondaryLanguageChanged":{
+            "summary": "Triggered when the secondary language changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "secondaryLanguage": {
+                        "summary": "The secondary language",
+                        "type": "string",
+                        "example": "eng"
+                    }
+                },
+                "required": [
+                    "secondaryLanguage"
+                ]
+            }
         },
         "zoomSettingUpdated":{
             "summary": "Triggered when the zoom setting changes and returns the zoom setting values for all video display types",

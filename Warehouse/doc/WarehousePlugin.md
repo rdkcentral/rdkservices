@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.Warehouse plugin for Thunder framework.
+A org.rdk.Warehouse plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -85,8 +85,8 @@ Warehouse interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [ExecuteHardwareTest](#method.ExecuteHardwareTest) | (Version 2) Starts a hardware test on the device |
-| [getDeviceInfo](#method.getDeviceInfo) | (DEPRECATED - Use `getDeviceInfo` from `org |
+| [executeHardwareTest](#method.executeHardwareTest) | (Version 2) Starts a hardware test on the device |
+| [getDeviceInfo](#method.getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
 | [getHardwareTestResults](#method.getHardwareTestResults) | (Version 2) Returns the results of the last hardware test |
 | [internalReset](#method.internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
 | [isClean](#method.isClean) | Checks the locations on the device where customer data may be stored |
@@ -95,10 +95,14 @@ Warehouse interface methods:
 | [setFrontPanelState](#method.setFrontPanelState) | Sets the state of the front panel LEDs to indicate the download state of the STB software image |
 
 
-<a name="method.ExecuteHardwareTest"></a>
-## *ExecuteHardwareTest <sup>method</sup>*
+<a name="method.executeHardwareTest"></a>
+## *executeHardwareTest [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -118,8 +122,8 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.Warehouse.1.ExecuteHardwareTest"
+    "id": 42,
+    "method": "org.rdk.Warehouse.1.executeHardwareTest"
 }
 ```
 
@@ -128,7 +132,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -136,9 +140,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getDeviceInfo"></a>
-## *getDeviceInfo <sup>method</sup>*
+## *getDeviceInfo [<sup>method</sup>](#head.Methods)*
 
-(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.
+Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -149,19 +157,17 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.deviceInfo | object | A hash of properties containing device information |
-| result.deviceInfo.bluetooth_mac | string | The bluetooth MAC address |
-| result.deviceInfo.boxIP | string | The device IP address |
-| result.deviceInfo.build_type | string | The device build type |
-| result.deviceInfo.estb_mac | string | The embedded set-top box MAC address |
-| result.deviceInfo.eth_mac | string | The Ethernet MAC address |
-| result.deviceInfo.imageVersion | string | The build image version |
-| result.deviceInfo.version | string | The version |
-| result.deviceInfo.software_version | string | The software version |
-| result.deviceInfo.model_number | string | The device model number |
-| result.deviceInfo.rf4ce_mac | string | The Radio Frequency for Consumer Electronics MAC address |
-| result.deviceInfo.wifi_mac | string | The Wifi address |
-| result.PARAM_SUCCESS | boolean | Whether the parameter succeeded |
+| result.bluetooth_mac | string | The bluetooth MAC address |
+| result.boxIP | string | The device IP address |
+| result.build_type | string | The device build type |
+| result.estb_mac | string | The embedded set-top box MAC address |
+| result.eth_mac | string | The Ethernet MAC address |
+| result.imageVersion | string | The build image version |
+| result.version | string | The version |
+| result.software_version | string | The software version |
+| result.model_number | string | The device model number |
+| result.rf4ce_mac | string | The Radio Frequency for Consumer Electronics MAC address |
+| result.wifi_mac | string | The Wifi address |
 | result.success | boolean | Whether the request succeeded |
 | result?.error | string | <sup>*(optional)*</sup> An error message in case of a failure |
 
@@ -172,7 +178,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.getDeviceInfo"
 }
 ```
@@ -182,32 +188,33 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "deviceInfo": {
-            "bluetooth_mac": "A8:11:XX:FD:0C:XX",
-            "boxIP": "192.168.0.1",
-            "build_type": "VBN",
-            "estb_mac": "A8:11:XX:FD:0C:XX",
-            "eth_mac": "A8:11:XX:FD:0C:XX",
-            "imageVersion": "AX061AEI_VBN_2003_sprint_20200507224225sdy",
-            "version": "X061AEI_VBN_2003_sprint_20200507224225sdy",
-            "software_version": "AX061AEI_VBN_2003_sprint_20200507224225sdy",
-            "model_number": "AX061AEI",
-            "rf4ce_mac": "00:15:5F:XX:20:5E:57:XX",
-            "wifi_mac": "A8:11:XX:FD:0C:XX"
-        },
-        "PARAM_SUCCESS": true,
+        "bluetooth_mac": "A8:11:XX:FD:0C:XX",
+        "boxIP": "192.168.0.1",
+        "build_type": "VBN",
+        "estb_mac": "A8:11:XX:FD:0C:XX",
+        "eth_mac": "A8:11:XX:FD:0C:XX",
+        "imageVersion": "AX061AEI_VBN_2003_sprint_20200507224225sdy",
+        "version": "X061AEI_VBN_2003_sprint_20200507224225sdy",
+        "software_version": "AX061AEI_VBN_2003_sprint_20200507224225sdy",
+        "model_number": "AX061AEI",
+        "rf4ce_mac": "00:15:5F:XX:20:5E:57:XX",
+        "wifi_mac": "A8:11:XX:FD:0C:XX",
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```
 
 <a name="method.getHardwareTestResults"></a>
-## *getHardwareTestResults <sup>method</sup>*
+## *getHardwareTestResults [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the results of the last hardware test.
+(Version 2) Returns the results of the last hardware test. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -230,7 +237,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.getHardwareTestResults",
     "params": {
         "testResults": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
@@ -243,7 +250,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -251,9 +258,13 @@ This method takes no parameters.
 ```
 
 <a name="method.internalReset"></a>
-## *internalReset <sup>method</sup>*
+## *internalReset [<sup>method</sup>](#head.Methods)*
 
-Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).
+Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -277,10 +288,10 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.internalReset",
     "params": {
-        "passPhrase": "FOR TEST PURPOSES ONLY2"
+        "passPhrase": "FOR TEST PURPOSES ONLY"
     }
 }
 ```
@@ -290,18 +301,22 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```
 
 <a name="method.isClean"></a>
-## *isClean <sup>method</sup>*
+## *isClean [<sup>method</sup>](#head.Methods)*
 
-Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.
+Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -324,7 +339,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.isClean"
 }
 ```
@@ -334,7 +349,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "clean": false,
         "files": [
@@ -346,9 +361,13 @@ This method takes no parameters.
 ```
 
 <a name="method.lightReset"></a>
-## *lightReset <sup>method</sup>*
+## *lightReset [<sup>method</sup>](#head.Methods)*
 
-Resets the application data.
+Resets the application data. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -369,7 +388,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.lightReset"
 }
 ```
@@ -379,18 +398,23 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```
 
 <a name="method.resetDevice"></a>
-## *resetDevice <sup>method</sup>*
+## *resetDevice [<sup>method</sup>](#head.Methods)*
 
-Resets the STB to the warehouse state. It dispatches a `resetDone` event notification indicating a successful reset or failure.
+Resets the STB to the warehouse state. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.
 
 Also see: [resetDone](#event.resetDone)
 
@@ -407,7 +431,6 @@ Also see: [resetDone](#event.resetDone)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.PARAM_SUCCESS | boolean | Whether the parameter succeeded |
 | result.success | boolean | Whether the request succeeded |
 | result?.error | string | <sup>*(optional)*</sup> An error message in case of a failure |
 
@@ -418,7 +441,7 @@ Also see: [resetDone](#event.resetDone)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.resetDevice",
     "params": {
         "suppressReboot": true,
@@ -432,19 +455,22 @@ Also see: [resetDone](#event.resetDone)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "PARAM_SUCCESS": true,
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```
 
 <a name="method.setFrontPanelState"></a>
-## *setFrontPanelState <sup>method</sup>*
+## *setFrontPanelState [<sup>method</sup>](#head.Methods)*
 
-Sets the state of the front panel LEDs to indicate the download state of the STB software image.
+Sets the state of the front panel LEDs to indicate the download state of the STB software image. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -468,7 +494,7 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Warehouse.1.setFrontPanelState",
     "params": {
         "state": 1
@@ -481,10 +507,10 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```
@@ -504,7 +530,7 @@ Warehouse interface events:
 
 
 <a name="event.resetDone"></a>
-## *resetDone <sup>event</sup>*
+## *resetDone [<sup>event</sup>](#head.Notifications)*
 
 Notifies subscribers about the status of the warehouse reset operation.
 
@@ -524,7 +550,7 @@ Notifies subscribers about the status of the warehouse reset operation.
     "method": "client.events.1.resetDone",
     "params": {
         "success": true,
-        "error": ""
+        "error": "..."
     }
 }
 ```

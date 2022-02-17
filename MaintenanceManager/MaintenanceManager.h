@@ -57,6 +57,15 @@ typedef enum {
     MAINTENANCE_INCOMPLETE
 } Maint_notify_status_t;
 
+typedef enum {
+    ACTIVATION_CONNECT,
+    ACTIVATION_READY,
+    NOT_ACTIVATED,
+    ACTIVATION_DISCONNECT,
+    ACTIVATED,
+    INVALID_ACTIVATION
+}Auth_activation_status_t;
+
 typedef enum{
     SOLICITED_MAINTENANCE,
     UNSOLICITED_MAINTENANCE
@@ -69,6 +78,8 @@ typedef enum{
 #define ALL_TASKS_SUCCESS              0xFF
 #define MAINTENANCE_TASK_SKIPPED       0x200
 
+#define MAX_NETWORK_RETRIES             4
+#define MAX_ACTIVATION_RETRIES          4
 
 #define DCM_SUCCESS                     0
 #define DCM_COMPLETE                    1
@@ -139,6 +150,9 @@ namespace WPEFramework {
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
                 bool checkAbortFlag();
+                bool checkNetwork();
+                bool getActivatedStatus(bool &skipFirmwareCheck);
+                const string checkActivatedStatus(void);
                 pid_t getTaskPID(const char*);
 
                 string getLastRebootReason();
