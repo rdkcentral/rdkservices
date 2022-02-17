@@ -193,115 +193,69 @@ namespace WPEFramework
             resetDevice(false);
         }
 
-
-        static void WareHouseReset(Warehouse *wh, bool suppressReboot, const string& resetType)
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
-            bool ok = true;
-            int err = 0;
+            IARM_Result_t err;
             bool isWareHouse = false;
-
-            string deviceResetCmd = "sh /lib/rdk/deviceReset.sh ";
-            string cmdParameters;
-
-            system("echo 0 > /opt/.rebootFlag");
-
             if (resetType.compare("COLD") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                LOGINFO("\n Reset: Processing Cold Factory Reset\n");
-                LOGINFO(" Reset: ...Clearing data from your box before reseting \n");
-
-                cmdParameters = "coldfactory";
-
-                system(" echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
-
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
             }
             else if (resetType.compare("FACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                LOGINFO("\n Reset: Processing Factory Reset\n");
-                LOGINFO("Reset: ...Clearing data from your box before reseting \n");
-
-                cmdParameters = "factory";
-
-                system(" echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
-                //system("sleep 5; /rebootNow.sh");
-
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
             }
             else if (resetType.compare("USERFACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                LOGINFO("\n Reset: Processing User Factory Reset\n");
-
-                system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
-
-                cmdParameters = "userfactory";
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
             }
             else if (resetType.compare("WAREHOUSE_CLEAR") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
-
-                system("touch /tmp/.warehouse-clear"); 
-
-                cmdParameters = "WAREHOUSE_CLEAR";
-
-                if (suppressReboot)
-                    cmdParameters += " --suppressReboot";
-                else
-                    system("echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log");
-
+                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                whParam.suppressReboot = suppressReboot;
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
                 isWareHouse = true;
             }
             else // WAREHOUSE
             {
                 LOGINFO("WAREHOUSE reset...");
-                LOGINFO("\n Reset: Invoking Ware House Reset Request from APP\n");
-
-                system("touch /tmp/.warehouse-reset"); 
-
-                cmdParameters = "warehouse";
-
-                if (suppressReboot)
-                    cmdParameters += "--suppressReboot";
-                else
-                    system("echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log");
-
+                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                whParam.suppressReboot = suppressReboot;
+                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
                 isWareHouse = true;
             }
 
-            deviceResetCmd += cmdParameters;
-            err = system(deviceResetCmd.c_str());
+            bool ok = true;
 
             // If SuppressReboot is false ie device is rebooted, IARMBus daemon will also be stopped.
             // So cannot rely on return value from IARM_Bus_Call above.
             // Hence checking for status only when SuppressReboot is true.
             if(suppressReboot)
             {
-                ok = (0 == err);
+                ok = (err == IARM_RESULT_SUCCESS);
             }
-
+            
             if (!( true == isWareHouse && true == suppressReboot)) {
                 JsonObject params;
                 params[PARAM_SUCCESS] = ok;
 
                 if (!ok)
                 {
-                    LOGWARN("Command failed with %d code", err);
+                    LOGWARN("%s", C_STR(Utils::formatIARMResult(err)));
                     params[PARAM_ERROR] = "Reset failed";
                 }
-
                 string json;
                 params.ToString(json);
                 LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
                 wh->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
-
-            if (resetType.compare("COLD") == 0)
-                system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static bool RunScriptIARM(const std::string& script, std::string& error)
         {
             IARM_Bus_SYSMgr_RunScript_t runScriptParam;
@@ -343,7 +297,7 @@ namespace WPEFramework
                 if (m_resetThread.get().joinable())
                     m_resetThread.get().join();
 
-                m_resetThread = Utils::ThreadRAII(std::thread(WareHouseReset, this, suppressReboot, resetType));
+                m_resetThread = Utils::ThreadRAII(std::thread(WareHouseResetIARM, this, suppressReboot, resetType));
             }
             catch(const std::system_error& e)
             {
