@@ -222,6 +222,7 @@ namespace WPEFramework {
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
+	    bool m_currentAudioDevicePowerState;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;

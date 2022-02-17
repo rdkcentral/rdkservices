@@ -91,9 +91,11 @@ namespace WPEFramework
                Config() : Core::JSON::Container(),
                   SubtitleProcessing(false),
                   TeletextProcessing(false),
+                  OutOfProcess(true)
                {
                    Add(_T("subtitleprocessing"), &SubtitleProcessing);
                    Add(_T("teletextprocessing"), &TeletextProcessing);
+                   Add(_T("outofprocess"), &OutOfProcess);
                }
 
                ~Config()
@@ -103,6 +105,7 @@ namespace WPEFramework
             public:
                Core::JSON::Boolean SubtitleProcessing;
                Core::JSON::Boolean TeletextProcessing;
+               Core::JSON::Boolean OutOfProcess;
          };
 
          public:

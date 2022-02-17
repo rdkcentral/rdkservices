@@ -246,6 +246,7 @@ namespace WPEFramework {
 	    m_hdmiCecAudioDeviceDetected = false;
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
+	    m_currentAudioDevicePowerState = false;
 	    isCecArcRoutingThreadEnabled = true;
 	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
@@ -4245,6 +4246,7 @@ namespace WPEFramework {
 	void DisplaySettings::cecArcRoutingThread() {
             LOGINFO("%s: ARC Routing Thread Start\n",__FUNCTION__);
 	    bool threadExit = false;
+	    bool powerState = false;
 	    int arcState = ARC_STATE_ARC_TERMINATED;
 
             if(!DisplaySettings::_instance)
@@ -4257,33 +4259,41 @@ namespace WPEFramework {
 	    	std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
 		DisplaySettings::_instance->arcRoutingCV.wait(lock, []{return (DisplaySettings::_instance->m_cecArcRoutingThreadRun == true);});
 		arcState = DisplaySettings::_instance->m_currentArcRoutingState;
+                powerState = DisplaySettings::_instance->m_currentAudioDevicePowerState;
 		}
                 if(threadExit == true) {
                     break;
 		}
 
-		
+		if (powerState == true) {
+			LOGINFO("%s: Invoking sendHdmiCecSinkAudioDevicePowerOn to power on the Audio Device \n", __FUNCTION__);
+			DisplaySettings::_instance->sendHdmiCecSinkAudioDevicePowerOn();
+			DisplaySettings::_instance->m_currentAudioDevicePowerState = false;
+		}
 
-		switch(arcState) {
+		else {
 
-                    case ARC_STATE_REQUEST_ARC_INITIATION:
-                        LOGINFO("%s: Send ARC Initiation request \n",__FUNCTION__);
-                        DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(true);
-                        break;
+		    switch(arcState) {
 
-                    case ARC_STATE_REQUEST_ARC_TERMINATION:
-			LOGINFO("%s: Send ARC Termination request \n",__FUNCTION__);
-			DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(false);
-			break;
+                        case ARC_STATE_REQUEST_ARC_INITIATION:
+                            LOGINFO("%s: Send ARC Initiation request \n",__FUNCTION__);
+                            DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(true);
+                            break;
 
-                    case ARC_STATE_ARC_EXIT:
-			threadExit = true;
-			break;
+                        case ARC_STATE_REQUEST_ARC_TERMINATION:
+			    LOGINFO("%s: Send ARC Termination request \n",__FUNCTION__);
+			    DisplaySettings::_instance->setUpHdmiCecSinkArcRouting(false);
+			    break;
 
-                    //TODO: DD Handle Arc routing logic completely in this separate thread
-                    default:
-			LOGINFO("%s: Default case - arcState : %d \n",__FUNCTION__, arcState);
-			break;
+                        case ARC_STATE_ARC_EXIT:
+			    threadExit = true;
+			    break;
+
+                        //TODO: DD Handle Arc routing logic completely in this separate thread
+                        default:
+			    LOGINFO("%s: Default case - arcState : %d \n",__FUNCTION__, arcState);
+			    break;
+		    }
 		}
 
 	    std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
@@ -4577,7 +4587,15 @@ namespace WPEFramework {
 		    	aPort.getSupportedARCTypes(&types);
 	        
 		    		LOGINFO("[ Audio Device Added ], AudioSupport_type [%d], m_hdmiInAudioDeviceConnected [%d], m_currentArcRoutingState [%d], m_cecArcRoutingThreadRun [%d] \n", types, m_hdmiInAudioDeviceConnected, m_currentArcRoutingState, m_cecArcRoutingThreadRun);
-		    	if(types & dsAUDIOARCSUPPORT_eARC) {
+			if(m_hdmiInAudioDeviceConnected == false)
+                        {
+			    m_currentAudioDevicePowerState = true;
+			    m_cecArcRoutingThreadRun = true;
+			    LOGINFO("Notifying ARC Routing Thread to Power On the Connected Device");
+			    arcRoutingCV.notify_one();
+                        }
+
+			if(types & dsAUDIOARCSUPPORT_eARC) {
 		    	if(m_hdmiInAudioDeviceConnected == false)
 		    	{
 		    		m_hdmiInAudioDeviceConnected = true;

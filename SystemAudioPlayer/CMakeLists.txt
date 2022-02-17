@@ -1,9 +1,6 @@
 set(PLUGIN_NAME SystemAudioPlayer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_SYSTEMAUDIOPLAYER_AUTOSTART "true" CACHE STRING "Automatically start SystemAudioPlayer plugin")
-set(PLUGIN_SYSTEMAUDIOPLAYER_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_subdirectory(test)
