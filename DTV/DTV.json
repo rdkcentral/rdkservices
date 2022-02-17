@@ -681,7 +681,7 @@
             }
         },
         "scheduleEvents": {
-            "summary": "Schedule events (EITsched) for the given service",
+            "summary": "Events which are scheduled (EITsched) for the given service",
             "readonly": true,
             "index": {
                 "name": "Service URI string, with optional start and end times as number of seconds UTC",
@@ -748,7 +748,7 @@
     },
     "methods": {
         "addLnb": {
-            "summary": "Add a new LNB to the database",
+            "summary": "Add a new LNB to the database.\n  \n### Event \n\n No Events",
             "params": {
                 "$ref": "#/definitions/lnbsettings"
             },
@@ -759,7 +759,7 @@
             }
         },
         "addSatellite": {
-            "summary": "Add a new satellite to the database",
+            "summary": "Add a new satellite to the database.\n  \n### Event \n\n No Events",
             "params": {
                 "$ref": "#/definitions/satellitesettings"
             },
@@ -770,7 +770,7 @@
             }
         },
         "finishServiceSearch": {
-            "summary": "Finishes a service search",
+            "summary": "Finishes a service search.\n  \n### Event \n\n No Events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -796,7 +796,7 @@
             }
         },
         "startPlaying": {
-            "summary": "Starts playing the specified service",
+            "summary": "Starts playing the specified service.\n  \n### Event \n\n No Events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -818,7 +818,7 @@
             }
         },
         "startServiceSearch": {
-            "summary": "Starts a service search",
+            "summary": "Starts a service search.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|`searchstatus`|Triggered during the course of a service search.|",
             "events": [
                 "searchstatus"
             ],
@@ -863,7 +863,7 @@
             }
         },
         "stopPlaying": {
-            "summary": "Stops playing the specified service",
+            "summary": "Stops playing the specified service.\n  \n### Event \n\n No Events",
             "params": {
                 "summary": "The play handle returned by startPlaying",
                 "type": "number",

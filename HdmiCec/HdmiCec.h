@@ -25,15 +25,84 @@
 
 #include "libIBus.h"
 
+#include "ccec/Assert.hpp"
+#include "ccec/Messages.hpp"
+#include "ccec/MessageDecoder.hpp"
+#include "ccec/MessageProcessor.hpp"
+
+
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
 #include "utils.h"
 #include "AbstractPlugin.h"
 
+#include "tptimer.h"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+
 namespace WPEFramework {
 
     namespace Plugin {
+
+#define BIT_DEVICE_PRESENT    (0)
+
+	class CECDeviceInfo {
+		public:
+
+		LogicalAddress m_logicalAddress;
+		VendorID m_vendorID;
+		OSDName m_osdName;
+		//<Bits 16 - 1: unused><Bit 0: DevicePresent>
+		short m_deviceInfoStatus;
+	        bool m_isOSDNameUpdated;
+	        bool m_isVendorIDUpdated;
+
+		CECDeviceInfo()
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		{
+			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
+		}
+
+		void clear( )
+		{
+			m_logicalAddress = 0;
+			m_vendorID = VendorID(0,0,0);
+			m_osdName = "NA";
+			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
+			m_isOSDNameUpdated = false;
+			m_isVendorIDUpdated = false;
+		}
+
+		bool update ( const VendorID &vendorId) {
+			bool isVendorIdUpdated = false;
+			if (!m_isVendorIDUpdated)
+				isVendorIdUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isVendorIdUpdated = (m_vendorID.toString().compare(vendorId.toString())==0)?false:true;
+
+			m_isVendorIDUpdated = true;
+			m_vendorID = vendorId;
+			return isVendorIdUpdated;
+		}
+
+		bool update ( const OSDName    &osdName ) {
+			bool isOSDNameUpdated = false;
+			if (!m_isOSDNameUpdated)
+				isOSDNameUpdated = true; //First time no need to cross check the value. Since actual value can be default value
+			else
+				isOSDNameUpdated = (m_osdName.toString().compare(osdName.toString())==0)?false:true;
+
+			m_isOSDNameUpdated = true;
+			m_osdName = osdName;
+			return isOSDNameUpdated;
+		}
+
+	};
+
+
 
 		// This is a server for a JSONRPC communication channel. 
 		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
@@ -47,7 +116,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCec : public AbstractPlugin, public FrameListener {
+        class HdmiCec : public AbstractPlugin, public FrameListener, public MessageProcessor {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -59,6 +128,7 @@ namespace WPEFramework {
             uint32_t getEnabledWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getCECAddressesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t sendMessageWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDeviceList (const JsonObject& parameters, JsonObject& response);
             //End methods
 
 
@@ -66,9 +136,28 @@ namespace WPEFramework {
             HdmiCec();
             virtual ~HdmiCec();
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            void addDevice(const int logicalAddress);
+            void removeDevice(const int logicalAddress);
+            void sendUnencryptMsg(unsigned char* msg, int size);
+            void sendDeviceUpdateInfo(const int logicalAddress);
+
+            void process (const ActiveSource &msg, const Header &header);
+            void process (const ImageViewOn &msg, const Header &header);
+            void process (const TextViewOn &msg, const Header &header);
+            void process (const CECVersion &msg, const Header &header);
+            void process (const SetOSDName &msg, const Header &header);
+            void process (const ReportPhysicalAddress &msg, const Header &header);
+            void process (const DeviceVendorID &msg, const Header &header);
+            void process (const ReportPowerStatus &msg, const Header &header);
+
 
         public:
             static HdmiCec* _instance;
+            CECDeviceInfo deviceList[16];
+            pthread_cond_t m_condSig;
+            pthread_mutex_t m_lock;
+            pthread_cond_t m_condSigUpdate;
+            pthread_mutex_t m_lockUpdate;
         private:
             std::string logicalAddressDeviceType;
             unsigned int logicalAddress;
@@ -76,6 +165,11 @@ namespace WPEFramework {
             bool cecSettingEnabled;
             bool cecEnableStatus;
             Connection *smConnection;
+            int m_numberOfDevices;
+            bool m_pollThreadExit;
+            std::thread m_pollThread;
+            bool m_updateThreadExit;
+            std::thread m_UpdateThread;
 
             const void InitializeIARM();
             void DeinitializeIARM();
@@ -97,6 +191,16 @@ namespace WPEFramework {
             void setName(std::string name);
             std::string getName();
             JsonObject getCECAddresses();
+            bool pingDeviceUpdateList (int idev);
+            void removeAllCecDevices();
+            void requestVendorID(const int newDevlogicalAddress);
+            void requestOsdName(const int newDevlogicalAddress);
+            void requestCecDevDetails(const int logicalAddress);
+            void printHeader(const Header &header)
+            {
+                printf("Header : From : %s \n", header.from.toString().c_str());
+                printf("Header : to   : %s \n", header.to.toString().c_str());
+            }
 
             uint16_t FromBase64String(const string& newValue, uint8_t object[], uint16_t& length, const TCHAR* ignoreList);
             void sendMessage(std::string message);
@@ -104,6 +208,8 @@ namespace WPEFramework {
 
             void notify(const CECFrame &in) const;
             void onMessage(const char *message);
+            static void threadRun();
+            static void threadUpdateCheck();
 
         };
 	} // namespace Plugin

@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.PersistentStore plugin for Thunder framework.
+A org.rdk.PersistentStore plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -96,9 +96,13 @@ PersistentStore interface methods:
 
 
 <a name="method.deleteKey"></a>
-## *deleteKey <sup>method</sup>*
+## *deleteKey [<sup>method</sup>](#head.Methods)*
 
 Deletes a key from the specified namespace.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -122,7 +126,7 @@ Deletes a key from the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.deleteKey",
     "params": {
         "namespace": "ns1",
@@ -136,7 +140,7 @@ Deletes a key from the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -144,9 +148,13 @@ Deletes a key from the specified namespace.
 ```
 
 <a name="method.deleteNamespace"></a>
-## *deleteNamespace <sup>method</sup>*
+## *deleteNamespace [<sup>method</sup>](#head.Methods)*
 
 Deletes the specified namespace.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -169,7 +177,7 @@ Deletes the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.deleteNamespace",
     "params": {
         "namespace": "ns1"
@@ -182,7 +190,7 @@ Deletes the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -190,9 +198,13 @@ Deletes the specified namespace.
 ```
 
 <a name="method.flushCache"></a>
-## *flushCache <sup>method</sup>*
+## *flushCache [<sup>method</sup>](#head.Methods)*
 
 Flushes the database cache by invoking `flush` in SQLite.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -212,7 +224,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.flushCache"
 }
 ```
@@ -222,7 +234,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -230,9 +242,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getKeys"></a>
-## *getKeys <sup>method</sup>*
+## *getKeys [<sup>method</sup>](#head.Methods)*
 
 Returns the keys that are stored in the specified namespace.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -257,7 +273,7 @@ Returns the keys that are stored in the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.getKeys",
     "params": {
         "namespace": "ns1"
@@ -270,7 +286,7 @@ Returns the keys that are stored in the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "keys": [
             "key1"
@@ -281,9 +297,13 @@ Returns the keys that are stored in the specified namespace.
 ```
 
 <a name="method.getNamespaces"></a>
-## *getNamespaces <sup>method</sup>*
+## *getNamespaces [<sup>method</sup>](#head.Methods)*
 
 Returns the namespaces in the datastore.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -305,7 +325,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.getNamespaces"
 }
 ```
@@ -315,7 +335,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "namespaces": [
             "ns1"
@@ -326,9 +346,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getStorageSize"></a>
-## *getStorageSize <sup>method</sup>*
+## *getStorageSize [<sup>method</sup>](#head.Methods)*
 
-Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded, then new values are not stored and the `onStorageExceeded` event is sent.
+Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -351,7 +375,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.getStorageSize"
 }
 ```
@@ -361,7 +385,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "namespaceSizes": {
             "ns1": 534,
@@ -373,9 +397,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getValue"></a>
-## *getValue <sup>method</sup>*
+## *getValue [<sup>method</sup>](#head.Methods)*
 
 Returns the value of a key from the specified namespace.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -400,7 +428,7 @@ Returns the value of a key from the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.getValue",
     "params": {
         "namespace": "ns1",
@@ -414,7 +442,7 @@ Returns the value of a key from the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "value": "value1",
         "success": true
@@ -423,9 +451,16 @@ Returns the value of a key from the specified namespace.
 ```
 
 <a name="method.setValue"></a>
-## *setValue <sup>method</sup>*
+## *setValue [<sup>method</sup>](#head.Methods)*
 
 Sets the value of a key in the the specified namespace.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|.
+
+Also see: [onStorageExceeded](#event.onStorageExceeded)
 
 ### Parameters
 
@@ -450,7 +485,7 @@ Sets the value of a key in the the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.PersistentStore.1.setValue",
     "params": {
         "namespace": "ns1",
@@ -465,7 +500,7 @@ Sets the value of a key in the the specified namespace.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -487,7 +522,7 @@ PersistentStore interface events:
 
 
 <a name="event.onStorageExceeded"></a>
-## *onStorageExceeded <sup>event</sup>*
+## *onStorageExceeded [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the storage size has surpassed the storage capacity. The total size of the datastore should not exceed more than 1MB in size.
 

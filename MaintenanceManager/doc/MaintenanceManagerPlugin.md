@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.MaintenanceManager plugin for Thunder framework.
+A org.rdk.MaintenanceManager plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -87,20 +87,26 @@ MaintenanceManager interface methods:
 | :-------- | :-------- |
 | [getMaintenanceActivityStatus](#method.getMaintenanceActivityStatus) | Gets the maintenance activity status details |
 | [getMaintenanceStartTime](#method.getMaintenanceStartTime) | Gets the scheduled maintenance start time |
-| [setMaintenanceMode](#method.setMaintenanceMode) | Sets the maintenance mode |
+| [setMaintenanceMode](#method.setMaintenanceMode) | Sets the maintenance mode and software upgrade opt-out mode |
 | [startMaintenance](#method.startMaintenance) | Starts maintenance activities |
+| [stopMaintenance](#method.stopMaintenance) | Stops maintenance activities |
+| [getMaintenanceMode](#method.getMaintenanceMode) | Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location |
 
 
 <a name="method.getMaintenanceActivityStatus"></a>
-## *getMaintenanceActivityStatus <sup>method</sup>*
+## *getMaintenanceActivityStatus [<sup>method</sup>](#head.Methods)*
 
 Gets the maintenance activity status details.  
-**Maintenance Statuses**  
-* `MAINTENANCE_IDLE` - Sent when the Maintenance service is not executing any activities and until the first maintenance task is started  
-* `MAINTENANCE_STARTED` - Sent immediately on maintenance startup either scheduled or on boot  
-* `MAINTENANCE_ERROR` - Sent after receiving error notification while executing any of the maintenance activities  
-* `MAINTENANCE_COMPLETE` - Sent after receiving `*_COMPLETE` notification from all critical maintenance tasks  
-* `MAINTENANCE_INCOMPLETE` - Sent whenever the Maintenance service doesn't execute one or more of the tasks. `MAINTENANCE_ERROR` is returned even if only one task returns error.
+**Maintenance Status**  
+* `MAINTENANCE_IDLE` - Maintenance service is not executing any activities before the start of first maintenance task  
+* `MAINTENANCE_STARTED` - Maintenance has started either by schedule or on boot  
+* `MAINTENANCE_ERROR` - One or more tasks of the maintenance service has failed  
+* `MAINTENANCE_COMPLETE` - All critical maintenance tasks are completed successfully  
+* `MAINTENANCE_INCOMPLETE` - Maintenance service didn't execute one or more of the tasks. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -112,7 +118,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.maintenanceStatus | string | The current maintenance status |
-| result.lastSuccessfulCompletionTime | integer | The time the last maintenance completed or `0` if not applicable |
+| result.LastSuccessfulCompletionTime | integer | The time (in epoch time) the last maintenance completed or `0` if not applicable |
 | result.isCriticalMaintenance | boolean | `true` if the maintenance activity cannot be aborted, otherwise `false` |
 | result.isRebootPending | boolean | `true` if the device is going to reboot, otherwise `false` |
 | result.success | boolean | Whether the request succeeded |
@@ -124,7 +130,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.MaintenanceManager.1.getMaintenanceActivityStatus"
 }
 ```
@@ -134,10 +140,10 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "maintenanceStatus": "MAINTENANCE_STARTED",
-        "lastSuccessfulCompletionTime": 12345678,
+        "LastSuccessfulCompletionTime": 12345678,
         "isCriticalMaintenance": true,
         "isRebootPending": false,
         "success": true
@@ -146,9 +152,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getMaintenanceStartTime"></a>
-## *getMaintenanceStartTime <sup>method</sup>*
+## *getMaintenanceStartTime [<sup>method</sup>](#head.Methods)*
 
-Gets the scheduled maintenance start time.
+Gets the scheduled maintenance start time. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -159,7 +169,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.maintenanceStartTime | integer | The start time |
+| result.maintenanceStartTime | integer | The start time (in epoch time) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -169,7 +179,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.MaintenanceManager.1.getMaintenanceStartTime"
 }
 ```
@@ -179,7 +189,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "maintenanceStartTime": 12345678,
         "success": true
@@ -188,16 +198,26 @@ This method takes no parameters.
 ```
 
 <a name="method.setMaintenanceMode"></a>
-## *setMaintenanceMode <sup>method</sup>*
+## *setMaintenanceMode [<sup>method</sup>](#head.Methods)*
 
-Sets the maintenance mode.
+Sets the maintenance mode and software upgrade opt-out mode.  
+*Opt-Out Modes*  
+* `NONE` - The software upgrade process is unaffected and proceeds with the download and update.  
+* `ENFORCE_OPTPOUT` - The software upgrade process pauses after discovering an update is available and sends a `System` service `onFirmwareUpdateStateChange` event with the `On Hold for opt-out` state. An application must give the user the option of whether or not to accept the update. If the user accepts the update, then the opt-out mode must be set to `BYPASS-OPTOUT`.  
+* `BYPASS_OPTOUT` The software upgrade process proceeds with a download and update, as directed by the application, for this occurrence of the maintenance window (used when the user accepts the software update).  
+* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter). 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.maintenanceMode | string | The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode runs maintenance tasks that do not impact the user experience. (must be one of the following: *FOREGROUND*, *BACKGROUND*) |
+| params.maintenanceMode | string | The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode aborts activities currently running, if the task can't run in the background (if maintenance was already started with FOREGROUND mode) and executes tasks without impacting the user experience, if it is set before calling startMaintenance. (must be one of the following: *FOREGROUND*, *BACKGROUND*) |
+| params.optOut | string | The opt-out mode.  (must be one of the following: *NONE*, *ENFORCE_OPTOUT*, *BYPASS_OPTOUT*, *IGNORE_UPDATE*) |
 
 ### Result
 
@@ -213,10 +233,11 @@ Sets the maintenance mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.MaintenanceManager.1.setMaintenanceMode",
     "params": {
-        "maintenanceMode": "BACKGROUND"
+        "maintenanceMode": "BACKGROUND",
+        "optOut": "ENFORCE_OPTOUT"
     }
 }
 ```
@@ -226,7 +247,7 @@ Sets the maintenance mode.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -234,9 +255,16 @@ Sets the maintenance mode.
 ```
 
 <a name="method.startMaintenance"></a>
-## *startMaintenance <sup>method</sup>*
+## *startMaintenance [<sup>method</sup>](#head.Methods)*
 
-Starts maintenance activities.
+Starts maintenance activities. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+
+Also see: [onMaintenanceStatusChange](#event.onMaintenanceStatusChange)
 
 ### Parameters
 
@@ -256,7 +284,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.MaintenanceManager.1.startMaintenance"
 }
 ```
@@ -266,8 +294,103 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.stopMaintenance"></a>
+## *stopMaintenance [<sup>method</sup>](#head.Methods)*
+
+Stops maintenance activities. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+
+Also see: [onMaintenanceStatusChange](#event.onMaintenanceStatusChange)
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.MaintenanceManager.1.stopMaintenance"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getMaintenanceMode"></a>
+## *getMaintenanceMode [<sup>method</sup>](#head.Methods)*
+
+Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.maintenanceMode | string | The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode aborts activities currently running, if the task can't run in the background (if maintenance was already started with FOREGROUND mode) and executes tasks without impacting the user experience, if it is set before calling startMaintenance. (must be one of the following: *FOREGROUND*, *BACKGROUND*) |
+| result.optOut | string | The opt-out mode. See [setMaintenanceMode](#method.setMaintenanceMode) for a description of each opt-out mode (must be one of the following: *NONE*, *ENFORCE_OPTOUT*, *BYPASS_OPTOUT*, *IGNORE_UPDATE*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.MaintenanceManager.1.getMaintenanceMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "maintenanceMode": "BACKGROUND",
+        "optOut": "ENFORCE_OPTOUT",
         "success": true
     }
 }
@@ -288,7 +411,7 @@ MaintenanceManager interface events:
 
 
 <a name="event.onMaintenanceStatusChange"></a>
-## *onMaintenanceStatusChange <sup>event</sup>*
+## *onMaintenanceStatusChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the maintenance manager status changes. See `getMaintenanceActivityStatus` for a list of statuses.
 

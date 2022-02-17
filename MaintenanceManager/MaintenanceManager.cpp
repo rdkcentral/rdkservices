@@ -95,6 +95,22 @@ string notifyStatusToString(Maint_notify_status_t &status)
     return ret_status;
 }
 
+bool checkValidOptOutModes(string OptoutModes){
+    vector<string> modes{
+        "ENFORCE_OPTOUT",
+        "BYPASS_OPTOUT",
+        "IGNORE_UPDATE",
+        "NONE"
+    };
+
+    if ( find( modes.begin(), modes.end(), OptoutModes) != modes.end() ){
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
@@ -188,6 +204,7 @@ namespace WPEFramework {
             registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
             registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
             registerMethod("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
+            registerMethod("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
 
 
             MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
@@ -198,72 +215,14 @@ namespace WPEFramework {
 
          }
 
-
-        string MaintenanceManager::getLastRebootReason(){
-            bool retAPIStatus = false;
-            string reboot_reason="";
-            string reason="";
-            string rebootInfo;
-
-            if (Utils::fileExists(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE)) {
-                retAPIStatus = getFileContent(SYSTEM_SERVICE_PREVIOUS_REBOOT_INFO_FILE, rebootInfo);
-            }
-
-            if (retAPIStatus && rebootInfo.length()) {
-                JsonObject rebootInfoJson;
-                rebootInfoJson.FromString(rebootInfo);
-                reason = rebootInfoJson["reason"].String();
-            }
-
-            reboot_reason = reason;
-            LOGINFO("Previous Reboot Reason: %s", reason.c_str());
-            return reboot_reason;
-        }
-
-        bool MaintenanceManager::checkAutoRebootFlag(){
-            bool ret=false;
-            RFC_ParamData_t param;
-            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),TR181_AUTOREBOOT_ENABLE, &param);
-            if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
-                if( param.type == WDMP_BOOLEAN ){
-                    if(strncasecmp(param.value,"true",4) == 0 ){
-                        ret=true;
-                    }
-                }
-            }
-            LOGINFO(" AutoReboot.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
-            return ret;
-        }
-
-        void MaintenanceManager::requestSystemReboot(){
-            bool result = false;
-
-            string rebootCommand="";
-
-            if (Utils::fileExists("/lib/rdk/AutoReboot.sh")) {
-                rebootCommand = "/lib/rdk/AutoReboot.sh &";
-            } else {
-                LOGINFO("AutoReboot is not present \n");
-            }
-
-           LOGINFO("Requesting SystemReboot !!");
-
-            system(rebootCommand.c_str());
-
-        }
         void MaintenanceManager::task_execution_thread(){
-            LOGINFO("INSIDE thread task execution");
             int task_count=3;
             int i=0;
             string cmd="";
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
-#if defined (SKY_BUILD)
-            bool internetConnectStatus = true;
-#else
             bool internetConnectStatus = isDeviceOnline();
-#endif
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
             /*  In an unsolicited maintenance we make sure only after
@@ -273,7 +232,7 @@ namespace WPEFramework {
             /* we add the task in a loop */
             std::unique_lock<std::mutex> lck(m_callMutex);
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
-                LOGINFO("UNSOLICITED_MAINTENANCE");
+                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
                 for ( i=0;i< task_count ;i++ ){
                     task_thread.wait(lck);
                     cmd=task_names_foreground[i].c_str();
@@ -289,7 +248,7 @@ namespace WPEFramework {
             /* Here in Solicited we start with RFC so no
              * need to wait for any DCM events */
             else if( SOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
-                    LOGINFO("SOLICITED_MAINTENANCE");
+                    LOGINFO("=============SOLICITED_MAINTENANCE===============");
                     cmd=task_names_foreground[0].c_str();
                     cmd+=" &";
                     cmd+="\0";
@@ -318,22 +277,19 @@ namespace WPEFramework {
             }
         }
 
-        bool MaintenanceManager::isDeviceOnline()
+        bool MaintenanceManager::checkNetwork()
         {
-            LOGINFO("Checking device has network connectivity\n");
-
-            if (false == Utils::isPluginActivated("org.rdk.Network")) {
-               sleep(30);
-               if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                   LOGINFO("Network plugin is not activated and considered as offline\n");
-                   return false;
-               }
-            }
-
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
-	    std::string token;
+            std::string token;
+
+            /* check if plugin active */
+            if (false == Utils::isPluginActivated("org.rdk.Network")) {
+                    LOGINFO("Network plugin is not activated \n");
+                    return false;
+            }
+
             Utils::SecurityToken::getSecurityToken(token);
 
             string query = "token=" + token;
@@ -345,14 +301,40 @@ namespace WPEFramework {
                     LOGINFO("%s call failed %d", callsign.c_str(), status);
                     return false;
                 } else if (joGetResult.HasLabel("connectedToInternet")) {
-                    LOGINFO("connectedToInternet status %d", joGetResult["connectedToInternet"].Boolean());
+                    LOGINFO("connectedToInternet status %s",(joGetResult["connectedToInternet"].Boolean())? "true":"false");
                     return joGetResult["connectedToInternet"].Boolean();
                 } else {
                     return false;
                 }
-	    }
+            }
+
             LOGINFO("thunder client failed");
             return false;
+        }
+
+        bool MaintenanceManager::isDeviceOnline()
+        {
+            bool network_available =  false;
+            LOGINFO("Checking device has network connectivity\n");
+
+            /* add 4 checks every 30 seconds */
+            int i=0;
+            do{
+                network_available = checkNetwork();
+                if ( !network_available ){
+                    sleep(30);
+                    i++;
+                    LOGINFO("Network retries [%d/4] \n",i);
+                }else{
+                    break;
+                }
+            }while( i < MAX_NETWORK_RETRIES );
+
+            if ( network_available ){
+                return true;
+            }else {
+                return false;
+            }
         }
 
         MaintenanceManager::~MaintenanceManager()
@@ -399,6 +381,20 @@ namespace WPEFramework {
 
             /* to know the maintenance is solicited or unsolicited */
             g_maintenance_type=UNSOLICITED_MAINTENANCE;
+
+            /* On bootup we check for opt-out value
+             * if empty set the value to none */
+            string OptOutmode = "NONE";
+            OptOutmode = m_setting.getValue("softwareoptout").String();
+            if(!checkValidOptOutModes(OptOutmode)){
+                LOGINFO("OptOut Value is not Set. Setting to NONE \n");
+                m_setting.remove("softwareoptout");
+                OptOutmode = "NONE";
+                m_setting.setValue("softwareoptout",OptOutmode);
+            }
+            else {
+                LOGINFO("OptOut Value Found as: %s \n", OptOutmode.c_str());
+            }
 
             MaintenanceManager::g_is_critical_maintenance="false";
             MaintenanceManager::g_is_reboot_pending="false";
@@ -458,9 +454,8 @@ namespace WPEFramework {
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
             auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
-            LOGINFO("Event-ID = %d \n",eventId);
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
-            LOGINFO("Maintenance Event= %d \n",event);
+            LOGINFO("Maintenance Event-ID = %d \n",event);
 
             if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
                 if ( IARM_BUS_DCM_NEW_START_TIME_EVENT == eventId ) {
@@ -470,7 +465,8 @@ namespace WPEFramework {
                     /* Store it in a Global structure */
                     g_epoch_time=l_time;
                 }
-                else if ( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) {
+                else if (( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) &&
+                    ( MAINTENANCE_STARTED == m_notify_status )) {
                     module_status = module_event_data->data.maintenance_module_status.status;
                     LOGINFO("MaintMGR Status %d \n",module_status);
                     string status_string=moduleStatusToString(module_status);
@@ -479,6 +475,7 @@ namespace WPEFramework {
                         case MAINT_RFC_COMPLETE :
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_COMPLETE");
+                                 return;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
@@ -490,6 +487,7 @@ namespace WPEFramework {
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
@@ -501,6 +499,7 @@ namespace WPEFramework {
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
@@ -512,6 +511,7 @@ namespace WPEFramework {
                        case MAINT_LOGUPLOAD_COMPLETE :
                             if(task_status_LOGUPLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
@@ -529,6 +529,11 @@ namespace WPEFramework {
                             break;
                         case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
+                            /* we say FW update task complete */
+                            SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            task_thread.notify_one();
+                            m_task_map[task_names_foreground[1].c_str()]=false;
+                            LOGINFO("FW Download task aborted \n");
                             break;
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
@@ -544,6 +549,7 @@ namespace WPEFramework {
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
+                                 return;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
@@ -556,6 +562,7 @@ namespace WPEFramework {
                         case MAINT_LOGUPLOAD_ERROR:
                             if(task_status_LOGUPLD->second != true) {
                                   LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
+                                  return;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
@@ -567,6 +574,7 @@ namespace WPEFramework {
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
+                                 return;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
@@ -598,7 +606,8 @@ namespace WPEFramework {
                     }
                 }
                 else{
-                    LOGINFO("Unknown Maintenance Status!!");
+                    LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                    return;
                 }
 
                 LOGINFO(" BITFIELD Status : %x",g_task_status);
@@ -622,25 +631,25 @@ namespace WPEFramework {
                     /* Check other than all success case which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
-                            LOGINFO("DBG:There are Skipped Task. Incomplete");
+                            LOGINFO("DBG:There are Skipped Task. Maintenance Incomplete");
                             notify_status=MAINTENANCE_INCOMPLETE;
-                            /*Check if there any chance to reboot
-                             * say we receive a reboot required from rfc */
                         }
                         else {
-                            LOGINFO("DBG:There are Errors");
+                            LOGINFO("DBG:Maintenance Ended with Errors");
                             notify_status=MAINTENANCE_ERROR;
                         }
 
                     }
+
                     LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
                     }
+
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
-                    LOGINFO("Still tasks are not completed!!!!");
+                    LOGINFO("Tasks are not completed!!!!");
 
                 }
             }
@@ -767,10 +776,55 @@ namespace WPEFramework {
         }
 
         /*
+         * @brief This function returns Mode of the maintenance.
+         * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceMode","params":{}}''
+         * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"maintenanceMode":"FOREGROUND","optOut":"IGNORE_UPDATE","success":true}}
+         * @return: Core::<StatusCode>
+         */
+        uint32_t MaintenanceManager::getMaintenanceMode(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool result = false;
+            string softwareOptOutmode = "NONE";
+            if ( BACKGROUND_MODE != g_currentMode && FOREGROUND_MODE != g_currentMode )  {
+                LOGERR("Didnt get a valid Mode. Failed\n");
+                returnResponse(false);
+            }
+            else {
+                response["maintenanceMode"] = g_currentMode;
+
+                if ( Utils::fileExists(MAINTENANCE_MGR_RECORD_FILE) ){
+                    if ( parseConfigFile(MAINTENANCE_MGR_RECORD_FILE,"softwareoptout",softwareOptOutmode)){
+                        /* check if the value is valid */
+                        if(!checkValidOptOutModes(softwareOptOutmode)){
+                            LOGERR("OptOut Value Corrupted. Failed\n");
+                            returnResponse(false);
+                        }
+                        else {
+                            LOGINFO("OptOut Value = %s",softwareOptOutmode.c_str());
+                        }
+                    }
+                    else {
+                        LOGERR("OptOut Value Not Found. Failed\n");
+                        returnResponse(false);
+                    }
+                }
+                else {
+                    LOGERR("OptOut Config File Not Found. Failed\n");
+                    returnResponse(false);
+                }
+                response["optOut"] = softwareOptOutmode.c_str();
+                result = true;
+            }
+            returnResponse(result);
+        }
+
+
+        /*
          * @brief This function returns the current status of the current
          * or previous maintenance activity.
          * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.setMaintenanceMode",
-         *                  "params":{"Mode":FOREGROUND}}''
+         *                  "params":{"maintenanceMode":FOREGROUND}}''
          * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
          * @return: Core::<StatusCode>
          */
@@ -782,41 +836,61 @@ namespace WPEFramework {
             string new_mode = "";
             string old_mode = g_currentMode;
             string bg_flag = "false";
+            string new_optout_state = "";
 
-            /*  we set the default value to FG */
-            if ( parameters.HasLabel("maintenanceMode") ){
-                /* Get the value */
+            /* Label should have maintenance mode and softwareOptout field */
+            if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
+
                 new_mode = parameters["maintenanceMode"].String();
 
-                LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
                 std::lock_guard<std::mutex> guard(m_callMutex);
+
                 /* check if maintenance is on progress or not */
                 /* if in progress restrict the same */
                 if ( MAINTENANCE_STARTED != m_notify_status ){
+
+                    LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
+
                     if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
                         LOGERR("value of new mode is incorrect, therefore \
                                 current mode '%s' not changed.\n", old_mode.c_str());
                         returnResponse(false);
                     }
+                    /* remove any older one */
+                    m_setting.remove("background_flag");
                     if ( BACKGROUND_MODE == new_mode ) {
-                        g_currentMode = new_mode;
-                        bg_flag="true";
-                        m_setting.setValue("background_flag",bg_flag);
+                        bg_flag = "true";
                     }
                     else {
                         /* foreground */
-                        g_currentMode =new_mode;
-                        m_setting.remove("background_flag");
-                        bg_flag="false";
-                        m_setting.setValue("background_flag",bg_flag);
+                        bg_flag = "false";
                     }
-                    result = true;
-
+                    g_currentMode = new_mode;
+                    m_setting.setValue("background_flag", bg_flag);
                 }
                 else{
                     LOGERR("Maintenance is in Progress, Mode change not allowed");
-                    result =false;
+                    result =true;
                 }
+
+                /* OptOut changes here */
+                new_optout_state = parameters["optOut"].String();
+
+                LOGINFO("SetMaintenanceMode optOut = %s\n",new_optout_state.c_str());
+
+                /* check if we have a valid state from user */
+                if(checkValidOptOutModes(new_optout_state)){
+                    /* we got a valid state; Now store it in persistant location */
+                    m_setting.setValue("softwareoptout",new_optout_state);
+                }
+                else{
+                    LOGINFO("Invalid optOut = %s\n",new_optout_state.c_str());
+                    returnResponse(false);
+                }
+
+                /* Set the result as true */
+                result = true;
+
             }
             else {
                 /* havent got the correct label */

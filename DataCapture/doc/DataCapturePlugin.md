@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.dataCapture plugin for Thunder framework.
+A org.rdk.dataCapture plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -90,13 +90,17 @@ DataCapture interface methods:
 
 
 <a name="method.enableAudioCapture"></a>
-## *enableAudioCapture <sup>method</sup>*
+## *enableAudioCapture [<sup>method</sup>](#head.Methods)*
 
 Enables audio capturing to buffer.  
 Return Values:  
 * `0` - No error  
 * `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  
-* `255` - set top device cannot accommodate any level of audio buffering.
+* `255` - set top device cannot accommodate any level of audio buffering. 
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -120,7 +124,7 @@ Return Values:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.dataCapture.1.enableAudioCapture",
     "params": {
         "bufferMaxDuration": 6
@@ -133,7 +137,7 @@ Return Values:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "error": 0,
         "success": true
@@ -142,12 +146,18 @@ Return Values:
 ```
 
 <a name="method.getAudioClip"></a>
-## *getAudioClip <sup>method</sup>*
+## *getAudioClip [<sup>method</sup>](#head.Methods)*
 
 Requests the audio driver to capture an audio sample from the specified stream and then delivers the stream sample to a specified URL.  
 Supported streams:  
 * `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  
-* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens â€“ TV or Bluetooth).
+* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).
+ 
+Events
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `onAudioClipReady` | Triggered if an audio clip uploaded successfully or not |.
 
 Also see: [onAudioClipReady](#event.onAudioClipReady)
 
@@ -177,7 +187,7 @@ Also see: [onAudioClipReady](#event.onAudioClipReady)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.dataCapture.1.getAudioClip",
     "params": {
         "clipRequest": {
@@ -195,7 +205,7 @@ Also see: [onAudioClipReady](#event.onAudioClipReady)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "error": 0,
         "success": true
@@ -218,7 +228,7 @@ DataCapture interface events:
 
 
 <a name="event.onAudioClipReady"></a>
-## *onAudioClipReady <sup>event</sup>*
+## *onAudioClipReady [<sup>event</sup>](#head.Notifications)*
 
 Indicates whether an audio clip succeeded or failed to upload.
 

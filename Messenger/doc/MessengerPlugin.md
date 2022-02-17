@@ -6,7 +6,7 @@
 
 **Status: :black_circle::white_circle::white_circle:**
 
-Messenger plugin for Thunder framework.
+A Messenger plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -91,24 +91,26 @@ Messenger interface methods:
 
 
 <a name="method.join"></a>
-## *join <sup>method</sup>*
+## *join [<sup>method</sup>](#head.Methods)*
 
-Joins a messaging room.
+Joins a messaging room. The room is created if specified room does not exist.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `roomupdate`| Triggered if a room is created or destroyed|
+| `userupdate`| Triggered if the user join or leave a messaging room |.
 
-### Description
-
-Use this method to join a room. If the specified room does not exist, then it is created.
-
-Also see: [userupdate](#event.userupdate)
+Also see: [roomupdate](#event.roomupdate), [userupdate](#event.userupdate)
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.user | string | User name to join the room under (must not be empty) |
-| params.room | string | Name of the room to join (must not be empty) |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
+| params.user | string | The user name to join the room under (must not be empty) |
+| params.room | string | The name of the room to join (must not be empty) |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: insecure, secure) |
 | params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
 | params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
 
@@ -134,7 +136,7 @@ Also see: [userupdate](#event.userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Messenger.1.join",
     "params": {
         "user": "Bob",
@@ -152,7 +154,7 @@ Also see: [userupdate](#event.userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "roomid": "1e217990dd1cd4f66124"
     }
@@ -160,15 +162,17 @@ Also see: [userupdate](#event.userupdate)
 ```
 
 <a name="method.leave"></a>
-## *leave <sup>method</sup>*
+## *leave [<sup>method</sup>](#head.Methods)*
 
-Leaves a messaging room.
+Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `roomupdate`| Triggered if a room is created or destroyed |
+| `userupdate`| Triggered if the user join or leave a messaging room |.
 
-### Description
-
-Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.
-
-Also see: [userupdate](#event.userupdate)
+Also see: [roomupdate](#event.roomupdate), [userupdate](#event.userupdate)
 
 ### Parameters
 
@@ -196,7 +200,7 @@ Also see: [userupdate](#event.userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Messenger.1.leave",
     "params": {
         "roomid": "1e217990dd1cd4f66124"
@@ -209,19 +213,20 @@ Also see: [userupdate](#event.userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
 
 <a name="method.send"></a>
-## *send <sup>method</sup>*
+## *send [<sup>method</sup>](#head.Methods)*
 
 Sends a message to a room.
-
-### Description
-
-Use this method to send a message to a room.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `message`| Triggered if the user sends message to a room |.
 
 Also see: [message](#event.message)
 
@@ -252,7 +257,7 @@ Also see: [message](#event.message)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "Messenger.1.send",
     "params": {
         "roomid": "1e217990dd1cd4f66124",
@@ -266,7 +271,7 @@ Also see: [message](#event.message)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": null
 }
 ```
@@ -288,13 +293,9 @@ Messenger interface events:
 
 
 <a name="event.roomupdate"></a>
-## *roomupdate <sup>event</sup>*
+## *roomupdate [<sup>event</sup>](#head.Notifications)*
 
-Notifies about room status updates.
-
-### Description
-
-Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all rooms that have been created so far.
+Notifies about room status updates. Registering to this event the listener will sequentially receive updates of all rooms that have been created so far.
 
 ### Parameters
 
@@ -320,13 +321,9 @@ Register to this event to be notified about room status updates. Immediately aft
 ```
 
 <a name="event.userupdate"></a>
-## *userupdate <sup>event</sup>*
+## *userupdate [<sup>event</sup>](#head.Notifications)*
 
-Notifies about user status updates.
-
-### Description
-
-Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all users that have joined the room so far.
+Notifies about user status updates. Registering to this event the listener will sequentially receive updates of all users that have joined the room so far.
 
 ### Parameters
 
@@ -336,7 +333,7 @@ Register to this event to be notified about room status updates. Immediately aft
 | params.user | string | Name of the user that has this notification relates to |
 | params.action | string | Specifies the user status change, e.g. join or leave a room (must be one of the following: *joined*, *left*) |
 
-> The *room ID* shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
+> The *room ID* argument shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
 
 ### Example
 
@@ -352,13 +349,9 @@ Register to this event to be notified about room status updates. Immediately aft
 ```
 
 <a name="event.message"></a>
-## *message <sup>event</sup>*
+## *message [<sup>event</sup>](#head.Notifications)*
 
-Notifies about new messages in a room.
-
-### Description
-
-Register to this event to be notified about new messages in a room.
+Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.
 
 ### Parameters
 
@@ -368,7 +361,7 @@ Register to this event to be notified about new messages in a room.
 | params.user | string | Name of the user that has sent the message |
 | params.message | string | Content of the message |
 
-> The *room ID* shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
+> The *room ID* argument shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
 
 ### Example
 

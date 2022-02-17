@@ -91,7 +91,7 @@
         "ledIndicator": {
             "summary": "The index name of an LED indicator (`record_led`, `power_led`, `data_led`)",
             "type": "string",
-            "example": "power_lead"
+            "example": "power_led"
         },
         "result": {
             "type":"object",
@@ -303,52 +303,60 @@
             "params": {
                 "type":"object",
                 "properties": {
-                    "ledIndicator":{
-                        "$ref": "#/definitions/ledIndicator"  
-                    },
-                    "iterations":{
-                        "summary": "Defines the number of times to loop through the pattern array: a value of `0` indicates iterating through the array one time and is similar to a `do... while` loop; for values greater than `0`, the pattern is looped the specified amount of times; a value of `-1`, loops indefinitely until either `setLED`, `animate` or `setBrightness` is called or `setBlink` is called again.",
-                        "type": "integer",
-                        "example": 10 
-                    },
-                    "pattern":{
-                        "summary": "An array of blink properties",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "brightness": {
-                                    "$ref": "#/definitions/brightness"
-                                },
-                                "duration": {
-                                    "summary": "Step duration time in milliseconds",
-                                    "type": "integer",
-                                    "example": 100
-                                },
-                                "color": {
-                                    "$ref": "#/definitions/color"
-                                },
-                                "red": {
-                                    "$ref": "#/definitions/red"
-                                },
-                                "green": {
-                                    "$ref": "#/definitions/green"
-                                },
-                                "blue":{
-                                    "$ref": "#/definitions/blue"
-                                }
+                    "blinkInfo": {
+                        "type":"object",
+                        "properties": {
+                            "ledIndicator":{
+                                "$ref": "#/definitions/ledIndicator"  
                             },
-                            "required": [
-                                "brightness",
-                                "duration"
-                            ]
-                        } 
+                            "iterations":{
+                                "summary": "Defines the number of times to loop through the pattern array: a value of `0` indicates iterating through the array one time and is similar to a `do... while` loop; for values greater than `0`, the pattern is looped the specified amount of times; a value of `-1`, loops indefinitely until either `setLED`, `animate` or `setBrightness` is called or `setBlink` is called again.",
+                                "type": "integer",
+                                "example": 10 
+                            },
+                            "pattern":{
+                                "summary": "An array of blink properties",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "brightness": {
+                                            "$ref": "#/definitions/brightness"
+                                        },
+                                        "duration": {
+                                            "summary": "Step duration time in milliseconds",
+                                            "type": "integer",
+                                            "example": 100
+                                        },
+                                        "color": {
+                                            "$ref": "#/definitions/color"
+                                        },
+                                        "red": {
+                                            "$ref": "#/definitions/red"
+                                        },
+                                        "green": {
+                                            "$ref": "#/definitions/green"
+                                        },
+                                        "blue":{
+                                            "$ref": "#/definitions/blue"
+                                        }
+                                    },
+                                    "required": [
+                                        "brightness",
+                                        "duration"
+                                    ]
+                                } 
+                            }
+                        },
+                        "required": [
+                            "ledIndicator",
+                            "iterations",
+                            "pattern"
+                        ]
                     }
                 },
                 "required": [
-                    "ledIndicator",
-                    "iterations",
-                    "pattern"
+                    "blinkInfo"
                 ]
             },
             "result": {
@@ -444,25 +452,6 @@
                 "required": [
                     "ledIndicator",
                     "brightness"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "setPowerStatus": {
-            "summary": "(Version 2) Sets the power status",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "power": {
-                        "summary": "`true` for power state on, or `false` for power state off",
-                        "type": "boolean",
-                        "example": false
-                    }
-                },
-                "required":[
-                    "power"
                 ]
             },
             "result": {

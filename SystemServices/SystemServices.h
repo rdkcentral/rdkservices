@@ -29,6 +29,7 @@
 #include "utils.h"
 #include "AbstractPlugin.h"
 #include "SystemServicesHelper.h"
+#include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
@@ -108,6 +109,7 @@ namespace WPEFramework {
                 SystemServices& operator=(const SystemServices&) = delete;
                 static void getMacAddressesAsync(SystemServices *p);
                 static std::string m_currentMode;
+                std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
@@ -121,6 +123,7 @@ namespace WPEFramework {
                 static void updateDuration();
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
+                uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
 #endif
             public:
                 SystemServices();
@@ -241,6 +244,7 @@ namespace WPEFramework {
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
                 uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+                uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

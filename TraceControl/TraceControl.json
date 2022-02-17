@@ -198,12 +198,12 @@
     },
     "definitions": {
         "module": {
-            "description": "The module name",
+            "description": "The module name. If the module name is not specified then, it returns all modules",
             "type": "string",
             "example": "Plugin_Monitor"
         },
         "category": {
-            "description": "The category name",
+            "description": "The category name. If the category name is not specified then, it returns all categories",
             "type": "string",
             "example": "Information"
         },
@@ -256,8 +256,7 @@
     },
     "methods": {
         "set": {
-            "summary": "Sets traces",
-            "description": "Enables or disables all or select category traces for the specified module.",
+            "summary": "Sets traces. Enables or disables all or select category traces for the specified module. \n  \n### Events \n\n No events",
             "params": {
                 "$ref": "#/definitions/trace"
             },
@@ -266,7 +265,7 @@
             }
         },
         "status":{
-            "summary": "Retrieves the actual trace status information for the specified module and category, if a category or module is not specified, all information is returned. It retrieves the details about the console status and remote address (port and binding) if these are configured.",
+            "summary": "Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured. \n \n### Events\n \n No Events",
             "params": {
                 "type": "object",
                 "properties": {

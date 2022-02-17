@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.RDKShell plugin for Thunder framework.
+A org.rdk.RDKShell plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -85,17 +85,17 @@ RDKShell interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [addAnimation](#method.addAnimation) | (Version 2) Performs a set of animations |
+| [addAnimation](#method.addAnimation) | Performs the set of animations |
 | [addKeyIntercept](#method.addKeyIntercept) | Adds a key intercept to the client application specified |
-| [addKeyListener](#method.addKeyListener) | (Version 2) Adds a key listener to an application |
+| [addKeyListener](#method.addKeyListener) | Adds a key listener to an application |
 | [createDisplay](#method.createDisplay) |  Creates a display for the specified client using the configuration parameters |
-| [destroy](#method.destroy) | (Version 2) Destroys an application |
+| [destroy](#method.destroy) | Destroys an application |
 | [enableInactivityReporting](#method.enableInactivityReporting) | Enables or disables inactivity reporting and events |
 | [enableKeyRepeats](#method.enableKeyRepeats) | Enables or disables key repeats |
 | [enableLogsFlushing](#method.enableLogsFlushing) | Enables or disables flushing all logs |
 | [enableVirtualDisplay](#method.enableVirtualDisplay) | Enables or disables a virtual display for the specified client |
-| [generateKey](#method.generateKey) | (Version 2) Triggers key events (key press and release) |
-| [getAvailableTypes](#method.getAvailableTypes) | (Version 2) Returns the list of application types available on the firmware |
+| [generateKey](#method.generateKey) | Triggers the key events (key press and release) |
+| [getAvailableTypes](#method.getAvailableTypes) | Returns the list of application types available on the firmware |
 | [getBounds](#method.getBounds) | Gets the bounds of the specified client |
 | [getClients](#method.getClients) | Gets a list of clients |
 | [getHolePunch](#method.getHolePunch) | Returns whether video hole punching is enabled or disabled for the specified client |
@@ -104,12 +104,12 @@ RDKShell interface methods:
 | [getLogsFlushingEnabled](#method.getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
 | [getLogLevel](#method.getLogLevel) | Returns the currently set logging level |
 | [getOpacity](#method.getOpacity) | Gets the opacity of the specified client |
-| [getScale](#method.getScale) | (Version 2) Returns the scale of an application |
+| [getScale](#method.getScale) | Returns the scale of an application |
 | [getScreenResolution](#method.getScreenResolution) | Gets the screen resolution |
-| [getState](#method.getState) | (Version 2) Returns the state of all applications |
-| [getSystemResourceInfo](#method.getSystemResourceInfo) | (Version 2) Returns system resource information about each application |
+| [getState](#method.getState) | Returns the state of all applications |
+| [getSystemResourceInfo](#method.getSystemResourceInfo) | Returns system resource information about each application |
 | [getVirtualDisplayEnabled](#method.getVirtualDisplayEnabled) | Returns whether virtual display is enabled or disabled for the specified client |
-| [getVirtualResolution](#method.getVirtualResolution) | Returns whether virtual display is enabled or disabled for the specified client |
+| [getVirtualResolution](#method.getVirtualResolution) | Returns the virtual display resolution for the specified client |
 | [getVisibility](#method.getVisibility) | Gets the visibility of the specified client |
 | [getZOrder](#method.getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
 | [hideSplashLogo](#method.hideSplashLogo) | Removes the splash screen |
@@ -122,29 +122,47 @@ RDKShell interface methods:
 | [removeAllKeyListeners](#method.removeAllKeyListeners) | Removes all key listeners |
 | [removeAnimation](#method.removeAnimation) | Removes the current animation for the specified client |
 | [removeKeyIntercept](#method.removeKeyIntercept) | Removes a key intercept |
-| [removeKeyListener](#method.removeKeyListener) | (Version 2) Removes a key listener for an application |
+| [removeKeyListener](#method.removeKeyListener) | Removes a key listener for an application |
 | [scaleToFit](#method.scaleToFit) | Scales the specified client to fit the current bounds |
-| [SetBounds](#method.SetBounds) | Sets the bounds of the specified client |
+| [setBounds](#method.setBounds) | Sets the bounds of the specified client |
 | [setFocus](#method.setFocus) | Sets focus to the specified client |
 | [setHolePunch](#method.setHolePunch) | Enables or disables video hole punching for the specified client |
 | [setInactivityInterval](#method.setInactivityInterval) | Sets the inactivity notification interval |
 | [setLogLevel](#method.setLogLevel) | Sets the logging level |
-| [setMemoryMonitory](#method.setMemoryMonitory) | Enables or disables RAM memory monitoring on the device |
+| [setMemoryMonitor](#method.setMemoryMonitor) | Enables or disables RAM memory monitoring on the device |
 | [setOpacity](#method.setOpacity) | Sets the opacity of the specified client |
-| [setScale](#method.setScale) | (Version 2) Scales an application |
+| [setScale](#method.setScale) | Scales an application |
 | [setScreenResolution](#method.setScreenResolution) | Sets the screen resolution |
 | [setTopmost](#method.setTopmost) | Sets whether the specified client appears above all other clients on the display |
 | [setVirtualResolution](#method.setVirtualResolution) | Sets the virtual resolution for the specified client |
 | [setVisibility](#method.setVisibility) | Sets whether the specified client should be visible |
 | [showSplashLogo](#method.showSplashLogo) | Displays the splash screen |
 | [showWatermark](#method.showWatermark) | Sets whether a watermark shows on the display |
-| [suspend](#method.suspend) | (Version 2) Suspends an application |
+| [suspend](#method.suspend) | Suspends an application |
+| [getScreenshot](#method.getScreenshot) | Captures a screenshot |
+| [hideAllClients](#method.hideAllClients) | Hides/Unhides all the clients |
+| [launchResidentApp](#method.launchResidentApp) | Launches the Resident application |
+| [hideFullScreenImage](#method.hideFullScreenImage) | Hides the Full Screen Image |
+| [showFullScreenImage](#method.showFullScreenImage) | Shows the Full Screen Image |
+| [getSystemMemory](#method.getSystemMemory) | Gets the information of System Memory |
+| [launchApplication](#method.launchApplication) | Launches an application |
+| [suspendApplication](#method.suspendApplication) | Suspends an application |
+| [resumeApplication](#method.resumeApplication) | Resumes an application |
+| [injectKey](#method.injectKey) | Injects the keys |
+| [addKeyMetadataListener](#method.addKeyMetadataListener) | Adds the key metadata listeners |
+| [removeKeyMetadataListener](#method.removeKeyMetadataListener) | Removes the key metadata listeners |
+| [addKeyIntercepts](#method.addKeyIntercepts) | Adds the list of key intercepts |
+| [resetInactivityTime](#method.resetInactivityTime) | Resets the inactivity notification interval |
 
 
 <a name="method.addAnimation"></a>
-## *addAnimation <sup>method</sup>*
+## *addAnimation [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Performs a set of animations.
+Performs the set of animations. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -163,6 +181,7 @@ RDKShell interface methods:
 | params.animations[#]?.a | number | <sup>*(optional)*</sup> The alpha/opacity level to animate to (between 0 and 100) |
 | params.animations[#]?.duration | number | <sup>*(optional)*</sup> The duration of the animation in seconds |
 | params.animations[#]?.tween | string | <sup>*(optional)*</sup> The animation tween type. The default is `linear` (must be one of the following: *linear*, *exp1*, *exp2*, *exp3*, *inquad*, *incubic*, *nback*, *inelastic*, *outelastic*, *outbounce*) |
+| params.animations[#]?.delay | number | <sup>*(optional)*</sup> Set delay for an animation |
 
 ### Result
 
@@ -178,7 +197,7 @@ RDKShell interface methods:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.addAnimation",
     "params": {
         "animations": [
@@ -192,7 +211,8 @@ RDKShell interface methods:
                 "sy": 0.5,
                 "a": 0,
                 "duration": 2,
-                "tween": "exp1"
+                "tween": "exp1",
+                "delay": 0
             }
         ]
     }
@@ -204,7 +224,7 @@ RDKShell interface methods:
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -212,19 +232,24 @@ RDKShell interface methods:
 ```
 
 <a name="method.addKeyIntercept"></a>
-## *addKeyIntercept <sup>method</sup>*
+## *addKeyIntercept [<sup>method</sup>](#head.Methods)*
 
-Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.
+Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.keyCode | number | The key code of the key to intercept |
+| params.keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
 | params.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.modifiers[#] | string |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -240,14 +265,15 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.addKeyIntercept",
     "params": {
         "keyCode": 10,
         "modifiers": [
             "shift"
         ],
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -257,7 +283,7 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -265,9 +291,13 @@ Adds a key intercept to the client application specified. The keys are specified
 ```
 
 <a name="method.addKeyListener"></a>
-## *addKeyListener <sup>method</sup>*
+## *addKeyListener [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Adds a key listener to an application.  The keys are bubbled up based on their z-order.
+Adds a key listener to an application. The keys are bubbled up based on their z-order. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -275,9 +305,11 @@ Adds a key intercept to the client application specified. The keys are specified
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.keys | array | A list of keys on which to add a listener for the specified application |
 | params.keys[#] | object |  |
-| params.keys[#].keyCode | number | The key code of the key to intercept |
+| params.keys[#].keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.keys[#]?.nativekeyCode | number | <sup>*(optional)*</sup> The native key code |
 | params.keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.keys[#].modifiers[#] | string |  |
 | params.keys[#].activate | boolean | Activate an application on key event. The default is `false` |
@@ -297,13 +329,15 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.addKeyListener",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "keys": [
             {
                 "keyCode": 10,
+                "nativekeyCode": 10,
                 "modifiers": [
                     "shift"
                 ],
@@ -320,7 +354,7 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -328,9 +362,13 @@ Adds a key intercept to the client application specified. The keys are specified
 ```
 
 <a name="method.createDisplay"></a>
-## *createDisplay <sup>method</sup>*
+## *createDisplay [<sup>method</sup>](#head.Methods)*
 
- Creates a display for the specified client using the configuration parameters.
+ Creates a display for the specified client using the configuration parameters. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -338,12 +376,15 @@ Adds a key intercept to the client application specified. The keys are specified
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.displayName | string | A name for the display |
 | params.displayWidth | number | The width of the display |
 | params.displayHeight | number | The height of the display |
 | params.virtualDisplay | boolean | Whether to create a virtual display (`true`) or not (`false`) |
 | params.virtualWidth | number | The width of the virtual display |
 | params.virtualHeight | number | The height of the virtual display |
+| params?.topmost | boolean | <sup>*(optional)*</sup> Whether to set topmost (true) or not (false) |
+| params?.focus | boolean | <sup>*(optional)*</sup> Whether to setfocus (true) or not (false) |
 
 ### Result
 
@@ -359,16 +400,19 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.createDisplay",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "displayName": "test",
         "displayWidth": 1920,
         "displayHeight": 1080,
         "virtualDisplay": true,
         "virtualWidth": 1920,
-        "virtualHeight": 1080
+        "virtualHeight": 1080,
+        "topmost": false,
+        "focus": false
     }
 }
 ```
@@ -378,7 +422,7 @@ Adds a key intercept to the client application specified. The keys are specified
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -386,9 +430,14 @@ Adds a key intercept to the client application specified. The keys are specified
 ```
 
 <a name="method.destroy"></a>
-## *destroy <sup>method</sup>*
+## *destroy [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Destroys an application.
+Destroys an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `OnDestroyed` | Triggers when a runtime is successfully destroyed |.
 
 Also see: [onDestroyed](#event.onDestroyed)
 
@@ -413,7 +462,7 @@ Also see: [onDestroyed](#event.onDestroyed)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.destroy",
     "params": {
         "callsign": "Cobalt"
@@ -426,7 +475,7 @@ Also see: [onDestroyed](#event.onDestroyed)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -434,9 +483,13 @@ Also see: [onDestroyed](#event.onDestroyed)
 ```
 
 <a name="method.enableInactivityReporting"></a>
-## *enableInactivityReporting <sup>method</sup>*
+## *enableInactivityReporting [<sup>method</sup>](#head.Methods)*
 
-Enables or disables inactivity reporting and events.
+Enables or disables inactivity reporting and events. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -459,7 +512,7 @@ Enables or disables inactivity reporting and events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.enableInactivityReporting",
     "params": {
         "enable": true
@@ -472,7 +525,7 @@ Enables or disables inactivity reporting and events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -480,9 +533,13 @@ Enables or disables inactivity reporting and events.
 ```
 
 <a name="method.enableKeyRepeats"></a>
-## *enableKeyRepeats <sup>method</sup>*
+## *enableKeyRepeats [<sup>method</sup>](#head.Methods)*
 
-Enables or disables key repeats.
+Enables or disables key repeats. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -505,7 +562,7 @@ Enables or disables key repeats.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.enableKeyRepeats",
     "params": {
         "enable": true
@@ -518,7 +575,7 @@ Enables or disables key repeats.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -526,9 +583,13 @@ Enables or disables key repeats.
 ```
 
 <a name="method.enableLogsFlushing"></a>
-## *enableLogsFlushing <sup>method</sup>*
+## *enableLogsFlushing [<sup>method</sup>](#head.Methods)*
 
-Enables or disables flushing all logs.
+Enables or disables flushing all logs. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -551,7 +612,7 @@ Enables or disables flushing all logs.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.enableLogsFlushing",
     "params": {
         "enable": true
@@ -564,7 +625,7 @@ Enables or disables flushing all logs.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -572,9 +633,13 @@ Enables or disables flushing all logs.
 ```
 
 <a name="method.enableVirtualDisplay"></a>
-## *enableVirtualDisplay <sup>method</sup>*
+## *enableVirtualDisplay [<sup>method</sup>](#head.Methods)*
 
-Enables or disables a virtual display for the specified client.
+Enables or disables a virtual display for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -582,6 +647,7 @@ Enables or disables a virtual display for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.enable | boolean | Whether to enable (`true`) or disable (`false`) a virtual display |
 
 ### Result
@@ -598,10 +664,11 @@ Enables or disables a virtual display for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.enableVirtualDisplay",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "enable": true
     }
 }
@@ -612,7 +679,7 @@ Enables or disables a virtual display for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -620,9 +687,13 @@ Enables or disables a virtual display for the specified client.
 ```
 
 <a name="method.generateKey"></a>
-## *generateKey <sup>method</sup>*
+## *generateKey [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Triggers key events (key press and release).
+Triggers the key events (key press and release). 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -631,11 +702,12 @@ Enables or disables a virtual display for the specified client.
 | params | object |  |
 | params.keys | array | A list of keys to simulate |
 | params.keys[#] | object |  |
-| params.keys[#].keyCode | number | The key code of the key to intercept |
+| params.keys[#].keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
 | params.keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.keys[#].modifiers[#] | string |  |
 | params.keys[#].delay | number | The amount of time to wait (in seconds) before sending the key event |
 | params.keys[#]?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+| params.keys[#]?.client | string | <sup>*(optional)*</sup> The client name can be used instead of callsign |
 
 ### Result
 
@@ -651,7 +723,7 @@ Enables or disables a virtual display for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.generateKey",
     "params": {
         "keys": [
@@ -661,7 +733,8 @@ Enables or disables a virtual display for the specified client.
                     "shift"
                 ],
                 "delay": 1.0,
-                "callsign": "Cobalt"
+                "callsign": "Cobalt",
+                "client": "Cobalt"
             }
         ]
     }
@@ -673,7 +746,7 @@ Enables or disables a virtual display for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -681,9 +754,13 @@ Enables or disables a virtual display for the specified client.
 ```
 
 <a name="method.getAvailableTypes"></a>
-## *getAvailableTypes <sup>method</sup>*
+## *getAvailableTypes [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the list of application types available on the firmware.
+Returns the list of application types available on the firmware. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -705,7 +782,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getAvailableTypes"
 }
 ```
@@ -715,7 +792,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "types": [
             "HtmlBrowser"
@@ -726,9 +803,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getBounds"></a>
-## *getBounds <sup>method</sup>*
+## *getBounds [<sup>method</sup>](#head.Methods)*
 
-Gets the bounds of the specified client.
+Gets the bounds of the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -736,17 +817,19 @@ Gets the bounds of the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.x | number | The x location |
-| result.y | number | The y location |
-| result.w | number | The width |
-| result.h | number | The height |
-| result?.success | boolean | <sup>*(optional)*</sup> Whether the request succeeded |
+| result.bounds | object |  |
+| result.bounds.x | number | The x location |
+| result.bounds.y | number | The y location |
+| result.bounds.w | number | The width |
+| result.bounds.h | number | The height |
+| result.success | boolean | Whether the request succeeded |
 
 ### Example
 
@@ -755,10 +838,11 @@ Gets the bounds of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getBounds",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -768,21 +852,27 @@ Gets the bounds of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "x": 0,
-        "y": 0,
-        "w": 1920,
-        "h": 1080,
+        "bounds": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+        },
         "success": true
     }
 }
 ```
 
 <a name="method.getClients"></a>
-## *getClients <sup>method</sup>*
+## *getClients [<sup>method</sup>](#head.Methods)*
 
-Gets a list of clients.
+Gets a list of clients. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -804,7 +894,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getClients"
 }
 ```
@@ -814,7 +904,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "clients": [
             "org.rdk.Netflix"
@@ -825,9 +915,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getHolePunch"></a>
-## *getHolePunch <sup>method</sup>*
+## *getHolePunch [<sup>method</sup>](#head.Methods)*
 
-Returns whether video hole punching is enabled or disabled for the specified client.
+Returns whether video hole punching is enabled or disabled for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -835,6 +929,7 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -851,10 +946,11 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getHolePunch",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -864,7 +960,7 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "holePunch": true,
         "success": true
@@ -873,9 +969,13 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 ```
 
 <a name="method.getKeyRepeatsEnabled"></a>
-## *getKeyRepeatsEnabled <sup>method</sup>*
+## *getKeyRepeatsEnabled [<sup>method</sup>](#head.Methods)*
 
-Returns whether key repeating is enabled or disabled.
+Returns whether key repeating is enabled or disabled. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -896,7 +996,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getKeyRepeatsEnabled"
 }
 ```
@@ -906,7 +1006,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "keyRepeat": true,
         "success": true
@@ -915,9 +1015,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getLastWakeupKey"></a>
-## *getLastWakeupKey <sup>method</sup>*
+## *getLastWakeupKey [<sup>method</sup>](#head.Methods)*
 
-Returns the last key press prior to a device wakeup.
+Returns the last key press prior to a device wakeup. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -928,7 +1032,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.keyCode | number | The key code of the key to intercept |
+| result.keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
 | result.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | result.modifiers[#] | string |  |
 | result.timestampInSeconds | boolean | The time, in seconds, of the last wakeup |
@@ -941,7 +1045,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getLastWakeupKey"
 }
 ```
@@ -951,7 +1055,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "keyCode": 10,
         "modifiers": [
@@ -964,9 +1068,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getLogsFlushingEnabled"></a>
-## *getLogsFlushingEnabled <sup>method</sup>*
+## *getLogsFlushingEnabled [<sup>method</sup>](#head.Methods)*
 
-Returns whether log flushing is enabled or disabled.
+Returns whether log flushing is enabled or disabled. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -987,7 +1095,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getLogsFlushingEnabled"
 }
 ```
@@ -997,7 +1105,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enabled": true,
         "success": true
@@ -1006,9 +1114,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getLogLevel"></a>
-## *getLogLevel <sup>method</sup>*
+## *getLogLevel [<sup>method</sup>](#head.Methods)*
 
-Returns the currently set logging level.
+Returns the currently set logging level. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1029,7 +1141,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getLogLevel"
 }
 ```
@@ -1039,7 +1151,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "logLevel": "INFO",
         "success": true
@@ -1048,9 +1160,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getOpacity"></a>
-## *getOpacity <sup>method</sup>*
+## *getOpacity [<sup>method</sup>](#head.Methods)*
 
-Gets the opacity of the specified client.
+Gets the opacity of the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1074,7 +1190,7 @@ Gets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getOpacity",
     "params": {
         "client": "org.rdk.Netflix"
@@ -1087,7 +1203,7 @@ Gets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "opacity": 100,
         "success": true
@@ -1096,9 +1212,13 @@ Gets the opacity of the specified client.
 ```
 
 <a name="method.getScale"></a>
-## *getScale <sup>method</sup>*
+## *getScale [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the scale of an application.
+Returns the scale of an application. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1112,8 +1232,8 @@ Gets the opacity of the specified client.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.sx | number | The x scale factor |
-| result.sy | number | The y scale factor |
+| result.sx | string | The x scale factor |
+| result.sy | string | The y scale factor |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1123,7 +1243,7 @@ Gets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getScale",
     "params": {
         "client": "org.rdk.Netflix"
@@ -1136,19 +1256,23 @@ Gets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "sx": 0.5,
-        "sy": 0.5,
+        "sx": "0.5",
+        "sy": "0.5",
         "success": true
     }
 }
 ```
 
 <a name="method.getScreenResolution"></a>
-## *getScreenResolution <sup>method</sup>*
+## *getScreenResolution [<sup>method</sup>](#head.Methods)*
 
-Gets the screen resolution.
+Gets the screen resolution. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1170,7 +1294,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getScreenResolution"
 }
 ```
@@ -1180,7 +1304,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "w": 1920,
         "h": 1080,
@@ -1190,9 +1314,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getState"></a>
-## *getState <sup>method</sup>*
+## *getState [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the state of all applications.
+Returns the state of all applications.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1207,7 +1335,7 @@ This method takes no parameters.
 | result.runtimes[#] | object |  |
 | result.runtimes[#].callsign | string | The application callsign |
 | result.runtimes[#].state | string | The runtime state of the app |
-| result.runtimes[#].uri | string | The URI of the app |
+| result.runtimes[#].uri | string | The URI of the app (empty, if unable to get URI status) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1217,7 +1345,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getState"
 }
 ```
@@ -1227,7 +1355,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "runtimes": [
             {
@@ -1242,9 +1370,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getSystemResourceInfo"></a>
-## *getSystemResourceInfo <sup>method</sup>*
+## *getSystemResourceInfo [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns system resource information about each application.
+Returns system resource information about each application. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1255,11 +1387,11 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.runtimes | array | A list of apps and their system resource information |
-| result.runtimes[#] | object |  |
-| result.runtimes[#].callsign | string | The application callsign |
-| result.runtimes[#].ram | integer | The amount of memory the runtime is consuming in kb |
-| result.runtimes[#].vram | integer | The amount of graphics memory the runtime is consuming in kb (if supported) |
+| result.types | array | A list of apps and their system resource information |
+| result.types[#] | object |  |
+| result.types[#].callsign | string | The application callsign |
+| result.types[#].ram | integer | The amount of memory the runtime is consuming in kb |
+| result.types[#].vram | integer | The amount of graphics memory the runtime is consuming in kb (if supported) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1269,7 +1401,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getSystemResourceInfo"
 }
 ```
@@ -1279,9 +1411,9 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
-        "runtimes": [
+        "types": [
             {
                 "callsign": "Cobalt",
                 "ram": 123,
@@ -1294,9 +1426,13 @@ This method takes no parameters.
 ```
 
 <a name="method.getVirtualDisplayEnabled"></a>
-## *getVirtualDisplayEnabled <sup>method</sup>*
+## *getVirtualDisplayEnabled [<sup>method</sup>](#head.Methods)*
 
-Returns whether virtual display is enabled or disabled for the specified client.
+Returns whether virtual display is enabled or disabled for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1304,6 +1440,7 @@ Returns whether virtual display is enabled or disabled for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1320,10 +1457,11 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getVirtualDisplayEnabled",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1333,7 +1471,7 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "enabled": true,
         "success": true
@@ -1342,9 +1480,13 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```
 
 <a name="method.getVirtualResolution"></a>
-## *getVirtualResolution <sup>method</sup>*
+## *getVirtualResolution [<sup>method</sup>](#head.Methods)*
 
-Returns whether virtual display is enabled or disabled for the specified client.
+Returns the virtual display resolution for the specified client.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1352,6 +1494,7 @@ Returns whether virtual display is enabled or disabled for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1369,10 +1512,11 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getVirtualResolution",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1382,7 +1526,7 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "w": 1920,
         "h": 1080,
@@ -1392,9 +1536,13 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ```
 
 <a name="method.getVisibility"></a>
-## *getVisibility <sup>method</sup>*
+## *getVisibility [<sup>method</sup>](#head.Methods)*
 
-Gets the visibility of the specified client.
+Gets the visibility of the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1402,6 +1550,7 @@ Gets the visibility of the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1418,10 +1567,11 @@ Gets the visibility of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getVisibility",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1431,7 +1581,7 @@ Gets the visibility of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "visible": true,
         "success": true
@@ -1440,9 +1590,13 @@ Gets the visibility of the specified client.
 ```
 
 <a name="method.getZOrder"></a>
-## *getZOrder <sup>method</sup>*
+## *getZOrder [<sup>method</sup>](#head.Methods)*
 
-Returns an array of clients in Z order, starting with the top most application client first.
+Returns an array of clients in Z order, starting with the top most application client first. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1464,7 +1618,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.getZOrder"
 }
 ```
@@ -1474,7 +1628,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "clients": [
             "org.rdk.Netflix"
@@ -1485,9 +1639,13 @@ This method takes no parameters.
 ```
 
 <a name="method.hideSplashLogo"></a>
-## *hideSplashLogo <sup>method</sup>*
+## *hideSplashLogo [<sup>method</sup>](#head.Methods)*
 
-Removes the splash screen.
+Removes the splash screen. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1507,7 +1665,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.hideSplashLogo"
 }
 ```
@@ -1517,7 +1675,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1525,9 +1683,13 @@ This method takes no parameters.
 ```
 
 <a name="method.kill"></a>
-## *kill <sup>method</sup>*
+## *kill [<sup>method</sup>](#head.Methods)*
 
-Kills the specified client.
+Kills the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1535,6 +1697,7 @@ Kills the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1550,10 +1713,11 @@ Kills the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.kill",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1563,7 +1727,7 @@ Kills the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1571,11 +1735,16 @@ Kills the specified client.
 ```
 
 <a name="method.launch"></a>
-## *launch <sup>method</sup>*
+## *launch [<sup>method</sup>](#head.Methods)*
 
-Launches an application.
+Launches an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onLaunched` | Triggers when the runtime of an application is launched successfully |.
 
-Also see: [onApplicationLaunched](#event.onApplicationLaunched)
+Also see: [onLaunched](#event.onLaunched)
 
 ### Parameters
 
@@ -1585,7 +1754,7 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
 | params.callsign | string | The application callsign |
 | params.type | string | The ID of the runtime package or the callsign of the plugin desired to be cloned |
 | params?.version | string | <sup>*(optional)*</sup> The version of the package. Defaults to the latest version |
-| params.uri | string | The URI of the app |
+| params.uri | string | The URI of the app (empty, if unable to get URI status) |
 | params?.x | number | <sup>*(optional)*</sup> The x location |
 | params?.y | number | <sup>*(optional)*</sup> The y location |
 | params?.w | number | <sup>*(optional)*</sup> The width |
@@ -1596,12 +1765,17 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
 | params?.configuration | string | <sup>*(optional)*</sup> The plugin configuration overrides. Empty by default |
 | params?.behind | string | <sup>*(optional)*</sup> The client to put behind. Defaults to top of z-order |
 | params?.displayName | string | <sup>*(optional)*</sup> A name for the display |
+| params?.scaleToFit | boolean | <sup>*(optional)*</sup> Whether the app can be scaled to fit the current bounds. Default is 'false' |
+| params?.holePunch | boolean | <sup>*(optional)*</sup> Whether the video hole punching can be enabled for the client. Default is 'true' |
+| params?.topmost | boolean | <sup>*(optional)*</sup> Whether the app appears above all other apps on the display. Default is 'false' |
+| params?.focus | boolean | <sup>*(optional)*</sup> Wether the app should be under focus. Default is 'false' |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.launchType | string | The launch type of client |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1611,7 +1785,7 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.launch",
     "params": {
         "callsign": "Cobalt",
@@ -1625,9 +1799,13 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
         "suspend": false,
         "visible": true,
         "focused": true,
-        "configuration": "",
-        "behind": "",
-        "displayName": "test"
+        "configuration": "...",
+        "behind": "...",
+        "displayName": "test",
+        "scaleToFit": false,
+        "holePunch": false,
+        "topmost": false,
+        "focus": false
     }
 }
 ```
@@ -1637,17 +1815,22 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
+        "launchType": "activate",
         "success": true
     }
 }
 ```
 
 <a name="method.moveBehind"></a>
-## *moveBehind <sup>method</sup>*
+## *moveBehind [<sup>method</sup>](#head.Methods)*
 
-Moves the specified client behind the specified target client.
+Moves the specified client behind the specified target client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1671,7 +1854,7 @@ Moves the specified client behind the specified target client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.moveBehind",
     "params": {
         "client": "org.rdk.Netflix",
@@ -1685,7 +1868,7 @@ Moves the specified client behind the specified target client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1693,9 +1876,13 @@ Moves the specified client behind the specified target client.
 ```
 
 <a name="method.moveToBack"></a>
-## *moveToBack <sup>method</sup>*
+## *moveToBack [<sup>method</sup>](#head.Methods)*
 
-Moves the specified client to the back or bottom of the Z order.
+Moves the specified client to the back or bottom of the Z order. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1703,6 +1890,7 @@ Moves the specified client to the back or bottom of the Z order.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1718,10 +1906,11 @@ Moves the specified client to the back or bottom of the Z order.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.moveToBack",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1731,7 +1920,7 @@ Moves the specified client to the back or bottom of the Z order.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1739,9 +1928,13 @@ Moves the specified client to the back or bottom of the Z order.
 ```
 
 <a name="method.moveToFront"></a>
-## *moveToFront <sup>method</sup>*
+## *moveToFront [<sup>method</sup>](#head.Methods)*
 
-Moves the specified client to the front or top of the Z order.
+Moves the specified client to the front or top of the Z order. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1749,6 +1942,7 @@ Moves the specified client to the front or top of the Z order.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1764,10 +1958,11 @@ Moves the specified client to the front or top of the Z order.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.moveToFront",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1777,7 +1972,7 @@ Moves the specified client to the front or top of the Z order.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1785,9 +1980,13 @@ Moves the specified client to the front or top of the Z order.
 ```
 
 <a name="method.removeAllKeyIntercepts"></a>
-## *removeAllKeyIntercepts <sup>method</sup>*
+## *removeAllKeyIntercepts [<sup>method</sup>](#head.Methods)*
 
-Removes all key intercepts.
+Removes all key intercepts. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1807,7 +2006,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.removeAllKeyIntercepts"
 }
 ```
@@ -1817,7 +2016,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1825,9 +2024,13 @@ This method takes no parameters.
 ```
 
 <a name="method.removeAllKeyListeners"></a>
-## *removeAllKeyListeners <sup>method</sup>*
+## *removeAllKeyListeners [<sup>method</sup>](#head.Methods)*
 
-Removes all key listeners.
+Removes all key listeners. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1847,7 +2050,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.removeAllKeyListeners"
 }
 ```
@@ -1857,7 +2060,7 @@ This method takes no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1865,9 +2068,13 @@ This method takes no parameters.
 ```
 
 <a name="method.removeAnimation"></a>
-## *removeAnimation <sup>method</sup>*
+## *removeAnimation [<sup>method</sup>](#head.Methods)*
 
-Removes the current animation for the specified client.
+Removes the current animation for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1875,6 +2082,7 @@ Removes the current animation for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -1890,10 +2098,11 @@ Removes the current animation for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.removeAnimation",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -1903,7 +2112,7 @@ Removes the current animation for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1911,16 +2120,20 @@ Removes the current animation for the specified client.
 ```
 
 <a name="method.removeKeyIntercept"></a>
-## *removeKeyIntercept <sup>method</sup>*
+## *removeKeyIntercept [<sup>method</sup>](#head.Methods)*
 
-Removes a key intercept.
+Removes a key intercept. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.keyCode | number | The key code of the key to intercept |
+| params.keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
 | params.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.modifiers[#] | string |  |
 | params.client | string | The client name |
@@ -1939,7 +2152,7 @@ Removes a key intercept.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.removeKeyIntercept",
     "params": {
         "keyCode": 10,
@@ -1956,7 +2169,7 @@ Removes a key intercept.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -1964,9 +2177,13 @@ Removes a key intercept.
 ```
 
 <a name="method.removeKeyListener"></a>
-## *removeKeyListener <sup>method</sup>*
+## *removeKeyListener [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Removes a key listener for an application.
+Removes a key listener for an application. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1974,9 +2191,10 @@ Removes a key intercept.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
-| params.keys | array | A list of keys for which to remove a listener for the specified application |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+| params.keys | array | A list of keys for which to remove a listener for the specified application (only symbol * (string data type) is acceptable) |
 | params.keys[#] | object |  |
-| params.keys[#].keyCode | number | The key code of the key to intercept |
+| params.keys[#].keyCode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
 | params.keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.keys[#].modifiers[#] | string |  |
 
@@ -1994,10 +2212,11 @@ Removes a key intercept.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.removeKeyListener",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "keys": [
             {
                 "keyCode": 10,
@@ -2015,7 +2234,7 @@ Removes a key intercept.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2023,9 +2242,13 @@ Removes a key intercept.
 ```
 
 <a name="method.scaleToFit"></a>
-## *scaleToFit <sup>method</sup>*
+## *scaleToFit [<sup>method</sup>](#head.Methods)*
 
-Scales the specified client to fit the current bounds.
+Scales the specified client to fit the current bounds. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2033,6 +2256,7 @@ Scales the specified client to fit the current bounds.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.x | number | The x location |
 | params.y | number | The y location |
 | params.w | number | The width |
@@ -2052,10 +2276,11 @@ Scales the specified client to fit the current bounds.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.scaleToFit",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "x": 0,
         "y": 0,
         "w": 1920,
@@ -2069,17 +2294,21 @@ Scales the specified client to fit the current bounds.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
 }
 ```
 
-<a name="method.SetBounds"></a>
-## *SetBounds <sup>method</sup>*
+<a name="method.setBounds"></a>
+## *setBounds [<sup>method</sup>](#head.Methods)*
 
-Sets the bounds of the specified client.
+Sets the bounds of the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2087,6 +2316,7 @@ Sets the bounds of the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.x | number | The x location |
 | params.y | number | The y location |
 | params.w | number | The width |
@@ -2106,10 +2336,11 @@ Sets the bounds of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.RDKShell.1.SetBounds",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.setBounds",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "x": 0,
         "y": 0,
         "w": 1920,
@@ -2123,7 +2354,7 @@ Sets the bounds of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2131,9 +2362,13 @@ Sets the bounds of the specified client.
 ```
 
 <a name="method.setFocus"></a>
-## *setFocus <sup>method</sup>*
+## *setFocus [<sup>method</sup>](#head.Methods)*
 
-Sets focus to the specified client.
+Sets focus to the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2141,6 +2376,7 @@ Sets focus to the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 
 ### Result
 
@@ -2156,10 +2392,11 @@ Sets focus to the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setFocus",
     "params": {
-        "client": "org.rdk.Netflix"
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
     }
 }
 ```
@@ -2169,7 +2406,7 @@ Sets focus to the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2177,9 +2414,13 @@ Sets focus to the specified client.
 ```
 
 <a name="method.setHolePunch"></a>
-## *setHolePunch <sup>method</sup>*
+## *setHolePunch [<sup>method</sup>](#head.Methods)*
 
-Enables or disables video hole punching for the specified client.
+Enables or disables video hole punching for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2187,6 +2428,7 @@ Enables or disables video hole punching for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.holePunch | boolean | Whether hole punching is enabled (`true`) or disabled (`false`) |
 
 ### Result
@@ -2203,10 +2445,11 @@ Enables or disables video hole punching for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setHolePunch",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "holePunch": true
     }
 }
@@ -2217,7 +2460,7 @@ Enables or disables video hole punching for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2225,9 +2468,16 @@ Enables or disables video hole punching for the specified client.
 ```
 
 <a name="method.setInactivityInterval"></a>
-## *setInactivityInterval <sup>method</sup>*
+## *setInactivityInterval [<sup>method</sup>](#head.Methods)*
 
-Sets the inactivity notification interval.
+Sets the inactivity notification interval. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.
+
+Also see: [onUserInactivity](#event.onUserInactivity)
 
 ### Parameters
 
@@ -2250,7 +2500,7 @@ Sets the inactivity notification interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setInactivityInterval",
     "params": {
         "interval": 15
@@ -2263,7 +2513,7 @@ Sets the inactivity notification interval.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2271,9 +2521,13 @@ Sets the inactivity notification interval.
 ```
 
 <a name="method.setLogLevel"></a>
-## *setLogLevel <sup>method</sup>*
+## *setLogLevel [<sup>method</sup>](#head.Methods)*
 
-Sets the logging level.
+Sets the logging level. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2296,7 +2550,7 @@ Sets the logging level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setLogLevel",
     "params": {
         "logLevel": "INFO"
@@ -2309,17 +2563,21 @@ Sets the logging level.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
 }
 ```
 
-<a name="method.setMemoryMonitory"></a>
-## *setMemoryMonitory <sup>method</sup>*
+<a name="method.setMemoryMonitor"></a>
+## *setMemoryMonitor [<sup>method</sup>](#head.Methods)*
 
-Enables or disables RAM memory monitoring on the device.
+Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2328,8 +2586,8 @@ Enables or disables RAM memory monitoring on the device.
 | params | object |  |
 | params.enable | boolean | `true` to enable memory monitoring or `false` to disable memory monitoring |
 | params.interval | number | The duration, in seconds, between memory checks |
-| params.lowRam | number | The threshold, in Megabytes, after which a low RAM event is generated |
-| params.criticallyLowRam | number | The threshold, in Megabytes, after which a critically low RAM event is generated |
+| params.lowRam | number | The threshold, in Megabytes, after which a `onDeviceLowRamWarning` event is generated |
+| params.criticallyLowRam | number | The threshold, in Megabytes, after which a critically `onDeviceCriticallyLowRamWarning` event is generated |
 
 ### Result
 
@@ -2345,8 +2603,8 @@ Enables or disables RAM memory monitoring on the device.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
-    "method": "org.rdk.RDKShell.1.setMemoryMonitory",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.setMemoryMonitor",
     "params": {
         "enable": true,
         "interval": 300,
@@ -2361,7 +2619,7 @@ Enables or disables RAM memory monitoring on the device.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2369,9 +2627,13 @@ Enables or disables RAM memory monitoring on the device.
 ```
 
 <a name="method.setOpacity"></a>
-## *setOpacity <sup>method</sup>*
+## *setOpacity [<sup>method</sup>](#head.Methods)*
 
-Sets the opacity of the specified client.
+Sets the opacity of the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2395,7 +2657,7 @@ Sets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setOpacity",
     "params": {
         "client": "org.rdk.Netflix",
@@ -2409,7 +2671,7 @@ Sets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2417,9 +2679,13 @@ Sets the opacity of the specified client.
 ```
 
 <a name="method.setScale"></a>
-## *setScale <sup>method</sup>*
+## *setScale [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Scales an application.
+Scales an application. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2427,6 +2693,7 @@ Sets the opacity of the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.sx | number | The x scale factor |
 | params.sy | number | The y scale factor |
 
@@ -2444,10 +2711,11 @@ Sets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setScale",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "sx": 0.5,
         "sy": 0.5
     }
@@ -2459,7 +2727,7 @@ Sets the opacity of the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2467,9 +2735,13 @@ Sets the opacity of the specified client.
 ```
 
 <a name="method.setScreenResolution"></a>
-## *setScreenResolution <sup>method</sup>*
+## *setScreenResolution [<sup>method</sup>](#head.Methods)*
 
-Sets the screen resolution.
+Sets the screen resolution. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2493,7 +2765,7 @@ Sets the screen resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setScreenResolution",
     "params": {
         "w": 1920,
@@ -2507,7 +2779,7 @@ Sets the screen resolution.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2515,9 +2787,13 @@ Sets the screen resolution.
 ```
 
 <a name="method.setTopmost"></a>
-## *setTopmost <sup>method</sup>*
+## *setTopmost [<sup>method</sup>](#head.Methods)*
 
-Sets whether the specified client appears above all other clients on the display.
+Sets whether the specified client appears above all other clients on the display. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2526,6 +2802,7 @@ Sets whether the specified client appears above all other clients on the display
 | params | object |  |
 | params.client | string | The client name |
 | params.topmost | boolean | `true` to set the client as the top most client |
+| params?.focus | boolean | <sup>*(optional)*</sup> `true' to set focus for the client |
 
 ### Result
 
@@ -2541,11 +2818,12 @@ Sets whether the specified client appears above all other clients on the display
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setTopmost",
     "params": {
         "client": "org.rdk.Netflix",
-        "topmost": true
+        "topmost": true,
+        "focus": true
     }
 }
 ```
@@ -2555,7 +2833,7 @@ Sets whether the specified client appears above all other clients on the display
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2563,9 +2841,13 @@ Sets whether the specified client appears above all other clients on the display
 ```
 
 <a name="method.setVirtualResolution"></a>
-## *setVirtualResolution <sup>method</sup>*
+## *setVirtualResolution [<sup>method</sup>](#head.Methods)*
 
-Sets the virtual resolution for the specified client.
+Sets the virtual resolution for the specified client. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2573,8 +2855,8 @@ Sets the virtual resolution for the specified client.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
-| params.width | number | The width of the virtual resolution |
-| params.height | number | The height of the virtual resolution |
+| params?.width | number | <sup>*(optional)*</sup> The width of the virtual resolution |
+| params?.height | number | <sup>*(optional)*</sup> The height of the virtual resolution |
 
 ### Result
 
@@ -2590,7 +2872,7 @@ Sets the virtual resolution for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setVirtualResolution",
     "params": {
         "client": "org.rdk.Netflix",
@@ -2605,7 +2887,7 @@ Sets the virtual resolution for the specified client.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2613,9 +2895,13 @@ Sets the virtual resolution for the specified client.
 ```
 
 <a name="method.setVisibility"></a>
-## *setVisibility <sup>method</sup>*
+## *setVisibility [<sup>method</sup>](#head.Methods)*
 
-Sets whether the specified client should be visible.
+Sets whether the specified client should be visible. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2623,6 +2909,7 @@ Sets whether the specified client should be visible.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.visible | boolean | Whether the client is visible (`true`) or not (`false`) |
 
 ### Result
@@ -2639,10 +2926,11 @@ Sets whether the specified client should be visible.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.setVisibility",
     "params": {
         "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix",
         "visible": true
     }
 }
@@ -2653,7 +2941,7 @@ Sets whether the specified client should be visible.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2661,9 +2949,13 @@ Sets whether the specified client should be visible.
 ```
 
 <a name="method.showSplashLogo"></a>
-## *showSplashLogo <sup>method</sup>*
+## *showSplashLogo [<sup>method</sup>](#head.Methods)*
 
-Displays the splash screen.
+Displays the splash screen. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2686,7 +2978,7 @@ Displays the splash screen.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.showSplashLogo",
     "params": {
         "displayTime": 5
@@ -2699,7 +2991,7 @@ Displays the splash screen.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2707,9 +2999,13 @@ Displays the splash screen.
 ```
 
 <a name="method.showWatermark"></a>
-## *showWatermark <sup>method</sup>*
+## *showWatermark [<sup>method</sup>](#head.Methods)*
 
-Sets whether a watermark shows on the display.
+Sets whether a watermark shows on the display. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2732,7 +3028,7 @@ Sets whether a watermark shows on the display.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.showWatermark",
     "params": {
         "show": true
@@ -2745,7 +3041,7 @@ Sets whether a watermark shows on the display.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2753,9 +3049,14 @@ Sets whether a watermark shows on the display.
 ```
 
 <a name="method.suspend"></a>
-## *suspend <sup>method</sup>*
+## *suspend [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Suspends an application.
+Suspends an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onSuspended` | Triggers when the runtime of an application is suspended |.
 
 Also see: [onSuspended](#event.onSuspended)
 
@@ -2780,7 +3081,7 @@ Also see: [onSuspended](#event.onSuspended)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.RDKShell.1.suspend",
     "params": {
         "callsign": "Cobalt"
@@ -2793,7 +3094,731 @@ Also see: [onSuspended](#event.onSuspended)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getScreenshot"></a>
+## *getScreenshot [<sup>method</sup>](#head.Methods)*
+
+Captures a screenshot. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
+
+Also see: [onScreenshotComplete](#event.onScreenshotComplete)
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getScreenshot"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.hideAllClients"></a>
+## *hideAllClients [<sup>method</sup>](#head.Methods)*
+
+Hides/Unhides all the clients. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.hide | boolean | true to hide all the clients, and false to unhide all the clients |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.hideAllClients",
+    "params": {
+        "hide": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.launchResidentApp"></a>
+## *launchResidentApp [<sup>method</sup>](#head.Methods)*
+
+Launches the Resident application. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.launchResidentApp"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.hideFullScreenImage"></a>
+## *hideFullScreenImage [<sup>method</sup>](#head.Methods)*
+
+Hides the Full Screen Image. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.hideFullScreenImage"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.showFullScreenImage"></a>
+## *showFullScreenImage [<sup>method</sup>](#head.Methods)*
+
+Shows the Full Screen Image. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.path | string | The image path |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.showFullScreenImage",
+    "params": {
+        "path": "/tmp/netflix.png"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getSystemMemory"></a>
+## *getSystemMemory [<sup>method</sup>](#head.Methods)*
+
+Gets the information of System Memory. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.freeRam | number | Free RAM memory (kB) |
+| result.swapRam | number | Swap memory (kB) |
+| result.totalRam | number | Total RAM memory (kB) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getSystemMemory"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "freeRam": 321944,
+        "swapRam": 0,
+        "totalRam": 624644,
+        "success": true
+    }
+}
+```
+
+<a name="method.launchApplication"></a>
+## *launchApplication [<sup>method</sup>](#head.Methods)*
+
+Launches an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onApplicationLaunched` | Triggers when an application is launched successfully |.
+
+Also see: [onApplicationLaunched](#event.onApplicationLaunched)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params.uri | string | The client uri |
+| params.mimeType | string | The mime type |
+| params?.topmost | boolean | <sup>*(optional)*</sup> true to put the application at the top, otherwise false |
+| params?.focus | boolean | <sup>*(optional)*</sup> true to put the application above all other applications, otherwise false |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.launchApplication",
+    "params": {
+        "client": "HtmlApp",
+        "uri": "https://x1box-app.xumo.com/3.0.70/index.html%22",
+        "mimeType": "application/native",
+        "topmost": true,
+        "focus": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.suspendApplication"></a>
+## *suspendApplication [<sup>method</sup>](#head.Methods)*
+
+Suspends an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onApplicationSuspended` | Triggers when an application is suspended |.
+
+Also see: [onApplicationSuspended](#event.onApplicationSuspended)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.suspendApplication",
+    "params": {
+        "client": "HtmlApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resumeApplication"></a>
+## *resumeApplication [<sup>method</sup>](#head.Methods)*
+
+Resumes an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
+
+Also see: [onApplicationResumed](#event.onApplicationResumed)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.resumeApplication",
+    "params": {
+        "client": "HtmlApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.injectKey"></a>
+## *injectKey [<sup>method</sup>](#head.Methods)*
+
+Injects the keys. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
+| params.modifiers[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.injectKey",
+    "params": {
+        "keycode": 10,
+        "modifiers": [
+            "shift"
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.addKeyMetadataListener"></a>
+## *addKeyMetadataListener [<sup>method</sup>](#head.Methods)*
+
+Adds the key metadata listeners. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.addKeyMetadataListener",
+    "params": {
+        "client": "searchanddiscovery",
+        "callsign": "searchanddiscovery"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.removeKeyMetadataListener"></a>
+## *removeKeyMetadataListener [<sup>method</sup>](#head.Methods)*
+
+Removes the key metadata listeners. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.removeKeyMetadataListener",
+    "params": {
+        "client": "searchanddiscovery",
+        "callsign": "searchanddiscovery"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.addKeyIntercepts"></a>
+## *addKeyIntercepts [<sup>method</sup>](#head.Methods)*
+
+Adds the list of key intercepts. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.intercepts | array | A list of intercepts |
+| params.intercepts[#] | object |  |
+| params.intercepts[#].client | string | The client name |
+| params.intercepts[#].keys | array | A list of keys to simulate |
+| params.intercepts[#].keys[#] | object |  |
+| params.intercepts[#].keys[#].keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.intercepts[#].keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
+| params.intercepts[#].keys[#].modifiers[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.addKeyIntercepts",
+    "params": {
+        "intercepts": [
+            {
+                "client": "searchanddiscovery",
+                "keys": [
+                    {
+                        "keycode": 10,
+                        "modifiers": [
+                            "shift"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.resetInactivityTime"></a>
+## *resetInactivityTime [<sup>method</sup>](#head.Methods)*
+
+Resets the inactivity notification interval. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.resetInactivityTime"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
     "result": {
         "success": true
     }
@@ -2828,10 +3853,14 @@ RDKShell interface events:
 | [onSuspended](#event.onSuspended) | Triggered when a runtime is suspended |
 | [onUserInactivity](#event.onUserInactivity) | Triggered when a device has been inactive for a period of time |
 | [onWillDestroy](#event.onWillDestroy) | Triggered when an application is set to be destroyed |
+| [onPluginSuspended](#event.onPluginSuspended) | Triggered when a plugin is suspended |
+| [onScreenshotComplete](#event.onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
+| [onBlur](#event.onBlur) | Triggered when the focused client is blurred |
+| [onFocus](#event.onFocus) | Triggered when a client is set to focus |
 
 
 <a name="event.onApplicationActivated"></a>
-## *onApplicationActivated <sup>event</sup>*
+## *onApplicationActivated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application is activated.
 
@@ -2855,7 +3884,7 @@ Triggered when an application is activated.
 ```
 
 <a name="event.onApplicationConnected"></a>
-## *onApplicationConnected <sup>event</sup>*
+## *onApplicationConnected [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a connection to an application succeeds.
 
@@ -2879,7 +3908,7 @@ Triggered when a connection to an application succeeds.
 ```
 
 <a name="event.onApplicationDisconnected"></a>
-## *onApplicationDisconnected <sup>event</sup>*
+## *onApplicationDisconnected [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an attempt to disconnect from an application succeeds.
 
@@ -2903,7 +3932,7 @@ Triggered when an attempt to disconnect from an application succeeds.
 ```
 
 <a name="event.onApplicationFirstFrame"></a>
-## *onApplicationFirstFrame <sup>event</sup>*
+## *onApplicationFirstFrame [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the first frame of an application is loaded.
 
@@ -2927,7 +3956,7 @@ Triggered when the first frame of an application is loaded.
 ```
 
 <a name="event.onApplicationLaunched"></a>
-## *onApplicationLaunched <sup>event</sup>*
+## *onApplicationLaunched [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application launches successfully.
 
@@ -2951,7 +3980,7 @@ Triggered when an application launches successfully.
 ```
 
 <a name="event.onApplicationResumed"></a>
-## *onApplicationResumed <sup>event</sup>*
+## *onApplicationResumed [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application resumes from a suspended state.
 
@@ -2975,7 +4004,7 @@ Triggered when an application resumes from a suspended state.
 ```
 
 <a name="event.onApplicationSuspended"></a>
-## *onApplicationSuspended <sup>event</sup>*
+## *onApplicationSuspended [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application is suspended.
 
@@ -2999,7 +4028,7 @@ Triggered when an application is suspended.
 ```
 
 <a name="event.onApplicationTerminated"></a>
-## *onApplicationTerminated <sup>event</sup>*
+## *onApplicationTerminated [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application terminates.
 
@@ -3023,7 +4052,7 @@ Triggered when an application terminates.
 ```
 
 <a name="event.onDestroyed"></a>
-## *onDestroyed <sup>event</sup>*
+## *onDestroyed [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a runtime is destroyed.
 
@@ -3047,7 +4076,7 @@ Triggered when a runtime is destroyed.
 ```
 
 <a name="event.onDeviceCriticallyLowRamWarning"></a>
-## *onDeviceCriticallyLowRamWarning <sup>event</sup>*
+## *onDeviceCriticallyLowRamWarning [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
 
@@ -3071,7 +4100,7 @@ Triggered when the RAM memory on the device exceeds the configured `criticallyLo
 ```
 
 <a name="event.onDeviceCriticallyLowRamWarningCleared"></a>
-## *onDeviceCriticallyLowRamWarningCleared <sup>event</sup>*
+## *onDeviceCriticallyLowRamWarningCleared [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
 
@@ -3095,7 +4124,7 @@ Triggered when the RAM memory on the device no longer exceeds the configured `cr
 ```
 
 <a name="event.onDeviceLowRamWarning"></a>
-## *onDeviceLowRamWarning <sup>event</sup>*
+## *onDeviceLowRamWarning [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
 
@@ -3119,7 +4148,7 @@ Triggered when the RAM memory on the device exceeds the configured `lowRam` thre
 ```
 
 <a name="event.onDeviceLowRamWarningCleared"></a>
-## *onDeviceLowRamWarningCleared <sup>event</sup>*
+## *onDeviceLowRamWarningCleared [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
 
@@ -3143,7 +4172,7 @@ Triggered when the RAM memory on the device no longer exceeds the configured `lo
 ```
 
 <a name="event.onLaunched"></a>
-## *onLaunched <sup>event</sup>*
+## *onLaunched [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a runtime is launched.
 
@@ -3169,7 +4198,7 @@ Triggered when a runtime is launched.
 ```
 
 <a name="event.onSuspended"></a>
-## *onSuspended <sup>event</sup>*
+## *onSuspended [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a runtime is suspended.
 
@@ -3193,7 +4222,7 @@ Triggered when a runtime is suspended.
 ```
 
 <a name="event.onUserInactivity"></a>
-## *onUserInactivity <sup>event</sup>*
+## *onUserInactivity [<sup>event</sup>](#head.Notifications)*
 
 Triggered when a device has been inactive for a period of time. This event is broadcasted at the frequency specified by `setInactivityInterval` if the device is not active. The default frequency is 15 minutes.
 
@@ -3217,7 +4246,7 @@ Triggered when a device has been inactive for a period of time. This event is br
 ```
 
 <a name="event.onWillDestroy"></a>
-## *onWillDestroy <sup>event</sup>*
+## *onWillDestroy [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an application is set to be destroyed.
 
@@ -3236,6 +4265,102 @@ Triggered when an application is set to be destroyed.
     "method": "client.events.1.onWillDestroy",
     "params": {
         "callsign": "Cobalt"
+    }
+}
+```
+
+<a name="event.onPluginSuspended"></a>
+## *onPluginSuspended [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a plugin is suspended.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onPluginSuspended",
+    "params": {
+        "client": "searchanddiscovery"
+    }
+}
+```
+
+<a name="event.onScreenshotComplete"></a>
+## *onScreenshotComplete [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a screenshot is captured successfully using `getScreenshot` method.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.imageData | string | Base64 encoded image data |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onScreenshotComplete",
+    "params": {
+        "imageData": "AAAAAAAAAA"
+    }
+}
+```
+
+<a name="event.onBlur"></a>
+## *onBlur [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the focused client is blurred.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onBlur",
+    "params": {
+        "client": "searchanddiscovery"
+    }
+}
+```
+
+<a name="event.onFocus"></a>
+## *onFocus [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a client is set to focus.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onFocus",
+    "params": {
+        "client": "HtmlApp"
     }
 }
 ```

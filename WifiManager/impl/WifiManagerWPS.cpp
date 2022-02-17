@@ -47,6 +47,67 @@ namespace WPEFramework
             returnResponse(retVal == IARM_RESULT_SUCCESS);
         }
 
+        uint32_t WifiManagerWPS::initiateWPSPairing2(const JsonObject &parameters, JsonObject &response)
+        {
+            LOGINFOMETHOD();
+
+            if (!parameters.HasLabel("method"))
+            {
+                LOGERR("parameter 'method' is missing.");
+                returnResponse(false);
+            }
+
+            string method = "";
+            IARM_Bus_WiFiSrvMgr_WPS_Parameters_t wps_parameters;
+
+            getStringParameter("method", method);
+            if (method == "PBC")
+            {
+                wps_parameters.pbc = true;
+            }
+            else if (method == "PIN")
+            {
+                if (!parameters.HasLabel("wps_pin"))
+                {
+                    LOGERR("parameter 'wps_pin' is missing");
+                    returnResponse(false);
+                }
+                std::string wps_pin;
+                getStringParameter("wps_pin", wps_pin);
+		if (wps_pin.length() != 8)
+                {
+                    LOGERR("parameter 'wps_pin' should be 8 digits");
+                    returnResponse(false);
+                }
+                snprintf(wps_parameters.pin, sizeof(wps_parameters.pin), "%s", wps_pin.c_str());
+                wps_parameters.pbc = false;
+            }
+            else if (method == "SERIALIZED_PIN")
+            {
+                snprintf(wps_parameters.pin, sizeof(wps_parameters.pin), "xxxxxxxx");
+                wps_parameters.pbc = false;
+            }
+            else
+            {
+                LOGERR("parameter 'method' is invalid.");
+                returnResponse(false);
+            }
+
+            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME,
+                    IARM_BUS_WIFI_MGR_API_initiateWPSPairing2,
+                    (void *)&wps_parameters, sizeof(wps_parameters));
+            LOGINFO("[%s] : retVal:%d status:%d",
+                    IARM_BUS_WIFI_MGR_API_initiateWPSPairing2, retVal, wps_parameters.status);
+
+            if (IARM_RESULT_SUCCESS != retVal)
+                returnResponse(false);
+
+            response["result"] = wps_parameters.status ? 0 : 1;
+            if (method == "PIN" || method == "SERIALIZED_PIN")
+                response["pin"] = string(wps_parameters.pin);
+            returnResponse(true);
+        }
+
         uint32_t WifiManagerWPS::cancelWPSPairing(const JsonObject &parameters, JsonObject &response)
         {
             LOGINFOMETHOD();

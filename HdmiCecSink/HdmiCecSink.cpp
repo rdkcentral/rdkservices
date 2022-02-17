@@ -60,11 +60,12 @@
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
+#define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
 #define HDMICECSINK_REQUEST_MAX_WAIT_TIME_MS 		2000
-#define HDMICECSINK_PING_INTERVAL_MS 				5000
+#define HDMICECSINK_PING_INTERVAL_MS 				10000
 #define HDMICECSINK_WAIT_FOR_HDMI_IN_MS 			1000
 #define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		200
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
@@ -97,7 +98,7 @@ enum {
         HDMICECSINK_EVENT_STANDBY_MSG_EVENT,
 	HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE,
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
-	HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED,
+	HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS,
 	HDMICECSINK_EVENT_CEC_ENABLED,
 };
 
@@ -117,7 +118,7 @@ static char *eventString[] = {
         "standbyMessageReceived",
         "setSystemAudioModeEvent",
         "reportAudioStatusEvent",
-	"reportAudioDeviceAdded",
+	"reportAudioDeviceConnectedStatus",
 	"reportCecEnabledEvent"
 };
 	
@@ -493,9 +494,11 @@ namespace WPEFramework
            HdmiCecSink::_instance = this;
            smConnection=NULL;
 		   cecEnableStatus = false;
+                   HdmiCecSink::_instance->m_numberOfDevices = 0;
 		   m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
+		   hdmiCecAudioDeviceConnected = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
 		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
@@ -523,6 +526,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
+		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -577,8 +581,20 @@ namespace WPEFramework
 			LOGINFO("Check the HDMI State \n");
 
 			CheckHdmiInState();
-			    
-            if (cecSettingEnabled)
+
+            int cecMgrIsAvailableParam;
+            err = IARM_Bus_Call(IARM_BUS_CECMGR_NAME,
+                            IARM_BUS_CECMGR_API_isAvailable,
+                            (void *)&cecMgrIsAvailableParam,
+                            sizeof(cecMgrIsAvailableParam));
+
+	    if(err == IARM_RESULT_SUCCESS) {
+                LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
+            }
+	    else {
+                LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
+            }
+            if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
             {
                try
                {
@@ -675,6 +691,7 @@ namespace WPEFramework
                 {
                     case IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED:
                     {
+			LOGINFO("Received IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED event \r\n");
                         HdmiCecSink::_instance->onCECDaemonInit();
                     }
                     break;
@@ -746,6 +763,9 @@ namespace WPEFramework
 						   /*  set the current active source to TV on going to standby */
                                                    HdmiCecSink::_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 						}
+                                                /* Initiate a ping straight away */
+                                                HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
+                                                HdmiCecSink::_instance->m_ThreadExitCV.notify_one();
 					}
 			}
 			else
@@ -791,15 +811,22 @@ namespace WPEFramework
 
        void HdmiCecSink::onCECDaemonInit()
        {
-            if(true == getEnabled())
-            {
-                setEnabled(false);
-                setEnabled(true);
-            }
-            else
-            {
-                /*Do nothing as CEC is not already enabled*/
-            }
+           if(cecSettingEnabled) {
+                if(true == getEnabled())
+                {
+		    LOGINFO("CEC getEnabled() already TRUE. Disable and enable CEC again\n ");
+                    setEnabled(false);
+                    setEnabled(true);
+                }
+                else
+                {
+		    LOGINFO("CEC getEnabled() FALSE. Enable CEC\n ");
+                    setEnabled(true);
+                }
+           }
+           else {
+               LOGINFO("cecSettingEnabled FALSE. Do Nothing....\n ");
+           }
        }
 
        void HdmiCecSink::cecStatusUpdated(void *evtStatus)
@@ -1027,6 +1054,12 @@ namespace WPEFramework
             returnResponse(true);
        }
 
+       uint32_t HdmiCecSink::getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response)
+       {
+            response["connected"] = getAudioDeviceConnectedStatus();
+            returnResponse(true);
+       }
+
 	  uint32_t HdmiCecSink::getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response)
        {
        		char routeString[1024] = {'\0'};
@@ -1160,8 +1193,6 @@ namespace WPEFramework
 
 				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
 
-				sendPowerOFFCommand(phy_addr);
-				sendPowerONCommand(phy_addr);
 				setStreamPath(phy_addr);
 				returnResponse(true);
             }
@@ -1824,19 +1855,22 @@ namespace WPEFramework
 						if ( _instance->deviceList[i].m_isDevicePresent ) {
 							disconnected.push_back(i);
 						}
-						//LOGWARN("Ping caught %s \r\n",e.what());
+                                                //LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
 						usleep(50000);
 						continue;
 					}
 					  catch(Exception &e)
 					  {
-						LOGINFO("Ping caught %s \r\n",e.what());
+						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+                                                usleep(50000);
+                                                continue;
 					  }
 					  
 					  /* If we get ACK, then the device is present in the network*/
 					  if ( !_instance->deviceList[i].m_isDevicePresent )
 					  {
 					  	connected.push_back(i);
+                                                //LOGWARN("Ping success, added device: 0x%x \r\n", i);
 					  }
 					  usleep(50000);      
 				}
@@ -2065,7 +2099,9 @@ namespace WPEFramework
 				{
 					LOGINFO(" logicalAddress =%d , Audio device detected, Notify Device Settings", logicalAddress );
 					params["status"] = string("success");
-					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_ADDED], params)
+					params["audioDeviceConnected"] = string("true");
+					hdmiCecAudioDeviceConnected = true;
+					sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
 				}
 
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
@@ -2073,6 +2109,8 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::removeDevice(const int logicalAddress) {
+			JsonObject params;
+
 			if(!HdmiCecSink::_instance)
 				return;
 			
@@ -2092,6 +2130,16 @@ namespace WPEFramework
                                                 hdmiInputs[i].update(LogicalAddress(LogicalAddress::UNREGISTERED));
 					}
 				}
+
+                                if(logicalAddress == 0x5)
+                                {
+                                        LOGINFO(" logicalAddress =%d , Audio device removed, Notify Device Settings", logicalAddress );
+                                        params["status"] = string("success");
+                                        params["audioDeviceConnected"] = string("false");
+					hdmiCecAudioDeviceConnected = false;
+                                        sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
+                                }
+
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
 			}
@@ -2507,53 +2555,61 @@ namespace WPEFramework
 
 				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
 				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
-					LOGINFO("Timeout m_pollThreadExit %d\n", _instance->m_pollThreadExit);
+					continue;
 				else
 					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
 
 			}
         }
 
-		void HdmiCecSink::allocateLAforTV()
+        void HdmiCecSink::allocateLAforTV()
         {
-        	bool gotLogicalAddress = false;
-			int addr = LogicalAddress::TV;
-			int i;
-                if(!(_instance->smConnection))
-                    return;
-			
-			for ( i =0; i<HDMICECSINK_NUMBER_TV_ADDR; i++ )
-			{
-        	/* poll for TV logical address */
-			  try {
-			   	smConnection->poll(LogicalAddress(addr), Throw_e());
-			  }
-			  catch(CECNoAckException &e )
-			  {
-				LOGWARN("Poll caught %s \r\n",e.what());
-				gotLogicalAddress = true;
-				break;
-			  }
-			 catch(Exception &e)
-			 {
-				LOGWARN("Poll caught %s \r\n",e.what());
-			 }
-			 addr = LogicalAddress::SPECIFIC_USE;
-        	}
+            bool gotLogicalAddress = false;
+            int addr = LogicalAddress::TV;
+            int i, j;
+            if (!(_instance->smConnection))
+                return;
 
-			if ( gotLogicalAddress )
-			{
-				m_logicalAddressAllocated = addr;
-			}
-			else
-			{
-				m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
-			}
+            for (i = 0; i< HDMICECSINK_NUMBER_TV_ADDR; i++)
+            {
+                /* poll for TV logical address - retry 5 times*/
+                for (j = 0; j < 5; j++)
+                {
+                    try {
+                        smConnection->poll(LogicalAddress(addr), Throw_e());
+                    }
+                    catch(CECNoAckException &e )
+                    {
+                        LOGWARN("Poll caught %s \r\n",e.what());
+                        gotLogicalAddress = true;
+                        break;
+                    }
+                    catch(Exception &e)
+                    {
+                        LOGWARN("Poll caught %s \r\n",e.what());
+                        usleep(250000);
+                    }
+                }
+                if (gotLogicalAddress)
+                {
+                    break;
+                }
+                addr = LogicalAddress::SPECIFIC_USE;
+            }
 
-			LOGWARN("Logical Address for TV 0x%x \r\n",m_logicalAddressAllocated);
+            if ( gotLogicalAddress )
+            {
+                m_logicalAddressAllocated = addr;
+            }
+            else
+            {
+                m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
+            }
+
+            LOGWARN("Logical Address for TV 0x%x \r\n",m_logicalAddressAllocated);
         }
-		
-		void HdmiCecSink::allocateLogicalAddress(int deviceType)
+
+        void HdmiCecSink::allocateLogicalAddress(int deviceType)
         {
         	if( deviceType == DeviceType::TV )
         	{
@@ -2725,6 +2781,15 @@ namespace WPEFramework
             
             LOGINFO("getEnabled :%d ",cecEnableStatus);
             if(true == cecEnableStatus)
+                return true;
+            else
+                return false;
+        }
+
+        bool HdmiCecSink::getAudioDeviceConnectedStatus()
+        {
+            LOGINFO("getAudioDeviceConnectedStatus :%d ", hdmiCecAudioDeviceConnected);
+            if(true == hdmiCecAudioDeviceConnected)
                 return true;
             else
                 return false;

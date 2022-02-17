@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-org.rdk.ScreenCapture plugin for Thunder framework.
+A org.rdk.ScreenCapture plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -89,15 +89,21 @@ ScreenCapture interface methods:
 
 
 <a name="method.uploadScreenCapture"></a>
-## *uploadScreenCapture <sup>method</sup>*
+## *uploadScreenCapture [<sup>method</sup>](#head.Methods)*
 
 Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded using raw HTTP POST request as binary image/png data. It's the same as running the following command:  
 `wget -d -q -O - --header='Content-Type: application/octet-stream' --post-file=/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  
 or,  
 `curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  
 For implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`.
+ 
+Events
+ 
+| Event | Description | 
+| :-------- | :-------- | 
+| `uploadComplete` | Triggered after uploading a screen capture with status and message |.
 
-Also see: [uploadCompleted](#event.uploadCompleted)
+Also see: [uploadComplete](#event.uploadComplete)
 
 ### Parameters
 
@@ -121,7 +127,7 @@ Also see: [uploadCompleted](#event.uploadCompleted)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.ScreenCapture.1.uploadScreenCapture",
     "params": {
         "url": "http://server/cgi-bin/upload.cgi",
@@ -135,7 +141,7 @@ Also see: [uploadCompleted](#event.uploadCompleted)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
@@ -157,7 +163,7 @@ ScreenCapture interface events:
 
 
 <a name="event.uploadComplete"></a>
-## *uploadComplete <sup>event</sup>*
+## *uploadComplete [<sup>event</sup>](#head.Notifications)*
 
 Triggered after uploading a screen capture.
 

@@ -69,6 +69,7 @@ typedef enum{
 #define ALL_TASKS_SUCCESS              0xFF
 #define MAINTENANCE_TASK_SKIPPED       0x200
 
+#define MAX_NETWORK_RETRIES             4
 
 #define DCM_SUCCESS                     0
 #define DCM_COMPLETE                    1
@@ -139,6 +140,7 @@ namespace WPEFramework {
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
                 bool checkAbortFlag();
+                bool checkNetwork();
                 pid_t getTaskPID(const char*);
 
                 string getLastRebootReason();
@@ -186,6 +188,7 @@ namespace WPEFramework {
                 uint32_t setMaintenanceMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
+                uint32_t getMaintenanceMode(const JsonObject& parameters, JsonObject& response);
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */
