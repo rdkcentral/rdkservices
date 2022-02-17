@@ -763,6 +763,9 @@ namespace WPEFramework
 						   /*  set the current active source to TV on going to standby */
                                                    HdmiCecSink::_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 						}
+                                                /* Initiate a ping straight away */
+                                                HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
+                                                HdmiCecSink::_instance->m_ThreadExitCV.notify_one();
 					}
 			}
 			else
