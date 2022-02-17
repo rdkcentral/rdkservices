@@ -54,6 +54,10 @@ namespace WPEFramework {
             Network(const Network&) = delete;
             Network& operator=(const Network&) = delete;
 
+            //Private variables
+            bool m_isNetworkPluginInitialized;
+            std::thread m_retryIarmEventRegistrationThread; 
+
             //Begin methods
             uint32_t getQuirks(const JsonObject& parameters, JsonObject& response);
 
@@ -88,6 +92,9 @@ namespace WPEFramework {
             bool isValidCIDRv4(std::string interface);
             // Internal methods
             bool _getDefaultInterface(std::string& interface, std::string& gateway);
+
+            void retryIarmEventRegistration();
+            void threadRetryIarmEventRegistration();
 
             bool _doTrace(std::string &endpoint, int packets, JsonObject& response);
             bool _doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject& response);
