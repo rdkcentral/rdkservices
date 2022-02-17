@@ -58,11 +58,12 @@ namespace WPEFramework
             bool res = false;
             bool isConnected = false;
             dsHdcpProtocolVersion_t HDCPVersion = dsHDCP_VERSION_1X;
-            const string videoPort = parameters.HasLabel("videoPort") ? parameters["videoPort"].String() : "HDMI0";
+            const string defaultVideoDisplay = device::Host::getInstance().getDefaultVideoPortName();
+            const string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : defaultVideoDisplay;
 
             try
             {
-                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(videoPort);
+                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(videoDisplay);
                 isConnected = vPort.isDisplayConnected();
                 if(isConnected)
                 {

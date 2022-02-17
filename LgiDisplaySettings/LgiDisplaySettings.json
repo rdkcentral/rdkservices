@@ -2152,7 +2152,7 @@
                     "videoDisplay": {
                         "$ref": "#/definitions/videoDisplay"
                     },
-                    "preferredOutputColorSpaces": {
+                    "colorSpaces": {
                         "summary": "A string [] of preferred colorspaces",
                         "type": "array",
                         "items": {
@@ -2162,7 +2162,7 @@
                     }
                 },
                 "required": [
-                    "preferredOutputColorSpaces"
+                    "colorSpaces"
                 ]
             },
             "result": {

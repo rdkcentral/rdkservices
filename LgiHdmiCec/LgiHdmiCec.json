@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "LgiHdmiCec API", 
-        "class": "LgiHdmiCec", 
+        "class": "com.lgi.rdk.HdmiCec", 
         "description": "The `LgiHdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box"
     },
     "definitions": {
@@ -14,11 +14,74 @@
         },
         "physicalAddress":{
             "summary": "The physical IP address of the device",
+            "type": "string",
+            "example": "255, 255, 255, 255"
+        },
+        "actionName":{
+            "summary": "Action name: POWER_ON or POWER_OFF.",
+            "type": "string",
+            "example": "POWER_ON"
+        },
+        "intervalSeconds":{
+            "summary": "CEC ping interval in seconds.",
+            "type": "number",
+            "example": 5
+        },
+        "devices":{
+            "summary": "Object [] of information about each device",
             "type":"array",
             "items": {
-                "type": "string",
-                "example": "255, 255, 255, 255"
+                "type": "object",
+                "properties": {
+                    "vendorId": {
+                        "summary": "Vendor ID of the device",
+                        "type":"string",
+                        "example": "0ce7"
+                    },
+                    "osdName": {
+                        "summary": "OSD name of the device if available",
+                        "type":"string",
+                        "example": "Fire TV Stick"
+                    },
+                    "power": {
+                        "summary": "Power state of device",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "connected": {
+                        "summary": "Indicates whether HDMI-CEC device is connected",
+                        "type":"boolean",
+                        "example": false
+                    },
+                    "device": {
+                        "summary": "Device type",
+                        "type":"string",
+                        "example": "Playback Device"
+                    }
+                },
+                "required": [
+                    "vendorId",
+                    "osdName",
+                    "power",
+                    "connected",
+                    "device"
+                ]
             }
+        },
+        "systemAudioMode": {
+            "summary": "System audio mode enabled or disabled",
+            "type": "boolean",
+            "example": false
+        },
+        "name":{
+            "summary": "OSD friendly name",
+            "type": "string",
+            "example": "My TV"
+        },
+        "turnOffAllDevices":{
+            "summary": "Turn off policy",
+            "type": "boolean",
+            "example": false
         },
         "message":{
             "summary": "The message is a base64 encoded byte array of the raw CEC bytes. The CEC message includes the device ID for the intended destination.",
@@ -57,26 +120,23 @@
                             },
                             "logicalAddresses":{
                                 "summary": "The logical address including the device type",
-                                "type": "array",
-                                "items": {
-                                    "type":"object",
-                                    "properties": {
-                                        "deviceType": {
-                                            "summary": "The type of device",
-                                            "type": "string",
-                                            "example": "Tuner"
-                                        },
-                                        "logicalAddress": {
-                                            "summary": "The logical address of the device",
-                                            "type": "integer",
-                                            "example": 3
-                                        }
+                                "type":"object",
+                                "properties": {
+                                    "deviceType": {
+                                        "summary": "The type of device",
+                                        "type": "string",
+                                        "example": "Tuner"
                                     },
-                                    "required": [
-                                        "deviceType",
-                                        "logicalAddress"
-                                    ]
-                                }
+                                    "logicalAddress": {
+                                        "summary": "The logical address of the device",
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "required": [
+                                    "deviceType",
+                                    "logicalAddress"
+                                ]
                             }
                         },
                         "required": [
@@ -145,7 +205,116 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "enableOneTouchView":{
+            "summary": "Enables or disables one touch view",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "triggerAction":{
+            "summary": "Triggers actions like POWER_ON or POWER_OFF",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "actionName":{
+                        "$ref": "#/definitions/actionName"
+                    }
+                },
+                "required": [
+                    "actionName"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setPingInterval":{
+            "summary": "Enables or disables one touch view",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "intervalSeconds":{
+                        "$ref": "#/definitions/intervalSeconds"
+                    }
+                },
+                "required": [
+                    "intervalSeconds"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getConnectedDevices":{
+            "summary": "Gets CEC connected devices",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "devices": {
+                        "$ref": "#/definitions/devices"
+                    },
+                    "systemAudioMode": {
+                         "$ref": "#/definitions/systemAudioMode"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "devices",
+                    "systemAudioMode",
+                    "success"
+                ]
+            }
+
+        },
+        "setOneTouchViewPolicy":{
+            "summary": "Sets policy for one touch view",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "turnOffAllDevices":{
+                        "$ref": "#/definitions/turnOffAllDevices"
+                    }
+                },
+                "required": [
+                    "turnOffAllDevices"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setName":{
+            "summary": "Sets OSD friendly name",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "name":{
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
+
     },
     "events": {
         "cecAddressesChanged":{
@@ -179,6 +348,20 @@
                 },
                 "required": [
                     "message"
+                ]
+            }
+        },
+        "onDevicesChanged":{
+            "summary": "Triggered when HDMI device has changed",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "devices": {
+                        "$ref": "#/definitions/devices"
+                    }
+                },
+                "required": [
+                    "devices"
                 ]
             }
         }
