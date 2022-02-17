@@ -75,6 +75,7 @@ namespace WPEFramework {
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
+	    uint32_t setStunEndPoints(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
@@ -109,6 +110,7 @@ namespace WPEFramework {
             virtual const std::string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual std::string Information() const override;
+	    uint32_t getPublicIPInternal(const JsonObject& parameters, JsonObject& response);
 
         public:
             static Network *_instance;
