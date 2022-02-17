@@ -58,6 +58,11 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_VOICECONTROL)
+    add_subdirectory(VoiceControl)
+endif()
+
+
 if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()

@@ -209,8 +209,10 @@ namespace WPEFramework {
 	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
+            void checkAudioDeviceDetectionTimer();
 
 	    TpTimer m_timer;
+            TpTimer m_AudioDeviceDetectTimer;
             bool m_subscribed;
             std::mutex m_callMutex;
 	    std::thread m_arcRoutingThread;

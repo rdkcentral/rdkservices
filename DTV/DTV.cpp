@@ -560,6 +560,54 @@ namespace WPEFramework
                break;
             }
 
+            case APP_EVENT_SERVICE_UPDATED:
+            {
+               DTV::instance()->NotifyService(EventtypeType::SERVICEUPDATED, _T("serviceupdated"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_ADDED:
+            {
+               DTV::instance()->NotifyService(EventtypeType::SERVICEADDED, _T("serviceadded"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_DELETED:
+            {
+               DTV::instance()->NotifyService(EventtypeType::SERVICEDELETED, _T("servicedeleted"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_VIDEO_CODEC_CHANGED:
+            case APP_EVENT_SERVICE_VIDEO_PID_UPDATE:
+            {
+               DTV::instance()->NotifyService(EventtypeType::VIDEOCHANGED, _T("videochanged"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_AUDIO_CODEC_CHANGED:
+            case APP_EVENT_SERVICE_AUDIO_PID_UPDATE:
+            {
+               DTV::instance()->NotifyService(EventtypeType::AUDIOCHANGED, _T("audiochanged"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_SUBTITLE_UPDATE:
+            {
+               DTV::instance()->NotifyService(EventtypeType::SUBTITLESCHANGED, _T("subtitleschanged"), *(void **)event_data);
+               break;
+            }
+
+            case APP_EVENT_SERVICE_EIT_NOW_UPDATE:
+            {
+               /* Service, and hence event info, can only be provided if the service is available */
+               if (event_data != NULL)
+               {
+                  DTV::instance()->NotifyEventChanged(*(void **)event_data);
+               }
+               break;
+            }
+
             default:
             {
                //STB_SPDebugWrite("DTV::DvbEventHandler: Unhandled event=0x%08x\n", event);
@@ -572,7 +620,7 @@ namespace WPEFramework
       {
          SearchstatusParamsData params;
 
-         params.Eventtype = SearchstatusParamsData::EventtypeType::SERVICESEARCHSTATUS;
+         params.Eventtype = EventtypeType::SERVICESEARCHSTATUS;
          params.Handle = ACTL_GetServiceSearchPath();
          params.Finished = ACTL_IsSearchComplete() ? true : false;
 
@@ -588,13 +636,131 @@ namespace WPEFramework
          string message(_T("{\"eventtype\": \"ServiceSearchStatus\""));
          message += _T(", \"finished\": ");
          message += (params.Finished ? _T("true") : _T("false"));
-         message += _T(", \"handle\": ") + Core::NumberType<uint16_t>(params.Handle.Value()).Text();
-         message += _T(", \"progress\": ") + Core::NumberType<uint16_t>(params.Progress.Value()).Text();
+         message += _T(", \"handle\": ") + std::to_string(params.Handle.Value());
+         message += _T(", \"progress\": ") + std::to_string(params.Progress.Value());
          message += _T("}");
 
          _service->Notify(message);
 
          EventSearchStatus(params);
+      }
+
+      void DTV::NotifyService(EventtypeType event_type, const string& event_name, void *service)
+      {
+         ServiceupdatedParamsInfo params;
+
+         params.Eventtype = event_type;
+         ExtractDvbServiceInfo(params.Service, service);
+
+         string message(_T("{\"eventtype\":\""));
+         message += event_name;
+         message += _T("\", \"service\":");
+         message += CreateJsonForService(params.Service);
+         message += _T("}");
+
+         _service->Notify(message);
+
+         EventService(event_name, params);
+      }
+
+      void DTV::NotifyEventChanged(void *service)
+      {
+         if (service != NULL)
+         {
+            void *now;
+
+            ADB_GetNowNextEvents(service, &now, NULL);
+
+            if (now != NULL)
+            {
+               EventchangedParamsData params;
+
+               params.Eventtype = EventtypeType::EVENTCHANGED;
+               ExtractDvbServiceInfo(params.Service, service);
+               ExtractDvbEventInfo(params.Event, now);
+
+               ADB_ReleaseEventData(now);
+
+               string message(_T("{\"eventtype\":\"EventChanged\""));
+               message += _T(", \"service\":");
+               message += CreateJsonForService(params.Service);
+               message += _T(", \"event\":");
+               message += CreateJsonForEITEvent(params.Event);
+               message += _T("}");
+
+               _service->Notify(message);
+
+               EventEventChanged(params);
+            }
+         }
+      }
+
+      string DTV::CreateJsonForService(ServiceInfo& service) const
+      {
+         string message(_T("{\"fullname\":\"") + service.Fullname.Value());
+         message += _T("\", \"shortname\":\"") + service.Shortname.Value();
+         message += _T("\", \"dvburi\":\"") + service.Dvburi.Value();
+         message += _T("\", \"servicetype\":\"") + string(service.Servicetype.Data());
+         message += _T("\", \"lcn\":") + std::to_string(service.Lcn.Value());
+         message += _T(", \"scrambled\":");
+         message += (service.Scrambled ? _T("true") : _T("false"));
+         message += _T(", \"hascadescriptor\":");
+         message += (service.Hascadescriptor ? _T("true") : _T("false"));
+         message += _T(", \"hidden\":");
+         message += (service.Hidden ? _T("true") : _T("false"));
+         message += _T(", \"selectable\":");
+         message += (service.Selectable ? _T("true") : _T("false"));
+         message += _T(", \"runningstatus\":\"") + string(service.Runningstatus.Data());
+         message += _T("\"}");
+
+         return(message);
+      }
+
+      string DTV::CreateJsonForEITEvent(EiteventInfo& event) const
+      {
+         string message(_T("{\"name\":\"") + event.Name.Value());
+         message += _T("\", \"starttime\":") + std::to_string(event.Starttime.Value());
+         message += _T(", \"duration\":") + std::to_string(event.Duration.Value());
+         message += _T(", \"eventid\":") + std::to_string(event.Eventid.Value());
+         message += _T(", \"shortdescription\":\"") + CreateJsonString(event.Shortdescription.Value());
+         message += _T("\", \"hassubtitles\":");
+         message += (event.Hassubtitles ? _T("true") : _T("false"));
+         message += _T(", \"hasaudiodescription\":");
+         message += (event.Hasaudiodescription ? _T("true") : _T("false"));
+         message += _T(", \"parentalrating\":") + std::to_string(event.Parentalrating.Value());
+
+         message += _T(", \"contentdata\":[");
+
+         uint16_t content_len = event.Contentdata.Length();
+         if (content_len != 0)
+         {
+            message += Core::ToString(event.Contentdata[0]);
+
+            for (uint16_t i = 1; i < content_len; i++)
+            {
+               message += _T(",") + Core::ToString(event.Contentdata[i]);
+            }
+         }
+
+         message += _T("], \"hasextendedinfo\":");
+         message += (event.Hasextendedinfo ? _T("true") : _T("false"));
+         message += _T("}");
+
+         return(message);
+      }
+
+      string DTV::CreateJsonString(const string& input_string) const
+      {
+         string output_string(input_string);
+         size_t pos = 0;
+
+         while ((pos = output_string.find("\"", pos)) != string::npos)
+         {
+            output_string = output_string.replace(pos, 1, "\\\"");
+            pos += 2;
+         }
+
+         return(output_string);
       }
    }
 }
