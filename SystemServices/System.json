@@ -244,6 +244,11 @@
                 "canMixPCMWithSurround": {
                     "type": "boolean",
                     "example": true
+                },
+                "publicIP": {
+                    "summary": "Public IP",
+                    "type": "string",
+                    "example": "12.34.56.78"
                 }
             },
             "required": []
