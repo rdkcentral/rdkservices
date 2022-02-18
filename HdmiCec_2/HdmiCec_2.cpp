@@ -478,7 +478,7 @@ namespace WPEFramework
            LOGWARN("Deinitialize CEC_2");
            if(true == getEnabled())
            {
-               setEnabled(false);
+               setEnabled(false,false);
            }
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
@@ -628,9 +628,9 @@ namespace WPEFramework
             if(true == getEnabled())
             {
                 LOGINFO("%s %d. Calling setEnabled false", __func__, __LINE__);
-                setEnabled(false);
+                setEnabled(false,false);
                 LOGINFO("%s %d. Calling setEnabled true", __func__, __LINE__);
-                setEnabled(true);
+                setEnabled(true,false);
             }
             else
             {
@@ -739,7 +739,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
 
-            setEnabled(enabled);
+            setEnabled(enabled,true);
             returnResponse(true);
        }
 
@@ -951,7 +951,7 @@ namespace WPEFramework
             return cecSettingEnabled;
         }
 
-        void HdmiCec_2::setEnabled(bool enabled)
+        void HdmiCec_2::setEnabled(bool enabled, bool isPersist)
         {
            LOGINFO("Entered setEnabled ");
 
@@ -961,7 +961,7 @@ namespace WPEFramework
            } else {
                LOGWARN("CEC Mgr activated. proceeding with %s", __func__);
            }
-           if (cecSettingEnabled != enabled)
+           if (isPersist && (cecSettingEnabled != enabled))
            {
                Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(enabled));
                cecSettingEnabled = enabled;
