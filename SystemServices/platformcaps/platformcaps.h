@@ -78,6 +78,7 @@ public:
     WebBrowser webBrowser;
     Core::JSON::String HdrCapability;
     Core::JSON::Boolean canMixPCMWithSurround;
+    Core::JSON::String publicIP;
   };
 
 public:
