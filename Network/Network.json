@@ -723,36 +723,16 @@
             "params": {
                 "type":"object",
                 "properties": {
-                    "server": {
-                        "$ref": "#/definitions/server"
-                    },
-                    "port": {
-                        "$ref": "#/definitions/port"
-                    },
                     "iface": {
                         "$ref": "#/definitions/interface"
                     },
                     "ipv6": {
                         "$ref": "#/definitions/ipversion"
-                    },
-                    "sync": {
-                        "$ref": "#/definitions/sync"
-                    },
-                    "timeout": {
-                        "$ref": "#/definitions/timeout"
-                    },
-                    "cache_timeout": {
-                        "$ref": "#/definitions/cache_timeout"
                     }
                 },
                 "required": [
-                    "server",
-                    "port",
                     "iface",
-                    "ipv6",
-                    "sync",
-                    "timeout",
-                    "cache_timeout"
+                    "ipv6"
                 ]
             },
             "result": {
@@ -767,6 +747,48 @@
                         "$ref": "#/definitions/success"
                     }
 	       },
+                "required": [
+                    "public_ip",
+                    "success"
+                ]
+            }
+        },
+	 "setStunEndPoint":{
+            "summary": "Set the Stun Endpoint used for getPublicIP",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/definitions/server"
+                    },
+                    "port": {
+                        "$ref": "#/definitions/port"
+                    },
+                    "sync": {
+                        "$ref": "#/definitions/sync"
+                    },
+                    "timeout": {
+                        "$ref": "#/definitions/timeout"
+                    },
+                    "cache_timeout": {
+                        "$ref": "#/definitions/cache_timeout"
+                    }
+                },
+                "required": [
+                    "server",
+                    "port",
+                    "sync",
+                    "timeout",
+                    "cache_timeout"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+               },
                 "required": [
                     "public_ip",
                     "success"
