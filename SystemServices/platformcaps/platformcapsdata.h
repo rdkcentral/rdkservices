@@ -57,6 +57,7 @@ public:
   bool XCALSessionTokenAvailable();
   string GetExperience();
   string GetDdeviceMACAddress();
+  string GetPublicIP();
 
 private:
   class JsonRpc {

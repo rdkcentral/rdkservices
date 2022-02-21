@@ -3946,7 +3946,6 @@ namespace WPEFramework {
 
           response.Load(query);
 
-          LOGTRACEMETHODFIN();
           return Core::ERROR_NONE;
         }
     } /* namespace Plugin */
