@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
+
+THREADS="-j"
+if [[ "${1}" == *"-j"* ]]; then
+  THREADS="$1"
+fi
 
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
@@ -78,7 +83,7 @@ buildAndInstallTools() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DGENERIC_CMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
 
-  make -C build/ThunderTools && make -C build/ThunderTools install
+  make -C build/ThunderTools $THREADS && make -C build/ThunderTools install $THREADS
 }
 
 buildAndInstallThunder() {
@@ -89,7 +94,7 @@ buildAndInstallThunder() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DBUILD_TYPE=Debug -DBINDING="${THUNDER_BINDING}" -DPORT="${THUNDER_PORT}"
 
-  make -C build/Thunder && make -C build/Thunder install
+  make -C build/Thunder $THREADS && make -C build/Thunder install $THREADS
 }
 
 buildAndInstallThunderInterfaces() {
@@ -99,22 +104,29 @@ buildAndInstallThunderInterfaces() {
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
 
-  make -C build/ThunderInterfaces && make -C build/ThunderInterfaces install
+  make -C build/ThunderInterfaces $THREADS && make -C build/ThunderInterfaces install $THREADS
 }
 
 buildAndInstallRdkservices() {
   cd "${THUNDER_ROOT}" || exit 1
 
+  MODE="Release"
+  if [ "$1" == "-D" -o "$2" == "-D" ]; then
+    MODE="Debug"
+  fi
+
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DCOMCAST_CONFIG=OFF \
+    -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
-    -DRDK_SERVICES_TEST=ON
+    -DRDK_SERVICES_TEST=ON \
+    -DCMAKE_BUILD_TYPE=$MODE
 
-  make -C build/rdkservices && make -C build/rdkservices install
+  make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
 }
 
 if ! checkPython "Python 3"; then
@@ -147,7 +159,7 @@ buildAndInstallThunderInterfaces
 
 checkWPEFramework
 
-buildAndInstallRdkservices
+buildAndInstallRdkservices $1 $2
 
 echo "==== DONE ===="
 
