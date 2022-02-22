@@ -18,7 +18,7 @@
  */
 
 #include "PersistentStoreMock.h"
-#include "PersistentStoreServiceMock.h"
+#include "ServiceMock.h"
 
 using namespace WPEFramework;
 
@@ -28,7 +28,7 @@ protected:
     Core::ProxyType<PersistentStoreMock> plugin;
     Core::JSONRPC::Handler &handler;
     Core::JSONRPC::Connection connection;
-    PersistentStoreServiceMock service;
+    ServiceMock service;
     string response;
 
     PersistentStoreTestFixture()

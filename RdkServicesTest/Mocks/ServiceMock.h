@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef PERSISTENTSTORESERVICEMOCK_H
-#define PERSISTENTSTORESERVICEMOCK_H
+#ifndef SERVICEMOCK_H
+#define SERVICEMOCK_H
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -26,10 +26,10 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 
-class PersistentStoreServiceMock : public WPEFramework::PluginHost::IShell
+class ServiceMock : public WPEFramework::PluginHost::IShell
 {
 public:
-    virtual ~PersistentStoreServiceMock() = default;
+    virtual ~ServiceMock() = default;
 
     MOCK_METHOD(void, AddRef, (), (const, override));
     MOCK_METHOD(uint32_t, Release, (), (const, override));
@@ -69,4 +69,4 @@ public:
     MOCK_METHOD(reason, Reason, (), (const, override));
 };
 
-#endif //PERSISTENTSTORESERVICEMOCK_H
+#endif //SERVICEMOCK_H
