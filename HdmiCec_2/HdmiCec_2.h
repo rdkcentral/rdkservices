@@ -220,7 +220,7 @@ namespace WPEFramework {
             void persistOTPSettings(bool enableStatus);
             void persistOSDName(const char *name);
             void persistVendorId(unsigned int vendorID);
-            void setEnabled(bool enabled);
+            void setEnabled(bool enabled, bool isPersist);
             bool getEnabled();
             void setOTPEnabled(bool enabled);
             bool getOTPEnabled();
