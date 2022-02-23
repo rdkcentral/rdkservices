@@ -61,6 +61,7 @@
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
 #define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
+#define HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS   "requestAudioDevicePowerStatus"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
@@ -100,6 +101,7 @@ enum {
 	HDMICECSINK_EVENT_REPORT_AUDIO_STATUS,
 	HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS,
 	HDMICECSINK_EVENT_CEC_ENABLED,
+        HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS,
 };
 
 static char *eventString[] = {
@@ -119,7 +121,8 @@ static char *eventString[] = {
         "setSystemAudioModeEvent",
         "reportAudioStatusEvent",
 	"reportAudioDeviceConnectedStatus",
-	"reportCecEnabledEvent"
+	"reportCecEnabledEvent",
+        "reportAudioDevicePowerStatus"
 };
 	
 
@@ -381,6 +384,11 @@ namespace WPEFramework
 	   {
 	       HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
 	   }
+
+           if((header.from.toInt() == LogicalAddress::AUDIO_SYSTEM) && (HdmiCecSink::_instance->m_audioDevicePowerStatusRequested)) {
+               HdmiCecSink::_instance->reportAudioDevicePowerStatusInfo(header.from.toInt(), newPowerStatus);
+           }
+
        }
        void HdmiCecSinkProcessor::process (const FeatureAbort &msg, const Header &header)
        {
@@ -499,6 +507,7 @@ namespace WPEFramework
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
+                   m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
 		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
@@ -527,6 +536,7 @@ namespace WPEFramework
 		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
 		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
 		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
+                   registerMethod(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS,&HdmiCecSink::requestAudioDevicePowerStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -851,13 +861,8 @@ namespace WPEFramework
                         }
 			CheckHdmiInState();
 
-			if ( previousHdmiState != m_isHdmiInConnected )
-			{
-				if ( m_isHdmiInConnected == false )
-				{
-					m_pollNextState = POLL_THREAD_STATE_PING;
-				}
-			}
+          m_pollNextState = POLL_THREAD_STATE_PING;
+          m_ThreadExitCV.notify_one();
           updateArcState();  
           return;
        }
@@ -1081,6 +1086,15 @@ namespace WPEFramework
 	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
         }
+        void  HdmiCecSink::reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus)
+        {
+            JsonObject params;
+            params["powerStatus"] = JsonValue(powerStatus);
+            LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+            m_audioDevicePowerStatusRequested = false;
+            sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+        }
+
         void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
         {
             JsonObject params;
@@ -1117,6 +1131,12 @@ namespace WPEFramework
        uint32_t HdmiCecSink::getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response)
        {
             response["connected"] = getAudioDeviceConnectedStatus();
+            returnResponse(true);
+       }
+
+       uint32_t HdmiCecSink::requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response)
+       {
+            requestAudioDevicePowerStatus();
             returnResponse(true);
        }
 
@@ -1879,6 +1899,31 @@ namespace WPEFramework
                     _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1000);
 
 		}
+
+                void HdmiCecSink::requestAudioDevicePowerStatus()
+                {
+                        if ( cecEnableStatus != true  )
+                        {
+                             LOGWARN("cec is disabled-> EnableCEC first");
+                             return;
+                        }
+
+                        if(!HdmiCecSink::_instance)
+                                return;
+
+                        if(!(_instance->smConnection))
+                            return;
+                        if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ){
+                                LOGERR("Logical Address NOT Allocated");
+                                return;
+                        }
+
+                        LOGINFO(" Send GiveDevicePowerStatus Message to Audio system in the network \n");
+                        _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM, MessageEncoder().encode(GiveDevicePowerStatus()), 500);
+
+			m_audioDevicePowerStatusRequested = true;
+                }
+
 		void HdmiCecSink::sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason)
 	        {
 
