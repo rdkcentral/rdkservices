@@ -52,13 +52,13 @@
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "$ref": "#definitions/id"
+                                    "$ref": "#/definitions/id"
                                 },
                                 "locator": {
-                                    "$ref": "#definitions/locator"
+                                    "$ref": "#/definitions/locator"
                                 },
                                 "connected": {
-                                    "$ref": "#definitions/connected"
+                                    "$ref": "#/definitions/connected"
                                 }
                             },
                             "required": [
@@ -69,7 +69,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#definitions/success"
+                        "$ref": "#/definitions/success"
                     }
                 }, 
                 "required": [
@@ -162,13 +162,13 @@
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "$ref": "#definitions/id"
+                                    "$ref": "#/definitions/id"
                                 },
                                 "locator": {
-                                    "$ref": "#definitions/locator"
+                                    "$ref": "#/definitions/locator"
                                 },
                                 "connected": {
-                                    "$ref": "#definitions/connected"
+                                    "$ref": "#/definitions/connected"
                                 }
                             },
                             "required": [
