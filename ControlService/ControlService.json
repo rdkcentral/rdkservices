@@ -124,7 +124,7 @@
                         "example": "true"
                     },
                     "success": {
-                        "$ref": "#definitions/success"
+                        "$ref": "#/definitions/success"
                     }
                 },
                 "required":[
