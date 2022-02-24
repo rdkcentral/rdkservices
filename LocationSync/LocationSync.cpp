@@ -62,8 +62,12 @@ namespace Plugin {
 
         _timeZoneSink.Initialize(_timeZone);
 
-        Core::Directory(service->PersistentPath().c_str()).CreatePath();
-        static_cast<TimeZone*>(_timeZone)->Synchronize(service->PersistentPath() + "timezone");
+        auto timezoneFile = config.TimezoneFile.Value();
+        if (!timezoneFile.empty()) {
+            ASSERT(Core::Directory(Core::File(timezoneFile).PathName().c_str()).CreatePath());
+
+            static_cast<TimeZone *>(_timeZone)->Synchronize(timezoneFile);
+        }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
