@@ -183,6 +183,12 @@ namespace WPEFramework
             Register("getPublicIP", &Network::getPublicIP, this);
             Register("setStunEndPoints", &Network::setStunEndPoints, this);
 
+            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
+            m_isHybridDevice = Utils::cRunScript(script1).substr();
+            LOGWARN("script1 '%s' result: '%s'", script1, m_isHybridDevice.c_str());
+            m_defaultInterface = "";
+            m_gatewayInterface = "";
+
             m_netUtils.InitialiseNetUtils();
             m_stunEndPoint = "stun.l.google.com";
             m_stunPort = 19302;
@@ -1044,59 +1050,62 @@ namespace WPEFramework
 
         bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
-            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
-            string res = Utils::cRunScript(script1).substr();
-            LOGWARN("script1 '%s' result: '%s'", script1, res.c_str());
-
             bool result = false;
 
-            if (res == "hybrid")
+            if (m_isHybridDevice == "hybrid")
             {
                 LOGINFO("Identified as hybrid device type");
-
-                const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
-
-                string res = Utils::cRunScript(script2).substr();
-                LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
-
-                size_t pos = res.find("via");
-                if (pos != string::npos)
+                if (m_defaultInterface.length() == 0)
                 {
-                    gateway = res.substr(pos + 3);
-                    pos = gateway.find("dev");
-                    gateway = pos != string::npos ? gateway.substr(0, pos) : "";
-                }
 
-                pos = res.find("dev");
-                if (pos != string::npos)
-                {
-                    interface = res.substr(pos + 3);
-                    pos = interface.find("metric");
-                    interface = pos != string::npos ? interface.substr(0, pos) : "";
-                }
+                    const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
 
-                if (interface.length() == 0)
-                {
-                    const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
-                    string res = Utils::cRunScript(script3).substr();
-                    LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
+                    string res = Utils::cRunScript(script2).substr();
+                    LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
 
-                    pos = res.find(" ");
+                    size_t pos = res.find("via");
                     if (pos != string::npos)
                     {
-                        gateway = res.substr(pos + 3);
-                        Utils::String::trim(gateway);
-                        pos = gateway.find(" ");
-                        gateway = pos != string::npos ? gateway.substr(0, pos) : "";
+                        m_gatewayInterface  = res.substr(pos + 3);
+                        pos = m_gatewayInterface.find("dev");
+                        m_gatewayInterface = pos != string::npos ? m_gatewayInterface.substr(0, pos) : "";
                     }
 
-                    pos = res.find_last_of(" ");
+                    pos = res.find("dev");
                     if (pos != string::npos)
-                        interface = res.substr(pos);
+                    {
+                        m_defaultInterface  = res.substr(pos + 3);
+                        pos = m_defaultInterface .find("metric");
+                        m_defaultInterface  = pos != string::npos ? m_defaultInterface .substr(0, pos) : "";
+                    }
+
+                    if (m_defaultInterface.length() == 0)
+                    {
+                        const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
+                        string res = Utils::cRunScript(script3).substr();
+                        LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
+
+                        pos = res.find(" ");
+                        if (pos != string::npos)
+                        {
+                            m_gatewayInterface = res.substr(pos + 3);
+                            Utils::String::trim(m_gatewayInterface);
+                            pos = m_gatewayInterface.find(" ");
+                            m_gatewayInterface = pos != string::npos ? m_gatewayInterface.substr(0, pos) : "";
+                        }
+
+                        pos = res.find_last_of(" ");
+                        if (pos != string::npos)
+                            m_defaultInterface = res.substr(pos);
+                    }
+
+                    Utils::String::trim(m_gatewayInterface);
+                    Utils::String::trim(m_defaultInterface);
+
                 }
 
-                Utils::String::trim(gateway);
-                Utils::String::trim(interface);
+                interface = m_defaultInterface;
+                gateway = m_gatewayInterface;
 
                 if (interface.length() > 0)
                     result = true;
