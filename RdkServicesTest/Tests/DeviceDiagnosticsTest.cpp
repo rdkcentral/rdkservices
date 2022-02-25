@@ -28,11 +28,6 @@
 namespace RdkServicesTest {
 
 TEST(DeviceDiagnosticsTest, test) {
-    // assign worker pool
-    auto _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
-    WPEFramework::Core::IWorkerPool::Assign(&(*_engine));
-    _engine->Run();
-
     // create plugin
     auto deviceDiagnostic = WPEFramework::Core::ProxyType<WPEFramework::Plugin::DeviceDiagnostics>::Create();
     WPEFramework::Core::JSONRPC::Handler& handler = *deviceDiagnostic;
@@ -58,9 +53,7 @@ TEST(DeviceDiagnosticsTest, test) {
     plugin.IElement::FromFile(pluginConf, error);
     EXPECT_FALSE(error.IsSet());
 
-    // init service
-    auto service = WPEFramework::Core::ProxyType<Service>::Create(server, plugin);
-    EXPECT_EQ(string(""), deviceDiagnostic->Initialize(&(*service)));
+    EXPECT_EQ(string(""), deviceDiagnostic->Initialize(nullptr));
 
     // invoke plugin
     WPEFramework::Core::JSONRPC::Connection connection(1, 0);
@@ -74,12 +67,7 @@ TEST(DeviceDiagnosticsTest, test) {
     EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"IDLE\",\"success\":true}"));
 
     // clean up
-    deviceDiagnostic->Deinitialize(&(*service));
-    deviceDiagnostic.Release();
-    service.Release();
-
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
-    _engine.Release();
+    deviceDiagnostic->Deinitialize(nullptr);
 }
 
 } // namespace RdkServicesTest

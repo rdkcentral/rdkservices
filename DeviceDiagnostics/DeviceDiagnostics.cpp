@@ -20,37 +20,13 @@
 #include "DeviceDiagnostics.h"
 
 #include <curl/curl.h>
+#include <Utils.h>
 #include <time.h>
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
-#define TEST_REQUEST "{\"paramList\":[{\"name\":\"test\"}]}"
-#define TEST_URL "https://run.mocky.io/v3/a0302dce-ce85-4854-8cda-e3d0c4e6aa7c"
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
-
-/**
- * from utils.h
- * TODO: cannot use utils.h because it has too many include-s
- */
-#include <syscall.h>
-#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
-#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
-#define returnResponse(success) \
-    { \
-        response["success"] = success; \
-        LOGTRACEMETHODFIN(); \
-        return (Core::ERROR_NONE); \
-    }
-#define sendNotify(event,params) { \
-    std::string json; \
-    params.ToString(json); \
-    LOGINFO("Notify %s %s", event, json.c_str()); \
-    Notify(event,params); \
-}
 
 namespace WPEFramework
 {
@@ -248,11 +224,7 @@ namespace WPEFramework
             LOGINFO("data: %s", postData.c_str());
 
             if (curl_handle) {
-                if (postData == TEST_REQUEST) {
-                    curl_easy_setopt(curl_handle, CURLOPT_URL, TEST_URL);
-                } else {
-                    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://127.0.0.1:10999");
-                }
+                curl_easy_setopt(curl_handle, CURLOPT_URL, "http://127.0.0.1:10999");
                 curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, postData.c_str());
                 curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, postData.size());
                 curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections

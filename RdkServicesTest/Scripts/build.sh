@@ -7,6 +7,13 @@ if [[ "${1}" == *"-j"* ]]; then
   THREADS="$1"
 fi
 
+MODE="Release"
+if [ "$1" == "-D" -o "$2" == "-D" ]; then
+  MODE="Debug"
+fi
+
+ROOT=$(pwd)
+
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
 
@@ -110,11 +117,6 @@ buildAndInstallThunderInterfaces() {
 buildAndInstallRdkservices() {
   cd "${THUNDER_ROOT}" || exit 1
 
-  MODE="Release"
-  if [ "$1" == "-D" -o "$2" == "-D" ]; then
-    MODE="Debug"
-  fi
-
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
@@ -127,6 +129,13 @@ buildAndInstallRdkservices() {
     -DCMAKE_BUILD_TYPE=$MODE
 
   make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
+}
+
+installMockServer() {
+  cd "$ROOT"
+  docker pull mockserver/mockserver
+  npm install mockserver-node --save-dev
+  npm install mockserver-client --save-dev
 }
 
 if ! checkPython "Python 3"; then
@@ -159,7 +168,9 @@ buildAndInstallThunderInterfaces
 
 checkWPEFramework
 
-buildAndInstallRdkservices $1 $2
+buildAndInstallRdkservices
+
+installMockServer
 
 echo "==== DONE ===="
 
