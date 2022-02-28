@@ -27,6 +27,9 @@ using namespace std;
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
@@ -63,6 +66,16 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
+typedef enum _NetworkManager_GetIPSettings_ErrorCode_t
+{
+  NETWORK_IPADDRESS_ACQUIRED,
+  NETWORK_IPADDRESS_NOTFOUND,
+  NETWORK_NO_ROUTE_INTERFACE,
+  NETWORK_NO_DEFAULT_ROUTE,
+  NETWORK_DNS_NOT_CONFIGURED,
+  NETWORK_INVALID_IPADDRESS,
+} NetworkManager_GetIPSettings_ErrorCode_t;
+
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
@@ -86,6 +99,7 @@ typedef struct {
     char primarydns[MAX_IP_ADDRESS_LEN];
     char secondarydns[MAX_IP_ADDRESS_LEN];
     bool isSupported;
+    NetworkManager_GetIPSettings_ErrorCode_t errCode;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
 typedef struct
@@ -146,10 +160,12 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, 1, 0);
+        SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
         Network* Network::_instance = nullptr;
 
-        Network::Network() : PluginHost::JSONRPC()
+        Network::Network()
+        : AbstractPlugin(Network::API_VERSION_NUMBER_MAJOR)
+        , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
             m_isPluginInited = false;
@@ -174,8 +190,10 @@ namespace WPEFramework
             Register("ping",              &Network::ping, this);
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
-            Register("setIPSettings", &Network::setIPSettings, this);
-            Register("getIPSettings", &Network::getIPSettings, this);
+            registerMethod("setIPSettings", &Network::setIPSettings, this, {1});
+            registerMethod("setIPSettings", &Network::setIPSettings2, this, {2});
+            registerMethod("getIPSettings", &Network::getIPSettings, this, {1});
+            registerMethod("getIPSettings", &Network::getIPSettings2, this, {2});
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
@@ -331,14 +349,14 @@ namespace WPEFramework
             while(i < CIDR_NETMASK_IP_LEN)
             {
                 if((buf.compare(CIDR_PREFIXES[i])) == 0)
-	        {
+                {
                     retval = true;
                     break;
                 }
                 i++;
             }
             return retval;
-	}
+        }
 
 
         void  Network::retryIarmEventRegistration()
@@ -405,7 +423,7 @@ namespace WPEFramework
                         string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
 #ifdef NET_DEFINED_INTERFACES_ONLY
                         if (iface == "")
-                            continue;					// Skip unrecognised interfaces...
+                            continue;                    // Skip unrecognised interfaces...
 #endif
                         interface["interface"] = iface;
                         interface["macAddress"] = string(list.interfaces[i].mac);
@@ -776,117 +794,199 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-            struct in_addr ip_address, gateway_address, mask;
-            struct in_addr broadcast_addr1, broadcast_addr2;
+            if(m_isPluginInited)
+                return  setIPSettingsInternal(parameters, response);
+            else
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+
+            returnResponse(result)
+        }
+
+        uint32_t Network::setIPSettings2(const JsonObject& parameters, JsonObject& response)
+        {
+            JsonObject internal;
+            string interface = "";
+            string ipversion = "";
+            string netmask = "";
+            string gateway = "";
+            string ipaddr = "";
+            string primarydns = "";
+            string secondarydns = "";
+            bool autoconfig = true;
+            bool result = false;
 
             if(m_isPluginInited)
             {
-                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
-                        (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
-                        (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+                getDefaultStringParameter("interface", interface, "");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion, "");
+                internal ["ipversion"] = ipversion;
+                getDefaultBoolParameter("autoconfig", autoconfig, true);
+                internal ["autoconfig"] = autoconfig;
+                getDefaultStringParameter("ipaddr", ipaddr, "");
+                internal ["ipaddr"] = ipaddr;
+                getDefaultStringParameter("netmask", netmask, "");
+                internal ["netmask"] = netmask;
+                getDefaultStringParameter("gateway", gateway, "");
+                internal ["gateway"] = gateway;
+                getDefaultStringParameter("primarydns", primarydns, "0.0.0.0");
+                internal ["primarydns"] = primarydns;
+                getDefaultStringParameter("secondarydns", secondarydns, "");
+                internal ["secondarydns"] = secondarydns;
+
+                return  setIPSettingsInternal(internal, response);
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+            returnResponse(result)
+        }
+
+        uint32_t Network::setIPSettingsInternal(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            struct in_addr ip_address, gateway_address, mask;
+            struct in_addr broadcast_addr1, broadcast_addr2;
+
+            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
+                (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
+                (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+            {
+                string interface = "";
+                string ipversion = "";
+                bool autoconfig = false;
+                string ipaddr = "";
+                string netmask = "";
+                string gateway = "";
+                string primarydns = "";
+                string secondarydns = "";
+
+                getStringParameter("interface", interface);
+                getStringParameter("ipversion", ipversion);
+                getBoolParameter("autoconfig", autoconfig);
+                getStringParameter("ipaddr", ipaddr);
+                getStringParameter("netmask", netmask);
+                getStringParameter("gateway", gateway);
+                getStringParameter("primarydns", primarydns);
+                getStringParameter("secondarydns", secondarydns);
+
+                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
+                strncpy(iarmData.interface, interface.c_str(), 16);
+                strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+                iarmData.autoconfig = autoconfig;
+                strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
+                strncpy(iarmData.netmask, netmask.c_str(), 16);
+                strncpy(iarmData.gateway, gateway.c_str(), 16);
+                strncpy(iarmData.primarydns, primarydns.c_str(), 16);
+                strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
+                iarmData.isSupported = false;
+
+                if (!autoconfig)
                 {
-                    string interface = "";
-                    string ipversion = "";
-                    bool autoconfig = false;
-                    string ipaddr = "";
-                    string netmask = "";
-                    string gateway = "";
-                    string primarydns = "";
-                    string secondarydns = "";
-
-                    getStringParameter("interface", interface);
-                    getStringParameter("ipversion", ipversion);
-                    getBoolParameter("autoconfig", autoconfig);
-                    getStringParameter("ipaddr", ipaddr);
-                    getStringParameter("netmask", netmask);
-                    getStringParameter("gateway", gateway);
-                    getStringParameter("primarydns", primarydns);
-                    getStringParameter("secondarydns", secondarydns);
-
-                    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
-                    strncpy(iarmData.interface, interface.c_str(), 16);
-                    strncpy(iarmData.ipversion, ipversion.c_str(), 16);
-                    iarmData.autoconfig = autoconfig;
-                    strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
-                    strncpy(iarmData.netmask, netmask.c_str(), 16);
-                    strncpy(iarmData.gateway, gateway.c_str(), 16);
-                    strncpy(iarmData.primarydns, primarydns.c_str(), 16);
-                    strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
-                    iarmData.isSupported = false;
-
-                    if (!autoconfig)
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
                     {
-                        RFC_ParamData_t param;
-                        if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
+                        if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
                         {
-                            if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-                            {
-                                iarmData.isSupported  = true;
-                            }
-                        }
-                        if (false == iarmData.isSupported)
-                        {
-                            LOGWARN("Manual IP Settings not Enabled..\n");
-                            response["supported"] = iarmData.isSupported;
-                            result = false;
-                            returnResponse(result)
-                        }
-                        bool mask_validation;
-                        mask_validation = isValidCIDRv4(netmask.c_str());
-                        if (false == mask_validation)
-                        {
-                            LOGWARN("Netmask is not valid ..\n");
-                            response["supported"] = iarmData.isSupported;
-                            result = false;
-                            returnResponse(result)
-                        }
-
-                        if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
-                                inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
-                                inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
-                        {
-                            broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
-                            broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
-
-                            if (ip_address.s_addr == gateway_address.s_addr)
-                            {
-                                LOGWARN("Interface and Gateway IP are same , return false \n");
-                                response["supported"] = iarmData.isSupported;
-                                result = false;
-                                returnResponse(result)
-                            }
-                            if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
-                            {
-                                LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
-                                response["supported"] = iarmData.isSupported;
-                                result = false;
-                                returnResponse(result)
-                            }
-                            if (ip_address.s_addr == broadcast_addr1.s_addr)
-                            {
-                                LOGWARN("Interface and Broadcast IP is same, return false \n");
-                                response["supported"] = iarmData.isSupported;
-                                result = false;
-                                returnResponse(result)
-                            }
-                            if (gateway_address.s_addr == broadcast_addr2.s_addr)
-                            {
-                                LOGWARN("Gateway and Broadcast IP is same, return false \n");
-                                response["supported"] = iarmData.isSupported;
-                                result = false;
-                                returnResponse(result)
-                            }
+                            iarmData.isSupported  = true;
                         }
                     }
-                    if (IARM_RESULT_SUCCESS ==
-                            IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
-                                sizeof(iarmData)))
+                    if (false == iarmData.isSupported)
                     {
+                        LOGWARN("Manual IP Settings not Enabled..\n");
                         response["supported"] = iarmData.isSupported;
+                        result = false;
+                        returnResponse(result)
+                    }
+                    bool mask_validation;
+                    mask_validation = isValidCIDRv4(netmask.c_str());
+                    if (false == mask_validation)
+                    {
+                       LOGWARN("Netmask is not valid ..\n");
+                       response["supported"] = iarmData.isSupported;
+                       result = false;
+                       returnResponse(result)
+                    }
+
+                    if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
+                        inet_pton(AF_INET, netmask.c_str(), &mask) == 1 &&
+                        inet_pton(AF_INET, gateway.c_str(), &gateway_address) == 1)
+                    {
+                        broadcast_addr1.s_addr = ip_address.s_addr | ~mask.s_addr;
+                        broadcast_addr2.s_addr = gateway_address.s_addr | ~mask.s_addr;
+
+                        if (ip_address.s_addr == gateway_address.s_addr)
+                        {
+                            LOGWARN("Interface and Gateway IP are same , return false \n");
+                            response["supported"] = iarmData.isSupported;
+                            result = false;
+                            returnResponse(result)
+                         }
+                         if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
+                         {
+                             LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                             response["supported"] = iarmData.isSupported;
+                             result = false;
+                             returnResponse(result)
+                          }
+                          if (ip_address.s_addr == broadcast_addr1.s_addr)
+                          {
+                              LOGWARN("Interface and Broadcast IP is same, return false \n");
+                              response["supported"] = iarmData.isSupported;
+                              result = false;
+                              returnResponse(result)
+                          }
+                          if (gateway_address.s_addr == broadcast_addr2.s_addr)
+                          {
+                              LOGWARN("Gateway and Broadcast IP is same, return false \n");
+                              response["supported"] = iarmData.isSupported;
+                              result = false;
+                              returnResponse(result)
+                          }
+                     }
+                 }
+                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData, sizeof(iarmData)))
+                 {
+                     response["supported"] = iarmData.isSupported;
+                     result = true;
+                 }
+                 else
+                     response["supported"] = iarmData.isSupported;
+            }
+
+            returnResponse(result)
+        }
+
+        uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
+        {
+            JsonObject internal;
+            JsonObject InternalResponse;
+            int errCode;
+            bool result = false;
+            string interface = "";
+            string ipversion = "";
+            if(m_isPluginInited)
+            {
+                getDefaultStringParameter("interface", interface,"");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion,"");
+                internal ["ipversion"] = ipversion;
+
+                if (getIPSettingsInternal(internal, InternalResponse, errCode))
+                {
+                    if (NETWORK_IPADDRESS_ACQUIRED == errCode)
+                    {
+                        response["interface"] = InternalResponse["interface"];
+                        response["ipversion"] = InternalResponse["ipversion"];
+                        response["autoconfig"] = InternalResponse["autoconfig"];
+                        response["ipaddr"] = InternalResponse["ipaddr"];
+                        response["netmask"] = InternalResponse["netmask"];
+                        response["gateway"] = InternalResponse["gateway"];
+                        response["primarydns"] = InternalResponse["primarydns"];
+                        response["secondarydns"] = InternalResponse["secondarydns"];
                         result = true;
                     }
-                    else
-                        response["supported"] = iarmData.isSupported;
                 }
             }
             else
@@ -897,34 +997,48 @@ namespace WPEFramework
             returnResponse(result)
         }
 
-        uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
+        uint32_t Network::getIPSettings2(const JsonObject& parameters, JsonObject& response)
         {
+            JsonObject internal;
+            JsonObject InternalResponse;
+            int errCode;
             bool result = false;
             string interface = "";
             string ipversion = "";
             if(m_isPluginInited)
             {
-                if ((parameters.HasLabel("interface")) || (parameters.HasLabel("ipversion")))
-                {
-                    getStringParameter("interface", interface);
-                    getStringParameter("ipversion", ipversion);
-                }
-                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-                strncpy(iarmData.interface, interface.c_str(), 16);
-                strncpy(iarmData.ipversion, ipversion.c_str(), 16);
-                iarmData.isSupported = true;
+                getDefaultStringParameter("interface", interface, "");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion, "");
+                internal ["ipversion"] = ipversion;
 
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+                if (getIPSettingsInternal(internal,InternalResponse,errCode))
                 {
-                    response["interface"] = string(iarmData.interface);
-                    response["ipversion"] = string(iarmData.ipversion);
-                    response["autoconfig"] = iarmData.autoconfig;
-                    response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
-                    response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
-                    response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
-                    response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
-                    response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
-                    result = true;
+                    /*If the device was configured to use autoconfig IP but device does not have valid IP yet Could be the Router does not have DHCP Server running or
+                     * the device is in the process of acquiring it from the router),it must return only the autoconfig and the interface name.
+                     */
+                     if (errCode == NETWORK_IPADDRESS_NOTFOUND)
+                     {
+                         response["interface"] = InternalResponse["interface"];
+                         response["autoconfig"] = InternalResponse["autoconfig"];
+                         result = true;
+                         returnResponse(result)
+                     }
+                     if (errCode == NETWORK_IPADDRESS_ACQUIRED)
+                     {
+                         response["interface"] = InternalResponse["interface"];
+                         response["ipversion"] = InternalResponse["ipversion"];
+                         response["autoconfig"] = InternalResponse["autoconfig"];
+                         response["ipaddress"] = InternalResponse["ipaddr"];
+                         response["netmask"] = InternalResponse["netmask"];
+                         response["gateway"] = InternalResponse["gateway"];
+                         response["primarydns"] = InternalResponse["primarydns"];
+                         string secondarydns = InternalResponse["secondarydns"].String();
+                        //If the secondaryDNS was not set , it shouldn't return secondaryDNS in response.
+                         if (!secondarydns.empty())
+                             response["secondarydns"] = secondarydns;
+                        result = true;
+                     }
                 }
             }
             else
@@ -933,6 +1047,35 @@ namespace WPEFramework
             }
 
             returnResponse(result)
+        }
+
+        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode)
+        {
+            string interface = "";
+            string ipversion = "";
+            bool result = false;
+
+            getStringParameter("interface", interface);
+            getStringParameter("ipversion", ipversion);
+
+            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+            strncpy(iarmData.interface, interface.c_str(), 16);
+            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+            iarmData.isSupported = true;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+            {
+                response["interface"] = string(iarmData.interface);
+                response["ipversion"] = string(iarmData.ipversion);
+                response["autoconfig"] = iarmData.autoconfig;
+                response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+                response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
+                response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
+                response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
+                response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
+                errCode = iarmData.errCode;
+                result = true;
+            }
+            return result;
         }
 
         uint32_t Network::isConnectedToInternet (const JsonObject &parameters, JsonObject &response)
@@ -1031,7 +1174,7 @@ namespace WPEFramework
             getDefaultNumberParameter("cache_timeout", m_stunCacheTimeout, 0);
 
             returnResponse(true);
-	}
+    }
 
         uint32_t Network::getPublicIPInternal(const JsonObject& parameters, JsonObject& response)
         {
