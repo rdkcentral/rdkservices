@@ -87,7 +87,7 @@ Network interface methods:
 | :-------- | :-------- |
 | [getDefaultInterface](#method.getDefaultInterface) | Gets the default network interface |
 | [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
-| [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
+| [getIPSettings](#method.getIPSettings) | Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface |
 | [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
 | [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
@@ -99,7 +99,7 @@ Network interface methods:
 | [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
 | [setDefaultInterface](#method.setDefaultInterface) | Sets the default interface |
 | [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
-| [setIPSettings](#method.setIPSettings) | Sets the IP settings |
+| [setIPSettings](#method.setIPSettings) | Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS |
 | [getPublicIP](#method.getPublicIP) | Determine WAN ip address |
 | [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for `getPublicIP`  |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
@@ -205,7 +205,7 @@ This method takes no parameters.
 <a name="method.getIPSettings"></a>
 ## *getIPSettings [<sup>method</sup>](#head.Methods)*
 
-Gets the IP setting for the given interface.
+Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface
 
 ### Parameters
 
@@ -227,7 +227,7 @@ Gets the IP setting for the given interface.
 | result.netmask | string | The network mask address |
 | result.gateway | string | The gateway address |
 | result.primarydns | string | The primary DNS address |
-| result.secondarydns | string | The secondary DNS address |
+| result?.secondarydns | string | <sup>*(optional)*</sup> The secondary DNS address |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -823,7 +823,7 @@ Enables the specified interface.
 <a name="method.setIPSettings"></a>
 ## *setIPSettings [<sup>method</sup>](#head.Methods)*
 
-Sets the IP settings.
+Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS
 
 ### Parameters
 
@@ -837,7 +837,7 @@ Sets the IP settings.
 | params.netmask | string | The network mask address |
 | params.gateway | string | The gateway address |
 | params.primarydns | string | The primary DNS address |
-| params.secondarydns | string | The secondary DNS address |
+| params?.secondarydns | string | <sup>*(optional)*</sup> The secondary DNS address |
 
 ### Result
 
