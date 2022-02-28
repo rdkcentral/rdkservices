@@ -126,6 +126,9 @@ namespace WPEFramework {
         private:
             NetUtils m_netUtils;
             string m_stunEndPoint;
+            string m_isHybridDevice;
+            string m_defaultInterface;
+            string m_gatewayInterface;
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
