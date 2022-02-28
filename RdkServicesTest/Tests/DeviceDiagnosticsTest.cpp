@@ -48,11 +48,6 @@ TEST(DeviceDiagnosticsTest, test) {
     Config server(serverConf, error);
     EXPECT_FALSE(error.IsSet());
 
-    // epxect plugin is runing
-    WPEFramework::Plugin::Config plugin;
-    plugin.IElement::FromFile(pluginConf, error);
-    EXPECT_FALSE(error.IsSet());
-
     EXPECT_EQ(string(""), deviceDiagnostic->Initialize(nullptr));
 
     // invoke plugin

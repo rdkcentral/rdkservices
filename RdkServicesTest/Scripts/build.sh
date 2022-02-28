@@ -131,13 +131,6 @@ buildAndInstallRdkservices() {
   make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
 }
 
-installMockServer() {
-  cd "$ROOT"
-  docker pull mockserver/mockserver
-  npm install mockserver-node --save-dev
-  npm install mockserver-client --save-dev
-}
-
 if ! checkPython "Python 3"; then
   echo "python3 should be installed (for Thunder)"
   exit 1
@@ -169,8 +162,6 @@ buildAndInstallThunderInterfaces
 checkWPEFramework
 
 buildAndInstallRdkservices
-
-installMockServer
 
 echo "==== DONE ===="
 
