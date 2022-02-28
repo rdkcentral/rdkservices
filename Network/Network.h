@@ -25,6 +25,7 @@
 #include "Module.h"
 #include "NetUtils.h"
 #include "utils.h"
+#include "AbstractPlugin.h"
 #include "upnpdiscoverymanager.h"
 
 
@@ -47,7 +48,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Network : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class Network : public AbstractPlugin {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -74,7 +75,9 @@ namespace WPEFramework {
             uint32_t ping(const JsonObject& parameters, JsonObject& response);
             uint32_t pingNamedEndpoint(const JsonObject& parameters, JsonObject& response);
             uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIPSettings2(const JsonObject& parameters, JsonObject& response);
             uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIPSettings2(const JsonObject& parameters, JsonObject& response);
             uint32_t getSTBIPFamily(const JsonObject& parameters, JsonObject& response);
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
@@ -89,7 +92,7 @@ namespace WPEFramework {
             static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-	    // Netmask Validation
+            // Netmask Validation
             bool isValidCIDRv4(std::string interface);
             // Internal methods
             bool _getDefaultInterface(std::string& interface, std::string& gateway);
@@ -102,6 +105,8 @@ namespace WPEFramework {
 
             JsonObject _doPing(const std::string& guid, const std::string& endPoint, int packets);
             JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
+            bool getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode);
+            uint32_t setIPSettingsInternal(const JsonObject& parameters, JsonObject& response);
 
         public:
             Network();
@@ -122,6 +127,8 @@ namespace WPEFramework {
         public:
             static Network *_instance;
             static Network *getInstance() {return _instance;}
+            static const short API_VERSION_NUMBER_MINOR;
+            static const short API_VERSION_NUMBER_MAJOR;
 
         private:
             NetUtils m_netUtils;
@@ -133,6 +140,7 @@ namespace WPEFramework {
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
             bool m_stunSync;
+            uint32_t m_apiVersionNumber;
         };
     } // namespace Plugin
 } // namespace WPEFramework
