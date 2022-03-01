@@ -27,6 +27,9 @@ using namespace std;
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
+const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
@@ -157,12 +160,12 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-	SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
         Network* Network::_instance = nullptr;
 
-	Network::Network()
+        Network::Network()
         : AbstractPlugin(Network::API_VERSION_NUMBER_MAJOR)
-        ,m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
+        , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
             m_isPluginInited = false;
@@ -291,7 +294,9 @@ namespace WPEFramework
             Unregister("ping");
             Unregister("pingNamedEndpoint");
             Unregister("setIPSettings");
+            Unregister("setIPSettings2");
             Unregister("getIPSettings");
+            Unregister("getIPSettings2");
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
             Unregister("getPublicIP");
@@ -346,14 +351,14 @@ namespace WPEFramework
             while(i < CIDR_NETMASK_IP_LEN)
             {
                 if((buf.compare(CIDR_PREFIXES[i])) == 0)
-	        {
+                {
                     retval = true;
                     break;
                 }
                 i++;
             }
             return retval;
-	}
+        }
 
 
         void  Network::retryIarmEventRegistration()
@@ -420,7 +425,7 @@ namespace WPEFramework
                         string iface = m_netUtils.getInterfaceDescription(list.interfaces[i].name);
 #ifdef NET_DEFINED_INTERFACES_ONLY
                         if (iface == "")
-                            continue;					// Skip unrecognised interfaces...
+                            continue;                    // Skip unrecognised interfaces...
 #endif
                         interface["interface"] = iface;
                         interface["macAddress"] = string(list.interfaces[i].mac);
@@ -795,6 +800,7 @@ namespace WPEFramework
                 return  setIPSettingsInternal(parameters, response);
             else
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+
             returnResponse(result)
         }
 
@@ -809,15 +815,15 @@ namespace WPEFramework
             string primarydns = "";
             string secondarydns = "";
             bool autoconfig = true;
-	    bool result = false;
+            bool result = false;
 
             if(m_isPluginInited)
-	    {
-	        getDefaultStringParameter("interface", interface, "");
+            {
+                getDefaultStringParameter("interface", interface, "");
                 internal ["interface"] = interface;
                 getDefaultStringParameter("ipversion", ipversion, "");
                 internal ["ipversion"] = ipversion;
-                getDefaultBoolParameter("autoconfig", autoconfig,"false");
+                getDefaultBoolParameter("autoconfig", autoconfig, true);
                 internal ["autoconfig"] = autoconfig;
                 getDefaultStringParameter("ipaddr", ipaddr, "");
                 internal ["ipaddr"] = ipaddr;
@@ -825,28 +831,29 @@ namespace WPEFramework
                 internal ["netmask"] = netmask;
                 getDefaultStringParameter("gateway", gateway, "");
                 internal ["gateway"] = gateway;
-                getDefaultStringParameter("primarydns", primarydns, "");
+                getDefaultStringParameter("primarydns", primarydns, "0.0.0.0");
                 internal ["primarydns"] = primarydns;
                 getDefaultStringParameter("secondarydns", secondarydns, "");
                 internal ["secondarydns"] = secondarydns;
-		return  setIPSettingsInternal(internal, response);
-	    }
-	    else
+
+                return  setIPSettingsInternal(internal, response);
+            }
+            else
             {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
-	    }
+            }
             returnResponse(result)
-	}
-	
-	uint32_t Network::setIPSettingsInternal(const JsonObject& parameters, JsonObject& response)
+        }
+    
+        uint32_t Network::setIPSettingsInternal(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
             struct in_addr ip_address, gateway_address, mask;
             struct in_addr broadcast_addr1, broadcast_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
-               (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
-               (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+                (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
+                (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
             {
                 string interface = "";
                 string ipversion = "";
@@ -963,16 +970,16 @@ namespace WPEFramework
             string ipversion = "";
             if(m_isPluginInited)
             {
-	        getDefaultStringParameter("interface", interface,"");
+                getDefaultStringParameter("interface", interface,"");
                 internal ["interface"] = interface;
                 getDefaultStringParameter("ipversion", ipversion,"");
                 internal ["ipversion"] = ipversion;
 
-                if (getIPSettingsInternal(internal,InternalResponse,errCode))
+                if (getIPSettingsInternal(internal, InternalResponse, errCode))
                 {
                     if (NETWORK_IPADDRESS_ACQUIRED == errCode)
-		    {
-		        response["interface"] = InternalResponse["interface"];
+                    {
+                        response["interface"] = InternalResponse["interface"];
                         response["ipversion"] = InternalResponse["ipversion"];
                         response["autoconfig"] = InternalResponse["autoconfig"];
                         response["ipaddr"] = InternalResponse["ipaddr"];
@@ -981,9 +988,9 @@ namespace WPEFramework
                         response["primarydns"] = InternalResponse["primarydns"];
                         response["secondarydns"] = InternalResponse["secondarydns"];
                         result = true;
-		    }
-		}
-	    }
+                    }
+                }
+            }
             else
             {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
@@ -1001,8 +1008,8 @@ namespace WPEFramework
             string interface = "";
             string ipversion = "";
             if(m_isPluginInited)
-	    {
-	        getDefaultStringParameter("interface", interface, "");
+            {
+                getDefaultStringParameter("interface", interface, "");
                 internal ["interface"] = interface;
                 getDefaultStringParameter("ipversion", ipversion, "");
                 internal ["ipversion"] = ipversion;
@@ -1010,7 +1017,8 @@ namespace WPEFramework
                 if (getIPSettingsInternal(internal,InternalResponse,errCode))
                 {
                     /*If the device was configured to use autoconfig IP but device does not have valid IP yet Could be the Router does not have DHCP Server running or
-                   * the device is in the process of acquiring it from the router),it must return only the autoconfig and the interface name. */
+                     * the device is in the process of acquiring it from the router),it must return only the autoconfig and the interface name.
+                     */
                      if ( InternalResponse["ipaddr"].Content() == Core::JSON::Variant::type::EMPTY || errCode == NETWORK_IPADDRESS_NOTFOUND )
                      {
                          response["interface"] = InternalResponse["interface"];
@@ -1033,13 +1041,13 @@ namespace WPEFramework
                         result = true;
                      }
                 }
-	    }
-	    else
+            }
+            else
             {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
             
-	    returnResponse(result)
+            returnResponse(result)
         }
 
         bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject response,int errCode)
@@ -1051,7 +1059,7 @@ namespace WPEFramework
             getStringParameter("interface", interface);
             getStringParameter("ipversion", ipversion);
 
-	    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
             strncpy(iarmData.interface, interface.c_str(), 16);
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
             iarmData.isSupported = true;
@@ -1174,7 +1182,7 @@ namespace WPEFramework
             getDefaultNumberParameter("cache_timeout", m_stunCacheTimeout, 0);
 
             returnResponse(true);
-	}
+    }
 
         uint32_t Network::getPublicIPInternal(const JsonObject& parameters, JsonObject& response)
         {
