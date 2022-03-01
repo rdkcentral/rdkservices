@@ -419,15 +419,15 @@ namespace WPEFramework {
                     {
                         _sock_adaptor->get_data(data); // closes the socket
                         if (data.size() > 0) {
-                            LOGINFO("Got a clip: %u bytes", data.size());
+                            LOGINFO("Got a clip: %lu bytes", data.size());
                             break;
                         } else {
                             LOGWARN("No data in the socket. One more attempt in %d sec", time_wait_sec);
                             usleep(1000 * 1000 * time_wait_sec);
-                            --attemptsLeft;
                             continue;
                         }
                     }
+                    --attemptsLeft;
                 }
 
                 if(data.size() > 0)
@@ -456,7 +456,7 @@ namespace WPEFramework {
 //                        LOGERR("Unable to delete %s", path);
 //                    }
                 } else {
-                    LOGERR("Unable to read data from %s (connection error)", payload->dataLocator);
+                    LOGERR("Unable to read data from %s (connection error)", payload->dataLocator.c_str());
                     params["status"] = false;
                     params["message"] = std::string("Unable to read data from  ") + string(payload->dataLocator);
                 }
@@ -480,7 +480,7 @@ namespace WPEFramework {
                 return false;
             }
 
-            LOGWARN("uploading pcm data of size %u to '%s'", data.size(), url);
+            LOGWARN("uploading pcm data of size %lu to '%s'", data.size(), url);
 
             //init curl
             curl_global_init(CURL_GLOBAL_ALL);
