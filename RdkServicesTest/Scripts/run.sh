@@ -2,7 +2,6 @@
 
 set -e
 
-COINTAINER_NAME="mockserver"
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
 

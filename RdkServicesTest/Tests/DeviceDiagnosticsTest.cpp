@@ -21,10 +21,6 @@
 
 #include "DeviceDiagnostics.h"
 
-#include "Source/WorkerPoolImplementation.h"
-#include "Source/Config.h"
-#include "Source/Service.h"
-
 namespace RdkServicesTest {
 
 TEST(DeviceDiagnosticsTest, test) {
@@ -42,12 +38,6 @@ TEST(DeviceDiagnosticsTest, test) {
     // init plugin
     WPEFramework::Core::File pluginConf(string("thunder/install/etc/WPEFramework/plugins/DeviceDiagnostics.json"), false);
     EXPECT_TRUE(pluginConf.Open(true));
-
-    // expect server is runing
-    WPEFramework::Core::OptionalType<WPEFramework::Core::JSON::Error> error;
-    Config server(serverConf, error);
-    EXPECT_FALSE(error.IsSet());
-
     EXPECT_EQ(string(""), deviceDiagnostic->Initialize(nullptr));
 
     // invoke plugin
