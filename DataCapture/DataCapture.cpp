@@ -17,15 +17,15 @@
 * limitations under the License.
 **/
 
+#include "DataCapture.h"
 
 #include <algorithm>
-#include <regex>
-#include "audiocapturemgr_iarm.h"
-#undef LOG // we don't need LOG from audiocapturemgr_iarm as we are defining our own LOG
-#include "DataCapture.h"
 #include <curl/curl.h>
-#include "socket_adaptor.h"
+#include <regex>
 
+#undef LOG // we don't need LOG from audiocapturemgr_iarm as we are defining our own LOG
+#include "audiocapturemgr_iarm.h"
+#include "socket_adaptor.h"
 #include "UtilsCStr.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -91,7 +91,7 @@ namespace WPEFramework {
 
         DataCapture::~DataCapture()
         {
-            //LOGINFO("dtor");
+            LOGINFO("dtor");
             Unregister(METHOD_ENABLE_AUDIO_CAPTURE);
             Unregister(METHOD_GET_AUDIO_CLIP);
         }

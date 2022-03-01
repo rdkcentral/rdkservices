@@ -21,6 +21,7 @@
 
 #include "Module.h"
 #include "libIARM.h"
+#include "libIBus.h"
 
 class socket_adaptor;
 

@@ -2,8 +2,6 @@
 
 #include "UtilsLogging.h"
 
-#include "libIBus.h"
-
 #define IARM_CHECK(FUNC) { \
     if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
         LOGINFO("IARM %s: %s", #FUNC, \
