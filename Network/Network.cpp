@@ -63,6 +63,16 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
+typedef enum _NetworkManager_GetIPSettings_ErrorCode_t
+{
+  NETWORK_IPADDRESS_ACQUIRED,
+  NETWORK_IPADDRESS_NOTFOUND,
+  NETWORK_NO_ROUTE_INTERFACE,
+  NETWORK_NO_DEFAULT_ROUTE,
+  NETWORK_DNS_NOT_CONFIGURED,
+  NETWORK_INVALID_IPADDRESS,
+} NetworkManager_GetIPSettings_ErrorCode_t;
+
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
@@ -86,6 +96,7 @@ typedef struct {
     char primarydns[MAX_IP_ADDRESS_LEN];
     char secondarydns[MAX_IP_ADDRESS_LEN];
     bool isSupported;
+    NetworkManager_GetIPSettings_ErrorCode_t errCode;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
 typedef struct
@@ -146,12 +157,15 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, 1, 0);
+	SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
         Network* Network::_instance = nullptr;
 
-        Network::Network() : PluginHost::JSONRPC()
+	Network::Network()
+        : AbstractPlugin(Network::API_VERSION_NUMBER_MAJOR)
+        ,m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
+            m_isPluginInited = false;
 
             // Quirk
             Register("getQuirks", &Network::getQuirks, this);
@@ -173,16 +187,30 @@ namespace WPEFramework
             Register("ping",              &Network::ping, this);
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
-            Register("setIPSettings", &Network::setIPSettings, this);
-            Register("getIPSettings", &Network::getIPSettings, this);
+            registerMethod("setIPSettings", &Network::setIPSettings, this, {1});
+            registerMethod("setIPSettings", &Network::setIPSettings2, this, {2});
+            registerMethod("getIPSettings", &Network::getIPSettings, this, {1});
+            registerMethod("getIPSettings", &Network::getIPSettings2, this, {2});
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
             Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
             Register("getPublicIP", &Network::getPublicIP, this);
+            Register("setStunEndPoints", &Network::setStunEndPoints, this);
+
+            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
+            m_isHybridDevice = Utils::cRunScript(script1).substr();
+            LOGWARN("script1 '%s' result: '%s'", script1, m_isHybridDevice.c_str());
+            m_defaultInterface = "";
+            m_gatewayInterface = "";
 
             m_netUtils.InitialiseNetUtils();
+            m_stunEndPoint = "stun.l.google.com";
+            m_stunPort = 19302;
+            m_stunBindTimeout = 30;
+            m_stunCacheTimeout = 0;
+            m_stunSync = true;
         }
 
         Network::~Network()
@@ -199,13 +227,22 @@ namespace WPEFramework
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
                 char c;
-                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+                uint32_t retry = 0;
+                do{
+                    retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
+                    if(retVal != IARM_RESULT_SUCCESS){
+                        LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
+                        usleep(500*1000);
+                        retry++;
+                    }
+                }while((retVal != IARM_RESULT_SUCCESS) && (retry < 20));
 #endif
 
                 if(retVal != IARM_RESULT_SUCCESS)
                 {
                     msg = "NetSrvMgr is not available";
-                    LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin");
+                    LOGERR("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread");
+                    retryIarmEventRegistration();
                 }
                 else {
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
@@ -213,6 +250,7 @@ namespace WPEFramework
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
+                    m_isPluginInited = true;
                 }
             }
             else
@@ -226,6 +264,12 @@ namespace WPEFramework
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
+            m_isPluginInited = false;
+            if(m_registrationThread.joinable())
+            {
+                m_registrationThread.join();
+            }
+
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -251,6 +295,7 @@ namespace WPEFramework
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
             Unregister("getPublicIP");
+            Unregister("setStunEndPoints");
 
             Network::_instance = nullptr;
         }
@@ -310,6 +355,45 @@ namespace WPEFramework
             return retval;
 	}
 
+
+        void  Network::retryIarmEventRegistration()
+        {
+            m_registrationThread = thread(&Network::threadEventRegistration, this);
+
+        }
+        void  Network::threadEventRegistration()
+        {
+            IARM_Result_t res = IARM_RESULT_SUCCESS;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+#ifndef NET_DISABLE_NETSRVMGR_CHECK
+            do
+            {
+                char c;
+                uint32_t retry = 0;
+                retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c));
+                if(retVal != IARM_RESULT_SUCCESS){
+                    LOGERR("threadEventRegistration: NetSrvMgr is not available. Failed to activate Network Plugin, retrying count = %d", retry);
+                    usleep(500*1000);
+                    retry++;
+                }
+            }while((retVal != IARM_RESULT_SUCCESS)  && (m_isPluginInited != true ));
+#endif
+
+            if(retVal != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("threadEventRegistration NetSrvMgr is not available. Failed to activate Network Plugin, retrying new cycle");
+            }
+            else
+            {
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
+                m_isPluginInited = true;
+            }
+
+        }
         // Wrapper methods
         uint32_t Network::getQuirks(const JsonObject& parameters, JsonObject& response)
         {
@@ -324,9 +408,11 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             bool result = false;
 
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
+            if(m_isPluginInited)
             {
-                JsonArray networkInterfaces;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
+                {
+                    JsonArray networkInterfaces;
 
                     for (int i = 0; i < list.size; i++)
                     {
@@ -341,14 +427,21 @@ namespace WPEFramework
                         interface["enabled"] = ((list.interfaces[i].flags & IFF_UP) != 0);
                         interface["connected"] = ((list.interfaces[i].flags & IFF_RUNNING) != 0);
 
-                    networkInterfaces.Add(interface);
-                }
+                        networkInterfaces.Add(interface);
+                    }
 
-                response["interfaces"] = networkInterfaces;
-                result = true;
+                    response["interfaces"] = networkInterfaces;
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
             }
             else
-                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
 
             returnResponse(result)
         }
@@ -357,46 +450,60 @@ namespace WPEFramework
         {
             string interface;
             string gateway;
-            
+
             bool result = false;
-            if (_getDefaultInterface(interface, gateway))
+            if(m_isPluginInited)
             {
-                response["interface"] = m_netUtils.getInterfaceDescription(interface);
-                result = true;
+                if (_getDefaultInterface(interface, gateway))
+                {
+                    response["interface"] = m_netUtils.getInterfaceDescription(interface);
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+                }
+
+                returnResponse(result)
             }
-            
-            returnResponse(result)
         }
 
         uint32_t Network::setDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
 
-            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
+            if(m_isPluginInited)
             {
-                string interface = "";
-                bool persist = false;
-
-                getStringParameter("interface", interface)
-
-                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
                 {
-                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface.c_str());
-                    returnResponse (result)
+                    string interface = "";
+                    bool persist = false;
+
+                    getStringParameter("interface", interface)
+
+                        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                        {
+                            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setDefaultInterface, interface.c_str());
+                            returnResponse (result)
+                        }
+
+                    getBoolParameter("persist", persist)
+
+                        IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                    strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                    iarmData.persist = persist;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
+                        result = true;
+                    else
+                        LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
                 }
-
-                getBoolParameter("persist", persist)
-
-                IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
-                iarmData.persist = persist;
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
-                    result = true;
-                else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
             }
-            
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
             returnResponse(result)
         }
 
@@ -404,17 +511,26 @@ namespace WPEFramework
         {
             IARM_BUS_NetSrvMgr_Iface_EventData_t param;
             memset(&param, 0, sizeof(param));
-            
+
             bool result = false;
 
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
+            if(m_isPluginInited)
             {
-                response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                result = true;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
+                {
+                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                    result = true;
+                }
+                else
+                {
+                    response["ip"] = "";
+                }
             }
             else
-                response["ip"] = "";
-            
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
             returnResponse(result)
         }
 
@@ -422,29 +538,38 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if (parameters.HasLabel("family"))
+            if(m_isPluginInited)
             {
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                memset(&param, 0, sizeof(param));
-                
-                string ipfamily("");
-                getStringParameter("family", ipfamily);
-                strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
+                if (parameters.HasLabel("family"))
                 {
-                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    result = true;
+                    IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                    memset(&param, 0, sizeof(param));
+
+                    string ipfamily("");
+                    getStringParameter("family", ipfamily);
+                    strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
+                    {
+                        response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                        result = true;
+                    }
+                    else
+                    {
+                        LOGWARN ("Query to get IPaddress by Family Failed..");
+                        response["ip"] = "";
+                    }
                 }
                 else
                 {
-                    LOGWARN ("Query to get IPaddress by Family Failed..");
-                    response["ip"] = "";
+                    LOGWARN ("Required Family Attribute is not provided.");
                 }
             }
             else
-                LOGWARN ("Required Family Attribute is not provided.");
-            
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
             returnResponse(result)
         }
         
@@ -452,28 +577,35 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if (parameters.HasLabel("interface"))
+            if(m_isPluginInited)
             {
-                string interface = "";
-                getStringParameter("interface", interface)
-
-                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                if (parameters.HasLabel("interface"))
                 {
-                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, interface.c_str());
-                    returnResponse (result)
-                }
+                    string interface = "";
+                    getStringParameter("interface", interface)
 
-                IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-                strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
+                        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                        {
+                            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, interface.c_str());
+                            returnResponse (result)
+                        }
 
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
-                {
-                    LOGINFO("%s :: Enabled = %d ",__FUNCTION__,param.isInterfaceEnabled);
-                    response["enabled"] = param.isInterfaceEnabled;
-                    result = true;
+                    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
+                    strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
+                    {
+                        LOGINFO("%s :: Enabled = %d ",__FUNCTION__,param.isInterfaceEnabled);
+                        response["enabled"] = param.isInterfaceEnabled;
+                        result = true;
+                    }
+                    else
+                        LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
                 }
-                else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
             returnResponse(result)
@@ -483,32 +615,39 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
+            if(m_isPluginInited)
             {
-                string interface = "";
-                bool enabled = false;
-                bool persist = false;
-
-                getStringParameter("interface", interface)
-
-                if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
                 {
-                    LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface.c_str());
-                    returnResponse (result)
+                    string interface = "";
+                    bool enabled = false;
+                    bool persist = false;
+
+                    getStringParameter("interface", interface)
+
+                        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                        {
+                            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface.c_str());
+                            returnResponse (result)
+                        }
+
+                    getBoolParameter("enabled", enabled)
+                        getBoolParameter("persist", persist)
+
+                        IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                    strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                    iarmData.isInterfaceEnabled = enabled;
+                    iarmData.persist = persist;
+
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+                        result = true;
+                    else
+                        LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
                 }
-
-                getBoolParameter("enabled", enabled)
-                getBoolParameter("persist", persist)
-
-                IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
-                strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
-                iarmData.isInterfaceEnabled = enabled;
-                iarmData.persist = persist;
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
-                    result = true;
-                else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
             returnResponse(result)
@@ -527,21 +666,28 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if (!parameters.HasLabel("endpoint"))
-                LOGERR("No endpoint specified");
+            if(m_isPluginInited)
+            {
+                if (!parameters.HasLabel("endpoint"))
+                    LOGERR("No endpoint specified");
+                else
+                {
+                    string endpoint = "";
+                    int packets = 0;
+
+                    getStringParameter("endpoint", endpoint);
+                    if (parameters.HasLabel("packets")) // packets is optional?
+                        getNumberParameter("packets", packets);
+
+                    if (_doTrace(endpoint, packets, response))
+                        result = true;
+                    else
+                        LOGERR("Failed to perform network trace");
+                }
+            }
             else
             {
-                string endpoint = "";
-                int packets = 0;
-
-                getStringParameter("endpoint", endpoint);
-                if (parameters.HasLabel("packets")) // packets is optional?
-                    getNumberParameter("packets", packets);
-
-                if (_doTrace(endpoint, packets, response))
-                    result = true;
-                else
-                    LOGERR("Failed to perform network trace");
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
             returnResponse(result)
@@ -551,21 +697,28 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if (!parameters.HasLabel("endpointName"))
-                LOGERR("No endpointName specified");
+            if(m_isPluginInited)
+            {
+                if (!parameters.HasLabel("endpointName"))
+                    LOGERR("No endpointName specified");
+                else
+                {
+                    string endpointName = "";
+                    int packets = 0;
+
+                    getStringParameter("endpointName", endpointName);
+                    if (parameters.HasLabel("packets")) // packets is optional?
+                        getNumberParameter("packets", packets);
+
+                    if (_doTraceNamedEndpoint(endpointName, packets, response))
+                        result = true;
+                    else
+                        LOGERR("Failed to perform network trace names endpoint");
+                }
+            }
             else
             {
-                string endpointName = "";
-                int packets = 0;
-
-                getStringParameter("endpointName", endpointName);
-                if (parameters.HasLabel("packets")) // packets is optional?
-                    getNumberParameter("packets", packets);
-
-                if (_doTraceNamedEndpoint(endpointName, packets, response))
-                    result = true;
-                else
-                    LOGERR("Failed to perform network trace names endpoint");
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
             returnResponse(result)
@@ -576,21 +729,29 @@ namespace WPEFramework
             string guid;
             getStringParameter("guid", guid)
 
-            uint32_t packets;
+                uint32_t packets;
             getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
 
             bool result = false;
 
-            if (parameters.HasLabel("endpoint"))
+            if(m_isPluginInited)
             {
-                string endpoint;
-                getStringParameter("endpoint", endpoint);
-                response = _doPing(guid, endpoint, packets);
-                result = response["success"].Boolean();
+                if (parameters.HasLabel("endpoint"))
+                {
+                    string endpoint;
+                    getStringParameter("endpoint", endpoint);
+                    response = _doPing(guid, endpoint, packets);
+                    result = response["success"].Boolean();
+                }
+                else
+                {
+                    LOGERR("No endpoint argument");
+                }
             }
             else
-                LOGERR("No endpoint argument");
-
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
             returnResponse(result)
         }
 
@@ -604,16 +765,25 @@ namespace WPEFramework
 
             bool result = false;
 
-            if (parameters.HasLabel("endpointName"))
+            if(m_isPluginInited)
             {
-                string endpointName;
-                getDefaultStringParameter("endpointName", endpointName, "")
+                if (parameters.HasLabel("endpointName"))
+                {
+                    string endpointName;
+                    getDefaultStringParameter("endpointName", endpointName, "")
 
-                response = _doPingNamedEndpoint(guid, endpointName, packets);
-                result = response["success"].Boolean();
+                        response = _doPingNamedEndpoint(guid, endpointName, packets);
+                    result = response["success"].Boolean();
+                }
+                else
+                {
+                    LOGERR("No endpointName argument");
+                }
             }
             else
-                LOGERR("No endpointName argument");
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
 
             returnResponse(result)
         }
@@ -621,12 +791,62 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+            if(m_isPluginInited)
+                return  setIPSettingsInternal(parameters, response);
+            else
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            returnResponse(result)
+        }
+
+        uint32_t Network::setIPSettings2(const JsonObject& parameters, JsonObject& response)
+        {
+            JsonObject internal;
+            string interface = "";
+            string ipversion = "";
+            string netmask = "";
+            string gateway = "";
+            string ipaddr = "";
+            string primarydns = "";
+            string secondarydns = "";
+            bool autoconfig = true;
+	    bool result = false;
+
+            if(m_isPluginInited)
+	    {
+	        getDefaultStringParameter("interface", interface, "");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion, "");
+                internal ["ipversion"] = ipversion;
+                getDefaultBoolParameter("autoconfig", autoconfig,"false");
+                internal ["autoconfig"] = autoconfig;
+                getDefaultStringParameter("ipaddr", ipaddr, "");
+                internal ["ipaddr"] = ipaddr;
+                getDefaultStringParameter("netmask", netmask, "");
+                internal ["netmask"] = netmask;
+                getDefaultStringParameter("gateway", gateway, "");
+                internal ["gateway"] = gateway;
+                getDefaultStringParameter("primarydns", primarydns, "");
+                internal ["primarydns"] = primarydns;
+                getDefaultStringParameter("secondarydns", secondarydns, "");
+                internal ["secondarydns"] = secondarydns;
+		return  setIPSettingsInternal(internal, response);
+	    }
+	    else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+	    }
+            returnResponse(result)
+	}
+	
+	uint32_t Network::setIPSettingsInternal(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
             struct in_addr ip_address, gateway_address, mask;
             struct in_addr broadcast_addr1, broadcast_addr2;
 
             if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
-                (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
-                (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
+               (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
+               (parameters.HasLabel("primarydns")) && (parameters.HasLabel("secondarydns")))
             {
                 string interface = "";
                 string ipversion = "";
@@ -678,10 +898,10 @@ namespace WPEFramework
                     mask_validation = isValidCIDRv4(netmask.c_str());
                     if (false == mask_validation)
                     {
-                        LOGWARN("Netmask is not valid ..\n");
-                        response["supported"] = iarmData.isSupported;
-                        result = false;
-                        returnResponse(result)
+                       LOGWARN("Netmask is not valid ..\n");
+                       response["supported"] = iarmData.isSupported;
+                       result = false;
+                       returnResponse(result)
                     }
 
                     if (inet_pton(AF_INET, ipaddr.c_str(), &ip_address) == 1 &&
@@ -697,39 +917,37 @@ namespace WPEFramework
                             response["supported"] = iarmData.isSupported;
                             result = false;
                             returnResponse(result)
-                        }
-                        if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
-                        {
-                            LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
-                            response["supported"] = iarmData.isSupported;
-                            result = false;
-                            returnResponse(result)
-                        }
-                        if (ip_address.s_addr == broadcast_addr1.s_addr)
-                        {
-                            LOGWARN("Interface and Broadcast IP is same, return false \n");
-                            response["supported"] = iarmData.isSupported;
-                            result = false;
-                            returnResponse(result)
-                        }
-                        if (gateway_address.s_addr == broadcast_addr2.s_addr)
-                        {
-                            LOGWARN("Gateway and Broadcast IP is same, return false \n");
-                            response["supported"] = iarmData.isSupported;
-                            result = false;
-                            returnResponse(result)
-                        }
-                    }
-                }
-                if (IARM_RESULT_SUCCESS ==
-                    IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData,
-                                  sizeof(iarmData)))
-                {
-                    response["supported"] = iarmData.isSupported;
-                    result = true;
-                }
-                else
-                    response["supported"] = iarmData.isSupported;
+                         }
+                         if (broadcast_addr1.s_addr != broadcast_addr2.s_addr)
+                         {
+                             LOGWARN("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                             response["supported"] = iarmData.isSupported;
+                             result = false;
+                             returnResponse(result)
+                          }
+                          if (ip_address.s_addr == broadcast_addr1.s_addr)
+                          {
+                              LOGWARN("Interface and Broadcast IP is same, return false \n");
+                              response["supported"] = iarmData.isSupported;
+                              result = false;
+                              returnResponse(result)
+                          }
+                          if (gateway_address.s_addr == broadcast_addr2.s_addr)
+                          {
+                              LOGWARN("Gateway and Broadcast IP is same, return false \n");
+                              response["supported"] = iarmData.isSupported;
+                              result = false;
+                              returnResponse(result)
+                          }
+                     }
+                 }
+                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData, sizeof(iarmData)))
+                 {
+                     response["supported"] = iarmData.isSupported;
+                     result = true;
+                 }
+                 else
+                     response["supported"] = iarmData.isSupported;
             }
 
             returnResponse(result)
@@ -737,19 +955,106 @@ namespace WPEFramework
 
         uint32_t Network::getIPSettings(const JsonObject& parameters, JsonObject& response)
         {
+            JsonObject internal;
+            JsonObject InternalResponse;
+            int errCode;
             bool result = false;
             string interface = "";
             string ipversion = "";
-            if ((parameters.HasLabel("interface")) || (parameters.HasLabel("ipversion")))
+            if(m_isPluginInited)
             {
-                getStringParameter("interface", interface);
-                getStringParameter("ipversion", ipversion);
+	        getDefaultStringParameter("interface", interface,"");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion,"");
+                internal ["ipversion"] = ipversion;
+
+                if (getIPSettingsInternal(internal,InternalResponse,errCode))
+                {
+                    if (NETWORK_IPADDRESS_ACQUIRED == errCode)
+		    {
+		        response["interface"] = InternalResponse["interface"];
+                        response["ipversion"] = InternalResponse["ipversion"];
+                        response["autoconfig"] = InternalResponse["autoconfig"];
+                        response["ipaddr"] = InternalResponse["ipaddr"];
+                        response["netmask"] = InternalResponse["netmask"];
+                        response["gateway"] = InternalResponse["gateway"];
+                        response["primarydns"] = InternalResponse["primarydns"];
+                        response["secondarydns"] = InternalResponse["secondarydns"];
+                        result = true;
+		    }
+		}
+	    }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
-            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+
+            returnResponse(result)
+        }
+
+        uint32_t Network::getIPSettings2(const JsonObject& parameters, JsonObject& response)
+        {
+            JsonObject internal;
+            JsonObject InternalResponse;
+            int errCode;
+            bool result = false;
+            string interface = "";
+            string ipversion = "";
+            if(m_isPluginInited)
+	    {
+	        getDefaultStringParameter("interface", interface, "");
+                internal ["interface"] = interface;
+                getDefaultStringParameter("ipversion", ipversion, "");
+                internal ["ipversion"] = ipversion;
+
+                if (getIPSettingsInternal(internal,InternalResponse,errCode))
+                {
+                    /*If the device was configured to use autoconfig IP but device does not have valid IP yet Could be the Router does not have DHCP Server running or
+                   * the device is in the process of acquiring it from the router),it must return only the autoconfig and the interface name. */
+                     if ( InternalResponse["ipaddr"].Content() == Core::JSON::Variant::type::EMPTY || errCode == NETWORK_IPADDRESS_NOTFOUND )
+                     {
+                         response["interface"] = InternalResponse["interface"];
+                         response["autoconfig"] = InternalResponse["autoconfig"];
+                         result = true;
+                         returnResponse(result)
+                     }
+                     if (errCode == NETWORK_IPADDRESS_ACQUIRED)
+                     {
+                         response["interface"] = InternalResponse["interface"];
+                         response["ipversion"] = InternalResponse["ipversion"];
+                         response["autoconfig"] = InternalResponse["autoconfig"];
+                         response["ipaddress"] = InternalResponse["ipaddr"];
+                         response["netmask"] = InternalResponse["netmask"];
+                         response["gateway"] = InternalResponse["gateway"];
+                         response["primarydns"] = InternalResponse["primarydns"];
+                        //If the secondaryDNS was not set , it shouldn't return secondaryDNS in response.
+                        if ( InternalResponse["secondarydns"].Content() != Core::JSON::Variant::type::EMPTY )
+                            response["secondarydns"] = InternalResponse["secondarydns"];
+                        result = true;
+                     }
+                }
+	    }
+	    else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+            
+	    returnResponse(result)
+        }
+
+        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject response,int errCode)
+        {
+            string interface = "";
+            string ipversion = "";
+            bool result = false;
+
+            getStringParameter("interface", interface);
+            getStringParameter("ipversion", ipversion);
+
+	    IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
             strncpy(iarmData.interface, interface.c_str(), 16);
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
             iarmData.isSupported = true;
-
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
             {
                 response["interface"] = string(iarmData.interface);
@@ -760,9 +1065,10 @@ namespace WPEFramework
                 response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
+                errCode = iarmData.errCode;
                 result = true;
             }
-            returnResponse(result)
+            return result;
         }
 
         uint32_t Network::isConnectedToInternet (const JsonObject &parameters, JsonObject &response)
@@ -770,15 +1076,22 @@ namespace WPEFramework
             bool result = false;
             bool isconnected = false;
 
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
+            if(m_isPluginInited)
             {
-                LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
-                response["connectedToInternet"] = isconnected;
-                result = true;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
+                {
+                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
+                    response["connectedToInternet"] = isconnected;
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet);
+                }
             }
             else
             {
-                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet);
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
             returnResponse(result);
         }
@@ -787,98 +1100,145 @@ namespace WPEFramework
         {
             bool result = false;
             JsonArray endpoints = parameters["endpoints"].Array();
-            if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
+            if(m_isPluginInited)
             {
-                LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
-                returnResponse(result);
-            }
-            IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t iarmData;
-            JsonArray::Iterator index(endpoints.Elements());
-            iarmData.size = 0;
-            while (index.Next() == true)
-            {
-                if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
                 {
-                    strncpy(iarmData.endpoints[iarmData.size], index.Current().String().c_str(), MAX_ENDPOINT_SIZE);
-                    iarmData.size++;
+                    LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
+                    returnResponse(result);
+                }
+                IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t iarmData;
+                JsonArray::Iterator index(endpoints.Elements());
+                iarmData.size = 0;
+                while (index.Next() == true)
+                {
+                    if (Core::JSON::Variant::type::STRING == index.Current().Content())
+                    {
+                        strncpy(iarmData.endpoints[iarmData.size], index.Current().String().c_str(), MAX_ENDPOINT_SIZE);
+                        iarmData.size++;
+                    }
+                    else
+                    {
+                        LOGWARN("Unexpected variant type");
+                        returnResponse(result);
+                    }
+                }
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints, (void*) &iarmData, sizeof(iarmData)))
+                {
+                    result = true;
                 }
                 else
                 {
-                    LOGWARN("Unexpected variant type");
-                    returnResponse(result);
+                    LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints);
                 }
-            }
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints, (void*) &iarmData, sizeof(iarmData)))
-            {
-                result = true;
             }
             else
             {
-                LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints);
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
+
             returnResponse(result);
         }
 
         uint32_t Network::getPublicIP(const JsonObject& parameters, JsonObject& response)
+        {
+            JsonObject internal;
+            internal ["server"] = m_stunEndPoint;
+            internal ["port"] = m_stunPort;
+            internal ["timeout"] = m_stunBindTimeout;
+            internal ["cache_timeout"] = m_stunCacheTimeout;
+            internal ["sync"] = m_stunSync;
+
+            if (parameters.HasLabel("iface"))
+            {
+                string interface;
+                getStringParameter("iface", interface);
+                 internal ["iface"] = interface;
+            }
+            if (parameters.HasLabel("ipv6"))
+            {
+                bool isIpv6 = false;
+                getDefaultBoolParameter("ipv6", isIpv6, false);
+                internal ["ipv6"] = isIpv6;
+            }
+
+            return  getPublicIPInternal(internal, response);
+        }
+
+        uint32_t Network::setStunEndPoints(const JsonObject& parameters, JsonObject& response)
+        {
+            getDefaultStringParameter("server", m_stunEndPoint, "stun.l.google.com");
+            getDefaultNumberParameter("port", m_stunPort, 19302);
+            getDefaultBoolParameter("sync", m_stunSync, true);
+            getDefaultNumberParameter("timeout", m_stunBindTimeout, 30);
+            getDefaultNumberParameter("cache_timeout", m_stunCacheTimeout, 0);
+
+            returnResponse(true);
+	}
+
+        uint32_t Network::getPublicIPInternal(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
 
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
             string server, iface;
 
-            getDefaultStringParameter("server", server, "");
-            if (server.length() > MAX_HOST_NAME_LEN - 1)
+            if(m_isPluginInited)
             {
-                LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
-                returnResponse(false)               
+                getStringParameter("server", server);
+                if (server.length() > MAX_HOST_NAME_LEN - 1)
+                {
+                    LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
+                    returnResponse(result)
+                }
+
+                getNumberParameter("port", iarmData.port);
+
+                /*only makes sense to get both server and port or neither*/
+                if (!server.empty() && !iarmData.port)
+                {
+                    LOGWARN("invalid args: port missing");
+                    returnResponse(result)
+                } 
+                if (iarmData.port && server.empty())
+                {
+                    LOGWARN("invalid args: server missing");
+                    returnResponse(result)
+                }
+
+                getStringParameter("iface", iface);
+                if (iface.length() > 16 - 1)
+                {
+                    LOGWARN("invalid args: interface exceeds max length of 16");
+                    returnResponse(result)
+                }
+
+                getBoolParameter("ipv6", iarmData.ipv6);
+                getBoolParameter("sync", iarmData.sync);
+                getNumberParameter("timeout", iarmData.bind_timeout);
+                getNumberParameter("cache_timeout", iarmData.cache_timeout);
+
+                strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
+                strncpy(iarmData.interface, iface.c_str(), 16);
+
+                iarmData.public_ip[0] = '\0';
+
+                LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u sync=%u timeout=%u cache_timeout=%u\n", 
+                        iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.sync, iarmData.bind_timeout, iarmData.cache_timeout);
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
+                {
+                    response["public_ip"] = string(iarmData.public_ip);
+                    result = true;
+                }
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
-            getDefaultNumberParameter("port", iarmData.port, 0);
-
-            /*only makes sense to get both server and port or neither*/
-            if (!server.empty() && !iarmData.port)
-            {
-                LOGWARN("invalid args: port missing");
-                returnResponse(false)
-            } 
-            if (iarmData.port && server.empty())
-            {
-                LOGWARN("invalid args: server missing");
-                returnResponse(false)
-            }
-
-            getDefaultStringParameter("iface", iface, "");
-            if (iface.length() > 16 - 1)
-            {
-                LOGWARN("invalid args: interface exceeds max length of 16");
-                returnResponse(false)               
-            }
-	    
-            if (!(strcmp (iface.c_str(), "ETHERNET") == 0 || strcmp (iface.c_str(), "WIFI") == 0))
-            {
-                LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_getPublicIP, iface.c_str());
-                returnResponse (result)
-            }
-
-            getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
-            getDefaultBoolParameter("sync", iarmData.sync, true);
-            getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
-            getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
-
-            strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
-            strncpy(iarmData.interface, iface.c_str(), 16);
-
-            iarmData.public_ip[0] = '\0';
-
-            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u timeout=%u cache_timeout=%u\n", 
-                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.bind_timeout, iarmData.cache_timeout);
-
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
-            {
-                response["public_ip"] = string(iarmData.public_ip);
-                result = true;
-            }
-            returnResponse(result)
+            response["success"] = result;
+            return (Core::ERROR_NONE);
         }
 
         /*
@@ -1006,85 +1366,98 @@ namespace WPEFramework
 
         bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
-            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
-            string res = Utils::cRunScript(script1).substr();
-            LOGWARN("script1 '%s' result: '%s'", script1, res.c_str());
-
             bool result = false;
 
-            if (res == "hybrid")
+            if(m_isPluginInited)
             {
-                LOGINFO("Identified as hybrid device type");
-
-                const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
-
-                string res = Utils::cRunScript(script2).substr();
-                LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
-
-                size_t pos = res.find("via");
-                if (pos != string::npos)
+                if (m_isHybridDevice == "hybrid")
                 {
-                    gateway = res.substr(pos + 3);
-                    pos = gateway.find("dev");
-                    gateway = pos != string::npos ? gateway.substr(0, pos) : "";
+                    LOGINFO("Identified as hybrid device type");
+                    if (m_defaultInterface.length() == 0)
+                    {
+                        const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
+
+                        string res = Utils::cRunScript(script2).substr();
+                        LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
+
+                        size_t pos = res.find("via");
+                        if (pos != string::npos)
+                        {
+                            m_gatewayInterface  = res.substr(pos + 3);
+                            pos = m_gatewayInterface.find("dev");
+                            m_gatewayInterface = pos != string::npos ? m_gatewayInterface.substr(0, pos) : "";
+                        }
+
+                        pos = res.find("dev");
+                        if (pos != string::npos)
+                        {
+                            m_defaultInterface  = res.substr(pos + 3);
+                            pos = m_defaultInterface .find("metric");
+                            m_defaultInterface  = pos != string::npos ? m_defaultInterface .substr(0, pos) : "";
+                        }
+
+                        if (m_defaultInterface.length() == 0)
+                        {
+                            const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
+                            string res = Utils::cRunScript(script3).substr();
+                            LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
+
+                            pos = res.find(" ");
+                            if (pos != string::npos)
+                            {
+                                m_gatewayInterface = res.substr(pos + 3);
+                                Utils::String::trim(m_gatewayInterface);
+                                pos = m_gatewayInterface.find(" ");
+                                m_gatewayInterface = pos != string::npos ? m_gatewayInterface.substr(0, pos) : "";
+                            }
+
+                            pos = res.find_last_of(" ");
+                            if (pos != string::npos)
+                                m_defaultInterface = res.substr(pos);
+                        }
+
+                        Utils::String::trim(m_gatewayInterface);
+                        Utils::String::trim(m_defaultInterface);
+
+                    }
+
+                    interface = m_defaultInterface;
+                    gateway = m_gatewayInterface;
+
+                    if (interface.length() > 0)
+                        result = true;
                 }
-
-                pos = res.find("dev");
-                if (pos != string::npos)
+                else
                 {
-                    interface = res.substr(pos + 3);
-                    pos = interface.find("metric");
-                    interface = pos != string::npos ? interface.substr(0, pos) : "";
+                    LOGINFO("Identified as mediaclient device type");
+
+                    IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface
+                                , (void*)&defaultRoute, sizeof(defaultRoute)))
+                    {
+                        LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME
+                                , IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                        interface = defaultRoute.interface;
+                        gateway = defaultRoute.gateway;
+                        result = true;
+                    }
+                    else
+                        LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
                 }
 
                 if (interface.length() == 0)
                 {
-                    const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
-                    string res = Utils::cRunScript(script3).substr();
-                    LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
-
-                    pos = res.find(" ");
-                    if (pos != string::npos)
-                    {
-                        gateway = res.substr(pos + 3);
-                        Utils::String::trim(gateway);
-                        pos = gateway.find(" ");
-                        gateway = pos != string::npos ? gateway.substr(0, pos) : "";
-                    }
-
-                    pos = res.find_last_of(" ");
-                    if (pos != string::npos)
-                        interface = res.substr(pos);
+                    LOGWARN("Unable to detect default network interface");
                 }
-
-                Utils::String::trim(gateway);
-                Utils::String::trim(interface);
-
-                if (interface.length() > 0)
-                    result = true;
+                else
+                {
+                    LOGWARN("Evaluated default network interface: '%s' and gateway: '%s'", interface.c_str(), gateway.c_str());
+                }
             }
             else
             {
-                LOGINFO("Identified as mediaclient device type");
-
-                IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface
-                        , (void*)&defaultRoute, sizeof(defaultRoute)))
-                {
-                    LOGWARN ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME
-                            , IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
-                    interface = defaultRoute.interface;
-                    gateway = defaultRoute.gateway;
-                    result = true;
-                }
-                else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
-
-            if (interface.length() == 0)
-                LOGWARN("Unable to detect default network interface");
-            else
-                LOGWARN("Evaluated default network interface: '%s' and gateway: '%s'", interface.c_str(), gateway.c_str());
 
             return result;
         }

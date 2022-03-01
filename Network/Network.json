@@ -723,6 +723,41 @@
             "params": {
                 "type":"object",
                 "properties": {
+                    "iface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipv6": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                },
+                "required": [
+                    "iface",
+                    "ipv6"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "public_ip":{
+                        "summary": "Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip",
+                        "type":"string",
+                        "example": "69.136.49.95"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+	       },
+                "required": [
+                    "public_ip",
+                    "success"
+                ]
+            }
+        },
+	 "setStunEndPoints":{
+            "summary": "Set the list of Stun Endpoints used for getPublicIP",
+            "params": {
+                "type":"object",
+                "properties": {
                     "server": {
                         "$ref": "#/definitions/server"
                     },
@@ -758,15 +793,10 @@
             "result": {
                 "type": "object",
                 "properties": {
-                    "public_ip":{
-                        "summary": "Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip",
-                        "type":"string",
-                        "example": "69.136.49.95"
-                    },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
-	       },
+               },
                 "required": [
                     "public_ip",
                     "success"

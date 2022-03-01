@@ -13,7 +13,6 @@ A org.rdk.Network plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -77,13 +76,6 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkNetwork.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [Network.json](https://github.com/rdkcentral/ThunderInterfaces/tree/master/interfaces/Network.json)
-
 <a name="head.Methods"></a>
 # Methods
 
@@ -109,6 +101,7 @@ Network interface methods:
 | [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
 | [setIPSettings](#method.setIPSettings) | Sets the IP settings |
 | [getPublicIP](#method.getPublicIP) | Determine WAN ip address |
+| [setStunEndPoints](#method.setStunEndPoints) | Set the list of Stun Endpoints used for `getPublicIP`  |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
@@ -890,20 +883,15 @@ Sets the IP settings.
 ```
 <a name="method.getPublicIP"></a>
 ## *getPublicIP [<sup>method</sup>](#head.Methods)*
-Determine WAN ip address.
+getPublicIP allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object |  |
-| params.server | string | STUN server |
-| params.port | integer | STUN server port |
+| params | object | it allows empty parameter too |
 | params.iface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipv6 | string | either IPv4 or IPv6 |
-| params.sync | boolean | STUN server sync |
-| params.timeout | integer | STUN server bind timeout |
-| params.cache_timeout | integer | STUN server cache timeout |
+| params.ipv6 | boolean | either IPv4 or IPv6 , by default  using IPv4  |
 
 ### Result
 
@@ -923,13 +911,8 @@ Determine WAN ip address.
     "id": 1234567890,
     "method": "org.rdk.Network.1.getPublicIP",
     "params": {
-        "server": "global.stun.twilio.com",
-        "port": 3478,
         "iface": "WIFI",
-        "ipv6": "IPv4",
-        "sync": true,
-        "timeout": 30,
-        "cache_timeout": 0
+        "ipv6": false,
     }
 }
 ```
@@ -946,7 +929,62 @@ Determine WAN ip address.
     }
 }
 ```
+<a name="method.setStunEndPoints"></a>
+## *setStunEndPoints [<sup>method</sup>](#head.Methods)*
+Set the list of Stun endpoints used for getPublicIP
 
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.server | string | STUN server |
+| params.port | integer | STUN server port |
+| params.iface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
+| params.ipv6 | string | either IPv4 or IPv6 , by default  using IPv4 |
+| params.sync | boolean | STUN server sync |
+| params.timeout | integer | STUN server bind timeout |
+| params.cache_timeout | integer | STUN server cache timeout |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "method": "org.rdk.Network.1.setStunEndPoints",
+    "params": {
+        "server": "stun.l.google.com",
+        "port": 19302,
+        "iface": "WIFI",
+        "ipv6": false,
+        "sync": true,
+        "timeout": 30,
+        "cache_timeout": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1234567890,
+    "result": {
+        "success": true
+    }
+}
+```
 <a name="method.trace"></a>
 ## *trace [<sup>method</sup>](#head.Methods)*
 

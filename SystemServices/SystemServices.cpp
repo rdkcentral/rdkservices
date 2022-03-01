@@ -42,6 +42,8 @@
 #include "utils.h"
 #include "uploadlogs.h"
 
+#include <interfaces/ITimeZone.h>
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
@@ -2110,82 +2112,53 @@ namespace WPEFramework {
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
-        /***
-         * @brief : To set the Time to TZ_FILE.
-         * @param1[in]	: {"params":{"timeZone":"<string>"}}
-         * @param2[out]	: {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return		: Core::<StatusCode>
-         */
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
-                JsonObject& response)
-	{
-		bool resp = false;
-		if (parameters.HasLabel("timeZone")) {
-			std::string dir = dirnameOf(TZ_FILE);
-			std::string timeZone = "";
-			try {
-				timeZone = parameters["timeZone"].String();
-				if (timeZone.empty() || (timeZone == "null")) {
-					LOGERR("Empty timeZone received.");
-				} else {
-					if (!dirExists(dir)) {
-						std::string command = "mkdir -p " + dir + " \0";
-						Utils::cRunScript(command.c_str());
-					} else {
-						//Do nothing//
-					}
-
-					FILE *f = fopen(TZ_FILE, "w");
-					if (f) {
-						if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-							LOGERR("Failed to write %s", TZ_FILE);
-
-						fflush(f);
-						fsync(fileno(f));
-						fclose(f);
-						resp = true;
-					} else {
-						LOGERR("Unable to open %s file.\n", TZ_FILE);
-						populateResponseWithError(SysSrv_FileAccessFailed, response);
-						resp = false;
-					}
-				}
-			} catch (...) {
-				LOGERR("catch block : parameters[\"timeZone\"]...");
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		returnResponse(resp);
-	}
-
-        /***
-         * @brief : To fetch timezone from TZ_FILE.
-         * @param1[in]	: {"params":{}}
-         * @param2[out]	: {","id":3,"result":{"timeZone":"<String>","success":<bool>}}
-         * @return		: Core::<StatusCode>
-         */
-        uint32_t SystemServices::getTimeZoneDST(const JsonObject& parameters,
-                JsonObject& response)
+            JsonObject& response)
         {
-            std::string timezone;
             bool resp = false;
 
-            if (Utils::fileExists(TZ_FILE)) {
-                if(readFromFile(TZ_FILE, timezone)) {
-                    LOGWARN("Fetch TimeZone: %s\n", timezone.c_str());
-                    response["timeZone"] = timezone;
-                    resp = true;
+            if (parameters.HasLabel("timeZone")) {
+                string timeZone = parameters["timeZone"].String();
+
+                if (timeZone.empty() || (timeZone == "null")) {
+                    LOGERR("Empty timeZone received.");
                 } else {
-                    LOGERR("Unable to open %s file.\n", TZ_FILE);
-                    response["timeZone"] = "null";
-                    resp = false;
+                    auto service = m_shellService->
+                        QueryInterfaceByCallsign<Exchange::ITimeZone>("LocationSync");
+
+                    if ((service != nullptr) &&
+                        (service->SetTimeZone(timeZone) == Core::ERROR_NONE)) {
+                        resp = true;
+                    }
                 }
             } else {
-                LOGERR("File not found %s.\n", TZ_FILE);
-                populateResponseWithError(SysSrv_FileAccessFailed, response);
-                resp = false;
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
             }
+
+            returnResponse(resp);
+        }
+
+        uint32_t SystemServices::getTimeZoneDST(const JsonObject& parameters,
+            JsonObject& response)
+        {
+            bool resp = false;
+
+            auto service = m_shellService->
+                QueryInterfaceByCallsign<Exchange::ITimeZone>("LocationSync");
+
+            if (service != nullptr) {
+                string timeZone;
+
+                if ((service->GetTimeZone(timeZone) != Core::ERROR_NONE) ||
+                    timeZone.empty() ||
+                    (timeZone == "null")) {
+                    LOGERR("Empty timeZone received.");
+                } else {
+                    response["timeZone"] = timeZone;
+                    resp = true;
+                }
+            }
+
             returnResponse(resp);
         }
 
@@ -3946,7 +3919,6 @@ namespace WPEFramework {
 
           response.Load(query);
 
-          LOGTRACEMETHODFIN();
           return Core::ERROR_NONE;
         }
     } /* namespace Plugin */

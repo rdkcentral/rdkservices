@@ -87,6 +87,7 @@ DisplaySettings interface methods:
 | :-------- | :-------- |
 | [enableSurroundDecoder](#method.enableSurroundDecoder) | Enables or disables Surround Decoder capability |
 | [getActiveInput](#method.getActiveInput) | Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`) |
+| [getAssociatedAudioMixing](#method.getAssociatedAudioMixing) | Returns whether associated audio mixing is enabled or disabled |
 | [getAudioDelay](#method.getAudioDelay) | Returns the audio delay (in ms) on the selected audio port |
 | [getAudioDelayOffset](#method.getAudioDelayOffset) | Returns the audio delay offset (in ms) on the selected audio port |
 | [getAudioFormat](#method.getAudioFormat) | Returns the currently set audio format |
@@ -100,6 +101,7 @@ DisplaySettings interface methods:
 | [getDolbyVolumeMode](#method.getDolbyVolumeMode) | Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0) |
 | [getDRCMode](#method.getDRCMode) | Returns the current Dynamic Range Control mode |
 | [getEnableAudioPort](#method.getEnableAudioPort) |  Returns the current status of the specified input audio port |
+| [getFaderControl](#method.getFaderControl) | Returns the current audio mixer balance setting |
 | [getGain](#method.getGain) | Returns the current gain value |
 | [getGraphicEqualizerMode](#method.getGraphicEqualizerMode) | Returns the current Graphic Equalizer Mode setting (port HDMI0) |
 | [getIntelligentEqualizerMode](#method.getIntelligentEqualizerMode) | Returns the current Intelligent Equalizer Mode setting (port HDMI0) |
@@ -107,6 +109,8 @@ DisplaySettings interface methods:
 | [getMS12AudioCompression](#method.getMS12AudioCompression) | Returns the current audio compression settings |
 | [getMS12AudioProfile](#method.getMS12AudioProfile) | Returns the current MS12 audio profile settings |
 | [getMuted](#method.getMuted) | Returns whether audio is muted on a given port |
+| [getPrimaryLanguage](#method.getPrimaryLanguage) | Returns the current primary language |
+| [getSecondaryLanguage](#method.getSecondaryLanguage) | Returns the current secondary language |
 | [getSettopAudioCapabilities](#method.getSettopAudioCapabilities) | Returns the set-top audio capabilities for the specified audio port |
 | [getSettopHDRSupport](#method.getSettopHDRSupport) | Returns an HDR support object (list of standards that the STB supports) |
 | [getSettopMS12Capabilities](#method.getSettopMS12Capabilities) | Returns the set-top MS12 audio capabilities for the specified audio port |
@@ -135,6 +139,7 @@ DisplaySettings interface methods:
 | [resetDialogEnhancement](#method.resetDialogEnhancement) | Resets the dialog enhancer level to its default enhancer level |
 | [resetSurroundVirtualizer](#method.resetSurroundVirtualizer) | Resets the surround virtualizer to its default boost value |
 | [resetVolumeLeveller](#method.resetVolumeLeveller) | Resets the Volume Leveller level to default volume value |
+| [setAssociatedAudioMixing](#method.setAssociatedAudioMixing) | Enables or disables associated audio mixing |
 | [setAudioAtmosOutputMode](#method.setAudioAtmosOutputMode) | Sets ATMOS audio output mode (on HDMI0) |
 | [setAudioDelay](#method.setAudioDelay) | Sets the audio delay (in ms) on the selected audio port |
 | [setAudioDelayOffset](#method.setAudioDelayOffset) | Sets the audio delay offset (in ms) on the selected audio port |
@@ -144,6 +149,7 @@ DisplaySettings interface methods:
 | [setDolbyVolumeMode](#method.setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#method.setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
 | [setEnableAudioPort](#method.setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port name |
+| [setFaderControl](#method.setFaderControl) | Sets the audio mixer balance |
 | [setForceHDRMode](#method.setForceHDRMode) | Enables or disables the force HDR mode |
 | [setGain](#method.setGain) | Adjusts the gain on a specific port |
 | [setGraphicEqualizerMode](#method.setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
@@ -153,7 +159,9 @@ DisplaySettings interface methods:
 | [setMS12AudioProfile](#method.setMS12AudioProfile) | Sets the selected MS12 audio profile |
 | [setMS12ProfileSettingsOverride](#method.setMS12ProfileSettingsOverride) | Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode) |
 | [setMuted](#method.setMuted) | Mutes or unmutes audio on a specific port |
+| [setPrimaryLanguage](#method.setPrimaryLanguage) | Sets the primary language |
 | [setScartParameter](#method.setScartParameter) | Sets SCART parameters |
+| [setSecondaryLanguage](#method.setSecondaryLanguage) | Sets the secondary language |
 | [setSoundMode](#method.setSoundMode) | Sets the current sound mode for the corresponding video display |
 | [setSurroundVirtualizer](#method.setSurroundVirtualizer) | (Version 2) Sets the Surround Virtualizer boost |
 | [setVideoPortStatusInStandby](#method.setVideoPortStatusInStandby) | Sets the specified video port status to be used in standby mode (failure if the port name is missing) |
@@ -261,6 +269,54 @@ Returns `true` if the STB HDMI output is currently connected to the active input
     "id": 42,
     "result": {
         "activeInput": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.getAssociatedAudioMixing"></a>
+## *getAssociatedAudioMixing [<sup>method</sup>](#head.Methods)*
+
+Returns whether associated audio mixing is enabled or disabled.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mixing | boolean | Whether associated audio mixing is enabled (`true`) or disabled (`false`) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getAssociatedAudioMixing",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mixing": true,
         "success": true
     }
 }
@@ -929,6 +985,54 @@ Returns the current Dynamic Range Control mode.
 }
 ```
 
+<a name="method.getFaderControl"></a>
+## *getFaderControl [<sup>method</sup>](#head.Methods)*
+
+Returns the current audio mixer balance setting.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mixerBalance | integer | The audi mixer balance. The value should be between -32 to +32 |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getFaderControl",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mixerBalance": 10,
+        "success": true
+    }
+}
+```
+
 <a name="method.getGain"></a>
 ## *getGain [<sup>method</sup>](#head.Methods)*
 
@@ -1294,6 +1398,102 @@ Returns whether audio is muted on a given port.
     "id": 42,
     "result": {
         "muted": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.getPrimaryLanguage"></a>
+## *getPrimaryLanguage [<sup>method</sup>](#head.Methods)*
+
+Returns the current primary language.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.lang | string | The 3 letter language code as per ISO 639 |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getPrimaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "lang": "eng",
+        "success": true
+    }
+}
+```
+
+<a name="method.getSecondaryLanguage"></a>
+## *getSecondaryLanguage [<sup>method</sup>](#head.Methods)*
+
+Returns the current secondary language.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.lang | string | The 3 letter language code as per ISO 639 |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getSecondaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "lang": "eng",
         "success": true
     }
 }
@@ -2733,6 +2933,61 @@ Resets the Volume Leveller level to default volume value.
 }
 ```
 
+<a name="method.setAssociatedAudioMixing"></a>
+## *setAssociatedAudioMixing [<sup>method</sup>](#head.Methods)*
+
+Enables or disables associated audio mixing.  
+
+### Event  
+| Event | Description | 
+| :----------- | :----------- |
+| `associatedAudioMixingChanged`|Triggered when associated audio mixing is enabled or disabled|.
+
+Also see: [associatedAudioMixingChanged](#event.associatedAudioMixingChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+| params.mixing | boolean | Whether associated audio mixing is enabled (`true`) or disabled (`false`) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setAssociatedAudioMixing",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "mixing": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setAudioAtmosOutputMode"></a>
 ## *setAudioAtmosOutputMode [<sup>method</sup>](#head.Methods)*
 
@@ -3189,6 +3444,61 @@ Enable or disable the specified audio port based on the input audio port name. T
     "params": {
         "audioPort": "HDMI0",
         "enable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setFaderControl"></a>
+## *setFaderControl [<sup>method</sup>](#head.Methods)*
+
+Sets the audio mixer balance.  
+
+### Event  
+| Event | Description | 
+| :----------- | :----------- |
+| `faderControlChanged`|Triggered when the audio mixer balance is changed|.
+
+Also see: [faderControlChanged](#event.faderControlChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+| params.mixerBalance | integer | The audi mixer balance. The value should be between -32 to +32 |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setFaderControl",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "mixerBalance": 10
     }
 }
 ```
@@ -3673,13 +3983,69 @@ Mutes or unmutes audio on a specific port.
 }
 ```
 
+<a name="method.setPrimaryLanguage"></a>
+## *setPrimaryLanguage [<sup>method</sup>](#head.Methods)*
+
+Sets the primary language.  
+
+### Event  
+| Event | Description | 
+| :----------- | :----------- |
+| `primaryLanguageChanged`|Triggered when the primary language changes|.
+
+Also see: [primaryLanguageChanged](#event.primaryLanguageChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+| params.lang | string | The 3 letter language code as per ISO 639 |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setPrimaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "lang": "eng"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.setScartParameter"></a>
 ## *setScartParameter [<sup>method</sup>](#head.Methods)*
 
 Sets SCART parameters.  
-   
-Possible values:  
-| **Parameter** | **ParameterData** |  
+
+Possible SCART values:  
+| **Parameter** | **ParameterData** | 
+| :----------- | :----------- |
 | `aspect_ratio` | `4x3` or `16x9` |  
 | `tv_startup` | `on` or `off` |  
 | `rgb` | `on` (disables cvbs) |  
@@ -3687,7 +4053,7 @@ Possible values:
 | `macrovision` | not implemented |  
 | `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  
 | `port` | `on` or `off` | 
- 
+
 ### Event 
 
  No Events.
@@ -3719,6 +4085,61 @@ Possible values:
     "params": {
         "scartParameter": "aspect_ratio",
         "scartParameterData": "4x3"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setSecondaryLanguage"></a>
+## *setSecondaryLanguage [<sup>method</sup>](#head.Methods)*
+
+Sets the secondary language.  
+
+### Event  
+| Event | Description | 
+| :----------- | :----------- |
+| `secondaryLanguageChanged`|Triggered when the secondary language changes|.
+
+Also see: [secondaryLanguageChanged](#event.secondaryLanguageChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name. For STB, the `HDMI0` port handle can be used. The default port is `HDMI0` if no port is specified. For TV products, unlike other MS12 APIs, an audio port is not required because the API is not specific to an audio port but is instead a platform/host configuration |
+| params.lang | string | The 3 letter language code as per ISO 639 |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setSecondaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "lang": "eng"
     }
 }
 ```
@@ -4066,11 +4487,15 @@ DisplaySettings interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [activeInputChanged](#event.activeInputChanged) | Triggered on active input change (RxSense) |
+| [associatedAudioMixingChanged](#event.associatedAudioMixingChanged) | Triggered when associated audio mixing is enabled or disabled |
 | [audioFormatChanged](#event.audioFormatChanged) | Triggered when the configured audio format changes |
 | [connectedAudioPortUpdated](#event.connectedAudioPortUpdated) | Triggered when the connected audio port is updated |
 | [connectedVideoDisplaysUpdated](#event.connectedVideoDisplaysUpdated) | Triggered when the connected video display is updated and returns the connected video displays |
+| [faderControlChanged](#event.faderControlChanged) | Triggered when the audio mixer balance is changed |
+| [primaryLanguageChanged](#event.primaryLanguageChanged) | Triggered when the primary language changes |
 | [resolutionChanged](#event.resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution |
 | [resolutionPreChange](#event.resolutionPreChange) | Triggered on resolution pre-change |
+| [secondaryLanguageChanged](#event.secondaryLanguageChanged) | Triggered when the secondary language changes |
 | [zoomSettingUpdated](#event.zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 | [videoFormatChanged](#event.videoFormatChanged) | Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port |
 
@@ -4095,6 +4520,30 @@ Triggered on active input change (RxSense).
     "method": "client.events.1.activeInputChanged",
     "params": {
         "activeInput": true
+    }
+}
+```
+
+<a name="event.associatedAudioMixingChanged"></a>
+## *associatedAudioMixingChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when associated audio mixing is enabled or disabled.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.mixing | boolean | Whether associated audio mixing is enabled (`true`) or disabled (`false`) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.associatedAudioMixingChanged",
+    "params": {
+        "mixing": true
     }
 }
 ```
@@ -4181,6 +4630,54 @@ Triggered when the connected video display is updated and returns the connected 
 }
 ```
 
+<a name="event.faderControlChanged"></a>
+## *faderControlChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the audio mixer balance is changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.mixerBalance | integer | The audi mixer balance. The value should be between -32 to +32 |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.faderControlChanged",
+    "params": {
+        "mixerBalance": 10
+    }
+}
+```
+
+<a name="event.primaryLanguageChanged"></a>
+## *primaryLanguageChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the primary language changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.primaryLanguage | string | The primary language |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.primaryLanguageChanged",
+    "params": {
+        "primaryLanguage": "eng"
+    }
+}
+```
+
 <a name="event.resolutionChanged"></a>
 ## *resolutionChanged [<sup>event</sup>](#head.Notifications)*
 
@@ -4226,6 +4723,30 @@ This event carries no parameters.
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.resolutionPreChange"
+}
+```
+
+<a name="event.secondaryLanguageChanged"></a>
+## *secondaryLanguageChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the secondary language changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.secondaryLanguage | string | The secondary language |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.secondaryLanguageChanged",
+    "params": {
+        "secondaryLanguage": "eng"
+    }
 }
 ```
 

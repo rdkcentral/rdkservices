@@ -87,8 +87,9 @@ SystemServices interface methods:
 | :-------- | :-------- |
 | [cacheContains](#method.cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#method.clearLastDeepSleepReason) | Clears the last deep sleep reason |
-| [enableMoca](#method.enableMoca) | Enables (or disable) Moca support for the platform |
-| [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event |
+| [enableMoca](#method.enableMoca) | Enables (or disables) Moca support for the platform |
+| [enableXREConnectionRetention](#method.enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
+| [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot |
 | [getAvailableStandbyModes](#method.getAvailableStandbyModes) | Queries the available standby modes |
 | [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
@@ -100,13 +101,15 @@ SystemServices interface methods:
 | [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
 | [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
+| [getLastWakeupKeyCode](#method.getLastWakeupKeyCode) | (Version 2) Returns the last wakeup keycode |
 | [getMacAddresses](#method.getMacAddresses) | Gets the MAC address of the device |
 | [getMilestones](#method.getMilestones) | Returns the list of milestones |
 | [getMode](#method.getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
 | [getOvertempGraceInterval](#method.getOvertempGraceInterval) | Returns the over-temperature grace interval value |
 | [getPowerState](#method.getPowerState) | Returns the power state of the device |
-| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | (Version 2) Returns the power state before reboot |
+| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | Returns the power state before reboot |
+| [getPowerStateIsManagedByDevice](#method.getPowerStateIsManagedByDevice) | Checks whether the power state is managed by the device |
 | [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
 | [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
 | [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
@@ -114,6 +117,7 @@ SystemServices interface methods:
 | [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
 | [getStateInfo](#method.getStateInfo) | Queries device state information of various properties |
+| [getStoreDemoLink](#method.getStoreDemoLink) | (Version 2) Returns the store demo video link |
 | [getSystemVersions](#method.getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#method.getTemperatureThresholds) | Returns temperature threshold values |
 | [getTimeZoneDST](#method.getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
@@ -122,10 +126,10 @@ SystemServices interface methods:
 | [getXconfParams](#method.getXconfParams) | Returns XCONF configuration parameters for the device |
 | [hasRebootBeenRequested](#method.hasRebootBeenRequested) | Checks whether a reboot has been requested |
 | [isGzEnabled](#method.isGzEnabled) | Checks whether GZ is enabled |
-| [isOptOutTelemetry](#method.isOptOutTelemetry) | (Version 2) Checks the telemetry opt-out status |
+| [isOptOutTelemetry](#method.isOptOutTelemetry) | Checks the telemetry opt-out status |
 | [queryMocaStatus](#method.queryMocaStatus) | Checks whether MOCA is enabled |
 | [reboot](#method.reboot) | Requests that the system performs a reboot of the set-top box |
-| [removeCacheKey](#method.removeCacheKey) | Requests that the system performs a reboot of the set-top box |
+| [removeCacheKey](#method.removeCacheKey) | Removes the cache key |
 | [requestSystemUptime](#method.requestSystemUptime) | Returns the device uptime |
 | [setCachedValue](#method.setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#method.setDeepSleepTimer) | Sets the deep sleep timeout period |
@@ -134,12 +138,13 @@ SystemServices interface methods:
 | [setGzEnabled](#method.setGzEnabled) | Enables or disables GZ |
 | [setMode](#method.setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
 | [setNetworkStandbyMode](#method.setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
-| [SetOptOutTelemetry](#method.SetOptOutTelemetry) | Sets the telemetry opt-out status |
+| [setOptOutTelemetry](#method.setOptOutTelemetry) | Sets the telemetry opt-out status |
 | [setOvertempGraceInterval](#method.setOvertempGraceInterval) | Sets the over-temperature grace interval value |
 | [setPowerState](#method.setPowerState) | Sets the power state of the device |
 | [setPreferredStandbyMode](#method.setPreferredStandbyMode) | Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes) |
 | [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
+| [setWakeupSrcConfiguration](#method.setWakeupSrcConfiguration) | Sets the wakeup source configuration |
 | [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
 | [deletePersistentPath](#method.deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [uploadLogs](#method.uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
@@ -150,6 +155,10 @@ SystemServices interface methods:
 ## *cacheContains [<sup>method</sup>](#head.Methods)*
 
 Checks if a key is present in the cache.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -196,6 +205,10 @@ Checks if a key is present in the cache.
 ## *clearLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Clears the last deep sleep reason.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -235,7 +248,11 @@ This method takes no parameters.
 <a name="method.enableMoca"></a>
 ## *enableMoca [<sup>method</sup>](#head.Methods)*
 
-Enables (or disable) Moca support for the platform.
+Enables (or disables) Moca support for the platform.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -278,10 +295,65 @@ Enables (or disable) Moca support for the platform.
 }
 ```
 
+<a name="method.enableXREConnectionRetention"></a>
+## *enableXREConnectionRetention [<sup>method</sup>](#head.Methods)*
+
+Enables (or disables) XRE Connection Retention option.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enable | boolean | `true` to enable XRE connection retention or `false` to disable |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.enableXREConnectionRetention",
+    "params": {
+        "enable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.fireFirmwarePendingReboot"></a>
 ## *fireFirmwarePendingReboot [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Notifies the device about a pending reboot by sending an `onFirmwarePendingReboot` event.
+(Version 2) Notifies the device about a pending reboot.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onFirmwarePendingReboot` | Triggers when the firmware has a pending reboot |.
 
 Also see: [onFirmwarePendingReboot](#event.onFirmwarePendingReboot)
 
@@ -324,6 +396,10 @@ This method takes no parameters.
 ## *getAvailableStandbyModes [<sup>method</sup>](#head.Methods)*
 
 Queries the available standby modes.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -369,6 +445,10 @@ This method takes no parameters.
 ## *getCachedValue [<sup>method</sup>](#head.Methods)*
 
 Gets the value of a key in the cache.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -417,6 +497,10 @@ Gets the value of a key in the cache.
 ## *getCoreTemperature [<sup>method</sup>](#head.Methods)*
 
 Returns the core temperature of the device. Not supported on all devices.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -427,7 +511,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.temperature | number | The temperature |
+| result.temperature | string | The temperature |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -449,7 +533,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "temperature": 48.0,
+        "temperature": "48.000000",
         "success": true
     }
 }
@@ -466,6 +550,10 @@ Collects device details. Sample keys include:
 * imageVersion  
 * rf4ce_mac  
 * wifi_mac.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -517,6 +605,10 @@ Collects device details. Sample keys include:
 ## *getMfgSerialNumber [<sup>method</sup>](#head.Methods)*
 
 Gets the Manufacturing Serial Number.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -559,6 +651,10 @@ This method takes no parameters.
 ## *getDownloadedFirmwareInfo [<sup>method</sup>](#head.Methods)*
 
 Returns information about firmware downloads.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -570,8 +666,8 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.currentFWVersion | string | The current firmware version |
-| result?.downloadFWVersion | string | <sup>*(optional)*</sup> The downloaded firmware version |
-| result?.downloadFWLocation | string | <sup>*(optional)*</sup> The location of the downloaded firmware |
+| result.downloadedFWVersion | string | The downloaded firmware version |
+| result.downloadedFWLocation | string | The location of the downloaded firmware |
 | result.isRebootDeferred | boolean | Whether the device should be rebooted |
 | result.success | boolean | Whether the request succeeded |
 
@@ -595,8 +691,8 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "currentFWVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
-        "downloadFWVersion": "AX061AEI_VBN_1911_sprint_20200510040450sdy",
-        "downloadFWLocation": "/tmp",
+        "downloadedFWVersion": "AX061AEI_VBN_1911_sprint_20200510040450sdy",
+        "downloadedFWLocation": "/tmp",
         "isRebootDeferred": false,
         "success": true
     }
@@ -607,6 +703,10 @@ This method takes no parameters.
 ## *getFirmwareDownloadPercent [<sup>method</sup>](#head.Methods)*
 
 Gets the current download percentage.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -648,7 +748,12 @@ This method takes no parameters.
 <a name="method.getFirmwareUpdateInfo"></a>
 ## *getFirmwareUpdateInfo [<sup>method</sup>](#head.Methods)*
 
-Checks the firmware update information. The requested details are sent as an `onFirmwareUpdateInfoReceived` event.
+Checks the firmware update information.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onFirmwareUpdateInfoReceived` | Triggers when the firmware update information is requested |.
 
 Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 
@@ -657,7 +762,7 @@ Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.GUID | string | A unique identifier |
+| params?.GUID | string | <sup>*(optional)*</sup> A unique identifier |
 
 ### Result
 
@@ -699,6 +804,10 @@ Also see: [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived)
 ## *getFirmwareUpdateState [<sup>method</sup>](#head.Methods)*
 
 Checks the state of the firmware update.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -709,7 +818,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| result.firmwareUpdateState | integer | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -731,7 +840,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "firmwareUpdateState": "Download Complete",
+        "firmwareUpdateState": 5,
         "success": true
     }
 }
@@ -741,6 +850,10 @@ This method takes no parameters.
 ## *getLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Retrieves the last deep sleep reason.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -751,7 +864,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.lastDeepSleepReason | string | The deep sleep reason |
+| result.reason | string | The deep sleep reason |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -773,7 +886,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "lastDeepSleepReason": "thermal_deepsleep_critical_threshold",
+        "reason": "thermal_deepsleep_critical_threshold",
         "success": true
     }
 }
@@ -783,6 +896,10 @@ This method takes no parameters.
 ## *getLastFirmwareFailureReason [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Retrieves the last firmware failure reason.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -793,7 +910,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.failureReason | string | <sup>*(optional)*</sup> The reason the failure occurred |
+| result.failReason | string | The reason the failure occurred |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -815,7 +932,53 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "failureReason": "Image Download Failed - Unable to connect",
+        "failReason": "Image Download Failed - Unable to connect",
+        "success": true
+    }
+}
+```
+
+<a name="method.getLastWakeupKeyCode"></a>
+## *getLastWakeupKeyCode [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the last wakeup keycode.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.wakeupKeyCode | string | The last wakeup keycode |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getLastWakeupKeyCode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "wakeupKeyCode": "59",
         "success": true
     }
 }
@@ -824,7 +987,12 @@ This method takes no parameters.
 <a name="method.getMacAddresses"></a>
 ## *getMacAddresses [<sup>method</sup>](#head.Methods)*
 
-Gets the MAC address of the device. The requested details are sent as an `onMacAddressesRetreived` event.
+Gets the MAC address of the device.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onMacAddressesRetreived` | Triggers when the MAC addresses are requested |.
 
 Also see: [onMacAddressesRetreived](#event.onMacAddressesRetreived)
 
@@ -833,7 +1001,7 @@ Also see: [onMacAddressesRetreived](#event.onMacAddressesRetreived)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.GUID | string | A unique identifier |
+| params?.GUID | string | <sup>*(optional)*</sup> A unique identifier |
 
 ### Result
 
@@ -875,6 +1043,10 @@ Also see: [onMacAddressesRetreived](#event.onMacAddressesRetreived)
 ## *getMilestones [<sup>method</sup>](#head.Methods)*
 
 Returns the list of milestones.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -920,6 +1092,10 @@ This method takes no parameters.
 ## *getMode [<sup>method</sup>](#head.Methods)*
 
 Returns the currently set mode information.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -967,6 +1143,10 @@ This method takes no parameters.
 ## *getNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1009,6 +1189,10 @@ This method takes no parameters.
 ## *getOvertempGraceInterval [<sup>method</sup>](#head.Methods)*
 
 Returns the over-temperature grace interval value. Not supported on all devices.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1051,6 +1235,10 @@ This method takes no parameters.
 ## *getPowerState [<sup>method</sup>](#head.Methods)*
 
 Returns the power state of the device.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1092,7 +1280,11 @@ This method takes no parameters.
 <a name="method.getPowerStateBeforeReboot"></a>
 ## *getPowerStateBeforeReboot [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the power state before reboot.
+Returns the power state before reboot.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1131,10 +1323,60 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getPowerStateIsManagedByDevice"></a>
+## *getPowerStateIsManagedByDevice [<sup>method</sup>](#head.Methods)*
+
+Checks whether the power state is managed by the device.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.powerStateManagedByDevice | boolean | `true` if power state is managed by the device, `false` otherwise |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPowerStateIsManagedByDevice"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "powerStateManagedByDevice": false,
+        "success": true
+    }
+}
+```
+
 <a name="method.getPreferredStandbyMode"></a>
 ## *getPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1177,6 +1419,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo [<sup>method</sup>](#head.Methods)*
 
 Returns basic information about a reboot.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1189,6 +1435,9 @@ This method takes no parameters.
 | result | object |  |
 | result.timestamp | string | The last reboot time |
 | result.reason | string | The reboot reason |
+| result.source | string | Source that trigerred reboot |
+| result.customReason | string | A custom reason |
+| result.otherReason | string | Other reasons for reboot |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1212,6 +1461,9 @@ This method takes no parameters.
     "result": {
         "timestamp": "20200128083540",
         "reason": "FIRMWARE_FAILURE",
+        "source": "-sh",
+        "customReason": "API Validation",
+        "otherReason": "API Validation",
         "success": true
     }
 }
@@ -1221,6 +1473,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo2 [<sup>method</sup>](#head.Methods)*
 
 Returns detailed information about a reboot.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1274,6 +1530,10 @@ This method takes no parameters.
 ## *getPreviousRebootReason [<sup>method</sup>](#head.Methods)*
 
 Returns the last reboot reason.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1316,6 +1576,10 @@ This method takes no parameters.
 ## *getRFCConfig [<sup>method</sup>](#head.Methods)*
 
 Returns information that is related to RDK Feature Control (RFC) configurations.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1370,6 +1634,10 @@ Returns information that is related to RDK Feature Control (RFC) configurations.
 ## *getSerialNumber [<sup>method</sup>](#head.Methods)*
 
 Returns the device serial number.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1412,6 +1680,10 @@ This method takes no parameters.
 ## *getStateInfo [<sup>method</sup>](#head.Methods)*
 
 Queries device state information of various properties.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1456,10 +1728,60 @@ Queries device state information of various properties.
 }
 ```
 
+<a name="method.getStoreDemoLink"></a>
+## *getStoreDemoLink [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the store demo video link.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.fileURL | string | <sup>*(optional)*</sup> The file URL of stored demo video |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getStoreDemoLink"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "fileURL": "http://127.0.0.1:50050/store-mode-video/videoFile.mp4",
+        "success": true
+    }
+}
+```
+
 <a name="method.getSystemVersions"></a>
 ## *getSystemVersions [<sup>method</sup>](#head.Methods)*
 
 Returns system version details.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1506,6 +1828,10 @@ This method takes no parameters.
 ## *getTemperatureThresholds [<sup>method</sup>](#head.Methods)*
 
 Returns temperature threshold values. Not supported on all devices.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1519,7 +1845,7 @@ This method takes no parameters.
 | result.temperatureThresholds | object |  |
 | result.temperatureThresholds.WARN | string | The warning threshold |
 | result.temperatureThresholds.MAX | string | The max temperature threshold |
-| result.temperatureThresholds.temperature | number | The temperature |
+| result.temperatureThresholds.temperature | string | The temperature |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1544,7 +1870,7 @@ This method takes no parameters.
         "temperatureThresholds": {
             "WARN": "100.000000",
             "MAX": "110.000000",
-            "temperature": 48.0
+            "temperature": "48.000000"
         },
         "success": true
     }
@@ -1555,6 +1881,10 @@ This method takes no parameters.
 ## *getTimeZoneDST [<sup>method</sup>](#head.Methods)*
 
 Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1597,6 +1927,10 @@ This method takes no parameters.
 ## *getTimeZones [<sup>method</sup>](#head.Methods)*
 
 (Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1607,12 +1941,12 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.zoneInfo | object | <sup>*(optional)*</sup> A timezone area |
-| result?.zoneInfo?.America | object | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.America?.New_York | string | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.America?.Los_Angeles | string | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.Europe | object | <sup>*(optional)*</sup>  |
-| result?.zoneInfo?.Europe?.London | string | <sup>*(optional)*</sup>  |
+| result.zoneinfo | object | A timezone area |
+| result.zoneinfo?.America | object | <sup>*(optional)*</sup>  |
+| result.zoneinfo?.America?.New_York | string | <sup>*(optional)*</sup>  |
+| result.zoneinfo?.America?.Los_Angeles | string | <sup>*(optional)*</sup>  |
+| result.zoneinfo?.Europe | object | <sup>*(optional)*</sup>  |
+| result.zoneinfo?.Europe?.London | string | <sup>*(optional)*</sup>  |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1634,7 +1968,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "zoneInfo": {
+        "zoneinfo": {
             "America": {
                 "New_York": "Thu Nov 5 15:21:17 2020 EST",
                 "Los_Angeles": "Thu Nov 5 12:21:17 2020 PST"
@@ -1652,6 +1986,10 @@ This method takes no parameters.
 ## *getWakeupReason [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the reason for the device coming out of deep sleep.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1694,6 +2032,10 @@ This method takes no parameters.
 ## *getXconfParams [<sup>method</sup>](#head.Methods)*
 
 Returns XCONF configuration parameters for the device.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1745,6 +2087,10 @@ This method takes no parameters.
 ## *hasRebootBeenRequested [<sup>method</sup>](#head.Methods)*
 
 Checks whether a reboot has been requested.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1787,6 +2133,10 @@ This method takes no parameters.
 ## *isGzEnabled [<sup>method</sup>](#head.Methods)*
 
 Checks whether GZ is enabled.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1828,7 +2178,11 @@ This method takes no parameters.
 <a name="method.isOptOutTelemetry"></a>
 ## *isOptOutTelemetry [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Checks the telemetry opt-out status.
+Checks the telemetry opt-out status.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1871,6 +2225,10 @@ This method takes no parameters.
 ## *queryMocaStatus [<sup>method</sup>](#head.Methods)*
 
 Checks whether MOCA is enabled.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -1913,6 +2271,11 @@ This method takes no parameters.
 ## *reboot [<sup>method</sup>](#head.Methods)*
 
 Requests that the system performs a reboot of the set-top box.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onRebootRequest` | Triggers when a device reboot request is made |.
 
 Also see: [onRebootRequest](#event.onRebootRequest)
 
@@ -1928,6 +2291,7 @@ Also see: [onRebootRequest](#event.onRebootRequest)
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.IARM_Bus_Call_STATUS | integer | IARM BUS status |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1952,6 +2316,7 @@ Also see: [onRebootRequest](#event.onRebootRequest)
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "IARM_Bus_Call_STATUS": 0,
         "success": true
     }
 }
@@ -1960,7 +2325,11 @@ Also see: [onRebootRequest](#event.onRebootRequest)
 <a name="method.removeCacheKey"></a>
 ## *removeCacheKey [<sup>method</sup>](#head.Methods)*
 
-Requests that the system performs a reboot of the set-top box.
+Removes the cache key.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2007,6 +2376,10 @@ Requests that the system performs a reboot of the set-top box.
 ## *requestSystemUptime [<sup>method</sup>](#head.Methods)*
 
 Returns the device uptime.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2049,6 +2422,10 @@ This method takes no parameters.
 ## *setCachedValue [<sup>method</sup>](#head.Methods)*
 
 Sets the value for a key in the cache.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2097,6 +2474,10 @@ Sets the value for a key in the cache.
 ## *setDeepSleepTimer [<sup>method</sup>](#head.Methods)*
 
 Sets the deep sleep timeout period.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2143,13 +2524,17 @@ Sets the deep sleep timeout period.
 ## *setFirmwareAutoReboot [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.enable | boolean | <sup>*(optional)*</sup> `true` to enable Autoreboot or `false` to disable |
+| params.enable | boolean | `true` to enable Autoreboot or `false` to disable |
 
 ### Result
 
@@ -2189,6 +2574,10 @@ Sets the deep sleep timeout period.
 ## *setFirmwareRebootDelay [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Delays the firmware reboot.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2235,6 +2624,10 @@ Sets the deep sleep timeout period.
 ## *setGzEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables or disables GZ.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2284,6 +2677,13 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 * `NORMAL` - The set-top box is operating in normal mode.  
 * `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  
 * `WAREHOUSE` - The set-top box is operating in warehouse mode.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onSystemModeChanged` | Triggers when the system mode is changed successfully |.
+
+Also see: [onSystemModeChanged](#event.onSystemModeChanged)
 
 ### Parameters
 
@@ -2335,6 +2735,10 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 ## *setNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2377,10 +2781,14 @@ Enables or disables the network standby mode of the device. If network standby i
 }
 ```
 
-<a name="method.SetOptOutTelemetry"></a>
-## *SetOptOutTelemetry [<sup>method</sup>](#head.Methods)*
+<a name="method.setOptOutTelemetry"></a>
+## *setOptOutTelemetry [<sup>method</sup>](#head.Methods)*
 
 Sets the telemetry opt-out status.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2404,7 +2812,7 @@ Sets the telemetry opt-out status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.SetOptOutTelemetry",
+    "method": "org.rdk.System.1.setOptOutTelemetry",
     "params": {
         "Opt-Out": false
     }
@@ -2427,6 +2835,10 @@ Sets the telemetry opt-out status.
 ## *setOvertempGraceInterval [<sup>method</sup>](#head.Methods)*
 
 Sets the over-temperature grace interval value. Not supported on all devices.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2473,6 +2885,13 @@ Sets the over-temperature grace interval value. Not supported on all devices.
 ## *setPowerState [<sup>method</sup>](#head.Methods)*
 
 Sets the power state of the device.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onSystemPowerStateChanged` | Triggers when the system power state changes |.
+
+Also see: [onSystemPowerStateChanged](#event.onSystemPowerStateChanged)
 
 ### Parameters
 
@@ -2521,6 +2940,10 @@ Sets the power state of the device.
 ## *setPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2567,6 +2990,10 @@ Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for
 ## *setTemperatureThresholds [<sup>method</sup>](#head.Methods)*
 
 Sets the temperature threshold values. Not supported on all devices.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2618,6 +3045,10 @@ Sets the temperature threshold values. Not supported on all devices.
 ## *setTimeZoneDST [<sup>method</sup>](#head.Methods)*
 
 Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2660,10 +3091,66 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 }
 ```
 
+<a name="method.setWakeupSrcConfiguration"></a>
+## *setWakeupSrcConfiguration [<sup>method</sup>](#head.Methods)*
+
+Sets the wakeup source configuration.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.wakeupSrc | string | The wakeup source |
+| params.config | string | The source configuration |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setWakeupSrcConfiguration",
+    "params": {
+        "wakeupSrc": "3",
+        "config": "1"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.updateFirmware"></a>
 ## *updateFirmware [<sup>method</sup>](#head.Methods)*
 
 Initiates a firmware update. This method has no affect if an update is not available.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2704,13 +3191,18 @@ This method takes no parameters.
 ## *deletePersistentPath [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Deletes persistent path associated with a callsign.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.callsign | string | Callsign of the service to delete persistent path |
+| params?.callsign | string | <sup>*(optional)*</sup> Callsign of the service to delete persistent path |
+| params?.type | string | <sup>*(optional)*</sup> The type of execution environment. (can be used instead of callsign) |
 
 ### Result
 
@@ -2729,7 +3221,8 @@ This method takes no parameters.
     "id": 42,
     "method": "org.rdk.System.1.deletePersistentPath",
     "params": {
-        "callsign": "HtmlApp"
+        "callsign": "HtmlApp",
+        "type": "HtmlApp"
     }
 }
 ```
@@ -2750,6 +3243,10 @@ This method takes no parameters.
 ## *uploadLogs [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Uploads logs to a URL returned by SSR.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2796,6 +3293,10 @@ This method takes no parameters.
 ## *getPlatformConfiguration [<sup>method</sup>](#head.Methods)*
 
 (Version 2) Returns the supported features and device/account info.
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
@@ -2832,6 +3333,7 @@ This method takes no parameters.
 | result?.DeviceInfo?.webBrowser.userAgent | string |  |
 | result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
 | result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.publicIP | string | Public IP |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2842,9 +3344,9 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "method": "org.rdk.System.2.getPlatformConfiguration",
     "params": {
-        "query": "..."
+        "query": ""
     }
 }
 ```
@@ -2882,7 +3384,8 @@ This method takes no parameters.
                 "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
             },
             "HdrCapability": "none",
-            "canMixPCMWithSurround": true
+            "canMixPCMWithSurround": true,
+            "publicIP": "12.34.56.78"
         },
         "success": true
     }
@@ -2921,7 +3424,7 @@ SystemServices interface events:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.seconds | integer | The deep sleep timeout in seconds |
+| params.fireFirmwarePendingReboot | integer | The deep sleep timeout in seconds |
 | params.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2931,7 +3434,7 @@ SystemServices interface events:
     "jsonrpc": "2.0",
     "method": "client.events.1.onFirmwarePendingReboot",
     "params": {
-        "seconds": 3,
+        "fireFirmwarePendingReboot": 3,
         "success": true
     }
 }
@@ -2954,7 +3457,8 @@ Update details are:
 | params | object |  |
 | params.status | integer | The firmware update status |
 | params.responseString | string | A custom response |
-| params.firmwareUpdateVersion | string | The next firmware update version |
+| params?.firmwareUpdateVersion | string | <sup>*(optional)*</sup> The next firmware update version |
+| params.rebootImmediately | boolean | The value `true` indicates that the device has to be rebooted immediately or `false` otherwise |
 | params.updateAvailable | boolean | The value `false` indicates that there is no update available, either because there was no firmware update version returned from XCONF, or because the version returned from XCONF matches the version already on the device. The value of `true` indicates there is a firmware version available for update |
 | params.updateAvailableEnum | integer | The update available details (must be one of the following: *0*, *1*, *2*, *3*) |
 | params.success | boolean | Whether the request succeeded |
@@ -2969,6 +3473,7 @@ Update details are:
         "status": 0,
         "responseString": "...",
         "firmwareUpdateVersion": "AX061AEI_VBN_1911_sprint_20200109040424sdy",
+        "rebootImmediately": true,
         "updateAvailable": true,
         "updateAvailableEnum": 0,
         "success": true
@@ -2994,7 +3499,7 @@ State details are:
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.firmwareUpdateState | string | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
+| params.firmwareUpdateStateChange | integer | The state (must be one of the following: *Uninitialized*, *Requesting*, *Downloading*, *Failed*, *DownLoad Complete*, *Validation Complete*, *Preparing to Reboot*) |
 
 ### Example
 
@@ -3003,7 +3508,7 @@ State details are:
     "jsonrpc": "2.0",
     "method": "client.events.1.onFirmwareUpdateStateChange",
     "params": {
-        "firmwareUpdateState": "Download Complete"
+        "firmwareUpdateStateChange": 5
     }
 }
 ```
@@ -3023,7 +3528,9 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 | params.moca_mac | string | The MOCA MAC address |
 | params.eth_mac | string | The Ethernet MAC address |
 | params.wifi_mac | string | The Wifi MAC address |
-| params.info | string | Additional information |
+| params.bluetooth_mac | string | The Bluetooth MAC address |
+| params.rf4ce_mac | string | The Rf4ce MAC address |
+| params?.info | string | <sup>*(optional)*</sup> Additional information (only if any of the above data is missing) |
 | params.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -3038,7 +3545,9 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
         "moca_mac": "00:15:5F:XX:20:5E:57:XX",
         "eth_mac": "A8:11:XX:FD:0C:XX",
         "wifi_mac": "A8:11:XX:FD:0C:XX",
-        "info": "...",
+        "bluetooth_mac": "AA:AA:AA:AA:AA:AA",
+        "rf4ce_mac": "00:00:00:00:00:00",
+        "info": "Details fetch: all are not success",
         "success": true
     }
 }
@@ -3123,7 +3632,7 @@ Triggered when the power manager detects a device power state change.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
-| params?.currentPowerState | string | <sup>*(optional)*</sup> The current power state |
+| params.currentPowerState | string | The current power state |
 
 ### Example
 
@@ -3150,7 +3659,7 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
 | params | object |  |
 | params.thresholdType | string | The exceeded threshold (must be one of the following: *MAX*, *MIN*) |
 | params.exceeded | boolean | Whether the threshold exceeded the configured value |
-| params.temperature | number | The temperature |
+| params.temperature | string | The temperature |
 
 ### Example
 
@@ -3161,7 +3670,7 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
     "params": {
         "thresholdType": "MAX",
         "exceeded": true,
-        "temperature": 48.0
+        "temperature": "48.000000"
     }
 }
 ```

@@ -92,6 +92,7 @@ set(PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS :::10000 CACHE STRING "IP:Port for 
 set(PLUGIN_RESIDENT_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Resident App plugin")
 set(PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE true CACHE STRING "Enable LocalStorage of Resident App")
 set(PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_RESIDENT_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Resident App Memory Pressure")
 
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART false CACHE STRING "Automatically start Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -99,6 +100,7 @@ set(PLUGIN_SEARCH_AND_DISCOVERY_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} 
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_WEBINSPECTOR_ADDRESS :::10003 CACHE STRING "IP:Port for WebInspector of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Search&Discovery Memory Pressure")
 
 set(PLUGIN_HTML_APP_AUTOSTART false CACHE STRING "Automatically start Htmp App plugin")
 set(PLUGIN_HTML_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -106,6 +108,7 @@ set(PLUGIN_HTML_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "Us
 set(PLUGIN_HTML_APP_WEBINSPECTOR_ADDRESS :::10001 CACHE STRING "IP:Port for WebInspector of Html App")
 set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Html App")
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_HTML_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Html App Memory Pressure")
 
 set(PLUGIN_LIGHTNING_APP_AUTOSTART false CACHE STRING "Automatically start Lightninig App plugin")
 set(PLUGIN_LIGHTNING_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -113,6 +116,7 @@ set(PLUGIN_LIGHTNING_APP_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRIN
 set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS :::10002 CACHE STRING "IP:Port for WebInspector of Lightning App")
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE false CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Lightning App Memory Pressure")
 
 set(PLUGIN_AMAZON_AUTOSTART false CACHE STRING "Automatically start Amazon plugin")
 set(PLUGIN_AMAZON_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
