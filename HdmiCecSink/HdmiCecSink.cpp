@@ -1008,7 +1008,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send systemAudioModeRequest ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 100);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(SystemAudioModeRequest(physical_addr)), 1000);
 
         }
          void HdmiCecSink::sendGiveAudioStatusMsg()
@@ -1818,7 +1818,7 @@ namespace WPEFramework
 			}
 
                         LOGINFO(" Send requestShortAudioDescriptor Message ");
-                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 200);
+                    _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestShortAudioDescriptor(formatid,audioFormatCode,numberofdescriptor)), 1000);
 
 		}
 		void HdmiCecSink::sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason)
@@ -2877,6 +2877,14 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
 	    return;
 
+	    //DD: Check cecSettingEnabled to prevent race conditions which gives immediate UI setting status
+	    //Initiate ARC message may come from AVR/Soundbar while CEC disable is in-progress
+            if ( cecSettingEnabled != true  )
+            {
+              LOGINFO("Process InitiateArc from Audio device: Cec is disabled-> EnableCEC first");
+              return;
+            }
+
             LOGINFO("Got : INITIATE_ARC  and current Arcstate is %d\n",_instance->m_currentArcRoutingState);
 
             if (m_arcStartStopTimer.isActive())
@@ -3032,7 +3040,7 @@ namespace WPEFramework
            if(!(_instance->smConnection))
                return;
           LOGINFO(" Send_Request_Arc_Initiation_Message ");
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcInitiation()), 200);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcInitiation()), 1000);
 
         }
         void HdmiCecSink::Send_Report_Arc_Initiated_Message()
@@ -3041,7 +3049,7 @@ namespace WPEFramework
 	    return;
             if(!(_instance->smConnection))
                return;
-            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcInitiation()), 200);
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcInitiation()), 1000);
 
         }
         void HdmiCecSink::Send_Request_Arc_Termination_Message()
@@ -3051,7 +3059,7 @@ namespace WPEFramework
 	     return;
             if(!(_instance->smConnection))
                return;
-            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcTermination()), 200);
+            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(RequestArcTermination()), 1000);
         }
 
        void HdmiCecSink::Send_Report_Arc_Terminated_Message()
@@ -3060,7 +3068,7 @@ namespace WPEFramework
 		return;
             if(!(_instance->smConnection))
                return;
-           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 200);
+           _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 1000);
 
        }
 
