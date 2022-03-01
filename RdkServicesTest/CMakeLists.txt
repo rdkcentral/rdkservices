@@ -30,21 +30,23 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(${PROJECT_NAME}
+        Tests/DataCaptureTest.cpp
         Tests/LocationSyncTest.cpp
         Tests/PersistentStoreTest.cpp
         Tests/SecurityAgentTest.cpp
         Module.cpp
         )
 
-include_directories(../LocationSync ../PersistentStore ../SecurityAgent)
-link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../DataCapture ../LocationSync ../PersistentStore ../SecurityAgent)
+link_directories(../DataCapture ../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
         gtest_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DataCapture
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
-        ${NAMESPACE}SecurityAgent
+        ${NAMESPACE}SecurityAgent   
         )
 
 target_include_directories(${PROJECT_NAME}

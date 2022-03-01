@@ -20,16 +20,14 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "libIARM.h"
 #include "libIBus.h"
-//#include "irMgr.h"
 
 class socket_adaptor;
 
 namespace WPEFramework {
     namespace Plugin {
-        class DataCapture : public AbstractPlugin {
+        class DataCapture : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             DataCapture();
             virtual ~DataCapture();
@@ -46,6 +44,11 @@ namespace WPEFramework {
             static const string METHOD_ENABLE_AUDIO_CAPTURE;
             static const string METHOD_GET_AUDIO_CLIP;
             static const string EVT_ON_AUDIO_CLIP_READY;
+
+            BEGIN_INTERFACE_MAP(MODULE_NAME)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private/*registered methods*/:
             //methods

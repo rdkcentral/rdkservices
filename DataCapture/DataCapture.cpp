@@ -17,14 +17,16 @@
 * limitations under the License.
 **/
 
+#include "DataCapture.h"
 
 #include <algorithm>
-#include <regex>
-#include "audiocapturemgr_iarm.h"
-#undef LOG // we don't need LOG from audiocapturemgr_iarm as we are defining our own LOG
-#include "DataCapture.h"
 #include <curl/curl.h>
+#include <regex>
+
+#undef LOG // we don't need LOG from audiocapturemgr_iarm as we are defining our own LOG
+#include "audiocapturemgr_iarm.h"
 #include "socket_adaptor.h"
+#include "Utils.h"
 
 const string WPEFramework::Plugin::DataCapture::SERVICE_NAME = "org.rdk.DataCapture";
 const string WPEFramework::Plugin::DataCapture::METHOD_ENABLE_AUDIO_CAPTURE = "enableAudioCapture";
@@ -68,7 +70,7 @@ namespace WPEFramework {
         DataCapture* DataCapture::_instance = nullptr;
 
         DataCapture::DataCapture()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , _session_id(-1)
             , _max_supported_duration(0)
             , _is_precapture(false)
@@ -87,7 +89,9 @@ namespace WPEFramework {
 
         DataCapture::~DataCapture()
         {
-            //LOGINFO("dtor");
+            LOGINFO("dtor");
+            Unregister(METHOD_ENABLE_AUDIO_CAPTURE);
+            Unregister(METHOD_GET_AUDIO_CLIP);
         }
 
         const string DataCapture::Initialize(PluginHost::IShell* /* service */)

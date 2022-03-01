@@ -23,8 +23,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         socket_adaptor.cpp
         DataCapture.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -32,7 +31,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 find_package(Curl)
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(AC)
 if (AC_FOUND)
