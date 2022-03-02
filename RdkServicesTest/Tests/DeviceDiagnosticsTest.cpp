@@ -32,14 +32,6 @@ TEST(DeviceDiagnosticsTest, test) {
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("getConfiguration")));
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("getAVDecoderStatus")));
 
-    // init server
-    WPEFramework::Core::File serverConf(string("thunder/install/etc/WPEFramework/config.json"), false);
-    EXPECT_TRUE(serverConf.Open(true));
-    // init plugin
-    WPEFramework::Core::File pluginConf(string("thunder/install/etc/WPEFramework/plugins/DeviceDiagnostics.json"), false);
-    EXPECT_TRUE(pluginConf.Open(true));
-    EXPECT_EQ(string(""), deviceDiagnostic->Initialize(nullptr));
-
     // invoke plugin
     WPEFramework::Core::JSONRPC::Connection connection(1, 0);
 
