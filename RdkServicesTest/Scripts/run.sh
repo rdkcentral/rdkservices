@@ -19,8 +19,17 @@ startDummyServerDeviceDiagnostic() {
   sleep 0.1
 }
 
+startDummyThunderSocket() {
+  python Source/socketMock.py &
+  sleep 0.1
+}
+
 stopDummyServerDeviceDiagnostic() {
   pkill -f Scripts/DeviceDiagnosticMock.py
+}
+
+stopDummyThunderSocket() {
+  pkill -f "Source/socketMock.py
 }
 
 if ! checkInstalled "valgrind"; then
@@ -29,6 +38,7 @@ if ! checkInstalled "valgrind"; then
 fi
 
 startDummyServerDeviceDiagnostic
+startDummyThunderSocket
 
 PATH=${THUNDER_INSTALL_DIR}/usr/bin:${PATH} \
   LD_LIBRARY_PATH=${THUNDER_INSTALL_DIR}/usr/lib:${THUNDER_INSTALL_DIR}/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH} \
@@ -42,6 +52,7 @@ PATH=${THUNDER_INSTALL_DIR}/usr/bin:${PATH} \
   RdkServicesTest
 
 stopDummyServerDeviceDiagnostic
+stopDummyThunderSocket
 
 echo "==== DONE ===="
 

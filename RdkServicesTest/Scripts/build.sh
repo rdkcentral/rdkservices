@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -113,6 +113,7 @@ buildAndInstallRdkservices() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror -Wno-unused-parameter" \
     -DCOMCAST_CONFIG=OFF \
+    -DPLUGIN_AVINPUT=ON \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \

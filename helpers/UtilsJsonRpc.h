@@ -2,8 +2,13 @@
 
 #include "UtilsLogging.h"
 
+#define UNUSED(expr)(void)(expr)
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
+#define getNumberParameter(paramName, param) { \
+    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+        param = parameters[paramName].Number(); \
+}
 #define returnResponse(success) \
     { \
         response["success"] = success; \
