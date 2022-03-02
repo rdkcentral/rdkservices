@@ -2961,6 +2961,10 @@ namespace WPEFramework {
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
                 string type;
+                if (parameters.HasLabel("type"))
+                {
+                    type = parameters["type"].String();
+                }
                 string version = "0.0";
                 string uri;
                 int32_t x = 0;
@@ -2972,7 +2976,25 @@ namespace WPEFramework {
                 bool focused = true;
                 string configuration;
                 string behind;
-                string displayName = "wst-" + callsign;
+
+                // Ensure cloned plugin displays are in a sub-dir based on
+                // plugin classname
+                string displayName;
+                if (type.empty())
+                {
+                    displayName = "wst-" + callsign;
+                }
+                else
+                {
+                    string xdgDir;
+                    Core::SystemInfo::GetEnvironment(_T("XDG_RUNTIME_DIR"), xdgDir);
+                    string displaySubdir = xdgDir + "/" + type;
+                    Core::Directory(displaySubdir.c_str()).CreatePath();
+
+                    // don't add XDG_RUNTIME_DIR to display name
+                    displayName = type + "/" + "wst-" + callsign;
+                }
+
                 if (gRdkShellSurfaceModeEnabled)
                 {
                     displayName = "rdkshell_display";
@@ -3209,6 +3231,33 @@ namespace WPEFramework {
                         std::cout << "setting Cobalt preload: " << preload << "\n";
                         configSet["preload"] = JsonValue(preload);
                     }
+
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
+                    {
+                        JsonObject root;
+                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby rfc false - launching cobalt in local mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading cobalt dobby rfc failed " << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
                 }
 
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
