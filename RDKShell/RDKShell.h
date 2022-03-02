@@ -147,6 +147,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
             static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
             static const string RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE;
+	    static const string RDKSHELL_EVENT_ON_CLIENT_REBOOT_REASON;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
@@ -227,6 +228,7 @@ namespace WPEFramework {
             uint32_t enableEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getClientRebootStatus(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
