@@ -54,7 +54,7 @@ namespace Plugin {
 
     public:
         LocationService(Core::IDispatchType<void>* update);
-        virtual ~LocationService();
+        ~LocationService() override;
 
     public:
         BEGIN_INTERFACE_MAP(LocationService)
@@ -69,48 +69,48 @@ namespace Plugin {
         void Stop();
 
         /*
-       * ------------------------------------------------------------------------------------------------------------
-       * ISubSystem::INetwork methods
-       * ------------------------------------------------------------------------------------------------------------
-       */
-        virtual string PublicIPAddress() const
+        * ------------------------------------------------------------------------------------------------------------
+        * ISubSystem::INetwork methods
+        * ------------------------------------------------------------------------------------------------------------
+        */
+        string PublicIPAddress() const override
         {
             return (_publicIPAddress);
         }
-        virtual network_type NetworkType() const
+        network_type NetworkType() const override
         {
             return (_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (Core::NodeId::IsIPV6Enabled() ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
         }
         /*
-       * ------------------------------------------------------------------------------------------------------------
-       * ISubSystem::ILocation methods
-       * ------------------------------------------------------------------------------------------------------------
-       */
-        virtual string TimeZone() const
+        * ------------------------------------------------------------------------------------------------------------
+        * ISubSystem::ILocation methods
+        * ------------------------------------------------------------------------------------------------------------
+        */
+        string TimeZone() const override
         {
             return (_timeZone);
         }
-        virtual string Country() const
+        string Country() const override
         {
             return (_country);
         }
-        virtual string Region() const
+        string Region() const override
         {
             return (_region);
         }
-        virtual string City() const
+        string City() const override
         {
             return (_city);
         }
 
     private:
         // Notification of a Partial Request received, time to attach a body..
-        virtual void LinkBody(Core::ProxyType<Web::Response>& element) override;
-        virtual void Received(Core::ProxyType<Web::Response>& element) override;
-        virtual void Send(const Core::ProxyType<Web::Request>& element) override;
+        void LinkBody(Core::ProxyType<Web::Response>& element) override;
+        void Received(Core::ProxyType<Web::Response>& element) override;
+        void Send(const Core::ProxyType<Web::Request>& element) override;
 
         // Signal a state change, Opened, Closed or Accepted
-        virtual void StateChange() override;
+        void StateChange() override;
 
         friend Core::ThreadPool::JobType<LocationService&>;
         void Dispatch();
