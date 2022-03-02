@@ -105,7 +105,7 @@ namespace WPEFramework {
 
             JsonObject _doPing(const std::string& guid, const std::string& endPoint, int packets);
             JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
-            bool getIPSettingsInternal(const JsonObject& parameters, JsonObject response,int errCode);
+            bool getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode);
             uint32_t setIPSettingsInternal(const JsonObject& parameters, JsonObject& response);
 
         public:

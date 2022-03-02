@@ -1050,7 +1050,7 @@ namespace WPEFramework
             returnResponse(result)
         }
 
-        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject response,int errCode)
+        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode)
         {
             string interface = "";
             string ipversion = "";
