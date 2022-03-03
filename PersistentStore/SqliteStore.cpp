@@ -19,6 +19,8 @@
 
 #include "SqliteStore.h"
 
+#include "Utils.h"
+
 #include <sqlite3.h>
 
 #if defined(USE_PLABELS)
@@ -32,15 +34,6 @@
 
 #define SQLITE *(sqlite3**)&_data
 #define SQLITE_IS_ERROR_DBWRITE(rc) (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
-
-/**
- * from utils.h
- * TODO: cannot use utils.h because it has too many include-s
- */
-#include <syscall.h>
-#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
 
 namespace {
 #if defined(USE_PLABELS)

@@ -20,7 +20,11 @@
 #pragma once
 
 #include "Module.h"
+
+#include "IStoreListing.h"
+
 #include <interfaces/IStore.h>
+#include <interfaces/IStoreCache.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -125,6 +129,7 @@ public:
     INTERFACE_ENTRY(PluginHost::IPlugin)
     INTERFACE_ENTRY(PluginHost::IDispatcher)
     INTERFACE_AGGREGATE(Exchange::IStore, _store)
+    INTERFACE_AGGREGATE(Exchange::IStoreCache, _storeCache)
     END_INTERFACE_MAP
 
 public:
@@ -156,6 +161,8 @@ protected:
 private:
     Config _config;
     Exchange::IStore *_store;
+    Exchange::IStoreCache *_storeCache;
+    IStoreListing *_storeListing;
     Core::Sink<StoreNotification> _storeSink;
 };
 

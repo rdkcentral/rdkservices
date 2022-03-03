@@ -21,13 +21,21 @@
 #define RDKSERVICES_SQLITESTORE_H
 
 #include "Module.h"
+
 #include "CountingLock.h"
+
+#include "IStoreListing.h"
+
 #include <interfaces/IStore.h>
+#include <interfaces/IStoreCache.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
-class SqliteStore: public Exchange::IStore
+class SqliteStore
+        : public Exchange::IStore
+        , public Exchange::IStoreCache
+        , public IStoreListing
 {
 private:
     SqliteStore(const SqliteStore &) = delete;
@@ -37,24 +45,32 @@ public:
     SqliteStore();
     virtual ~SqliteStore() = default;
 
+    uint32_t Open(const string &path, const string &key, uint32_t maxSize, uint32_t maxValue);
+    uint32_t Term();
+
 public:
     // IStore methods
 
     virtual uint32_t Register(Exchange::IStore::INotification *notification) override;
     virtual uint32_t Unregister(Exchange::IStore::INotification *notification) override;
-    virtual uint32_t Open(const string &path, const string &key, uint32_t maxSize, uint32_t maxValue) override;
     virtual uint32_t SetValue(const string &ns, const string &key, const string &value) override;
     virtual uint32_t GetValue(const string &ns, const string &key, string &value) override;
     virtual uint32_t DeleteKey(const string &ns, const string &key) override;
     virtual uint32_t DeleteNamespace(const string &ns) override;
+
+    // IStoreListing methods
+
     virtual uint32_t GetKeys(const string &ns, std::vector<string> &keys) override;
     virtual uint32_t GetNamespaces(std::vector<string> &namespaces) override;
     virtual uint32_t GetStorageSize(std::map<string, uint64_t> &namespaceSizes) override;
+
+    // IStoreCache methods
+
     virtual uint32_t FlushCache() override;
-    virtual uint32_t Term() override;
 
     BEGIN_INTERFACE_MAP(SqliteStore)
     INTERFACE_ENTRY(Exchange::IStore)
+    INTERFACE_ENTRY(Exchange::IStoreCache)
     END_INTERFACE_MAP
 
 protected:

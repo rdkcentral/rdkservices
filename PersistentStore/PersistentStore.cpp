@@ -29,6 +29,8 @@ SERVICE_REGISTRATION(PersistentStore, 1, 0);
 PersistentStore::PersistentStore()
     : PluginHost::JSONRPC(),
       _store(Core::Service<SqliteStore>::Create<Exchange::IStore>()),
+      _storeCache(static_cast<SqliteStore *>(_store)),
+      _storeListing(static_cast<SqliteStore *>(_store)),
       _storeSink(this)
 {
     RegisterAll();
@@ -65,7 +67,7 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
     }
 
     if (result.empty()) {
-        if (_store->Open(_config.Path.Value(),
+        if (static_cast<SqliteStore *>(_store)->Open(_config.Path.Value(),
                          _config.Key.Value(),
                          _config.MaxSize.Value(),
                          _config.MaxValue.Value()) != Core::ERROR_NONE) {
@@ -82,7 +84,7 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
 
 void PersistentStore::Deinitialize(PluginHost::IShell * /* service */)
 {
-    _store->Term();
+    static_cast<SqliteStore *>(_store)->Term();
 
     _storeSink.Deinitialize();
 }

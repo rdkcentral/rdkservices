@@ -12,9 +12,9 @@ THUNDER_URL=https://github.com/rdkcentral/Thunder
 THUNDER_BRANCH=R2
 THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
 
-INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
-INTERFACES_BRANCH=R2
-INTERFACES_REV=1ed7eee3e833ed2f7d6a39624f0e32d1659d3f03
+INTERFACES_URL=https://github.com/npoltorapavlo/ThunderInterfaces
+INTERFACES_BRANCH=RDK-35050_R2
+INTERFACES_REV=2af6a186f86abf385fba3699892e792ac563e542
 
 checkPython() {
   case "$(python --version)" in
