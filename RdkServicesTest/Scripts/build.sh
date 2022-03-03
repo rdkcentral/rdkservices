@@ -14,7 +14,7 @@ THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
-INTERFACES_REV=3980f77eb0f2031781588c734e61b179f293c23f
+INTERFACES_REV=1ed7eee3e833ed2f7d6a39624f0e32d1659d3f03
 
 checkPython() {
   case "$(python --version)" in
