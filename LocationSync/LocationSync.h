@@ -21,6 +21,7 @@
 #define LOCATIONSYNC_LOCATIONSYNC_H
 
 #include "LocationService.h"
+#include <interfaces/ITimeZone.h>
 #include <interfaces/json/JsonData_LocationSync.h>
 #include "Module.h"
 
@@ -49,7 +50,7 @@ namespace Plugin {
                 Add(_T("city"), &Region);
             }
 
-            virtual ~Data()
+            ~Data() override
             {
             }
 
@@ -90,7 +91,7 @@ namespace Plugin {
             }
 
         public:
-            inline void Initialize(PluginHost::IShell* service, const string& source, const uint16_t interval, const uint8_t retries)
+            inline void Initialize(const string& source, const uint16_t interval, const uint8_t retries)
             {
                 _source = source;
                 _interval = interval;
@@ -125,10 +126,10 @@ namespace Plugin {
 
                 ASSERT(_locator != nullptr);
 
-                return (_locator != nullptr ? _locator->Probe(_source, _retries, _interval) : Core::ERROR_UNAVAILABLE);
+                return (_locator != nullptr ? _locator->Probe(_source, _retries, _interval) : static_cast<uint32_t>(Core::ERROR_UNAVAILABLE));
             }
 
-            virtual void Dispatch()
+            void Dispatch() override
             {
                 _parent.SyncedLocation();
             }
@@ -151,10 +152,12 @@ namespace Plugin {
                 : Interval(30)
                 , Retries(8)
                 , Source()
+                , TimezoneFile()
             {
                 Add(_T("interval"), &Interval);
                 Add(_T("retries"), &Retries);
                 Add(_T("source"), &Source);
+                Add(_T("timezonefile"), &TimezoneFile);
             }
             ~Config()
             {
@@ -164,6 +167,85 @@ namespace Plugin {
             Core::JSON::DecUInt16 Interval;
             Core::JSON::DecUInt8 Retries;
             Core::JSON::String Source;
+            Core::JSON::String TimezoneFile;
+        };
+
+    private:
+        class TZ {
+        public:
+            TZ() : _sync(true) {}
+
+            static TZ& Instance()
+            {
+                static TZ& _instance = Core::SingletonType<TZ>::Instance();
+                return (_instance);
+            }
+
+            void Set(const string &value, bool synced)
+            {
+                Core::SafeSyncType <Core::CriticalSection> lock(_adminLock);
+
+                if ((value.empty() == false) && (!synced || _sync)) {
+                    if (!synced && _sync) {
+
+                        // time zone set explicitly, no need to sync
+
+                        _sync = false;
+                    }
+
+                    Core::SystemInfo::SetEnvironment(_T("TZ"), value);
+                }
+            }
+
+        private:
+            bool _sync;
+            Core::CriticalSection _adminLock;
+        };
+
+        class TimeZoneNotification : protected Exchange::ITimeZone::INotification {
+        private:
+            TimeZoneNotification(const TimeZoneNotification&) = delete;
+            TimeZoneNotification& operator=(const TimeZoneNotification&) = delete;
+
+        public:
+            TimeZoneNotification() : _client(nullptr) { }
+            ~TimeZoneNotification() = default;
+
+        public:
+            void Initialize(Exchange::ITimeZone* client)
+            {
+                ASSERT(_client == nullptr);
+                ASSERT(client != nullptr);
+
+                _client = client;
+                _client->AddRef();
+                _client->Register(this);
+            }
+            void Deinitialize()
+            {
+                ASSERT(_client != nullptr);
+
+                if (_client != nullptr) {
+                    _client->Unregister(this);
+                    _client->Release();
+                    _client = nullptr;
+                }
+            }
+
+        public:
+            // ITimeZone::INotification methods
+
+            virtual void TimeZoneChanged(const string &timeZone) override
+            {
+                TZ::Instance().Set(timeZone, false);
+            }
+
+            BEGIN_INTERFACE_MAP(TimeZoneNotification)
+            INTERFACE_ENTRY(Exchange::ITimeZone::INotification)
+            END_INTERFACE_MAP
+
+        private:
+            Exchange::ITimeZone* _client;
         };
 
     private:
@@ -172,26 +254,27 @@ namespace Plugin {
 
     public:
         LocationSync();
-        virtual ~LocationSync();
+        ~LocationSync() override;
 
         // Build QueryInterface implementation, specifying all possible interfaces to be returned.
         BEGIN_INTERFACE_MAP(LocationSync)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::ITimeZone, _timeZone)
         END_INTERFACE_MAP
 
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const string Initialize(PluginHost::IShell* service) override;
-        virtual void Deinitialize(PluginHost::IShell* service) override;
-        virtual string Information() const override;
+        const string Initialize(PluginHost::IShell* service) override;
+        void Deinitialize(PluginHost::IShell* service) override;
+        string Information() const override;
 
         //   IWeb methods
         // -------------------------------------------------------------------------------------------------------
-        virtual void Inbound(Web::Request& request) override;
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
+        void Inbound(Web::Request& request) override;
+        Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
         void RegisterAll();
@@ -207,6 +290,8 @@ namespace Plugin {
         string _source;
         Core::Sink<Notification> _sink;
         PluginHost::IShell* _service;
+        Exchange::ITimeZone* _timeZone;
+        Core::Sink<TimeZoneNotification> _timeZoneSink;
     };
 
 } // namespace Plugin
