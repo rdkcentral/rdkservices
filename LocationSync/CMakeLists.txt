@@ -26,7 +26,6 @@ set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 set(PLUGIN_LOCATIONSYNC_AUTOSTART "true" CACHE STRING "Automatically start LocationSync plugin")
 set(PLUGIN_LOCATIONSYNC_URI "location.webplatformforembedded.org" CACHE STRING "URI to request the location information")
-set(PLUGIN_LOCATIONSYNC_TIMEZONEFILE /opt/persistent/timeZoneDST CACHE STRING "File with timezone")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
@@ -36,7 +35,6 @@ add_library(${MODULE_NAME} SHARED
     LocationSync.cpp
     LocationService.cpp
     LocationSyncJsonRpc.cpp
-        TimeZone.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
