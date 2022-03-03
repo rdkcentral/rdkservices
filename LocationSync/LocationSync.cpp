@@ -19,8 +19,6 @@
  
 #include "LocationSync.h"
 
-#include "TimeZone.h"
-
 namespace WPEFramework {
 namespace Plugin {
 
@@ -37,8 +35,6 @@ namespace Plugin {
         , _source()
         , _sink(this)
         , _service(nullptr)
-        , _timeZone(Core::Service<TimeZone>::Create<Exchange::ITimeZone>())
-        , _timeZoneSink()
     {
         RegisterAll();
     }
@@ -49,8 +45,6 @@ namespace Plugin {
     LocationSync::~LocationSync() /* override */
     {
         UnregisterAll();
-
-        _timeZone->Release();
     }
 
     const string LocationSync::Initialize(PluginHost::IShell* service) /* override */
@@ -59,15 +53,6 @@ namespace Plugin {
         Config config;
         config.FromString(service->ConfigLine());
         string version = service->Version();
-
-        _timeZoneSink.Initialize(_timeZone);
-
-        auto timezoneFile = config.TimezoneFile.Value();
-        if (!timezoneFile.empty()) {
-            ASSERT(Core::Directory(Core::File(timezoneFile).PathName().c_str()).CreatePath());
-
-            static_cast<TimeZone *>(_timeZone)->Synchronize(timezoneFile);
-        }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
@@ -88,8 +73,6 @@ namespace Plugin {
         ASSERT(_service == service);
 
         _sink.Deinitialize();
-
-        _timeZoneSink.Deinitialize();
     }
 
     string LocationSync::Information() const /* override */
@@ -171,7 +154,7 @@ namespace Plugin {
             subSystem->Release();
 
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
-                TZ::Instance().Set(_sink.Location()->TimeZone(), true);
+                Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
                 event_locationchange();
             }
         }

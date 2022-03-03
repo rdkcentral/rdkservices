@@ -14,7 +14,7 @@ THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
-INTERFACES_REV=3980f77eb0f2031781588c734e61b179f293c23f
+INTERFACES_REV=1ed7eee3e833ed2f7d6a39624f0e32d1659d3f03
 
 checkPython() {
   case "$(python --version)" in
@@ -109,9 +109,7 @@ buildAndInstallRdkservices() {
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DCOMCAST_CONFIG=OFF \
-    -DPLUGIN_LOCATIONSYNC=ON \
-    -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
-    -DPLUGIN_LOCATIONSYNC_TIMEZONEFILE="/tmp/test/timeZoneDST" \
+    -DPLUGIN_LOCATIONSYNC=ON -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
     -DRDK_SERVICES_TEST=ON
