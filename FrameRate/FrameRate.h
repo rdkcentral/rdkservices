@@ -22,15 +22,27 @@
 #include <mutex>
 
 #include "Module.h"
-#include "libIARM.h"
+#include "tptimer.h"
+#include "utils.h"
+#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
     namespace Plugin {
 
-        class TpTimer;
-
-        class FrameRate : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        // This is a server for a JSONRPC communication channel. 
+        // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
+        // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
+        // This realization of this interface implements, by default, the following methods on this plugin
+        // - exists
+        // - register
+        // - unregister
+        // Any other methood to be handled by this plugin  can be added can be added by using the
+        // templated methods Register on the PluginHost::JSONRPC class.
+        // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
+        // this class exposes a public method called, Notify(), using this methods, all subscribed clients
+        // will receive a JSONRPC message as a notification, in case this method is called.
+        class FrameRate : public AbstractPlugin {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -77,12 +89,6 @@ namespace WPEFramework {
             virtual ~FrameRate();
 	    virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
-            virtual string Information() const override;
-
-            BEGIN_INTERFACE_MAP(MODULE_NAME)
-            INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IDispatcher)
-            END_INTERFACE_MAP
 
         public:
             static FrameRate* _instance;
@@ -93,7 +99,8 @@ namespace WPEFramework {
             int m_totalFpsValues;
             int m_numberOfFpsUpdates;
             bool m_fpsCollectionInProgress;
-            Core::ProxyType<TpTimer> m_reportFpsTimer;
+            //QTimer m_reportFpsTimer;
+            TpTimer m_reportFpsTimer;
             int m_lastFpsValue;
             
             std::mutex m_callMutex;
