@@ -321,7 +321,11 @@ This method takes no parameters.
 <a name="method.getConnectedSSID"></a>
 ## *getConnectedSSID [<sup>method</sup>](#head.Methods)*
 
-Returns the connected SSID information.
+Returns the connected SSID information. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -383,7 +387,11 @@ Returns the current Wifi State. The possible Wifi states are as follows.
 * `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  
 * `4`: CONNECTING - The device is attempting to connect to a network  
 * `5`: CONNECTED - The device is successfully connected to a network  
-* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
+* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -425,7 +433,11 @@ This method takes no parameters.
 <a name="method.getPairedSSID"></a>
 ## *getPairedSSID [<sup>method</sup>](#head.Methods)*
 
-Returns the SSID to which the device is currently paired.
+Returns the SSID to which the device is currently paired. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -467,7 +479,11 @@ This method takes no parameters.
 <a name="method.getPairedSSIDInfo"></a>
 ## *getPairedSSIDInfo [<sup>method</sup>](#head.Methods)*
 
-Returns the SSID and BSSID to which the device is currently paired.
+Returns the SSID and BSSID to which the device is currently paired. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -511,7 +527,11 @@ This method takes no parameters.
 <a name="method.getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the Wifi security modes that the device supports.
+(Version 2) Returns the Wifi security modes that the device supports. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -646,7 +666,11 @@ Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onEr
 <a name="method.isPaired"></a>
 ## *isPaired [<sup>method</sup>](#head.Methods)*
 
-Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.
+Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -688,7 +712,11 @@ This method takes no parameters.
 <a name="method.isSignalThresholdChangeEnabled"></a>
 ## *isSignalThresholdChangeEnabled [<sup>method</sup>](#head.Methods)*
 
-Returns whether `onWifiSignalThresholdChanged` event is enabled or not.
+Returns whether `onWifiSignalThresholdChanged` event is enabled or not. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -730,7 +758,11 @@ This method takes no parameters.
 <a name="method.saveSSID"></a>
 ## *saveSSID [<sup>method</sup>](#head.Methods)*
 
-Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.
+Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -782,7 +814,11 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 <a name="method.setEnabled"></a>
 ## *setEnabled [<sup>method</sup>](#head.Methods)*
 
-Enables or disables the Wifi adapter for this device.
+Enables or disables the Wifi adapter for this device. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -942,7 +978,11 @@ Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 <a name="method.stopScan"></a>
 ## *stopScan [<sup>method</sup>](#head.Methods)*
 
-Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
