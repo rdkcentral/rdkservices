@@ -4,6 +4,8 @@
 #include <glib.h>
 #include <unistd.h>
 
+#include "UtilsJsonRpc.h"
+
 #if defined(USE_PLABELS)
 #include "pbnj_utils.hpp"
 #endif
@@ -14,30 +16,6 @@
 
 #define SQLITE *(sqlite3**)&mData
 #define SQLITE_IS_ERROR_DBWRITE(rc) (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
-
-/**
- * from utils.h
- * TODO: cannot use utils.h because it has too many include-s
- */
-#include <syscall.h>
-#define C_STR(x) (x).c_str()
-#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
-#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
-#define returnResponse(success) \
-    { \
-        response["success"] = success; \
-        LOGTRACEMETHODFIN(); \
-        return (Core::ERROR_NONE); \
-    }
-#define sendNotify(event,params) { \
-    std::string json; \
-    params.ToString(json); \
-    LOGINFO("Notify %s %s", event, json.c_str()); \
-    Notify(event,params); \
-}
 
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MINOR = 0;
@@ -412,7 +390,7 @@ namespace WPEFramework {
                         LOGWARN("max size exceeded: %ld", size);
 
                         JsonObject params;
-                        sendNotify(C_STR(EVT_ON_STORAGE_EXCEEDED), params);
+                        sendNotify(EVT_ON_STORAGE_EXCEEDED.c_str(), params);
                     }
                     else
                         success = true;
