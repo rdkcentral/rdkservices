@@ -153,6 +153,10 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::NOT_SECURITY, nullptr);
             subSystem->Release();
         }
+
+        _dispatcher.reset();
+        _engine.Release();
+
         _acl.Clear();
     }
 

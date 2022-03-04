@@ -15,6 +15,30 @@
 #define SQLITE *(sqlite3**)&mData
 #define SQLITE_IS_ERROR_DBWRITE(rc) (rc == SQLITE_READONLY || rc == SQLITE_CORRUPT)
 
+/**
+ * from utils.h
+ * TODO: cannot use utils.h because it has too many include-s
+ */
+#include <syscall.h>
+#define C_STR(x) (x).c_str()
+#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
+#define returnResponse(success) \
+    { \
+        response["success"] = success; \
+        LOGTRACEMETHODFIN(); \
+        return (Core::ERROR_NONE); \
+    }
+#define sendNotify(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s %s", event, json.c_str()); \
+    Notify(event,params); \
+}
+
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::PersistentStore::API_VERSION_NUMBER_MINOR = 0;
 const string WPEFramework::Plugin::PersistentStore::SERVICE_NAME = "org.rdk.PersistentStore";
@@ -69,22 +93,29 @@ namespace WPEFramework {
         SERVICE_REGISTRATION(PersistentStore, 1, 0);
 
         PersistentStore::PersistentStore()
-            : AbstractPlugin()
-            , mData(nullptr)
+            : mData(nullptr)
             , mReading(0)
         {
-            registerMethod(METHOD_SET_VALUE, &PersistentStore::setValueWrapper, this);
-            registerMethod(METHOD_GET_VALUE, &PersistentStore::getValueWrapper, this);
-            registerMethod(METHOD_DELETE_KEY, &PersistentStore::deleteKeyWrapper, this);
-            registerMethod(METHOD_DELETE_NAMESPACE, &PersistentStore::deleteNamespaceWrapper, this);
-            registerMethod(METHOD_GET_KEYS, &PersistentStore::getKeysWrapper, this);
-            registerMethod(METHOD_GET_NAMESPACES, &PersistentStore::getNamespacesWrapper, this);
-            registerMethod(METHOD_GET_STORAGE_SIZE, &PersistentStore::getStorageSizeWrapper, this);
-            registerMethod(METHOD_FLUSH_CACHE, &PersistentStore::flushCacheWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_SET_VALUE, &PersistentStore::setValueWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_GET_VALUE, &PersistentStore::getValueWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_DELETE_KEY, &PersistentStore::deleteKeyWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_DELETE_NAMESPACE, &PersistentStore::deleteNamespaceWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_GET_KEYS, &PersistentStore::getKeysWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_GET_NAMESPACES, &PersistentStore::getNamespacesWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_GET_STORAGE_SIZE, &PersistentStore::getStorageSizeWrapper, this);
+            Register<JsonObject,JsonObject>(METHOD_FLUSH_CACHE, &PersistentStore::flushCacheWrapper, this);
         }
 
         PersistentStore::~PersistentStore()
         {
+            Unregister(METHOD_SET_VALUE);
+            Unregister(METHOD_GET_VALUE);
+            Unregister(METHOD_DELETE_KEY);
+            Unregister(METHOD_DELETE_NAMESPACE);
+            Unregister(METHOD_GET_KEYS);
+            Unregister(METHOD_GET_NAMESPACES);
+            Unregister(METHOD_GET_STORAGE_SIZE);
+            Unregister(METHOD_FLUSH_CACHE);
         }
 
         const string PersistentStore::Initialize(PluginHost::IShell* /* service */)
@@ -309,7 +340,7 @@ namespace WPEFramework {
                 {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
-                        LOGWARN("max size exceeded: %lld", size);
+                        LOGWARN("max size exceeded: %ld", size);
                     else
                         success = true;
                 }
@@ -378,7 +409,7 @@ namespace WPEFramework {
                     int64_t size = sqlite3_column_int64(stmt, 0);
                     if (size > MAX_SIZE_BYTES)
                     {
-                        LOGWARN("max size exceeded: %lld", size);
+                        LOGWARN("max size exceeded: %ld", size);
 
                         JsonObject params;
                         sendNotify(C_STR(EVT_ON_STORAGE_EXCEEDED), params);
