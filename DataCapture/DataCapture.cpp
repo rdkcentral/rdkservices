@@ -25,7 +25,10 @@
 #include "DataCapture.h"
 #include <curl/curl.h>
 #include "socket_adaptor.h"
-#include "Utils.h"
+
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 const string WPEFramework::Plugin::DataCapture::SERVICE_NAME = "org.rdk.DataCapture";
 const string WPEFramework::Plugin::DataCapture::METHOD_ENABLE_AUDIO_CAPTURE = "enableAudioCapture";
