@@ -13,6 +13,7 @@ A org.rdk.Wifi plugin for Thunder framework.
 - [Introduction](#head.Introduction)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
 - [Notifications](#head.Notifications)
 
@@ -76,6 +77,13 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkWifiManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [WifiManager.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/WifiManager.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -107,7 +115,15 @@ WifiManager interface methods:
 <a name="method.cancelWPSPairing"></a>
 ## *cancelWPSPairing [<sup>method</sup>](#head.Methods)*
 
-Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed.
+Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed. Triggers `onWIFIStateChanged` and `onError` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED. | 
+| `WiFIState`: ` ` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
 ### Parameters
 
@@ -149,7 +165,14 @@ This method takes no parameters.
 <a name="method.clearSSID"></a>
 ## *clearSSID [<sup>method</sup>](#head.Methods)*
 
-Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.
+Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared. Triggers `onWIFIStateChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected).|.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged)
 
 ### Parameters
 
@@ -191,7 +214,15 @@ This method takes no parameters.
 <a name="method.connect"></a>
 ## *connect [<sup>method</sup>](#head.Methods)*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`. Triggers `onWIFIStateChanged` and `onError` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED. | 
+| `WiFIState`: ` ` | Triggers `onError` event, if the requested SSID connection fails.|.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
 ### Parameters
 
@@ -241,7 +272,14 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.disconnect"></a>
 ## *disconnect [<sup>method</sup>](#head.Methods)*
 
-Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect. Triggers `onWIFIStateChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged`  event when Wifi state changes to DISCONNECTED (only if currently connected).|.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged)
 
 ### Parameters
 
@@ -548,7 +586,15 @@ This method takes no parameters.
 
 (Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.
 
-If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.
+If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin. Triggers `onWIFIStateChanged` and `onError` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | 
+| `WiFIState`: ` ` | Triggers `onError` event, if the WPS pairing fails.|.
+
+Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
 ### Parameters
 
@@ -782,7 +828,14 @@ Enables or disables the Wifi adapter for this device.
 <a name="method.setSignalThresholdChangeEnabled"></a>
 ## *setSignalThresholdChangeEnabled [<sup>method</sup>](#head.Methods)*
 
-Enables `signalThresholdChange` events to be triggered.
+Enables `signalThresholdChange` events to be triggered. Triggers `onWifiSignalThresholdChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: ` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|.
+
+Also see: [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged)
 
 ### Parameters
 
@@ -830,7 +883,12 @@ Enables `signalThresholdChange` events to be triggered.
 <a name="method.startScan"></a>
 ## *startScan [<sup>method</sup>](#head.Methods)*
 
-Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event. Triggers `onAvailableSSIDs` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `WiFiState: ` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|.
 
 Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 
