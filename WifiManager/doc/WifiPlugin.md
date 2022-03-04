@@ -121,7 +121,7 @@ Cancels the in-progress WPS pairing operation. The operation forcefully stops th
 | Event | Description | 
 | :----------- | :----------- | 
 | `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED. | 
-| `WiFIState`: ` ` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|.
+| `onError` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|.
 
 Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
@@ -220,7 +220,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 | Event | Description | 
 | :----------- | :----------- | 
 | `WiFiState: CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED. | 
-| `WiFIState`: ` ` | Triggers `onError` event, if the requested SSID connection fails.|.
+| `onError` | Triggers `onError` event, if the requested SSID connection fails.|.
 
 Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
@@ -592,7 +592,7 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
 | Event | Description | 
 | :----------- | :----------- | 
 | `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | 
-| `WiFIState`: ` ` | Triggers `onError` event, if the WPS pairing fails.|.
+| `onError` | Triggers `onError` event, if the WPS pairing fails.|.
 
 Also see: [onWIFIStateChanged](#event.onWIFIStateChanged), [onError](#event.onError)
 
@@ -833,7 +833,7 @@ Enables `signalThresholdChange` events to be triggered. Triggers `onWifiSignalTh
 ### Events 
 | Event | Description | 
 | :----------- | :----------- | 
-| `WiFiState: ` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|.
+| `onWifiSignalThresholdChanged` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|.
 
 Also see: [onWifiSignalThresholdChanged](#event.onWifiSignalThresholdChanged)
 
@@ -888,7 +888,7 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 ### Events 
 | Event | Description | 
 | :----------- | :----------- | 
-| `WiFiState: ` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|.
+| `onAvailableSSIDs` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|.
 
 Also see: [onAvailableSSIDs](#event.onAvailableSSIDs)
 

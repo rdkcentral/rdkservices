@@ -80,7 +80,7 @@
     },
     "methods": {
         "cancelWPSPairing":{
-            "summary": "Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED. | \n| `WiFIState`: ` ` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|",
+            "summary": "Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED. | \n| `onError` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|",
             "events":[
                 "onWIFIStateChanged",
                 "onError"
@@ -123,7 +123,7 @@
             }
         },
         "connect":{
-            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED. | \n| `WiFIState`: ` ` | Triggers `onError` event, if the requested SSID connection fails.|",
+            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the requested SSID connection fails.|",
             "events":[
                 "onWIFIStateChanged",
                 "onError"
@@ -361,7 +361,7 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `WiFIState`: ` ` | Triggers `onError` event, if the WPS pairing fails.|",
+            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the WPS pairing fails.|",
             "events":[
                 "onWIFIStateChanged",
                 "onError"
@@ -383,7 +383,7 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.\n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `WiFIState`: ` ` | Triggers `onError` event, if the WPS pairing fails.|",
+            "summary": "(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.\n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the WPS pairing fails.|",
             "events":[
                 "onWIFIStateChanged",
                 "onError"
@@ -525,7 +525,7 @@
             }
         },
         "setSignalThresholdChangeEnabled":{
-            "summary": "Enables `signalThresholdChange` events to be triggered. Triggers `onWifiSignalThresholdChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: ` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|",
+            "summary": "Enables `signalThresholdChange` events to be triggered. Triggers `onWifiSignalThresholdChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onWifiSignalThresholdChanged` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|",
             "events":[
                 "onWifiSignalThresholdChanged"
             ],
@@ -553,7 +553,7 @@
             }
         },
         "startScan":{
-            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event. Triggers `onAvailableSSIDs` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: ` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|",
+            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event. Triggers `onAvailableSSIDs` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onAvailableSSIDs` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|",
             "events": [
                 "onAvailableSSIDs"
             ],
