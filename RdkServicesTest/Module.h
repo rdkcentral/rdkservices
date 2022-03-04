@@ -24,5 +24,4 @@
 #endif
 
 #include <core/core.h>
-#include <websocket/websocket.h>
-#include <securityagent/SecurityTokenUtil.h>
+#include <plugins/plugins.h>
