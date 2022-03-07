@@ -237,7 +237,7 @@
             }
         },
         "getIPSettings":{
-            "summary": "Gets the IP setting for the given interface",
+            "summary": "Gets the IP setting for the given interface. \n  \n### Events \n\n  No Events",
             "params": {
                 "type":"object",
                 "properties": {

@@ -212,7 +212,11 @@ This method takes no parameters.
 <a name="method.getIPSettings"></a>
 ## *getIPSettings [<sup>method</sup>](#head.Methods)*
 
-Gets the IP setting for the given interface.
+Gets the IP setting for the given interface. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
