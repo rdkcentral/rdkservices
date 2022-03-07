@@ -10,7 +10,7 @@ cd RdkServicesTest
 ```
 
 This builds Thunder, ThunderInterfaces, Rdkservices and installs them in thunder/install.
-Make sure you have packages python3 python3-pip libglib2.0-dev libsqlite3-dev.
+Make sure you have packages python3 python3-pip libsqlite3-dev.
 
 ## How to run ##
 ```shell script
