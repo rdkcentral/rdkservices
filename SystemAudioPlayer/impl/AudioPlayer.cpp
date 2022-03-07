@@ -339,7 +339,14 @@ void AudioPlayer::createPipeline()
     else
     {  
         //mp3
-        SAPLOG_INFO("SAP: Pipleine for mp3 audioType\n");
+        SAPLOG_INFO("SAP: Pipeline for mp3 audioType\n");
+        if(playMode == SYSTEM)
+        {
+            SAPLOG_INFO("SAP: Pipeline for mp3 audioType with playmode system\n");
+            #if defined(PLATFORM_AMLOGIC)
+            g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
+            #endif
+        }
         #if defined(PLATFORM_AMLOGIC)
         GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
