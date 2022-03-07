@@ -182,9 +182,18 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
              LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                      param->data.state.curState, param->data.state.newState);
             m_powerState = param->data.state.newState;
+
             LOGWARN("creating worker thread for threadPowerModeChangeEvent m_powerState :%d",m_powerState);
             std::thread powerModeChangeThread = std::thread(threadPowerModeChangeEvent);
             powerModeChangeThread.detach();
+
+            if(m_standbyBehavior == false)
+            {
+                if(m_xcastEnable && ( m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON))
+                    _rtConnector->enableCastService(m_friendlyName,true);
+                else
+                    _rtConnector->enableCastService(m_friendlyName,false);
+            }
          }
     }
 }
