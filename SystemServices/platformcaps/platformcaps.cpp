@@ -184,6 +184,11 @@ bool PlatformCaps::DeviceInfo::Load(const string &query) {
     Add(_T("canMixPCMWithSurround"), &canMixPCMWithSurround);
   }
 
+  if (query.empty() || query == _T("publicIP")) {
+    publicIP = data.GetPublicIP();
+    Add(_T("publicIP"), &publicIP);
+  }
+
   return result;
 }
 
