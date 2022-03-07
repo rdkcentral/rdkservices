@@ -503,6 +503,7 @@ static WKBundleClientV1 s_bundleClient = {
 // Declare module name for tracer.
 MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
+extern "C" __attribute__((__visibility__("default")))
 void WKBundleInitialize(WKBundleRef bundle, WKTypeRef)
 {
     g_Bundle = bundle;
