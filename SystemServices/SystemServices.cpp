@@ -849,8 +849,14 @@ namespace WPEFramework {
             }
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID) || !queryParams.compare(FRIENDLY_ID)) {
+            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID) ) {
                 returnResponse(getManufacturerData(queryParams, response));
+
+		if(!queryParams.compare(FRIENDLY_ID))
+		{
+			if(getManufacturerData(queryParams, response))
+				returnResponse(true);
+		}
             }
 #endif
 
