@@ -309,20 +309,37 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
         LOGINFO(" xdialCastObj is NULL ");
     return status;
 }//app && state not empty
-void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
+
+void RtXcastConnector::enableCastService(bool enableService)
 {
-    LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
+    LOGINFO("XcastService::enableCastService ARGS = %d ", enableService);
     if(xdialCastObj != NULL)
     {
         rtObjectRef e = new rtMapObject;
         e.set("activation",(enableService ? "true": "false"));
-        e.set("friendlyname",friendlyname.c_str());
         int ret = xdialCastObj.send("onActivationChanged", e);
         LOGINFO("XcastService send onActivationChanged:%d",ret);
     }
     else
+    {
         LOGINFO(" xdialCastObj is NULL ");
-    
+    }
+}
+
+void RtXcastConnector::setFriendlyName(string friendlyname)
+{
+    LOGINFO("XcastService::setFriendlyName ARGS = %s", friendlyname.c_str());
+    if(xdialCastObj != NULL)
+    {
+        rtObjectRef e = new rtMapObject;
+        e.set("friendlyname", friendlyname.c_str());
+        int ret = xdialCastObj.send("onFriendlyNameChanged", e);
+        LOGINFO("XcastService send onFriendlyNameChanged:%d", ret);
+    }
+    else
+    {
+        LOGINFO("xdialCastObj is NULL ");
+    }
 }
 
 void RtXcastConnector::updateFriendlyName(string friendlyname)

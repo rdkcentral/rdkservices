@@ -69,7 +69,14 @@ public:
      *@param friendlyname - friendlyname
      *@param enableService - Enable/Disable the SSDP discovery of Dial server
      */
-    void enableCastService(string friendlyname,bool enableService = true);
+    void enableCastService(bool enableService = true);
+
+    /**
+     *This function will set the device friendly name
+     *@param friendlyname - the new friendly name
+     */
+    void setFriendlyName(string friendlyname);
+
     /**
      *This function will update friendly name.
      *@param friendlyname - friendlyname
