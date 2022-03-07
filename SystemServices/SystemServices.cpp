@@ -237,6 +237,7 @@ namespace WPEFramework {
         JsonObject SystemServices::_systemParams;
         const string SystemServices::MODEL_NAME = "modelName";
         const string SystemServices::HARDWARE_ID = "hardwareID";
+	const string SystemServices::FRIENDLY_ID = "friendly_id";
 
         IARM_Bus_SYSMgr_GetSystemStates_Param_t SystemServices::paramGetSysState = {};
 
@@ -269,9 +270,6 @@ namespace WPEFramework {
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
-#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-	    m_ModelNameValid = false;
-#endif
 
             //Initialise timer with interval and callback function.
             m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
@@ -800,28 +798,6 @@ namespace WPEFramework {
                 }
 
            }
-#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-
-	    if( queryParams.compare("friendly_id")== 0)
-	    {
-		    if(!m_ModelNameValid){
-			    if(getModelName()){
-				    response["friendly_id"] = m_ModelName;
-				    LOGWARN(" getModelName friendly_id : %s ",  m_ModelName.c_str());
-				    returnResponse(true);
-			    }
-			    else{
-				    LOGWARN(" getModelName failed ");
-			    }
-		     }
-		     else
-		     {
-			     response["friendly_id"] = m_ModelName;
-			     LOGWARN(" getModelName friendly_id from cache : %s ",  m_ModelName.c_str());
-			     returnResponse(true);
-		     }
-	    }
-#endif
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
@@ -873,7 +849,7 @@ namespace WPEFramework {
             }
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID)) {
+            if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID) || !queryParams.compare(FRIENDLY_ID)) {
                 returnResponse(getManufacturerData(queryParams, response));
             }
 #endif
@@ -928,36 +904,6 @@ namespace WPEFramework {
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 
 
-	uint32_t  SystemServices::getModelName()
-	{
-		try{
-			LOGWARN("SystemService::getModelName Get device Model Name from Mfr lib");
-			m_ModelNameValid = false;
-			IARM_Bus_MFRLib_GetSerializedData_Param_t param;
-			param.bufLen = 0;
-			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
-			IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
-			param.buffer[param.bufLen] = '\0';
-			if (result == IARM_RESULT_SUCCESS) {
-				m_ModelName = string(param.buffer);
-				m_ModelNameValid = true;
-				LOGWARN("SystemService device Model Name: %s", m_ModelName.c_str());
-			}
-			else
-			{
-				LOGWARN("SystemService failed to get device Model Name from Mfr Lib ");
-			}
-			return (m_ModelNameValid );
-		}
-		catch(...)
-		{
-			LOGWARN("Failed to get the Model Name");
-			m_ModelName = "Error getting ModelName";
-			m_ModelNameValid = false;
-		}
-	}
-
-
         /***
          * @brief : To retrieve Manufacturing Serial Number.
          * @param1[in] : {"params":{}}
@@ -992,7 +938,7 @@ namespace WPEFramework {
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
-            if (!parameter.compare(MODEL_NAME)) {
+            if (!parameter.compare(MODEL_NAME) || !parameter.compare(FRIENDLY_ID)) {
                 param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
