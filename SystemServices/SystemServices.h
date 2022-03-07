@@ -122,6 +122,9 @@ namespace WPEFramework {
                 static void stopModeTimer();
                 static void updateDuration();
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+		uint32_t getModelName();
+		bool m_ModelNameValid;
+		std::string m_ModelName;
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
 #endif

@@ -269,6 +269,9 @@ namespace WPEFramework {
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+	    m_ModelNameValid = false;
+#endif
 
             //Initialise timer with interval and callback function.
             m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
@@ -796,7 +799,29 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
 
-            }
+           }
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+
+	    if( queryParams.compare("friendly_id")== 0)
+	    {
+		    if(!m_ModelNameValid){
+			    if(getModelName()){
+				    response["friendly_id"] = m_ModelName;
+				    LOGWARN(" getModelName friendly_id : %s ",  m_ModelName.c_str());
+				    returnResponse(true);
+			    }
+			    else{
+				    LOGWARN(" getModelName failed ");
+			    }
+		     }
+		     else
+		     {
+			     response["friendly_id"] = m_ModelName;
+			     LOGWARN(" getModelName friendly_id from cache : %s ",  m_ModelName.c_str());
+			     returnResponse(true);
+		     }
+	    }
+#endif
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
@@ -901,6 +926,38 @@ namespace WPEFramework {
             returnResponse(retAPIStatus);
         }
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+
+
+	uint32_t  SystemServices::getModelName()
+	{
+		try{
+			LOGWARN("SystemService::getModelName Get device Model Name from Mfr lib");
+			m_ModelNameValid = false;
+			IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+			param.bufLen = 0;
+			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+			IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+			param.buffer[param.bufLen] = '\0';
+			if (result == IARM_RESULT_SUCCESS) {
+				m_ModelName = string(param.buffer);
+				m_ModelNameValid = true;
+				LOGWARN("SystemService device Model Name: %s", m_ModelName.c_str());
+			}
+			else
+			{
+				LOGWARN("SystemService failed to get device Model Name from Mfr Lib ");
+			}
+			return (m_ModelNameValid );
+		}
+		catch(...)
+		{
+			LOGWARN("Failed to get the Model Name");
+			m_ModelName = "Error getting ModelName";
+			m_ModelNameValid = false;
+		}
+	}
+
+
         /***
          * @brief : To retrieve Manufacturing Serial Number.
          * @param1[in] : {"params":{}}
