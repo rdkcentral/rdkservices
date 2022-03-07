@@ -100,7 +100,7 @@ namespace WPEFramework {
             void onDevicesChanged();
             void onCecStatusChange(IARM_EventId_t eventId, const void* data_ptr, size_t len);
 
-            void getConnectedDevices(JsonArray &deviceList);
+            bool getConnectedDevices(JsonArray &deviceList);
 
             bool setChangedDeviceOsdName(const char* name, int logical_address);
             bool setChangedDeviceVendorId(uint32_t vendor_id, int logical_address);

@@ -476,7 +476,7 @@ namespace WPEFramework
             sendNotify(HDMICEC_EVENT_ON_DEVICES_CHANGED, parameters);
         }
 
-        void LgiHdmiCec::getConnectedDevices(JsonArray &deviceList)
+        bool LgiHdmiCec::getConnectedDevices(JsonArray &deviceList)
         {
             LOGINFO();
             bool connected = false;
@@ -493,8 +493,7 @@ namespace WPEFramework
             if (!connected)
             {
                 LOGINFO("HDMI disconnected - empty devices list");
-
-                return;
+                return false;
             }
 
             try
@@ -520,7 +519,9 @@ namespace WPEFramework
             catch (const std::exception& e)
             {
                 LOGWARN("failed: %s", e.what());
+                return false;
             }
+            return true;
         }
 
         uint32_t LgiHdmiCec::getConnectedDevicesWrapper(const JsonObject& parameters, JsonObject& response)
@@ -529,20 +530,24 @@ namespace WPEFramework
 
             JsonArray deviceList;
 
+            bool retval = false;
+
             if(cecEnableStatus == true)
             {
-                getConnectedDevices(deviceList);
+                retval = getConnectedDevices(deviceList);
                 // force sending onDeviceChanged event on next scan end
                 m_updated = (m_updated || (deviceList.IsNull() && m_rescan_in_progress));
             }
             else
             {
-                LOGERR("CEC: %s failed - CEC disabled\n", __FUNCTION__);
+                LOGWARN("CEC: %s not called - CEC disabled\n", __FUNCTION__);
+                // ARRISAPOL-2345: we don't treat this case as error
+                retval = true;
             }
             response["devices"] = deviceList;
             response["systemAudioMode"] = static_cast<bool>(m_system_audio_mode);
 
-            returnResponse(deviceList.IsSet() || (m_rescan_in_progress == false));
+            returnResponse(retval);
         }
 
         uint32_t LgiHdmiCec::setNameWrapper(const JsonObject& parameters, JsonObject& response)
