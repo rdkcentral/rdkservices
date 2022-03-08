@@ -16,31 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef __NOTIFYH
-#define __NOTIFYH
 
-#include "JavaScriptFunctionType.h"
-#include "../Tags.h"
+#pragma once
 
-namespace WPEFramework {
-namespace JavaScript {
-    namespace Functions {
+#ifndef MODULE_NAME
+#define MODULE_NAME Plugin_WebKitBrowser
+#endif
 
-        class NotifyWPEFramework {
-        public:
-            NotifyWPEFramework();
+#include <com/com.h>
+#include <core/core.h>
+#include <tracing/tracing.h>
 
-            JSValueRef HandleMessage(JSContextRef context, JSObjectRef,
-                JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef*);
-
-            static inline string GetMessageName()
-            {
-                return Tags::Notification;
-            }
-        };
-    }
-}
-}
-
-#endif // __NOTIFYH
+#undef EXTERNAL
+#define EXTERNAL

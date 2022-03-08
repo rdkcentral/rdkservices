@@ -19,7 +19,7 @@
  
 #include "JavaScriptFunctionType.h"
 #include "Utils.h"
-#include "Tags.h"
+#include "../Tags.h"
 
 unsigned int amazon_player_deinitialize();
 
