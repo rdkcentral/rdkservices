@@ -777,10 +777,10 @@ Sets the default interface. The call fails if the interface is not enabled. Trig
 ### Events 
 | Event | Description | 
 | :----------- | :----------- | 
-| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` (WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method. 2.Triggers `onInterfaceStatusChanged` (WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method. | 
-| `onConnectionStatusChanged` | Triggers `onConnectionStatusChanged` event, if the device connects to WIFI SSID as a result of calling setDefaultInterface(WIFI) method. | 
-| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event, for each IP address that is lost or acquired following a call to this method. | 
-| `onDefaultInterfaceChanged` | Triggers `onDefaultInterfaceChanged` event, if a call to this method causes the device's default interface to change.|.
+| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` (WIFI,TRUE) event if the WIFI interface is enabled. 2.Triggers `onInterfaceStatusChanged` (WIFI,FALSE) event if the WIFI interface is disabled. | 
+| `onConnectionStatusChanged` | Triggers `onConnectionStatusChanged` event, if the device connects to WIFI SSID. | 
+| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event, for each IP address that is lost or acquired. | 
+| `onDefaultInterfaceChanged` | Triggers `onDefaultInterfaceChanged` event, when device's default interface changes.|.
 
 Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged), [onConnectionStatusChanged](#event.onConnectionStatusChanged), [onIPAddressStatusChanged](#event.onIPAddressStatusChanged), [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged)
 
@@ -835,7 +835,7 @@ Enables the specified interface. Triggers `onInterfaceStatusChanged` event.
 ### Events 
 | Event | Description | 
 | :----------- | :----------- | 
-| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` event only if this method call caused the interface's enabled/disabled status to change.|.
+| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` event, when interface's status changes to enabled/disabled.|.
 
 Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged)
 

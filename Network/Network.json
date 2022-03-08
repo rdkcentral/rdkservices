@@ -608,7 +608,7 @@
             }
         },
         "setDefaultInterface":{
-            "summary": "Sets the default interface. The call fails if the interface is not enabled. Triggers `onInterfaceStatusChanged`, `onConnectionStatusChanged`, `onIPAddressStatusChanged` and `onDefaultInterfaceChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` (WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method. 2.Triggers `onInterfaceStatusChanged` (WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method. | \n| `onConnectionStatusChanged` | Triggers `onConnectionStatusChanged` event, if the device connects to WIFI SSID as a result of calling setDefaultInterface(WIFI) method. | \n| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event, for each IP address that is lost or acquired following a call to this method. | \n| `onDefaultInterfaceChanged` | Triggers `onDefaultInterfaceChanged` event, if a call to this method causes the device's default interface to change.|",
+            "summary": "Sets the default interface. The call fails if the interface is not enabled. Triggers `onInterfaceStatusChanged`, `onConnectionStatusChanged`, `onIPAddressStatusChanged` and `onDefaultInterfaceChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` (WIFI,TRUE) event if the WIFI interface is enabled. 2.Triggers `onInterfaceStatusChanged` (WIFI,FALSE) event if the WIFI interface is disabled. | \n| `onConnectionStatusChanged` | Triggers `onConnectionStatusChanged` event, if the device connects to WIFI SSID. | \n| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event, for each IP address that is lost or acquired. | \n| `onDefaultInterfaceChanged` | Triggers `onDefaultInterfaceChanged` event, when device's default interface changes.|",
             "events":[
                 "onInterfaceStatusChanged",
                 "onConnectionStatusChanged",
@@ -637,7 +637,7 @@
             }
         },
         "setInterfaceEnabled":{
-            "summary": "Enables the specified interface. Triggers `onInterfaceStatusChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` event only if this method call caused the interface's enabled/disabled status to change.|",
+            "summary": "Enables the specified interface. Triggers `onInterfaceStatusChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` event, when interface's status changes to enabled/disabled.|",
             "events": [
                 "onInterfaceStatusChanged"
             ],
