@@ -100,8 +100,8 @@ Network interface methods:
 | [setDefaultInterface](#method.setDefaultInterface) | Sets the default interface |
 | [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
 | [setIPSettings](#method.setIPSettings) | Sets the IP settings |
-| [getPublicIP](#method.getPublicIP) | Determine WAN ip address |
-| [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for `getPublicIP`  |
+| [getPublicIP](#method.getPublicIP) | getPublicIP allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
+| [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
@@ -109,7 +109,11 @@ Network interface methods:
 <a name="method.getDefaultInterface"></a>
 ## *getDefaultInterface [<sup>method</sup>](#head.Methods)*
 
-Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
+Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -151,7 +155,11 @@ This method takes no parameters.
 <a name="method.getInterfaces"></a>
 ## *getInterfaces [<sup>method</sup>](#head.Methods)*
 
-Returns a list of interfaces supported by this device including their state.
+Returns a list of interfaces supported by this device including their state. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -205,7 +213,11 @@ This method takes no parameters.
 <a name="method.getIPSettings"></a>
 ## *getIPSettings [<sup>method</sup>](#head.Methods)*
 
-Gets the IP setting for the given interface.
+Gets the IP setting for the given interface. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -269,7 +281,11 @@ Gets the IP setting for the given interface.
 <a name="method.getNamedEndpoints"></a>
 ## *getNamedEndpoints [<sup>method</sup>](#head.Methods)*
 
-Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
+Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -314,7 +330,11 @@ This method takes no parameters.
 <a name="method.getQuirks"></a>
 ## *getQuirks [<sup>method</sup>](#head.Methods)*
 
-Get standard string `RDK-20093`.
+Get standard string `RDK-20093`. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -356,7 +376,11 @@ This method takes no parameters.
 <a name="method.getStbIp"></a>
 ## *getStbIp [<sup>method</sup>](#head.Methods)*
 
-Gets the IP address of the default interface.
+Gets the IP address of the default interface. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -398,7 +422,11 @@ This method takes no parameters.
 <a name="method.getSTBIPFamily"></a>
 ## *getSTBIPFamily [<sup>method</sup>](#head.Methods)*
 
-Gets the IP address of the default interface by address family.
+Gets the IP address of the default interface by address family. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -446,7 +474,11 @@ Gets the IP address of the default interface by address family.
 <a name="method.isConnectedToInternet"></a>
 ## *isConnectedToInternet [<sup>method</sup>](#head.Methods)*
 
-Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
+Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -488,7 +520,11 @@ This method takes no parameters.
 <a name="method.isInterfaceEnabled"></a>
 ## *isInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
-Whether the specified interface is enabled.
+Whether the specified interface is enabled. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -536,7 +572,11 @@ Whether the specified interface is enabled.
 <a name="method.ping"></a>
 ## *ping [<sup>method</sup>](#head.Methods)*
 
-Pings the specified endpoint with the specified number of packets.
+Pings the specified endpoint with the specified number of packets. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -606,7 +646,11 @@ Pings the specified endpoint with the specified number of packets.
 <a name="method.pingNamedEndpoint"></a>
 ## *pingNamedEndpoint [<sup>method</sup>](#head.Methods)*
 
-Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
+Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -676,7 +720,11 @@ Pings the specified named endpoint with the specified number of packets. Only na
 <a name="method.setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
+Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -725,7 +773,17 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 <a name="method.setDefaultInterface"></a>
 ## *setDefaultInterface [<sup>method</sup>](#head.Methods)*
 
-Sets the default interface. The call fails if the interface is not enabled.
+Sets the default interface. The call fails if the interface is not enabled. Triggers `onInterfaceStatusChanged`, `onConnectionStatusChanged`, `onIPAddressStatusChanged` and `onDefaultInterfaceChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` (WIFI,TRUE) event if the WIFI interface is enabled. 2.Triggers `onInterfaceStatusChanged` (WIFI,FALSE) event if the WIFI interface is disabled. | 
+| `onConnectionStatusChanged` | Triggers `onConnectionStatusChanged` event, if the device connects to WIFI SSID. | 
+| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event, for each IP address that is lost or acquired. | 
+| `onDefaultInterfaceChanged` | Triggers `onDefaultInterfaceChanged` event, when device's default interface changes.|.
+
+Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged), [onConnectionStatusChanged](#event.onConnectionStatusChanged), [onIPAddressStatusChanged](#event.onIPAddressStatusChanged), [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged)
 
 ### Parameters
 
@@ -773,7 +831,14 @@ Sets the default interface. The call fails if the interface is not enabled.
 <a name="method.setInterfaceEnabled"></a>
 ## *setInterfaceEnabled [<sup>method</sup>](#head.Methods)*
 
-Enables the specified interface.
+Enables the specified interface. Triggers `onInterfaceStatusChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInterfaceStatusChanged` | Triggers `onInterfaceStatusChanged` event, when interface's status changes to enabled/disabled.|.
+
+Also see: [onInterfaceStatusChanged](#event.onInterfaceStatusChanged)
 
 ### Parameters
 
@@ -823,7 +888,14 @@ Enables the specified interface.
 <a name="method.setIPSettings"></a>
 ## *setIPSettings [<sup>method</sup>](#head.Methods)*
 
-Sets the IP settings.
+Sets the IP settings. Triggers `onIPAddressStatusChanged` event.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onIPAddressStatusChanged` | Triggers `onIPAddressStatusChanged` event for each IP address that is lost or acquired following a call to this method.|.
+
+Also see: [onIPAddressStatusChanged](#event.onIPAddressStatusChanged)
 
 ### Parameters
 
@@ -881,17 +953,23 @@ Sets the IP settings.
     }
 }
 ```
+
 <a name="method.getPublicIP"></a>
 ## *getPublicIP [<sup>method</sup>](#head.Methods)*
-getPublicIP allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
+
+getPublicIP allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object | it allows empty parameter too |
+| params | object |  |
 | params.iface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipv6 | boolean | either IPv4 or IPv6 , by default  using IPv4  |
+| params.ipv6 | string | either IPv4 or IPv6 |
 
 ### Result
 
@@ -908,11 +986,11 @@ getPublicIP allows either zero parameter or with only interface and ipv6 paramet
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.getPublicIP",
     "params": {
         "iface": "WIFI",
-        "ipv6": false,
+        "ipv6": "IPv4"
     }
 }
 ```
@@ -922,16 +1000,22 @@ getPublicIP allows either zero parameter or with only interface and ipv6 paramet
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "public_ip": "69.136.49.95",
         "success": true
     }
 }
 ```
+
 <a name="method.setStunEndPoint"></a>
 ## *setStunEndPoint [<sup>method</sup>](#head.Methods)*
-Set the Stun Endpoint used for getPublicIP
+
+Set the Stun Endpoint used for getPublicIP. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -958,11 +1042,11 @@ Set the Stun Endpoint used for getPublicIP
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "method": "org.rdk.Network.1.setStunEndPoint",
     "params": {
-        "server": "stun.l.google.com",
-        "port": 19302,
+        "server": "global.stun.twilio.com",
+        "port": 3478,
         "sync": true,
         "timeout": 30,
         "cache_timeout": 0
@@ -975,16 +1059,21 @@ Set the Stun Endpoint used for getPublicIP
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 1234567890,
+    "id": 42,
     "result": {
         "success": true
     }
 }
 ```
+
 <a name="method.trace"></a>
 ## *trace [<sup>method</sup>](#head.Methods)*
 
-Traces the specified endpoint with the specified number of packets using `traceroute`.
+Traces the specified endpoint with the specified number of packets using `traceroute`. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
@@ -1038,7 +1127,11 @@ Traces the specified endpoint with the specified number of packets using `tracer
 <a name="method.traceNamedEndpoint"></a>
 ## *traceNamedEndpoint [<sup>method</sup>](#head.Methods)*
 
-Traces the specified named endpoint with the specified number of packets using `traceroute`.
+Traces the specified named endpoint with the specified number of packets using `traceroute`. 
+  
+### Events 
+
+  No Events.
 
 ### Parameters
 
