@@ -54,6 +54,10 @@ namespace WPEFramework {
             Network(const Network&) = delete;
             Network& operator=(const Network&) = delete;
 
+            //Private variables
+            std::atomic_bool m_isPluginInited{false};
+            std::thread m_registrationThread;
+
             //Begin methods
             uint32_t getQuirks(const JsonObject& parameters, JsonObject& response);
 
@@ -75,6 +79,7 @@ namespace WPEFramework {
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
+            uint32_t setStunEndPoint(const JsonObject& parameters, JsonObject& response);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
@@ -88,6 +93,9 @@ namespace WPEFramework {
             bool isValidCIDRv4(std::string interface);
             // Internal methods
             bool _getDefaultInterface(std::string& interface, std::string& gateway);
+
+            void retryIarmEventRegistration();
+            void threadEventRegistration();
 
             bool _doTrace(std::string &endpoint, int packets, JsonObject& response);
             bool _doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject& response);
@@ -109,6 +117,7 @@ namespace WPEFramework {
             virtual const std::string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual std::string Information() const override;
+            uint32_t getPublicIPInternal(const JsonObject& parameters, JsonObject& response);
 
         public:
             static Network *_instance;
@@ -116,6 +125,14 @@ namespace WPEFramework {
 
         private:
             NetUtils m_netUtils;
+            string m_stunEndPoint;
+            string m_isHybridDevice;
+            string m_defaultInterface;
+            string m_gatewayInterface;
+            uint16_t m_stunPort;
+            uint16_t m_stunBindTimeout;
+            uint16_t m_stunCacheTimeout;
+            bool m_stunSync;
         };
     } // namespace Plugin
 } // namespace WPEFramework
