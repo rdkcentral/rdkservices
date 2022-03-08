@@ -21,10 +21,10 @@
 
 #include "Utils.h"
 
+#include <glib.h>
+
 // Global handle to this bundle.
 extern WKBundleRef g_Bundle;
-
-extern "C" WK_EXPORT JSStringRef WKStringCopyJSString(WKStringRef string);
 
 namespace WPEFramework {
 namespace JavaScript {
@@ -35,7 +35,7 @@ window.ServiceManager = {
   version: 2.1,
   getServiceForJavaScript: function(name,readyCb) {
     if (name === 'com.comcast.BridgeObject_1')
-      readyCb({ JSMessageChanged: (msg) => window.ServiceManager.BridgeQuery(btoa(msg)) })
+      readyCb(window.ServiceManager.createBridgeObject())
     else
       console.error('Requested service not supported')
   }
@@ -43,12 +43,12 @@ window.ServiceManager = {
 )jssrc";
 
 const char kBadgerReplySrc[] = R"jssrc(
-  var obj = JSON.parse(atob(payload))
+  var obj = JSON.parse(payload)
   window.$badger.callback(obj.pid, obj.success, obj.json)
 )jssrc";
 
 const char kBadgerEventSrc[] = R"jssrc(
-  var obj = JSON.parse(atob(payload))
+  var obj = JSON.parse(payload)
   window.$badger.event(obj.handlerId, obj.json)
 )jssrc";
 
@@ -60,6 +60,60 @@ static string JSStringToString(JSStringRef str)
   std::unique_ptr<char[]> buffer(new char[len]);
   len = JSStringGetUTF8CString(str, buffer.get(), len);
   return Core::ToString(buffer.get(), len);
+}
+
+static WKStringRef JSStringToB64WKString(JSStringRef str)
+{
+  if (str) {
+    size_t len = JSStringGetMaximumUTF8CStringSize(str);
+    std::unique_ptr<char[]> buffer(new char[len]);
+    len = JSStringGetUTF8CString(str, buffer.get(), len);
+    if (len > 0) {
+      gchar *b64string = g_base64_encode(reinterpret_cast<const guchar*>(buffer.get()), len - 1); // -1 to exclude encoding of trailing '\0'
+      auto *ret = WKStringCreateWithUTF8CString(b64string);
+      g_free(b64string);
+      return ret;
+    } else {
+      TRACE_GLOBAL(Trace::Error, (_T("Failed to convert JS to UTF8 'C' string!")));
+    }
+  }
+  return WKStringCreateWithUTF8CString(nullptr);
+}
+
+static JSStringRef B64WKStringToJSString(WKStringRef str)
+{
+  if (str) {
+    size_t len = WKStringGetMaximumUTF8CStringSize(str);
+    std::unique_ptr<char[]> buffer(new char[len]);
+    len = WKStringGetUTF8CString(str, buffer.get(), len);
+    if (len > 0) {
+      gsize decodedLen = 0;
+      gchar *decoded = reinterpret_cast<gchar*>(g_base64_decode(buffer.get(), &decodedLen));
+
+      if (g_utf8_validate(decoded, decodedLen, nullptr) == FALSE) {
+        TRACE_GLOBAL(Trace::Error, (_T("Decoded message is not a valid UTF8 string!")));
+        gchar *tmp = decoded;
+#if GLIB_CHECK_VERSION(2, 52, 0)
+        decoded = g_utf8_make_valid(tmp, decodedLen);
+#else
+        decoded = g_strdup("[Invalid UTF-8]");
+#endif
+        g_free(tmp);
+      }
+      else if (decoded[decodedLen] != '\0') {
+        gchar *tmp = decoded;
+        decoded = g_strndup (tmp, decodedLen);
+        g_free(tmp);
+      }
+
+      auto *ret = JSStringCreateWithUTF8CString(decoded);
+      g_free(decoded);
+      return ret;
+    } else {
+      TRACE_GLOBAL(Trace::Error, (_T("Failed to convert WK to UTF8 'C' string!")));
+    }
+  }
+  return JSStringCreateWithUTF8CString(nullptr);
 }
 
 static void LogException(JSContextRef ctx, JSValueRef exception)
@@ -78,7 +132,7 @@ static JSValueRef OnBridgeQuery(
     if (argumentCount > 0 && JSValueIsString(context, arguments[0])) {
         WKStringRef messageName = WKStringCreateWithUTF8CString(Tags::BridgeObjectQuery);
         JSStringRef jsString = JSValueToStringCopy(context, arguments[0], nullptr);
-        WKStringRef messageBody = WKStringCreateWithJSString(jsString);
+        WKStringRef messageBody = JSStringToB64WKString(jsString);
         JSStringRelease(jsString);
 
         WKBundlePostSynchronousMessage(g_Bundle, messageName, messageBody, nullptr);
@@ -86,6 +140,20 @@ static JSValueRef OnBridgeQuery(
         WKRelease(messageName);
     }
     return JSValueMakeNull(context);
+}
+
+static JSValueRef OnCreateBridgeObject(
+    JSContextRef context, JSObjectRef,
+    JSObjectRef, size_t argumentCount,
+    const JSValueRef arguments[], JSValueRef* exception)
+{
+    JSObjectRef bridgeObject = JSObjectMake(context, nullptr, nullptr);
+    JSStringRef bridgeQueryStr = JSStringCreateWithUTF8CString("JSMessageChanged");
+    JSValueRef  bridgeQueryFun = JSObjectMakeFunctionWithCallback(context, bridgeQueryStr, OnBridgeQuery);
+    JSObjectSetProperty(context, bridgeObject, bridgeQueryStr, bridgeQueryFun,
+         kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete | kJSPropertyAttributeDontEnum, exception);
+    JSStringRelease(bridgeQueryStr);
+    return bridgeObject;
 }
 
 static void CallBridge(WKBundlePageRef page, const char* scriptSrc, WKTypeRef payload)
@@ -108,7 +176,7 @@ static void CallBridge(WKBundlePageRef page, const char* scriptSrc, WKTypeRef pa
         return;
     }
 
-    JSStringRef messageStr = WKStringCopyJSString(static_cast<WKStringRef>(payload));
+    JSStringRef messageStr = B64WKStringToJSString(static_cast<WKStringRef>(payload));
     JSValueRef argValue = JSValueMakeString(context, messageStr);
     JSObjectCallAsFunction(context, fun, nullptr, 1, &argValue, &exception);
     JSStringRelease(messageStr);
@@ -143,11 +211,11 @@ void InjectJS(WKBundleFrameRef frame)
         return;
     }
 
-    JSStringRef bridgeQueryStr = JSStringCreateWithUTF8CString("BridgeQuery");
-    JSValueRef  bridgeQueryFun = JSObjectMakeFunctionWithCallback(context, bridgeQueryStr, OnBridgeQuery);
-    JSObjectSetProperty(context, smObject, bridgeQueryStr, bridgeQueryFun,
+    JSStringRef createBridgeObjectStr = JSStringCreateWithUTF8CString("createBridgeObject");
+    JSValueRef  createBridgeObjectFun = JSObjectMakeFunctionWithCallback(context, createBridgeObjectStr, OnCreateBridgeObject);
+    JSObjectSetProperty(context, smObject, createBridgeObjectStr, createBridgeObjectFun,
         kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete | kJSPropertyAttributeDontEnum, &exception);
-    JSStringRelease(bridgeQueryStr);
+    JSStringRelease(createBridgeObjectStr);
     if (exception) {
         LogException(context, exception);
         return;
