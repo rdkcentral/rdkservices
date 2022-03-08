@@ -125,6 +125,7 @@ namespace WPEFramework {
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
+		bool getModelName(const string& parameter, JsonObject& response);
 #endif
             public:
                 SystemServices();

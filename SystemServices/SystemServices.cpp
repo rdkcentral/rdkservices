@@ -851,12 +851,12 @@ namespace WPEFramework {
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
             if (!queryParams.compare(MODEL_NAME) || !queryParams.compare(HARDWARE_ID) ) {
                 returnResponse(getManufacturerData(queryParams, response));
-
-		if(!queryParams.compare(FRIENDLY_ID))
-		{
-			if(getManufacturerData(queryParams, response))
-				returnResponse(true);
 		}
+
+	    if(!queryParams.compare(FRIENDLY_ID))
+	    {
+		    if(getModelName(queryParams, response))
+			    returnResponse(true);
             }
 #endif
 
@@ -909,6 +909,26 @@ namespace WPEFramework {
         }
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 
+
+	bool SystemServices::getModelName(const string& parameter, JsonObject& response)
+	{
+		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
+		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+		param.bufLen = 0;
+		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+		param.buffer[param.bufLen] = '\0';
+		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+		bool status = false;
+		if (result == IARM_RESULT_SUCCESS) {
+			response[parameter.c_str()] = string(param.buffer);
+			status = true;
+		}
+		else{
+			LOGWARN("SystemService getDeviceInfo - Manufacturer Data Read Failed");
+		}
+		return status;
+	}
 
         /***
          * @brief : To retrieve Manufacturing Serial Number.
