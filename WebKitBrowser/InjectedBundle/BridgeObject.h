@@ -19,7 +19,7 @@
 #pragma once
 
 #include "JavaScriptFunctionType.h"
-#include "Tags.h"
+#include "../Tags.h"
 #include "Utils.h"
 
 namespace WPEFramework {

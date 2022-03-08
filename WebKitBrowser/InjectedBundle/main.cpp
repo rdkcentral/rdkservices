@@ -23,15 +23,6 @@
 #include <memory>
 #include <syslog.h>
 
-#ifdef WEBKIT_GLIB_API
-
-#include <wpe/webkit-web-extension.h>
-#include "../BrowserConsoleLog.h"
-
-using namespace WPEFramework;
-
-#else
-
 #include <WPE/WebKit.h>
 #include <WPE/WebKit/WKBundleFrame.h>
 #include <WPE/WebKit/WKBundlePage.h>
@@ -74,8 +65,6 @@ std::string GetURL() {
 
 } } }
 
-#endif
-
 #include "WhiteListedOriginDomainsList.h"
 using WebKit::WhiteListedOriginDomainsList;
 
@@ -117,33 +106,7 @@ public:
             // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
         }
-#ifdef WEBKIT_GLIB_API
-        _bundle = WEBKIT_WEB_EXTENSION(g_object_ref(bundle));
-
-        const char *uid;
-        const char *whitelist;
-        gboolean logToSystemConsoleEnabled;
-        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &logToSystemConsoleEnabled);
-
-        _scriptWorld = webkit_script_world_new_with_name(uid);
-
-        g_signal_connect(_scriptWorld, "window-object-cleared",
-                G_CALLBACK(windowObjectClearedCallback), nullptr);
-
-        if (logToSystemConsoleEnabled == TRUE) {
-            g_signal_connect(bundle, "page-created", G_CALLBACK(pageCreatedCallback), this);
-        }
-
-        if (whitelist != nullptr) {
-            _whiteListedOriginDomainPairs =
-                    WhiteListedOriginDomainsList::RequestFromWPEFramework(
-                            whitelist);
-            WhiteList(bundle);
-        }
-#else
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
-#endif
-
     }
 
     void Deinitialize()
@@ -151,10 +114,6 @@ public:
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
-#ifdef WEBKIT_GLIB_API
-        g_object_unref(_scriptWorld);
-        g_object_unref(_bundle);
-#endif
         Core::Singleton::Dispose();
     }
 
@@ -165,61 +124,6 @@ public:
             _whiteListedOriginDomainPairs->AddWhiteListToWebKit(bundle);
         }
     }
-
-#ifdef WEBKIT_GLIB_API
-
-private:
-    static void automationMilestone(const char* arg1, const char* arg2, const char* arg3)
-    {
-        g_printerr("TEST TRACE: \"%s\" \"%s\" \"%s\"\n", arg1, arg2, arg3);
-        TRACE_GLOBAL(Trace::Information, (_T("TEST TRACE: \"%s\" \"%s\" \"%s\""), arg1, arg2, arg3));
-    }
-
-    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage*, WebKitFrame* frame)
-    {
-        if (webkit_frame_is_main_frame(frame) == false)
-            return;
-
-        JSCContext* jsContext = webkit_frame_get_js_context_for_script_world(frame, world);
-
-        JSCValue* automation = jsc_value_new_object(jsContext, nullptr, nullptr);
-        JSCValue* function = jsc_value_new_function(jsContext, nullptr, reinterpret_cast<GCallback>(automationMilestone),
-            nullptr, nullptr, G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-        jsc_value_object_set_property(automation, "Milestone", function);
-        g_object_unref(function);
-        jsc_context_set_value(jsContext, "automation", automation);
-        g_object_unref(automation);
-
-        static const char wpeNotifyWPEFramework[] = "var wpe = {};\n"
-            "wpe.NotifyWPEFramework = function() {\n"
-            "  let retval = new Array;\n"
-            "  for (let i = 0; i < arguments.length; i++) {\n"
-            "    retval[i] = arguments[i];\n"
-            "  }\n"
-            "  window.webkit.messageHandlers.wpeNotifyWPEFramework.postMessage(retval);\n"
-            "}";
-        JSCValue* result = jsc_context_evaluate(jsContext, wpeNotifyWPEFramework, -1);
-        g_object_unref(result);
-
-        g_object_unref(jsContext);
-    }
-    static void pageCreatedCallback(WebKitWebExtension*, WebKitWebPage* page, PluginHost* host)
-    {
-        g_signal_connect(page, "console-message-sent",
-                G_CALLBACK(consoleMessageSentCallback), nullptr);
-    }
-    static void consoleMessageSentCallback(WebKitWebPage* page, WebKitConsoleMessage* message)
-    {
-        string messageString = Core::ToString(webkit_console_message_get_text(message));
-        uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
-
-        TRACE_GLOBAL(BrowserConsoleLog, (messageString, line, 0));
-    }
-
-    WKBundleRef _bundle;
-    WebKitScriptWorld* _scriptWorld;
-
-#endif
 
 private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
@@ -236,18 +140,6 @@ __attribute__((destructor)) static void unload()
 {
     _wpeFrameworkClient.Deinitialize();
 }
-
-#ifdef WEBKIT_GLIB_API
-
-// Declare module name for tracer.
-MODULE_NAME_DECLARATION(BUILD_REFERENCE)
-
-G_MODULE_EXPORT void webkit_web_extension_initialize_with_user_data(WebKitWebExtension* extension, GVariant* userData)
-{
-    _wpeFrameworkClient.Initialize(extension, userData);
-}
-
-#else
 
 // Adds class to JS world.
 static void InjectInJSWorld(ClassDefinition& classDef, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld)
@@ -508,7 +400,5 @@ void WKBundleInitialize(WKBundleRef bundle, WKTypeRef)
 
     WKBundleSetClient(bundle, &s_bundleClient.base);
 }
-
-#endif
 
 }
