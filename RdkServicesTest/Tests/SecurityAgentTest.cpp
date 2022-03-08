@@ -17,96 +17,193 @@
 * limitations under the License.
 **/
 
-#include "gtest/gtest.h"
-
 #include "SecurityAgent.h"
 
 #include "Source/WorkerPoolImplementation.h"
-#include "Source/Config.h"
-#include "Source/Service.h"
+#include "Source/SystemInfo.h"
 
-namespace RdkServicesTest {
+#include "ServiceMock.h"
 
-TEST(SecurityAgentTest, test) {
-    // assign worker pool
+using namespace WPEFramework;
 
-    auto _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
-    WPEFramework::Core::IWorkerPool::Assign(&(*_engine));
-    _engine->Run();
+namespace
+{
+const string payload = _T("http://localhost");
+const string tokenPrefix = _T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.");
+const string envEndPoint = _T("SECURITYAGENT_PATH");
+const string expectedEndPoint = _T("/tmp/token");
+const string callSign = _T("SecurityAgent");
+const string webPrefix = _T("/Service/SecurityAgent");
+const string persistentPath = _T("/tmp/");
+const string dataPath = _T("/tmp/");
+const string volatilePath = _T("/tmp/");
+const string proxyStubPath = _T("thunder/install/usr/lib/wpeframework/proxystubs");
+}
 
-    // create plugin
-
-    auto securityAgent = WPEFramework::Core::ProxyType <WPEFramework::Plugin::SecurityAgent>::Create();
-
-    WPEFramework::Core::JSONRPC::Handler& handler = *securityAgent;
-
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("validate")));
-
-    // init plugin
-
-    WPEFramework::Core::File serverConf(string("thunder/install/etc/WPEFramework/config.json"), false);
-    EXPECT_TRUE(serverConf.Open(true));
-
-    WPEFramework::Core::File pluginConf(string("thunder/install/etc/WPEFramework/plugins/SecurityAgent.json"), false);
-    EXPECT_TRUE(pluginConf.Open(true));
-
-    WPEFramework::Core::OptionalType<WPEFramework::Core::JSON::Error> error;
-
-    Config server(serverConf, error);
-    EXPECT_FALSE(error.IsSet());
-
-    WPEFramework::Plugin::Config plugin;
-    plugin.IElement::FromFile(pluginConf, error);
-    EXPECT_FALSE(error.IsSet());
-
-    auto service = WPEFramework::Core::ProxyType <Service>::Create(server, plugin);
-
-    EXPECT_EQ(string(""), securityAgent->Initialize(&(*service)));
-
-    // invoke plugin
-
-    string token, payload = "http://localhost";
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, securityAgent->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
-    EXPECT_EQ(0, token.rfind(_T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA."), 0));
-
-    WPEFramework::Core::JSONRPC::Connection connection(1, 0);
-
+class SecurityAgentTestFixture : public ::testing::Test
+{
+protected:
+    Core::ProxyType<WorkerPoolImplementation> workerPool;
+    Core::Sink<SystemInfo> subSystem;
+    Core::ProxyType<Plugin::SecurityAgent> plugin;
+    Core::JSONRPC::Handler &handler;
+    Core::JSONRPC::Connection connection;
+    ServiceMock service;
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Invoke(connection, _T("validate"), "{\"token\":\"" + token + "\"}", response));
-    EXPECT_EQ(response, _T("{\"valid\":true}"));
-
-    // invoke rpc-com
-
+    string token;
     string endPoint;
-    EXPECT_TRUE(WPEFramework::Core::SystemInfo::GetEnvironment(_T("SECURITYAGENT_PATH"), endPoint));
-    EXPECT_EQ(endPoint, _T("/tmp//token"));
 
-    auto engine = WPEFramework::Core::ProxyType<WPEFramework::RPC::InvokeServerType<1, 0, 4>>::Create();
-    auto client = WPEFramework::Core::ProxyType<WPEFramework::RPC::CommunicatorClient>::Create(WPEFramework::Core::NodeId(endPoint.c_str()), WPEFramework::Core::ProxyType<WPEFramework::Core::IIPCServer>(engine));
+    SecurityAgentTestFixture()
+        : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
+        2, Core::Thread::DefaultStackSize(), 16)),
+          plugin(Core::ProxyType<Plugin::SecurityAgent>::Create()),
+          handler(*plugin),
+          connection(1, 0)
+    {
+    }
+    virtual ~SecurityAgentTestFixture()
+    {
+    }
+
+    virtual void SetUp()
+    {
+        Core::IWorkerPool::Assign(&(*workerPool));
+
+        workerPool->Run();
+    }
+
+    virtual void TearDown()
+    {
+        plugin.Release();
+
+        Core::IWorkerPool::Assign(nullptr);
+        workerPool.Release();
+    }
+};
+
+TEST_F(SecurityAgentTestFixture, jsonRpc) {
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(::testing::Return("{}"));
+    EXPECT_CALL(service, WebPrefix())
+        .Times(1)
+        .WillOnce(::testing::Return(webPrefix));
+    EXPECT_CALL(service, SubSystems())
+        .Times(2)
+        .WillRepeatedly(::testing::Invoke(
+            [&] ()
+            {
+                PluginHost::ISubSystem* result = (&subSystem);
+                result->AddRef();
+                return result;
+            }
+        ));
+    EXPECT_CALL(service, PersistentPath())
+        .Times(1)
+        .WillOnce(::testing::Return(persistentPath));
+    EXPECT_CALL(service, DataPath())
+        .Times(1)
+        .WillOnce(::testing::Return(dataPath));
+    EXPECT_CALL(service, VolatilePath())
+        .Times(1)
+        .WillOnce(::testing::Return(volatilePath));
+    EXPECT_CALL(service, ProxyStubPath())
+        .Times(1)
+        .WillOnce(::testing::Return(proxyStubPath));
+    EXPECT_CALL(service, Callsign())
+        .Times(1)
+        .WillOnce(::testing::Return(callSign));
+
+    ON_CALL(service, Version())
+        .WillByDefault(::testing::Return(string()));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("validate")));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_NONE, plugin->CreateToken(
+        static_cast<uint16_t>(payload.length()),
+        reinterpret_cast<const uint8_t*>(payload.c_str()),
+        token)
+        );
+
+    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,
+        _T("validate"),
+        "{\"token\":\"" + token + "\"}", response));
+    EXPECT_EQ(response,
+        _T("{\"valid\":true}"));
+
+    plugin->Deinitialize(&service);
+}
+
+TEST_F(SecurityAgentTestFixture, rpcCom) {
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(::testing::Return("{}"));
+    EXPECT_CALL(service, WebPrefix())
+        .Times(1)
+        .WillOnce(::testing::Return(webPrefix));
+    EXPECT_CALL(service, SubSystems())
+        .Times(2)
+        .WillRepeatedly(::testing::Invoke(
+            [&] ()
+            {
+                PluginHost::ISubSystem* result = (&subSystem);
+                result->AddRef();
+                return result;
+            }
+        ));
+    EXPECT_CALL(service, PersistentPath())
+        .Times(1)
+        .WillOnce(::testing::Return(persistentPath));
+    EXPECT_CALL(service, DataPath())
+        .Times(1)
+        .WillOnce(::testing::Return(dataPath));
+    EXPECT_CALL(service, VolatilePath())
+        .Times(1)
+        .WillOnce(::testing::Return(volatilePath));
+    EXPECT_CALL(service, ProxyStubPath())
+        .Times(1)
+        .WillOnce(::testing::Return(proxyStubPath));
+    EXPECT_CALL(service, Callsign())
+        .Times(1)
+        .WillOnce(::testing::Return(callSign));
+
+    ON_CALL(service, Version())
+        .WillByDefault(::testing::Return(string()));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_TRUE(Core::SystemInfo::GetEnvironment(
+        envEndPoint.c_str(), endPoint));
+    EXPECT_EQ(endPoint, expectedEndPoint);
+
+    auto engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
+    auto client = Core::ProxyType<RPC::CommunicatorClient>::Create(
+        Core::NodeId(endPoint.c_str()), Core::ProxyType<Core::IIPCServer>(engine));
 
     EXPECT_TRUE(client.IsValid() == true);
     EXPECT_TRUE(client->IsOpen() == false);
 
-    WPEFramework::PluginHost::IAuthenticate* securityAgentInterface = client->Open<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
-    EXPECT_TRUE(securityAgentInterface != nullptr);
+    auto interface = client->Open<PluginHost::IAuthenticate>(
+        callSign.c_str());
+    EXPECT_TRUE(interface != nullptr);
 
     token.clear();
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, securityAgentInterface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
-    EXPECT_EQ(0, token.rfind(_T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA."), 0));
+    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(
+        static_cast<uint16_t>(payload.length()),
+        reinterpret_cast<const uint8_t*>(payload.c_str()),
+        token)
+        );
 
-    securityAgentInterface->Release();
+    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+
+    interface->Release();
 
     client.Release();
     engine.Release();
 
-    // clean up
-
-    securityAgent->Deinitialize(&(*service));
-    securityAgent.Release();
-    service.Release();
-
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
-    _engine.Release();
+    plugin->Deinitialize(&service);
 }
-
-} // namespace RdkServicesTest
