@@ -14,7 +14,7 @@ THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
-INTERFACES_REV=4ec7c6f8e14b152143a105a41f4c62b6723372c4
+INTERFACES_REV=1ed7eee3e833ed2f7d6a39624f0e32d1659d3f03
 
 checkPython() {
   case "$(python --version)" in
@@ -126,6 +126,10 @@ if ! checkPip "python 3"; then
   exit 1
 fi
 
+if ! checkInstalled "glib-2.0"; then
+  echo "glib-2.0 should be installed (for PersistentStore)"
+  exit 1
+fi
 if ! checkInstalled "sqlite3"; then
   echo "sqlite3 should be installed (for PersistentStore)"
   exit 1

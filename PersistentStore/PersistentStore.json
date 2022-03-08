@@ -203,11 +203,10 @@
                 ]
             }
         },
-        "setValue": {
-            "summary": "Sets the value of a key in the the specified namespace.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|\n| `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |",
-            "events": [
-                "onStorageExceeded",
-                "onValueChanged"
+        "setValue":{
+            "summary": "Sets the value of a key in the the specified namespace.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|",
+            "events":[
+                "onStorageExceeded"
             ],
             "params": {
                 "type": "object",
@@ -236,28 +235,6 @@
     "events": {
         "onStorageExceeded":{
             "summary": "Triggered when the storage size has surpassed the storage capacity. The total size of the datastore should not exceed more than 1MB in size."
-        },
-        "onValueChanged": {
-            "summary": "Triggered whenever any of the values stored are changed using setValue.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    },
-                    "value": {
-                        "$ref": "#/definitions/value"
-                    }
-                },
-                "required": [
-                    "namespace",
-                    "key",
-                    "value"
-                ]
-            }
         }
     }
 }

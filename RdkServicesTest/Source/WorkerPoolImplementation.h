@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <core/core.h>
-#include <plugins/plugins.h>
+#include "Module.h"
+
+namespace RdkServicesTest {
 
 class WorkerPoolImplementation: public WPEFramework::Core::WorkerPool {
 private:
@@ -57,3 +58,5 @@ public:
 private:
     Dispatcher _dispatcher;
 };
+
+} // namespace RdkServicesTest
