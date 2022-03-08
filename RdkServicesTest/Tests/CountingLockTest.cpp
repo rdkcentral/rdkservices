@@ -25,8 +25,6 @@
 
 using namespace WPEFramework;
 
-namespace
-{
 const unsigned int nTime = 1000;
 
 Plugin::CountingLock Lock;
@@ -43,8 +41,6 @@ struct Job1
 {
     void Dispatch()
     {
-        // Job1 locks and expects Job3 to fail lock.
-
         Plugin::CountingLockSync lockSync(Lock);
 
         Job1AcquiredLock.SetEvent();
@@ -60,8 +56,6 @@ struct Job2
 {
     void Dispatch()
     {
-        // Job2 locks and expects Job3 to fail lock.
-
         Plugin::CountingLockSync lockSync(Lock);
 
         Job2AcquiredLock.SetEvent();
@@ -77,8 +71,6 @@ struct Job3
 {
     void Dispatch()
     {
-        // Job3 locks exclusive after Job1 and Job2 lock.
-
         if ((Job1AcquiredLock.Lock(nTime) == Core::ERROR_NONE) &&
             (Job2AcquiredLock.Lock(nTime) == Core::ERROR_NONE)) {
 
@@ -94,37 +86,12 @@ struct Job3
         }
     }
 };
-}
 
-class CountingLockTestFixture : public ::testing::Test
-{
-protected:
-    Core::ProxyType<WorkerPoolImplementation> workerPool;
+TEST(CountingLockTest, generic) {
+    auto _engine = Core::ProxyType<WorkerPoolImplementation>::Create(5, Core::Thread::DefaultStackSize(), 16);
+    Core::IWorkerPool::Assign(&(*_engine));
+    _engine->Run();
 
-    CountingLockTestFixture()
-        : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
-        5, Core::Thread::DefaultStackSize(), 16))
-    {
-    }
-    virtual ~CountingLockTestFixture()
-    {
-    }
-
-    virtual void SetUp()
-    {
-        Core::IWorkerPool::Assign(&(*workerPool));
-
-        workerPool->Run();
-    }
-
-    virtual void TearDown()
-    {
-        Core::IWorkerPool::Assign(nullptr);
-        workerPool.Release();
-    }
-};
-
-TEST_F(CountingLockTestFixture, countingLockTest) {
     Job1 job1;
     Job2 job2;
     Job3 job3;
@@ -144,13 +111,14 @@ TEST_F(CountingLockTestFixture, countingLockTest) {
     EXPECT_TRUE(Job3AcquiredLock.IsSet());
     EXPECT_TRUE(Job1Complete.IsSet());
     EXPECT_TRUE(Job2Complete.IsSet());
-    EXPECT_TRUE(Job3Complete.IsSet());
 
     job1Activity->Revoke();
     job2Activity->Revoke();
     job3Activity->Revoke();
-
     job1Activity.Release();
     job2Activity.Release();
     job3Activity.Release();
+
+    Core::IWorkerPool::Assign(nullptr);
+    _engine.Release();
 }

@@ -17,120 +17,85 @@
 * limitations under the License.
 **/
 
+#include "gtest/gtest.h"
+
 #include "LocationSync.h"
 
 #include "Source/WorkerPoolImplementation.h"
-#include "Source/SystemInfo.h"
+#include "Source/Config.h"
+#include "Source/Service.h"
 
-#include "ServiceMock.h"
+namespace RdkServicesTest {
 
-using namespace WPEFramework;
+TEST(LocationSyncTest, test) {
+    // assign worker pool
 
-namespace
-{
-const string webPrefix = _T("/Service/LocationSync");
-}
+    auto _engine = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(2, WPEFramework::Core::Thread::DefaultStackSize(), 16);
+    WPEFramework::Core::IWorkerPool::Assign(&(*_engine));
+    _engine->Run();
 
-class LocationSyncTestFixture : public ::testing::Test
-{
-protected:
-    Core::ProxyType<WorkerPoolImplementation> workerPool;
-    Core::Sink<SystemInfo> subSystem;
-    Core::ProxyType<Plugin::LocationSync> plugin;
-    Core::JSONRPC::Handler &handler;
-    Core::JSONRPC::Connection connection;
-    ServiceMock service;
+    // create plugin
+
+    auto locationSync = WPEFramework::Core::ProxyType <WPEFramework::Plugin::LocationSync>::Create();
+
+    WPEFramework::Core::JSONRPC::Handler& handler = *locationSync;
+
+    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("sync")));
+    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Exists(_T("location")));
+
+    // init plugin
+
+    WPEFramework::Core::File serverConf(string("thunder/install/etc/WPEFramework/config.json"), false);
+    EXPECT_TRUE(serverConf.Open(true));
+
+    WPEFramework::Core::File pluginConf(string("thunder/install/etc/WPEFramework/plugins/LocationSync.json"), false);
+    EXPECT_TRUE(pluginConf.Open(true));
+
+    WPEFramework::Core::OptionalType<WPEFramework::Core::JSON::Error> error;
+
+    Config server(serverConf, error);
+    EXPECT_FALSE(error.IsSet());
+
+    WPEFramework::Plugin::Config plugin;
+    plugin.IElement::FromFile(pluginConf, error);
+    EXPECT_FALSE(error.IsSet());
+
+    auto service = WPEFramework::Core::ProxyType <Service>::Create(server, plugin);
+
+    EXPECT_EQ(string(""), locationSync->Initialize(&(*service)));
+
+    // invoke plugin
+
+    WPEFramework::Core::JSONRPC::Connection connection(1, 0);
+
     string response;
+    EXPECT_EQ(WPEFramework::Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
+    EXPECT_EQ(response, _T(""));
 
-    LocationSyncTestFixture()
-        : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
-        2, Core::Thread::DefaultStackSize(), 16)),
-          plugin(Core::ProxyType<Plugin::LocationSync>::Create()),
-          handler(*plugin),
-          connection(1, 0)
-    {
-    }
-    virtual ~LocationSyncTestFixture()
-    {
-    }
+    // probe in progress
 
-    virtual void SetUp()
-    {
-        Core::IWorkerPool::Assign(&(*workerPool));
+    WPEFramework::PluginHost::ISubSystem* subSystem = service->SubSystems();
 
-        workerPool->Run();
-    }
-
-    virtual void TearDown()
-    {
-        plugin.Release();
-
-        Core::IWorkerPool::Assign(nullptr);
-        workerPool.Release();
-    }
-};
-
-TEST_F(LocationSyncTestFixture, probeTest) {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "  \"interval\":10,\n"
-                                    "  \"retries\":20,\n"
-                                    "  \"source\":\"http://jsonip.metrological.com/?maf=true\"\n"
-                                    " }"));
-
-    EXPECT_CALL(service, WebPrefix())
-        .Times(1)
-        .WillOnce(::testing::Return(webPrefix));
-
-    EXPECT_CALL(service, SubSystems())
-        .Times(3)
-        .WillRepeatedly(::testing::Invoke(
-            [&] ()
-            {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
-                return result;
-            }
-        ));
-
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sync")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("location")));
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection,
-        _T("sync"),
-        _T("{}"), response));
-    EXPECT_EQ(response,
-        _T(""));
-
-    PluginHost::ISubSystem* subSystem = service.SubSystems();
-
-    Core::Event wait(false, true);
-    for (int i = 0; ((subSystem->Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
+    WPEFramework::Core::Event wait(false, true);
+    for (int i = 0; ((subSystem->Get(WPEFramework::PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
         wait.Lock(10);
     }
 
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::LOCATION) != nullptr);
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::INTERNET) != nullptr);
+    EXPECT_TRUE(subSystem->Get(WPEFramework::PluginHost::ISubSystem::LOCATION) != nullptr);
+    EXPECT_TRUE(subSystem->Get(WPEFramework::PluginHost::ISubSystem::INTERNET) != nullptr);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,
-        _T("location"),
-        _T(""), response));
+    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler.Invoke(connection, _T("location"), _T(""), response));
     EXPECT_TRUE(response.empty() == false);
+//    EXPECT_EQ(response, _T("{\"city\":\"Odessa\",\"country\":\"UA\",\"region\":\"51\",\"timezone\":\"EET-2EEST,M3.5.0/3,M10.5.0/4\",\"publicip\":\"195.64.234.239\"}"));
 
-    JsonObject params;
+    // clean up
 
-    EXPECT_TRUE(params.FromString(response));
-    EXPECT_TRUE(params.HasLabel("city"));
-    EXPECT_TRUE(params.HasLabel("country"));
-    EXPECT_TRUE(params.HasLabel("region"));
-    EXPECT_TRUE(params.HasLabel("timezone"));
-    EXPECT_TRUE(params.HasLabel("publicip"));
+    locationSync->Deinitialize(&(*service));
+    locationSync.Release();
+    service.Release();
 
-    plugin->Deinitialize(&service);
+    WPEFramework::Core::IWorkerPool::Assign(nullptr);
+    _engine.Release();
 }
+
+} // namespace RdkServicesTest
