@@ -964,7 +964,7 @@ namespace WPEFramework {
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
-            if (!parameter.compare(MODEL_NAME) || !parameter.compare(FRIENDLY_ID)) {
+            if (!parameter.compare(MODEL_NAME)) {
                 param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
