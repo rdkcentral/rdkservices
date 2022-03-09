@@ -66,6 +66,8 @@ set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE_ENABLE true CACHE STRING "Enable LocalStor
 set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE true CACHE STRING "Enable Thunder decryptor preference in WebKit")
 
 set(PLUGIN_YOUTUBE_AUTOSTART false CACHE STRING "Automatically start Youtube plugin")
+set(PLUGIN_YOUTUBE_STARTURL "https://www.youtube.com/tv" CACHE STRING "Initial URL for YouTube plugin")
+set(PLUGIN_YOUTUBE_STARTURL_QUERYSTRING "" CACHE STRING "Initial URL Query String for YouTube plugin")
 set(PLUGIN_YOUTUBE_USERAGENT ${PLUGIN_WEBKITBROWSER_USERAGENT} CACHE STRING "User agent string YouTube")
 set(PLUGIN_YOUTUBE_WEBINSPECTOR_ADDRESS 0.0.0.0:9999 CACHE STRING "IP:Port for WebInspector of YouTube")
 set(PLUGIN_YOUTUBE_LOCALSTORAGE_ENABLE true CACHE STRING "Enable LocalStorage of YouTube App")
