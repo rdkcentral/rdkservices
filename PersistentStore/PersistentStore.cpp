@@ -21,6 +21,8 @@
 
 #include "SqliteStore.h"
 
+#include "UtilsFile.h"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -49,16 +51,32 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
 
     ASSERT(service != nullptr);
 
-    _config.FromString(service->ConfigLine());
+    string configLine = service->ConfigLine();
+
+    // TODO
+    if (configLine == "{}") {
+        configLine = "{\n"
+                     "\"path\":\"/opt/secure/persistent/rdkservicestore\",\n"
+                     "\"key\":null,\n"
+                     "\"maxsize\":1000000,\n"
+                     "\"maxvalue\":1000\n"
+                     "}";
+    }
+
+    _config.FromString(configLine);
 
     ASSERT(!_config.Path.Value().empty());
 
-    Core::Directory(Core::File(_config.Path.Value()).PathName().c_str()).CreatePath();
+    Core::File file(_config.Path.Value());
 
-    if (!Core::File(_config.Path.Value()).Exists()) {
+    Core::Directory(file.PathName().c_str()).CreatePath();
+
+    if (!file.Exists()) {
         for (auto i : LegacyLocations()) {
-            if (Core::File(i).Exists()) {
-                if (!Core::File(i).Move(_config.Path.Value())) {
+            Core::File from(i);
+
+            if (from.Exists()) {
+                if (!Utils::MoveFile(from.Name(), file.Name())) {
                     result = "move failed";
                 }
                 break;
@@ -67,10 +85,11 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
     }
 
     if (result.empty()) {
-        if (static_cast<SqliteStore *>(_store)->Open(_config.Path.Value(),
-                         _config.Key.Value(),
-                         _config.MaxSize.Value(),
-                         _config.MaxValue.Value()) != Core::ERROR_NONE) {
+        if (static_cast<SqliteStore *>(_store)->Open(
+            _config.Path.Value(),
+            _config.Key.Value(),
+            _config.MaxSize.Value(),
+            _config.MaxValue.Value()) != Core::ERROR_NONE) {
             result = "init failed";
         }
     }

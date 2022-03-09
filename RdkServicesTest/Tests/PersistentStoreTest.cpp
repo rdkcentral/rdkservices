@@ -347,7 +347,7 @@ TEST_F(PersistentStoreTestFixture, setupLegacyLocation) {
         .Times(1)
         .WillOnce(
             ::testing::Return("{"
-                              "\"path\":\"/tmp/rdkservicestore1\","
+                              "\"path\":\"/tmp/path/to/legacy/location/store\","
                               "\"key\":null,"
                               "\"maxsize\":20,"
                               "\"maxvalue\":10"
@@ -397,7 +397,7 @@ TEST_F(PersistentStoreTestFixture, useLegacyLocation) {
         .Times(1)
         .WillOnce(
             ::testing::Return(std::vector<string> {
-                "/tmp/rdkservicestore1"
+                "/tmp/path/to/legacy/location/store"
             })
         );
 
