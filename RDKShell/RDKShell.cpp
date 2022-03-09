@@ -138,6 +138,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CLIENT_REBOOT_REASON = "getClientRebootStatus";
 
 using namespace std;
 using namespace RdkShell;
@@ -172,8 +173,16 @@ bool needsScreenshot = false;
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
 #define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
 
+#define BOOTNONE         "BootNone"
+#define NORMALBOOT       "NormalBoot"
+#define CRASHBOOT        "CrashBoot"
+#define REQUESTBOOT      "RequestBoot"
+#define BOOTDEACTIVATED  "BootDeactivated"
+
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
+static std::string gRAClientstate = BOOTNONE;
+
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
@@ -183,6 +192,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
 #define RETRY_INTERVAL_250MS 250000
+
 
 enum FactoryAppLaunchStatus
 {
@@ -544,12 +554,53 @@ namespace WPEFramework {
             }
             return exist;
         }
+                   
+       static void addClientRebootStatus(string client,PluginHost::IShell::state currentState,PluginHost::IShell::reason stateChangeReason)
+       {
+         if(client == RESIDENTAPP_CALLSIGN )
+         {			 
+          if(currentState == PluginHost::IShell::ACTIVATED)
+          {  
+            if(gRAClientstate ==  BOOTDEACTIVATED)
+	    {
+               gRdkShellMutex.lock();
+               gRAClientstate=REQUESTBOOT;
+               gRdkShellMutex.unlock();
+            }
+            else if(gRAClientstate == BOOTNONE)
+            {
+	       gRdkShellMutex.lock();
+               gRAClientstate=NORMALBOOT;
+               gRdkShellMutex.unlock();  
+            }  
+	    else {}
+          }
+	  else if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
+          {
+	   if(stateChangeReason == PluginHost::IShell::FAILURE)
+           {
+	      gRdkShellMutex.lock();
+              gRAClientstate=CRASHBOOT;
+	      gRdkShellMutex.unlock();
+	   }
+           else
+           {
+              gRdkShellMutex.lock();
+              gRAClientstate=BOOTDEACTIVATED;
+              gRdkShellMutex.unlock();
+	   }
+          }
+          else {}
+        }
+      }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
             {
                 PluginHost::IShell::state currentState(service->State());
+				
+	        addClientRebootStatus(service->Callsign(),service->State(),service->Reason());
                 if (currentState == PluginHost::IShell::ACTIVATION)
                 {
                    std::string configLine = service->ConfigLine();
@@ -785,6 +836,7 @@ namespace WPEFramework {
 
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+	    registerMethod(RDKSHELL_EVENT_ON_CLIENT_REBOOT_REASON, &RDKShell::getClientRebootStatus, this);
 	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1269,6 +1321,9 @@ namespace WPEFramework {
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
+            gRdkShellMutex.lock();
+            gRAClientstate=BOOTNONE;
+	    gRdkShellMutex.unlock();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -5164,7 +5219,33 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
-        // Registered methods end
+         uint32_t RDKShell::getClientRebootStatus(const JsonObject& parameters, JsonObject& response)
+         {
+            LOGINFOMETHOD();
+	    bool result=false;
+            if (parameters.HasLabel("client"))
+            {	    
+	       std::string clientidentifier = parameters["client"].String();
+	       if(clientidentifier == RESIDENTAPP_CALLSIGN )
+	       {
+                    response["reason"] = gRAClientstate;
+		    result=true;
+	       }
+	       else
+	       {
+                    response["message"] = "Client is not present in RDKSHELL";		       
+		    result=false;
+               }
+            }
+	    else
+            {
+	       response["message"] = "please specify client parameter";
+               result = false;
+	    }
+            returnResponse(result);
+	  }
+		
+		// Registered methods end
 
         // Events begin
         void RDKShell::notify(const std::string& event, const JsonObject& parameters)
