@@ -17,6 +17,11 @@
             "type": "string",
             "example": "IPv4"
         },
+        "bipversion": {
+            "summary": "either IPv4 or IPv6 , by default using IPv4",
+            "type": "boolean",
+            "example": false
+        },
         "sipversion": {
             "summary": "IPv4 (IPv6 is not currently supported)",
             "type": "string",
@@ -734,19 +739,20 @@
             "summary": "getPublicIP allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address. \n  \n### Events \n\n  No Events",
             "params": {
                 "type":"object",
+                "summary":"it allows empty parameter too",
                 "properties": {
                     "iface": {
                         "$ref": "#/definitions/interface"
                     },
                     "ipv6": {
-                        "$ref": "#/definitions/ipversion"
+                        "$ref": "#/definitions/bipversion"
                     }
                 },
                 "required": [
                     "iface",
                     "ipv6"
                 ]
-            },
+           },
             "result": {
                 "type": "object",
                 "properties": {
@@ -765,7 +771,7 @@
                 ]
             }
         },
-	    "setStunEndPoint":{
+	 "setStunEndPoint":{
             "summary": "Set the Stun Endpoint used for getPublicIP. \n  \n### Events \n\n  No Events",
             "params": {
                 "type":"object",

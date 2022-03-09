@@ -967,9 +967,9 @@ getPublicIP allows either zero parameter or with only interface and ipv6 paramet
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object |  |
+| params | object | it allows empty parameter too |
 | params.iface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipv6 | string | either IPv4 or IPv6 |
+| params.ipv6 | boolean | either IPv4 or IPv6 , by default using IPv4 |
 
 ### Result
 
@@ -990,7 +990,7 @@ getPublicIP allows either zero parameter or with only interface and ipv6 paramet
     "method": "org.rdk.Network.1.getPublicIP",
     "params": {
         "iface": "WIFI",
-        "ipv6": "IPv4"
+        "ipv6": false
     }
 }
 ```
