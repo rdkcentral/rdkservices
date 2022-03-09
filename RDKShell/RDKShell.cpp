@@ -555,8 +555,7 @@ namespace WPEFramework {
        {
 	 std::map <string,string>::iterator it;
          bool isClientexist=false;
-         if(client == RESIDENTAPP_CALLSIGN )
-         {			 
+      
 	  it=gClientsResetReason.find(client);
 
 	  if(it != gClientsResetReason.end())
@@ -583,7 +582,6 @@ namespace WPEFramework {
 	   
          } 
          else {}
-        }
       }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
@@ -591,8 +589,10 @@ namespace WPEFramework {
             if (service)
             {
                 PluginHost::IShell::state currentState(service->State());
-				
-	        addClientRebootStatus(service->Callsign(),service->State(),service->Reason());
+		if(service->Callsign() == RESIDENTAPP_CALLSIGN)
+	        {		
+	          addClientRebootStatus(service->Callsign(),service->State(),service->Reason());
+		}
                 if (currentState == PluginHost::IShell::ACTIVATION)
                 {
                    std::string configLine = service->ConfigLine();
