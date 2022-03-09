@@ -764,14 +764,14 @@
                     "success": {
                         "$ref": "#/definitions/success"
                     }
-	            },
+                },
                 "required": [
                     "public_ip",
                     "success"
                 ]
             }
         },
-	 "setStunEndPoint":{
+        "setStunEndPoint":{
             "summary": "Set the Stun Endpoint used for getPublicIP. \n  \n### Events \n\n  No Events",
             "params": {
                 "type":"object",
