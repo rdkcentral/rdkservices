@@ -331,6 +331,57 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "getSupportedGameFeatures":{
+            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "suppoortedGameFeatures": {
+                        "summary": "The supported game Features",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "suppoortedGameFeatures",
+                    "success"
+                ]
+            }
+        },
+       "getHdmiALLMStatus":{
+            "summary": "Returns the ALLM Status.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ALLM_Mode": {
+                        "summary": "The ALLM status",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "ALLM_Mode",
+                    "success"
+                ]
+            }
         }
     },
     "events": {
@@ -441,6 +492,26 @@
                     "progressive",
                     "frameRateN",
                     "frameRateD"
+                ]
+            }
+        },
+        "hdmiALLMStatusUpdate": {
+            "summary": "Triggered whenever the ALLM status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "portId": {
+                        "$ref": "#/definitions/portId"
+                    },
+                    "ALLM_Mode": {
+                        "summary": "The ALLM status",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "ALLM_Mode"
                 ]
             }
         }

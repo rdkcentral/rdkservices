@@ -95,6 +95,8 @@ HdmiInput interface methods:
 | [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
 | [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#method.writeEDID) | Changes a current EDID value |
+| [getSupportedGameFeatures](#method.getSupportedGameFeatures) | Returns the list of supported game features |
+| [getHdmiALLMStatus](#method.getHdmiALLMStatus) | Returns the ALLM Status |
 
 
 <a name="method.getHDMIInputDevices"></a>
@@ -622,6 +624,104 @@ No Events.
 }
 ```
 
+<a name="method.getSupportedGameFeatures"></a>
+## *getSupportedGameFeatures [<sup>method</sup>](#head.Methods)*
+
+Returns the list of supported game features.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.suppoortedGameFeatures | string | The supported game Features |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.1.getSupportedGameFeatures"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "suppoortedGameFeatures": "ALLM",
+        "success": true
+    }
+}
+```
+
+<a name="method.getHdmiALLMStatus"></a>
+## *getHdmiALLMStatus [<sup>method</sup>](#head.Methods)*
+
+Returns the ALLM Status.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ALLM_Mode | boolean | The ALLM status |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.1.getHdmiALLMStatus",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "ALLM_Mode": true,
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -637,6 +737,7 @@ HdmiInput interface events:
 | [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI Input |
 | [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
 | [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [hdmiALLMStatusUpdate](#event.hdmiALLMStatusUpdate) | Triggered whenever the ALLM status changes for an HDMI Input |
 
 
 <a name="event.onDevicesChanged"></a>
@@ -761,6 +862,32 @@ Triggered whenever there is an update in HDMI Input video stream info.
         "progressive": true,
         "frameRateN": 60000,
         "frameRateD": 1001
+    }
+}
+```
+
+<a name="event.hdmiALLMStatusUpdate"></a>
+## *hdmiALLMStatusUpdate [<sup>event</sup>](#head.Notifications)*
+
+Triggered whenever the ALLM status changes for an HDMI Input.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.ALLM_Mode | boolean | The ALLM status |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.hdmiALLMStatusUpdate",
+    "params": {
+        "portId": "0",
+        "ALLM_Mode": true
     }
 }
 ```
