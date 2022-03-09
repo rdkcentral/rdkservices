@@ -3333,7 +3333,6 @@ This method takes no parameters.
 | result?.DeviceInfo?.webBrowser.userAgent | string |  |
 | result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
 | result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.publicIP | string | Public IP |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -3344,9 +3343,9 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.2.getPlatformConfiguration",
+    "method": "org.rdk.System.1.getPlatformConfiguration",
     "params": {
-        "query": ""
+        "query": "..."
     }
 }
 ```
@@ -3384,8 +3383,7 @@ This method takes no parameters.
                 "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
             },
             "HdrCapability": "none",
-            "canMixPCMWithSurround": true,
-            "publicIP": "12.34.56.78"
+            "canMixPCMWithSurround": true
         },
         "success": true
     }

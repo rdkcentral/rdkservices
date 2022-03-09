@@ -181,14 +181,8 @@ namespace WPEFramework
             Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
             Register("getPublicIP", &Network::getPublicIP, this);
-            Register("setStunEndPoint", &Network::setStunEndPoint, this);
 
             m_netUtils.InitialiseNetUtils();
-            m_stunEndPoint = "stun.l.google.com";
-            m_stunPort = 19302;
-            m_stunBindTimeout = 30;
-            m_stunCacheTimeout = 0;
-            m_stunSync = true;
         }
 
         Network::~Network()
@@ -257,7 +251,6 @@ namespace WPEFramework
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
             Unregister("getPublicIP");
-            Unregister("setStunEndPoint");
 
             Network::_instance = nullptr;
         }
@@ -828,88 +821,64 @@ namespace WPEFramework
 
         uint32_t Network::getPublicIP(const JsonObject& parameters, JsonObject& response)
         {
-            JsonObject internal;
-            internal ["server"] = m_stunEndPoint;
-            internal ["port"] = m_stunPort;
-            internal ["timeout"] = m_stunBindTimeout;
-            internal ["cache_timeout"] = m_stunCacheTimeout;
-            internal ["sync"] = m_stunSync;
-
-            if (parameters.HasLabel("iface"))
-                internal ["iface"] = parameters["iface"];
-
-            if (parameters.HasLabel("ipv6"))
-                internal ["ipv6"] = parameters["ipv6"];
-
-            return  getPublicIPInternal(internal, response);
-        }
-
-        uint32_t Network::setStunEndPoint(const JsonObject& parameters, JsonObject& response)
-        {
-            getDefaultStringParameter("server", m_stunEndPoint, "stun.l.google.com");
-            getDefaultNumberParameter("port", m_stunPort, 19302);
-            getDefaultBoolParameter("sync", m_stunSync, true);
-            getDefaultNumberParameter("timeout", m_stunBindTimeout, 30);
-            getDefaultNumberParameter("cache_timeout", m_stunCacheTimeout, 0);
-
-            returnResponse(true);
-	}
-
-        uint32_t Network::getPublicIPInternal(const JsonObject& parameters, JsonObject& response)
-        {
             bool result = false;
 
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
             string server, iface;
 
-            getStringParameter("server", server);
+            getDefaultStringParameter("server", server, "");
             if (server.length() > MAX_HOST_NAME_LEN - 1)
             {
                 LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
-                returnResponse(result)
+                returnResponse(false)               
             }
 
-            getNumberParameter("port", iarmData.port);
+            getDefaultNumberParameter("port", iarmData.port, 0);
 
             /*only makes sense to get both server and port or neither*/
             if (!server.empty() && !iarmData.port)
             {
                 LOGWARN("invalid args: port missing");
-                returnResponse(result)
+                returnResponse(false)
             } 
             if (iarmData.port && server.empty())
             {
                 LOGWARN("invalid args: server missing");
-                returnResponse(result)
+                returnResponse(false)
             }
 
             getDefaultStringParameter("iface", iface, "");
             if (iface.length() > 16 - 1)
             {
                 LOGWARN("invalid args: interface exceeds max length of 16");
-                returnResponse(result)
+                returnResponse(false)               
             }
 	    
-            getBoolParameter("ipv6", iarmData.ipv6);
-            getBoolParameter("sync", iarmData.sync);
-            getNumberParameter("timeout", iarmData.bind_timeout);
-            getNumberParameter("cache_timeout", iarmData.cache_timeout);
+            if (!(strcmp (iface.c_str(), "ETHERNET") == 0 || strcmp (iface.c_str(), "WIFI") == 0))
+            {
+                LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_getPublicIP, iface.c_str());
+                returnResponse (result)
+            }
+
+            getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
+            getDefaultBoolParameter("sync", iarmData.sync, true);
+            getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
+            getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
 
             strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
             strncpy(iarmData.interface, iface.c_str(), 16);
 
             iarmData.public_ip[0] = '\0';
 
-            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u sync=%u timeout=%u cache_timeout=%u\n", 
-                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.sync, iarmData.bind_timeout, iarmData.cache_timeout);
+            LOGWARN("getPublicIP called with server=%s port=%u iface=%s ipv6=%u timeout=%u cache_timeout=%u\n", 
+                iarmData.server, iarmData.port, iarmData.interface, iarmData.ipv6, iarmData.bind_timeout, iarmData.cache_timeout);
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
             {
                 response["public_ip"] = string(iarmData.public_ip);
                 result = true;
             }
-            response["success"] = result;
-            return (Core::ERROR_NONE);
+            returnResponse(result)
         }
 
         /*
