@@ -764,7 +764,7 @@
                     "success": {
                         "$ref": "#/definitions/success"
                     }
-	           },
+	            },
                 "required": [
                     "public_ip",
                     "success"
