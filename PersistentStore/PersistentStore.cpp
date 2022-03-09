@@ -21,6 +21,8 @@
 
 #include "SqliteStore.h"
 
+#include "UtilsFile.h"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -53,12 +55,16 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
 
     ASSERT(!_config.Path.Value().empty());
 
-    Core::Directory(Core::File(_config.Path.Value()).PathName().c_str()).CreatePath();
+    Core::File file(_config.Path.Value());
 
-    if (!Core::File(_config.Path.Value()).Exists()) {
+    Core::Directory(file.PathName().c_str()).CreatePath();
+
+    if (!file.Exists()) {
         for (auto i : LegacyLocations()) {
-            if (Core::File(i).Exists()) {
-                if (!Core::File(i).Move(_config.Path.Value())) {
+            Core::File from(i);
+
+            if (from.Exists()) {
+                if (!Utils::MoveFile(file.Name(), from.Name())) {
                     result = "move failed";
                 }
                 break;
