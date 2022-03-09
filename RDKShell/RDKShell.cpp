@@ -138,6 +138,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CLIENT_REBOOT_REASON = "getClientRebootStatus";
 
 using namespace std;
 using namespace RdkShell;
@@ -183,6 +184,9 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
 #define RETRY_INTERVAL_250MS 250000
+
+#define NORMALBOOT   "NormalBoot"
+#define CRASHBOOT    "CrashBoot"
 
 enum FactoryAppLaunchStatus
 {
@@ -373,6 +377,7 @@ namespace WPEFramework {
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
+        std::map<std::string, std::string> gClientsResetReason;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -544,12 +549,47 @@ namespace WPEFramework {
             }
             return exist;
         }
+                   
+       static void addClientRebootStatus(string client,PluginHost::IShell::state currentState,PluginHost::IShell::reason stateChangeReason)
+       {
+	 std::map <string,string>::iterator it;
+         bool isClientexist=false;
+         
+	 it=gClientsResetReason.find(client);
+
+	 if(it != gClientsResetReason.end())
+         {
+             isClientexist=true;
+         }
+
+         if((!isClientexist) && (currentState == PluginHost::IShell::ACTIVATED))
+         {
+              gRdkShellMutex.lock();
+              gClientsResetReason.insert(pair<string, string>(client,NORMALBOOT));
+              gRdkShellMutex.unlock();
+         }
+	 else if (((isClientexist)&& (currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED)))
+         {
+	    if(stateChangeReason == PluginHost::IShell::FAILURE)
+            {
+              it->second=CRASHBOOT;
+	    }
+	    else
+            {
+              gClientsResetReason.erase(it->first);
+            }
+         }
+         else {}
+         
+        }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
             {
                 PluginHost::IShell::state currentState(service->State());
+				
+	        addClientRebootStatus(service->Callsign(),service->State(),service->Reason());
                 if (currentState == PluginHost::IShell::ACTIVATION)
                 {
                    std::string configLine = service->ConfigLine();
@@ -785,6 +825,7 @@ namespace WPEFramework {
 
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
+	    registerMethod(RDKSHELL_EVENT_ON_CLIENT_REBOOT_REASON, &RDKShell::getClientRebootStatus, this);
 	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1269,6 +1310,9 @@ namespace WPEFramework {
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
+            gRdkShellMutex.lock();
+            gClientsResetReason.clear();
+	    gRdkShellMutex.unlock();
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -5164,7 +5208,35 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
-        // Registered methods end
+         uint32_t RDKShell::getClientRebootStatus(const JsonObject& parameters, JsonObject& response)
+         {
+            LOGINFOMETHOD();
+	    bool result=false;
+            if (parameters.HasLabel("client"))
+            {	    
+	       std::string clientidentifier = parameters["client"].String();
+	       std::map<std::string, std::string>::iterator it;
+	       it=gClientsResetReason.find(clientidentifier);
+	       if(it != gClientsResetReason.end())
+	       {
+                    response["reason"] = it->second;
+		    result=true;
+	       }
+	       else
+	       {
+                    response["message"] = "Client is not present in RDKSHELL";		       
+		    result=false;
+               }
+            }
+	    else
+            {
+	       response["message"] = "please specify client parameter";
+               result = false;
+	    }
+            returnResponse(result);
+	  }
+		
+		// Registered methods end
 
         // Events begin
         void RDKShell::notify(const std::string& event, const JsonObject& parameters)
