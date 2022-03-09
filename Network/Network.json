@@ -752,7 +752,7 @@
                     "iface",
                     "ipv6"
                 ]
-           },
+            },
             "result": {
                 "type": "object",
                 "properties": {
@@ -764,7 +764,7 @@
                     "success": {
                         "$ref": "#/definitions/success"
                     }
-	        },
+	           },
                 "required": [
                     "public_ip",
                     "success"
