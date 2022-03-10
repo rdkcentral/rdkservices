@@ -34,6 +34,7 @@ namespace Plugin {
         registerMethod("setMixerLevels", &SystemAudioPlayer::SetMixerLevels, this);
         registerMethod("isspeaking", &SystemAudioPlayer::IsPlaying, this);
 	registerMethod("config", &SystemAudioPlayer::Config, this);
+        registerMethod("getPlayerSessionId", &SystemAudioPlayer::GetPlayerSessionId, this);
     }
     
    
@@ -55,6 +56,18 @@ namespace Plugin {
             string params, result;
             parameters.ToString(params);
             uint32_t ret= _sap->Config(params, result);
+            response.FromString(result);
+            return ret;
+        }
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t SystemAudioPlayer::GetPlayerSessionId(const JsonObject& parameters, JsonObject& response)
+    {
+        if(_sap) {
+            string params, result;
+            parameters.ToString(params);
+            uint32_t ret= _sap->GetPlayerSessionId(params, result);
             response.FromString(result);
             return ret;
         }
