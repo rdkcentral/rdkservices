@@ -97,6 +97,7 @@ SystemAudioPlayer interface methods:
 | [resume](#method.resume) | Resumes playback on the specified player |
 | [setMixerLevels](#method.setMixerLevels) | Sets the audio level on the specified player |
 | [stop](#method.stop) | Stops playback on the specified player |
+| [getPlayerSessionId](#method.getPlayerSessionId) | Get the sessionid by providing the URL |
 
 
 <a name="method.close"></a>
@@ -644,7 +645,57 @@ Stops playback on the specified player.
     }
 }
 ```
+<a name="method.getPlayerSessionId"></a>
+## *getPlayerSessionId [<sup>method</sup>](#head.Methods)*
 
+Get the session ID by providing the URL as the input parameter.
+Session is nothing but the id returned in [open](#method.open) call.
+ 
+### Events 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.url | string | url queried to get the session id |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+| result.sessionId | string | Returns the session ID  if url is present ,if not returns -1  |
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.getPlayerSessionId",
+    "params": {
+        "url": "ws://100.64.12.27:40001"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true,
+        "sessionId": 1
+    }
+}
+```
 <a name="head.Notifications"></a>
 # Notifications
 

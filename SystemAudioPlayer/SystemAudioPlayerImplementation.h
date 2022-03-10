@@ -115,6 +115,7 @@ namespace Plugin {
         virtual uint32_t SetMixerLevels(const string &input, string &output /* @out */) override ;
         virtual uint32_t IsPlaying(const string &input, string &output /* @out */) override ;
 	virtual uint32_t Config(const string &input, string &output /* @out */) override ;
+        virtual uint32_t GetPlayerSessionId(const string &input, string &output /* @out */) override ;
 
         virtual void onSAPEvent(uint32_t id,std::string message) override; 
       
@@ -131,6 +132,7 @@ namespace Plugin {
         void dispatchEvent(Event, JsonObject &params);
         void Dispatch(Event event, string data);
         void OpenMapping(AudioType audioType,SourceType sourceType,PlayMode mode,int &playerid);
+        bool GetSessionFromUrl(string url,int &playerid);
         bool SameModeNotPlaying(AudioPlayer*,int &playerid);
         bool CloseMapping(int key);
 
