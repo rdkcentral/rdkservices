@@ -47,7 +47,8 @@ namespace Plugin {
                 Add(_T("limit"), &Limit);
             }
             RestartInfo(const RestartInfo& copy)
-                : Window(copy.Window)
+                : Core::JSON::Container()
+                , Window(copy.Window)
                 , Limit(copy.Limit)
             {
                 Add(_T("window"), &Window);
@@ -82,6 +83,17 @@ namespace Plugin {
             }
             ~MetaData()
             {
+            }
+
+            MetaData& operator= (const MetaData& rhs)
+            {
+                _resident = rhs._resident;
+                _allocated = rhs._allocated;
+                _shared = rhs._shared;
+                _process = rhs._process;
+                _operational = rhs._operational;
+
+                return (*this);
             }
 
         public:
@@ -435,10 +447,6 @@ namespace Plugin {
         };
 
         class MonitorObjects : public PluginHost::IPlugin::INotification {
-        private:
-            MonitorObjects(const MonitorObjects&) = delete;
-            MonitorObjects& operator=(const MonitorObjects&) = delete;
-
         public:
             using Job = Core::ThreadPool::JobType<MonitorObjects>;
 
@@ -515,7 +523,7 @@ namespace Plugin {
                 }
 
             public:
-                inline bool RegisterRestart(PluginHost::IShell::reason why)
+                inline bool RegisterRestart(PluginHost::IShell::reason why VARIABLE_IS_NOT_USED)
                 {
                     ASSERT(why == PluginHost::IShell::MEMORY_EXCEEDED || why == PluginHost::IShell::FAILURE);
                     ASSERT(HasRestartAllowed());
@@ -646,6 +654,9 @@ namespace Plugin {
             };
 
         public:
+            MonitorObjects(const MonitorObjects&) = delete;
+            MonitorObjects& operator=(const MonitorObjects&) = delete;
+
 #ifdef __WINDOWS__
 #pragma warning(disable : 4355)
 #endif
