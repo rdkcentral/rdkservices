@@ -24,6 +24,10 @@
 
 #include <core/JSON.h>
 
+#if defined(ENABLE_AAMP_JSBINDINGS)
+#include "AAMPJSBindings.h"
+#endif
+
 namespace WPEFramework {
 namespace WebKit {
 
@@ -81,7 +85,11 @@ void SetRequestHeaders(WebKitWebPage* page, WebKitUserMessage* message)
 
     Headers newHeaders;
     if (ParseHeaders(headersStr, newHeaders)) {
-        if (newHeaders.empty())
+
+#if defined(ENABLE_AAMP_JSBINDINGS)
+            JavaScript::AAMP::SetHttpHeaders(message.c_str());
+#endif
+	if (newHeaders.empty())
             RemoveRequestHeaders(page);
         else
             s_pageHeaders[page] = std::move(newHeaders);
