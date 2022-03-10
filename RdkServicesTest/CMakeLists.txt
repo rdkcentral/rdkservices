@@ -35,10 +35,11 @@ add_executable(${PROJECT_NAME}
         Tests/SqliteStoreTest.cpp
         Tests/CountingLockTest.cpp
         Tests/SecurityAgentTest.cpp
+        Tests/UtilsFileTest.cpp
         Module.cpp
         )
 
-include_directories(../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
 link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
