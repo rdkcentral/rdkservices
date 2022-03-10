@@ -104,7 +104,7 @@ namespace Plugin {
         // change to "register" the sink for these events !!! So do it ahead of instantiation.
         _service->Register(&_notification);
 
-        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, Core::infinite, _T("OCDMImplementation"));
+        _opencdmi = _service->Root<Exchange::IContentDecryption>(_connectionId, WPEFramework::RPC::CommunicationTimeOut, _T("OCDMImplementation"));
 
         if (_opencdmi == nullptr) {
             message = _T("OCDM could not be instantiated.");
@@ -144,23 +144,9 @@ namespace Plugin {
         _memory->Release();
 
         _opencdmi->Deinitialize(service);
-
-        if (_opencdmi->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
-
-            ASSERT(_connectionId != 0);
-
-            TRACE(Trace::Information, (_T("OCDM Plugin is not properly destructed. %d"), _connectionId));
-
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-
-            // The process can disappear in the meantime...
-            if (connection != nullptr) {
-
-                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-                connection->Terminate();
-                connection->Release();
-            }
-        }
+        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+        uint32_t result = _opencdmi->Release();
+        ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 
@@ -170,6 +156,10 @@ namespace Plugin {
             ASSERT(subSystem->IsActive(PluginHost::ISubSystem::DECRYPTION) == true);
             subSystem->Set(PluginHost::ISubSystem::NOT_DECRYPTION, nullptr);
             subSystem->Release();
+        }
+        if (connection != nullptr) {
+            connection->Terminate();
+            connection->Release();
         }
 
         // Deinitialize what we initialized..

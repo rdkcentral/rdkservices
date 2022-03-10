@@ -89,9 +89,11 @@ SystemAudioPlayer interface methods:
 | :-------- | :-------- |
 | [close](#method.close) | Closes the system audio player with the specified ID |
 | [config](#method.config) | Configures playback for a PCM audio source (audio/x-raw) on the specified player |
+| [isspeaking](#method.isspeaking) | Checks if playback is in progress |
 | [open](#method.open) | Opens a player instance and assigns it a unique ID |
 | [pause](#method.pause) | Pauses playback on the specified player |
 | [play](#method.play) | Plays audio on the specified player |
+| [playbuffer](#method.playbuffer) | Buffers the audio playback on the specified player |
 | [resume](#method.resume) | Resumes playback on the specified player |
 | [setMixerLevels](#method.setMixerLevels) | Sets the audio level on the specified player |
 | [stop](#method.stop) | Stops playback on the specified player |
@@ -100,9 +102,13 @@ SystemAudioPlayer interface methods:
 <a name="method.close"></a>
 ## *close [<sup>method</sup>](#head.Methods)*
 
-Closes the system audio player with the specified ID. The `SystemAudioPlayer` plugin destroys the player object. That is, if the player is playing, then it is stopped and closed. All volume mixer level settings are restored.  
+Closes the system audio player with the specified ID. The `SystemAudioPlayer` plugin destroys the player object. That is, if the player is playing, then it is stopped and closed. All volume mixer level settings are restored. 
 
-See Also: [open](#method.open).
+ Also See: [open](#method.open).
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -149,6 +155,10 @@ See Also: [open](#method.open).
 ## *config [<sup>method</sup>](#head.Methods)*
 
 Configures playback for a PCM audio source (audio/x-raw) on the specified player. This method must be called before the [play](#method.play) method. There may be more optional configuration parameters added in the future for PCM as well as for other audio types. Supported audio/x-raw configuration parameters can be found at https://gstreamer.freedesktop.org/documentation/rawparse/rawaudioparse.html#src.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -202,6 +212,56 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
 }
 ```
 
+<a name="method.isspeaking"></a>
+## *isspeaking [<sup>method</sup>](#head.Methods)*
+
+Checks if playback is in progress.
+ 
+### Events 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | A unique identifier for a player instance |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.isspeaking",
+    "params": {
+        "id": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.open"></a>
 ## *open [<sup>method</sup>](#head.Methods)*
 
@@ -209,7 +269,11 @@ Opens a player instance and assigns it a unique ID. The player ID is used to ref
 
 **Note**: The `SystemAudioPlayer` plugin can have a maximum of 1 system and 1 application play mode player at a time.  
 
-See Also: [close](#method.close).
+Also See: [close](#method.close).
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -262,6 +326,13 @@ See Also: [close](#method.close).
 ## *pause [<sup>method</sup>](#head.Methods)*
 
 Pauses playback on the specified player. Pause is only supported for HTTP and file source types.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onsapevents:PLAYBACK_PAUSED`| Triggered if the playback paused on the specified player.|.
+
+Also see: [onsapevents](#event.onsapevents)
 
 ### Parameters
 
@@ -310,6 +381,14 @@ Pauses playback on the specified player. Pause is only supported for HTTP and fi
 Plays audio on the specified player.  
 
 **Note**: If a player is using one play mode and another player tries to play audio using the same play mode, then an error returns indicating that the hardware resource has already been acquired by the session and includes the player ID.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onsapevents:PLAYBACK_STARTED`| Triggered if the playback is started to play on the specified player.|
+| `onsapevents:PLAYBACK_FINISHED`| Triggered if the playback is finished  normally on the specified player.|.
+
+Also see: [onsapevents](#event.onsapevents)
 
 ### Parameters
 
@@ -354,10 +433,72 @@ Plays audio on the specified player.
 }
 ```
 
+<a name="method.playbuffer"></a>
+## *playbuffer [<sup>method</sup>](#head.Methods)*
+
+Buffers the audio playback on the specified player.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onsapevents:NEED_DATA`| Triggered if  the buffer needs more data to play|.
+
+Also see: [onsapevents](#event.onsapevents)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | A unique identifier for a player instance |
+| params.data | string | Size of the buffer |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.playbuffer",
+    "params": {
+        "id": 1,
+        "data": "180"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.resume"></a>
 ## *resume [<sup>method</sup>](#head.Methods)*
 
 Resumes playback on the specified player. Resume is only supported for HTTP and file source types.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onsapevents:PLAYBACK_RESUMED`| Triggered if the playback resumed on the specified player.|.
+
+Also see: [onsapevents](#event.onsapevents)
 
 ### Parameters
 
@@ -404,6 +545,10 @@ Resumes playback on the specified player. Resume is only supported for HTTP and 
 ## *setMixerLevels [<sup>method</sup>](#head.Methods)*
 
 Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can control the volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -454,6 +599,10 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
 ## *stop [<sup>method</sup>](#head.Methods)*
 
 Stops playback on the specified player.
+ 
+### Events 
+
+ No Events.
 
 ### Parameters
 
@@ -522,7 +671,8 @@ The following events are supported.
 | :-------- | :-------- |  
 | PLAYBACK_STARTED| Triggered when playback starts  |  
 | PLAYBACK_FINISHED | Triggered when playback finishes normally. **Note**: Web socket playback is continuous and does not receive the `PLAYBACK_FINISHED` event until the stream contains `EOS`. |  
-| PLAYBACK_PAUSED| Triggered when playback is paused | PLAYBACK_RESUMED | Triggered when playback resumes |  
+| PLAYBACK_PAUSED| Triggered when playback is paused | 
+ |PLAYBACK_RESUMED | Triggered when playback resumes |  
 | NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  
 | PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  
 | NEED_DATA|  Triggered when the buffer needs more data to play|.
