@@ -87,13 +87,14 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
 
     Headers newHeaders;
     if (ParseHeaders(message, newHeaders)) {
+
+#if defined(ENABLE_AAMP_JSBINDINGS)
+        JavaScript::AAMP::SetHttpHeaders(message.c_str());
+#endif
         if (newHeaders.empty())
             RemoveRequestHeaders(page);
         else
         {
-#if defined(ENABLE_AAMP_JSBINDINGS)
-            JavaScript::AAMP::SetHttpHeaders(message.c_str());
-#endif
             s_pageHeaders[page] = std::move(newHeaders);
         }
     }
