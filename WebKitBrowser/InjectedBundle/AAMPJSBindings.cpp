@@ -23,6 +23,7 @@
 extern "C" {
     void aamp_LoadJSController(JSGlobalContextRef context);
     void aamp_UnloadJSController(JSGlobalContextRef context);
+    void aamp_SetHttpHeaders(const char* headers);
 }
 
 namespace WPEFramework {
@@ -72,6 +73,11 @@ void UnloadJSBindings(WKBundleFrameRef frame) {
             aamp_UnloadJSController(context);
         JSStringRelease(aampStr);
     }
+}
+// Just pass headers json to aamp plugin. SetHttpHeaders Called from RequestHeaders.cpp
+void SetHttpHeaders(const char * headerJson)
+{
+       aamp_SetHttpHeaders(headerJson);
 }
 
 }  // namespace AAMP
