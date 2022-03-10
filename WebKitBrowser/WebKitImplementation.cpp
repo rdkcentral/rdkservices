@@ -485,6 +485,8 @@ static GSourceFuncs _handlerIntervention =
                 , TCPKeepAlive(false)
                 , ClientCert()
                 , ClientCertKey()
+                , ClientCertKeyDecrypt(false)
+                , ClientCertKeyType()
                 , LogToSystemConsoleEnabled(false)
                 , WatchDogCheckTimeoutInSeconds(0)
                 , WatchDogHangThresholdInSeconds(0)
@@ -537,6 +539,8 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("tcpkeepalive"), &TCPKeepAlive);
                 Add(_T("clientcert"), &ClientCert);
                 Add(_T("clientcertkey"), &ClientCertKey);
+                Add(_T("clientcertkeydecrypt"), &ClientCertKeyDecrypt);
+                Add(_T("clientcertkeytype"), &ClientCertKeyType);
                 Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
@@ -594,6 +598,8 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean TCPKeepAlive;
             Core::JSON::String ClientCert;
             Core::JSON::String ClientCertKey;
+            Core::JSON::Boolean ClientCertKeyDecrypt;
+            Core::JSON::String ClientCertKeyType;
             Core::JSON::Boolean LogToSystemConsoleEnabled;
             Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
@@ -1774,6 +1780,16 @@ static GSourceFuncs _handlerIntervention =
             if (_config.ClientCert.IsSet() == true && _config.ClientCertKey.IsSet() == true) {
                 Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_PATH"), _config.ClientCert.Value(), !environmentOverride);
                 Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_KEY_PATH"), _config.ClientCertKey.Value(), !environmentOverride);
+                // ClientCertKeyDecrypt
+                if ((_config.ClientCertKeyDecrypt.IsSet() == true) && (_config.ClientCertKeyDecrypt.Value() == true)) {
+                    Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_KEY_DECRYPT"), _T("true"), !environmentOverride);
+                } else {
+                    Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_KEY_DECRYPT"), _T("false"), !environmentOverride);
+                }
+                // ClientCertKeyType 
+                if (_config.ClientCertKeyType.IsSet() == true) {
+                    Core::SystemInfo::SetEnvironment(_T("G_TLS_OPENSSL_CLIENT_CERT_KEY_TYPE"), _config.ClientCertKeyType.Value(), !environmentOverride);
+                }
             }
 
             // ExecPath
