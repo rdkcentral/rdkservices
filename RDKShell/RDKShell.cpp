@@ -373,7 +373,8 @@ namespace WPEFramework {
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
-        
+        std::vector <string> gSurfaceClients{"HtmlApp","LightningApp","Cobalt","SearchAndDiscoveryApp","Webkitbrowser"};
+
         uint32_t getKeyFlag(std::string modifier)
         {
           uint32_t flag = 0;
@@ -543,6 +544,24 @@ namespace WPEFramework {
                 }
             }
             return exist;
+        }
+        static void updateSurfaceClientIdentifiers( void)
+        {
+	  std::vector <string>::iterator it;
+	  uint32_t status = 0;
+          auto thunderController = getThunderControllerClient();
+	  for(it=gSurfaceClients.begin();it!=gSurfaceClients.end();it++)
+          {
+           WPEFramework::Core::JSON::String configString;
+           Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+           JsonObject configSet;
+           string method = "configuration@";
+           method=method.append(*it);
+           status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+           configSet.FromString(configString.Value());
+           configSet["clientidentifier"] = "rdkshell_display";
+           status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+          }
         }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
@@ -1119,7 +1138,11 @@ namespace WPEFramework {
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
             m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
-
+            char* rdkshelltype = getenv("RDKSHELL_COMPOSITOR_TYPE");
+            if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
+            {
+              updateSurfaceClientIdentifiers();
+	    } 
             return "";
         }
 
