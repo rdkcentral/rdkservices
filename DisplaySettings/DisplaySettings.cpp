@@ -4349,7 +4349,7 @@ namespace WPEFramework {
             parameters.ToString(message);
             LOGINFO("[ARC Initiation Event], %s : %s", __FUNCTION__, C_STR(message));
 
-            if (parameters.HasLabel("status")) {
+            if (parameters.HasLabel("status") && m_currentArcRoutingState != ARC_STATE_ARC_INITIATED) {
                 value = parameters["status"].String();
                 {
                   std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
@@ -4392,6 +4392,8 @@ namespace WPEFramework {
 		}
             } else {
                 LOGERR("Field 'status' could not be found in the event's payload.");
+		if(m_currentArcRoutingState == ARC_STATE_ARC_INITIATED)
+			LOGINFO("%s: The ARC initiation already done", __FUNCTION__);
             }
         }
 
