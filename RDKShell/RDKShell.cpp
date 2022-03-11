@@ -3374,7 +3374,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3412,7 +3412,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3443,7 +3443,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
                             root = configSet["root"].Object();
