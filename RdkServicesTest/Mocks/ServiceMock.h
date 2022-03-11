@@ -20,11 +20,9 @@
 #ifndef SERVICEMOCK_H
 #define SERVICEMOCK_H
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <core/core.h>
-#include <plugins/plugins.h>
+#include "Module.h"
 
 class ServiceMock : public WPEFramework::PluginHost::IShell
 {

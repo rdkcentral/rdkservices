@@ -20,7 +20,6 @@
 #ifndef PERSISTENTSTOREMOCK_H
 #define PERSISTENTSTOREMOCK_H
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 #include "PersistentStore.h"

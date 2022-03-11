@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
+
 #include "PersistentStoreMock.h"
 #include "ServiceMock.h"
 

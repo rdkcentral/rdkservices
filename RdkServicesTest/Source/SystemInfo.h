@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <core/core.h>
-#include <plugins/plugins.h>
+#include "Module.h"
 
 class SystemInfo: public WPEFramework::PluginHost::ISubSystem {
 private:

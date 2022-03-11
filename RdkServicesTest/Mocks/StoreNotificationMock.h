@@ -17,11 +17,9 @@
  * limitations under the License.
  */
 
-
 #ifndef STORENOTIFICATIONMOCK_H
 #define STORENOTIFICATIONMOCK_H
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 #include <interfaces/IStore.h>

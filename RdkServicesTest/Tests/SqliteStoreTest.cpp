@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "SqliteStore.h"
+
 #include "StoreNotificationMock.h"
 
 using namespace WPEFramework;

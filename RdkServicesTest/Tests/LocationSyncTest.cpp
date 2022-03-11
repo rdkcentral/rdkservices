@@ -17,11 +17,12 @@
 * limitations under the License.
 **/
 
+#include <gtest/gtest.h>
+
 #include "LocationSync.h"
 
 #include "Source/WorkerPoolImplementation.h"
 #include "Source/SystemInfo.h"
-
 #include "ServiceMock.h"
 
 using namespace WPEFramework;

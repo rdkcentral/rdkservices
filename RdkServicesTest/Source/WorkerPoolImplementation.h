@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <core/core.h>
-#include <plugins/plugins.h>
+#include "Module.h"
 
 class WorkerPoolImplementation: public WPEFramework::Core::WorkerPool {
 private:

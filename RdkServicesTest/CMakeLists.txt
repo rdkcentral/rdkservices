@@ -29,13 +29,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
-        Tests/LocationSyncTest.cpp
-        Tests/PersistentStoreTest.cpp
-        Tests/SqliteStoreTest.cpp
-        Tests/CountingLockTest.cpp
-        Tests/SecurityAgentTest.cpp
-        Tests/UtilsFileTest.cpp
+        ${TESTS}
         Module.cpp
         )
 

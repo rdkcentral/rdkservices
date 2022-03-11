@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "Module.h"
 
@@ -57,10 +57,12 @@ TEST(UtilsFileTest, moveFile) {
     EXPECT_TRUE(Utils::MoveFile(fileFrom, fileTo));
 
     EXPECT_FALSE(Core::File(fileFrom).Exists());
+    EXPECT_TRUE(Core::File(fileTo).Exists());
+}
 
+TEST(UtilsFileTest, verifyFile) {
     Core::File file(fileTo);
 
-    EXPECT_TRUE(file.Exists());
     EXPECT_TRUE(file.Open(true));
 
     uint8_t buffer[2 * numBytes];
