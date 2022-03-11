@@ -839,8 +839,11 @@ static GSourceFuncs _handlerIntervention =
             ASSERT(implementation == nullptr);
 
             // Initialize ODH reporting for WebKitBrowser
-            if (odh_error_report_init("WebKitBrowser"))
+            if (odh_error_report_init("WebKitBrowser")) {
                 TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
+            } else {
+                ODH_WARNING("ThunderWebKitBrowser started: %p", this);
+            }
 
             implementation = this;
             TRACE_L1("%p", this);
