@@ -21,19 +21,21 @@
 
 #include "Module.h"
 
-class SystemInfo: public WPEFramework::PluginHost::ISubSystem {
+class SystemInfo : public WPEFramework::PluginHost::ISubSystem {
 private:
     SystemInfo(const SystemInfo&) = delete;
     SystemInfo& operator=(const SystemInfo&) = delete;
 
 public:
     SystemInfo()
-            :_flags(0) { }
+        : _flags(0)
+    {
+    }
     virtual ~SystemInfo() = default;
 
 public:
-    virtual void Register(WPEFramework::PluginHost::ISubSystem::INotification* notification) override { }
-    virtual void Unregister(WPEFramework::PluginHost::ISubSystem::INotification* notification) override { }
+    virtual void Register(WPEFramework::PluginHost::ISubSystem::INotification* notification) override {}
+    virtual void Unregister(WPEFramework::PluginHost::ISubSystem::INotification* notification) override {}
 
     string SecurityCallsign() const { return (string()); }
 
@@ -43,10 +45,9 @@ public:
     {
         _subsystems.emplace(type, information);
 
-        if (type>=NEGATIVE_START) {
-            _flags &= ~(1 << (type-NEGATIVE_START));
-        }
-        else {
+        if (type >= NEGATIVE_START) {
+            _flags &= ~(1 << (type - NEGATIVE_START));
+        } else {
             _flags |= (1 << type);
         }
     }
@@ -55,7 +56,7 @@ public:
         const WPEFramework::Core::IUnknown* result(nullptr);
 
         auto it = _subsystems.find(type);
-        if (it!=_subsystems.end()) {
+        if (it != _subsystems.end()) {
             result = it->second;
         }
 
@@ -63,7 +64,7 @@ public:
     }
     virtual bool IsActive(const subsystem type) const override
     {
-        return ((type<END_LIST) && ((_flags & (1 << type))!=0));
+        return ((type < END_LIST) && ((_flags & (1 << type)) != 0));
     };
 
     BEGIN_INTERFACE_MAP(SystemInfo)

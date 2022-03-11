@@ -24,12 +24,11 @@
 
 #include <interfaces/IStore.h>
 
-class StoreNotificationMock : public WPEFramework::Exchange::IStore::INotification
-{
+class StoreNotificationMock : public WPEFramework::Exchange::IStore::INotification {
 public:
     virtual ~StoreNotificationMock() = default;
 
-    MOCK_METHOD(void, ValueChanged, (const string &, const string &, const string &), (override));
+    MOCK_METHOD(void, ValueChanged, (const string&, const string&, const string&), (override));
     MOCK_METHOD(void, StorageExceeded, (), (override));
 
     BEGIN_INTERFACE_MAP(StoreNotificationMock)

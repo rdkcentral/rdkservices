@@ -24,12 +24,11 @@
 
 #include "PersistentStore.h"
 
-class PersistentStoreMock : public WPEFramework::Plugin::PersistentStore
-{
+class PersistentStoreMock : public WPEFramework::Plugin::PersistentStore {
 public:
     virtual ~PersistentStoreMock() = default;
 
-    MOCK_METHOD(void, event_onValueChanged, (const string &, const string &, const string &), (override));
+    MOCK_METHOD(void, event_onValueChanged, (const string&, const string&, const string&), (override));
     MOCK_METHOD(void, event_onStorageExceeded, (), (override));
     MOCK_METHOD(std::vector<string>, LegacyLocations, (), (const, override));
 };

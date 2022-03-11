@@ -23,26 +23,27 @@
 
 #include "UtilsFile.h"
 
-namespace
-{
+namespace {
 const string testFolder = _T("/tmp/UtilsFileTest");
 const string fileFrom = _T("/tmp/UtilsFileTest/file");
 const string fileTo = _T("/tmp/UtilsFileTest/destination/for/new/file");
 
 const uint32_t numBytes = 12;
-const uint8_t bytes[numBytes] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0xFE, 0x03, 0x20, 0x04, 0x00, 0x01};
+const uint8_t bytes[numBytes] = { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0xFE, 0x03, 0x20, 0x04, 0x00, 0x01 };
 }
 
 using namespace WPEFramework;
 
-TEST(UtilsFileTest, createFolder) {
+TEST(UtilsFileTest, createFolder)
+{
     EXPECT_TRUE(Core::Directory(testFolder.c_str()).Destroy(false));
 
     EXPECT_TRUE(Core::Directory(testFolder.c_str()).CreatePath());
     EXPECT_TRUE(Core::File(testFolder).Exists());
 }
 
-TEST(UtilsFileTest, createFile) {
+TEST(UtilsFileTest, createFile)
+{
     Core::File file(fileFrom);
 
     EXPECT_FALSE(file.Exists());
@@ -50,7 +51,8 @@ TEST(UtilsFileTest, createFile) {
     EXPECT_EQ(numBytes, file.Write(bytes, numBytes));
 }
 
-TEST(UtilsFileTest, moveFile) {
+TEST(UtilsFileTest, moveFile)
+{
     EXPECT_TRUE(Core::File(fileFrom).Exists());
     EXPECT_FALSE(Core::File(fileTo).Exists());
 
@@ -60,7 +62,8 @@ TEST(UtilsFileTest, moveFile) {
     EXPECT_TRUE(Core::File(fileTo).Exists());
 }
 
-TEST(UtilsFileTest, verifyFile) {
+TEST(UtilsFileTest, verifyFile)
+{
     Core::File file(fileTo);
 
     EXPECT_TRUE(file.Open(true));

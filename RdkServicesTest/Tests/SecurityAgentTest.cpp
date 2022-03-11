@@ -21,14 +21,13 @@
 
 #include "SecurityAgent.h"
 
-#include "Source/WorkerPoolImplementation.h"
-#include "Source/SystemInfo.h"
 #include "ServiceMock.h"
+#include "Source/SystemInfo.h"
+#include "Source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
-namespace
-{
+namespace {
 const string payload = _T("http://localhost");
 const string tokenPrefix = _T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.");
 const string envEndPoint = _T("SECURITYAGENT_PATH");
@@ -41,13 +40,12 @@ const string volatilePath = _T("/tmp/");
 const string proxyStubPath = _T("thunder/install/usr/lib/wpeframework/proxystubs");
 }
 
-class SecurityAgentTestFixture : public ::testing::Test
-{
+class SecurityAgentTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
     Core::Sink<SystemInfo> subSystem;
     Core::ProxyType<Plugin::SecurityAgent> plugin;
-    Core::JSONRPC::Handler &handler;
+    Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     ServiceMock service;
     string response;
@@ -56,10 +54,10 @@ protected:
 
     SecurityAgentTestFixture()
         : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
-        2, Core::Thread::DefaultStackSize(), 16)),
-          plugin(Core::ProxyType<Plugin::SecurityAgent>::Create()),
-          handler(*plugin),
-          connection(1, 0)
+            2, Core::Thread::DefaultStackSize(), 16))
+        , plugin(Core::ProxyType<Plugin::SecurityAgent>::Create())
+        , handler(*plugin)
+        , connection(1, 0)
     {
     }
     virtual ~SecurityAgentTestFixture()
@@ -82,7 +80,8 @@ protected:
     }
 };
 
-TEST_F(SecurityAgentTestFixture, jsonRpc) {
+TEST_F(SecurityAgentTestFixture, jsonRpc)
+{
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
         .WillOnce(::testing::Return("{}"));
@@ -92,13 +91,11 @@ TEST_F(SecurityAgentTestFixture, jsonRpc) {
     EXPECT_CALL(service, SubSystems())
         .Times(2)
         .WillRepeatedly(::testing::Invoke(
-            [&] ()
-            {
+            [&]() {
                 PluginHost::ISubSystem* result = (&subSystem);
                 result->AddRef();
                 return result;
-            }
-        ));
+            }));
     EXPECT_CALL(service, PersistentPath())
         .Times(1)
         .WillOnce(::testing::Return(persistentPath));
@@ -122,24 +119,19 @@ TEST_F(SecurityAgentTestFixture, jsonRpc) {
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_NONE, plugin->CreateToken(
-        static_cast<uint16_t>(payload.length()),
-        reinterpret_cast<const uint8_t*>(payload.c_str()),
-        token)
-        );
+    EXPECT_EQ(Core::ERROR_NONE, plugin->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
 
     EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,
-        _T("validate"),
-        "{\"token\":\"" + token + "\"}", response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("validate"), "{\"token\":\"" + token + "\"}", response));
     EXPECT_EQ(response,
         _T("{\"valid\":true}"));
 
     plugin->Deinitialize(&service);
 }
 
-TEST_F(SecurityAgentTestFixture, rpcCom) {
+TEST_F(SecurityAgentTestFixture, rpcCom)
+{
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
         .WillOnce(::testing::Return("{}"));
@@ -149,13 +141,11 @@ TEST_F(SecurityAgentTestFixture, rpcCom) {
     EXPECT_CALL(service, SubSystems())
         .Times(2)
         .WillRepeatedly(::testing::Invoke(
-            [&] ()
-            {
+            [&]() {
                 PluginHost::ISubSystem* result = (&subSystem);
                 result->AddRef();
                 return result;
-            }
-        ));
+            }));
     EXPECT_CALL(service, PersistentPath())
         .Times(1)
         .WillOnce(::testing::Return(persistentPath));
@@ -193,11 +183,7 @@ TEST_F(SecurityAgentTestFixture, rpcCom) {
     EXPECT_TRUE(interface != nullptr);
 
     token.clear();
-    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(
-        static_cast<uint16_t>(payload.length()),
-        reinterpret_cast<const uint8_t*>(payload.c_str()),
-        token)
-        );
+    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
 
     EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
 

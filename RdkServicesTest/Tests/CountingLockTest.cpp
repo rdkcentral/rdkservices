@@ -25,8 +25,7 @@
 
 using namespace WPEFramework;
 
-namespace
-{
+namespace {
 const unsigned int nTime = 1000;
 
 Plugin::CountingLock Lock;
@@ -39,8 +38,7 @@ Core::Event Job3WantsToAcquireLock(0, 1);
 Core::Event Job3AcquiredLock(0, 1);
 Core::Event Job3Complete(0, 1);
 
-struct Job1
-{
+struct Job1 {
     void Dispatch()
     {
         // Job1 locks and expects Job3 to fail lock.
@@ -49,15 +47,13 @@ struct Job1
 
         Job1AcquiredLock.SetEvent();
 
-        if ((Job3WantsToAcquireLock.Lock(nTime) == Core::ERROR_NONE) &&
-            (Job3AcquiredLock.Lock(nTime) == Core::ERROR_TIMEDOUT)) {
+        if ((Job3WantsToAcquireLock.Lock(nTime) == Core::ERROR_NONE) && (Job3AcquiredLock.Lock(nTime) == Core::ERROR_TIMEDOUT)) {
             Job1Complete.SetEvent();
         }
     }
 };
 
-struct Job2
-{
+struct Job2 {
     void Dispatch()
     {
         // Job2 locks and expects Job3 to fail lock.
@@ -66,21 +62,18 @@ struct Job2
 
         Job2AcquiredLock.SetEvent();
 
-        if ((Job3WantsToAcquireLock.Lock(nTime) == Core::ERROR_NONE) &&
-            (Job3AcquiredLock.Lock(nTime) == Core::ERROR_TIMEDOUT)) {
+        if ((Job3WantsToAcquireLock.Lock(nTime) == Core::ERROR_NONE) && (Job3AcquiredLock.Lock(nTime) == Core::ERROR_TIMEDOUT)) {
             Job2Complete.SetEvent();
         }
     }
 };
 
-struct Job3
-{
+struct Job3 {
     void Dispatch()
     {
         // Job3 locks exclusive after Job1 and Job2 lock.
 
-        if ((Job1AcquiredLock.Lock(nTime) == Core::ERROR_NONE) &&
-            (Job2AcquiredLock.Lock(nTime) == Core::ERROR_NONE)) {
+        if ((Job1AcquiredLock.Lock(nTime) == Core::ERROR_NONE) && (Job2AcquiredLock.Lock(nTime) == Core::ERROR_NONE)) {
 
             Job3WantsToAcquireLock.SetEvent();
 
@@ -96,14 +89,13 @@ struct Job3
 };
 }
 
-class CountingLockTestFixture : public ::testing::Test
-{
+class CountingLockTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
 
     CountingLockTestFixture()
         : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
-        5, Core::Thread::DefaultStackSize(), 16))
+            5, Core::Thread::DefaultStackSize(), 16))
     {
     }
     virtual ~CountingLockTestFixture()
@@ -124,14 +116,15 @@ protected:
     }
 };
 
-TEST_F(CountingLockTestFixture, countingLockTest) {
+TEST_F(CountingLockTestFixture, countingLockTest)
+{
     Job1 job1;
     Job2 job2;
     Job3 job3;
 
-    auto job1Activity = Core::ProxyType<Core::WorkerPool::JobType<Job1 &>>::Create(job1);
-    auto job2Activity = Core::ProxyType<Core::WorkerPool::JobType<Job2 &>>::Create(job2);
-    auto job3Activity = Core::ProxyType<Core::WorkerPool::JobType<Job3 &>>::Create(job3);
+    auto job1Activity = Core::ProxyType<Core::WorkerPool::JobType<Job1&>>::Create(job1);
+    auto job2Activity = Core::ProxyType<Core::WorkerPool::JobType<Job2&>>::Create(job2);
+    auto job3Activity = Core::ProxyType<Core::WorkerPool::JobType<Job3&>>::Create(job3);
 
     job1Activity->Submit();
     job2Activity->Submit();
