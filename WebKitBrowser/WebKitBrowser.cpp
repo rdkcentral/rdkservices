@@ -351,4 +351,162 @@ namespace Plugin {
     }
 }  // namespace Plugin
 
+namespace WebKitBrowser {
+
+    // TODO: maybe nice to expose this in the config.json
+    static const TCHAR* mandatoryProcesses[] = {
+        _T("WPENetworkProcess"),
+        _T("WPEWebProcess")
+    };
+
+    static constexpr uint16_t RequiredChildren = (sizeof(mandatoryProcesses) / sizeof(mandatoryProcesses[0]));
+    class MemoryObserverImpl : public Exchange::IMemory {
+    private:
+        MemoryObserverImpl();
+        MemoryObserverImpl(const MemoryObserverImpl&);
+        MemoryObserverImpl& operator=(const MemoryObserverImpl&);
+
+        enum { TYPICAL_STARTUP_TIME = 10 }; /* in Seconds */
+    public:
+        MemoryObserverImpl(const RPC::IRemoteConnection* connection)
+            : _main(connection == nullptr ? Core::ProcessInfo().Id() : connection->RemoteId())
+            , _children(_main.Id())
+            , _startTime(connection == nullptr ? 0 : Core::Time::Now().Add(TYPICAL_STARTUP_TIME * 1000).Ticks())
+        { // IsOperation true till calculated time (microseconds)
+        }
+        ~MemoryObserverImpl()
+        {
+        }
+
+    public:
+        uint64_t Resident() const override
+        {
+            uint32_t result(0);
+
+            if (_startTime != 0) {
+                if (_children.Count() < RequiredChildren) {
+                    _children = Core::ProcessInfo::Iterator(_main.Id());
+                }
+
+                result = _main.Resident();
+
+                _children.Reset();
+
+                while (_children.Next() == true) {
+                    result += _children.Current().Resident();
+                }
+            }
+
+            return (result);
+        }
+        uint64_t Allocated() const override
+        {
+            uint32_t result(0);
+
+            if (_startTime != 0) {
+                if (_children.Count() < RequiredChildren) {
+                    _children = Core::ProcessInfo::Iterator(_main.Id());
+                }
+
+                result = _main.Allocated();
+
+                _children.Reset();
+
+                while (_children.Next() == true) {
+                    result += _children.Current().Allocated();
+                }
+            }
+
+            return (result);
+        }
+        uint64_t Shared() const override
+        {
+            uint32_t result(0);
+
+            if (_startTime != 0) {
+                if (_children.Count() < RequiredChildren) {
+                    _children = Core::ProcessInfo::Iterator(_main.Id());
+                }
+
+                result = _main.Shared();
+
+                _children.Reset();
+
+                while (_children.Next() == true) {
+                    result += _children.Current().Shared();
+                }
+            }
+
+            return (result);
+        }
+        uint8_t Processes() const override
+        {
+            // Refresh the children list !!!
+            _children = Core::ProcessInfo::Iterator(_main.Id());
+            return ((_startTime == 0) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
+        }
+        const bool IsOperational() const override
+        {
+            uint32_t requiredProcesses = 0;
+
+            if (_startTime != 0) {
+
+                //!< We can monitor a max of 32 processes, every mandatory process represents a bit in the requiredProcesses.
+                // In the end we check if all bits are 0, what means all mandatory processes are still running.
+                requiredProcesses = (0xFFFFFFFF >> (32 - RequiredChildren));
+
+                if (_children.Count() < RequiredChildren) {
+                    // Refresh the children list !!!
+                    _children = Core::ProcessInfo::Iterator(_main.Id());
+                }
+                //!< If there are less children than in the the mandatoryProcesses struct, we are done and return false.
+                if (_children.Count() >= RequiredChildren) {
+
+                    _children.Reset();
+
+                    //!< loop over all child processes as long as we are operational.
+                    while ((requiredProcesses != 0) && (true == _children.Next())) {
+
+                        uint8_t count(0);
+                        string name(_children.Current().Name());
+
+                        while ((count < RequiredChildren) && (name != mandatoryProcesses[count])) {
+                            ++count;
+                        }
+
+                        //<! this is a mandatory process and if its still active reset its bit in requiredProcesses.
+                        //   If not we are not completely operational.
+                        if ((count < RequiredChildren) && (_children.Current().IsActive() == true)) {
+                            requiredProcesses &= (~(1 << count));
+                        }
+                    }
+                }
+            }
+
+            return (((requiredProcesses == 0) || (true == IsStarting())) && (true == _main.IsActive()));
+        }
+
+        BEGIN_INTERFACE_MAP(MemoryObserverImpl)
+        INTERFACE_ENTRY(Exchange::IMemory)
+        END_INTERFACE_MAP
+
+    private:
+        inline const bool IsStarting() const
+        {
+            return (_startTime == 0) || (Core::Time::Now().Ticks() < _startTime);
+        }
+
+    private:
+        Core::ProcessInfo _main;
+        mutable Core::ProcessInfo::Iterator _children;
+        uint64_t _startTime; // !< Reference for monitor
+    };
+
+    Exchange::IMemory* MemoryObserver(const RPC::IRemoteConnection* connection)
+    {
+        Exchange::IMemory* result = Core::Service<MemoryObserverImpl>::Create<Exchange::IMemory>(connection);
+        return (result);
+    }
+} // namespace WebKitBrowser
+
 }  // WPEFramework
