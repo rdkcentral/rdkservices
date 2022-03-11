@@ -3889,7 +3889,7 @@ namespace WPEFramework {
                 {
                     bool topmost = false;
                     bool focus = false;
-                    bool autoDestory = true ;
+                    bool autoDestroy = true ;
 
                     if (parameters.HasLabel("topmost"))
                     {
@@ -3899,13 +3899,13 @@ namespace WPEFramework {
                     {
                         focus = parameters["focus"].Boolean();
                     }
-		    if (parameters.HasLabel("autoDestory"))
+		    if (parameters.HasLabel("autoDestroy"))
                     {
-                        autoDestory = parameters["autoDestory"].Boolean();
+                        autoDestory = parameters["autoDestroy"].Boolean();
                     }
 
                     gRdkShellMutex.lock();
-                    result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus, autoDestory);
+                    result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus, autoDestroy);
                     gRdkShellMutex.unlock();
 
                     if (!result)
