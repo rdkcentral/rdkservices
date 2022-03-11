@@ -31,7 +31,7 @@ checkPip() {
 }
 
 checkInstalled() {
-  pkg-config "$1"
+  dpkg -s "$1" > /dev/null 2>&1
   case "$?" in
   0) true ;;
   *) false ;;
@@ -108,6 +108,7 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
+    -DCMAKE_CXX_FLAGS="--coverage" \
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \
