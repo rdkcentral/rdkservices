@@ -84,7 +84,7 @@ TEST_F(LocationSyncTestFixture, probeTest) {
         .WillOnce(::testing::Return(webPrefix));
 
     EXPECT_CALL(service, SubSystems())
-        .Times(3)
+        .Times(2)
         .WillRepeatedly(::testing::Invoke(
             [&] ()
             {
@@ -108,15 +108,13 @@ TEST_F(LocationSyncTestFixture, probeTest) {
     EXPECT_EQ(response,
         _T(""));
 
-    PluginHost::ISubSystem* subSystem = service.SubSystems();
-
     Core::Event wait(false, true);
-    for (int i = 0; ((subSystem->Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
+    for (int i = 0; ((subSystem.Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
         wait.Lock(10);
     }
 
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::LOCATION) != nullptr);
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::INTERNET) != nullptr);
+    EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
+    EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::INTERNET) != nullptr);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,
         _T("location"),
