@@ -77,6 +77,7 @@ void UnloadJSBindings(WKBundleFrameRef frame) {
 // Just pass headers json to aamp plugin. SetHttpHeaders Called from RequestHeaders.cpp
 void SetHttpHeaders(const char * headerJson)
 {
+       printf("shripad SetHttpHeaders :%s \n",headerJson);
        aamp_SetHttpHeaders(headerJson);
 }
 

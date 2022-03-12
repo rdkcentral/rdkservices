@@ -80,6 +80,13 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
         return;
 
     string message = WPEFramework::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
+ 
+#if defined(ENABLE_AAMP_JSBINDINGS)
+printf("shripad SetRequestHeaders calling ....   \n");
+    // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set
+    JavaScript::AAMP::SetHttpHeaders(message.c_str());
+#endif
+
     if (message.empty()) {
         RemoveRequestHeaders(page);
         return;
@@ -87,16 +94,10 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
 
     Headers newHeaders;
     if (ParseHeaders(message, newHeaders)) {
-
-#if defined(ENABLE_AAMP_JSBINDINGS)
-        JavaScript::AAMP::SetHttpHeaders(message.c_str());
-#endif
         if (newHeaders.empty())
             RemoveRequestHeaders(page);
         else
-        {
             s_pageHeaders[page] = std::move(newHeaders);
-        }
     }
 }
 
