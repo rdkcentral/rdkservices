@@ -112,6 +112,7 @@ namespace Plugin {
         uint32_t SetMixerLevels(const JsonObject& parameters, JsonObject& response);
         uint32_t IsPlaying(const JsonObject& parameters, JsonObject& response);
 	uint32_t Config(const JsonObject& parameters, JsonObject& response);
+        uint32_t GetPlayerSessionId(const JsonObject& parameters, JsonObject& response);
 
         //version number API's
         uint32_t getapiversion(const JsonObject& parameters, JsonObject& response);
