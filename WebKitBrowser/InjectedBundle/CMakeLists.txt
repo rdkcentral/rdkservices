@@ -40,10 +40,16 @@ if(NOT DEFINED WEBKIT_GLIB_API)
         RequestHeaders.cpp
         Utils.cpp
         JavaScriptFunction.cpp
-        NotifyWPEFramework.cpp
-        Milestone.cpp
        ClassDefinition.cpp
        Tags.cpp
+    )
+endif()
+
+if(DEFINED INJECTEDBUNDLE_EXTRA_API)
+    set(SOURCE_LIST
+        ${SOURCE_LIST}
+        Milestone.cpp
+        NotifyWPEFramework.cpp
     )
 endif()
 
