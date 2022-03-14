@@ -1,4 +1,5 @@
 <!-- markdownlint-disable-next-line first-line-heading -->
+- [**Home**](/homepage.md)
 - [**User Guide**](userguide/intro.md)
 - [**API Reference**](/README)
   - [ActivityMonitor](api/ActivityMonitorPlugin.md)
@@ -38,6 +39,7 @@
   - [ScreenCapture](api/ScreenCapturePlugin.md)
   - [SecurityAgent](api/SecurityAgentPlugin.md)
   - [StateObserver](api/StateObserverPlugin.md)
+  - [SystemAudioPlayer](api/SystemAudioPlayerPlugin.md)
   - [System](api/SystemPlugin.md)
   - [Telemetry](api/TelemetryPlugin.md)
   - [TextToSpeech](api/TextToSpeechPlugin.md)
@@ -45,6 +47,7 @@
   - [TraceControl](api/TraceControlPlugin.md)
   - [UsbAccess](api/UsbAccessPlugin.md)
   - [UserPreferences](api/UserPreferencesPlugin.md)
+  - [VoiceControl](api/VoiceControlPlugin.md)
   - [Warehouse](api/WarehousePlugin.md)
   - [WebKitBrowser](api/WebKitBrowserPlugin.md)
   - [Wifi](api/WifiPlugin.md)
