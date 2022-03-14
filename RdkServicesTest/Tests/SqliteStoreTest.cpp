@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "SqliteStore.h"
+
 #include "StoreNotificationMock.h"
 
 using namespace WPEFramework;
 
-class SqliteStoreTestFixture : public ::testing::Test
-{
+class SqliteStoreTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SqliteStore> store;
     Core::ProxyType<StoreNotificationMock> notification;
@@ -35,8 +35,8 @@ protected:
     std::vector<string> keys;
 
     SqliteStoreTestFixture()
-        : store(Core::ProxyType<Plugin::SqliteStore>::Create()),
-          notification(Core::ProxyType<StoreNotificationMock>::Create())
+        : store(Core::ProxyType<Plugin::SqliteStore>::Create())
+        , notification(Core::ProxyType<StoreNotificationMock>::Create())
     {
     }
     virtual ~SqliteStoreTestFixture()
@@ -44,7 +44,8 @@ protected:
     }
 };
 
-TEST_F(SqliteStoreTestFixture, interface) {
+TEST_F(SqliteStoreTestFixture, interface)
+{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -64,12 +65,12 @@ TEST_F(SqliteStoreTestFixture, interface) {
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, valueChanged) {
+TEST_F(SqliteStoreTestFixture, valueChanged)
+{
     EXPECT_CALL(*notification, ValueChanged("test", "a", "12345"))
         .Times(1)
         .WillOnce(
-            ::testing::Return()
-        );
+            ::testing::Return());
 
     EXPECT_EQ(Core::ERROR_NONE, store->Register(&*notification));
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
@@ -79,18 +80,17 @@ TEST_F(SqliteStoreTestFixture, valueChanged) {
     EXPECT_EQ(Core::ERROR_NONE, store->Unregister(&*notification));
 }
 
-TEST_F(SqliteStoreTestFixture, storageExceeded) {
+TEST_F(SqliteStoreTestFixture, storageExceeded)
+{
     EXPECT_CALL(*notification, ValueChanged("test", "a", "123456789123456789"))
         .Times(1)
         .WillOnce(
-            ::testing::Return()
-        );
+            ::testing::Return());
     EXPECT_CALL(*notification, StorageExceeded())
         .Times(1)
         .WillOnce(
-            ::testing::Return()
-        );
-    
+            ::testing::Return());
+
     EXPECT_EQ(Core::ERROR_NONE, store->Register(&*notification));
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 20));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "123456789123456789"));
@@ -102,13 +102,15 @@ TEST_F(SqliteStoreTestFixture, storageExceeded) {
     EXPECT_EQ(Core::ERROR_NONE, store->Unregister(&*notification));
 }
 
-TEST_F(SqliteStoreTestFixture, maxValue) {
+TEST_F(SqliteStoreTestFixture, maxValue)
+{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_INVALID_INPUT_LENGTH, store->SetValue("test", "a", "123456789123456789"));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, corrupt) {
+TEST_F(SqliteStoreTestFixture, corrupt)
+{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -126,7 +128,8 @@ TEST_F(SqliteStoreTestFixture, corrupt) {
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, replaceValue) {
+TEST_F(SqliteStoreTestFixture, replaceValue)
+{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -138,7 +141,8 @@ TEST_F(SqliteStoreTestFixture, replaceValue) {
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, unknownKey) {
+TEST_F(SqliteStoreTestFixture, unknownKey)
+{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_GENERAL, store->GetValue("test", "unknown", value));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());

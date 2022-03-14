@@ -29,16 +29,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
-        Tests/LocationSyncTest.cpp
-        Tests/PersistentStoreTest.cpp
-        Tests/SqliteStoreTest.cpp
-        Tests/CountingLockTest.cpp
-        Tests/SecurityAgentTest.cpp
+        ${TESTS}
         Module.cpp
         )
 
-include_directories(../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
 link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
