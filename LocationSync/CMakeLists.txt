@@ -15,10 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME LocationSync)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(LocationSync)
 
-set(PLUGIN_LOCATIONSYNC_URI location.webplatformforembedded.org CACHE STRING "URI to request the location information")
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+set(PLUGIN_NAME LocationSync)
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+set(PLUGIN_LOCATIONSYNC_AUTOSTART "true" CACHE STRING "Automatically start LocationSync plugin")
+set(PLUGIN_LOCATIONSYNC_URI "location.webplatformforembedded.org" CACHE STRING "URI to request the location information")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)

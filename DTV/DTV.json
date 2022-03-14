@@ -7,187 +7,6 @@
         "description": "The `DTV` plugin provides access to DVB services provided by a DVB stack."
     },
     "common": {
-        "errors": {
-            "general": {
-                "code": 1,
-                "message": "ERROR_GENERAL"
-            },
-            "unavailable": {
-                "code": 2,
-                "message": "ERROR_UNAVAILABLE"
-            },
-            "asyncfailed": {
-                "code": 3,
-                "message": "ERROR_ASYNC_FAILED"
-            },
-            "asyncaborted": {
-                "code": 4,
-                "message": "ERROR_ASYNC_ABORTED"
-            },
-            "illegalstate": {
-                "code": 5,
-                "message": "ERROR_ILLEGAL_STATE"
-            },
-            "openingfailed": {
-                "code": 6,
-                "message": "ERROR_OPENING_FAILED"
-            },
-            "acceptfailed": {
-                "code": 7,
-                "message": "ERROR_ACCEPT_FAILED"
-            },
-            "pendingshutdown": {
-                "code": 8,
-                "message": "ERROR_PENDING_SHUTDOWN"
-            },
-            "alreadyconnected": {
-                "code": 9,
-                "message": "ERROR_ALREADY_CONNECTED"
-            },
-            "connectionclosed": {
-                "code": 10,
-                "message": "ERROR_CONNECTION_CLOSED"
-            },
-            "timedout": {
-                "code": 11,
-                "message": "ERROR_TIMEDOUT"
-            },
-            "inprogress": {
-                "description": "Operation in progress",
-                "code": 12,
-                "message": "ERROR_INPROGRESS"                
-            },
-            "couldnotsetaddress": {
-                "code": 13,
-                "message": "ERROR_COULD_NOT_SET_ADDRESS"
-            },
-            "incorrecthash": {
-                "description": "Incorrect hash given",
-                "code": 14,
-                "message": "ERROR_INCORRECT_HASH"
-            },
-            "incorrecturl": {
-                "description": "Incorrect URL given",
-                "code": 15,
-                "message": "ERROR_INCORRECT_URL"
-            },
-            "invalidinputlength": {
-                "code": 16,
-                "message": "ERROR_INVALID_INPUT_LENGTH"
-            },
-            "destructionsucceeded": {
-                "code": 17,
-                "message": "ERROR_DESTRUCTION_SUCCEEDED"
-            },
-            "destructionfailed": {
-                "code": 18,
-                "message": "ERROR_DESTRUCTION_FAILED"
-            },
-            "closingfailed": {
-                "code": 19,
-                "message": "ERROR_CLOSING_FAILED"
-            },
-            "processterminated": {
-                "code": 20,
-                "message": "ERROR_PROCESS_TERMINATED"
-            },
-            "processkilled": {
-                "code": 21,
-                "message": "ERROR_PROCESS_KILLED"
-            },
-            "unknownkey": {
-                "code": 22,
-                "message": "ERROR_UNKNOWN_KEY"
-            },
-            "incompleteconfig": {
-                "code": 23,
-                "message": "ERROR_INCOMPLETE_CONFIG"
-            },
-            "privilegedrequest": {
-                "code": 24,
-                "message": "ERROR_PRIVILEGED_REQUEST"
-            },
-            "rpccallfailed": {
-                "code": 25,
-                "message": "ERROR_RPC_CALL_FAILED"
-            },
-            "unreachablenetwork": {
-                "code": 26,
-                "message": "ERROR_UNREACHABLE_NETWORK"
-            },
-            "requestsubmitted": {
-                "code": 27,
-                "message": "ERROR_REQUEST_SUBMITTED"
-            },
-            "unknowntable": {
-                "code": 28,
-                "message": "ERROR_UNKNOWN_TABLE"
-            },
-            "duplicatekey": {
-                "code": 29,
-                "message": "ERROR_DUPLICATE_KEY"
-            },
-            "badrequest": {
-                "code": 30,
-                "message": "ERROR_BAD_REQUEST"
-            },
-            "pendingconditions": {
-                "code": 31,
-                "message": "ERROR_PENDING_CONDITIONS"
-            },
-            "surfaceunavailable": {
-                "code": 32,
-                "message": "ERROR_SURFACE_UNAVAILABLE"
-            },
-            "playerunavailable": {
-                "code": 33,
-                "message": "ERROR_PLAYER_UNAVAILABLE"
-            },
-            "firstresourcenotfound": {
-                "code": 34,
-                "message": "ERROR_FIRST_RESOURCE_NOT_FOUND"
-            },
-            "secondsourcenotfound": {
-                "code": 35,
-                "message": "ERROR_SECOND_RESOURCE_NOT_FOUND"
-            },
-            "alreadyreleased": {
-                "code": 36,
-                "message": "ERROR_ALREADY_RELEASED"
-            },
-            "negtiveacknowledge": {
-                "code": 37,
-                "message": "ERROR_NEGATIVE_ACKNOWLEDGE"
-            },
-            "invalidsignature": {
-                "code": 38,
-                "message": "ERROR_INVALID_SIGNATURE"
-            },
-            "readerror": {
-                "code": 39,
-                "message": "ERROR_READ_ERROR"
-            },
-            "writeerror": {
-                "code": 40,
-                "message": "ERROR_WRITE_ERROR"
-            },
-            "invaliddesignator": {
-                "code": 41,
-                "message": "ERROR_INVALID_DESIGNATOR"
-            },
-            "unauthenticated": {
-                "code": 42,
-                "message": "ERROR_UNAUTHENTICATED"
-            },
-            "notexist": {
-                "code": 43,
-                "message": "ERROR_NOT_EXIST"
-            },
-            "notsupported": {
-                "code": 44,
-                "message": "ERROR_NOT_SUPPORTED"
-            }
-        },
         "results": {
             "void": {
               "type": "null",
@@ -208,7 +27,7 @@
             "properties": {
                 "name": {
                     "description": "Name of the country as a UTF-8 string",
-                    "type": "string",             
+                    "type": "string",
                     "example": "UK"
                 },
                 "code": {
@@ -221,6 +40,7 @@
             ]
         },
         "tunertype": {
+            "summary": "Tuner type",
             "type": "string",
             "enum": [
                 "none",
@@ -273,6 +93,7 @@
             "type": "object",
             "properties": {
                 "name": {
+                    "summary": "User specified name for the LNB settings",
                     "type": "string",
                     "example": "Universal"
                 },
@@ -293,36 +114,45 @@
                     "example": "off"
                 },
                 "is22k": {
+                    "summary": "22kHz tone on/off",
                     "type": "boolean"
                 },
                 "is12v": {
+                    "summary": "12 volts on/off",
                     "type": "boolean"
                 },
                 "ispulseposition": {
+                    "summary": "Pulse position motor used to control dish position",
                     "type": "boolean"
                 },
                 "isdiseqcposition": {
+                    "summary": "Dish positioning is controlled by DiSEqC",
                     "type": "boolean"
                 },
                 "issmatv": {
+                    "summary": "SMATV switcher on/off",
                     "type": "boolean"
                 },
                 "diseqcrepeats": {
+                    "summary": "Number of times to send a DiSEqC message to make sure it's been received",
                     "type": "number",
                     "signed": false,
                     "size": 8
                 },
                 "u_switch": {
+                    "summary": "DiSEqC uncommitted switch selector",
                     "type": "number",
                     "signed": false,
                     "size": 8
                 },
                 "unicablechannel": {
+                    "summary": "Unicable channel",
                     "type": "number",
                     "signed": false,
                     "size": 8
                 },
-                "unicableinterface": {
+                "unicablefreq": {
+                    "summary": "Unicable frequency",
                     "type": "number",
                     "signed": false,
                     "size": 32
@@ -349,6 +179,7 @@
             "type": "object",
             "properties": {
                 "name": {
+                    "summary": "User specified name for the satellite settings",
                     "type": "string",
                     "example": "Astra 28.2E"
                 },
@@ -361,9 +192,9 @@
                 },
                 "lnb": {
                     "summary": "Name of the LNB settings to be used when tuning to this satellite",
-                    "type": "string",    
+                    "type": "string",
                     "example": "Universal"
-                }   
+                }
             },
             "required": [
                 "name",
@@ -394,7 +225,9 @@
                 "fec1_3",
                 "fec2_5",
                 "fec8_9",
-                "fec9_10"
+                "fec9_10",
+                "fec3_5",
+                "fec4_5"
             ]
         },
         "dvbsmodulation": {
@@ -414,22 +247,27 @@
             ]
         },
         "dvbstuningparams": {
+            "summary": "Parameters required to tune to a DVB-S/S2 signal",
             "type": "object",
             "properties": {
                 "satellite": {
-                    "type": "string"
+                    "summary": "Name of the satellite settings to be used",
+                    "type": "string",
+                    "example": "Astra 28.2"
                 },
                 "frequency": {
+                    "summary": "Frequency of the transponder, in kHz",
                     "type": "number",
                     "signed": false,
                     "size": 32,
-                    "example": 10714
+                    "example": 10714000
                 },
                 "polarity": {
                     "$ref": "#/definitions/polarity",
                     "example": "horizontal"
                 },
                 "symbolrate": {
+                    "summary": "Symbol rate in Ksymb/sec",
                     "type": "number",
                     "signed": false,
                     "size": 16,
@@ -444,6 +282,7 @@
                     "example": "qpsk"
                 },
                 "dvbs2": {
+                    "summary": "True when tuning to a DVB-S2 signal",
                     "type": "boolean"
                 }
             },
@@ -461,21 +300,28 @@
             "type": "string",
             "enum": [
                 "auto",
+                "4qam",
+                "8qam",
+                "16qam",
+                "32qam",
                 "64qam",
                 "128qam",
                 "256qam"
             ]
         },
         "dvbctuningparams": {
+            "summary": "Parameters required to tune to a DVB-C signal",
             "type": "object",
             "properties": {
                 "frequency": {
+                    "summary": "Frequency of the transport, in Hz",
                     "type": "number",
                     "signed": false,
                     "size": 32,
                     "example": 474000000
                 },
                 "symbolrate": {
+                    "summary": "Symbol rate in Ksymb/sec",
                     "type": "number",
                     "signed": false,
                     "size": 16,
@@ -492,33 +338,222 @@
                 "modulation"
             ]
         },
+        "dvbtbandwidth": {
+            "summary": "Channel bandwidth",
+            "type": "string",
+            "enum": [
+                "5MHz",
+                "6MHz",
+                "7MHz",
+                "8MHz",
+                "10MHz",
+                "undefined"
+             ]
+        },
+        "ofdmmode": {
+            "summary": "OFDM mode",
+            "type": "string",
+            "enum": [
+                "ofdm_1K",
+                "ofdm_2K",
+                "ofdm_4K",
+                "ofdm_8K",
+                "ofdm_16K",
+                "ofdm_32K",
+                "undefined"
+            ]
+        },
+        "dvbttuningparams": {
+            "summary": "Parameters required to tune to a DVB-T/T2 signal",
+            "type": "object",
+            "properties": {
+                "frequency": {
+                    "summary": "Frequency of the transport, in Hz",
+                    "type": "number",
+                    "signed": false,
+                    "size": 32,
+                    "example": 474000000
+                },
+                "bandwidth": {
+                    "$ref": "#/definitions/dvbtbandwidth",
+                    "example": "8MHz"
+                },
+                "mode": {
+                    "$ref": "#/definitions/ofdmmode",
+                    "example": "ofdm_32K"
+                },
+                "dvbt2": {
+                    "summary": "True when tuning to a DVB-T2 signal",
+                    "type": "boolean"
+                },
+                "plpid": {
+                    "summary": "PLP ID for tuning to a DVB-T2 signal",
+                    "type": "number",
+                    "signed": false,
+                    "size": 8
+                }
+            },
+            "required": [
+                "frequency",
+                "bandwidth",
+                "mode",
+                "dvbt2"
+            ]
+        },
         "dvburistring": {
             "summary": "DVB triplet of the form a.b.c, where 'a' is the original network ID, 'b' is the transport ID and 'c' is the service ID, in decimal",
             "type": "string",
             "example": "2.2041.9212"
         },
+        "servicetype": {
+            "summary": "(Version 2) Service type as given by the service descriptor in the SDT",
+            "type": "string",
+            "enum": [
+                "tv",
+                "radio",
+                "teletext",
+                "nvod",
+                "nvod_timeshift",
+                "mosaic",
+                "avc_radio",
+                "avc_mosaic",
+                "data",
+                "mpeg2_hd",
+                "avc_sd_tv",
+                "avc_sd_nvod_timeshift",
+                "avc_sd_nvod",
+                "hd_tv",
+                "avc_hd_nvod_timeshift",
+                "avc_hd_nvod",
+                "uhd_tv",
+                "unknown"
+            ]
+        },
+        "runningstatus": {
+            "summary": "(Version 2) The running status as given by the service descriptor in the SDT",
+            "type": "string",
+            "enum": [
+                 "undefined",
+                 "notrunning",
+                 "startssoon",
+                 "pausing",
+                 "running",
+                 "offair"
+            ],
+            "example": "running"
+        },
         "service": {
+            "summary": "Service information",
             "type": "object",
             "properties": {
-                "shortname": {
-                    "summary": "Service name as given by the service descriptor in the SDT",
-                    "type": "string",                    
+                "fullname": {
+                    "summary": "(Version 2) Full service name as given by the service descriptor in the SDT",
+                    "type": "string",
                     "example": "Channel 4"
+                },
+                "shortname": {
+                    "summary": "Short service name as given by the service descriptor in the SDT",
+                    "type": "string",
+                    "example": "C4"
                 },
                 "dvburi": {
                     "$ref": "#/definitions/dvburistring"
+                },
+                "servicetype": {
+                    "$ref": "#/definitions/servicetype",
+                    "example": "tv"
                 },
                 "lcn": {
                     "summary": "Logical channel number",
                     "type": "number",
                     "size": 16,
                     "example": 1001
+                },
+                "scrambled": {
+                    "summary": "(Version 2) True if the service is marked as scrambled in the SDT",
+                    "type": "boolean"
+                },
+                "hascadescriptor": {
+                    "summary": "(Version 2) True if there is at least one CA descriptor in the service's PMT",
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "summary": "(Version 2) True if the service should be hidden",
+                    "type": "boolean"
+                },
+                "selectable": {
+                    "summary": "(Version 2) True if the service should be user selectable",
+                    "type": "boolean"
+                },
+                "runningstatus": {
+                    "$ref": "#/definitions/runningstatus"
                 }
             },
             "required": [
+                "fullname",
                 "shortname",
                 "dvburi",
-                "lcn"
+                "servicetype",
+                "lcn",
+                "scrambled",
+                "hascadescriptor",
+                "hidden",
+                "selectable",
+                "runningstatus"
+            ]
+        },
+        "transport": {
+            "summary": "(Version 2) Details for a transport",
+            "type": "object",
+            "properties": {
+                "tunertype": {
+                    "$ref": "#/definitions/tunertype",
+                    "example": "dvbt"
+                },
+                "originalnetworkid": {
+                    "summary": "Original network ID of the transport",
+                    "type": "number",
+                    "signed": false,
+                    "size": 16,
+                    "example": 8204
+                },
+                "transportid": {
+                    "summary": "Transport ID of the transport",
+                    "type": "number",
+                    "signed": false,
+                    "size": 16,
+                    "example": 8204
+                },
+                "strength": {
+                    "summary": "Signal strength as a percentage",
+                    "type": "number",
+                    "signed": false,
+                    "size": 8,
+                    "example": "76"
+                },
+                "quality": {
+                    "summary": "Signal quality as a percentage",
+                    "type": "number",
+                    "signed": false,
+                    "size": 8,
+                    "example": "95"
+                },
+                "dvbctuningparams": {
+                    "$ref": "#/definitions/dvbctuningparams"
+                },
+                "dvbstuningparams": {
+                    "$ref": "#/definitions/dvbstuningparams"
+                },
+                "dvbttuningparams": {
+                    "$ref": "#/definitions/dvbttuningparams"
+                }
+            },
+            "required": [
+               "tunertype",
+               "originalnetworkid",
+               "transportid",
+               "strength",
+               "quality"
             ]
         },
         "eitevent": {
@@ -553,8 +588,36 @@
                 },
                 "shortdescription": {
                     "summary": "Event description from the EIT short event descriptor",
-                    "type": "string",                    
+                    "type": "string",
                     "example": "The current national and world news"
+                },
+                "hassubtitles": {
+                    "summary": "(Version 2) True if subtitles are available",
+                    "type": "boolean"
+                },
+                "hasaudiodescription": {
+                    "summary": "(Version 2) True if audio description is available",
+                    "type": "boolean"
+                },
+                "parentalrating": {
+                    "summary": "(Version 2) Parental rating for the event, will be 0 if undefined",
+                    "type": "number",
+                    "signed": false,
+                    "size": 8,
+                    "example": 12
+                },
+                "contentdata": {
+                    "summary": "(Version 2) The first 2 4-bit values from the content descriptor as separate bytes",
+                    "type": "array",
+                    "items": {
+                        "type": "number",
+                        "signed": false,
+                        "size": 8
+                    }
+                },
+                "hasextendedinfo": {
+                    "summary": "(Version 2) True if there's extended event information available",
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -562,31 +625,248 @@
                 "starttime",
                 "duration",
                 "eventid",
-                "shortdescription"
+                "shortdescription",
+                "hassubtitles",
+                "hasaudiodescription",
+                "parentalrating",
+                "contentdata",
+                "hasextendedinfo"
+            ]
+        },
+        "extendedeventitem": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "summary": "Description of the item",
+                    "type": "string",
+                    "example": "Actor 1"
+                },
+                "item": {
+                    "summary": "Item text",
+                    "type": "string",
+                    "example": "Kermit The Frog"
+                }
+            }
+        },
+        "extendedeventinfo": {
+            "summary": "(Version 2) Event information from the EIT extended event descriptor",
+            "type": "object",
+            "properties": {
+                "description": {
+                    "summary": "Extended event description text",
+                    "type": "string",
+                    "example": "A long event description"
+                },
+                "items": {
+                    "summary": "",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/extendedeventitem"
+                    }
+                }
+            },
+            "required": [
+            ]
+        },
+        "codec": {
+            "summary": "Video or audio codec type",
+            "type": "string",
+            "enum": [
+                "mpeg2",
+                "h264",
+                "h265",
+                "avs",
+                "mpeg1",
+                "aac",
+                "heaac",
+                "heaacv2",
+                "ac3",
+                "eac3"
+            ]
+        },
+        "component": {
+            "summary": "Video, audio, subtitle, teletext or data component info",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "summary": "Type of data contained in this component",
+                    "type": "string",
+                    "enum": [
+                        "video",
+                        "audio",
+                        "subtitles",
+                        "teletext",
+                        "data"
+                    ],
+                    "example": "video"
+                },
+                "tags": {
+                    "summary": "Array of component tags",
+                    "type": "array",
+                    "items": {
+                        "type": "number",
+                        "signed": false,
+                        "size": 8
+                    }
+                },
+                "pid": {
+                    "summary": "PID of the component",
+                    "type": "number",
+                    "signed": false,
+                    "size": 16,
+                    "example": 1100
+                },
+                "video": {
+                    "summary": "Video related information for a video component",
+                    "type": "object",
+                    "properties": {
+                        "codec": {
+                            "$ref": "#/definitions/codec"
+                        }
+                    }
+                },
+                "audio": {
+                    "summary": "Audio related information for an audio component",
+                    "type": "object",
+                    "properties": {
+                        "codec": {
+                            "$ref": "#/definitions/codec"
+                        },
+                        "language": {
+                            "summary": "ISO 3-char language code",
+                            "type": "string",
+                            "example": "eng"
+                        },
+                        "type": {
+                            "summary": "Type of the audio contained in the component",
+                            "type": "string",
+                            "enum": [
+                                "undefined",
+                                "clean",
+                                "hearingimpaired",
+                                "visuallyimpaired",
+                                "unknown"
+                            ],
+                            "example": "normal"
+                        },
+                        "mode": {
+                            "summary": "Audio mode",
+                            "type": "string",
+                            "enum": [
+                                "mono",
+                                "left",
+                                "right",
+                                "stereo",
+                                "multichannel",
+                                "undefined"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "language",
+                        "type",
+                        "mode"
+                    ]
+                },
+                "subtitles": {
+                    "summary": "DVB subtitle related information for a subtitle component",
+                    "type": "object",
+                    "properties": {
+                        "language": {
+                            "summary": "ISO 3-char language code",
+                            "type": "string",
+                            "example": "eng"
+                        },
+                        "format": {
+                            "summary": "Intended TV format for the subtitles",
+                            "type": "string",
+                            "enum": [
+                                "default",
+                                "4_3",
+                                "16_9",
+                                "221_1",
+                                "hd",
+                                "hardofhearing",
+                                "hardofhearing4_3",
+                                "hardofhearing16_9",
+                                "hardofhearing221_1",
+                                "hardofhearinghd"
+                            ]
+                        },
+                        "compositionpage": {
+                            "summary": "Composition page to be used for subtitles in this component",
+                            "type": "number",
+                            "signed": false,
+                            "size": 16
+                        },
+                        "ancillarypage": {
+                            "summary": "Ancillary page to be used for subtitles in this component",
+                            "type": "number",
+                            "signed": false,
+                            "size": 16
+                        }
+                    },
+                    "required": [
+                        "language",
+                        "format",
+                        "compositionpage",
+                        "ancillarypage"
+                    ]
+                },
+                "teletext": {
+                    "summary": "Teletext related information for a teletext component",
+                    "type": "object",
+                    "properties": {
+                        "language": {
+                            "summary": "ISO 3-char language code",
+                            "type": "string",
+                            "example": "eng"
+                        },
+                        "type": {
+                            "summary": "Type of teletext data",
+                            "type": "number",
+                            "signed": false,
+                            "size": 8
+                        },
+                        "magazine": {
+                            "summary": "Magazine number for this type and language",
+                            "type": "number",
+                            "signed": false,
+                            "size": 8
+                        },
+                        "page": {
+                            "summary": "Page number for this type and language",
+                            "type": "number",
+                            "signed": false,
+                            "size": 8
+                        }
+                    },
+                    "required": [
+                        "language",
+                        "type",
+                        "magazine",
+                        "page"
+                    ]
+                }
+            },
+            "required": [
+                "type",
+                "pid"
             ]
         },
         "eventtype": {
             "summary": "Event type that's sent as an asynchronous notification",
             "type": "string",
             "enum": [
-                "ServiceSearchStatus"
+                "ServiceSearchStatus",
+                "serviceupdated",
+                "serviceadded",
+                "servicedeleted",
+                "videochanged",
+                "audiochanged",
+                "subtitleschanged",
+                "eventchanged"
             ]
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "properties": {
@@ -648,17 +928,53 @@
             }
         },
         "serviceList": {
-            "summary": "List of services for the given type of tuner or all services if no tuner is defined",
+            "summary": "List of services for the given type of tuner, transport (version 2), or all services if neither is given",
             "readonly": true,
             "index": {
-                "name": "Optional tuner type",
-                "example": "dvbs"
+                "name": "Optional tuner type, or transport DVB doublet",
+                "example": "dvbs or 9018.4161"
             },
             "params": {
                 "type": "array",
                 "items": {
                     "$ref": "#/definitions/service"
                 }
+            }
+        },
+        "serviceInfo": {
+            "summary": "Information for the given service as defined by its DVB triplet URI",
+            "readonly": true,
+            "index": {
+                "name": "Service URI string",
+                "example": "9018.4161.1001"
+            },
+            "params": {
+                "$ref": "#/definitions/service"
+            }
+        },
+        "serviceComponents": {
+            "summary": "(Version 2) array of components for the given service defined by its URI",
+            "readonly": true,
+            "index": {
+                "name": "Service URI string",
+                "example": "9018.4161.1001"
+            },
+            "params": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/component"
+                }
+            }
+        },
+        "transportInfo": {
+            "summary": "Information for the given transport as defined by its DVB doublet URI",
+            "readonly": true,
+            "index": {
+                "name": "Transport URI string",
+                "example": "9018.4161"
+            },
+            "params": {
+                "$ref": "#/definitions/transport"
             }
         },
         "nowNextEvents": {
@@ -677,7 +993,9 @@
                     "next": {
                         "$ref": "#/definitions/eitevent"
                     }
-                }
+                },
+                "required": [
+                ]
             }
         },
         "scheduleEvents": {
@@ -692,6 +1010,17 @@
                 "items": {
                     "$ref": "#/definitions/eitevent"
                 }
+            }
+        },
+        "extendedEventInfo": {
+            "summary": "Extended event info for the given service and event ID (version 2)",
+            "readonly": true,
+            "index": {
+                "name": "Service URI string and event ID",
+                "example": "9018.4161.1001:3012"
+            },
+            "params": {
+                "$ref": "#/definitions/extendedeventinfo"
             }
         },
         "status": {
@@ -744,11 +1073,47 @@
                     "lcn"
                 ]
             }
+        },
+        "signalInfo": {
+            "summary": "strength and quality of the currently tuned signal for the given play handle (version 2)",
+            "readonly": true,
+            "index": {
+                "name": "Play handle",
+                "example": "0"
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "locked": {
+                        "summary": "Tuned locked status",
+                        "type": "boolean"
+                    },
+                    "strength": {
+                        "summary": "The signal strength as a percentage",
+                        "type": "number",
+                        "signed": false,
+                        "size": 8,
+                        "example": "76"
+                    },
+                    "quality": {
+                        "summary": "The signal quality as a percentage",
+                        "type": "number",
+                        "signed": false,
+                        "size": 8,
+                        "example": "95"
+                    }
+                },
+                "required": [
+                    "locked",
+                    "strength",
+                    "quality"
+                ]
+            }
         }
     },
     "methods": {
         "addLnb": {
-            "summary": "Add a new LNB to the database.\n  \n### Event \n\n No Events",
+            "summary": "Add a new LNB to the database.\n  \n### Events \n\n No Events",
             "params": {
                 "$ref": "#/definitions/lnbsettings"
             },
@@ -759,7 +1124,7 @@
             }
         },
         "addSatellite": {
-            "summary": "Add a new satellite to the database.\n  \n### Event \n\n No Events",
+            "summary": "Add a new satellite to the database.\n  \n### Events \n\n No Events",
             "params": {
                 "$ref": "#/definitions/satellitesettings"
             },
@@ -769,8 +1134,57 @@
                 "example": true
             }
         },
+        "startServiceSearch": {
+            "summary": "Starts a service search.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|`searchstatus`|Triggered during the course of a service search.|\n |`serviceupdated`|Triggered when a service is added|",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "tunertype": {
+                        "$ref": "#/definitions/tunertype",
+                        "example": "dvbs"
+                    },
+                    "searchtype": {
+                        "$ref": "#/definitions/searchtype",
+                        "example": "network"
+                    },
+                    "retune": {
+                        "summary": "true if current services are to be replaced in the database, false if the scan is to update the existing services",
+                        "type": "boolean"
+                    },
+                    "usetuningparams": {
+                        "summary": "Set to true if the optional tuning parameters are defined",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "dvbstuningparams": {
+                        "$ref": "#/definitions/dvbstuningparams"
+                    },
+                    "dvbctuningparams": {
+                        "$ref": "#/definitions/dvbctuningparams"
+                    },
+                    "dvbttuningparams": {
+                        "$ref": "#/definitions/dvbttuningparams"
+                    }
+                },
+                "required": [
+                    "tunertype",
+                    "searchtype",
+                    "retune",
+                    "usetuningparams"
+                ]
+            },
+            "result": {
+                "type": "boolean",
+                "summary": "true if the search is started, false otherwise",
+                "example": true
+            },
+            "events": [
+                "searchstatus",
+                "serviceupdated"
+            ]
+        },
         "finishServiceSearch": {
-            "summary": "Finishes a service search.\n  \n### Event \n\n No Events",
+            "summary": "Finishes a service search.\n  \n### Events \n\n No Events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -796,7 +1210,7 @@
             }
         },
         "startPlaying": {
-            "summary": "Starts playing the specified service.\n  \n### Event \n\n No Events",
+            "summary": "Starts playing the specified service.\n  \n### Events\n| Event | Description |\n| :----------- | :----------- |\n|`serviceupdated`|Triggered when info for a service changes|\n|`eventchanged`|Triggered when the EIT 'now' event changes|\n|`videochanged`|Triggered when the video PID or codec are changed|\n|`audiochanged`|Triggered when the audio PID or codec are changed|\n|`subtitleschanged`|Triggered when the subtitle PID or details are changed| ",
             "params": {
                 "type": "object",
                 "properties": {
@@ -808,62 +1222,31 @@
                         "type": "number",
                         "signed": false,
                         "size": 16
+                    },
+                    "monitoronly": {
+                        "summary": "(Version 2) set to 'true' to monitor SI/PSI data only. Will default to 'false' if not defined",
+                        "type": "boolean",
+                        "example": true
                     }
-                }
+                },
+                "required": [
+                ]
             },
             "result": {
                 "summary": "The play handle assigned to play the given service. Will be -1 if the service can't be played",
                 "type": "number",
                 "example": 0
-            }
-        },
-        "startServiceSearch": {
-            "summary": "Starts a service search.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|`searchstatus`|Triggered during the course of a service search.|",
-            "events": [
-                "searchstatus"
-            ],
-            "params": {
-                "type": "object",
-                "properties": {
-                    "tunertype": {
-                        "$ref": "#/definitions/tunertype",
-                        "example": "dvbs"
-                    },
-                    "searchtype": {
-                        "$ref": "#/definitions/searchtype",
-                        "example": "network"
-                    },
-                    "retune": {
-                        "summary": "true if current services are to be replaced in the database, false if the scan is to update the existing services",
-                        "type": "boolean"        
-                    },
-                    "usetuningparams": {
-                        "summary": "Set to true if the optional tuning parameters are defined",
-                        "type": "boolean",                  
-                        "example": true
-                    },
-                    "dvbstuningparams": {
-                        "$ref": "#/definitions/dvbstuningparams"
-                    },
-                    "dvbctuningparams": {
-                        "$ref": "#/definitions/dvbctuningparams"
-                    }
-                },
-                "required": [
-                    "tunertype",
-                    "searchtype",
-                    "retune",
-                    "usetuningparams"
-                ]
             },
-            "result": {
-                "type": "boolean",
-                "summary": "true if the search is started, false otherwise",
-                "example": true
-            }
+            "events": [
+                "serviceupdated",
+                "eventchanged",
+                "videochanged",
+                "audiochanged",
+                "subtitleschanged"
+            ]
         },
         "stopPlaying": {
-            "summary": "Stops playing the specified service.\n  \n### Event \n\n No Events",
+            "summary": "Stops playing the specified service.\n  \n### Events \n\n No Events",
             "params": {
                 "summary": "The play handle returned by startPlaying",
                 "type": "number",
@@ -902,6 +1285,9 @@
                         "size": 8,
                         "unsigned": true,
                         "example": 65
+                    },
+                    "transport": {
+                       "$ref": "#/definitions/transport"
                     }
                 },
                 "required": [
@@ -909,6 +1295,143 @@
                     "eventtype",
                     "finished",
                     "progress"
+                ]
+            }
+        },
+        "serviceupdated": {
+            "summary": "(Version 2) Notification sent when details of a service have changed, such as its name, service type, running or scrambled state",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "ServiceUpdated"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "serviceadded": {
+            "summary": "(Version 2) Notification sent when a new service has been dynamically added to the service list",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "ServiceAdded"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "servicedeleted": {
+            "summary": "(Version 2) Notification sent when a service has been deleted from the service list",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "ServiceDeleted"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "videochanged": {
+            "summary": "(Version 2) Notification sent when the video PID or codec has changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "VideoChanged"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "audiochanged": {
+            "summary": "(Version 2) Notification sent when the audio PID or codec has changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "AudioChanged"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "subtitleschanged": {
+            "summary": "(Version 2) Notification sent when the subtitles have changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "SubtitlesChanged"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service"
+                ]
+            }
+        },
+        "eventchanged": {
+            "summary": "(Version 2) Notification sent when the EIT 'now' event is received when starting to play a service and when the 'now' event changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "eventtype": {
+                        "$ref": "#/definitions/eventtype",
+                        "example": "EventChanged"
+                    },
+                    "service": {
+                        "$ref": "#/definitions/service"
+                    },
+                    "event": {
+                        "$ref": "#/definitions/eitevent"
+                    }
+                },
+                "required": [
+                    "eventtype",
+                    "service",
+                    "event"
                 ]
             }
         }

@@ -111,10 +111,6 @@ namespace Plugin {
         sourceType = sourceTypeFromString( s_sourceType);
         playMode = playModeFromString( s_playMode);
 
-        if(audioType == AudioType::MP3)
-        {
-            playMode = PlayMode::PlayMode_None; 
-        }
         int id;
         _adminLock.Lock();      
         OpenMapping(audioType,sourceType,playMode,id);        

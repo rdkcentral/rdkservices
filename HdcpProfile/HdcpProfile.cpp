@@ -44,7 +44,6 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(HdcpProfile, 1, 0);
-        static const char* getHdcpReasonStr (int eHDCPEnabledStatus);
 
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
@@ -263,39 +262,6 @@ namespace WPEFramework
 
             }
         }
-
-        //Begin methods
-
-        static const char* getHdcpReasonStr (int eHDCPEnabledStatus) {
-            string sHDCPEnabledStatusReason ("UNPOWERED");
-            switch (eHDCPEnabledStatus) {
-                case dsHDCP_STATUS_UNPOWERED:
-                    sHDCPEnabledStatusReason = "UNPOWERED";
-                    break;
-                case dsHDCP_STATUS_UNAUTHENTICATED:
-                    sHDCPEnabledStatusReason = "UNAUTHENTICATED";
-                    break;
-                case dsHDCP_STATUS_INPROGRESS:
-                    sHDCPEnabledStatusReason = "INPROGRESS";
-                    break;
-                case dsHDCP_STATUS_AUTHENTICATIONFAILURE:
-                    sHDCPEnabledStatusReason = "AUTHENTICATIONFAILURE";
-                    break;
-                case dsHDCP_STATUS_AUTHENTICATED:
-                    sHDCPEnabledStatusReason = "AUTHENTICATED";
-                    break;
-                case dsHDCP_STATUS_PORTDISABLED:
-                    sHDCPEnabledStatusReason = "PORTDISABLED";
-                    break;
-                default:
-                    LOGWARN ("HdcpProfile::getHDCPStatus: %s: eHDCPEnabledStatus: undefined\r\n", __FUNCTION__);
-                    break;
-            }
-            return sHDCPEnabledStatusReason.c_str();
-        }
-
-        //End methods
-
 
     } // namespace Plugin
 } // namespace WPEFramework

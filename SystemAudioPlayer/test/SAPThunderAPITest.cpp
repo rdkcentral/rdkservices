@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
                         if (result["success"].Boolean()) {
                             cout << "play success: " << endl;
                         } else {
-                            cout << "play failed" << endl;
+                            cout << "play failed" << endl << result["message"].String()<< endl;
                         }
                     }
                     break;

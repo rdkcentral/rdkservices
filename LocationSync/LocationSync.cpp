@@ -42,12 +42,12 @@ namespace Plugin {
 #pragma warning(default : 4355)
 #endif
 
-    /* virtual */ LocationSync::~LocationSync()
+    LocationSync::~LocationSync() /* override */
     {
         UnregisterAll();
     }
 
-    /* virtual */ const string LocationSync::Initialize(PluginHost::IShell* service)
+    const string LocationSync::Initialize(PluginHost::IShell* service) /* override */
     {
         string result;
         Config config;
@@ -59,7 +59,7 @@ namespace Plugin {
             _source = config.Source.Value();
             _service = service;
 
-            _sink.Initialize(service, config.Source.Value(), config.Interval.Value(), config.Retries.Value());
+            _sink.Initialize(config.Source.Value(), config.Interval.Value(), config.Retries.Value());
         } else {
             result = _T("URL for retrieving location is incorrect !!!");
         }
@@ -68,25 +68,25 @@ namespace Plugin {
         return (result);
     }
 
-    /* virtual */ void LocationSync::Deinitialize(PluginHost::IShell* service)
+    void LocationSync::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED) /* override */
     {
         ASSERT(_service == service);
 
         _sink.Deinitialize();
     }
 
-    /* virtual */ string LocationSync::Information() const
+    string LocationSync::Information() const /* override */
     {
         // No additional info to report.
         return (string());
     }
 
-    /* virtual */ void LocationSync::Inbound(Web::Request& /* request */)
+    void LocationSync::Inbound(Web::Request& /* request */) /* override */
     {
     }
 
-    /* virtual */ Core::ProxyType<Web::Response>
-    LocationSync::Process(const Web::Request& request)
+    Core::ProxyType<Web::Response>
+    LocationSync::Process(const Web::Request& request) /* override */
     {
         Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
         Core::TextSegmentIterator index(
@@ -108,14 +108,19 @@ namespace Plugin {
             const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
             const PluginHost::ISubSystem::ILocation* location(subSystem->Get<PluginHost::ISubSystem::ILocation>());
 
-            response->PublicIp = internet->PublicIPAddress();
-            response->TimeZone = location->TimeZone();
-            response->Region = location->Region();
-            response->Country = location->Country();
-            response->City = location->City();
+            if ((internet != nullptr) && (location != nullptr)) {
+                response->PublicIp = internet->PublicIPAddress();
+                response->TimeZone = location->TimeZone();
+                response->Region = location->Region();
+                response->Country = location->Country();
+                response->City = location->City();
 
-            result->ContentType = Web::MIMETypes::MIME_JSON;
-            result->Body(Core::proxy_cast<Web::IBody>(response));
+                result->ContentType = Web::MIMETypes::MIME_JSON;
+                result->Body(Core::proxy_cast<Web::IBody>(response));
+            } else {
+                result->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
+                result->Message = _T("Internet and Location Service not yet available");
+            }
         } else if (request.Verb == Web::Request::HTTP_POST) {
             index.Next();
             if (index.Next()) {
