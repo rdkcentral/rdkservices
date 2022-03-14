@@ -262,11 +262,6 @@ if(PLUGIN_WEBKITBROWSER_UX)
     write_config( UX )
 endif()
 
-# Resident App configuration
-if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
-    write_config( ResidentApp )
-endif()
-
 # Search&Discovery configuration
 if(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP)
     write_config( SearchAndDiscoveryApp )
@@ -280,6 +275,11 @@ endif()
 # Lightning App configuration
 if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
     write_config( LightningApp )
+endif()
+
+# Resident App configuration
+if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
+    write_config( ResidentApp )
 endif()
 
 if(PLUGINS_CREATE_IPKG_TARGETS)
