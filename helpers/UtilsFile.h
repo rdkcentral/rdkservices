@@ -13,6 +13,8 @@ auto MoveFile(
     File fileFrom(from);
     File fileTo(to);
 
+    Directory(fileTo.PathName().c_str()).CreatePath();
+
     bool result =
         fileFrom.Exists() &&
             !fileTo.Exists() &&

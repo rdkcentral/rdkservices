@@ -25,6 +25,7 @@ find_package(LibSoup REQUIRED)
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
+option(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT "Enable injection of __firebolt.endpoint." ON)
 
 set(SOURCE_LIST
     main.cpp
@@ -53,6 +54,11 @@ endif()
 if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
     target_sources(${MODULE_NAME} PRIVATE BridgeObject.cpp)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_BADGER_BRIDGE)
+endif()
+
+if(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT)
+    target_sources(${MODULE_NAME} PRIVATE FireboltOSEndpoint.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_FIREBOLTOS_ENDPOINT)
 endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
