@@ -131,10 +131,6 @@ namespace WPEFramework {
                     return (_implementation);
                 }
 
-                void AddRef()
-                {
-                    _implementation->AddRef();
-                }
                 uint32_t Release();
 
                 void OnEvent(const string &eventName, const string &parametersJson)

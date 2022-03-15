@@ -20,14 +20,11 @@
 #ifndef SERVICEMOCK_H
 #define SERVICEMOCK_H
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <core/core.h>
-#include <plugins/plugins.h>
+#include "Module.h"
 
-class ServiceMock : public WPEFramework::PluginHost::IShell
-{
+class ServiceMock : public WPEFramework::PluginHost::IShell {
 public:
     virtual ~ServiceMock() = default;
 
@@ -49,7 +46,7 @@ public:
     MOCK_METHOD(void, EnableWebServer, (const string&, const string&), (override));
     MOCK_METHOD(void, DisableWebServer, (), (override));
     MOCK_METHOD(WPEFramework::PluginHost::ISubSystem*, SubSystems, (), (override));
-    MOCK_METHOD(uint32_t, Submit, (const uint32_t, const WPEFramework::Core::ProxyType <WPEFramework::Core::JSON::IElement>&), (override));
+    MOCK_METHOD(uint32_t, Submit, (const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>&), (override));
     MOCK_METHOD(void, Notify, (const string&), (override));
     MOCK_METHOD(void*, QueryInterface, (const uint32_t), (override));
     MOCK_METHOD(void*, QueryInterfaceByCallsign, (const uint32_t, const string&), (override));
