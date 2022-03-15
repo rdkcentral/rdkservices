@@ -34,6 +34,7 @@ namespace Exchange {
         virtual uint32_t SetMixerLevels(const string &input, string &output /* @out */) = 0;
         virtual uint32_t IsPlaying(const string &input, string &output /* @out */) = 0;
 	virtual uint32_t Config(const string &input, string &output /* @out */) = 0;
+        virtual uint32_t GetPlayerSessionId(const string &input, string &output /* @out */) = 0;
 
     };
 

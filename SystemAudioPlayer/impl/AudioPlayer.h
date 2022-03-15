@@ -144,6 +144,7 @@ class AudioPlayer
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data); 
     static void event_loop();
     int getObjectIdentifier();
+    std::string getUrl();
     bool isPlaying();
     bool configPCMCaps(const std::string format, int rate, int channels, const std::string layout);
 };
