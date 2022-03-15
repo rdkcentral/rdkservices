@@ -123,6 +123,12 @@ string PlatformCapsData::GetDdeviceMACAddress() {
       .Get(_T("estb_mac")).String();
 }
 
+string PlatformCapsData::GetPublicIP() {
+  return jsonRpc.invoke(_T("org.rdk.Network.1"),
+                        _T("getPublicIP"), 5000)
+      .Get(_T("public_ip")).String();
+}
+
 JsonObject PlatformCapsData::JsonRpc::invoke(const string &callsign,
     const string &method, const uint32_t waitTime) {
   JsonObject params, result;

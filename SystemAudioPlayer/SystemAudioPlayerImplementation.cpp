@@ -111,10 +111,6 @@ namespace Plugin {
         sourceType = sourceTypeFromString( s_sourceType);
         playMode = playModeFromString( s_playMode);
 
-        if(audioType == AudioType::MP3)
-        {
-            playMode = PlayMode::PlayMode_None; 
-        }
         int id;
         _adminLock.Lock();      
         OpenMapping(audioType,sourceType,playMode,id);        
@@ -159,7 +155,28 @@ namespace Plugin {
         }
         returnResponse(false);
     }
-
+    
+    uint32_t SystemAudioPlayerImplementation::GetPlayerSessionId(const string &input, string &output)
+    {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got GetPlayerSessionID request :%s\n",input.c_str());
+        CONVERT_PARAMETERS_TOJSON();
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("url");
+        string url;
+        int playerid;
+        url = parameters["url"].String();
+        extractFileProtocol(url); //we do not store file:// for file playback
+        _adminLock.Lock();
+        if(GetSessionFromUrl(url,playerid))
+        {
+            response["sessionId"] = (int) playerid;
+        }
+        else
+        {
+            response["sessionId"] = (int) -1;
+        }
+        _adminLock.Unlock();
+        returnResponse(true);
+    }
 
     uint32_t SystemAudioPlayerImplementation::Play(const string &input, string &output)
     {
@@ -387,6 +404,24 @@ namespace Plugin {
         AudioPlayer *obj=new AudioPlayer(audioType,sourceType,mode,playerid);
         objectMap[playerid] = obj;
         SAPLOG_INFO("SAP: SystemAudioPlayerImplementation New player created\n");
+    }
+   
+    bool SystemAudioPlayerImplementation::GetSessionFromUrl(string url,int &playerid)
+    {
+        std::map<int,AudioPlayer*>::iterator it = objectMap.begin();
+        while (it != objectMap.end())
+        {
+            AudioPlayer *iplayer = it->second;
+            if((url.compare(iplayer->getUrl())) == 0)
+            {
+               playerid = iplayer->getObjectIdentifier();
+               SAPLOG_INFO("SAP: GetSessionFromUrl url %s found in list id: %d \n",url.c_str(),playerid);
+               return true;
+            }
+            it++;
+        }
+        SAPLOG_INFO("SAP: GetSessionFromUrl url %s Not found in list \n",url.c_str());
+        return false;
     }
 
     /*

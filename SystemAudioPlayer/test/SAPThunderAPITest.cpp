@@ -54,6 +54,7 @@ static int currentSpeechId = 0;
 #define OPT_PAUSE          7
 #define OPT_RESUME         8
 #define OPT_CONFIG         9
+#define OPT_GETSESSION     10
 
 void showMenu()
 {
@@ -68,6 +69,7 @@ void showMenu()
     cout << OPT_PAUSE          << ".pause" << endl;
     cout << OPT_RESUME         << ".resume" << endl;
     cout << OPT_CONFIG         << ".config" << endl;
+    cout << OPT_GETSESSION     << ".getPlayerSessionId" << endl;
     cout << "------------------------" << endl;
 }
 
@@ -228,7 +230,7 @@ int main(int argc, char *argv[]) {
                         if (result["success"].Boolean()) {
                             cout << "play success: " << endl;
                         } else {
-                            cout << "play failed" << endl;
+                            cout << "play failed" << endl << result["message"].String()<< endl;
                         }
                     }
                     break;
@@ -382,6 +384,23 @@ int main(int argc, char *argv[]) {
 
                     }
                     break;  
+                    case OPT_GETSESSION:
+                    {
+                        JsonObject params;
+                        JsonObject result;
+                        std::string url;
+                        stream.getInput(url,"Enter url");
+                        params["url"] = url;
+                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                                _T("getPlayerSessionId"), params, result);
+                        if (result["success"].Boolean()) {
+                            cout << "getPlayerSessionId success: " << endl;
+                            cout << "session id : "<<result["sessionId"].Number();  
+                        } else {
+                            cout << "getPlayerSessionId failed" << endl;
+                        }
+                    }
+                    break;
                 }
             }
         }
