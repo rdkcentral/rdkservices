@@ -373,7 +373,7 @@ namespace WPEFramework {
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
-        std::vector <string> gSurfaceClients{"HtmlApp","LightningApp","Cobalt","SearchAndDiscoveryApp","Webkitbrowser"};
+        std::vector <string> gSurfaceClients{"HtmlApp","LightningApp","Cobalt","SearchAndDiscoveryApp","WebkitBrowser","Netflix"};
 
         uint32_t getKeyFlag(std::string modifier)
         {
