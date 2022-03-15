@@ -17,6 +17,8 @@
 * limitations under the License.
 **/
 
+#include <memory>
+
 #include "ActivityMonitor.h"
 
 #include "utils.h"
@@ -388,18 +390,20 @@ namespace WPEFramework
 
         long long unsigned int MemoryInfo::getTotalCpuUsage()
         {
-            FILE *f = fopen("/proc/stat", "r");
+            std::unique_ptr<FILE, decltype(&fclose)> f
+            {
+                fopen("/proc/stat", "r"),
+                &fclose
+            };
 
             std::vector <char> buf;
             buf.resize(1024);
 
-            if (NULL == fgets(buf.data(), buf.size(), f))
+            if (NULL == fgets(buf.data(), buf.size(), f.get()))
             {
                 LOGERR("Failed to read stat, buffer is too small");
                 return 0;
             }
-
-            fclose(f);
 
             long long unsigned int user = 0, nice = 0, system = 0, idle = 0;
 
@@ -549,7 +553,7 @@ namespace WPEFramework
 
             ppid = 0;
 
-            int vc = sscanf(buf.data() + pos, "%d", &ppid);
+            int vc = sscanf(buf.data() + pos, "%u", &ppid);
             if (1 != vc)
                 LOGERR("Failed to parse parent pid from '%s'", stat.c_str());
 

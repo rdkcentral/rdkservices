@@ -44,6 +44,41 @@
 #define STATEOBSERVER_MINOR_VERSION 0
 #define DEBUG_INFO 0
 
+const string SYSTEM_EXIT_OK    = "com.comcast.exit-ok_key_sequence";
+const string SYSTEM_CHANNEL_MAP            = "com.comcast.channel_map";
+const string SYSTEM_CARD_DISCONNECTED    = "com.comcast.card.disconnected";
+const string SYSTEM_TUNE_READY    = "com.comcast.tune_ready";
+const string SYSTEM_CMAC    = "com.comcast.cmac";
+const string SYSTEM_MOTO_ENTITLEMENT    = "com.comcast.card.moto.entitlements";
+const string SYSTEM_MOTO_HRV_RX    = "com.comcast.card.moto.hrv_rx";
+const string SYSTEM_DAC_INIT_TIMESTAMP   = "com.comcast.card.moto.dac_init_timestamp";
+const string SYSTEM_CARD_CISCO_STATUS    = "com.comcast.card.cisco.status";
+const string SYSTEM_VIDEO_PRESENTING    = "com.comcast.video_presenting";
+const string SYSTEM_HDMI_OUT    = "com.comcast.hdmi_out";
+const string SYSTEM_HDCP_ENABLED    = "com.comcast.hdcp_enabled";
+const string SYSTEM_HDMI_EDID_READ    = "com.comcast.hdmi_edid_read";
+const string SYSTEM_FIRMWARE_DWNLD    = "com.comcast.firmware_download";
+const string SYSTEM_TIME_SOURCE    = "com.comcast.time_source";
+const string SYSTEM_TIME_ZONE    = "com.comcast.time_zone_available";
+const string SYSTEM_CA_SYSTEM    = "com.comcast.ca_system";
+const string SYSTEM_ESTB_IP    = "com.comcast.estb_ip";
+const string SYSTEM_ECM_IP    = "com.comcast.ecm_ip";
+const string SYSTEM_ECM_MAC    = "com.comcast.ecm_mac";
+const string SYSTEM_LAN_IP    = "com.comcast.lan_ip";
+const string SYSTEM_MOCA    = "com.comcast.moca";
+const string SYSTEM_DOCSIS    = "com.comcast.docsis";
+const string SYSTEM_DSG_BROADCAST_CHANNEL    = "com.comcast.dsg_broadcast_tunnel";
+const string SYSTEM_DSG_CA_TUNNEL    = "com.comcast.dsg_ca_tunnel";
+const string SYSTEM_CABLE_CARD    = "com.comcast.cable_card";
+const string SYSTEM_CABLE_CARD_DWNLD    = "com.comcast.cable_card_download";
+const string SYSTEM_CVR_SUBSYSTEM    = "com.comcast.cvr_subsystem";
+const string SYSTEM_DOWNLOAD   = "com.comcast.download";
+const string SYSTEM_VOD_AD    = "com.comcast.vod_ad";
+const string SYSTEM_CARD_SERIAL_NO   = "com.comcast.card.serial.no";
+const string SYSTEM_STB_SERIAL_NO   = "com.comcast.stb.serial.no";
+const string SYSTEM_RF_CONNECTED   = "com.comcast.rf_connected";
+const string SYSTEM_IP_MODE   = "com.comcast.ip_mode";
+
 namespace WPEFramework {
 
 		namespace Plugin {
