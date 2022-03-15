@@ -73,6 +73,7 @@ public:
      */
     void updateFriendlyName(string friendlyname);
     void registerApplications (string strApps);
+    string  getProtocolVersion(void);
     /**
      *Request the single instance of this class
      */
