@@ -56,7 +56,8 @@ namespace WPEFramework {
             Network& operator=(const Network&) = delete;
 
             //Private variables
-            std::atomic_bool m_isPluginInited{false};
+            std::atomic_bool m_isPluginReady{false};
+            std::atomic_bool m_exitRetryThread{false};
             std::thread m_registrationThread;
 
             //Begin methods
