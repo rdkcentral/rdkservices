@@ -19,6 +19,6 @@ find_library(AAMP_JSBINDINGS_LIBRARIES aampjsbindings)
 
 include(FindPackageHandleStandardArgs)
 
-find_package_handle_standard_args(AAMP_JSBINDINGS DEFAULT_MSG AAMP_JSBINDINGS_LIBRARIES)
+find_package_handle_standard_args(AampJSBindings DEFAULT_MSG AAMP_JSBINDINGS_LIBRARIES)
 
 mark_as_advanced(AAMP_JSBINDINGS_LIBRARIES)

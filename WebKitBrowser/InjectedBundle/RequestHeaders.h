@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include "Module.h"
+
 #include <WPE/WebKit.h>
 #include <WPE/WebKit/WKBundlePage.h>
 #include <WPE/WebKit/WKURLRequest.h>

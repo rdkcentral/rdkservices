@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_WebKitBrowser
+#define MODULE_NAME Plugin_WebKitBrowserExtension
 #endif
 
 #include <com/com.h>
