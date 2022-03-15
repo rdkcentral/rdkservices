@@ -19,20 +19,23 @@
 
 #include "gtest/gtest.h"
 
-#include "DeviceDiagnostics.h"
+#include <thread>
+#include <chrono>
+
+#include "DeviceDiagnosticsMock.h"
 
 namespace WPEFramework {
 
 class DeviceDiagnosticsTest : public ::testing::Test {
 public:
     DeviceDiagnosticsTest():
-        deviceDiagnostic_(Core::ProxyType<Plugin::DeviceDiagnostics>::Create()),
+        deviceDiagnostic_(Core::ProxyType<DeviceDiagnosticsMock>::Create()),
         handler_(*deviceDiagnostic_),
         connection_(1, 0) {
     }
 
 protected:
-    Core::ProxyType<Plugin::DeviceDiagnostics> deviceDiagnostic_;
+    Core::ProxyType<DeviceDiagnosticsMock> deviceDiagnostic_;
     Core::JSONRPC::Handler& handler_;
     Core::JSONRPC::Connection connection_;
 };
@@ -49,7 +52,18 @@ TEST_F(DeviceDiagnosticsTest, ShouldReturnResponse) {
     EXPECT_EQ(response, _T("{\"paramList\":[\"Device.X_CISCO_COM_LED.RedPwm\":123],\"success\":true}"));
 
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAVDecoderStatus"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"IDLE\",\"success\":true}"));
+    EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"PAUSED\",\"success\":true}"));
+}
+
+TEST_F(DeviceDiagnosticsTest, ShouldGetEvent) {
+    EXPECT_EQ(string(""), deviceDiagnostic_->Initialize(nullptr));
+    bool finish = false;
+
+    EXPECT_CALL(*deviceDiagnostic_, onDecoderStatusChange(1));
+    // Wait for incoming event
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+
+    deviceDiagnostic_->Deinitialize(nullptr);
 }
 
 } // namespace WPEFramework

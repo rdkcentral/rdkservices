@@ -3,14 +3,7 @@
 set -e
 
 THREADS="-j"
-if [[ "${1}" == *"-j"* ]]; then
-  THREADS="$1"
-fi
-
 MODE="Release"
-if [ "$1" == "-D" -o "$2" == "-D" ]; then
-  MODE="Debug"
-fi
 
 ROOT=$(pwd)
 
@@ -114,6 +107,21 @@ buildAndInstallThunderInterfaces() {
   make -C build/ThunderInterfaces $THREADS && make -C build/ThunderInterfaces install $THREADS
 }
 
+changeDeviceDiagnostics() {
+  # To avoid linking problem with essosrmgr, append definition only in DeviceDiagnostics header
+  # And after build process remove this definition.
+  cd "${ROOT}";
+  sed -i 's/#pragma once/#pragma once\n#define ENABLE_ERM/' ../DeviceDiagnostics/DeviceDiagnostics.h
+  # to speed up a test change the limit of sleeping before first event (normally need to wait 30 sec)
+  sed -i 's/.tv_sec = 30, .tv_nsec = 0/.tv_sec = 0, .tv_nsec = 1000/' ../DeviceDiagnostics/DeviceDiagnostics.cpp
+}
+
+cleanupDeviceDiagnostics() {
+  cd "${ROOT}";
+  sed -i '/^#pragma once$/{$!{N;s/^#pragma once\n#define ENABLE_ERM$/#pragma once/;ty;P;D;:y}}' ../DeviceDiagnostics/DeviceDiagnostics.h
+  sed -i 's/.tv_sec = 0, .tv_nsec = 1000/.tv_sec = 30, .tv_nsec = 0/' ../DeviceDiagnostics/DeviceDiagnostics.cpp
+}
+
 buildAndInstallRdkservices() {
   cd "${THUNDER_ROOT}" || exit 1
 
@@ -132,19 +140,50 @@ buildAndInstallRdkservices() {
   make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
 }
 
-if ! checkPython "Python 3"; then
-  echo "python3 should be installed (for Thunder)"
-  exit 1
-fi
-if ! checkPip "python 3"; then
-  echo "pip3 should be installed (for Thunder)"
-  exit 1
-fi
+checkRequirements() {
+  if ! checkPython "Python 3"; then
+    echo "python3 should be installed (for Thunder)"
+    exit 1
+  fi
+  if ! checkPip "python 3"; then
+    echo "pip3 should be installed (for Thunder)"
+    exit 1
+  fi
 
-if ! checkInstalled "sqlite3"; then
-  echo "sqlite3 should be installed (for PersistentStore)"
-  exit 1
-fi
+  if ! checkInstalled "sqlite3"; then
+    echo "sqlite3 should be installed (for PersistentStore)"
+    exit 1
+  fi
+}
+
+help() {
+ echo "$(basename "$0") [-j<number>] [-D]
+
+where:
+    -j  number of threads (default maximum available threads)
+    -D  debug mode (default Release)"
+}
+
+parseArgs() {
+  while getopts "hj:D" option; do
+    case $option in
+        h)
+          help
+          exit 0
+          ;;
+        j)
+          THREADS="${OPTARG}"
+          ;;
+        D)
+          MODE="Debug"
+          ;;
+    esac
+  done
+}
+
+parseArgs
+
+checkRequirements
 
 installJsonref
 
@@ -158,7 +197,11 @@ buildAndInstallThunderInterfaces
 
 checkWPEFramework
 
+changeDeviceDiagnostics
+
 buildAndInstallRdkservices
+
+cleanupDeviceDiagnostics
 
 echo "==== DONE ===="
 
