@@ -152,7 +152,7 @@ namespace WPEFramework
         Network::Network() : PluginHost::JSONRPC()
         {
             Network::_instance = this;
-            m_isPluginInited = false;
+            m_isPluginReady = false;
 
             // Quirk
             Register("getQuirks", &Network::getQuirks, this);
@@ -216,7 +216,7 @@ namespace WPEFramework
                 do{
                     retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
                     if(retVal != IARM_RESULT_SUCCESS){
-                        LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
+                        LOGDBG("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
                         usleep(500*1000);
                         retry++;
                     }
@@ -225,8 +225,8 @@ namespace WPEFramework
 
                 if(retVal != IARM_RESULT_SUCCESS)
                 {
-                    msg = "NetSrvMgr is not available";
-                    LOGERR("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread");
+                    /*return empty string for this failure & retry in another thread */
+                    LOGINFO("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread");
                     retryIarmEventRegistration();
                 }
                 else {
@@ -235,7 +235,7 @@ namespace WPEFramework
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
-                    m_isPluginInited = true;
+                    m_isPluginReady = true;
                 }
             }
             else
@@ -249,7 +249,8 @@ namespace WPEFramework
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
-            m_isPluginInited = false;
+            m_isPluginReady = false;
+            m_exitRetryThread = true;
             if(m_registrationThread.joinable())
             {
                 m_registrationThread.join();
@@ -350,32 +351,32 @@ namespace WPEFramework
         {
             IARM_Result_t res = IARM_RESULT_SUCCESS;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            uint32_t retry = 0;
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
             do
             {
                 char c;
-                uint32_t retry = 0;
                 retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c));
                 if(retVal != IARM_RESULT_SUCCESS){
-                    LOGERR("threadEventRegistration: NetSrvMgr is not available. Failed to activate Network Plugin, retrying count = %d", retry);
+                    LOGDBG("threadEventRegistration NetSrvMgr is not available. Failed to activate Network Plugin, retrying count = %d", retry);
                     usleep(500*1000);
                     retry++;
                 }
-            }while((retVal != IARM_RESULT_SUCCESS)  && (m_isPluginInited != true ));
+            }while((retVal != IARM_RESULT_SUCCESS) && (m_isPluginReady != true ) && (m_exitRetryThread != true));
 #endif
 
-            if(retVal != IARM_RESULT_SUCCESS)
-            {
-                LOGERR("threadEventRegistration NetSrvMgr is not available. Failed to activate Network Plugin, retrying new cycle");
-            }
-            else
+            if((retVal == IARM_RESULT_SUCCESS) && (m_exitRetryThread != true))
             {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
-                m_isPluginInited = true;
+                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin after %d retries", retry);
+                m_isPluginReady = true;
+            }
+            else
+            {
+                LOGINFO("Exiting threadEventRegistration");
             }
 
         }
@@ -393,7 +394,7 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
                 {
@@ -437,7 +438,7 @@ namespace WPEFramework
             string gateway;
 
             bool result = false;
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (_getDefaultInterface(interface, gateway))
                 {
@@ -457,7 +458,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if ((parameters.HasLabel("interface")) && (parameters.HasLabel("persist")))
                 {
@@ -499,7 +500,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
                 {
@@ -523,7 +524,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (parameters.HasLabel("family"))
                 {
@@ -562,7 +563,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (parameters.HasLabel("interface"))
                 {
@@ -600,7 +601,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if ((parameters.HasLabel("interface")) && (parameters.HasLabel("enabled")) && (parameters.HasLabel("persist")))
                 {
@@ -651,7 +652,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (!parameters.HasLabel("endpoint"))
                     LOGERR("No endpoint specified");
@@ -682,7 +683,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (!parameters.HasLabel("endpointName"))
                     LOGERR("No endpointName specified");
@@ -719,7 +720,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (parameters.HasLabel("endpoint"))
                 {
@@ -750,7 +751,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (parameters.HasLabel("endpointName"))
                 {
@@ -779,7 +780,7 @@ namespace WPEFramework
             struct in_addr ip_address, gateway_address, mask;
             struct in_addr broadcast_addr1, broadcast_addr2;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if ((parameters.HasLabel("interface")) && (parameters.HasLabel("ipversion")) && (parameters.HasLabel("autoconfig")) &&
                         (parameters.HasLabel("ipaddr")) && (parameters.HasLabel("netmask")) && (parameters.HasLabel("gateway")) &&
@@ -902,7 +903,7 @@ namespace WPEFramework
             bool result = false;
             string interface = "";
             string ipversion = "";
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if ((parameters.HasLabel("interface")) || (parameters.HasLabel("ipversion")))
                 {
@@ -940,7 +941,7 @@ namespace WPEFramework
             bool result = false;
             bool isconnected = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
                 {
@@ -964,7 +965,7 @@ namespace WPEFramework
         {
             bool result = false;
             JsonArray endpoints = parameters["endpoints"].Array();
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
                 {
@@ -1040,7 +1041,7 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
             string server, iface;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 getStringParameter("server", server);
                 if (server.length() > MAX_HOST_NAME_LEN - 1)
@@ -1225,7 +1226,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(m_isPluginReady)
             {
                 if (m_isHybridDevice == "hybrid")
                 {
