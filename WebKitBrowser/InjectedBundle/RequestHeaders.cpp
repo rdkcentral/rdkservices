@@ -29,6 +29,10 @@
 
 #include <core/JSON.h>
 
+#if defined(ENABLE_AAMP_JSBINDINGS)
+#include "AAMPJSBindings.h"
+#endif
+
 #include "Utils.h"
 
 namespace WPEFramework {
@@ -77,6 +81,13 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
         return;
 
     string message = WPEFramework::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
+
+#if defined(ENABLE_AAMP_JSBINDINGS)
+printf("shripad SetRequestHeaders calling ....   \n");
+    // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set
+    JavaScript::AAMP::SetHttpHeaders(message.c_str());
+#endif
+
     if (message.empty()) {
         RemoveRequestHeaders(page);
         return;
