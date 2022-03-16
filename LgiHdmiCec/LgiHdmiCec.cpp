@@ -150,15 +150,14 @@ namespace WPEFramework
             if (cecSettingEnabled)
             {
                 setEnabled(cecSettingEnabled);
+                m_scan_id++;
+                requestRescanning(m_scan_id);
             }
             else
             {
                 setEnabled(false);
                 Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_ENABLED, JsonValue(false));
             }
-
-            m_scan_id++;
-            requestRescanning(m_scan_id);
         }
 
         LgiHdmiCec::~LgiHdmiCec()
@@ -643,6 +642,7 @@ namespace WPEFramework
 
         void LgiHdmiCec::CECEnable(void)
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             LOGWARN("Entered CECEnable");
             if (cecEnableStatus)
             {
@@ -682,6 +682,7 @@ namespace WPEFramework
 
         void LgiHdmiCec::CECDisable(void)
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             LOGWARN("Entered CECDisable ");
 
             if(!cecEnableStatus)
@@ -689,6 +690,11 @@ namespace WPEFramework
                 LOGWARN("CEC Already Disabled ");
                 return;
             }
+
+            m_devices.clear();
+            m_scan_devices.clear();
+            m_rescan_in_progress = false;
+            m_scan_id = 0;
 
             if (smConnection != NULL)
             {
@@ -972,7 +978,7 @@ namespace WPEFramework
         void LgiHdmiCec::onDeviceStatusChanged(IARM_EventId_t eventId, const void* data_ptr, size_t len)
         {
             assert(data_ptr != NULL);
-            if (len < sizeof(IARM_Bus_CECHost_DeviceStatusChanged_EventData_t))
+            if (!cecEnableStatus || len < sizeof(IARM_Bus_CECHost_DeviceStatusChanged_EventData_t))
             {
                 return;
             }
@@ -1073,7 +1079,7 @@ namespace WPEFramework
                 return;
             }
 
-            if ((m_scan_id > 0) && (m_scan_id != eData->scanId))
+            if (m_scan_id != eData->scanId)
             {
                 LOGWARN("skipped on invalid scan_id %d(%d) scan finished %d", eData->scanId, m_scan_id.load(), eData->isScanFinished);
             }
