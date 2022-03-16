@@ -58,10 +58,6 @@ class JsonRpcClient
     return promise;
   }
 
-  notify(event_data) {
-    send(event_data);
-  }
-
   send(message) {
     const self = this;
     const json_text = JSON.stringify(message);
@@ -103,7 +99,15 @@ class Service {
     self.methods[fq_method_name] = method;
   }
 
-  notify(event_data) {
+  notify(event_name, event_params) {
+    const self = this;
+
+    let e = {};
+    e.jsonrpc = "2.0";
+    e.method = event_name;
+    e.params = event_params;
+
+    self._send_event_function(e);
   }
 
   _callMethodByName(method_name, json_rpc_params) {
@@ -162,6 +166,9 @@ class ServiceManager {
       console.log(">>> " + json_text);
       service.websocket.send(json_text);
     }
+    service.service._send_event_function = function(e) {
+      service.send(e);
+    }
     service.websocket.onopen = function(e) {
       const method_list = Object.keys(service.service.methods);
       const params = {
@@ -196,7 +203,7 @@ class ServiceManager {
         });
       }
       catch (dispatch_ex) {
-        console.log(send_ex.stack);
+        console.log(dispatch_ex.stack);
       }
     };
   }
