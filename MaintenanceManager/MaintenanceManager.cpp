@@ -170,13 +170,14 @@ namespace WPEFramework {
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
 
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
-        //TODO  this need to moved to a seperate class and vector based.
 
         string task_names_foreground[]={
             "/lib/rdk/RFCbase.sh",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
+
+        vector<string> tasks;
 
         string script_names[]={
             "DCMscript_maintaince.sh",
@@ -216,65 +217,219 @@ namespace WPEFramework {
          }
 
         void MaintenanceManager::task_execution_thread(){
-            int task_count=3;
-            int i=0;
+            uint8_t i=0;
             string cmd="";
+            bool internetConnectStatus=false;
 
+            /* cleanup if not empty */
+            if(!tasks.empty()){
+                tasks.erase (tasks.begin(),tasks.end());
+            }
+
+            /* Controlled by CFLAGS */
+#if defined(SUPPRESS_MAINTENANCE)
+            bool activationStatus=false;
+            bool skipFirmwareCheck=false;
+
+            /* Activation check */
+            activationStatus = getActivatedStatus(skipFirmwareCheck);
+
+            /* we proceed with network check only if
+             * "activation-connect", "activation-ready"
+             * "not-activated", "activated" */
+            if(activationStatus){
+                /* Network check */
+                internetConnectStatus = isDeviceOnline();
+            }
+#else
+            internetConnectStatus = isDeviceOnline();
+#endif
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
-            bool internetConnectStatus = isDeviceOnline();
-
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-            /*  In an unsolicited maintenance we make sure only after
-             *  after DCM task activities are started.
-             */
+#if defined(SUPPRESS_MAINTENANCE)
+            /* decide which all tasks are needed based on the activation status */
+            if (activationStatus){
+                if(skipFirmwareCheck){
+                    /* set the task status of swupdate */
+                    SET_STATUS(g_task_status,DIFD_SUCCESS);
+                    SET_STATUS(g_task_status,DIFD_COMPLETE);
 
-            /* we add the task in a loop */
+                    /* Add tasks */
+                    tasks.push_back("/lib/rdk/RFCbase.sh");
+                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                }else{
+                    tasks.push_back("/lib/rdk/RFCbase.sh");
+                    tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
+                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                }
+            }
+#else
+            tasks.push_back("/lib/rdk/RFCbase.sh");
+            tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
+            tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+#endif
             std::unique_lock<std::mutex> lck(m_callMutex);
+
+            // Unsolicited part comes here
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for ( i=0;i< task_count ;i++ ){
+                for( i = 0; i < tasks.size(); i++) {
+                    LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
-                    cmd=task_names_foreground[i].c_str();
-                    cmd+=" &";
-                    cmd+="\0";
-                    m_task_map[task_names_foreground[i].c_str()]=true;
-                    LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
-                    if (!m_abort_flag){
+                    cmd = tasks[i];
+                    cmd += " &";
+                    cmd += "\0";
+                    m_task_map[tasks[i]] = true;
+
+                    if ( !m_abort_flag ){
+                        LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
                 }
             }
-            /* Here in Solicited we start with RFC so no
+            /* Here in Solicited, we start with RFC so no
              * need to wait for any DCM events */
             else if( SOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
-                    LOGINFO("=============SOLICITED_MAINTENANCE===============");
-                    cmd=task_names_foreground[0].c_str();
-                    cmd+=" &";
-                    cmd+="\0";
-                    m_task_map[task_names_foreground[0].c_str()]=true;
-                    LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-                    system(cmd.c_str());
-                    cmd="";
-                    for (i=1;i<task_count;i++){
-                        task_thread.wait(lck);
-                        cmd=task_names_foreground[i].c_str();
-                        cmd+=" &";
-                        cmd+="\0";
-                        m_task_map[task_names_foreground[i].c_str()]=true;
-                        LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-                        if (!m_abort_flag){
-                            system(cmd.c_str());
-                        }
+                LOGINFO("=============SOLICITED_MAINTENANCE===============");
+                cmd = tasks[0];
+                cmd += " &";
+                cmd += "\0";
+                m_task_map[tasks[0]] = true;
+                LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
+                system(cmd.c_str());
+                cmd="";
+                for( i = 1; i < tasks.size(); i++){
+                    LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
+                    task_thread.wait(lck);
+                    cmd = tasks[i];
+                    cmd += " &";
+                    cmd += "\0";
+                    m_task_map[tasks[i]]=true;
+                    if ( !m_abort_flag ){
+                        LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
+                        system(cmd.c_str());
                     }
+                }
             }
-
             m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
-            if (false == internetConnectStatus) {
+            if ( false == internetConnectStatus ) {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 LOGINFO("Maintenance completed as it is offline mode");
             }
+        }
+
+        const string MaintenanceManager::checkActivatedStatus()
+        {
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            std::string callsign = "org.rdk.AuthService.1";
+            std::string token;
+            uint8_t i = 0;
+            bool isAuthSerivcePluginActive = false;
+            std::string ret_status("invalid");
+
+            /* check if plugin active */
+            isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
+            if (!isAuthSerivcePluginActive){
+                LOGINFO("AuthService plugin is not activated.Retrying.. \n");
+                //if plugin is not activated we need to retry
+                do{
+                    isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
+                    if ( !isAuthSerivcePluginActive ){
+                        sleep(10);
+                        i++;
+                        LOGINFO("AuthService retries [%d/4] \n",i);
+                    }
+                    else{
+                        break;
+                    }
+                }while( i < MAX_ACTIVATION_RETRIES );
+
+                if ( !isAuthSerivcePluginActive ){
+                    LOGINFO("AuthService plugin is Still not active");
+                    return ret_status;
+                }
+                else{
+                    LOGINFO("AuthService plugin is Now active");
+                }
+            }
+
+            Utils::SecurityToken::getSecurityToken(token);
+
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            if (thunder_client != nullptr) {
+                uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "getActivationStatus", joGetParams, joGetResult);
+                LOGINFO("Invoke status : %d",status);
+                if (status > 0) {
+                    LOGINFO("%s call failed %d", callsign.c_str(), status);
+                    ret_status = "invalid";
+                    LOGINFO("Setting Default to [%s]",ret_status.c_str());
+                } else if (joGetResult.HasLabel("status")) {
+                    ret_status = joGetResult["status"].String();
+                    LOGINFO("Activation Value [%s]",ret_status.c_str());
+                }
+                else {
+                    LOGINFO("Failed to read the ActivationStatus");
+                    ret_status = "invalid";
+                }
+
+                return ret_status;
+            }
+
+            LOGINFO("thunder client failed");
+            return ret_status;
+        }
+
+        bool MaintenanceManager::getActivatedStatus(bool &skipFirmwareCheck)
+        {
+            /* activation-connect, activation ready, not-activated - execute all except DIFD
+             * activation disconnect - dont run maintenance
+             * activated - run normal */
+            bool ret_result=false;
+            string activationStatus;
+            Auth_activation_status_t result;
+            const std::unordered_map<std::string,std::function<void()>> act{
+                {"activation-connect",   [&](){ result = ACTIVATION_CONNECT; }},
+                    {"activation-ready",   [&](){ result = ACTIVATION_READY; }},
+                    {"not-activated",   [&](){ result = NOT_ACTIVATED; }},
+                    {"activation-disconnect", [&](){ result = ACTIVATION_DISCONNECT; }},
+                    {"activated", [&](){ result = ACTIVATED; }},
+            };
+
+            activationStatus = checkActivatedStatus();
+            LOGINFO("activation status : [ %s ]",activationStatus.c_str());
+            const auto end = act.end();
+            auto search = act.find(activationStatus);
+            if ( search != end ){
+                search->second();
+            }
+            else{
+                result = INVALID_ACTIVATION;
+                LOGINFO("result: invalid Activation");
+            }
+
+            switch(result){
+                case ACTIVATED:
+                    ret_result = true;
+                    break;
+                case ACTIVATION_DISCONNECT:
+                    ret_result = false;
+                    break;
+                case NOT_ACTIVATED:
+                case ACTIVATION_READY:
+                case ACTIVATION_CONNECT:
+                    ret_result = true;
+                    skipFirmwareCheck = true;
+                default:
+                    ret_result = true;
+            }
+
+            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]"
+                    ,(ret_result)? "true":"false",(skipFirmwareCheck)?"true":"false");
+            return ret_result;
         }
 
         bool MaintenanceManager::checkNetwork()

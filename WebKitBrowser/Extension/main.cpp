@@ -45,6 +45,10 @@
 #include "AAMPJSBindings.h"
 #endif
 
+#if defined(ENABLE_FIREBOLTOS_ENDPOINT)
+#include "FireboltOSEndpoint.h"
+#endif
+
 using namespace WPEFramework;
 
 static Core::NodeId GetConnectionNode()
@@ -145,8 +149,13 @@ private:
         JavaScript::AAMP::LoadJSBindings(world, frame);
 #endif
 
+#ifdef  ENABLE_FIREBOLTOS_ENDPOINT
+        JavaScript::FireboltOSEndpoint::InjectJS(world, frame);
+#endif
     }
-    static void pageCreatedCallback(WebKitWebExtension*, WebKitWebPage* page, PluginHost* host)
+    static void pageCreatedCallback(VARIABLE_IS_NOT_USED WebKitWebExtension* webExtension,
+                                    WebKitWebPage* page,
+                                    VARIABLE_IS_NOT_USED PluginHost* host)
     {
         if (host->_logToSystemConsoleEnabled) {
             g_signal_connect(page, "console-message-sent",
@@ -162,7 +171,7 @@ private:
                 G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
 #endif
     }
-    static void consoleMessageSentCallback(WebKitWebPage* page, WebKitConsoleMessage* message)
+    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message)
     {
         string messageString = Core::ToString(webkit_console_message_get_text(message));
         uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));

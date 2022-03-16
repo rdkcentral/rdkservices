@@ -171,24 +171,40 @@ class ServiceManager {
       };
       service.send(params);
     }
-    service.websocket.onmessage = function(e) {
-      let res = {};
-      res.jsonrpc = "2.0";
 
-      let req = null;
+    service.websocket.onmessage = function(e) {
+
+
       try {
         console.log("<<< " + e.data);
-        req = JSON.parse(e.data);
-        res.id = req.id;
-        service.service._callMethodByName(req.method, req.params).then(value => {
-          res.result = value;
-          self._sendResponse(service.websocket, res);
+
+        let outter_request = JSON.parse(e.data);
+        let inner_request = outter_request.params.request;
+
+        let outter_response = {};
+        outter_response.jsonrpc = "2.0";
+        outter_response.id = outter_request.id;
+        outter_response.result = {};
+        outter_response.result.context = outter_request.params.context;
+
+        let inner_response = outter_response.result.response = {};
+        inner_response.jsonrpc = "2.0";
+        inner_response.id = inner_request.id;
+
+        // TODO: is there a better way to parse this?
+        let method_name = inner_request.method;
+        method_name = inner_request.method.substring(outter_request.method.length + 1);
+
+        service.service._callMethodByName(method_name, inner_request.params).then(value => {
+          inner_response.result = value;
+          self._sendResponse(service.websocket, outter_response);
         }).catch(ex => {
-          res.error = {};
-          res.error.message = "" + ex;
-          res.error.code = -32000;
+          let err = {};
+          err.message = "" + ex;
+          err.code = -32000;
+          inner_response.error = err;
           try {
-            self._sendResponse(service.websocket, res);
+            self._sendResponse(service.websocket, outter_response);
           }
           catch (send_ex) {
             console.log(send_ex);
@@ -196,7 +212,7 @@ class ServiceManager {
         });
       }
       catch (dispatch_ex) {
-        console.log(send_ex.stack);
+        console.log(dispatch_ex.stack);
       }
     };
   }

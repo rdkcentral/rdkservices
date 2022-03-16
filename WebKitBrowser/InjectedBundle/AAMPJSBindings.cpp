@@ -68,8 +68,9 @@ void UnloadJSBindings(WKBundleFrameRef frame) {
         JSGlobalContextRef context = WKBundleFrameGetJavaScriptContext(frame);
         JSObjectRef global = JSContextGetGlobalObject(context);
         JSStringRef aampStr = JSStringCreateWithUTF8CString("AAMP");
-        if (JSObjectHasProperty(context, global, aampStr))
+        if (JSObjectHasProperty(context, global, aampStr)) {
             aamp_UnloadJSController(context);
+        }
         JSStringRelease(aampStr);
     }
 }

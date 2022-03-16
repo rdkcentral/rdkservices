@@ -20,13 +20,15 @@ set(MODULE_NAME WPE${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(securityagent QUIET)
+find_package(WPEWebKit REQUIRED)
 
 option(PLUGIN_AMAZON_HYBRID "Enable the Amazon Player interface (Hawaii) in the injected bundle and the creation of the Amazon tab" OFF)
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
+option(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT "Enable injection of __firebolt.endpoint." ON)
 
-set(SOURCE_LIST
+add_library(${MODULE_NAME} SHARED
     main.cpp
     WhiteListedOriginDomainsList.cpp
     RequestHeaders.cpp
@@ -38,18 +40,15 @@ set(SOURCE_LIST
     ../Tags.cpp
 )
 
-add_library(${MODULE_NAME} SHARED
-    ${SOURCE_LIST}
-)
-
 if(PLUGIN_AMAZON_HYBRID)
     target_sources(${MODULE_NAME} PRIVATE HawaiiMessage.cpp)
 endif()
 
 if(securityagent_FOUND)
     target_sources(${MODULE_NAME} PRIVATE SecurityAgent.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_SECURITY_AGENT)
     target_link_libraries(${MODULE_NAME}
-        PRIVATE 
+        PRIVATE
             securityagent::securityagent)
 endif()
 
@@ -67,28 +66,30 @@ if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_BADGER_BRIDGE)
 endif()
 
+if(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT)
+    target_sources(${MODULE_NAME} PRIVATE FireboltOSEndpoint.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_FIREBOLTOS_ENDPOINT)
+endif()
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
 target_link_libraries(${MODULE_NAME}
-    PRIVATE 
+    PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${GLIB_LIBRARIES}
-        ${WPE_WEBKIT_LIBRARIES})
+        WPEWebKit::WPEWebKit)
 
-target_include_directories(${MODULE_NAME} 
-    PRIVATE 
-        ${WPE_WEBKIT_INCLUDE_DIRS}
-        ${WPE_WEBKIT_INCLUDE_DIRS}/WPE
-        ${GLIB_INCLUDE_DIRS})
+if(WPE_WEBKIT_DEPRECATED_API)
+    target_compile_definitions(${MODULE_NAME} PRIVATE WPE_WEBKIT_DEPRECATED_API)
+endif()
 
-install(TARGETS ${MODULE_NAME} 
+install(TARGETS ${MODULE_NAME}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser
-    COMPONENT ${MODULE_NAME})
+    COMPONENT ${PROJECT_NAME})
 
 if(PLUGIN_AMAZON_HYBRID)
-    install(TARGETS ${MODULE_NAME} 
+    install(TARGETS ${MODULE_NAME}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/Amazon
-        COMPONENT ${MODULE_NAME})
+        COMPONENT ${PROJECT_NAME})
 endif()
