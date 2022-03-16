@@ -803,6 +803,11 @@ int AudioPlayer::getObjectIdentifier()
     return objectIdentifier;
 }
 
+std::string AudioPlayer::getUrl()
+{
+    return m_url;
+}
+
 bool AudioPlayer::loadInitAudioDev()
 {
     //TTSLOG_WARNING("Destroying Pipeline...");

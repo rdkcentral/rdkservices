@@ -20,13 +20,14 @@ set(MODULE_NAME WPE${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(securityagent QUIET)
-find_package(LibSoup REQUIRED)
+find_package(WPEWebKit REQUIRED)
 
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
+option(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT "Enable injection of __firebolt.endpoint." ON)
 
-set(SOURCE_LIST
+add_library(${MODULE_NAME} SHARED
     main.cpp
     WhiteListedOriginDomainsList.cpp
     Milestone.cpp
@@ -34,8 +35,6 @@ set(SOURCE_LIST
     RequestHeaders.cpp
     ../Tags.cpp
 )
-
-add_library(${MODULE_NAME} SHARED ${SOURCE_LIST})
 
 if(securityagent_FOUND)
     target_sources(${MODULE_NAME} PRIVATE SecurityAgent.cpp)
@@ -55,6 +54,11 @@ if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_BADGER_BRIDGE)
 endif()
 
+if(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT)
+    target_sources(${MODULE_NAME} PRIVATE FireboltOSEndpoint.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_FIREBOLTOS_ENDPOINT)
+endif()
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
@@ -62,19 +66,10 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME}
     PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${LIBSOUP_LIBRARIES}
-        ${GLIB_LIBRARIES}
-        ${WPE_WEBKIT_LIBRARIES})
+        WPEWebKit::WPEWebKit)
 
-target_include_directories(${MODULE_NAME}
-    PRIVATE
-        ${WPE_WEBKIT_INCLUDE_DIRS}
-        ${WPE_WEBKIT_INCLUDE_DIRS}/WPE
-        ${LIBSOUP_INCLUDE_DIRS}
-        ${GLIB_INCLUDE_DIRS})
-
-target_compile_definitions(${MODULE_NAME} PRIVATE WEBKIT_GLIB_API=${WEBKIT_GLIB_API})
+target_compile_definitions(${MODULE_NAME} PRIVATE WEBKIT_GLIB_API)
 
 install(TARGETS ${MODULE_NAME}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser
-    COMPONENT ${MODULE_NAME})
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser/${PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY}
+    COMPONENT ${PROJECT_NAME})

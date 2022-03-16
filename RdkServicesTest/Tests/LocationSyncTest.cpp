@@ -17,37 +17,36 @@
 * limitations under the License.
 **/
 
+#include <gtest/gtest.h>
+
 #include "LocationSync.h"
 
-#include "Source/WorkerPoolImplementation.h"
-#include "Source/SystemInfo.h"
-
 #include "ServiceMock.h"
+#include "Source/SystemInfo.h"
+#include "Source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
-namespace
-{
+namespace {
 const string webPrefix = _T("/Service/LocationSync");
 }
 
-class LocationSyncTestFixture : public ::testing::Test
-{
+class LocationSyncTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
     Core::Sink<SystemInfo> subSystem;
     Core::ProxyType<Plugin::LocationSync> plugin;
-    Core::JSONRPC::Handler &handler;
+    Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     ServiceMock service;
     string response;
 
     LocationSyncTestFixture()
         : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
-        2, Core::Thread::DefaultStackSize(), 16)),
-          plugin(Core::ProxyType<Plugin::LocationSync>::Create()),
-          handler(*plugin),
-          connection(1, 0)
+            2, Core::Thread::DefaultStackSize(), 16))
+        , plugin(Core::ProxyType<Plugin::LocationSync>::Create())
+        , handler(*plugin)
+        , connection(1, 0)
     {
     }
     virtual ~LocationSyncTestFixture()
@@ -70,7 +69,8 @@ protected:
     }
 };
 
-TEST_F(LocationSyncTestFixture, probeTest) {
+TEST_F(LocationSyncTestFixture, probeTest)
+{
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
         .WillOnce(::testing::Return("{\n"
@@ -84,15 +84,13 @@ TEST_F(LocationSyncTestFixture, probeTest) {
         .WillOnce(::testing::Return(webPrefix));
 
     EXPECT_CALL(service, SubSystems())
-        .Times(3)
+        .Times(2)
         .WillRepeatedly(::testing::Invoke(
-            [&] ()
-            {
+            [&]() {
                 PluginHost::ISubSystem* result = (&subSystem);
                 result->AddRef();
                 return result;
-            }
-        ));
+            }));
 
     ON_CALL(service, Version())
         .WillByDefault(::testing::Return(string()));
@@ -102,25 +100,19 @@ TEST_F(LocationSyncTestFixture, probeTest) {
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection,
-        _T("sync"),
-        _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
     EXPECT_EQ(response,
         _T(""));
 
-    PluginHost::ISubSystem* subSystem = service.SubSystems();
-
     Core::Event wait(false, true);
-    for (int i = 0; ((subSystem->Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
+    for (int i = 0; ((subSystem.Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
         wait.Lock(10);
     }
 
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::LOCATION) != nullptr);
-    EXPECT_TRUE(subSystem->Get(PluginHost::ISubSystem::INTERNET) != nullptr);
+    EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
+    EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::INTERNET) != nullptr);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,
-        _T("location"),
-        _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("location"), _T(""), response));
     EXPECT_TRUE(response.empty() == false);
 
     JsonObject params;

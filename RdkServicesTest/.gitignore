@@ -1,2 +1,4 @@
-thunder
-opt
+/thunder
+/opt
+/valgrind_log
+/coverage
