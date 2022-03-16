@@ -899,6 +899,10 @@ namespace WPEFramework {
                             }
                         }
                     }
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+                    queryParams = FRIENDLY_ID;
+                    getModelName(queryParams, response);
+#endif
                 } else {
                     retAPIStatus = true;
                     Utils::String::trim(res);
