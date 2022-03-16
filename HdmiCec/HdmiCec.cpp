@@ -40,6 +40,7 @@
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
 #define HDMICEC_METHOD_GET_CEC_ADDRESSES "getCECAddresses"
 #define HDMICEC_METHOD_SEND_MESSAGE "sendMessage"
+#define HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
 
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_MESSAGE "onMessage"
@@ -56,13 +57,17 @@ enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
 	HDMICEC_EVENT_DEVICE_REMOVED,
 	HDMICEC_EVENT_DEVICE_INFO_UPDATED,
+        HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
 static char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
-	"onDeviceInfoUpdated"
+	"onDeviceInfoUpdated",
+        "onActiveSourceStatusUpdated"
 };
+
+static bool isDeviceActiveSource = false;
 
 #if defined(HAS_PERSISTENT_IN_HDD)
 #define CEC_SETTING_ENABLED_FILE "/tmp/mnt/diska3/persistent/ds/cecData.json"
@@ -162,6 +167,7 @@ namespace WPEFramework
             registerMethod(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
             registerMethod(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
             registerMethod(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
+            registerMethod(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
             registerMethod("getDeviceList", &HdmiCec::getDeviceList, this);
 
             physicalAddress = 0x0F0F0F0F;
@@ -187,10 +193,18 @@ namespace WPEFramework
 
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
+            isDeviceActiveSource = false;
+            HdmiCec::_instance->sendActiveSourceEvent();
             HdmiCec::_instance = nullptr;
 
             DeinitializeIARM();
 
+        }
+
+        uint32_t HdmiCec::getActiveSourceStatus(const JsonObject& parameters, JsonObject& response)
+        {
+            response["status"] = isDeviceActiveSource;
+            returnResponse(true);
         }
 
         const void HdmiCec::InitializeIARM()
@@ -714,6 +728,14 @@ namespace WPEFramework
             else
                 LOGWARN("cecEnableStatus=false");
             return;
+        }
+
+        void HdmiCec::sendActiveSourceEvent()
+        {
+            JsonObject params;
+            params["status"] = isDeviceActiveSource;
+            LOGWARN(" sendActiveSourceEvent isDeviceActiveSource: %d ",isDeviceActiveSource);
+            sendNotify(eventString[HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED], params);
         }
 
         void HdmiCec::cecAddressesChanged(int changeStatus)
