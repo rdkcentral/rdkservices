@@ -164,6 +164,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+bool gRDKShellSurfaceModeAutoDestroy = true;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -407,7 +408,7 @@ namespace WPEFramework {
 
         struct CreateDisplayRequest
         {
-            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
+            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false , bool autodestroy = true): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false) , mAutoDestroy(autodestroy)
             {
                 sem_init(&mSemaphore, 0, 0);
             }
@@ -428,6 +429,7 @@ namespace WPEFramework {
             bool mFocus;
             sem_t mSemaphore;
             bool mResult;
+	    bool mAutoDestroy;
         };
 
         struct KillClientRequest
@@ -961,8 +963,13 @@ namespace WPEFramework {
                       {
                           gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                           continue;
-                      }
-                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
+                      
+		      }
+		      if(gRdkShellSurfaceModeEnabled)
+		      {
+                         request->mAutoDestroy = gRDKShellSurfaceModeAutoDestroy;
+		      }
+                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus , request->mAutoDestroy);
                       gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                       sem_post(&request->mSemaphore);
                   }
@@ -1284,6 +1291,7 @@ namespace WPEFramework {
                 sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
                 gCreateDisplayRequests[i] = nullptr;
             }
+	    gRDKShellSurfaceModeAutoDestroy = true;
             gCreateDisplayRequests.clear();
             for (int i=0; i<gKillClientRequests.size(); i++)
             {
@@ -2904,6 +2912,7 @@ namespace WPEFramework {
 
             double launchStartTime = RdkShell::seconds();
             bool result = true;
+	  
             if (!parameters.HasLabel("callsign"))
             {
                 result = false;
@@ -3065,6 +3074,14 @@ namespace WPEFramework {
                 {
                     focus = parameters["focus"].Boolean();
                 }
+                if (parameters.HasLabel("autodestroy"))
+                {
+                  gRDKShellSurfaceModeAutoDestroy = parameters["autodestroy"].Boolean();
+                }
+		else
+	        {
+                  gRDKShellSurfaceModeAutoDestroy = true ;
+	        }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
