@@ -75,61 +75,11 @@ namespace Plugin {
             uint32_t _id;
             string _designator;
         };
-        class Request {
-        public:
-            Request() = delete;
-            Request(const Request&) = delete;
-            Request& operator=(const Request&) = delete;
-
-            Request(const uint32_t channelId, const uint32_t sequenceId, const Core::Time& timeOut)
-                : _channelId(channelId)
-                , _sequenceId(sequenceId)
-                , _issued(timeOut) {
-            }
-            ~Request() = default;
-
-        public:
-            uint32_t ChannelId() const {
-                return (_channelId);
-            }
-            uint32_t SequenceId() const {
-                return (_sequenceId);
-            }
-            const Core::Time& Issued() const {
-                return (_issued);
-            }
-
-        private:
-            uint32_t _channelId;
-            uint32_t _sequenceId;
-            Core::Time _issued;
-        };
-        class Cleaner  {
-        private:
-            using BaseClass = Core::IWorkerPool::JobType<Cleaner>;
-
-        public:
-            Cleaner(const Cleaner&) = delete;
-            Cleaner& operator=(const Cleaner&) = delete;
-
-            Cleaner(WebBridge& parent) : _parent(parent) {
-            }
-            ~Cleaner() = default;
-
-        public:
-            void Dispatch() {
-                _parent.Cleanup();
-            }
-
-        private:
-            WebBridge& _parent;
-        };
 
         using ObserverList = std::list<Observer>;
         using ObserverMap = std::map<string, ObserverList>;
         using MethodList = std::vector<string>;
         using VersionMap = std::map<uint8_t, MethodList>;
-        using PendingMap = std::map<uint32_t, Request>;
 
     public:
         class Config : public Core::JSON::Container {
@@ -143,7 +93,6 @@ namespace Plugin {
             ~Config() override = default;
 
         public:
-            Core::JSON::String Bind;
             Core::JSON::DecUInt16 TimeOut;
         };
 
@@ -161,11 +110,8 @@ namespace Plugin {
             , _callsign()
             , _supportedVersions()
             , _observers()
-            , _pendingRequests()
-            , _javascriptService(0)
-            , _sequenceId(1)
-            , _timeOut(0)
-            , _cleaner(*this)
+            , _serviceSideChannelId(0)
+            , _sequenceId(1000)
         {
         }
         #ifdef __WINDOWS__
@@ -193,7 +139,7 @@ namespace Plugin {
         // IDispatcher
         // -------------------------------------------------------------------------------------------------------
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
-        Core::ProxyType<Core::JSONRPC::Message> Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& message) override;
+        Core::ProxyType<Core::JSONRPC::Message> Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& message) override;
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
         void Activate(PluginHost::IShell* service) override;
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
@@ -212,7 +158,6 @@ namespace Plugin {
         Core::ProxyType<Core::JSON::IElement> Inbound(const string& identifier) override;
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
         Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) override;
-
 
     private:
         void Cleanup();
@@ -332,17 +277,18 @@ namespace Plugin {
         }
 
     private:
+      void submitMessageToRemoteService(const Core::JSONRPC::Context & ctx, const
+          Core::JSONRPC::Message & request);
+
+    private:
         Core::CriticalSection _adminLock;
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         string _callsign;
         VersionMap _supportedVersions;
         ObserverMap _observers;
-        PendingMap _pendingRequests;
-        uint32_t _javascriptService;
-        uint32_t _sequenceId;
-        uint32_t _timeOut;
-        Core::WorkerPool::JobType<Cleaner> _cleaner;
+        uint32_t _serviceSideChannelId;
+        std::atomic<uint32_t> _sequenceId;
     };
 
 } // namespace Plugin
