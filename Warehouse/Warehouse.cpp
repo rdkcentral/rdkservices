@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <fstream>
-
+#include "secure_wrapper.h"
 #include <regex.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -66,7 +66,7 @@
 #define VERSION_FILE_NAME "/version.txt"
 #define CUSTOM_DATA_FILE "/lib/rdk/wh_api_5.conf"
 
-#define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"
+#define LIGHT_RESET_SCRIPT "/opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"
 #define INTERNAL_RESET_SCRIPT "rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &"
 
 #define FRONT_PANEL_NONE -1
@@ -256,33 +256,6 @@ namespace WPEFramework
             }
         }
 
-        static bool RunScriptIARM(const std::string& script, std::string& error)
-        {
-            IARM_Bus_SYSMgr_RunScript_t runScriptParam;
-            runScriptParam.return_value = -1;
-            size_t len = sizeof(runScriptParam.script_path)/sizeof(char);
-            if(script.length() > (len - 1))
-            {
-                std::stringstream errorss;
-                errorss << "Length of script greater than allowed limit of " << len << ".";
-                error = errorss.str();
-
-                LOGWARN("%s", error.c_str());
-                return false;
-            }
-
-            strcpy(runScriptParam.script_path, script.c_str());
-            IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_RunScript, &runScriptParam, sizeof(runScriptParam));
-            bool ok = runScriptParam.return_value == 0;
-
-            std::stringstream message;
-            message << "script returned: " << runScriptParam.return_value;
-
-            LOGINFO("%s", message.str().c_str());
-            if (!ok)
-                error = message.str();
-            return ok;
-        }
 #endif
 
         void Warehouse::resetDevice(bool suppressReboot, const string& resetType)
@@ -500,7 +473,8 @@ namespace WPEFramework
             {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 std::string error;
-                bool ok = RunScriptIARM(INTERNAL_RESET_SCRIPT, error);
+		int return_value = v_secure_system("rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &");
+                bool ok = return_value == 0;
                 response[PARAM_SUCCESS] = ok;
                 if (!ok)
                     response[PARAM_ERROR] = error;
@@ -576,7 +550,9 @@ namespace WPEFramework
             LOGWARN("lightReset: %s", script.c_str());
 
             std::string error;
-            bool ok = RunScriptIARM(script, error);
+            int return_value=0;
+            return_value = v_secure_system("rm -rf %s", script.c_str());
+            bool ok = return_value == 0;
 
             remove("/opt/secure/persistent/rdkservicestore");
 
