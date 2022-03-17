@@ -5,10 +5,6 @@ set -e
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
 VALGRINDLOG=$(pwd)/valgrind_log
-OPTION=""
-if [[ "$1" == "-D" ]]; then
-    OPTION="gdb"
-fi
 
 checkInstalled() {
   dpkg -s "$1" > /dev/null 2>&1
@@ -37,8 +33,8 @@ valgrind \
 --leak-check=yes \
 --show-reachable=yes \
 --track-fds=yes \
---fair-sched=try \
-$OPTION RdkServicesTest
+--fair-sched=try \ 
+RdkServicesTest
 
 # Stop dummy server
 pkill -f "Source/DeviceDiagnosticMock.py"

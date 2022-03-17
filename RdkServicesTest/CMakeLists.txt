@@ -35,7 +35,7 @@ add_executable(${PROJECT_NAME}
         Module.cpp
         )
 
-include_directories(../DeviceDiagnostics ../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../DeviceDiagnostics ../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
 link_directories(../DeviceDiagnostics ../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}

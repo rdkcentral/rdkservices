@@ -57,7 +57,6 @@ TEST_F(DeviceDiagnosticsTest, ShouldReturnResponse) {
 
 TEST_F(DeviceDiagnosticsTest, ShouldGetEvent) {
     EXPECT_EQ(string(""), deviceDiagnostic_->Initialize(nullptr));
-    bool finish = false;
 
     EXPECT_CALL(*deviceDiagnostic_, onDecoderStatusChange(1));
     // Wait for incoming event

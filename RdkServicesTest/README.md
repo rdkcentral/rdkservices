@@ -11,9 +11,18 @@ Read the [GoogleTest User’s Guide](https://google.github.io/googletest/).
 cd RdkServicesTest
 ./Scripts/build.sh
 ```
-
 This builds Thunder, ThunderInterfaces, Rdkservices and installs them in thunder/install.
 Make sure you have packages python3 python3-pip libsqlite3-dev, curl libcurl4-openssl-dev
+
+## Build options
+
+```
+$./Scripts/build.sh [-j<number>] [-D]
+
+where:
+    -j  number of threads (default maximum available threads)
+    -D  debug mode (default Release)"
+```
 
 ## How to run ##
 
@@ -36,9 +45,3 @@ cd RdkServicesTest
 This generates a coverage report in HTML.
 
 Make sure you have package _lcov_.
-
-## How to make debug build and run test via gdb
-```shell script
-cd RdkServicesTest
-./Scripts/build.sh -D && ./Scripts/run.sh -D
-```
