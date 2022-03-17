@@ -80,7 +80,11 @@
     },
     "methods": {
         "cancelWPSPairing":{
-            "summary": "Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed.",
+            "summary": "Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED. | \n| `onError` | Triggers `onError` event, if the device fails to cancel the in-progress WPS pairing.|",
+            "events":[
+                "onWIFIStateChanged",
+                "onError"
+            ],
             "result": {
                 "type": "object",
                 "properties": {
@@ -98,7 +102,10 @@
             }
         },
         "clearSSID":{
-            "summary": "Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared.",
+            "summary": "Clears the saved SSID. A `result` value of `0` indicates that the SSID was cleared. A nonzero value indicates that the SSID was not cleared. Triggers `onWIFIStateChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected).|",
+            "events":[
+                "onWIFIStateChanged"
+            ],
             "result": {
                 "type": "object",
                 "properties": {
@@ -116,7 +123,11 @@
             }
         },
         "connect":{
-            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.",
+            "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the requested SSID connection fails.|",
+            "events":[
+                "onWIFIStateChanged",
+                "onError"
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -141,7 +152,10 @@
             }
         },
         "disconnect":{
-            "summary": "Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.",
+            "summary": "Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect. Triggers `onWIFIStateChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED` | Triggers `onWIFIStateChanged`  event when Wifi state changes to DISCONNECTED (only if currently connected).|",
+            "events":[
+                "onWIFIStateChanged"
+            ],
             "result": {
                 "type": "object",
                 "properties": {
@@ -159,7 +173,7 @@
             }
         },
         "getConnectedSSID":{
-            "summary": "Returns the connected SSID information",
+            "summary": "Returns the connected SSID information. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -207,7 +221,7 @@
             }
         },
         "getCurrentState": {
-            "summary": "Returns the current Wifi State. The possible Wifi states are as follows.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed   \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter",
+            "summary": "Returns the current Wifi State. The possible Wifi states are as follows.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed   \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -226,7 +240,7 @@
             
         },
         "getPairedSSID":{
-            "summary": "Returns the SSID to which the device is currently paired",
+            "summary": "Returns the SSID to which the device is currently paired. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -244,7 +258,7 @@
             }
         },
         "getPairedSSIDInfo":{
-            "summary": "Returns the SSID and BSSID to which the device is currently paired",
+            "summary": "Returns the SSID and BSSID to which the device is currently paired. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -266,7 +280,7 @@
             }
         },
         "getSupportedSecurityModes":{
-            "summary": "(Version 2) Returns the Wifi security modes that the device supports",
+            "summary": "(Version 2) Returns the Wifi security modes that the device supports. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -347,7 +361,11 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.",
+            "summary": "Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the WPS pairing fails.|",
+            "events":[
+                "onWIFIStateChanged",
+                "onError"
+            ],
             "result": {
                 "type": "object",
                 "properties": {
@@ -365,7 +383,11 @@
             }
         },
         "initiateWPSPairing":{
-            "summary": "(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.\n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.",
+            "summary": "(Version 2) Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.\n\nIf the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin. Triggers `onWIFIStateChanged` and `onError` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `WiFiState: DISCONNECTED, CONNECTING or CONNECTED` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. | \n| `onError` | Triggers `onError` event, if the WPS pairing fails.|",
+            "events":[
+                "onWIFIStateChanged",
+                "onError"
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -411,7 +433,7 @@
             }
         },
         "isPaired":{
-            "summary": "Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired.",
+            "summary": "Determines if the device is paired to an SSID. A `result` value of `0` indicates that this device has been previously paired (calling `saveSSID` marks this device as paired). A nonzero value indicates that the device is not paired. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -429,7 +451,7 @@
             }
         },
         "isSignalThresholdChangeEnabled":{
-            "summary": "Returns whether `onWifiSignalThresholdChanged` event is enabled or not",
+            "summary": "Returns whether `onWifiSignalThresholdChanged` event is enabled or not. \n  \n### Events \n\n  No Events",
             "result": {
                 "type": "object",
                 "properties": {
@@ -447,7 +469,7 @@
             }
         },
         "saveSSID":{
-            "summary": "Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved.",
+            "summary": "Saves the SSID, passphrase, and security mode for future sessions. If an SSID was previously saved, the new SSID and passphrase overwrite the existing values. A `result` value of `0` indicates that the SSID was successfully saved. \n  \n### Events \n\n  No Events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -484,7 +506,7 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables the Wifi adapter for this device",
+            "summary": "Enables or disables the Wifi adapter for this device. \n  \n### Events \n\n  No Events",
             "params": {
                 "type": "object",
                 "properties": {
@@ -503,7 +525,10 @@
             }
         },
         "setSignalThresholdChangeEnabled":{
-            "summary": "Enables `signalThresholdChange` events to be triggered",
+            "summary": "Enables `signalThresholdChange` events to be triggered. Triggers `onWifiSignalThresholdChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onWifiSignalThresholdChanged` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between Excellent, Good, Fair, Weak.|",
+            "events":[
+                "onWifiSignalThresholdChanged"
+            ],
             "params": {
                 "type": "object",
                 "properties": {
@@ -528,7 +553,7 @@
             }
         },
         "startScan":{
-            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event",
+            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event. Triggers `onAvailableSSIDs` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onAvailableSSIDs` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes.|",
             "events": [
                 "onAvailableSSIDs"
             ],
@@ -582,7 +607,7 @@
     },
     "events": {
         "onWIFIStateChanged":{
-            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- | \n| `connect` | Triggers `onWIFIStateChanged` event when Wifi state changes to CONNECTING, CONNECTED |\n| `disconnect` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |\n| `clearSSID` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected) |\n| `initiateWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED |\n| `cancelWPSPairing` | Triggers `onWIFIStateChanged` event when Wifi state changes to DISCONNECTED |\n \nAlso see: [connect](#method.connect), [disconnect](#method.disconnect), [clearSSID](#method.clearSSID), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when the Wifi state changes. See `getCurrentState` for a list of valid Wifi states.",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -602,7 +627,7 @@
             }
         },
         "onError":{
-            "summary": "Triggered when a recoverable unexpected Wifi error occurs.  \n**Error Codes**  \n* `0`: SSID_CHANGED - The SSID of the network changed  \n* `1`: CONNECTION_LOST - The connection to the network was lost  \n* `2`: CONNECTION_FAILED - The connection failed for an unknown reason  \n* `3`: CONNECTION_INTERRUPTED - The connection was interrupted  \n* `4`: INVALID_CREDENTIALS - The connection failed due to invalid credentials  \n* `5`: NO_SSID - The SSID does not exist  \n* `6`: UNKNOWN - Any other error\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `connect` | Triggers `onError` event if the requested SSID connection fails |\n| `initiateWPSPairing` | Triggers `onError` event if the WPS pairing fails |\n| `cancelWPSPairing` | Triggers `onError` event if the device fails to cancel the in-progress WPS pairing |\n \nAlso see: [connect](#method.connect), [initiateWPSPairing](#method.initiateWPSPairing), [cancelWPSPairing](#method.cancelWPSPairing)",
+            "summary": "Triggered when a recoverable unexpected Wifi error occurs.",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -618,10 +643,10 @@
             }
         },
         "onSSIDsChanged":{
-            "summary": "Triggered when a new SSID becomes available or an existing SSID is no longer available.\n \n### Methods\n \nNo Methods."
+            "summary": "Triggered when a new SSID becomes available or an existing SSID is no longer available."
         },
         "onWifiSignalThresholdChanged":{
-            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `setSignalThresholdChangeEnabled` | Triggers `onWifiSignalThresholdChanged` event if the Wifi signal strength switches between *Excellent*, *Good*, *Fair*, *Weak* |\n \nAlso see: [setSignalThresholdChangeEnabled](#method.setSignalThresholdChangeEnabled)",
+            "summary": "Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method in order to monitor changes in Wifi strength.",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -647,7 +672,7 @@
             }
         },
         "onAvailableSSIDs":{
-            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.\n \n### Methods\n \n| Method | Description | \n| :-------- | :-------- |\n| `startScan` | Triggers `onAvailableSSIDs` event when the list of SSIDs is available after the scan completes |\n \nAlso see: [startScan](#method.startScan)",
+            "summary": "Triggered when the `scan` method is called and SSIDs are obtained. The event contains the list of currently available SSIDs. If the `scan` method is called with the `incremental` property set to `true`, then `moreData` is `false` when the last set of results are received. If the `incremental` property is set to `false`, then `moreData` is `false` after a single event.",
             "params": {
                 "type" :"object",
                 "properties": {
