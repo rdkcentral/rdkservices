@@ -1083,7 +1083,7 @@ namespace WPEFramework {
                       params["imageData"] = screenshotBase64;
 
                       // Calling Notify instead of  RDKShell::notify to avoid logging of entire screen content
-                      LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE);
+                      LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE.c_str());
                       Notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
 
                       free(encodedImage);
