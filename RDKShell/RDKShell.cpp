@@ -2911,8 +2911,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             double launchStartTime = RdkShell::seconds();
-            bool result = true;
-	  
+            bool result = true; 
             if (!parameters.HasLabel("callsign"))
             {
                 result = false;
