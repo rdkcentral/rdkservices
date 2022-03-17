@@ -3073,15 +3073,20 @@ namespace WPEFramework {
                 {
                     focus = parameters["focus"].Boolean();
                 }
-                if (parameters.HasLabel("autodestroy"))
+
+                if ((parameters.HasLabel("autodestroy")) && (gRdkShellSurfaceModeEnabled))
                 {
                   gRDKShellSurfaceModeAutoDestroy = parameters["autodestroy"].Boolean();
                 }
-		else
+		else if ((parameters.HasLabel("autodestroy")) && (!gRdkShellSurfaceModeEnabled))
 	        {
-                  gRDKShellSurfaceModeAutoDestroy = true ;
+                   response["message"]= " RDKShell in nested mode";
+		   returnResponse(false);
 	        }
-
+                else if ((!parameters.HasLabel("autodestroy")) && (gRdkShellSurfaceModeEnabled))
+	        {
+                   gRDKShellSurfaceModeAutoDestroy = true ;
+	        }
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
