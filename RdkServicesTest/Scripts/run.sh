@@ -33,7 +33,7 @@ valgrind \
 --leak-check=yes \
 --show-reachable=yes \
 --track-fds=yes \
---fair-sched=try \ 
+--fair-sched=try \
 RdkServicesTest
 
 # Stop dummy server

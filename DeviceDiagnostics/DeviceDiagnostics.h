@@ -42,7 +42,7 @@ namespace WPEFramework {
             int getConfiguration(const std::string& postData, JsonObject& response);
             uint32_t getAVDecoderStatus(const JsonObject& parameters, JsonObject& response);
             int getMostActiveDecoderStatus();
-            virtual void onDecoderStatusChange(int status);
+            void onDecoderStatusChange(int status);
 #ifdef ENABLE_ERM
             static void *AVPollThread(void *arg);
 #endif

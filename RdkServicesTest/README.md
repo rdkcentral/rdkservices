@@ -9,20 +9,15 @@ Read the [GoogleTest User’s Guide](https://google.github.io/googletest/).
 
 ```shell script
 cd RdkServicesTest
-./Scripts/build.sh
-```
-This builds Thunder, ThunderInterfaces, Rdkservices and installs them in thunder/install.
-Make sure you have packages python3 python3-pip libsqlite3-dev, curl libcurl4-openssl-dev
-
-## Build options
-
-```
 $./Scripts/build.sh [-j<number>] [-D]
 
 where:
     -j  number of threads (default maximum available threads)
     -D  debug mode (default Release)"
 ```
+
+This builds Thunder, ThunderInterfaces, Rdkservices and installs them in thunder/install.
+Make sure you have packages python3 python3-pip libsqlite3-dev libcurl4-openssl-dev
 
 ## How to run ##
 
