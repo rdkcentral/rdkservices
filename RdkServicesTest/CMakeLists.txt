@@ -35,8 +35,19 @@ add_executable(${PROJECT_NAME}
         Module.cpp
         )
 
-include_directories(../DeviceDiagnostics ../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
-link_directories(../DeviceDiagnostics ../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../LocationSync
+        ../PersistentStore
+        ../SecurityAgent
+        ../DeviceIdentification
+        ../DeviceDiagnostics
+        ../helpers
+        )
+link_directories(../LocationSync
+        ../PersistentStore
+        ../SecurityAgent
+        ../DeviceIdentification
+        ../DeviceDiagnostics
+        )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
@@ -45,6 +56,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
+        ${NAMESPACE}DeviceIdentification
         )
 
 target_include_directories(${PROJECT_NAME}
