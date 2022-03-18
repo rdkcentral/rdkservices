@@ -39,17 +39,20 @@ include_directories(../LocationSync
         ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
+        ../DeviceDiagnostics
         ../helpers
         )
 link_directories(../LocationSync
         ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
+        ../DeviceDiagnostics
         )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
