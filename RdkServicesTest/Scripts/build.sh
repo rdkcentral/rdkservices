@@ -113,6 +113,7 @@ buildAndInstallRdkservices() {
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
+    -DPLUGIN_DEVICEIDENTIFICATION=ON -DBUILD_REALTEK=ON \
     -DRDK_SERVICES_TEST=ON
 
   make -C build/rdkservices && make -C build/rdkservices install
