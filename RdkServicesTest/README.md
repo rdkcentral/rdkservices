@@ -17,6 +17,7 @@ where:
 ```
 
 This builds Thunder, ThunderInterfaces, Rdkservices and installs them in thunder/install.
+
 Make sure you have packages _python3 python3-pip libsqlite3-dev libcurl4-openssl-dev_.
 
 ## How to run ##
