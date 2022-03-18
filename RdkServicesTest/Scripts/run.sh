@@ -19,6 +19,12 @@ if ! checkInstalled "valgrind"; then
   exit 1
 fi
 
+# Create dummy server for port 10999 to simulate curl response for DeviceDiagnostic
+python Source/DeviceDiagnosticMock.py &
+
+# Waiting for server startup
+sleep 0.1
+
 PATH=${THUNDER_INSTALL_DIR}/usr/bin:${PATH} \
 LD_LIBRARY_PATH=${THUNDER_INSTALL_DIR}/usr/lib:${THUNDER_INSTALL_DIR}/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH} \
 valgrind \
@@ -29,6 +35,9 @@ valgrind \
 --track-fds=yes \
 --fair-sched=try \
 RdkServicesTest
+
+# Stop dummy server
+pkill -f "Source/DeviceDiagnosticMock.py"
 
 echo "==== DONE ===="
 
