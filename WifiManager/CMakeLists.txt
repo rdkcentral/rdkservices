@@ -20,6 +20,8 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+add_subdirectory(test)
+
 add_library(${MODULE_NAME} SHARED
         WifiManager.cpp
         Module.cpp

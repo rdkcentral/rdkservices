@@ -13,6 +13,8 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
 )
 
+add_subdirectory (test)
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
