@@ -22,6 +22,9 @@
  * @brief Thunder Plugin based Implementation of CPP Test Client for System service API's.
  * @reference RDK-25849.
  */
+#define MODULE_NAME systemServiceTestClient
+#include "Module.h"
+
 #include <iostream>
 #include <bits/stdc++.h>
 #include <ctime>
@@ -46,6 +49,9 @@
 
 using namespace std;
 using namespace WPEFramework;
+
+/* Declare module name */
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
 /* Thunder-Security: Security Token */
 unsigned char g_ucSecToken[MAX_LENGTH] = {0};
