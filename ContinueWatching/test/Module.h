@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME JSONRPC_Test
+#define MODULE_NAME CWTestThunderClient
 #endif
 
 #include <core/core.h>

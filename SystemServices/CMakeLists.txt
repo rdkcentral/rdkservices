@@ -20,9 +20,9 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
-if(BUILD_TESTS)
+#if(BUILD_TESTS)
     add_subdirectory(TestClient)
-endif()
+#endif()
 
 add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
