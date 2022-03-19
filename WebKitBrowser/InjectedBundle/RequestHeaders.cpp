@@ -83,7 +83,6 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
     string message = WPEFramework::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
-printf("shripad SetRequestHeaders calling ....   \n");
     // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set
     JavaScript::AAMP::SetHttpHeaders(message.c_str());
 #endif
