@@ -97,6 +97,7 @@ SystemAudioPlayer interface methods:
 | [resume](#method.resume) | Resumes playback on the specified player |
 | [setMixerLevels](#method.setMixerLevels) | Sets the audio level on the specified player |
 | [stop](#method.stop) | Stops playback on the specified player |
+| [getPlayerSessionId](#method.getPlayerSessionId) | Get the session ID by providing the URL as the input parameter |
 
 
 <a name="method.close"></a>
@@ -640,6 +641,58 @@ Stops playback on the specified player.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.getPlayerSessionId"></a>
+## *getPlayerSessionId [<sup>method</sup>](#head.Methods)*
+
+Get the session ID by providing the URL as the input parameter. Session is nothing but the id returned in open cal
+ 
+### Events 
+
+ No Events .
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.url | string | url queried to get the session id |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.sessionId | integer | <sup>*(optional)*</sup> A unique identifier for a player instance |
+| result?.success | boolean | <sup>*(optional)*</sup> Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.getPlayerSessionId",
+    "params": {
+        "url": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "sessionId": 1,
         "success": true
     }
 }
