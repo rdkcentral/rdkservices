@@ -29,9 +29,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
-        ${TESTS}
+        Tests/LocationSyncTest.cpp
+        Tests/PersistentStoreTest.cpp
+        Tests/SecurityAgentTest.cpp
+	Tests/FrameRateTest.cpp
         Module.cpp
         )
 
@@ -55,7 +57,6 @@ link_directories(../LocationSync
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
@@ -68,7 +69,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
         Source
-        Mocks
+	Mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
