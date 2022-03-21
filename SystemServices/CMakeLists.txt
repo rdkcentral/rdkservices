@@ -19,6 +19,7 @@ set(PLUGIN_NAME SystemServices)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 #if(BUILD_TESTS)
     add_subdirectory(TestClient)
@@ -85,7 +86,7 @@ else (RFC_FOUND)
 	message ("RFC lib required.")
 endif (RFC_FOUND)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
+target_link_libraries(${MODULE_NAME} CompileSettingsDebug::CompileSettingsDebug PRIVATE ${NAMESPACE}SecurityUtil)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
