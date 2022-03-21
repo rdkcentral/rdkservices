@@ -40,8 +40,9 @@ bool ParseHeaders(const string& json, Headers& out)
     Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData> array;
     if (array.FromString(json, error)) {
         for (auto it = array.Elements(); it.Next();) {
-            if (!it.IsValid())
+            if (!it.IsValid()) {
                 continue;
+            }
             const auto &data  = it.Current();
             out.emplace_back(data.Name.Value(), data.Value.Value());
             TRACE_GLOBAL(Trace::Information, (_T("header: '%s: %s'\n"), data.Name.Value().c_str(), data.Value.Value().c_str()));
@@ -81,10 +82,11 @@ void SetRequestHeaders(WebKitWebPage* page, WebKitUserMessage* message)
 
     Headers newHeaders;
     if (ParseHeaders(headersStr, newHeaders)) {
-        if (newHeaders.empty())
+        if (newHeaders.empty()) {
             RemoveRequestHeaders(page);
-        else
+        } else {
             s_pageHeaders[page] = std::move(newHeaders);
+        }
     }
 }
 

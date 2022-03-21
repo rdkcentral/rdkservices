@@ -379,6 +379,23 @@ bool RtXcastConnector::getEntryFromAppLaunchParamList (const char* appName, RegA
     return isEntryFound;
 }
 
+string RtXcastConnector::getProtocolVersion(void)
+{
+    LOGINFO("XcastService::getProtocolVersion ");
+    rtString strVersion ;
+    int ret = 0;
+    if(xdialCastObj != NULL && (xdialCastObj.sendReturns("getProtocolVersion", strVersion) == RT_OK))
+    {
+            LOGINFO("XcastService getProtocolVersion ret:%d version:%s ",ret,strVersion.cString());
+    }
+    else
+    {
+        LOGINFO(" XcastService getProtocolVersion  xdialCastObj is NULL sendReturns ret :%d not RT_OK so returns 2.1",ret);
+	strVersion = "2.1";
+    }
+    return strVersion.cString();
+}
+
 void RtXcastConnector::registerApplications(string strApps)
 {
     LOGINFO("XcastService::registerApplications");

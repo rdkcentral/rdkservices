@@ -71,8 +71,6 @@ namespace WPEFramework
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
         {
 #ifdef ENABLE_ERM
-            int ret;
-
             if ((m_EssRMgr = EssRMgrCreate()) == NULL)
             {
                 LOGERR("EssRMgrCreate() failed");
