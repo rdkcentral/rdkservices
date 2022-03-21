@@ -41,12 +41,15 @@ include_directories(../LocationSync
         ../DeviceIdentification
         ../DeviceDiagnostics
         ../helpers
+	../FrameRate
+	Dependency
         )
 link_directories(../LocationSync
         ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
         ../DeviceDiagnostics
+	../FrameRate
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -57,6 +60,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
         ${NAMESPACE}DeviceIdentification
+	${NAMESPACE}FrameRate
         )
 
 target_include_directories(${PROJECT_NAME}
