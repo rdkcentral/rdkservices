@@ -1,11 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
-
-THREADS="-j"
-MODE="Release"
-
-ROOT=$(pwd)
 
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
@@ -19,10 +14,12 @@ THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
-INTERFACES_REV=4ec7c6f8e14b152143a105a41f4c62b6723372c4
+INTERFACES_REV=1ed7eee3e833ed2f7d6a39624f0e32d1659d3f03
+
+DEPENDENCY_PATH=$(pwd)
 
 checkPython() {
-  case "$(python --version)" in
+  case "$(python3 --version)" in
   *"$1"*) true ;;
   *) false ;;
   esac
@@ -36,7 +33,7 @@ checkPip() {
 }
 
 checkInstalled() {
-  dpkg -s "$1" > /dev/null 2>&1
+  pkg-config "$1"
   case "$?" in
   0) true ;;
   *) false ;;
@@ -51,7 +48,7 @@ checkWPEFramework() {
   sleep 5
 
   curl -d '{"jsonrpc":"2.0","id":0,"method":"Controller.1.processinfo"}' "http://${THUNDER_BINDING}:${THUNDER_PORT}/jsonrpc"
-  kill -9 "$(pidof WPEFramework)"
+#  kill -9 "$(pidof WPEFramework)"
 }
 
 installJsonref() {
@@ -83,7 +80,7 @@ buildAndInstallTools() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DGENERIC_CMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
 
-  make -C build/ThunderTools $THREADS && make -C build/ThunderTools install $THREADS
+  make -C build/ThunderTools && make -C build/ThunderTools install
 }
 
 buildAndInstallThunder() {
@@ -92,9 +89,8 @@ buildAndInstallThunder() {
   cmake -HThunder -Bbuild/Thunder \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DBUILD_TYPE=Debug -DBINDING="${THUNDER_BINDING}" -DPORT="${THUNDER_PORT}"
-
-  make -C build/Thunder $THREADS && make -C build/Thunder install $THREADS
+    -DBUILD_TYPE=Debug -DBINDING="${THUNDER_BINDING}" -DPORT="${THUNDER_PORT}" \
+  make -C build/Thunder && make -C build/Thunder install
 }
 
 buildAndInstallThunderInterfaces() {
@@ -102,9 +98,8 @@ buildAndInstallThunderInterfaces() {
 
   cmake -HThunderInterfaces -Bbuild/ThunderInterfaces \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
-    -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
-
-  make -C build/ThunderInterfaces $THREADS && make -C build/ThunderInterfaces install $THREADS
+    -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
+  make -C build/ThunderInterfaces && make -C build/ThunderInterfaces install
 }
 
 buildAndInstallRdkservices() {
@@ -113,60 +108,47 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DCMAKE_CXX_FLAGS="-I ${ROOT}/Source --coverage -Wall -Werror -Wno-unused-parameter" \
+    -DDS_INCLUDE_DIRS="${DEPENDENCY_PATH}/Dependency" \
     -DCOMCAST_CONFIG=OFF \
-    -DPLUGIN_DEVICEDIAGNOSTICS=ON \
-    -DPLUGIN_LOCATIONSYNC=ON \
+    -DPLUGIN_LOCATIONSYNC=ON -DPLUGIN_LOCATIONSYNC_URI="http://jsonip.metrological.com/?maf=true" \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
-    -DPLUGIN_DEVICEIDENTIFICATION=ON -DBUILD_REALTEK=ON \
-    -DRDK_SERVICES_TEST=ON \
-    -DCMAKE_BUILD_TYPE=$MODE
+    -DPLUGIN_FRAMERATE=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON \
+    -DRDK_SERVICES_TEST=ON
 
-  make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
+  make -C build/rdkservices && make -C build/rdkservices install
 }
 
-checkRequirements() {
-  if ! checkPython "Python 3"; then
-    echo "python3 should be installed (for Thunder)"
-    exit 1
-  fi
-  if ! checkPip "python 3"; then
-    echo "pip3 should be installed (for Thunder)"
-    exit 1
-  fi
+if ! checkPython "Python 3"; then
+  echo "python3 should be installed (for Thunder)"
+  exit 1
+fi
+if ! checkPip "python 3"; then
+  echo "pip3 should be installed (for Thunder)"
+  exit 1
+fi
 
-  if ! checkInstalled "sqlite3"; then
-    echo "sqlite3 should be installed (for PersistentStore)"
-    exit 1
-  fi
-}
-
-parseArgs() {
-  while getopts "j:D" option; do
-    case $option in
-        j)
-          THREADS="${OPTARG}"
-          ;;
-        D)
-          MODE="Debug"
-          ;;
-    esac
-  done
-}
-
-parseArgs
-
-checkRequirements
+if ! checkInstalled "glib-2.0"; then
+  echo "glib-2.0 should be installed (for PersistentStore)"
+  exit 1
+fi
+if ! checkInstalled "sqlite3"; then
+  echo "sqlite3 should be installed (for PersistentStore)"
+  exit 1
+fi
 
 installJsonref
 
 checkoutThunder
+
 buildAndInstallTools
 
 buildAndInstallThunder
 
 checkoutThunderInterfaces
+
 buildAndInstallThunderInterfaces
 
 checkWPEFramework

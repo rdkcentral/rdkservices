@@ -22,9 +22,7 @@
 #include <mutex>
 
 #include "Module.h"
-#include "tptimer.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "libIARM.h"
 
 namespace WPEFramework {
 
@@ -42,7 +40,9 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class FrameRate : public AbstractPlugin {
+	
+	class TpTimer;
+        class FrameRate : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -77,6 +77,12 @@ namespace WPEFramework {
 	    void InitializeIARM();
             void DeinitializeIARM();
 
+            virtual string Information() const override;
+
+            BEGIN_INTERFACE_MAP(MODULE_NAME)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
             void frameRatePreChange();
             static void FrameRatePreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
@@ -99,8 +105,7 @@ namespace WPEFramework {
             int m_totalFpsValues;
             int m_numberOfFpsUpdates;
             bool m_fpsCollectionInProgress;
-            //QTimer m_reportFpsTimer;
-            TpTimer m_reportFpsTimer;
+	    Core::ProxyType<TpTimer> m_reportFpsTimer;
             int m_lastFpsValue;
             
             std::mutex m_callMutex;
