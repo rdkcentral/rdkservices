@@ -1346,7 +1346,7 @@
                 "type":"object",
                 "properties": {
                     "zoomSetting": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/definitions/zoomSetting"
                     },
                     "success": {
                         "$ref": "#/definitions/success"
@@ -1965,7 +1965,7 @@
                 "type":"object",
                 "properties":{
                     "zoomSetting": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/definitions/zoomSetting"
                     }
                 },
                 "required":[
