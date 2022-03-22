@@ -29,9 +29,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
-        ${TESTS}
+        Tests/LocationSyncTest.cpp
+        Tests/PersistentStoreTest.cpp
+        Tests/SecurityAgentTest.cpp
+	Tests/FrameRateTest.cpp
         Module.cpp
         )
 
@@ -41,22 +43,25 @@ include_directories(../LocationSync
         ../DeviceIdentification
         ../DeviceDiagnostics
         ../helpers
+	../FrameRate
+	Dependency
         )
 link_directories(../LocationSync
         ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
         ../DeviceDiagnostics
+	../FrameRate
         )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
         ${NAMESPACE}DeviceIdentification
+	${NAMESPACE}FrameRate
         )
 
 target_include_directories(${PROJECT_NAME}
@@ -64,7 +69,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
         Source
-        Mocks
+	Mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
