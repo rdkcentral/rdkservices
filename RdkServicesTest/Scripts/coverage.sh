@@ -3,7 +3,7 @@
 set -e
 
 checkInstalled() {
-  dpkg -s "$1" > /dev/null 2>&1
+  command -v "$1"
   case "$?" in
   0) true ;;
   *) false ;;
