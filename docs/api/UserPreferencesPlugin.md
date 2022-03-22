@@ -84,12 +84,12 @@ UserPreferences interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getUILanguage ](#method.getUILanguage ) | Returns the preferred user interface language |
+| [getUILanguage](#method.getUILanguage) | Returns the preferred user interface language |
 | [setUILanguage](#method.setUILanguage) | Sets the preferred user interface language |
 
 
-<a name="method.getUILanguage_"></a>
-## *getUILanguage  [<sup>method</sup>](#head.Methods)*
+<a name="method.getUILanguage"></a>
+## *getUILanguage [<sup>method</sup>](#head.Methods)*
 
 Returns the preferred user interface language.
 
@@ -113,7 +113,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserPreferences.1.getUILanguage "
+    "method": "org.rdk.UserPreferences.1.getUILanguage"
 }
 ```
 
