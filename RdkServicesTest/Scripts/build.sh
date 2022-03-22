@@ -1,11 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
-THREADS="-j"
 MODE="Release"
-
-ROOT=$(pwd)
+TESTS_ONLY=0
 
 THUNDER_ROOT=$(pwd)/thunder
 THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
@@ -35,8 +33,8 @@ checkPip() {
   esac
 }
 
-checkInstalled() {
-  dpkg -s "$1" > /dev/null 2>&1
+checkPackage() {
+  pkg-config "$1"
   case "$?" in
   0) true ;;
   *) false ;;
@@ -83,7 +81,7 @@ buildAndInstallTools() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DGENERIC_CMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
 
-  make -C build/ThunderTools $THREADS && make -C build/ThunderTools install $THREADS
+  make -C build/ThunderTools && make -C build/ThunderTools install
 }
 
 buildAndInstallThunder() {
@@ -94,7 +92,7 @@ buildAndInstallThunder() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DBUILD_TYPE=Debug -DBINDING="${THUNDER_BINDING}" -DPORT="${THUNDER_PORT}"
 
-  make -C build/Thunder $THREADS && make -C build/Thunder install $THREADS
+  make -C build/Thunder && make -C build/Thunder install
 }
 
 buildAndInstallThunderInterfaces() {
@@ -104,7 +102,7 @@ buildAndInstallThunderInterfaces() {
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake"
 
-  make -C build/ThunderInterfaces $THREADS && make -C build/ThunderInterfaces install $THREADS
+  make -C build/ThunderInterfaces && make -C build/ThunderInterfaces install
 }
 
 buildAndInstallRdkservices() {
@@ -113,7 +111,7 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DCMAKE_CXX_FLAGS="-I ${ROOT}/Source --coverage -Wall -Werror -Wno-unused-parameter" \
+    -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror -Wno-unused-parameter" \
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON \
@@ -123,7 +121,7 @@ buildAndInstallRdkservices() {
     -DRDK_SERVICES_TEST=ON \
     -DCMAKE_BUILD_TYPE=$MODE
 
-  make -C build/rdkservices $THREADS && make -C build/rdkservices install $THREADS
+  make -C build/rdkservices && make -C build/rdkservices install
 }
 
 checkRequirements() {
@@ -136,40 +134,42 @@ checkRequirements() {
     exit 1
   fi
 
-  if ! checkInstalled "sqlite3"; then
+  if ! checkPackage "sqlite3"; then
     echo "sqlite3 should be installed (for PersistentStore)"
     exit 1
   fi
 }
 
-parseArgs() {
-  while getopts "j:D" option; do
-    case $option in
-        j)
-          THREADS="${OPTARG}"
-          ;;
-        D)
-          MODE="Debug"
-          ;;
-    esac
-  done
-}
+while getopts "Dt" option; do
+  case $option in
+  D)
+    MODE="Debug"
+    ;;
+  t)
+    TESTS_ONLY=1
+    ;;
+  *) ;;
 
-parseArgs
+  esac
+done
 
 checkRequirements
 
 installJsonref
 
-checkoutThunder
-buildAndInstallTools
+if [ "${TESTS_ONLY}" != "1" ]; then
 
-buildAndInstallThunder
+  checkoutThunder
+  buildAndInstallTools
 
-checkoutThunderInterfaces
-buildAndInstallThunderInterfaces
+  buildAndInstallThunder
 
-checkWPEFramework
+  checkoutThunderInterfaces
+  buildAndInstallThunderInterfaces
+
+  checkWPEFramework
+
+fi
 
 buildAndInstallRdkservices
 

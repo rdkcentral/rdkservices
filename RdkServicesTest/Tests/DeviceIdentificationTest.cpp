@@ -2,17 +2,45 @@
 
 #include "DeviceIdentification.h"
 
-#include "DeviceImplementation.h"
 #include "ServiceMock.h"
 #include "Source/SystemInfo.h"
 
-namespace WPEFramework {
-namespace Plugin {
-    SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
-}
+using namespace WPEFramework;
+
+namespace {
+const string testChipset = _T("testChipset");
+const string testFirmwareVersion = _T("testFirmwareVersion");
+const string testId = _T("testIdentity");
+const string deviceId = _T("WPEdGVzdElkZW50aXR5");
 }
 
-using namespace WPEFramework;
+namespace WPEFramework {
+namespace Plugin {
+
+    class DeviceImplementation : public Exchange::IDeviceProperties,
+                                 public PluginHost::ISubSystem::IIdentifier {
+    public:
+        virtual ~DeviceImplementation() = default;
+
+        const string Chipset() const override { return testChipset; }
+        const string FirmwareVersion() const override { return testFirmwareVersion; }
+        uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+        {
+            ::memcpy(buffer, testId.c_str(), testId.length());
+
+            return testId.length();
+        }
+
+        BEGIN_INTERFACE_MAP(DeviceImplementation)
+        INTERFACE_ENTRY(Exchange::IDeviceProperties)
+        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+        END_INTERFACE_MAP
+    };
+
+    SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+
+}
+}
 
 class DeviceIdentificationTestFixture : public ::testing::Test {
 protected:
@@ -20,8 +48,6 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     Core::Sink<SystemInfo> subSystem;
-    Exchange::IDeviceProperties* device;
-    PluginHost::ISubSystem::IIdentifier* identifier;
     ServiceMock service;
     string response;
 
@@ -36,12 +62,12 @@ protected:
     }
 };
 
-TEST_F(DeviceIdentificationTestFixture, registeredMethods)
+TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
 }
 
-TEST_F(DeviceIdentificationTestFixture, deviceidentification)
+TEST_F(DeviceIdentificationTestFixture, Property)
 {
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
@@ -60,28 +86,15 @@ TEST_F(DeviceIdentificationTestFixture, deviceidentification)
         .WillRepeatedly(::testing::Invoke(
             [&]() {
                 PluginHost::ISubSystem* result = (&subSystem);
+
                 result->AddRef();
+
                 return result;
             }));
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    device = const_cast<Exchange::IDeviceProperties*>(
-        dynamic_cast<const Exchange::IDeviceProperties*>(
-            subSystem.Get(PluginHost::ISubSystem::IDENTIFIER)));
-
-    EXPECT_TRUE(device != nullptr);
-    EXPECT_EQ(string("testChipset"), device->Chipset());
-    EXPECT_EQ(string("testFirmwareVersion"), device->FirmwareVersion());
-
-    identifier = device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
-
-    EXPECT_TRUE(identifier != nullptr);
-    uint8_t buf[64];
-    buf[0] = identifier->Identifier(sizeof(buf) - 1, &(buf[1]));
-    EXPECT_EQ(string("testIdentity"), string((const char*)&(buf[1]), buf[0]));
-
-    identifier->Release();
+    EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::IDENTIFIER) != nullptr);
 
     EXPECT_EQ(Core::ERROR_NONE,
         handler.Invoke(connection, _T("deviceidentification"), _T(""), response));
@@ -94,9 +107,9 @@ TEST_F(DeviceIdentificationTestFixture, deviceidentification)
     EXPECT_TRUE(params.HasLabel(_T("chipset")));
     EXPECT_TRUE(params.HasLabel(_T("deviceid")));
 
-    EXPECT_EQ(string("testFirmwareVersion"), params[_T("firmwareversion")].Value());
-    EXPECT_EQ(string("testChipset"), params[_T("chipset")].Value());
-    EXPECT_EQ(string("WPEdGVzdElkZW50aXR5"), params[_T("deviceid")].Value());
+    EXPECT_EQ(testFirmwareVersion, params[_T("firmwareversion")].Value());
+    EXPECT_EQ(testChipset, params[_T("chipset")].Value());
+    EXPECT_EQ(deviceId, params[_T("deviceid")].Value());
 
     plugin->Deinitialize(&service);
 }
