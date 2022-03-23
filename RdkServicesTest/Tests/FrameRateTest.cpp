@@ -13,12 +13,6 @@ namespace {
 const string iarmName = _T("Thunder_Plugins");
 }
 
-IarmBusImpl* gIarmBusImpl = nullptr;
-
-namespace device {
-HostImpl* gHostImpl = nullptr;
-}
-
 class FrameRateTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::FrameRate> plugin;
@@ -47,14 +41,14 @@ protected:
 
     virtual void SetUp()
     {
-        gIarmBusImpl = &iarmBusImplMock;
-        device::gHostImpl = &hostImplMock;
+        IarmBus::getInstance().impl = &iarmBusImplMock;
+        device::Host::getInstance().impl = &hostImplMock;
     }
 
     virtual void TearDown()
     {
-        gIarmBusImpl = nullptr;
-        device::gHostImpl = nullptr;
+        IarmBus::getInstance().impl = nullptr;
+        device::Host::getInstance().impl = nullptr;
     }
 };
 

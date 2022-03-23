@@ -15,29 +15,44 @@ public:
     virtual IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId) = 0;
 };
 
-extern IarmBusImpl* gIarmBusImpl;
+class IarmBus {
+public:
+    static IarmBus& getInstance()
+    {
+        static IarmBus instance;
+        return instance;
+    }
 
-IARM_Result_t IARM_Bus_Init(const char* name)
-{
-    return gIarmBusImpl->IARM_Bus_Init(name);
-}
+    IarmBusImpl* impl;
 
-IARM_Result_t IARM_Bus_Connect()
-{
-    return gIarmBusImpl->IARM_Bus_Connect();
-}
+    static IARM_Result_t IARM_Bus_Init(const char* name)
+    {
+        return getInstance().impl->IARM_Bus_Init(name);
+    }
 
-IARM_Result_t IARM_Bus_IsConnected(const char* memberName, int* isRegistered)
-{
-    return gIarmBusImpl->IARM_Bus_IsConnected(memberName, isRegistered);
-}
+    static IARM_Result_t IARM_Bus_Connect()
+    {
+        return getInstance().impl->IARM_Bus_Connect();
+    }
 
-IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
-{
-    return gIarmBusImpl->IARM_Bus_RegisterEventHandler(ownerName, eventId, handler);
-}
+    static IARM_Result_t IARM_Bus_IsConnected(const char* memberName, int* isRegistered)
+    {
+        return getInstance().impl->IARM_Bus_IsConnected(memberName, isRegistered);
+    }
 
-IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId)
-{
-    return gIarmBusImpl->IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
-}
+    static IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
+    {
+        return getInstance().impl->IARM_Bus_RegisterEventHandler(ownerName, eventId, handler);
+    }
+
+    static IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId)
+    {
+        return getInstance().impl->IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
+    }
+};
+
+constexpr auto IARM_Bus_Init = &IarmBus::IARM_Bus_Init;
+constexpr auto IARM_Bus_Connect = &IarmBus::IARM_Bus_Connect;
+constexpr auto IARM_Bus_IsConnected = &IarmBus::IARM_Bus_IsConnected;
+constexpr auto IARM_Bus_RegisterEventHandler = &IarmBus::IARM_Bus_RegisterEventHandler;
+constexpr auto IARM_Bus_UnRegisterEventHandler = &IarmBus::IARM_Bus_UnRegisterEventHandler;
