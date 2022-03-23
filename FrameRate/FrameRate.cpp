@@ -20,11 +20,10 @@
 #include "FrameRate.h"
 #include "host.hpp"
 #include "exception.hpp"
-#include "utils.h"
-#include "dsError.h"
 #include "dsMgr.h"
-#include "libIBus.h"
-#include "libIBusDaemon.h"
+
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -56,7 +55,7 @@ namespace WPEFramework
         FrameRate* FrameRate::_instance = nullptr;
 
         FrameRate::FrameRate()
-        : AbstractPlugin(2)
+        : PluginHost::JSONRPC()
           , m_fpsCollectionFrequencyInMs(DEFAULT_FPS_COLLECTION_TIME_IN_MILLISECONDS)
           , m_minFpsValue(DEFAULT_MIN_FPS_VALUE), m_maxFpsValue(DEFAULT_MAX_FPS_VALUE)
           , m_totalFpsValues(0), m_numberOfFpsUpdates(0), m_fpsCollectionInProgress(false), m_lastFpsValue(-1)
@@ -67,16 +66,35 @@ namespace WPEFramework
             Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
             Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
             Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-	    registerMethod(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this, {2});
-            registerMethod(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this, {2});
-            registerMethod(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this, {2});
-            registerMethod(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this, {2});		
+
+            CreateHandler({2});
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this);
 
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
 
         FrameRate::~FrameRate()
         {
+            Unregister(METHOD_SET_COLLECTION_FREQUENCY);
+            Unregister(METHOD_START_FPS_COLLECTION);
+            Unregister(METHOD_STOP_FPS_COLLECTION);
+            Unregister(METHOD_UPDATE_FPS_COLLECTION);
+
+            GetHandler(2)->Unregister(METHOD_SET_COLLECTION_FREQUENCY);
+            GetHandler(2)->Unregister(METHOD_START_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_STOP_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_UPDATE_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_SET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_DISPLAY_FRAME_RATE);
+            GetHandler(2)->Unregister(METHOD_SET_DISPLAY_FRAME_RATE);
         }
 
 	const string FrameRate::Initialize(PluginHost::IShell * /* service */)
@@ -111,6 +129,11 @@ namespace WPEFramework
         {
 		DeinitializeIARM();
     		FrameRate::_instance = nullptr;
+        }
+
+        string FrameRate::Information() const
+        {
+            return (string());
         }
 
         uint32_t FrameRate::setCollectionFrequencyWrapper(const JsonObject& parameters, JsonObject& response)
@@ -377,6 +400,8 @@ namespace WPEFramework
             params["max"] = maxFps;
             
             sendNotify(EVENT_FPS_UPDATE, params);
+
+            GetHandler(2)->Notify(EVENT_FPS_UPDATE, params);
         }
         
         void FrameRate::onReportFpsTimer()
@@ -421,6 +446,8 @@ namespace WPEFramework
         void FrameRate::frameRatePreChange()
         {
             sendNotify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+
+            GetHandler(2)->Notify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
         }
 
         void FrameRate::FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -434,6 +461,8 @@ namespace WPEFramework
         void FrameRate::frameRatePostChange()
         {
             sendNotify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+
+            GetHandler(2)->Notify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
         }
 
         
