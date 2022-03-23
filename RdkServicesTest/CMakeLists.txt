@@ -32,6 +32,7 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
+        Source/hdmiIn.cpp
         Module.cpp
         )
 

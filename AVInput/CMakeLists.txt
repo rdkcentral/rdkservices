@@ -25,7 +25,6 @@ set_source_files_properties(AVInput.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -f
 
 add_library(${MODULE_NAME} SHARED
         AVInput.cpp
-        hdmiIn.cpp
         Module.cpp
         )
 
