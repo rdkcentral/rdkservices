@@ -50,18 +50,6 @@ TEST_F(AVInputTest, RegisterMethod) {
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("numberOfInputs")));
 }
 
-TEST_F(AVInputTest, ServiceNotInitialized) {
-    std::string response;
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("contentProtected"), _T(""), response));
-    EXPECT_EQ(response, _T("{\"isContentProtected\":true,\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE,  handler_.Invoke(connection_, _T("currentVideoMode"),_T(""),response));
-    EXPECT_EQ(response, _T("{\"message\":\"org.rdk.HdmiInput plugin is not ready\",\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("numberOfInputs"), _T(""), response));
-    EXPECT_EQ(response, _T("{\"message\":\"org.rdk.HdmiInput plugin is not ready\",\"success\":false}"));
-}
-
 TEST_F(AVInputTest, ServiceInitialized) {
     // Initialize and activate plugin
     EXPECT_EQ(std::string(""), avInput_->Initialize(nullptr));
@@ -71,10 +59,10 @@ TEST_F(AVInputTest, ServiceInitialized) {
     EXPECT_EQ(response, _T("{\"isContentProtected\":true,\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE,  handler_.Invoke(connection_, _T("currentVideoMode"),_T(""),response));
-    EXPECT_EQ(response, _T("{\"currentVideoMode\":\"1080p60fps\",\"message\":\"Success\",\"success\":true}"));
+    EXPECT_EQ(response, _T("{\"currentVideoMode\":\"1080p60fps\",\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("numberOfInputs"), _T(""), response));
-    EXPECT_EQ(response, _T("{\"numberOfInputs\":1,\"message\":\"Success\",\"success\":true}"));
+    EXPECT_EQ(response, _T("{\"numberOfInputs\":1,\"success\":true}"));
 
     // cleanup
     avInput_->Deinitialize(nullptr);

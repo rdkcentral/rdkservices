@@ -2,6 +2,7 @@
 
 set -e
 
+ROOT=$(pwd)
 MODE="Release"
 TESTS_ONLY=0
 
@@ -111,7 +112,7 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror -Wno-unused-parameter" \
+    -DCMAKE_CXX_FLAGS="-I ${ROOT}/Source --coverage -Wall -Werror -Wno-unused-parameter" \
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_AVINPUT=ON \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \

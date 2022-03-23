@@ -21,8 +21,11 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Protocols REQUIRED)
 
+set_source_files_properties(AVInput.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -fexceptions")
+
 add_library(${MODULE_NAME} SHARED
         AVInput.cpp
+        hdmiIn.cpp
         Module.cpp
         )
 
@@ -40,13 +43,18 @@ target_link_libraries(${MODULE_NAME}
         )
 
 find_package(DS)
-find_package(IARMBus)
-
-target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-
-target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} )
+if (DS_FOUND)
+        target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+        find_package(IARMBus)
+        if (IARMBus_FOUND)
+        target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+        target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} )
+        else(IARMBus_FOUND)
+        target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${DS_LIBRARIES} )
+        endif(IARMBus_FOUND)
+else (DS_FOUND)
+        target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+endif(DS_FOUND)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
