@@ -117,6 +117,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FRAMERATE = "setFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -183,6 +184,9 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
 #define RETRY_INTERVAL_250MS 250000
+
+#define RDK_SHELL_FPS_MIN 40
+#define RDK_SHELL_FPS_MAX 100
 
 enum FactoryAppLaunchStatus
 {
@@ -782,6 +786,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
+	    registerMethod(RDKSHELL_METHOD_SET_FRAMERATE, &RDKShell::setFrameRate, this);
 
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
@@ -6324,7 +6329,35 @@ namespace WPEFramework {
             enabled = Logger::isFlushingEnabled();
             gRdkShellMutex.unlock();
         }
-
+        
+	 uint32_t RDKShell::setFrameRate(const JsonObject& parameters, JsonObject& response)
+         {
+           LOGINFOMETHOD();
+	   bool result=false;
+	   std::cout<<"kathiravan senewtframerate executed"<<std::endl;
+           if (parameters.HasLabel("framerate"))
+           {
+	    int framerate = parameters["framerate"].Number();
+	     std::cout<<"kathiravan framerate "<<framerate<<std::endl;
+             if((framerate >= RDK_SHELL_FPS_MIN ) && (framerate <= RDK_SHELL_FPS_MAX))
+             {
+	       std::cout<<"kathiravan framerate set"<<std::endl;
+               gCurrentFramerate = framerate;       
+	       result=true;
+             }
+             else
+             {
+               response["message"] = "Frame Rate is out-of-range";
+	       result=false;
+             }
+           }
+	   else
+           {
+	       response["message"] = "please specify Framerate parameter";
+               result = false;
+	   }
+            returnResponse(result);
+	}
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
