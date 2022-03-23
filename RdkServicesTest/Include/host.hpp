@@ -24,8 +24,6 @@ public:
     virtual List<std::reference_wrapper<VideoDevice>> getVideoDevices() = 0;
 };
 
-extern HostImpl* gHostImpl;
-
 class Host {
 public:
     static Host& getInstance()
@@ -34,9 +32,11 @@ public:
         return instance;
     }
 
+    HostImpl* impl;
+
     List<std::reference_wrapper<VideoDevice>> getVideoDevices()
     {
-        return gHostImpl->getVideoDevices();
+        return impl->getVideoDevices();
     }
 };
 
