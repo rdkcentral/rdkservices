@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <fstream>
 
 #include "Module.h"
 
@@ -346,6 +348,17 @@ static GSourceFuncs _handlerIntervention =
             delete implementation;
             implementation = nullptr;
         }
+    }
+
+    std::vector<std::string> splitString(const std::string &s, char delim)
+    {
+        std::vector<std::string> elems;
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(std::move(item));
+        }
+        return elems;
     }
 
     class WebKitImplementation : public Core::Thread,
@@ -738,6 +751,12 @@ static GSourceFuncs _handlerIntervention =
             , _unresponsiveReplyNum(0)
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
+            , _webProcessState(WebProcessCold)
+            , _didLogLaunchMetrics(false)
+            , _pageLoadStart(-1)
+            , _idleStart(-1)
+            , _pageLoadNum(0)
+            , _loadFailed(false)
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -1133,6 +1152,7 @@ static GSourceFuncs _handlerIntervention =
                         object->_adminLock.Unlock();
 
                         object->SetResponseHTTPStatusCode(-1);
+                        object->_pageLoadStart = g_get_monotonic_time();
 #ifdef WEBKIT_GLIB_API
                         webkit_web_view_load_uri(object->_view, object->_URL.c_str());
 #else
@@ -1141,6 +1161,12 @@ static GSourceFuncs _handlerIntervention =
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
 #endif
+                        if (url != "about:blank")
+                        {
+                            ++object->_pageLoadNum;
+                            object->collectMetricsOnLoadStart();
+                        }
+
                         return G_SOURCE_REMOVE;
                     },
                     data,
@@ -1559,6 +1585,13 @@ static GSourceFuncs _handlerIntervention =
                 }
             }
 
+            if (URL != "about:blank")
+            {
+                logLaunchMetrics();
+            }
+            _webProcessState = WebProcessHot;
+            _loadFailed = false;
+
             _adminLock.Unlock();
         }
         void OnLoadFailed()
@@ -1571,6 +1604,8 @@ static GSourceFuncs _handlerIntervention =
                 (*index)->LoadFailed(_URL);
                 index++;
             }
+
+            _loadFailed = true;
 
             _adminLock.Unlock();
         }
@@ -1911,6 +1946,124 @@ static GSourceFuncs _handlerIntervention =
             return _page;
         }
 #endif
+
+        void collectMetricsOnLoadStart()
+        {
+            if (_didLogLaunchMetrics)
+               return;
+
+            auto getProcessLaunchStateString = [&]() -> std::string
+            {
+                switch(_webProcessState)
+                {
+                    case WebProcessCold: return "Cold";
+                    case WebProcessHot:  return "Hot";
+                }
+                return "Unknown";
+            };
+
+            auto addSystemInfo = [&](JsonObject &metrics)
+            {
+                struct sysinfo info;
+                if (sysinfo(&info) != 0)
+                {
+                    SYSLOG(Trace::Error, (_T("Failed to get sysinfo error=%d."), errno));
+                    return;
+                }
+                static const long NPROC_ONLN = sysconf(_SC_NPROCESSORS_ONLN);
+                static const float LA_SCALE = static_cast<float>(1 << SI_LOAD_SHIFT);
+                metrics.Set("MemTotal", std::to_string(info.totalram * info.mem_unit));
+                metrics.Set("MemFree", std::to_string(info.freeram * info.mem_unit));
+                metrics.Set("MemSwapped", std::to_string((info.totalswap - info.freeswap) * info.mem_unit));
+                metrics.Set("Uptime", std::to_string(info.uptime));
+                metrics.Set("LoadAvg", std::to_string(info.loads[0] / LA_SCALE) + " " +
+                                 std::to_string(info.loads[1] / LA_SCALE) + " " +
+                                 std::to_string(info.loads[2] / LA_SCALE));
+                metrics.Set("NProc", std::to_string(NPROC_ONLN));
+            };
+            auto parseRssFromStatmLine = [&](const std::string &statmLine, uint32_t &inBytes)
+            {
+                std::vector<std::string> items = splitString(statmLine, ' ');
+                if (items.size() < 7)
+                {
+                    SYSLOG(Trace::Error, (_T("Unexpected size(%u) of 'statm' line."), items.size()));
+                    return;
+                }
+                static const long PageSize = sysconf(_SC_PAGE_SIZE);
+                unsigned long rssPageNum = std::stoul(items[1]);
+                inBytes = rssPageNum * PageSize;
+                return;
+            };
+
+            auto readStatmLine = [&] (pid_t pid, std::string &statmLine) -> bool
+            {
+                if (pid <= 1)
+                {
+                    SYSLOG(Trace::Error, (_T("Cannot get stats for process id = %u"), pid));
+                    return false;
+                }
+                std::string procPath = std::string("/proc/") + std::to_string(pid) + "/statm";
+                std::ifstream statmStream(procPath);
+                if (!statmStream.is_open() || !std::getline(statmStream, statmLine))
+                {
+                    SYSLOG(Trace::Error, (_T("Cannot read process 'statm' file for process id = %u"), pid));
+                    return false;
+                }
+                return true;
+            };
+
+            auto addProcessInfo = [&](JsonObject &metrics)
+            {
+
+                pid_t webprocessPID = GetWebGetProcessIdentifier();
+                uint32_t rssInBytes = 0;
+                std::string statmLine;
+                if (readStatmLine(webprocessPID, statmLine))
+                {
+                    parseRssFromStatmLine(statmLine, rssInBytes);
+                }
+
+                metrics.Set("ProcessRSS", std::to_string(rssInBytes));
+                metrics.Set("ProcessPID", std::to_string(webprocessPID));
+                metrics.Set("AppName", _URL.c_str());
+                metrics.Set("webProcessStatmLine", statmLine);
+            };
+
+            JsonObject metrics;
+            metrics.Set("LaunchState", getProcessLaunchStateString());
+            metrics.Set("AppType", "Web");
+
+            addSystemInfo(metrics);
+            addProcessInfo(metrics);
+
+            gint64 idleTime = 0;
+            if (_idleStart > 0) {
+                idleTime = (g_get_monotonic_time() - _idleStart) / G_USEC_PER_SEC;
+                _idleStart = -1;
+            }
+            metrics.Set("webProcessIdleTime", std::to_string(idleTime));
+
+            std::swap(_launchMetrics, metrics);
+        }
+
+        void logLaunchMetrics()
+        {
+            if (_didLogLaunchMetrics)
+                return;
+
+            gint64 pageLoadTimeMs = (g_get_monotonic_time() - _pageLoadStart) / 1000;
+            _launchMetrics.Set("LaunchTime", std::to_string(pageLoadTimeMs));
+            _launchMetrics.Set("AppLoadSuccess", std::to_string(!_loadFailed));
+            _launchMetrics.Set("webPageLoadNum", std::to_string(_pageLoadNum));
+
+            std::string str;
+            _launchMetrics.ToString(str);
+            SYSLOG(Logging::Notification, (_T( "Launch Metrics: %s "), str.c_str()));
+
+            _pageLoadStart = -1;
+            _didLogLaunchMetrics = true;
+        }
+
         BEGIN_INTERFACE_MAP(WebKitImplementation)
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
@@ -1984,6 +2137,10 @@ static GSourceFuncs _handlerIntervention =
                         WKViewSetViewState(object->_view, (object->_hidden ? 0 : kWKViewStateIsVisible));
 #endif
                         object->OnStateChange(PluginHost::IStateControl::SUSPENDED);
+
+                        object->_loadFailed = false;
+                        object->_didLogLaunchMetrics= false;
+                        object->_idleStart = g_get_monotonic_time();
 
                         TRACE_GLOBAL(Trace::Information, (_T("Internal Suspend Notification took %d mS."), static_cast<uint32_t>(Core::Time::Now().Ticks() - object->_time)));
 
@@ -2267,6 +2424,10 @@ static GSourceFuncs _handlerIntervention =
 
             URL(static_cast<const string>(_URL));
 
+            _loadFailed = false;
+            _pageLoadNum = 0;
+            _idleStart = g_get_monotonic_time();
+
             // Move into the correct state, as requested
             auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(_view));
             _adminLock.Lock();
@@ -2487,6 +2648,10 @@ static GSourceFuncs _handlerIntervention =
 
             URL(static_cast<const string>(_URL));
 
+           _loadFailed = false;
+           _pageLoadNum = 0;
+           _idleStart = g_get_monotonic_time();
+
             // Move into the correct state, as requested
             _adminLock.Lock();
             if ((_state == PluginHost::IStateControl::SUSPENDED) || (_state == PluginHost::IStateControl::UNINITIALIZED)) {
@@ -2545,6 +2710,26 @@ static GSourceFuncs _handlerIntervention =
 #endif
         }
 
+        pid_t GetWebGetProcessIdentifier() {
+#ifdef WEBKIT_GLIB_API
+            if (_webprocessPID == -1) {
+              // FIXME: need a webkit_ API to query process id
+              _webprocessPID = ([]() -> pid_t {
+                auto children = Core::ProcessInfo::Iterator(Core::ProcessInfo().Id());
+                while (children.Next()) {
+                  if (children.Current().Name() == "WPEWebProcess") {
+                    return children.Current().Id();
+                  }
+                }
+                return -1;
+              })();
+            }
+            return _webprocessPID;
+#else
+            return WKPageGetProcessIdentifier(GetPage());
+#endif
+        }
+
         void DidReceiveWebProcessResponsivenessReply(bool isWebProcessResponsive)
         {
             if (_config.WatchDogHangThresholdInSeconds.Value() == 0 || _config.WatchDogCheckTimeoutInSeconds.Value() == 0)
@@ -2562,24 +2747,12 @@ static GSourceFuncs _handlerIntervention =
             if (isWebProcessResponsive && _unresponsiveReplyNum == 0)
                 return;
 
+            pid_t webprocessPID = GetWebGetProcessIdentifier();
+
 #ifdef WEBKIT_GLIB_API
             std::string activeURL(webkit_web_view_get_uri(_view));
-            if (_webprocessPID == -1) {
-              // FIXME: need a webkit_ API to query process id
-              _webprocessPID = ([]() -> pid_t {
-                auto children = Core::ProcessInfo::Iterator(Core::ProcessInfo().Id());
-                while (children.Next()) {
-                  if (children.Current().Name() == "WPEWebProcess") {
-                    return children.Current().Id();
-                  }
-                }
-                return -1;
-              })();
-            }
-            pid_t webprocessPID = _webprocessPID;
 #else
             std::string activeURL = GetPageActiveURL(GetPage());
-            pid_t webprocessPID = WKPageGetProcessIdentifier(GetPage());
 #endif
 
             if (isWebProcessResponsive) {
@@ -2694,6 +2867,17 @@ static GSourceFuncs _handlerIntervention =
         uint32_t _unresponsiveReplyNum;
         unsigned _frameCount;
         gint64 _lastDumpTime;
+        enum WebProcessLaunchState
+        {
+            WebProcessCold,  // the process is launching
+            WebProcessHot    // the process is up and ready
+        }_webProcessState;
+        bool _didLogLaunchMetrics;
+        gint64 _pageLoadStart;
+        gint64 _idleStart;
+        guint _pageLoadNum;
+        JsonObject _launchMetrics;
+        bool _loadFailed;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
