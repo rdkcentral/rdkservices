@@ -19,6 +19,8 @@ INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
 INTERFACES_REV=4ec7c6f8e14b152143a105a41f4c62b6723372c4
 
+INCLUDE_DIR=$(pwd)/Include
+
 checkPython() {
   case "$(python --version)" in
   *"$1"*) true ;;
@@ -111,13 +113,15 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror -Wno-unused-parameter" \
+    -DCMAKE_CXX_FLAGS="-I ${INCLUDE_DIR} --coverage -Wall -Werror -Wno-unused-parameter" \
     -DCOMCAST_CONFIG=OFF \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
     -DPLUGIN_DEVICEIDENTIFICATION=ON -DBUILD_REALTEK=ON \
+    -DPLUGIN_FRAMERATE=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON \
     -DRDK_SERVICES_TEST=ON \
     -DCMAKE_BUILD_TYPE=$MODE
 
