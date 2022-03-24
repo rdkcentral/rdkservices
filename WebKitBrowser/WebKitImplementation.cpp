@@ -3322,11 +3322,21 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void didFailNavigation(WKPageRef, WKNavigationRef, WKErrorRef error, WKTypeRef, const void *clientInfo)
     {
         const int WebKitNetworkErrorCancelled = 302;
+        const auto errorCode = WKErrorGetErrorCode(error);
+        const auto errorCodeDescription = WKErrorCopyLocalizedDescription(error);
         auto errorDomain = WKErrorCopyDomain(error);
         bool isCanceled =
             errorDomain &&
             WKStringIsEqualToUTF8CString(errorDomain, "WebKitNetworkError") &&
-            WebKitNetworkErrorCancelled == WKErrorGetErrorCode(error);
+            WebKitNetworkErrorCancelled == errorCode;
+
+        TRACE_L1(
+            "errorCode=%d (%s), domain=%s",
+            errorCode,
+            WebKit::Utils::WKStringToString(errorCodeDescription).c_str(),
+            WebKit::Utils::WKStringToString(errorDomain).c_str());
+
+        WKRelease(errorCodeDescription);
         WKRelease(errorDomain);
 
         if (isCanceled)
