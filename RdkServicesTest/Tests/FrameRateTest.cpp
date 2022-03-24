@@ -2,8 +2,10 @@
 
 #include "FrameRate.h"
 
+#include "FactoriesImplementation.h"
 #include "HostMock.h"
 #include "IarmBusMock.h"
+#include "ServiceMock.h"
 #include "VideoDeviceMock.h"
 #include "dsMgr.h"
 
@@ -27,6 +29,9 @@ protected:
     int frfmode;
     string framerate;
     string response;
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
 
     FrameRateTestFixture()
         : plugin(Core::ProxyType<Plugin::FrameRate>::Create())
@@ -34,9 +39,11 @@ protected:
         , handlerV2(*(plugin->GetHandler(2)))
         , connection(1, 0)
     {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~FrameRateTestFixture()
     {
+        PluginHost::IFactories::Assign(nullptr);
     }
 
     virtual void SetUp()
@@ -202,6 +209,36 @@ TEST_F(FrameRateTestFixture, Plugin)
                 return result;
             }));
 
+    // IShell expectations
+
+    // called by FrameRate::frameRatePreChange, FrameRate::frameRatePostChange
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.FrameRate.onDisplayFrameRateChanging\","
+                                          "\"params\":{}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            }))
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.FrameRate.onDisplayFrameRateChanged\","
+                                          "\"params\":{}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            }));
+
     // Initialize
 
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
@@ -234,15 +271,30 @@ TEST_F(FrameRateTestFixture, Plugin)
 
     // JSON-RPC events
 
+    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
+    EXPECT_TRUE(dispatcher != nullptr);
+
+    dispatcher->Activate(&service);
+
     EXPECT_TRUE(handlerOnDisplayFrameRateChanging != nullptr);
     EXPECT_TRUE(handlerOnDisplayFrameRateChanged != nullptr);
 
-    // events are logged, there's no way to mock
+    handler.Subscribe(0, _T("onDisplayFrameRateChanging"), _T("org.rdk.FrameRate"), message);
+    handler.Subscribe(0, _T("onDisplayFrameRateChanged"), _T("org.rdk.FrameRate"), message);
+
     handlerOnDisplayFrameRateChanging(
         IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE, nullptr, 0);
 
     handlerOnDisplayFrameRateChanged(
         IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, nullptr, 0);
+
+    handler.Unsubscribe(0, _T("onDisplayFrameRateChanging"), _T("org.rdk.FrameRate"), message);
+    handler.Unsubscribe(0, _T("onDisplayFrameRateChanged"), _T("org.rdk.FrameRate"), message);
+
+    dispatcher->Deactivate();
+
+    dispatcher->Release();
 
     // Deinitialize
 
