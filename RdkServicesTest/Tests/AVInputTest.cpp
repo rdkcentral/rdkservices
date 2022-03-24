@@ -2,8 +2,10 @@
 
 #include "AVInput.h"
 
+#include "FactoriesImplementation.h"
 #include "HdmiInputMock.h"
 #include "IarmBusMock.h"
+#include "ServiceMock.h"
 #include "dsMgr.h"
 
 using namespace WPEFramework;
@@ -21,15 +23,20 @@ protected:
     HdmiInputImplMock hdmiInputImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
     string response;
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
 
     AVInputTestFixture()
         : plugin(Core::ProxyType<Plugin::AVInput>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~AVInputTestFixture()
     {
+        PluginHost::IFactories::Assign(nullptr);
     }
 
     virtual void SetUp()
@@ -141,6 +148,24 @@ TEST_F(AVInputTestFixture, Plugin)
         .Times(1)
         .WillRepeatedly(::testing::Return(string("unknown")));
 
+    // IShell expectations
+
+    // called by AVInput::event_onAVInputActive
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.AVInput.onAVInputActive\","
+                                          "\"params\":{\"url\":\"avin://input0\"}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            }));
+
     // Initialize
 
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
@@ -158,11 +183,24 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // JSON-RPC events
 
+    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
+    EXPECT_TRUE(dispatcher != nullptr);
+
+    dispatcher->Activate(&service);
+
     EXPECT_TRUE(dsHdmiEventHandler != nullptr);
 
-    // events are logged, there's no way to mock
+    handler.Subscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
+
     dsHdmiEventHandler(
         IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, nullptr, 0);
+
+    handler.Unsubscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
+
+    dispatcher->Deactivate();
+
+    dispatcher->Release();
 
     // Deinitialize
 
