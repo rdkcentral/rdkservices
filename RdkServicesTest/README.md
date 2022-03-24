@@ -36,6 +36,7 @@ Make sure you have package _valgrind_.
 ```shell script
 cd RdkServicesTest
 ./Scripts/coverage.sh
+python -m webbrowser coverage/index.html
 ```
 
 This generates a coverage report in HTML.
