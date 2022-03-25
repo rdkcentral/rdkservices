@@ -31,6 +31,7 @@ const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
 
 /* Netsrvmgr Based Macros & Structures */
+#define NETSRVMGR_INTERFACES_MAX 16
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
@@ -116,7 +117,7 @@ typedef struct {
 
 typedef struct {
     unsigned char         size;
-    NetSrvMgr_Interface_t interfaces[8];
+    NetSrvMgr_Interface_t interfaces[NETSRVMGR_INTERFACES_MAX];
 } IARM_BUS_NetSrvMgr_InterfaceList_t;
 
 typedef struct {
