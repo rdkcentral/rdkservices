@@ -189,6 +189,20 @@ TEST_F(SecurityAgentTestFixture, rpcCom)
 
     interface->Release();
 
+    /**
+     * IUnknown Release() times out and
+    returns without server response. The next action of the
+    unit test is to destroy the server. When the server
+    is being destroyed it also submits that response hence
+    an ASSERT is hit. The problem with Release()
+    happens due to the following commit in Thunder R2-v1.9
+    e70fe4856c7cef952238decf9730e8b5283658e5 which
+    introduces a lock for IUnknown Release() which
+    blocks both RPC-COM client and server if they are
+    in the same process.
+     */
+    sleep(1);
+
     client.Release();
     engine.Release();
 
