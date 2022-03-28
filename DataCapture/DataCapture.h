@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Module.h"
+#include "audiocapturemgr_iarm.h"
 #include "libIARM.h"
 
 class socket_adaptor;
