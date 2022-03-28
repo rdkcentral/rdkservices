@@ -3,7 +3,7 @@
 set -e
 
 checkInstalled() {
-  dpkg -s "$1" > /dev/null 2>&1
+  command -v "$1"
   case "$?" in
   0) true ;;
   *) false ;;
@@ -15,11 +15,24 @@ if ! checkInstalled "lcov"; then
   exit 1
 fi
 
-lcov -o coverage.info -c -d ./thunder/build/rdkservices
-genhtml -o coverage coverage.info
-rm coverage.info
+lcov \
+  -o coverage.info \
+  -c \
+  -d ./thunder/build/rdkservices
 
-python -m webbrowser coverage/index.html
+lcov \
+  -r coverage.info \
+  '/usr/include/*' \
+  '*/RdkServicesTest/thunder/build/rdkservices/_deps/*' \
+  '*/RdkServicesTest/thunder/install/*' \
+  -o filtered_coverage.info
+
+genhtml \
+  -o coverage \
+  -t "rdkservices coverage" \
+  filtered_coverage.info
+
+rm coverage.info filtered_coverage.info
 
 echo "==== DONE ===="
 

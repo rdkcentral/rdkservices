@@ -113,6 +113,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISP
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_IGNORE_KEY_INPUTS = "ignoreKeyInputs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
@@ -792,8 +793,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
-
-            m_timer.connect(std::bind(&RDKShell::onTimer, this));
+      	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -5223,6 +5223,25 @@ namespace WPEFramework {
                 result = true;
             }
             returnResponse(result);
+        }
+	
+        uint32_t RDKShell::ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("ignore"))
+            {
+                response["message"] = "please specify ignore parameter";
+                returnResponse(false);
+            }
+            bool ignoreKeyValue = parameters["ignore"].Boolean();
+            lockRdkShellMutex();
+            bool ret = CompositorController::ignoreKeyInputs(ignoreKeyValue);
+            gRdkShellMutex.unlock();
+            if (!ret)
+            {
+                response["message"] = "key ignore is not allowed";
+            }
+            returnResponse(ret);
         }
         // Registered methods end
 

@@ -7,11 +7,20 @@ THUNDER_INSTALL_DIR=${THUNDER_ROOT}/install
 VALGRINDLOG=$(pwd)/valgrind_log
 
 checkInstalled() {
-  dpkg -s "$1" > /dev/null 2>&1
+  command -v "$1"
   case "$?" in
   0) true ;;
   *) false ;;
   esac
+}
+
+startDummyServerDeviceDiagnostic() {
+  python Scripts/DeviceDiagnosticMock.py &
+  sleep 0.1
+}
+
+stopDummyServerDeviceDiagnostic() {
+  pkill -f Scripts/DeviceDiagnosticMock.py
 }
 
 if ! checkInstalled "valgrind"; then
@@ -19,25 +28,20 @@ if ! checkInstalled "valgrind"; then
   exit 1
 fi
 
-# Create dummy server for port 10999 to simulate curl response for DeviceDiagnostic
-python Source/DeviceDiagnosticMock.py &
-
-# Waiting for server startup
-sleep 0.1
+startDummyServerDeviceDiagnostic
 
 PATH=${THUNDER_INSTALL_DIR}/usr/bin:${PATH} \
-LD_LIBRARY_PATH=${THUNDER_INSTALL_DIR}/usr/lib:${THUNDER_INSTALL_DIR}/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH} \
-valgrind \
---tool=memcheck \
---log-file="${VALGRINDLOG}" \
---leak-check=yes \
---show-reachable=yes \
---track-fds=yes \
---fair-sched=try \
-RdkServicesTest
+  LD_LIBRARY_PATH=${THUNDER_INSTALL_DIR}/usr/lib:${THUNDER_INSTALL_DIR}/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH} \
+  valgrind \
+  --tool=memcheck \
+  --log-file="${VALGRINDLOG}" \
+  --leak-check=yes \
+  --show-reachable=yes \
+  --track-fds=yes \
+  --fair-sched=try \
+  RdkServicesTest
 
-# Stop dummy server
-pkill -f "Source/DeviceDiagnosticMock.py"
+stopDummyServerDeviceDiagnostic
 
 echo "==== DONE ===="
 

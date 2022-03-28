@@ -24,6 +24,10 @@
 
 #include <core/JSON.h>
 
+#if defined(ENABLE_AAMP_JSBINDINGS)
+#include "AAMPJSBindings.h"
+#endif
+
 namespace WPEFramework {
 namespace WebKit {
 
@@ -75,6 +79,12 @@ void SetRequestHeaders(WebKitWebPage* page, WebKitUserMessage* message)
     }
     g_variant_get(parameters, "&s", &headersPtr);
     string headersStr = headersPtr;
+
+#if defined(ENABLE_AAMP_JSBINDINGS)
+    // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set
+    JavaScript::AAMP::SetHttpHeaders(headersStr.c_str());
+#endif
+
     if (headersStr.empty()) {
         RemoveRequestHeaders(page);
         return;
