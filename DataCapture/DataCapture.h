@@ -20,16 +20,13 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
-#include "libIBus.h"
-//#include "irMgr.h"
+#include "libIARM.h"
 
 class socket_adaptor;
 
 namespace WPEFramework {
     namespace Plugin {
-        class DataCapture : public AbstractPlugin {
+        class DataCapture : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             DataCapture();
             virtual ~DataCapture();
@@ -37,6 +34,11 @@ namespace WPEFramework {
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
             void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+            BEGIN_INTERFACE_MAP(MODULE_NAME)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public/*members*/:
             static DataCapture* _instance;

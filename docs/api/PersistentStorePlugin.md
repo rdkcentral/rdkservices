@@ -458,9 +458,10 @@ Sets the value of a key in the the specified namespace.
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
-| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|.
+| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|
+| `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |.
 
-Also see: [onStorageExceeded](#event.onStorageExceeded)
+Also see: [onStorageExceeded](#event.onStorageExceeded), [onValueChanged](#event.onValueChanged)
 
 ### Parameters
 
@@ -519,6 +520,7 @@ PersistentStore interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onStorageExceeded](#event.onStorageExceeded) | Triggered when the storage size has surpassed the storage capacity |
+| [onValueChanged](#event.onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
 
 
 <a name="event.onStorageExceeded"></a>
@@ -536,6 +538,34 @@ This event carries no parameters.
 {
     "jsonrpc": "2.0",
     "method": "client.events.1.onStorageExceeded"
+}
+```
+
+<a name="event.onValueChanged"></a>
+## *onValueChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered whenever any of the values stored are changed using setValue.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
+| params.key | string | The key name as a valid UTF-8 string |
+| params.value | string | The key value. Values are capped at 1000 characters in size |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onValueChanged",
+    "params": {
+        "namespace": "ns1",
+        "key": "key1",
+        "value": "value1"
+    }
 }
 ```
 

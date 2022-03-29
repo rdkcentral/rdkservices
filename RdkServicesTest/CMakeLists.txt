@@ -20,29 +20,30 @@ project(RdkServicesTest)
 
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(${NAMESPACE}Protocols REQUIRED)
-find_package(${NAMESPACE}SecurityUtil REQUIRED)
+find_package(${NAMESPACE}Plugins REQUIRED)
 
-find_package(GTest REQUIRED)
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+FetchContent_MakeAvailable(googletest)
 
-file(GLOB TEST_FILES
-        ../PersistentStore/PersistentStoreTest.cpp
-        ../SecurityAgent/SecurityAgentTest.cpp
-        ../LoggingPreferences/LoggingPreferencesTest.cpp
-        )
-
+file(GLOB TESTS Tests/*.cpp)
 add_executable(${PROJECT_NAME}
-        ${TEST_FILES}
+        ${TESTS}
         Module.cpp
-        Source/Link.cpp
-        Source/Web.cpp
-        Source/Token.cpp
         )
+
+include_directories(../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
+link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
 
 target_link_libraries(${PROJECT_NAME}
-        GTest::GTest GTest::Main
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
+        gmock_main
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}LocationSync
+        ${NAMESPACE}PersistentStore
+        ${NAMESPACE}SecurityAgent
         )
 
 target_include_directories(${PROJECT_NAME}
@@ -50,6 +51,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
         Source
+        Mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
