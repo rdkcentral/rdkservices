@@ -138,9 +138,12 @@ checkRequirements() {
     echo "pip3 should be installed (for Thunder)"
     exit 1
   fi
-
   if ! checkPackage "sqlite3"; then
     echo "sqlite3 should be installed (for PersistentStore)"
+    exit 1
+  fi
+  if ! checkPackage "libcurl"; then
+    echo "libcurl should be installed (for DataCapture, DeviceDiagnostics)"
     exit 1
   fi
 }
