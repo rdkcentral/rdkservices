@@ -24,7 +24,10 @@ Make sure you have packages _python3 python3-pip libsqlite3-dev libcurl4-openssl
 
 ```shell script
 cd RdkServicesTest
-./Scripts/run.sh
+./Scripts/run.sh [-d]
+
+options:
+  -d                   Run with vgdb. 'target remote' args: "| vgdb"
 ```
 
 This runs all tests, generates Valgrind report valgrind_log, and coverage info.
