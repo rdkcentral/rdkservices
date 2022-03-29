@@ -13,7 +13,7 @@ THUNDER_PORT=55555
 
 THUNDER_URL=https://github.com/rdkcentral/Thunder
 THUNDER_BRANCH=R2
-THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
+THUNDER_REV=tags/R2-v1.9
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
@@ -138,9 +138,12 @@ checkRequirements() {
     echo "pip3 should be installed (for Thunder)"
     exit 1
   fi
-
   if ! checkPackage "sqlite3"; then
     echo "sqlite3 should be installed (for PersistentStore)"
+    exit 1
+  fi
+  if ! checkPackage "libcurl"; then
+    echo "libcurl should be installed (for DataCapture, DeviceDiagnostics)"
     exit 1
   fi
 }
