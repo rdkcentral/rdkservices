@@ -117,23 +117,9 @@ public:
     {
         EXPECT_CALL(iarmBusImplMock_, IARM_Bus_IsConnected)
             .Times(AtLeast(2))
-            .WillOnce([](const char* memberName, int* isRegistered) {
+            .WillRepeatedly([](const char* memberName, int* isRegistered) {
                 if (iarmName == string(memberName)) {
                     *isRegistered = 0;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            })
-            .WillOnce([](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            })
-            .WillOnce([](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 1;
                     return IARM_RESULT_SUCCESS;
                 }
                 return IARM_RESULT_INVALID_PARAM;
@@ -151,6 +137,51 @@ public:
             .WillOnce(Return(IARM_RESULT_SUCCESS));
 
         EXPECT_EQ(string(""), dataCapture_->Initialize(nullptr));
+    }
+
+    void enableAudioCapture()
+    {
+        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_OPEN) == 0);
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->session_id = 10;
+                    return IARM_RESULT_SUCCESS;
+                })
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_OUTPUT_PROPS) == 0);
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->details.arg_output_props.output.max_buffer_duration = 6;
+                    return IARM_RESULT_SUCCESS;
+                })
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_SET_OUTPUT_PROPERTIES) == 0);
+                    return IARM_RESULT_SUCCESS;
+                })
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_AUDIO_PROPS) == 0);
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    audiocapturemgr::audio_properties_ifce_t answer;
+                    answer.format = acmFormate16BitStereo;
+                    answer.sampling_frequency = acmFreqe48000;
+                    param->details.arg_audio_properties = answer;
+                    return IARM_RESULT_SUCCESS;
+                })
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_START) == 0);
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
+                    return IARM_RESULT_SUCCESS;
+                });
+
+        string response;
+        EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
+        EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
     }
 
 protected:
@@ -186,11 +217,18 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
 {
     initService();
+    enableAudioCapture();
+
+    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0);
+                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                param->result = 0;
+                return IARM_RESULT_SUCCESS;
+            });
 
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
-    EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
-
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
@@ -204,12 +242,21 @@ TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
 TEST_F(DataCaptureTest, ShouldTurnOffAudioCapture)
 {
     initService();
+    enableAudioCapture();
+
+    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_STOP) == 0);
+                return IARM_RESULT_SUCCESS;
+            })
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_CLOSE) == 0);
+                return IARM_RESULT_SUCCESS;
+            });
 
     string response;
-    // Turn on audio capture
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
-    EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
-
     // Turn off audio capture
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":0}"), response));
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
@@ -250,11 +297,20 @@ TEST_F(DataCaptureTest, ShouldUploadData)
                 return Core::ERROR_NONE;
             });
 
+    // Enable audio capture
+    enableAudioCapture();
+
+    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0);
+                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                param->result = 0;
+                return IARM_RESULT_SUCCESS;
+            });
+
     // setup http://127.0.0.1:9999 as url
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
-    EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
-
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
