@@ -23,7 +23,9 @@
 #include <thread>
 
 #include "DataCapture.h"
+#include "FactoriesImplementation.h"
 #include "IarmBusMock.h"
+#include "ServiceMock.h"
 
 namespace {
 const std::string iarmName = _T("Thunder_Plugins");
@@ -43,7 +45,7 @@ void runSocket(std::promise<bool> ready, const std::string& fileName)
     ready.set_value(true);
 
     auto sd2 = accept(sd, NULL, NULL);
- 
+
     write(sd2, answer, 16);
 
     close(sd2);
@@ -73,7 +75,8 @@ void runServer()
     // Expect we got correct message
     EXPECT_TRUE(strstr(buffer, answer) != nullptr);
 
-    std::string response = "POST / HTTP/1.1 200";
+    // Return the simplest response
+    std::string response = "HTTP/1.1 200\n\rContent-Length: 0";
     send(connection, response.c_str(), response.size(), 0);
 
     close(connection);
@@ -101,11 +104,13 @@ public:
     virtual void SetUp()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock_;
+        PluginHost::IFactories::Assign(&factoriesImplementation_);
     }
 
     virtual void TearDown()
     {
         IarmBus::getInstance().impl = nullptr;
+        PluginHost::IFactories::Assign(nullptr);
     }
 
     void initService()
@@ -153,6 +158,9 @@ protected:
     Core::JSONRPC::Connection connection_;
     Core::JSONRPC::Handler& handler_;
     NiceMock<IarmBusImplMock> iarmBusImplMock_;
+    ServiceMock service_;
+    Core::JSONRPC::Message message_;
+    FactoriesImplementation factoriesImplementation_;
 };
 
 TEST_F(DataCaptureTest, ShouldRegisterMethod)
@@ -221,6 +229,27 @@ TEST_F(DataCaptureTest, ShouldUploadData)
 
     EXPECT_EQ(std::string{}, dataCapture_->Initialize(nullptr));
 
+    EXPECT_CALL(service_, Callsign).WillOnce(::testing::Return("dataCapture"));
+    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
+        dataCapture_->QueryInterface(PluginHost::IDispatcher::ID));
+    EXPECT_TRUE(dispatcher != nullptr);
+    dispatcher->Activate(&service_);
+    handler_.Subscribe(0, _T("onAudioClipReady"), _T("org.rdk.dataCapture"), message_);
+
+    EXPECT_CALL(service_, Submit)
+        .WillOnce(
+            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.dataCapture.onAudioClipReady\","
+                                          "\"params\":{\"fileName\":\"dataLocator123\",\"status\":true,\"message\":\"Success\"}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            });
+
     // setup http://127.0.0.1:9999 as url
     string response;
     EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
@@ -238,6 +267,9 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     data.dataLocator = dataLocator;
     dataCapture_->eventHandler(owner, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY, static_cast<void*>(&data), sizeof(data));
 
+    handler_.Unsubscribe(0, _T("onAudioClipReady"), _T("org.rdk.dataCapture"), message_);
+    dispatcher->Deactivate();
+    dispatcher->Release();
     dataCapture_->Deinitialize(nullptr);
     server.join();
 }
