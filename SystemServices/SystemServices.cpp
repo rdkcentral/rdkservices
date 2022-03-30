@@ -302,7 +302,8 @@ namespace WPEFramework {
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            m_ManufacturerDataValid = false;
+	    m_ManufacturerDataHardwareIdValid = false;
+	    m_ManufacturerDataModelNameValid = false;
             m_MfgSerialNumberValid = false;
 #endif
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
@@ -958,7 +959,7 @@ namespace WPEFramework {
             LOGWARN("SystemService getMfgSerialNumber query");
 
             if (m_MfgSerialNumberValid) {
-                response["mfgSerialNumber"] = m_ManufacturerData;
+                response["mfgSerialNumber"] = m_MfgSerialNumber;
                 LOGWARN("Got cached MfgSerialNumber %s", m_MfgSerialNumber.c_str());
                 returnResponse(true);
             }
@@ -989,11 +990,18 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 
-            if (m_ManufacturerDataValid) {
-                response[parameter.c_str()] = m_ManufacturerData;
-                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerData.c_str());
+            if (m_ManufacturerDataModelNameValid && !parameter.compare(MODEL_NAME)) {
+                response[parameter.c_str()] = m_ManufacturerDataModelName;
+                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerDataModelName.c_str());
                 return true;
             }
+
+	    if (m_ManufacturerDataHardwareIdValid && !parameter.compare(HARDWARE_ID)) {
+                response[parameter.c_str()] = m_ManufacturerDataHardwareID;
+                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerDataHardwareID.c_str());
+                return true;
+            }
+
 
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
@@ -1012,8 +1020,15 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response[parameter.c_str()] = string(param.buffer);
                 status = true;
-                m_ManufacturerData = param.buffer;
-                m_ManufacturerDataValid = true;
+		if(!parameter.compare(MODEL_NAME){
+			m_ManufacturerDataModelName = param.buffer;
+			m_ManufacturerDataModelNameValid = true;
+			}
+		else if (!parameter.compare(HARDWARE_ID)) {
+			m_ManufacturerDataHardwareID = param.buffer;
+			m_ManufacturerDataHardwareIdValid = true;
+		}
+
             } else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
