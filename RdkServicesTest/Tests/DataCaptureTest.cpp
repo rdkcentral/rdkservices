@@ -38,7 +38,7 @@ void runSocket(std::promise<bool> ready, const std::string& fileName)
     struct sockaddr_un serveraddr;
     memset(&serveraddr, 0, sizeof(serveraddr));
     serveraddr.sun_family = AF_UNIX;
-    memcpy(serveraddr.sun_path, fileName.c_str(), sizeof(serveraddr.sun_path));
+    memcpy(serveraddr.sun_path, fileName.c_str(), fileName.size() + 1);
 
     ASSERT_FALSE(bind(sd, (struct sockaddr*)&serveraddr, SUN_LEN(&serveraddr)) < 0);
     ASSERT_FALSE(listen(sd, 10) < 0);
@@ -53,7 +53,7 @@ void runSocket(std::promise<bool> ready, const std::string& fileName)
     unlink(fileName.c_str());
 }
 
-void runServer()
+void runServer(std::promise<bool> ready)
 {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     ASSERT_TRUE(sockfd != -1);
@@ -65,6 +65,7 @@ void runServer()
 
     ASSERT_FALSE(bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0);
     ASSERT_FALSE(listen(sockfd, 10) < 0);
+    ready.set_value(true);
 
     auto addrlen = sizeof(sockaddr);
     const int connection = accept(sockfd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
@@ -147,6 +148,7 @@ public:
                     EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_OPEN) == 0);
                     auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
                     param->session_id = 10;
+                    param->result = 0;
                     return IARM_RESULT_SUCCESS;
                 })
             .WillOnce(
@@ -154,11 +156,14 @@ public:
                     EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_OUTPUT_PROPS) == 0);
                     auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
                     param->details.arg_output_props.output.max_buffer_duration = 6;
+                    param->result = 0;
                     return IARM_RESULT_SUCCESS;
                 })
             .WillOnce(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                     EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_SET_OUTPUT_PROPERTIES) == 0);
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
                     return IARM_RESULT_SUCCESS;
                 })
             .WillOnce(
@@ -169,6 +174,7 @@ public:
                     answer.format = acmFormate16BitStereo;
                     answer.sampling_frequency = acmFreqe48000;
                     param->details.arg_audio_properties = answer;
+                    param->result = 0;
                     return IARM_RESULT_SUCCESS;
                 })
             .WillOnce(
@@ -248,11 +254,15 @@ TEST_F(DataCaptureTest, ShouldTurnOffAudioCapture)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_STOP) == 0);
+                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                param->result = 0;
                 return IARM_RESULT_SUCCESS;
             })
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_CLOSE) == 0);
+                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                param->result = 0;
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -267,12 +277,17 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     constexpr const char dataLocator[] = "dataLocator123";
     constexpr const char owner[] = "DataCaptureTest";
 
-    std::thread(runServer).detach();
+    std::promise<bool> serverReady;
+    auto serverReadyFuture = serverReady.get_future();
+    std::thread serverThread(runServer, std::move(serverReady));
 
-    std::promise<bool> ready;
-    auto future = ready.get_future();
-    std::thread server(runSocket, std::move(ready), std::string(dataLocator));
-    future.wait();
+    std::promise<bool> socketReady;
+    auto socketReadyFuture = socketReady.get_future();
+    std::thread socketThread(runSocket, std::move(socketReady), std::string(dataLocator));
+    
+    // Wait for server and socket thread
+    serverReadyFuture.wait();
+    socketReadyFuture.wait();
 
     EXPECT_EQ(std::string{}, dataCapture_->Initialize(nullptr));
 
@@ -327,7 +342,8 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     dispatcher->Deactivate();
     dispatcher->Release();
     dataCapture_->Deinitialize(nullptr);
-    server.join();
+    serverThread.join();
+    socketThread.join();
 }
 
 } // namespace WPEFramework

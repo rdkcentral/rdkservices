@@ -85,7 +85,7 @@ namespace WPEFramework {
             Register(METHOD_ENABLE_AUDIO_CAPTURE, &DataCapture::enableAudioCaptureWrapper, this);
             Register(METHOD_GET_AUDIO_CLIP, &DataCapture::getAudioClipWrapper, this);
 
-            _sock_adaptor = new socket_adaptor();
+            _sock_adaptor.reset(new socket_adaptor());
         }
 
         DataCapture::~DataCapture()
@@ -104,7 +104,6 @@ namespace WPEFramework {
         void DataCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
             DeinitializeIARM();
-            delete _sock_adaptor;
             DataCapture::_instance = nullptr;
         }
 
