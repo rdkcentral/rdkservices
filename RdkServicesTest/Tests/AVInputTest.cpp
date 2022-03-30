@@ -154,7 +154,7 @@ TEST_F(AVInputTestFixture, Plugin)
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
