@@ -74,7 +74,7 @@ int socket_adaptor::connect_socket(const std::string &path)
         /* start with a clean address structure */
         memset(&address, 0, sizeof(struct sockaddr_un));
         address.sun_family = AF_UNIX;
-        snprintf(address.sun_path, 108, path.c_str());
+        snprintf(address.sun_path, 108, "%s", path.c_str());
         if(connect(m_read_fd, (struct sockaddr *) &address, sizeof(struct sockaddr_un)) == 0)
         {
             SA_INFO("socket connected: %s\n", path.c_str());
@@ -214,7 +214,7 @@ int socket_adaptor::start_listening(const std::string &path)
 		{
 			struct sockaddr_un bind_path;
 			bind_path.sun_family = AF_UNIX;
-			strncpy(bind_path.sun_path, m_path.c_str(), sizeof(bind_path.sun_path));
+			memcpy(bind_path.sun_path, m_path.c_str(), sizeof(bind_path.sun_path));
 
 			SA_INFO("Binding to path %s\n", bind_path.sun_path);
 			ret = bind(m_listen_fd, (const struct sockaddr *) &bind_path, sizeof(bind_path));

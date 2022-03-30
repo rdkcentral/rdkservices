@@ -115,6 +115,7 @@ buildAndInstallRdkservices() {
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
     -DCMAKE_CXX_FLAGS="-I ${INCLUDE_DIR} --coverage -Wall -Werror -Wno-unused-parameter" \
     -DCOMCAST_CONFIG=OFF \
+    -DPLUGIN_DATACAPTURE=ON \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \
