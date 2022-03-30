@@ -1020,7 +1020,7 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response[parameter.c_str()] = string(param.buffer);
                 status = true;
-		if(!parameter.compare(MODEL_NAME){
+		if(!parameter.compare(MODEL_NAME)){
 			m_ManufacturerDataModelName = param.buffer;
 			m_ManufacturerDataModelNameValid = true;
 			}
