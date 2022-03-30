@@ -500,14 +500,17 @@ namespace WPEFramework {
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+#endif
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
- 
+#endif
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 if (res == IARM_RESULT_SUCCESS)
                 {
@@ -890,6 +893,7 @@ namespace WPEFramework {
                     }
 		  }
                   break;
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                 case IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE:
                   {
                     dsHDRStandard_t videoFormat = dsHDRSTANDARD_NONE;
@@ -901,6 +905,7 @@ namespace WPEFramework {
                     }
 		  }
                   break;
+#endif
 		default:
 		    LOGERR("Invalid event ID\n");
 		    break;
@@ -945,6 +950,7 @@ namespace WPEFramework {
                 return;
             }
             switch (eventId) {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                 case IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED:
                   {
                     bool mixing = false;
@@ -987,6 +993,7 @@ namespace WPEFramework {
                     }
                   }
                   break;
+#endif
                 default:
                     LOGERR("Unhandled Event... \n");
                     break;
@@ -1347,7 +1354,11 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                 vPort.setResolution(resolution, persist, isIgnoreEdid);
+#else
+                vPort.setResolution(resolution, persist);
+#endif
             }
             catch (const device::Exception& err)
             {
@@ -1428,6 +1439,7 @@ namespace WPEFramework {
                                 modeString.append("AUTO (Stereo)");
                             }
                         }
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         else if ( mode == device::AudioStereoMode::kDD)
                         {
                             LOGINFO("HDMI0 is in dolby digital Mode");
@@ -1438,6 +1450,7 @@ namespace WPEFramework {
                             LOGINFO("HDMI0 is in dolby digital Plus Mode");
                             modeString.append("DOLBYDIGITALPLUS");
                         }
+#endif
                         else
                             modeString.append(mode.toString());
                     }
@@ -1532,10 +1545,12 @@ namespace WPEFramework {
                 mode = device::AudioStereoMode::kSurround;
             else if (soundMode == "passthru" || soundMode == "PASSTHRU")
                 mode = device::AudioStereoMode::kPassThru;
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
             else if (soundMode == "dolbydigital" || soundMode == "DOLBYDIGITAL")
                 mode = device::AudioStereoMode::kDD;
             else if (soundMode == "dolbydigitalplus" || soundMode == "DOLBYDIGITALPLUS")
                 mode = device::AudioStereoMode::kDDPlus;
+#endif
             else if (soundMode == "auto" || soundMode == "auto " || soundMode == "AUTO" || soundMode == "AUTO ")
             {
                 /*
@@ -2096,6 +2111,7 @@ namespace WPEFramework {
                    case dsAUDIO_FORMAT_PCM:
                        response["currentAudioFormat"] = "PCM";
                        break;
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                    case dsAUDIO_FORMAT_AAC:
                        response["currentAudioFormat"] = "AAC";
                        break;
@@ -2105,6 +2121,7 @@ namespace WPEFramework {
                    case dsAUDIO_FORMAT_WMA:
                        response["currentAudioFormat"] = "WMA";
                        break;
+#endif
                    case dsAUDIO_FORMAT_DOLBY_AC3:
                        response["currentAudioFormat"] = "DOLBY AC3";
                        break;
@@ -3139,7 +3156,9 @@ namespace WPEFramework {
             try
             {
                 device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                 aPort.setMS12AudioProfileSetttingsOverride(audioProfileState,audioProfileName,audioProfileSettingsName, audioProfileSettingValue);
+#endif
             }
             catch (const device::Exception& err)
             {
@@ -3215,10 +3234,14 @@ namespace WPEFramework {
                     if (device::Host::getInstance().isHDMIOutPortPresent())
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         aPort.setAssociatedAudioMixing(mixing);
+#endif
                     }
                     else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         device::Host::getInstance().setAssociatedAudioMixing(mixing);
+#endif
                     }
                 }
                 catch (const device::Exception& err)
@@ -3242,10 +3265,14 @@ namespace WPEFramework {
                     if (device::Host::getInstance().isHDMIOutPortPresent())
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         aPort.getAssociatedAudioMixing(&mixing);
+#endif
                     }
                     else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         device::Host::getInstance().getAssociatedAudioMixing(&mixing);
+#endif
                     }
                     response["mixing"] = mixing;
                 }
@@ -3281,10 +3308,14 @@ namespace WPEFramework {
                     if (device::Host::getInstance().isHDMIOutPortPresent())
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         aPort.setFaderControl(mixerBalance);
+#endif
                     }
                     else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         device::Host::getInstance().setFaderControl(mixerBalance);
+#endif
                     }
                 }
                 catch (const device::Exception& err)
@@ -3307,10 +3338,14 @@ namespace WPEFramework {
                     if (device::Host::getInstance().isHDMIOutPortPresent())
                     {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         aPort.getFaderControl(&mixerBalance);
+#endif
                     }
                     else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                         device::Host::getInstance().getFaderControl(&mixerBalance);
+#endif
                     }
                     response["mixerBalance"] = mixerBalance;
                 }
@@ -3337,10 +3372,14 @@ namespace WPEFramework {
                 if (device::Host::getInstance().isHDMIOutPortPresent())
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     aPort.setPrimaryLanguage(primaryLanguage);
+#endif
 		}
                 else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     device::Host::getInstance().setPrimaryLanguage(primaryLanguage);
+#endif
                 }
             }
             catch (const device::Exception& err)
@@ -3365,10 +3404,14 @@ namespace WPEFramework {
                 if (device::Host::getInstance().isHDMIOutPortPresent())
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     aPort.getPrimaryLanguage(primaryLanguage);
+#endif
                 }
                 else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     device::Host::getInstance().getPrimaryLanguage(primaryLanguage);
+#endif
                 }
                 response["lang"] = primaryLanguage;
             }
@@ -3396,10 +3439,14 @@ namespace WPEFramework {
                 if (device::Host::getInstance().isHDMIOutPortPresent())
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     aPort.setSecondaryLanguage(secondaryLanguage);
+#endif
                 }
                 else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     device::Host::getInstance().setSecondaryLanguage(secondaryLanguage);
+#endif
                 }
             }
             catch (const device::Exception& err)
@@ -3424,10 +3471,14 @@ namespace WPEFramework {
                 if (device::Host::getInstance().isHDMIOutPortPresent())
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     aPort.getSecondaryLanguage(secondaryLanguage);
+#endif
                 }
                 else {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                     device::Host::getInstance().getSecondaryLanguage(secondaryLanguage);
+#endif
                 }
                 response["lang"] = secondaryLanguage;
             }
@@ -3764,11 +3815,13 @@ namespace WPEFramework {
 		std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                 if (vPort.isDisplayConnected()) {
+#ifndef USE_LGI_DEVICESETTINGS_IMPLEMENTATION
                    if(vPort.setForceHDRMode (mode) == true)
 		    {
                         success = true;
 			LOGINFO("setForceHDRMode set successfully \n");
 		    }
+#endif
                 }
                 else {
                     LOGERR("setForceHDRMode failure: HDMI0 not connected!\n");
