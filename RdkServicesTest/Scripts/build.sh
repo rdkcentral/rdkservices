@@ -13,11 +13,13 @@ THUNDER_PORT=55555
 
 THUNDER_URL=https://github.com/rdkcentral/Thunder
 THUNDER_BRANCH=R2
-THUNDER_REV=54c2404197f16255cc47543e2d861e2c8137ee51
+THUNDER_REV=tags/R2-v1.9
 
 INTERFACES_URL=https://github.com/rdkcentral/ThunderInterfaces
 INTERFACES_BRANCH=R2
 INTERFACES_REV=4ec7c6f8e14b152143a105a41f4c62b6723372c4
+
+INCLUDE_DIR=$(pwd)/Include
 
 checkPython() {
   case "$(python --version)" in
@@ -111,13 +113,17 @@ buildAndInstallRdkservices() {
   cmake -H../.. -Bbuild/rdkservices \
     -DCMAKE_INSTALL_PREFIX="${THUNDER_INSTALL_DIR}/usr" \
     -DCMAKE_MODULE_PATH="${THUNDER_INSTALL_DIR}/tools/cmake" \
-    -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror -Wno-unused-parameter" \
+    -DCMAKE_CXX_FLAGS="-I ${INCLUDE_DIR} --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result" \
     -DCOMCAST_CONFIG=OFF \
+    -DPLUGIN_DATACAPTURE=ON \
     -DPLUGIN_DEVICEDIAGNOSTICS=ON \
     -DPLUGIN_LOCATIONSYNC=ON \
     -DPLUGIN_PERSISTENTSTORE=ON \
     -DPLUGIN_SECURITYAGENT=ON \
     -DPLUGIN_DEVICEIDENTIFICATION=ON -DBUILD_REALTEK=ON \
+    -DPLUGIN_FRAMERATE=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON \
+    -DPLUGIN_AVINPUT=ON \
     -DRDK_SERVICES_TEST=ON \
     -DCMAKE_BUILD_TYPE=$MODE
 
@@ -133,9 +139,12 @@ checkRequirements() {
     echo "pip3 should be installed (for Thunder)"
     exit 1
   fi
-
   if ! checkPackage "sqlite3"; then
     echo "sqlite3 should be installed (for PersistentStore)"
+    exit 1
+  fi
+  if ! checkPackage "libcurl"; then
+    echo "libcurl should be installed (for DataCapture, DeviceDiagnostics)"
     exit 1
   fi
 }
