@@ -91,7 +91,7 @@ using testing::NiceMock;
 using testing::Return;
 using testing::Test;
 
-namespace WPEFramework {
+using namespace WPEFramework;
 
 class DataCaptureTest : public Test {
 public:
@@ -186,7 +186,7 @@ public:
                 });
 
         string response;
-        EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
+        EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
         EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
     }
 
@@ -209,10 +209,10 @@ TEST_F(DataCaptureTest, ShouldRegisterMethod)
 TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 {
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE,
+    EXPECT_EQ(Core::ERROR_NONE,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
             _T(""),
@@ -235,7 +235,7 @@ TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
             });
 
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE,
+    EXPECT_EQ(Core::ERROR_NONE,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
             _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"https://192.168.0.1\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
@@ -268,7 +268,7 @@ TEST_F(DataCaptureTest, ShouldTurnOffAudioCapture)
 
     string response;
     // Turn off audio capture
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":0}"), response));
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
@@ -284,7 +284,7 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     std::promise<bool> socketReady;
     auto socketReadyFuture = socketReady.get_future();
     std::thread socketThread(runSocket, std::move(socketReady), std::string(dataLocator));
-    
+
     // Wait for server and socket thread
     serverReadyFuture.wait();
     socketReadyFuture.wait();
@@ -300,7 +300,7 @@ TEST_F(DataCaptureTest, ShouldUploadData)
 
     EXPECT_CALL(service_, Submit)
         .WillOnce(
-            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
@@ -326,7 +326,7 @@ TEST_F(DataCaptureTest, ShouldUploadData)
 
     // setup http://127.0.0.1:9999 as url
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE,
+    EXPECT_EQ(Core::ERROR_NONE,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
             _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"http://127.0.0.1:9999\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
@@ -345,5 +345,3 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     serverThread.join();
     socketThread.join();
 }
-
-} // namespace WPEFramework

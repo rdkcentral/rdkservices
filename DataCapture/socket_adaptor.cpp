@@ -44,7 +44,7 @@ socket_adaptor::socket_adaptor() : m_listen_fd(-1), m_write_fd(-1), m_read_fd(-1
 	if(!g_one_time_init_complete)
 	{
 		/*SIGPIPE must be ignored or process will exit when client closes connection*/
-		struct sigaction sig_settings;
+		struct sigaction sig_settings = { 0 };
 		sig_settings.sa_handler = SIG_IGN;
 		sigaction(SIGPIPE, &sig_settings, NULL);
 		g_one_time_init_complete = true;
