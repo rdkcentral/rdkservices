@@ -21,7 +21,7 @@
 
 #include "DeviceDiagnostics.h"
 
-namespace WPEFramework {
+using namespace WPEFramework;
 
 class DeviceDiagnosticsTest : public ::testing::Test {
 public:
@@ -47,12 +47,10 @@ TEST_F(DeviceDiagnosticsTest, RegisterMethod)
 TEST_F(DeviceDiagnosticsTest, ShouldReturnResponse)
 {
     string response;
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("getConfiguration"), _T("{\"names\":[\"test\"]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getConfiguration"), _T("{\"names\":[\"test\"]}"), response));
     // TODO pass here expected response
     EXPECT_EQ(response, _T("{\"paramList\":[\"Device.X_CISCO_COM_LED.RedPwm\":123],\"success\":true}"));
 
-    EXPECT_EQ(WPEFramework::Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAVDecoderStatus"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAVDecoderStatus"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"IDLE\",\"success\":true}"));
 }
-
-} // namespace WPEFramework

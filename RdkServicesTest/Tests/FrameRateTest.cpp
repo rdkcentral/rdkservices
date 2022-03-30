@@ -215,7 +215,7 @@ TEST_F(FrameRateTestFixture, Plugin)
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
@@ -227,7 +227,7 @@ TEST_F(FrameRateTestFixture, Plugin)
                 return Core::ERROR_NONE;
             }))
         .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>& json) {
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
