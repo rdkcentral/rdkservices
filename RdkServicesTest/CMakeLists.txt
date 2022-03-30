@@ -42,6 +42,7 @@ include_directories(../LocationSync
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
+        ../DataCapture
         ../helpers
         )
 link_directories(../LocationSync
@@ -51,11 +52,13 @@ link_directories(../LocationSync
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
+        ../DataCapture
         )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DataCapture
         ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
