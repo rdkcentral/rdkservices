@@ -237,7 +237,7 @@
             }
         },
         "getIPSettings":{
-            "summary": "Gets the IP setting for the given interface",
+            "summary": "Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface",
             "params": {
                 "type":"object",
                 "properties": {
@@ -660,7 +660,7 @@
             }
         },
         "setIPSettings":{
-            "summary": "Sets the IP settings",
+            "summary": "Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS",
             "params": {
                 "type":"object",
                 "properties": {

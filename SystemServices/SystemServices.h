@@ -102,6 +102,7 @@ namespace WPEFramework {
                 static JsonObject _systemParams;
                 static const string MODEL_NAME;
                 static const string HARDWARE_ID;
+		static const string FRIENDLY_ID;
 
                 enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
                 // We do not allow this plugin to be copied !!
@@ -130,10 +131,12 @@ namespace WPEFramework {
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
+                bool getModelName(const string& parameter, JsonObject& response);
                 std::string m_ManufacturerData;
                 bool m_ManufacturerDataValid;
                 std::string m_MfgSerialNumber;
                 bool m_MfgSerialNumberValid;
+		
 #endif
             public:
                 SystemServices();

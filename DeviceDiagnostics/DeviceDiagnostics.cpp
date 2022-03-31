@@ -22,7 +22,7 @@
 #include <curl/curl.h>
 #include <time.h>
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
@@ -54,16 +54,18 @@ namespace WPEFramework
         }
 
         DeviceDiagnostics::DeviceDiagnostics()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             DeviceDiagnostics::_instance = this;
 
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
-            registerMethod(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
+            Register(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
+            Register(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
+            Unregister(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION);
+            Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS);
         }
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
@@ -97,6 +99,11 @@ namespace WPEFramework
             EssRMgrDestroy(m_EssRMgr);
 #endif
             DeviceDiagnostics::_instance = nullptr;
+        }
+
+        string DeviceDiagnostics::Information() const
+        {
+            return (string());
         }
 
         uint32_t DeviceDiagnostics::getConfigurationWrapper(const JsonObject& parameters, JsonObject& response)
