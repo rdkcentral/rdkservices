@@ -2,7 +2,7 @@
 
 This folder contains the source files for the RDK Services documentation. The documentation is hosted as a static web site on Github and is created using the Docsify site generator.
 
-[View Latest Documentation](https://rdkservices.github.io/rdkservices/#)
+[View Latest Documentation](https://rdkcentral.github.io/rdkservices/#/README)
 
 ## Local Builds
 
