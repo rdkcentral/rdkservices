@@ -412,7 +412,7 @@ namespace WPEFramework {
 
         struct CreateDisplayRequest
         {
-            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
+            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false) , mAutoDestroy(autodestory)
             {
                 sem_init(&mSemaphore, 0, 0);
             }
@@ -433,6 +433,7 @@ namespace WPEFramework {
             bool mFocus;
             sem_t mSemaphore;
             bool mResult;
+	    bool mAutoDestroy;
         };
 
         struct KillClientRequest
@@ -971,7 +972,7 @@ namespace WPEFramework {
                           gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                           continue;
                       }
-                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
+                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus , request->mAutoDestroy);
                       gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                       sem_post(&request->mSemaphore);
                   }
@@ -2920,6 +2921,8 @@ namespace WPEFramework {
 
             double launchStartTime = RdkShell::seconds();
             bool result = true;
+	    bool autoDestroy = true;
+
             if (!parameters.HasLabel("callsign"))
             {
                 result = false;
@@ -3081,6 +3084,10 @@ namespace WPEFramework {
                 {
                     focus = parameters["focus"].Boolean();
                 }
+                if (parameters.HasLabel("autodestroy"))
+                {
+                  autoDestroy = parameters["autodestroy"].Boolean();
+                }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -3191,7 +3198,7 @@ namespace WPEFramework {
                     gRdkShellMutex.unlock();
                     if (!isClientExists(callsign))
                     {
-                        std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
+                        std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height ,autoDestroy);
                         lockRdkShellMutex();
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
