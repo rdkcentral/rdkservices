@@ -1,6 +1,8 @@
 # RDK Services #
 
 RDK services are a set of JSON-RPC based RESTful services for accessing various set-top box components. RDK Services are managed and accessed through the [Thunder](https://github.com/rdkcentral/Thunder) framework. Thunder supports both HTTP and Websocket requests, making the services easily accessible to [Lightning](https://github.com/rdkcentral/Lightning), Web, and native client applications.
+
+[View Latest Documentation](https://rdkcentral.github.io/rdkservices/#/README)
 <br><br>
 
 ## Contributing to RDKServices ##
@@ -93,9 +95,9 @@ To generate the markdown:
 2. Change directories to `Thunder/Tools/JsonGenerator`.
 3. Run `JsonGenerator.py` and provide the location of the service JSON plugin file using the `--docs` argument and the output directory using the `-o` argument. You must also include the `--no-interfaces-section` argument; otherwise, an interface section is added to the markdown that links back to the ThunderInterfaces project. Make certain that you are pointing to the plugin definition and not the interface definition. Here is an example of using the JsonGenerator tool:
 
-   `./JsonGenerator.py --docs ../../../rdkservices/MyService/MyServicePlugin.json  -o doc --no-interfaces-section --verbose $files`
+   `./JsonGenerator.py --docs ../../../rdkservices/MyService/MyServicePlugin.json  -o ../docs/api --no-interfaces-section --verbose $files`
 
-   The `MyServicePlugin.md` file is written to the `/doc` folder.
+   The `MyServicePlugin.md` file is written to the `../docs/api` folder.
 
 Use the existing services as a guide when learning the structure of both the plugin and interface schemas.
 <br><br>
