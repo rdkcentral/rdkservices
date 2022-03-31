@@ -168,7 +168,7 @@ namespace WPEFramework {
             pthread_mutex_t m_lockUpdate;
 
             void SendStandbyMsgEvent(const int logicalAddress);
-
+            void sendActiveSourceEvent();
             void addDevice(const int logicalAddress);
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
@@ -191,6 +191,7 @@ namespace WPEFramework {
             uint32_t performOTPActionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceList (const JsonObject& parameters, JsonObject& response);
+            uint32_t getActiveSourceStatus(const JsonObject& parameters, JsonObject& response);
 
             //End methods
             std::string logicalAddressDeviceType;
