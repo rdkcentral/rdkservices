@@ -30,6 +30,8 @@ void LoadJSBindings(WKBundleFrameRef frame);
 
 void UnloadJSBindings(WKBundleFrameRef frame);
 
+void SetHttpHeaders(const char * headerJson);
+
 }  // namespace AAMP
 }  // namespace JavaScript
 }  // namespace WPEFramework
