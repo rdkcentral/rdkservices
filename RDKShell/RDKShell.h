@@ -237,6 +237,7 @@ namespace WPEFramework {
             uint32_t setCursorSizeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getCursorSizeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -309,6 +310,8 @@ namespace WPEFramework {
             bool hideCursor();
             bool setCursorSize(uint32_t width, uint32_t height);
             bool getCursorSize(uint32_t& width, uint32_t& height);
+
+            bool enableInputEvents(const JsonArray& clients, bool enable);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
