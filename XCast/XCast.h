@@ -60,6 +60,7 @@ private:
     uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
     uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
     uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
+    uint32_t getProtocolVersion(const JsonObject& parameters, JsonObject& response);
     //End methods
     
     //Begin events
