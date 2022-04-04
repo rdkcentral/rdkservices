@@ -48,7 +48,7 @@ namespace WPEFramework
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
         HdcpProfile::HdcpProfile()
-        : AbstractPlugin()
+        : AbstractPluginWithApiAndIARMLock()
         {
             HdcpProfile::_instance = this;
 

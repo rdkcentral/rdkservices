@@ -81,7 +81,7 @@ string strDyAppConfig = "";
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
-XCast::XCast() : AbstractPlugin()
+XCast::XCast() : AbstractPluginWithApiAndIARMLock()
 , m_apiVersionNumber(1)
 {
     InitializeIARM();

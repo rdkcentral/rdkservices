@@ -121,7 +121,7 @@ namespace WPEFramework
         static std::atomic<int> libcecInitStatus{0};
 
         LgiHdmiCec::LgiHdmiCec()
-        : AbstractPlugin(),
+        : AbstractPluginWithApiAndIARMLock(),
             cecSettingEnabled(false),cecEnableStatus(false),smConnection(nullptr),
             m_scan_id(0), m_updated(false), m_rescan_in_progress(true), m_system_audio_mode(false)
         {
@@ -642,7 +642,6 @@ namespace WPEFramework
 
         void LgiHdmiCec::CECEnable(void)
         {
-            std::lock_guard<std::mutex> guard(m_mutex);
             LOGWARN("Entered CECEnable");
             if (cecEnableStatus)
             {
@@ -682,7 +681,6 @@ namespace WPEFramework
 
         void LgiHdmiCec::CECDisable(void)
         {
-            std::lock_guard<std::mutex> guard(m_mutex);
             LOGWARN("Entered CECDisable ");
 
             if(!cecEnableStatus)

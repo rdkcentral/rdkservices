@@ -25,7 +25,7 @@
 #include "utils.h"
 #include "dsTypes.h"
 #include "tptimer.h"
-#include "AbstractPlugin.h"
+#include "AbstractPluginWithApiAndIARMLock.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "irMgr.h"
@@ -47,7 +47,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class DisplaySettings : public AbstractPlugin {
+        class DisplaySettings : public AbstractPluginWithApiAndIARMLock {
         private:
             typedef Core::JSON::String JString;
             typedef Core::JSON::ArrayType<JString> JStringArray;
