@@ -454,7 +454,7 @@ namespace WPEFramework {
 //                        LOGERR("Unable to delete %s", path);
 //                    }
                 } else {
-                    LOGERR("Unable to read data from %s (connection error)", payload->dataLocator);
+                    LOGERR("Unable to read data from %s (connection error)", payload->dataLocator.c_str());
                     params["status"] = false;
                     params["message"] = std::string("Unable to read data from  ") + string(payload->dataLocator);
                 }
