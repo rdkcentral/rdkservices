@@ -25,6 +25,7 @@
 extern "C" {
     void aamp_LoadJSController(JSGlobalContextRef context);
     void aamp_UnloadJSController(JSGlobalContextRef context);
+    void aamp_SetPageHttpHeaders(const char* headers);
     JSGlobalContextRef jscContextGetJSContext(JSCContext*);
 }
 
@@ -91,6 +92,12 @@ void UnloadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame) {
     JSCContext* jsContext = webkit_frame_get_js_context_for_script_world(frame, world);
     aamp_UnloadJSController(jscContextGetJSContext(jsContext));
     g_object_unref(jsContext);
+}
+
+// Just pass headers json to aamp plugin. SetHttpHeaders Called from RequestHeaders.cpp
+void SetHttpHeaders(const char * headerJson)
+{
+       aamp_SetPageHttpHeaders(headerJson);
 }
 
 }  // namespace AAMP

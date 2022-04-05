@@ -113,10 +113,15 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_VIRTUAL_DISP
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_VIRTUAL_DISPLAY_ENABLED = "getVirtualDisplayEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LAST_WAKEUP_KEY = "getLastWakeupKey";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_ALL_CLIENTS = "hideAllClients";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_IGNORE_KEY_INPUTS = "ignoreKeyInputs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "getScreenshot";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_CURSOR = "showCursor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hideCursor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -408,7 +413,7 @@ namespace WPEFramework {
 
         struct CreateDisplayRequest
         {
-            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false)
+            CreateDisplayRequest(std::string client, std::string displayName, uint32_t displayWidth=0, uint32_t displayHeight=0, bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false): mClient(client), mDisplayName(displayName), mDisplayWidth(displayWidth), mDisplayHeight(displayHeight), mVirtualDisplayEnabled(virtualDisplayEnabled), mVirtualWidth(virtualWidth),mVirtualHeight(virtualHeight), mTopmost(topmost), mFocus(focus), mResult(false) , mAutoDestroy(true)
             {
                 sem_init(&mSemaphore, 0, 0);
             }
@@ -429,6 +434,7 @@ namespace WPEFramework {
             bool mFocus;
             sem_t mSemaphore;
             bool mResult;
+	    bool mAutoDestroy;
         };
 
         struct KillClientRequest
@@ -821,10 +827,14 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
-
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
-	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_CURSOR, &RDKShell::showCursorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
+      	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -1001,7 +1011,7 @@ namespace WPEFramework {
                           gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                           continue;
                       }
-                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus);
+                      request->mResult = CompositorController::createDisplay(request->mClient, request->mDisplayName, request->mDisplayWidth, request->mDisplayHeight, request->mVirtualDisplayEnabled, request->mVirtualWidth, request->mVirtualHeight, request->mTopmost, request->mFocus , request->mAutoDestroy);
                       gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
                       sem_post(&request->mSemaphore);
                   }
@@ -1106,7 +1116,7 @@ namespace WPEFramework {
                   if (needsScreenshot)
                   {
                       uint8_t* data = nullptr;
-                      size_t size;
+                      uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
                       size_t encodedImageSize = b64_get_encoded_buffer_size(size);
@@ -1122,7 +1132,7 @@ namespace WPEFramework {
                       params["imageData"] = screenshotBase64;
 
                       // Calling Notify instead of  RDKShell::notify to avoid logging of entire screen content
-                      LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE);
+                      LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE.c_str());
                       Notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
 
                       free(encodedImage);
@@ -1312,6 +1322,13 @@ namespace WPEFramework {
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
+	    std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            std::vector<std::string>::iterator ptr;
+            for(ptr=clientList.begin();ptr!=clientList.end();ptr++)
+            {
+               RdkShell::CompositorController::removeListener((*ptr),mEventListener);
+            }
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
@@ -2947,6 +2964,8 @@ namespace WPEFramework {
 
             double launchStartTime = RdkShell::seconds();
             bool result = true;
+	    bool autoDestroy = true;
+
             if (!parameters.HasLabel("callsign"))
             {
                 result = false;
@@ -3108,6 +3127,10 @@ namespace WPEFramework {
                 {
                     focus = parameters["focus"].Boolean();
                 }
+                if (parameters.HasLabel("autodestroy"))
+                {
+                  autoDestroy = parameters["autodestroy"].Boolean();
+                }
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -3219,6 +3242,7 @@ namespace WPEFramework {
                     if (!isClientExists(callsign))
                     {
                         std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
+                        request->mAutoDestroy = autoDestroy;
                         lockRdkShellMutex();
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
@@ -5199,13 +5223,84 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
         {
-           LOGINFOMETHOD();
+            LOGINFOMETHOD();
 
             bool enabled = false;
             getLogsFlushingEnabled(enabled);
             response["enabled"] = enabled;
 
             returnResponse(true);
+        }
+
+        uint32_t RDKShell::showCursorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = showCursor();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::hideCursorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = hideCursor();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setCursorSizeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!(parameters.HasLabel("width") && parameters.HasLabel("height")))
+            {
+                response["message"] = "please specify width and height parameters";
+                result = false;
+            }
+            else
+            {
+                result = setCursorSize(parameters["width"].Number(), parameters["height"].Number());
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getCursorSizeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false;
+            uint32_t width = 0;
+            uint32_t height = 0;
+
+            if (!getCursorSize(width, height))
+            {
+                response["message"] = "failed to get cursor size";
+                result = false;
+            }
+            else
+            {
+                response["width"] = width;
+                response["height"] = height;
+                result = true;
+            }
+            returnResponse(result);
+        }
+	
+        uint32_t RDKShell::ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("ignore"))
+            {
+                response["message"] = "please specify ignore parameter";
+                returnResponse(false);
+            }
+            bool ignoreKeyValue = parameters["ignore"].Boolean();
+            lockRdkShellMutex();
+            bool ret = CompositorController::ignoreKeyInputs(ignoreKeyValue);
+            gRdkShellMutex.unlock();
+            if (!ret)
+            {
+                response["message"] = "key ignore is not allowed";
+            }
+            returnResponse(ret);
         }
         // Registered methods end
 
@@ -6354,7 +6449,7 @@ namespace WPEFramework {
             return status;
         }
         
-	void RDKShell::enableLogsFlushing(const bool enable)
+        void RDKShell::enableLogsFlushing(const bool enable)
         {
             gRdkShellMutex.lock();
             Logger::enableFlushing(enable);
@@ -6366,6 +6461,38 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             enabled = Logger::isFlushingEnabled();
             gRdkShellMutex.unlock();
+        }
+
+        bool RDKShell::showCursor()
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::showCursor();
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool hideCursor()
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::hideCursor();
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool setCursorSize(uint32_t width, uint32_t height)
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::setCursorSize(width, height);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool getCursorSize(uint32_t& width, uint32_t& height)
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::getCursorSize(width, height);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end

@@ -24,8 +24,6 @@ find_package(${NAMESPACE}Protocols REQUIRED)
 add_library(${MODULE_NAME} SHARED
         AVInput.cpp
         Module.cpp
-        ../helpers/tptimer.cpp
-        ../helpers/utils.cpp
         )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -39,14 +37,16 @@ target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-        ${NAMESPACE}SecurityUtil
         )
+
 find_package(DS)
 find_package(IARMBus)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+
+set_source_files_properties(AVInput.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} )
 

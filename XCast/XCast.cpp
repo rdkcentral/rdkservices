@@ -45,6 +45,7 @@ using namespace std;
 #define METHOD_SET_STANDBY_BEHAVIOR "setStandbyBehavior"
 #define METHOD_GET_FRIENDLYNAME "getFriendlyName"
 #define METHOD_SET_FRIENDLYNAME "setFriendlyName"
+#define METHOD_GET_PROTOCOLVERSION "getProtocolVersion"
 
 #define METHOD_REG_APPLICATIONS "registerApplications"
 
@@ -98,6 +99,7 @@ XCast::XCast() : AbstractPlugin()
         registerMethod(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
         registerMethod(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
         registerMethod(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
+        registerMethod(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
     }
@@ -324,6 +326,14 @@ uint32_t XCast::getFriendlyName(const JsonObject& parameters, JsonObject& respon
 {
     LOGINFO("XcastService::getFriendlyNamem_friendlyName :%s ",m_friendlyName.c_str());
     response["friendlyname"] = m_friendlyName;
+    returnResponse(true);
+}
+
+
+uint32_t XCast::getProtocolVersion(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::getProtocolVersion");
+    response["version"] = _rtConnector->getProtocolVersion();
     returnResponse(true);
 }
 

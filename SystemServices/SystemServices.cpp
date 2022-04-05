@@ -299,6 +299,13 @@ namespace WPEFramework {
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
+            m_networkStandbyModeValid = false;
+            m_powerStateBeforeRebootValid = false;
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+	    m_ManufacturerDataHardwareIdValid = false;
+	    m_ManufacturerDataModelNameValid = false;
+            m_MfgSerialNumberValid = false;
+#endif
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -452,6 +459,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
+                
                 
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
@@ -702,6 +711,12 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
+        void SystemServices::onNetorkModeChanged(bool betworkStandbyMode)
+        {
+            m_networkStandbyMode = betworkStandbyMode;
+            m_networkStandbyModeValid = true;
+        }
+
         /**
          * @breif : to enable Moca Settings
          * @param1[in] : {"params":{"value":true}}
@@ -899,6 +914,10 @@ namespace WPEFramework {
                             }
                         }
                     }
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+                    queryParams = FRIENDLY_ID;
+                    getModelName(queryParams, response);
+#endif
                 } else {
                     retAPIStatus = true;
                     Utils::String::trim(res);
@@ -939,6 +958,12 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService getMfgSerialNumber query");
 
+            if (m_MfgSerialNumberValid) {
+                response["mfgSerialNumber"] = m_MfgSerialNumber;
+                LOGWARN("Got cached MfgSerialNumber %s", m_MfgSerialNumber.c_str());
+                returnResponse(true);
+            }
+
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
@@ -949,6 +974,10 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response["mfgSerialNumber"] = string(param.buffer);
                 status = true;
+
+                m_MfgSerialNumber = string(param.buffer);
+                m_MfgSerialNumberValid = true;
+
                 LOGWARN("SystemService getMfgSerialNumber Manufacturing Serial Number: %s", param.buffer);
             } else {
                 LOGERR("SystemService getMfgSerialNumber Manufacturing Serial Number: NULL");
@@ -960,6 +989,19 @@ namespace WPEFramework {
         bool SystemServices::getManufacturerData(const string& parameter, JsonObject& response)
         {
             LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
+
+            if (m_ManufacturerDataModelNameValid && !parameter.compare(MODEL_NAME)) {
+                response[parameter.c_str()] = m_ManufacturerDataModelName;
+                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerDataModelName.c_str());
+                return true;
+            }
+
+	    if (m_ManufacturerDataHardwareIdValid && !parameter.compare(HARDWARE_ID)) {
+                response[parameter.c_str()] = m_ManufacturerDataHardwareID;
+                LOGWARN("Got cached ManufacturerData %s", m_ManufacturerDataHardwareID.c_str());
+                return true;
+            }
+
 
             IARM_Bus_MFRLib_GetSerializedData_Param_t param;
             param.bufLen = 0;
@@ -978,6 +1020,15 @@ namespace WPEFramework {
             if (result == IARM_RESULT_SUCCESS) {
                 response[parameter.c_str()] = string(param.buffer);
                 status = true;
+		if(!parameter.compare(MODEL_NAME)){
+			m_ManufacturerDataModelName = param.buffer;
+			m_ManufacturerDataModelNameValid = true;
+			}
+		else if (!parameter.compare(HARDWARE_ID)) {
+			m_ManufacturerDataHardwareID = param.buffer;
+			m_ManufacturerDataHardwareIdValid = true;
+		}
+
             } else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
@@ -1445,6 +1496,7 @@ namespace WPEFramework {
 
                  if (IARM_RESULT_SUCCESS == res) {
                      status = true;
+                     m_networkStandbyModeValid = false;
                  } else {
                      status = false;
                  }
@@ -1464,20 +1516,31 @@ namespace WPEFramework {
             JsonObject& response)
         {
             bool retVal = false;
-            IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                   IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
-                                   sizeof(param));
-            bool nwStandby = param.bStandbyMode;
 
-            LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
-                     nwStandby?("Enabled"):("Disabled"));
-            response["nwStandby"] = nwStandby;
-            if (IARM_RESULT_SUCCESS == res) {
+            if (m_networkStandbyModeValid) {
+                response["nwStandby"] = m_networkStandbyMode;
                 retVal = true;
-            } else {
-                retVal = false;
+                LOGINFO("Got cached NetworkStandbyMode: '%s'", m_networkStandbyMode ? "true" : "false");
             }
+            else {
+                IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                       IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
+                                       sizeof(param));
+                bool nwStandby = param.bStandbyMode;
+    
+                LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
+                         nwStandby?("Enabled"):("Disabled"));
+                response["nwStandby"] = nwStandby;
+                if (IARM_RESULT_SUCCESS == res) {
+                    retVal = true;
+                    m_networkStandbyMode = nwStandby;
+                    m_networkStandbyModeValid = true;
+                } else {
+                    retVal = false;
+                }
+            }
+
             returnResponse(retVal);
         }
 
@@ -1710,64 +1773,22 @@ namespace WPEFramework {
         /***
          * @brief : Populates device serial number from TR069 Support/Query.
          */
-        bool SystemServices::getSerialNumberTR069(JsonObject& response)
+	bool SystemServices::getSerialNumberTR069(JsonObject& response)
         {
-            bool ret = false;
-            std::string curlResponse;
-            struct write_result write_result_buf;
-            CURLcode res = CURLE_OK;
-            CURL *curl = curl_easy_init();
-            char *data;
-            long http_code = 0;
-            struct curl_slist *headers = NULL;
-
-            data = (char*)malloc(CURL_BUFFER_SIZE);
-            if (!data) {
-                LOGERR("Error allocating %d bytes.\n", CURL_BUFFER_SIZE);
-                populateResponseWithError(SysSrv_DynamicMemoryAllocationFailed, response);
-                return ret;
+            bool ret =  false;
+            std::string paramValue;
+            RFC_ParamData_t param = {0};
+            param.type = WDMP_NONE;
+            WDMP_STATUS status = getRFCParameter(NULL, "Device.DeviceInfo.SerialNumber", &param);
+            if(WDMP_SUCCESS == status)
+            {
+                paramValue = param.value;
+                response["serialNumber"] = paramValue;
+                ret = true;
             }
-            write_result_buf.data = data;
-            write_result_buf.pos = 0;
+            else
+                populateResponseWithError(SysSrv_Unexpected, response);
 
-            if (curl) {
-                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:10999/");
-                headers = curl_slist_append(headers, "cache-control: no-cache");
-                headers = curl_slist_append(headers, "content-type: application/json");
-                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-                curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
-                        "{\"paramList\":[{\"name\":\"Device.DeviceInfo.SerialNumber\"}]}");
-                curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write);
-                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &write_result_buf);
-                res = curl_easy_perform(curl);
-                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-                /* null terminate the string */
-                data[write_result_buf.pos] = '\0';
-                curlResponse = data;
-                free(data);
-                curl_easy_cleanup(curl);
-            }
-            if (CURLE_OK == res) {
-                /* Eg: {"paramList":[{"name":"Device.DeviceInfo.SerialNumber",
-                   "value":"M11806TK0519"}]} */
-                LOGWARN("curl response : %s\n", curlResponse.c_str());
-                JsonObject curlRespJson;
-                JsonArray paramListJson;
-                curlRespJson.FromString(curlResponse);
-                paramListJson = curlRespJson["paramList"].Array();
-
-                for (int i = 0; i < paramListJson.Length(); i++) {
-                    curlRespJson = paramListJson[i].Object();
-                    response["serialNumber"] = curlRespJson["value"].String();
-                    ret = true;
-                    break;
-                }
-            } else {
-                populateResponseWithError(SysSrv_LibcurlError, response);
-            }
             return ret;
         }
 
@@ -3319,19 +3340,29 @@ namespace WPEFramework {
             JsonObject& response)
         {
             bool retVal = false;
-            IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                   IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
-                                   sizeof(param));
 
-            LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
-                     param.powerStateBeforeReboot);
-            response["state"] = string (param.powerStateBeforeReboot);
-            if (IARM_RESULT_SUCCESS == res) {
+            if (m_powerStateBeforeRebootValid) {
+                response["state"] = m_powerStateBeforeReboot;
                 retVal = true;
+                LOGINFO("Got cached powerStateBeforeReboot: '%s'", m_powerStateBeforeReboot.c_str());
             } else {
-                retVal = false;
+                IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                       IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
+                                       sizeof(param));
+    
+                LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
+                         param.powerStateBeforeReboot);
+                response["state"] = string (param.powerStateBeforeReboot);
+                if (IARM_RESULT_SUCCESS == res) {
+                    retVal = true;
+                    m_powerStateBeforeReboot = param.powerStateBeforeReboot;
+                    m_powerStateBeforeRebootValid = true;
+                } else {
+                    retVal = false;
+                }
             }
+
             returnResponse(retVal);
         }
 
@@ -3463,6 +3494,19 @@ namespace WPEFramework {
                     }
 
                     break;
+
+            case  IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED:
+                {
+                    IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+
+                    if (SystemServices::_instance) {
+                        SystemServices::_instance->onNetorkModeChanged(eventData->data.bNetworkStandbyMode);
+                    } else {
+                        LOGERR("SystemServices::_instance is NULL.\n");
+                    }
+                }
+
+                break;
             }
         }
 
