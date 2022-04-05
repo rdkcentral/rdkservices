@@ -55,7 +55,7 @@ namespace audiocapturemgr
 }
 
 struct iarmbus_notification_payload_t {
-    std::string dataLocator;
+    char dataLocator[64];
 };
 
 struct iarmbus_acm_arg_t {
@@ -70,8 +70,8 @@ struct iarmbus_acm_arg_t {
     };
 
     struct output_t {
-        int max_buffer_duration;
-        int buffer_duration;
+        unsigned int buffer_duration;
+        unsigned int max_buffer_duration;
     };
 
     struct arg_output_props_t {
