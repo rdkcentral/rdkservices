@@ -29,10 +29,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TESTS Tests/*.cpp)
+file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
-        Module.cpp
+        source/Module.cpp
         )
 
 include_directories(../LocationSync
@@ -72,8 +72,8 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
-        Source
-        Mocks
+        source
+        mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
