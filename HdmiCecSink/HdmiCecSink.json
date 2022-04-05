@@ -2,8 +2,10 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "HdmiCecSink API", 
-        "class": "HdmiCecSink", 
+        "title": "HdmiCecSink API",
+        "callsign": "org.rdk.HdmiCecSink",
+        "class": "org.rdk.HdmiCecSink",
+        "locator": "libWPEFrameworkHdmiCecSink.so",
         "description": "The `HdmiCecSink` plugin allows you to manage HDMI Consumer Electronics Control (CEC) sink for connected devices."
     },
     "definitions": {
@@ -406,6 +408,15 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "requestAudioDevicePowerStatus": {
+            "summary": "Sends the CEC \\<Give Device Power Status\\> message to connected audio device.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `reportAudioDevicePowerStatus`|Triggered when CEC \\<Report Power Status\\> message of connected audio device is received.|",
+            "events": [
+                "reportAudioDevicePowerStatus"
+            ],
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "sendKeyPressEvent": {
             "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
             "params": {
@@ -772,6 +783,22 @@
                 "required": [
                     "muteStatus",
                     "volumeLevel"
+                ]
+            }
+        },
+        "reportAudioDevicePowerStatus": {
+            "summary": "Triggered when CEC \\<Report Power Status\\> message of connected audio device is received",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "powerStatus": {
+                        "summary": "The power status of the device. 0 - ON, 1 - STANDBY",
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "powerStatus"
                 ]
             }
         },
