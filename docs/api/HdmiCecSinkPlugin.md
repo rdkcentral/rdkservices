@@ -1,10 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.HdmiCecSink_API"></a>
-# HdmiCecSink API
+<a name="head.HdmiCecSinkPlugin"></a>
+# HdmiCecSinkPlugin
 
 **Version: 1.0**
 
-**Status: :black_circle::white_circle::white_circle:**
+**Status: :black_circle::black_circle::black_circle:**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
@@ -81,7 +81,7 @@ The table below lists configuration options of the plugin.
 
 The following methods are provided by the org.rdk.HdmiCecSink plugin:
 
-org.rdk.HdmiCecSink interface methods:
+HdmiCecSink interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
@@ -97,7 +97,6 @@ org.rdk.HdmiCecSink interface methods:
 | [requestShortAudioDescriptor](#method.requestShortAudioDescriptor) | Sends the CEC Request Short Audio Descriptor (SAD) message as an event |
 | [sendAudioDevicePowerOnMessage](#method.sendAudioDevicePowerOnMessage) | This message is used to power on the connected audio device |
 | [sendGetAudioStatusMessage](#method.sendGetAudioStatusMessage) | Sends the CEC \<Give Audio Status\> message to request the audio status |
-| [requestAudioDevicePowerStatus](#method.requestAudioDevicePowerStatus) | Sends the CEC \<Give Device Power Status\> message to connected audio device |
 | [sendKeyPressEvent](#method.sendKeyPressEvent) | Sends the CEC \<User Control Pressed\> message when TV remote key is pressed |
 | [sendStandbyMessage](#method.sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
 | [setActivePath](#method.setActivePath) | Sets the source device to active (`setStreamPath`) |
@@ -726,53 +725,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.requestAudioDevicePowerStatus"></a>
-## *requestAudioDevicePowerStatus [<sup>method</sup>](#head.Methods)*
-
-Sends the CEC \<Give Device Power Status\> message to connected audio device.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `reportAudioDevicePowerStatus`|Triggered when CEC \<Report Power Status\> message of connected audio device is received.|.
-
-Also see: [reportAudioDevicePowerStatus](#event.reportAudioDevicePowerStatus)
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.requestAudioDevicePowerStatus"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="method.sendKeyPressEvent"></a>
 ## *sendKeyPressEvent [<sup>method</sup>](#head.Methods)*
 
@@ -1277,7 +1229,7 @@ Notifications are autonomous events, triggered by the internals of the implement
 
 The following events are provided by the org.rdk.HdmiCecSink plugin:
 
-org.rdk.HdmiCecSink interface events:
+HdmiCecSink interface events:
 
 | Event | Description |
 | :-------- | :-------- |
@@ -1293,7 +1245,6 @@ org.rdk.HdmiCecSink interface events:
 | [onWakeupFromStandby](#event.onWakeupFromStandby) | Triggered when the TV is in standby mode and it receives \<Image View ON\>/ \<Text View ON\>/ \<Active Source\> CEC message from the connected source device |
 | [reportAudioDeviceConnectedStatus](#event.reportAudioDeviceConnectedStatus) | Triggered when an audio device is added or removed |
 | [reportAudioStatusEvent](#event.reportAudioStatusEvent) | Triggered when CEC \<Report Audio Status\> message of device is received |
-| [reportAudioDevicePowerStatus](#event.reportAudioDevicePowerStatus) | Triggered when CEC \<Report Power Status\> message of connected audio device is received |
 | [reportCecEnabledEvent](#event.reportCecEnabledEvent) | Triggered when the HDMI-CEC is enabled |
 | [setSystemAudioModeEvent](#event.setSystemAudioModeEvent) | Triggered when CEC \<Set System Audio Mode\> message of device is received |
 | [shortAudiodesciptorEvent](#event.shortAudiodesciptorEvent) | Triggered when SAD is received from the connected audio device |
@@ -1592,30 +1543,6 @@ Triggered when CEC \<Report Audio Status\> message of device is received.
     "params": {
         "muteStatus": 0,
         "volumeLevel": 28
-    }
-}
-```
-
-<a name="event.reportAudioDevicePowerStatus"></a>
-## *reportAudioDevicePowerStatus [<sup>event</sup>](#head.Notifications)*
-
-Triggered when CEC \<Report Power Status\> message of connected audio device is received.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.powerStatus | integer | The power status of the device. 0 - ON, 1 - STANDBY |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.reportAudioDevicePowerStatus",
-    "params": {
-        "powerStatus": 0
     }
 }
 ```
