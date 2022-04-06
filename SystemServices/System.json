@@ -2004,6 +2004,22 @@
                 ]
             }
         },
+        "onNetworkStandbyModeChanged":{
+            "summary": "Triggered when the network standby mode setting changed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "nwStandby": {
+                        "summary": "Network standby mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "nwStandby",
+                ]
+            }
+        },
         "onTemperatureThresholdChanged":{
             "summary": "Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`). Not supported on all devices.",
             "params": {
