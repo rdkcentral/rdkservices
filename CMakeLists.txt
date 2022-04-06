@@ -321,7 +321,7 @@ if(PLUGIN_WEBBRIDGE)
 endif()
 
 if(RDK_SERVICES_TEST)
-    add_subdirectory(RdkServicesTest)
+    add_subdirectory(test)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
