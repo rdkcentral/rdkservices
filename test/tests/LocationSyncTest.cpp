@@ -29,6 +29,8 @@ using namespace WPEFramework;
 
 namespace {
 const string webPrefix = _T("/Service/LocationSync");
+const unsigned int waitRetries = 2000;
+const unsigned int waitInterval = 100;
 }
 
 class LocationSyncTestFixture : public ::testing::Test {
@@ -105,8 +107,8 @@ TEST_F(LocationSyncTestFixture, probeTest)
         _T(""));
 
     Core::Event wait(false, true);
-    for (int i = 0; ((subSystem.Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < 1000)); i++) {
-        wait.Lock(10);
+    for (unsigned int i = 0; ((subSystem.Get(PluginHost::ISubSystem::LOCATION) == nullptr) && (i < waitRetries)); i++) {
+        wait.Lock(waitInterval);
     }
 
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
