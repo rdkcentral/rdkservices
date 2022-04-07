@@ -402,49 +402,6 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // willLoadDataRequest
 };
 
-static WKBundlePageUIClientV4 s_pageUIClient = {
-    { 4, nullptr },
-    nullptr, // willAddMessageToConsole
-    nullptr, // willSetStatusbarText
-    nullptr, // willRunJavaScriptAlert
-    nullptr, // willRunJavaScriptConfirm
-    nullptr, // willRunJavaScriptPrompt
-    nullptr, // mouseDidMoveOverElement
-    nullptr, // pageDidScroll
-    nullptr, // unused1
-    nullptr, // shouldGenerateFileForUpload
-    nullptr, // generateFileForUpload
-    nullptr, // unused2
-    nullptr, // statusBarIsVisible
-    nullptr, // menuBarIsVisible
-    nullptr, // toolbarsAreVisible
-    nullptr, // didReachApplicationCacheOriginQuota
-    nullptr, // didExceedDatabaseQuota
-    nullptr, // createPlugInStartLabelTitle
-    nullptr, // createPlugInStartLabelSubtitle
-    nullptr, // createPlugInExtraStyleSheet
-    nullptr, // createPlugInExtraScript
-    nullptr, // unused3
-    nullptr, // unused4
-    nullptr, // unused5
-    nullptr, // didClickAutoFillButton
-    //willAddDetailedMessageToConsole
-    [](WKBundlePageRef page, WKConsoleMessageSource source, WKConsoleMessageLevel level, WKStringRef message, uint32_t lineNumber,
-        uint32_t columnNumber, WKStringRef url, const void* clientInfo) {
-        auto prepareMessage = [&]() {
-            string messageString = WebKit::Utils::WKStringToString(message);
-            const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
-            if (messageString.length() > maxStringLength) {
-                messageString = messageString.substr(0, maxStringLength);
-            }
-            return messageString;
-        };
-
-        // TODO: use "Trace" classes for different levels.
-        TRACE_GLOBAL(Trace::Information, (prepareMessage()));
-    }
-};
-
 static WKURLRequestRef willSendRequestForFrame(
   WKBundlePageRef page, WKBundleFrameRef, uint64_t, WKURLRequestRef request, WKURLResponseRef, const void*) {
     WebKit::ApplyRequestHeaders(page, request);
@@ -486,9 +443,6 @@ static WKBundleClientV1 s_bundleClient = {
     [](WKBundleRef bundle, WKBundlePageRef page, const void* clientInfo) {
         // Register page loader client, for javascript callbacks.
         WKBundlePageSetPageLoaderClient(page, &s_pageLoaderClient.base);
-
-        // Register UI client, this one will listen to log messages.
-        WKBundlePageSetUIClient(page, &s_pageUIClient.base);
 
         WKBundlePageSetResourceLoadClient(page, &s_resourceLoadClient.base);
 
