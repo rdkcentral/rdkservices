@@ -22,8 +22,8 @@
 #include "LocationSync.h"
 
 #include "ServiceMock.h"
-#include "Source/SystemInfo.h"
-#include "Source/WorkerPoolImplementation.h"
+#include "source/SystemInfo.h"
+#include "source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
