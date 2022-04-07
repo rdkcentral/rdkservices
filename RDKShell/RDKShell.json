@@ -710,6 +710,25 @@
                 ]
             }
         },
+        "setFrameRate":{
+            "summary": "Set Frame Rate.. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+			"summary": "Framerate to be set",
+			"type":"number",
+			"example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "getLogLevel": {
             "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
             "result": {
