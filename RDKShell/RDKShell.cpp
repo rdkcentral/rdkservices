@@ -6382,7 +6382,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool hideCursor()
+        bool RDKShell::hideCursor()
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::hideCursor();
@@ -6390,7 +6390,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool setCursorSize(uint32_t width, uint32_t height)
+        bool RDKShell::setCursorSize(uint32_t width, uint32_t height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::setCursorSize(width, height);
@@ -6398,7 +6398,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool getCursorSize(uint32_t& width, uint32_t& height)
+        bool RDKShell::getCursorSize(uint32_t& width, uint32_t& height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::getCursorSize(width, height);
