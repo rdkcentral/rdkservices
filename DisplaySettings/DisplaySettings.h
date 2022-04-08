@@ -172,6 +172,7 @@ namespace WPEFramework {
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
 	    void onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters);
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
+            void onAudioDevicePowerStatusEventHandler(const JsonObject& parameters);
             //End events
         public:
             DisplaySettings();
@@ -204,6 +205,7 @@ namespace WPEFramework {
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
+            bool requestAudioDevicePowerStatus();
 	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    bool getHdmiCecSinkCecEnableStatus();
 	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
@@ -234,6 +236,14 @@ namespace WPEFramework {
                 ARC_STATE_ARC_EXIT
             };
 
+            enum {
+                AUDIO_DEVICE_POWER_STATE_UNKNOWN,
+                AUDIO_DEVICE_POWER_STATE_REQUEST,
+                AUDIO_DEVICE_POWER_STATE_STANDBY,
+                AUDIO_DEVICE_POWER_STATE_ON,
+            };
+
+            int m_hdmiInAudioDevicePowerState;
             int m_currentArcRoutingState; 
 
         public:
