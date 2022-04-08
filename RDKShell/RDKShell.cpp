@@ -5274,7 +5274,9 @@ namespace WPEFramework {
             if (result)
             {
                 unsigned int framerate = parameters["framerate"].Number();
+		lockRdkShellMutex();
 		gCurrentFramerate = framerate;
+		gRdkShellMutex.unlock();
             }
             returnResponse(result);
         }
