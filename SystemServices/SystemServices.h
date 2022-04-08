@@ -132,8 +132,10 @@ namespace WPEFramework {
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getModelName(const string& parameter, JsonObject& response);
-                std::string m_ManufacturerData;
-                bool m_ManufacturerDataValid;
+		std::string m_ManufacturerDataHardwareID;
+		std::string m_ManufacturerDataModelName;
+                bool m_ManufacturerDataHardwareIdValid;
+		bool m_ManufacturerDataModelNameValid;
                 std::string m_MfgSerialNumber;
                 bool m_MfgSerialNumberValid;
 		
