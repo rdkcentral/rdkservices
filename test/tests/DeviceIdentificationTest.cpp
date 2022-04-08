@@ -3,7 +3,7 @@
 #include "DeviceIdentification.h"
 
 #include "ServiceMock.h"
-#include "Source/SystemInfo.h"
+#include "source/SystemInfo.h"
 
 using namespace WPEFramework;
 

@@ -22,8 +22,8 @@
 #include "SecurityAgent.h"
 
 #include "ServiceMock.h"
-#include "Source/SystemInfo.h"
-#include "Source/WorkerPoolImplementation.h"
+#include "source/SystemInfo.h"
+#include "source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
@@ -37,7 +37,7 @@ const string webPrefix = _T("/Service/SecurityAgent");
 const string persistentPath = _T("/tmp/");
 const string dataPath = _T("/tmp/");
 const string volatilePath = _T("/tmp/");
-const string proxyStubPath = _T("thunder/install/usr/lib/wpeframework/proxystubs");
+const string proxyStubPath = _T("install/usr/lib/wpeframework/proxystubs");
 }
 
 class SecurityAgentTestFixture : public ::testing::Test {
@@ -178,31 +178,30 @@ TEST_F(SecurityAgentTestFixture, rpcCom)
     EXPECT_TRUE(client.IsValid() == true);
     EXPECT_TRUE(client->IsOpen() == false);
 
-    // TODO: When running as github workflow, interface is nullptr.
-//    auto interface = client->Open<PluginHost::IAuthenticate>(
-//        callSign.c_str());
-//    EXPECT_TRUE(interface != nullptr);
-//
-//    token.clear();
-//    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
-//
-//    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
-//
-//    interface->Release();
-//
-//    /**
-//     * IUnknown Release() times out and
-//    returns without server response. The next action of the
-//    unit test is to destroy the server. When the server
-//    is being destroyed it also submits that response hence
-//    an ASSERT is hit. The problem with Release()
-//    happens due to the following commit in Thunder R2-v1.9
-//    e70fe4856c7cef952238decf9730e8b5283658e5 which
-//    introduces a lock for IUnknown Release() which
-//    blocks both RPC-COM client and server if they are
-//    in the same process.
-//     */
-//    sleep(1);
+    auto interface = client->Open<PluginHost::IAuthenticate>(
+        callSign.c_str());
+    EXPECT_TRUE(interface != nullptr);
+
+    token.clear();
+    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
+
+    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+
+    interface->Release();
+
+    /**
+     * IUnknown Release() times out and
+    returns without server response. The next action of the
+    unit test is to destroy the server. When the server
+    is being destroyed it also submits that response hence
+    an ASSERT is hit. The problem with Release()
+    happens due to the following commit in Thunder R2-v1.9
+    e70fe4856c7cef952238decf9730e8b5283658e5 which
+    introduces a lock for IUnknown Release() which
+    blocks both RPC-COM client and server if they are
+    in the same process.
+     */
+    sleep(1);
 
     client.Release();
     engine.Release();

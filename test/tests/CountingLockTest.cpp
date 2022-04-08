@@ -21,7 +21,7 @@
 
 #include "CountingLock.h"
 
-#include "Source/WorkerPoolImplementation.h"
+#include "source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
