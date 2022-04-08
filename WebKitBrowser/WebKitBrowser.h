@@ -147,6 +147,7 @@ namespace Plugin {
     public:
         WebKitBrowser()
             : _skipURL(0)
+            , _connectionId(0)
             , _service(nullptr)
             , _browser(nullptr)
             , _browserResources(nullptr)
@@ -240,7 +241,7 @@ namespace Plugin {
         void event_statechange(const bool& suspended); // StateControl
 
     private:
-        uint8_t _skipURL;
+        size_t _skipURL;
         uint32_t _connectionId;
         PluginHost::IShell* _service;
         Exchange::IWebBrowser* _browser;

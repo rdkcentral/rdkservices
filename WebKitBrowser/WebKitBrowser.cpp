@@ -210,7 +210,7 @@ namespace Plugin {
 
         Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
         Core::TextSegmentIterator index(
-            Core::TextFragment(request.Path, _skipURL, request.Path.length() - _skipURL), false, '/');
+            Core::TextFragment(request.Path, uint32_t(_skipURL), uint32_t(request.Path.length() - _skipURL)), false, '/');
 
         result->ErrorCode = Web::STATUS_BAD_REQUEST;
         result->Message = "Unknown error";
