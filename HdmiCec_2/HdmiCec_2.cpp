@@ -48,6 +48,7 @@
 #define HDMICEC2_METHOD_GET_VENDOR_ID "getVendorId"
 #define HDMICEC2_METHOD_PERFORM_OTP_ACTION "performOTPAction"
 #define HDMICEC2_METHOD_SEND_STANDBY_MESSAGE "sendStandbyMessage"
+#define HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
 
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
@@ -60,12 +61,14 @@ enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
 	HDMICEC2_EVENT_DEVICE_REMOVED,
 	HDMICEC2_EVENT_DEVICE_INFO_UPDATED,
+        HDMICEC2_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
 static char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
-	"onDeviceInfoUpdated"
+	"onDeviceInfoUpdated",
+        "onActiveSourceStatusUpdated"
 };
 
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData_2.json"
@@ -119,6 +122,7 @@ namespace WPEFramework
              else
                  isDeviceActiveSource = false;
              LOGINFO("ActiveSource isDeviceActiveSource status :%d \n", isDeviceActiveSource);
+             HdmiCec_2::_instance->sendActiveSourceEvent();
              HdmiCec_2::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec_2Processor::process (const InActiveSource &msg, const Header &header)
@@ -258,6 +262,7 @@ namespace WPEFramework
              else
                  isDeviceActiveSource = false;
              LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             HdmiCec_2::_instance->sendActiveSourceEvent();
        }
        void HdmiCec_2Processor::process (const RoutingInformation &msg, const Header &header)
        {
@@ -268,6 +273,7 @@ namespace WPEFramework
              else
                  isDeviceActiveSource = false;
              LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             HdmiCec_2::_instance->sendActiveSourceEvent();
        }
        void HdmiCec_2Processor::process (const SetStreamPath &msg, const Header &header)
        {
@@ -278,6 +284,7 @@ namespace WPEFramework
              else
                  isDeviceActiveSource = false;
              LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             HdmiCec_2::_instance->sendActiveSourceEvent();
 
        }
        void HdmiCec_2Processor::process (const GetMenuLanguage &msg, const Header &header)
@@ -372,6 +379,7 @@ namespace WPEFramework
            registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
            registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
            registerMethod(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
+           registerMethod(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
            registerMethod("getDeviceList", &HdmiCec_2::getDeviceList, this);
 
        }
@@ -472,6 +480,11 @@ namespace WPEFramework
            return msg;
        }
 
+       uint32_t HdmiCec_2::getActiveSourceStatus(const JsonObject& parameters, JsonObject& response)
+       {
+            response["status"] = isDeviceActiveSource;
+            returnResponse(true);
+       }
 
        void HdmiCec_2::Deinitialize(PluginHost::IShell* /* service */)
        {
@@ -480,6 +493,8 @@ namespace WPEFramework
            {
                setEnabled(false,false);
            }
+           isDeviceActiveSource = false;
+           HdmiCec_2::_instance->sendActiveSourceEvent();
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
            DeinitializeIARM();
@@ -516,7 +531,7 @@ namespace WPEFramework
                 if (smConnection){
                    try
                    {
-                       smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 5000);
+                       smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()));
 		       ret = true;
                    }
                    catch(...)
@@ -670,6 +685,14 @@ namespace WPEFramework
            return;
        }
 
+       void HdmiCec_2::sendActiveSourceEvent()
+       {
+           JsonObject params;
+           params["status"] = isDeviceActiveSource;
+           LOGWARN(" sendActiveSourceEvent isDeviceActiveSource: %d ",isDeviceActiveSource);
+           sendNotify(eventString[HDMICEC2_EVENT_ACTIVE_SOURCE_STATUS_UPDATED], params);
+       }
+
        void HdmiCec_2::onHdmiHotPlug(int connectStatus)
        {
             if (!IsCecMgrActivated) {
@@ -711,9 +734,9 @@ namespace WPEFramework
                          LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
                              (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
                          if(isLGTvConnected)
-                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)));
                          else 
-                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                             smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
                      } 
                      catch(...)
                      {
@@ -1034,16 +1057,16 @@ namespace WPEFramework
             if(smConnection)
             {
                 LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()));
                 LOGINFO("Command: sending request active Source isDeviceActiveSource is set to false\r\n");
-                smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(RequestActiveSource()), 5000);
+                smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(RequestActiveSource()));
                 isDeviceActiveSource = false;
                 LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n", \
                                                  (isLGTvConnected)?lgVendorId.toString().c_str():appVendorId.toString().c_str());
                 if(isLGTvConnected)
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)), 5000);
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(lgVendorId)));
                 else 
-                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)),5000);
+                    smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
 
                 LOGWARN("Start Update thread %p", smConnection );
                 m_updateThreadExit = false;
@@ -1222,14 +1245,14 @@ namespace WPEFramework
                     try
                     {
                         LOGINFO("Command: sending ImageViewOn TV \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()), 5000);
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()));
                         usleep(10000);
                         LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)), 5000);
+                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)));
                         usleep(10000);
                         isDeviceActiveSource = true;
                         LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()), 5000);
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()));
                         ret = true;
                     }
                     catch(...)

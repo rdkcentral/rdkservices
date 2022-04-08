@@ -27,6 +27,7 @@ namespace AAMP {
 
 void LoadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame);
 void UnloadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame);
+void SetHttpHeaders(const char * headerJson);
 
 }  // namespace AAMP
 }  // namespace JavaScript

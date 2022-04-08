@@ -19,7 +19,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Module.h"
+#include "audiocapturemgr_iarm.h"
 #include "libIARM.h"
 
 class socket_adaptor;
@@ -69,7 +72,7 @@ namespace WPEFramework {
         private/*members*/:
             audiocapturemgr::session_id_t _session_id;
             unsigned int _max_supported_duration;
-            socket_adaptor* _sock_adaptor;
+            std::unique_ptr<socket_adaptor> _sock_adaptor;
             audiocapturemgr::audio_properties_ifce_t _audio_properties;
             string _audio_format_string;
             string _destination_url;

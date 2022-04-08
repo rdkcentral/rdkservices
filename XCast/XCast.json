@@ -37,6 +37,11 @@
             "type": "string",
             "example": "active"
         },
+        "version": {
+            "summary": "DIAL protocol version string",
+            "type": "string",
+            "example": "2.1 or 2.2.1 etc."
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -127,6 +132,24 @@
                     "standbybehavior",
                     "success"
                 ]               
+            }
+        },
+        "getProtocolVersion":{
+            "summary": "Return the DIAL protocol version supported by the server .\n  \n### Events \n\n No Events",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "version": {
+                        "$ref": "#/definitions/version"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "version",
+                    "success"
+                ]
             }
         },
         "onApplicationStateChanged":{

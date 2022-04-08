@@ -4,7 +4,7 @@
     "info": {
         "title": "HdmiCec API", 
         "class": "HdmiCec", 
-        "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box"
+        "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The plugin can be used on an HDMI source device where applications will have complete control on implementing the CEC messages and the Thunder plugin will provide the transport mechanism to send and receive the messages to other CEC devices in the network."
     },
     "definitions": {
         "enabled": {
@@ -70,33 +70,21 @@
                             "physicalAddress":{
                                 "$ref": "#/definitions/physicalAddress"
                             },
-                            "logicalAddresses":{
-                                "summary": "The logical address including the device type",
-                                "type": "array",
-                                "items": {
-                                    "type":"object",
-                                    "properties": {
-                                        "deviceType": {
-                                            "summary": "The type of device",
-                                            "type": "string",
-                                            "example": "Tuner"
-                                        },
-                                        "logicalAddress": {
-                                            "summary": "The logical address of the device",
-                                            "type": "integer",
-                                            "example": 3
-                                        }
-                                    },
-                                    "required": [
-                                        "deviceType",
-                                        "logicalAddress"
-                                    ]
-                                }
+                            "deviceType": {
+                                 "summary": "The type of device",
+                                 "type": "string",
+                                 "example": "Tuner"
+                            },
+                            "logicalAddress": {
+                                 "summary": "The logical address of the device",
+                                 "type": "integer",
+                                 "example": 3
                             }
                         },
                         "required": [
                             "physicalAddress",
-                            "logicalAddresses"
+                            "deviceType",
+                            "logicalAddress"
                         ]
                     },
                     "success": {
@@ -207,6 +195,25 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "getActiveSourceStatus":{
+            "summary": "Get the active source status of the device.\n  \n### Event \n\n No Events",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "summary": "`true` if device is the active source, otherwise `false`",
+                       "type": "boolean",
+                       "example": "true"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
@@ -241,6 +248,22 @@
                 },
                 "required": [
                     "message"
+                ]
+            }
+        },
+        "onActiveSourceStatusUpdated":{
+            "summary": "Triggered when device active source status changes ",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "summary": "status true means device is active source and false means device is not active source",
+                       "type": "boolean",
+                       "example": "true"
+                    }
+                },
+                "required": [
+                    "status"
                 ]
             }
         },
