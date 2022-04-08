@@ -97,6 +97,7 @@ typedef struct {
     char ipaddress[MAX_IP_ADDRESS_LEN];
     char netmask[MAX_IP_ADDRESS_LEN];
     char gateway[MAX_IP_ADDRESS_LEN];
+    char dhcpserver[MAX_IP_ADDRESS_LEN];
     char primarydns[MAX_IP_ADDRESS_LEN];
     char secondarydns[MAX_IP_ADDRESS_LEN];
     bool isSupported;
@@ -1030,7 +1031,11 @@ namespace WPEFramework
                      {
                          response["interface"] = InternalResponse["interface"];
                          response["ipversion"] = InternalResponse["ipversion"];
+                         std::string sIPVersion = InternalResponse["ipversion"].String();
                          response["autoconfig"] = InternalResponse["autoconfig"];
+                         std::string sAutoconfig =  InternalResponse["autoconfig"].String();
+                         if (!sAutoconfig.compare("true") && !(sIPVersion.compare("IPv4")))
+                             response["dhcpserver"] = InternalResponse["dhcpserver"];
                          response["ipaddress"] = InternalResponse["ipaddr"];
                          response["netmask"] = InternalResponse["netmask"];
                          response["gateway"] = InternalResponse["gateway"];
@@ -1071,6 +1076,7 @@ namespace WPEFramework
                 response["autoconfig"] = iarmData.autoconfig;
                 response["ipaddr"] = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
                 response["netmask"] = string(iarmData.netmask,MAX_IP_ADDRESS_LEN - 1);
+                response["dhcpserver"] = string(iarmData.dhcpserver,MAX_IP_ADDRESS_LEN - 1);
                 response["gateway"] = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
