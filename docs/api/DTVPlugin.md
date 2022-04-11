@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.DTV_Plugin"></a>
+<a name="DTV_Plugin"></a>
 # DTV Plugin
 
 **Version: 2.0**
@@ -10,62 +10,62 @@ A DTV plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Properties](#head.Properties)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Properties](#Properties)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the DTV plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The DTV plugin provides access to DVB services provided by a DVB stack.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -77,7 +77,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDTV.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the DTV plugin:
@@ -86,16 +86,16 @@ DTV interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [addLnb](#method.addLnb) | Add a new LNB to the database |
-| [addSatellite](#method.addSatellite) | Add a new satellite to the database |
-| [startServiceSearch](#method.startServiceSearch) | Starts a service search |
-| [finishServiceSearch](#method.finishServiceSearch) | Finishes a service search |
-| [startPlaying](#method.startPlaying) | Starts playing the specified service |
-| [stopPlaying](#method.stopPlaying) | Stops playing the specified service |
+| [addLnb](#addLnb) | Add a new LNB to the database |
+| [addSatellite](#addSatellite) | Add a new satellite to the database |
+| [startServiceSearch](#startServiceSearch) | Starts a service search |
+| [finishServiceSearch](#finishServiceSearch) | Finishes a service search |
+| [startPlaying](#startPlaying) | Starts playing the specified service |
+| [stopPlaying](#stopPlaying) | Stops playing the specified service |
 
 
-<a name="method.addLnb"></a>
-## *addLnb [<sup>method</sup>](#head.Methods)*
+<a name="addLnb"></a>
+## *addLnb*
 
 Add a new LNB to the database.
   
@@ -167,8 +167,8 @@ Add a new LNB to the database.
 }
 ```
 
-<a name="method.addSatellite"></a>
-## *addSatellite [<sup>method</sup>](#head.Methods)*
+<a name="addSatellite"></a>
+## *addSatellite*
 
 Add a new satellite to the database.
   
@@ -218,8 +218,8 @@ Add a new satellite to the database.
 }
 ```
 
-<a name="method.startServiceSearch"></a>
-## *startServiceSearch [<sup>method</sup>](#head.Methods)*
+<a name="startServiceSearch"></a>
+## *startServiceSearch*
 
 Starts a service search.
  
@@ -229,7 +229,7 @@ Starts a service search.
 |`searchstatus`|Triggered during the course of a service search.|
  |`serviceupdated`|Triggered when a service is added|.
 
-Also see: [searchstatus](#event.searchstatus), [serviceupdated](#event.serviceupdated)
+Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 
 ### Parameters
 
@@ -314,8 +314,8 @@ Also see: [searchstatus](#event.searchstatus), [serviceupdated](#event.serviceup
 }
 ```
 
-<a name="method.finishServiceSearch"></a>
-## *finishServiceSearch [<sup>method</sup>](#head.Methods)*
+<a name="finishServiceSearch"></a>
+## *finishServiceSearch*
 
 Finishes a service search.
   
@@ -363,8 +363,8 @@ Finishes a service search.
 }
 ```
 
-<a name="method.startPlaying"></a>
-## *startPlaying [<sup>method</sup>](#head.Methods)*
+<a name="startPlaying"></a>
+## *startPlaying*
 
 Starts playing the specified service.
   
@@ -377,7 +377,7 @@ Starts playing the specified service.
 |`audiochanged`|Triggered when the audio PID or codec are changed|
 |`subtitleschanged`|Triggered when the subtitle PID or details are changed| .
 
-Also see: [serviceupdated](#event.serviceupdated), [eventchanged](#event.eventchanged), [videochanged](#event.videochanged), [audiochanged](#event.audiochanged), [subtitleschanged](#event.subtitleschanged)
+Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [videochanged](#videochanged), [audiochanged](#audiochanged), [subtitleschanged](#subtitleschanged)
 
 ### Parameters
 
@@ -421,8 +421,8 @@ Also see: [serviceupdated](#event.serviceupdated), [eventchanged](#event.eventch
 }
 ```
 
-<a name="method.stopPlaying"></a>
-## *stopPlaying [<sup>method</sup>](#head.Methods)*
+<a name="stopPlaying"></a>
+## *stopPlaying*
 
 Stops playing the specified service.
   
@@ -465,7 +465,7 @@ Stops playing the specified service.
 }
 ```
 
-<a name="head.Properties"></a>
+<a name="Properties"></a>
 # Properties
 
 The following properties are provided by the DTV plugin:
@@ -492,7 +492,7 @@ DTV interface properties:
 
 
 <a name="property.numberOfCountries"></a>
-## *numberOfCountries [<sup>property</sup>](#head.Properties)*
+## *numberOfCountries [<sup>property</sup>](#Properties)*
 
 Provides access to the number of country configurations available.
 
@@ -527,7 +527,7 @@ Provides access to the number of country configurations available.
 ```
 
 <a name="property.countryList"></a>
-## *countryList [<sup>property</sup>](#head.Properties)*
+## *countryList [<sup>property</sup>](#Properties)*
 
 Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
 
@@ -570,7 +570,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 ```
 
 <a name="property.country"></a>
-## *country [<sup>property</sup>](#head.Properties)*
+## *country [<sup>property</sup>](#Properties)*
 
 Provides access to the country configuration using the ISO 3-character country code.
 
@@ -624,7 +624,7 @@ Provides access to the country configuration using the ISO 3-character country c
 ```
 
 <a name="property.lnbList"></a>
-## *lnbList [<sup>property</sup>](#head.Properties)*
+## *lnbList [<sup>property</sup>](#Properties)*
 
 Provides access to the array of LNBs defined in the database.
 
@@ -691,7 +691,7 @@ Provides access to the array of LNBs defined in the database.
 ```
 
 <a name="property.satelliteList"></a>
-## *satelliteList [<sup>property</sup>](#head.Properties)*
+## *satelliteList [<sup>property</sup>](#Properties)*
 
 Provides access to the array of satellites defined in the database.
 
@@ -736,7 +736,7 @@ Provides access to the array of satellites defined in the database.
 ```
 
 <a name="property.numberOfServices"></a>
-## *numberOfServices [<sup>property</sup>](#head.Properties)*
+## *numberOfServices [<sup>property</sup>](#Properties)*
 
 Provides access to the total number of services in the service database.
 
@@ -771,7 +771,7 @@ Provides access to the total number of services in the service database.
 ```
 
 <a name="property.serviceList"></a>
-## *serviceList [<sup>property</sup>](#head.Properties)*
+## *serviceList [<sup>property</sup>](#Properties)*
 
 Provides access to the list of services for the given type of tuner, transport (version 2), or all services if neither is given.
 
@@ -832,7 +832,7 @@ Provides access to the list of services for the given type of tuner, transport (
 ```
 
 <a name="property.serviceInfo"></a>
-## *serviceInfo [<sup>property</sup>](#head.Properties)*
+## *serviceInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the information for the given service as defined by its DVB triplet URI.
 
@@ -890,7 +890,7 @@ Provides access to the information for the given service as defined by its DVB t
 ```
 
 <a name="property.serviceComponents"></a>
-## *serviceComponents [<sup>property</sup>](#head.Properties)*
+## *serviceComponents [<sup>property</sup>](#Properties)*
 
 Provides access to the (Version 2) array of components for the given service defined by its URI.
 
@@ -978,7 +978,7 @@ Provides access to the (Version 2) array of components for the given service def
 ```
 
 <a name="property.transportInfo"></a>
-## *transportInfo [<sup>property</sup>](#head.Properties)*
+## *transportInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the information for the given transport as defined by its DVB doublet URI.
 
@@ -1065,7 +1065,7 @@ Provides access to the information for the given transport as defined by its DVB
 ```
 
 <a name="property.nowNextEvents"></a>
-## *nowNextEvents [<sup>property</sup>](#head.Properties)*
+## *nowNextEvents [<sup>property</sup>](#Properties)*
 
 Provides access to the now and next events (EITp/f) for the given service.
 
@@ -1155,7 +1155,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 ```
 
 <a name="property.scheduleEvents"></a>
-## *scheduleEvents [<sup>property</sup>](#head.Properties)*
+## *scheduleEvents [<sup>property</sup>](#Properties)*
 
 Provides access to the events which are scheduled (EITsched) for the given service.
 
@@ -1219,7 +1219,7 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 ```
 
 <a name="property.extendedEventInfo"></a>
-## *extendedEventInfo [<sup>property</sup>](#head.Properties)*
+## *extendedEventInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the extended event info for the given service and event ID (version 2).
 
@@ -1269,7 +1269,7 @@ Provides access to the extended event info for the given service and event ID (v
 ```
 
 <a name="property.status"></a>
-## *status [<sup>property</sup>](#head.Properties)*
+## *status [<sup>property</sup>](#Properties)*
 
 Provides access to the information related to the play handle defined by the index.
 
@@ -1317,7 +1317,7 @@ Provides access to the information related to the play handle defined by the ind
 ```
 
 <a name="property.signalInfo"></a>
-## *signalInfo [<sup>property</sup>](#head.Properties)*
+## *signalInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the strength and quality of the currently tuned signal for the given play handle (version 2).
 
@@ -1360,10 +1360,10 @@ Provides access to the strength and quality of the currently tuned signal for th
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the DTV plugin:
 
@@ -1371,18 +1371,18 @@ DTV interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [searchstatus](#event.searchstatus) | Triggered during the course of a service search |
-| [serviceupdated](#event.serviceupdated) | (Version 2) Notification sent when details of a service have changed, such as its name, service type, running or scrambled state |
-| [serviceadded](#event.serviceadded) | (Version 2) Notification sent when a new service has been dynamically added to the service list |
-| [servicedeleted](#event.servicedeleted) | (Version 2) Notification sent when a service has been deleted from the service list |
-| [videochanged](#event.videochanged) | (Version 2) Notification sent when the video PID or codec has changed |
-| [audiochanged](#event.audiochanged) | (Version 2) Notification sent when the audio PID or codec has changed |
-| [subtitleschanged](#event.subtitleschanged) | (Version 2) Notification sent when the subtitles have changed |
-| [eventchanged](#event.eventchanged) | (Version 2) Notification sent when the EIT 'now' event is received when starting to play a service and when the 'now' event changes |
+| [searchstatus](#searchstatus) | Triggered during the course of a service search |
+| [serviceupdated](#serviceupdated) | (Version 2) Notification sent when details of a service have changed, such as its name, service type, running or scrambled state |
+| [serviceadded](#serviceadded) | (Version 2) Notification sent when a new service has been dynamically added to the service list |
+| [servicedeleted](#servicedeleted) | (Version 2) Notification sent when a service has been deleted from the service list |
+| [videochanged](#videochanged) | (Version 2) Notification sent when the video PID or codec has changed |
+| [audiochanged](#audiochanged) | (Version 2) Notification sent when the audio PID or codec has changed |
+| [subtitleschanged](#subtitleschanged) | (Version 2) Notification sent when the subtitles have changed |
+| [eventchanged](#eventchanged) | (Version 2) Notification sent when the EIT 'now' event is received when starting to play a service and when the 'now' event changes |
 
 
-<a name="event.searchstatus"></a>
-## *searchstatus [<sup>event</sup>](#head.Notifications)*
+<a name="searchstatus"></a>
+## *searchstatus*
 
 Triggered during the course of a service search.
 
@@ -1463,8 +1463,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.serviceupdated"></a>
-## *serviceupdated [<sup>event</sup>](#head.Notifications)*
+<a name="serviceupdated"></a>
+## *serviceupdated*
 
 (Version 2) Notification sent when details of a service have changed, such as its name, service type, running or scrambled state.
 
@@ -1510,8 +1510,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.serviceadded"></a>
-## *serviceadded [<sup>event</sup>](#head.Notifications)*
+<a name="serviceadded"></a>
+## *serviceadded*
 
 (Version 2) Notification sent when a new service has been dynamically added to the service list.
 
@@ -1557,8 +1557,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.servicedeleted"></a>
-## *servicedeleted [<sup>event</sup>](#head.Notifications)*
+<a name="servicedeleted"></a>
+## *servicedeleted*
 
 (Version 2) Notification sent when a service has been deleted from the service list.
 
@@ -1604,8 +1604,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.videochanged"></a>
-## *videochanged [<sup>event</sup>](#head.Notifications)*
+<a name="videochanged"></a>
+## *videochanged*
 
 (Version 2) Notification sent when the video PID or codec has changed.
 
@@ -1651,8 +1651,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.audiochanged"></a>
-## *audiochanged [<sup>event</sup>](#head.Notifications)*
+<a name="audiochanged"></a>
+## *audiochanged*
 
 (Version 2) Notification sent when the audio PID or codec has changed.
 
@@ -1698,8 +1698,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.subtitleschanged"></a>
-## *subtitleschanged [<sup>event</sup>](#head.Notifications)*
+<a name="subtitleschanged"></a>
+## *subtitleschanged*
 
 (Version 2) Notification sent when the subtitles have changed.
 
@@ -1745,8 +1745,8 @@ Triggered during the course of a service search.
 }
 ```
 
-<a name="event.eventchanged"></a>
-## *eventchanged [<sup>event</sup>](#head.Notifications)*
+<a name="eventchanged"></a>
+## *eventchanged*
 
 (Version 2) Notification sent when the EIT 'now' event is received when starting to play a service and when the 'now' event changes.
 
@@ -1768,17 +1768,17 @@ Triggered during the course of a service search.
 | params.service.selectable | boolean | (Version 2) True if the service should be user selectable |
 | params.service.runningstatus | string | (Version 2) The running status as given by the service descriptor in the SDT (must be one of the following: *undefined*, *notrunning*, *startssoon*, *pausing*, *running*, *offair*) |
 | params.event | object | EIT event information |
-| params.event.name | string | Name of the DVB event as defined in the short event descriptor |
-| params.event.starttime | number | UTC start time of the event in seconds |
-| params.event.duration | number | Duration of the event in seconds |
-| params.event.eventid | number | ID of the event from the event information table |
-| params.event.shortdescription | string | Event description from the EIT short event descriptor |
-| params.event.hassubtitles | boolean | (Version 2) True if subtitles are available |
-| params.event.hasaudiodescription | boolean | (Version 2) True if audio description is available |
-| params.event.parentalrating | number | (Version 2) Parental rating for the event, will be 0 if undefined |
-| params.event.contentdata | array | (Version 2) The first 2 4-bit values from the content descriptor as separate bytes |
-| params.event.contentdata[#] | number |  |
-| params.event.hasextendedinfo | boolean | (Version 2) True if there's extended event information available |
+| params.name | string | Name of the DVB event as defined in the short event descriptor |
+| params.starttime | number | UTC start time of the event in seconds |
+| params.duration | number | Duration of the event in seconds |
+| params.eventid | number | ID of the event from the event information table |
+| params.shortdescription | string | Event description from the EIT short event descriptor |
+| params.hassubtitles | boolean | (Version 2) True if subtitles are available |
+| params.hasaudiodescription | boolean | (Version 2) True if audio description is available |
+| params.parentalrating | number | (Version 2) Parental rating for the event, will be 0 if undefined |
+| params.contentdata | array | (Version 2) The first 2 4-bit values from the content descriptor as separate bytes |
+| params.contentdata[#] | number |  |
+| params.hasextendedinfo | boolean | (Version 2) True if there's extended event information available |
 
 ### Example
 

@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Warehouse_Plugin"></a>
+<a name="Warehouse_Plugin"></a>
 # Warehouse Plugin
 
 **Version: 2.0**
@@ -10,61 +10,61 @@ A org.rdk.Warehouse plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.Warehouse plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `Warehouse` plugin performs various types of resets (data, warehouse, etc.).
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkWarehouse.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.Warehouse plugin:
@@ -85,18 +85,18 @@ Warehouse interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [executeHardwareTest](#method.executeHardwareTest) | (Version 2) Starts a hardware test on the device |
-| [getDeviceInfo](#method.getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
-| [getHardwareTestResults](#method.getHardwareTestResults) | (Version 2) Returns the results of the last hardware test |
-| [internalReset](#method.internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
-| [isClean](#method.isClean) | Checks the locations on the device where customer data may be stored |
-| [lightReset](#method.lightReset) | Resets the application data |
-| [resetDevice](#method.resetDevice) | Resets the STB to the warehouse state |
-| [setFrontPanelState](#method.setFrontPanelState) | Sets the state of the front panel LEDs to indicate the download state of the STB software image |
+| [executeHardwareTest](#executeHardwareTest) | (Version 2) Starts a hardware test on the device |
+| [getDeviceInfo](#getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
+| [getHardwareTestResults](#getHardwareTestResults) | (Version 2) Returns the results of the last hardware test |
+| [internalReset](#internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
+| [isClean](#isClean) | Checks the locations on the device where customer data may be stored |
+| [lightReset](#lightReset) | Resets the application data |
+| [resetDevice](#resetDevice) | Resets the STB to the warehouse state |
+| [setFrontPanelState](#setFrontPanelState) | Sets the state of the front panel LEDs to indicate the download state of the STB software image |
 
 
-<a name="method.executeHardwareTest"></a>
-## *executeHardwareTest [<sup>method</sup>](#head.Methods)*
+<a name="executeHardwareTest"></a>
+## *executeHardwareTest*
 
 (Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. 
  
@@ -139,8 +139,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getDeviceInfo"></a>
-## *getDeviceInfo [<sup>method</sup>](#head.Methods)*
+<a name="getDeviceInfo"></a>
+## *getDeviceInfo*
 
 Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) 
  
@@ -207,8 +207,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getHardwareTestResults"></a>
-## *getHardwareTestResults [<sup>method</sup>](#head.Methods)*
+<a name="getHardwareTestResults"></a>
+## *getHardwareTestResults*
 
 (Version 2) Returns the results of the last hardware test. 
  
@@ -257,8 +257,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.internalReset"></a>
-## *internalReset [<sup>method</sup>](#head.Methods)*
+<a name="internalReset"></a>
+## *internalReset*
 
 Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). 
  
@@ -309,8 +309,8 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 }
 ```
 
-<a name="method.isClean"></a>
-## *isClean [<sup>method</sup>](#head.Methods)*
+<a name="isClean"></a>
+## *isClean*
 
 Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. 
  
@@ -360,8 +360,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.lightReset"></a>
-## *lightReset [<sup>method</sup>](#head.Methods)*
+<a name="lightReset"></a>
+## *lightReset*
 
 Resets the application data. 
  
@@ -406,8 +406,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.resetDevice"></a>
-## *resetDevice [<sup>method</sup>](#head.Methods)*
+<a name="resetDevice"></a>
+## *resetDevice*
 
 Resets the STB to the warehouse state. 
  
@@ -416,7 +416,7 @@ Resets the STB to the warehouse state.
 | :----------- | :----------- |
 | `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.
 
-Also see: [resetDone](#event.resetDone)
+Also see: [resetDone](#resetDone)
 
 ### Parameters
 
@@ -463,8 +463,8 @@ Also see: [resetDone](#event.resetDone)
 }
 ```
 
-<a name="method.setFrontPanelState"></a>
-## *setFrontPanelState [<sup>method</sup>](#head.Methods)*
+<a name="setFrontPanelState"></a>
+## *setFrontPanelState*
 
 Sets the state of the front panel LEDs to indicate the download state of the STB software image. 
  
@@ -515,10 +515,10 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.Warehouse plugin:
 
@@ -526,11 +526,11 @@ Warehouse interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [resetDone](#event.resetDone) | Notifies subscribers about the status of the warehouse reset operation |
+| [resetDone](#resetDone) | Notifies subscribers about the status of the warehouse reset operation |
 
 
-<a name="event.resetDone"></a>
-## *resetDone [<sup>event</sup>](#head.Notifications)*
+<a name="resetDone"></a>
+## *resetDone*
 
 Notifies subscribers about the status of the warehouse reset operation.
 

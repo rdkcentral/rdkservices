@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.WebKitBrowser_Plugin"></a>
+<a name="WebKitBrowser_Plugin"></a>
 # WebKitBrowser Plugin
 
 **Version: 1.0**
@@ -10,62 +10,62 @@ A WebKitBrowser plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Properties](#head.Properties)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Properties](#Properties)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the WebKitBrowser plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `WebKitBrowser` plugin provides web browsing functionality based on the WebKit engine.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -102,7 +102,7 @@ The table below lists configuration options of the plugin.
 | configuration?.watchdoghangthresholdtinseconds | number | <sup>*(optional)*</sup> The amount of time to give a process to recover before declaring a hang state |
 | configuration?.loadblankpageonsuspendenabled | boolean | <sup>*(optional)*</sup> Load 'about:blank' before suspending the page |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the WebKitBrowser plugin:
@@ -111,15 +111,15 @@ WebKitBrowser interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [bridgeevent](#method.bridgeevent) | Sends a legacy `$badger` event |
-| [bridgereply](#method.bridgereply) | A response for legacy `$badger` |
-| [delete](#method.delete) | Removes the contents of a directory recursively from the persistent storage |
+| [bridgeevent](#bridgeevent) | Sends a legacy `$badger` event |
+| [bridgereply](#bridgereply) | A response for legacy `$badger` |
+| [delete](#delete) | Removes the contents of a directory recursively from the persistent storage |
 
 
-<a name="method.bridgeevent"></a>
-## *bridgeevent [<sup>method</sup>](#head.Methods)*
+<a name="bridgeevent"></a>
+## *bridgeevent*
 
-Sends a legacy `$badger` event.
+Sends a legacy `$badger` 
  
 ### Events 
 
@@ -160,8 +160,8 @@ Sends a legacy `$badger` event.
 }
 ```
 
-<a name="method.bridgereply"></a>
-## *bridgereply [<sup>method</sup>](#head.Methods)*
+<a name="bridgereply"></a>
+## *bridgereply*
 
 A response for legacy `$badger`.
  
@@ -204,8 +204,8 @@ A response for legacy `$badger`.
 }
 ```
 
-<a name="method.delete"></a>
-## *delete [<sup>method</sup>](#head.Methods)*
+<a name="delete"></a>
+## *delete*
 
 Removes the contents of a directory recursively from the persistent storage.
  
@@ -257,7 +257,7 @@ Removes the contents of a directory recursively from the persistent storage.
 }
 ```
 
-<a name="head.Properties"></a>
+<a name="Properties"></a>
 # Properties
 
 The following properties are provided by the WebKitBrowser plugin:
@@ -278,7 +278,7 @@ WebKitBrowser interface properties:
 
 
 <a name="property.fps"></a>
-## *fps [<sup>property</sup>](#head.Properties)*
+## *fps [<sup>property</sup>](#Properties)*
 
 Provides access to the current number of frames-per-second the browser is rendering.
 
@@ -313,7 +313,7 @@ Provides access to the current number of frames-per-second the browser is render
 ```
 
 <a name="property.headers"></a>
-## *headers [<sup>property</sup>](#head.Properties)*
+## *headers [<sup>property</sup>](#Properties)*
 
 Provides access to the headers to send on all requests that the browser makes.
 
@@ -388,7 +388,7 @@ Use this property to send on all requests that the browser makes.
 ```
 
 <a name="property.httpcookieacceptpolicy"></a>
-## *httpcookieacceptpolicy [<sup>property</sup>](#head.Properties)*
+## *httpcookieacceptpolicy [<sup>property</sup>](#Properties)*
 
 Provides access to the HTTP cookies accept policy.
 
@@ -456,7 +456,7 @@ Use this property to accept HTTP cookie policy.
 ```
 
 <a name="property.languages"></a>
-## *languages [<sup>property</sup>](#head.Properties)*
+## *languages [<sup>property</sup>](#Properties)*
 
 Provides access to the user preferred languages.
 
@@ -523,7 +523,7 @@ Use this property to return User preferred languages.
 ```
 
 <a name="property.localstorageenabled"></a>
-## *localstorageenabled [<sup>property</sup>](#head.Properties)*
+## *localstorageenabled [<sup>property</sup>](#Properties)*
 
 Provides access to the local storage availability.
 
@@ -585,7 +585,7 @@ Use this property to return Local storage availability.
 ```
 
 <a name="property.state"></a>
-## *state [<sup>property</sup>](#head.Properties)*
+## *state [<sup>property</sup>](#Properties)*
 
 Provides access to the running state of the service.
 
@@ -598,7 +598,7 @@ Use this property to return the running state of the service.
 | :----------- | :----------- |
 | `statechange`| Triggered if the state of the service changes.|
 
-Also see: [statechange](#event.statechange)
+Also see: [statechange](#statechange)
 
 ### Value
 
@@ -650,7 +650,7 @@ Also see: [statechange](#event.statechange)
 ```
 
 <a name="property.url"></a>
-## *url [<sup>property</sup>](#head.Properties)*
+## *url [<sup>property</sup>](#Properties)*
 
 Provides access to the URL loaded in the browser.
 
@@ -665,7 +665,7 @@ Use this property to load URL in the browser.
  |`loadfinished`| Triggered if the `urlchange` event returns `true` as URL loaded successfully |
  |`loadfailed`| Triggered if the `urlchange` event returns `false` as URL failed to load |
 
-Also see: [urlchange](#event.urlchange)
+Also see: [urlchange](#urlchange)
 
 ### Value
 
@@ -723,7 +723,7 @@ Also see: [urlchange](#event.urlchange)
 ```
 
 <a name="property.useragent"></a>
-## *useragent [<sup>property</sup>](#head.Properties)*
+## *useragent [<sup>property</sup>](#Properties)*
 
 Provides access to the `UserAgent` string used by the browser.
 
@@ -785,7 +785,7 @@ Use this property to return `UserAgent` string used by the browser.
 ```
 
 <a name="property.visibility"></a>
-## *visibility [<sup>property</sup>](#head.Properties)*
+## *visibility [<sup>property</sup>](#Properties)*
 
 Provides access to the current browser visibility.
 
@@ -798,7 +798,7 @@ Use this property to return visibilty status of current browser.
 | :----------- | :----------- |
 | `visibilitychange`| Triggered if the browser visibility changes.|
 
-Also see: [visibilitychange](#event.visibilitychange)
+Also see: [visibilitychange](#visibilitychange)
 
 ### Value
 
@@ -855,10 +855,10 @@ Also see: [visibilitychange](#event.visibilitychange)
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the WebKitBrowser plugin:
 
@@ -866,17 +866,17 @@ WebKitBrowser interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [bridgequery](#event.bridgequery) | A Base64 encoded JSON message from legacy `$badger` bridge |
-| [loadfailed](#event.loadfailed) | Triggered when the browser fails to load a page |
-| [loadfinished](#event.loadfinished) | Triggered when the initial HTML document has been completely loaded and parsed |
-| [pageclosure](#event.pageclosure) | Triggered when the web page requests to close its window |
-| [statechange](#event.statechange) | Triggered when the state of the service changes |
-| [urlchange](#event.urlchange) | Triggered when the URL changes in the browser |
-| [visibilitychange](#event.visibilitychange) | Triggered when the browser visibility changes |
+| [bridgequery](#bridgequery) | A Base64 encoded JSON message from legacy `$badger` bridge |
+| [loadfailed](#loadfailed) | Triggered when the browser fails to load a page |
+| [loadfinished](#loadfinished) | Triggered when the initial HTML document has been completely loaded and parsed |
+| [pageclosure](#pageclosure) | Triggered when the web page requests to close its window |
+| [statechange](#statechange) | Triggered when the state of the service changes |
+| [urlchange](#urlchange) | Triggered when the URL changes in the browser |
+| [visibilitychange](#visibilitychange) | Triggered when the browser visibility changes |
 
 
-<a name="event.bridgequery"></a>
-## *bridgequery [<sup>event</sup>](#head.Notifications)*
+<a name="bridgequery"></a>
+## *bridgequery*
 
 A Base64 encoded JSON message from legacy `$badger` bridge.
 
@@ -896,8 +896,8 @@ A Base64 encoded JSON message from legacy `$badger` bridge.
 }
 ```
 
-<a name="event.loadfailed"></a>
-## *loadfailed [<sup>event</sup>](#head.Notifications)*
+<a name="loadfailed"></a>
+## *loadfailed*
 
 Triggered when the browser fails to load a page.
 
@@ -920,8 +920,8 @@ Triggered when the browser fails to load a page.
 }
 ```
 
-<a name="event.loadfinished"></a>
-## *loadfinished [<sup>event</sup>](#head.Notifications)*
+<a name="loadfinished"></a>
+## *loadfinished*
 
 Triggered when the initial HTML document has been completely loaded and parsed.
 
@@ -946,8 +946,8 @@ Triggered when the initial HTML document has been completely loaded and parsed.
 }
 ```
 
-<a name="event.pageclosure"></a>
-## *pageclosure [<sup>event</sup>](#head.Notifications)*
+<a name="pageclosure"></a>
+## *pageclosure*
 
 Triggered when the web page requests to close its window.
 
@@ -964,8 +964,8 @@ This event carries no parameters.
 }
 ```
 
-<a name="event.statechange"></a>
-## *statechange [<sup>event</sup>](#head.Notifications)*
+<a name="statechange"></a>
+## *statechange*
 
 Triggered when the state of the service changes.
 
@@ -988,8 +988,8 @@ Triggered when the state of the service changes.
 }
 ```
 
-<a name="event.urlchange"></a>
-## *urlchange [<sup>event</sup>](#head.Notifications)*
+<a name="urlchange"></a>
+## *urlchange*
 
 Triggered when the URL changes in the browser.
 
@@ -1014,8 +1014,8 @@ Triggered when the URL changes in the browser.
 }
 ```
 
-<a name="event.visibilitychange"></a>
-## *visibilitychange [<sup>event</sup>](#head.Notifications)*
+<a name="visibilitychange"></a>
+## *visibilitychange*
 
 Triggered when the browser visibility changes.
 
