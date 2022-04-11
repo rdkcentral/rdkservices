@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.RDKShell_Plugin"></a>
+<a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
 **Version: 2.0**
@@ -10,61 +10,61 @@ A org.rdk.RDKShell plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.RDKShell plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkRDKShell.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.RDKShell plugin:
@@ -85,78 +85,78 @@ RDKShell interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [addAnimation](#method.addAnimation) | Performs the set of animations |
-| [addKeyIntercept](#method.addKeyIntercept) | Adds a key intercept to the client application specified |
-| [addKeyListener](#method.addKeyListener) | Adds a key listener to an application |
-| [createDisplay](#method.createDisplay) |  Creates a display for the specified client using the configuration parameters |
-| [destroy](#method.destroy) | Destroys an application |
-| [enableInactivityReporting](#method.enableInactivityReporting) | Enables or disables inactivity reporting and events |
-| [enableKeyRepeats](#method.enableKeyRepeats) | Enables or disables key repeats |
-| [enableLogsFlushing](#method.enableLogsFlushing) | Enables or disables flushing all logs |
-| [enableVirtualDisplay](#method.enableVirtualDisplay) | Enables or disables a virtual display for the specified client |
-| [generateKey](#method.generateKey) | Triggers the key events (key press and release) |
-| [getAvailableTypes](#method.getAvailableTypes) | Returns the list of application types available on the firmware |
-| [getBounds](#method.getBounds) | Gets the bounds of the specified client |
-| [getClients](#method.getClients) | Gets a list of clients |
-| [getHolePunch](#method.getHolePunch) | Returns whether video hole punching is enabled or disabled for the specified client |
-| [getKeyRepeatsEnabled](#method.getKeyRepeatsEnabled) | Returns whether key repeating is enabled or disabled |
-| [getLastWakeupKey](#method.getLastWakeupKey) | Returns the last key press prior to a device wakeup |
-| [getLogsFlushingEnabled](#method.getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
-| [getLogLevel](#method.getLogLevel) | Returns the currently set logging level |
-| [getOpacity](#method.getOpacity) | Gets the opacity of the specified client |
-| [getScale](#method.getScale) | Returns the scale of an application |
-| [getScreenResolution](#method.getScreenResolution) | Gets the screen resolution |
-| [getState](#method.getState) | Returns the state of all applications |
-| [getSystemResourceInfo](#method.getSystemResourceInfo) | Returns system resource information about each application |
-| [getVirtualDisplayEnabled](#method.getVirtualDisplayEnabled) | Returns whether virtual display is enabled or disabled for the specified client |
-| [getVirtualResolution](#method.getVirtualResolution) | Returns the virtual display resolution for the specified client |
-| [getVisibility](#method.getVisibility) | Gets the visibility of the specified client |
-| [getZOrder](#method.getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
-| [hideSplashLogo](#method.hideSplashLogo) | Removes the splash screen |
-| [kill](#method.kill) | Kills the specified client |
-| [launch](#method.launch) | Launches an application |
-| [moveBehind](#method.moveBehind) | Moves the specified client behind the specified target client |
-| [moveToBack](#method.moveToBack) | Moves the specified client to the back or bottom of the Z order |
-| [moveToFront](#method.moveToFront) | Moves the specified client to the front or top of the Z order |
-| [removeAllKeyIntercepts](#method.removeAllKeyIntercepts) | Removes all key intercepts |
-| [removeAllKeyListeners](#method.removeAllKeyListeners) | Removes all key listeners |
-| [removeAnimation](#method.removeAnimation) | Removes the current animation for the specified client |
-| [removeKeyIntercept](#method.removeKeyIntercept) | Removes a key intercept |
-| [removeKeyListener](#method.removeKeyListener) | Removes a key listener for an application |
-| [scaleToFit](#method.scaleToFit) | Scales the specified client to fit the current bounds |
-| [setBounds](#method.setBounds) | Sets the bounds of the specified client |
-| [setFocus](#method.setFocus) | Sets focus to the specified client |
-| [setHolePunch](#method.setHolePunch) | Enables or disables video hole punching for the specified client |
-| [setInactivityInterval](#method.setInactivityInterval) | Sets the inactivity notification interval |
-| [setLogLevel](#method.setLogLevel) | Sets the logging level |
-| [setMemoryMonitor](#method.setMemoryMonitor) | Enables or disables RAM memory monitoring on the device |
-| [setOpacity](#method.setOpacity) | Sets the opacity of the specified client |
-| [setScale](#method.setScale) | Scales an application |
-| [setScreenResolution](#method.setScreenResolution) | Sets the screen resolution |
-| [setTopmost](#method.setTopmost) | Sets whether the specified client appears above all other clients on the display |
-| [setVirtualResolution](#method.setVirtualResolution) | Sets the virtual resolution for the specified client |
-| [setVisibility](#method.setVisibility) | Sets whether the specified client should be visible |
-| [showSplashLogo](#method.showSplashLogo) | Displays the splash screen |
-| [showWatermark](#method.showWatermark) | Sets whether a watermark shows on the display |
-| [suspend](#method.suspend) | Suspends an application |
-| [getScreenshot](#method.getScreenshot) | Captures a screenshot |
-| [hideAllClients](#method.hideAllClients) | Hides/Unhides all the clients |
-| [launchResidentApp](#method.launchResidentApp) | Launches the Resident application |
-| [hideFullScreenImage](#method.hideFullScreenImage) | Hides the Full Screen Image |
-| [showFullScreenImage](#method.showFullScreenImage) | Shows the Full Screen Image |
-| [getSystemMemory](#method.getSystemMemory) | Gets the information of System Memory |
-| [launchApplication](#method.launchApplication) | Launches an application |
-| [suspendApplication](#method.suspendApplication) | Suspends an application |
-| [resumeApplication](#method.resumeApplication) | Resumes an application |
-| [injectKey](#method.injectKey) | Injects the keys |
-| [addKeyMetadataListener](#method.addKeyMetadataListener) | Adds the key metadata listeners |
-| [removeKeyMetadataListener](#method.removeKeyMetadataListener) | Removes the key metadata listeners |
-| [addKeyIntercepts](#method.addKeyIntercepts) | Adds the list of key intercepts |
-| [resetInactivityTime](#method.resetInactivityTime) | Resets the inactivity notification interval |
+| [addAnimation](#addAnimation) | Performs the set of animations |
+| [addKeyIntercept](#addKeyIntercept) | Adds a key intercept to the client application specified |
+| [addKeyListener](#addKeyListener) | Adds a key listener to an application |
+| [createDisplay](#createDisplay) |  Creates a display for the specified client using the configuration parameters |
+| [destroy](#destroy) | Destroys an application |
+| [enableInactivityReporting](#enableInactivityReporting) | Enables or disables inactivity reporting and events |
+| [enableKeyRepeats](#enableKeyRepeats) | Enables or disables key repeats |
+| [enableLogsFlushing](#enableLogsFlushing) | Enables or disables flushing all logs |
+| [enableVirtualDisplay](#enableVirtualDisplay) | Enables or disables a virtual display for the specified client |
+| [generateKey](#generateKey) | Triggers the key events (key press and release) |
+| [getAvailableTypes](#getAvailableTypes) | Returns the list of application types available on the firmware |
+| [getBounds](#getBounds) | Gets the bounds of the specified client |
+| [getClients](#getClients) | Gets a list of clients |
+| [getHolePunch](#getHolePunch) | Returns whether video hole punching is enabled or disabled for the specified client |
+| [getKeyRepeatsEnabled](#getKeyRepeatsEnabled) | Returns whether key repeating is enabled or disabled |
+| [getLastWakeupKey](#getLastWakeupKey) | Returns the last key press prior to a device wakeup |
+| [getLogsFlushingEnabled](#getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
+| [getLogLevel](#getLogLevel) | Returns the currently set logging level |
+| [getOpacity](#getOpacity) | Gets the opacity of the specified client |
+| [getScale](#getScale) | Returns the scale of an application |
+| [getScreenResolution](#getScreenResolution) | Gets the screen resolution |
+| [getState](#getState) | Returns the state of all applications |
+| [getSystemResourceInfo](#getSystemResourceInfo) | Returns system resource information about each application |
+| [getVirtualDisplayEnabled](#getVirtualDisplayEnabled) | Returns whether virtual display is enabled or disabled for the specified client |
+| [getVirtualResolution](#getVirtualResolution) | Returns the virtual display resolution for the specified client |
+| [getVisibility](#getVisibility) | Gets the visibility of the specified client |
+| [getZOrder](#getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
+| [hideSplashLogo](#hideSplashLogo) | Removes the splash screen |
+| [kill](#kill) | Kills the specified client |
+| [launch](#launch) | Launches an application |
+| [moveBehind](#moveBehind) | Moves the specified client behind the specified target client |
+| [moveToBack](#moveToBack) | Moves the specified client to the back or bottom of the Z order |
+| [moveToFront](#moveToFront) | Moves the specified client to the front or top of the Z order |
+| [removeAllKeyIntercepts](#removeAllKeyIntercepts) | Removes all key intercepts |
+| [removeAllKeyListeners](#removeAllKeyListeners) | Removes all key listeners |
+| [removeAnimation](#removeAnimation) | Removes the current animation for the specified client |
+| [removeKeyIntercept](#removeKeyIntercept) | Removes a key intercept |
+| [removeKeyListener](#removeKeyListener) | Removes a key listener for an application |
+| [scaleToFit](#scaleToFit) | Scales the specified client to fit the current bounds |
+| [setBounds](#setBounds) | Sets the bounds of the specified client |
+| [setFocus](#setFocus) | Sets focus to the specified client |
+| [setHolePunch](#setHolePunch) | Enables or disables video hole punching for the specified client |
+| [setInactivityInterval](#setInactivityInterval) | Sets the inactivity notification interval |
+| [setLogLevel](#setLogLevel) | Sets the logging level |
+| [setMemoryMonitor](#setMemoryMonitor) | Enables or disables RAM memory monitoring on the device |
+| [setOpacity](#setOpacity) | Sets the opacity of the specified client |
+| [setScale](#setScale) | Scales an application |
+| [setScreenResolution](#setScreenResolution) | Sets the screen resolution |
+| [setTopmost](#setTopmost) | Sets whether the specified client appears above all other clients on the display |
+| [setVirtualResolution](#setVirtualResolution) | Sets the virtual resolution for the specified client |
+| [setVisibility](#setVisibility) | Sets whether the specified client should be visible |
+| [showSplashLogo](#showSplashLogo) | Displays the splash screen |
+| [showWatermark](#showWatermark) | Sets whether a watermark shows on the display |
+| [suspend](#suspend) | Suspends an application |
+| [getScreenshot](#getScreenshot) | Captures a screenshot |
+| [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
+| [launchResidentApp](#launchResidentApp) | Launches the Resident application |
+| [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
+| [showFullScreenImage](#showFullScreenImage) | Shows the Full Screen Image |
+| [getSystemMemory](#getSystemMemory) | Gets the information of System Memory |
+| [launchApplication](#launchApplication) | Launches an application |
+| [suspendApplication](#suspendApplication) | Suspends an application |
+| [resumeApplication](#resumeApplication) | Resumes an application |
+| [injectKey](#injectKey) | Injects the keys |
+| [addKeyMetadataListener](#addKeyMetadataListener) | Adds the key metadata listeners |
+| [removeKeyMetadataListener](#removeKeyMetadataListener) | Removes the key metadata listeners |
+| [addKeyIntercepts](#addKeyIntercepts) | Adds the list of key intercepts |
+| [resetInactivityTime](#resetInactivityTime) | Resets the inactivity notification interval |
 
 
-<a name="method.addAnimation"></a>
-## *addAnimation [<sup>method</sup>](#head.Methods)*
+<a name="addAnimation"></a>
+## *addAnimation*
 
 Performs the set of animations. 
  
@@ -231,8 +231,8 @@ Performs the set of animations.
 }
 ```
 
-<a name="method.addKeyIntercept"></a>
-## *addKeyIntercept [<sup>method</sup>](#head.Methods)*
+<a name="addKeyIntercept"></a>
+## *addKeyIntercept*
 
 Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. 
  
@@ -290,8 +290,8 @@ Adds a key intercept to the client application specified. The keys are specified
 }
 ```
 
-<a name="method.addKeyListener"></a>
-## *addKeyListener [<sup>method</sup>](#head.Methods)*
+<a name="addKeyListener"></a>
+## *addKeyListener*
 
 Adds a key listener to an application. The keys are bubbled up based on their z-order. 
  
@@ -312,7 +312,7 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 | params.keys[#]?.nativekeyCode | number | <sup>*(optional)*</sup> The native key code |
 | params.keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.keys[#].modifiers[#] | string |  |
-| params.keys[#].activate | boolean | Activate an application on key event. The default is `false` |
+| params.keys[#].activate | boolean | Activate an application on key  The default is `false` |
 | params.keys[#].propagate | boolean | Propagate to the next application in the z-order. The default is `true` |
 
 ### Result
@@ -361,8 +361,8 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 }
 ```
 
-<a name="method.createDisplay"></a>
-## *createDisplay [<sup>method</sup>](#head.Methods)*
+<a name="createDisplay"></a>
+## *createDisplay*
 
  Creates a display for the specified client using the configuration parameters. 
  
@@ -429,8 +429,8 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 }
 ```
 
-<a name="method.destroy"></a>
-## *destroy [<sup>method</sup>](#head.Methods)*
+<a name="destroy"></a>
+## *destroy*
 
 Destroys an application. 
  
@@ -439,7 +439,7 @@ Destroys an application.
 | :----------- | :----------- |
 | `OnDestroyed` | Triggers when a runtime is successfully destroyed |.
 
-Also see: [onDestroyed](#event.onDestroyed)
+Also see: [onDestroyed](#onDestroyed)
 
 ### Parameters
 
@@ -482,8 +482,8 @@ Also see: [onDestroyed](#event.onDestroyed)
 }
 ```
 
-<a name="method.enableInactivityReporting"></a>
-## *enableInactivityReporting [<sup>method</sup>](#head.Methods)*
+<a name="enableInactivityReporting"></a>
+## *enableInactivityReporting*
 
 Enables or disables inactivity reporting and events. 
  
@@ -532,8 +532,8 @@ Enables or disables inactivity reporting and events.
 }
 ```
 
-<a name="method.enableKeyRepeats"></a>
-## *enableKeyRepeats [<sup>method</sup>](#head.Methods)*
+<a name="enableKeyRepeats"></a>
+## *enableKeyRepeats*
 
 Enables or disables key repeats. 
  
@@ -582,8 +582,8 @@ Enables or disables key repeats.
 }
 ```
 
-<a name="method.enableLogsFlushing"></a>
-## *enableLogsFlushing [<sup>method</sup>](#head.Methods)*
+<a name="enableLogsFlushing"></a>
+## *enableLogsFlushing*
 
 Enables or disables flushing all logs. 
  
@@ -632,8 +632,8 @@ Enables or disables flushing all logs.
 }
 ```
 
-<a name="method.enableVirtualDisplay"></a>
-## *enableVirtualDisplay [<sup>method</sup>](#head.Methods)*
+<a name="enableVirtualDisplay"></a>
+## *enableVirtualDisplay*
 
 Enables or disables a virtual display for the specified client. 
  
@@ -686,8 +686,8 @@ Enables or disables a virtual display for the specified client.
 }
 ```
 
-<a name="method.generateKey"></a>
-## *generateKey [<sup>method</sup>](#head.Methods)*
+<a name="generateKey"></a>
+## *generateKey*
 
 Triggers the key events (key press and release). 
  
@@ -753,8 +753,8 @@ Triggers the key events (key press and release).
 }
 ```
 
-<a name="method.getAvailableTypes"></a>
-## *getAvailableTypes [<sup>method</sup>](#head.Methods)*
+<a name="getAvailableTypes"></a>
+## *getAvailableTypes*
 
 Returns the list of application types available on the firmware. 
  
@@ -802,8 +802,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getBounds"></a>
-## *getBounds [<sup>method</sup>](#head.Methods)*
+<a name="getBounds"></a>
+## *getBounds*
 
 Gets the bounds of the specified client. 
  
@@ -865,8 +865,8 @@ Gets the bounds of the specified client.
 }
 ```
 
-<a name="method.getClients"></a>
-## *getClients [<sup>method</sup>](#head.Methods)*
+<a name="getClients"></a>
+## *getClients*
 
 Gets a list of clients. 
  
@@ -914,8 +914,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getHolePunch"></a>
-## *getHolePunch [<sup>method</sup>](#head.Methods)*
+<a name="getHolePunch"></a>
+## *getHolePunch*
 
 Returns whether video hole punching is enabled or disabled for the specified client. 
  
@@ -968,8 +968,8 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 }
 ```
 
-<a name="method.getKeyRepeatsEnabled"></a>
-## *getKeyRepeatsEnabled [<sup>method</sup>](#head.Methods)*
+<a name="getKeyRepeatsEnabled"></a>
+## *getKeyRepeatsEnabled*
 
 Returns whether key repeating is enabled or disabled. 
  
@@ -1014,8 +1014,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getLastWakeupKey"></a>
-## *getLastWakeupKey [<sup>method</sup>](#head.Methods)*
+<a name="getLastWakeupKey"></a>
+## *getLastWakeupKey*
 
 Returns the last key press prior to a device wakeup. 
  
@@ -1067,8 +1067,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getLogsFlushingEnabled"></a>
-## *getLogsFlushingEnabled [<sup>method</sup>](#head.Methods)*
+<a name="getLogsFlushingEnabled"></a>
+## *getLogsFlushingEnabled*
 
 Returns whether log flushing is enabled or disabled. 
  
@@ -1113,8 +1113,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getLogLevel"></a>
-## *getLogLevel [<sup>method</sup>](#head.Methods)*
+<a name="getLogLevel"></a>
+## *getLogLevel*
 
 Returns the currently set logging level. 
  
@@ -1159,8 +1159,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getOpacity"></a>
-## *getOpacity [<sup>method</sup>](#head.Methods)*
+<a name="getOpacity"></a>
+## *getOpacity*
 
 Gets the opacity of the specified client. 
  
@@ -1211,8 +1211,8 @@ Gets the opacity of the specified client.
 }
 ```
 
-<a name="method.getScale"></a>
-## *getScale [<sup>method</sup>](#head.Methods)*
+<a name="getScale"></a>
+## *getScale*
 
 Returns the scale of an application. 
  
@@ -1265,8 +1265,8 @@ Returns the scale of an application.
 }
 ```
 
-<a name="method.getScreenResolution"></a>
-## *getScreenResolution [<sup>method</sup>](#head.Methods)*
+<a name="getScreenResolution"></a>
+## *getScreenResolution*
 
 Gets the screen resolution. 
  
@@ -1313,8 +1313,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getState"></a>
-## *getState [<sup>method</sup>](#head.Methods)*
+<a name="getState"></a>
+## *getState*
 
 Returns the state of all applications.
  
@@ -1369,8 +1369,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getSystemResourceInfo"></a>
-## *getSystemResourceInfo [<sup>method</sup>](#head.Methods)*
+<a name="getSystemResourceInfo"></a>
+## *getSystemResourceInfo*
 
 Returns system resource information about each application. 
  
@@ -1425,8 +1425,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getVirtualDisplayEnabled"></a>
-## *getVirtualDisplayEnabled [<sup>method</sup>](#head.Methods)*
+<a name="getVirtualDisplayEnabled"></a>
+## *getVirtualDisplayEnabled*
 
 Returns whether virtual display is enabled or disabled for the specified client. 
  
@@ -1479,8 +1479,8 @@ Returns whether virtual display is enabled or disabled for the specified client.
 }
 ```
 
-<a name="method.getVirtualResolution"></a>
-## *getVirtualResolution [<sup>method</sup>](#head.Methods)*
+<a name="getVirtualResolution"></a>
+## *getVirtualResolution*
 
 Returns the virtual display resolution for the specified client.
  
@@ -1535,8 +1535,8 @@ Returns the virtual display resolution for the specified client.
 }
 ```
 
-<a name="method.getVisibility"></a>
-## *getVisibility [<sup>method</sup>](#head.Methods)*
+<a name="getVisibility"></a>
+## *getVisibility*
 
 Gets the visibility of the specified client. 
  
@@ -1589,8 +1589,8 @@ Gets the visibility of the specified client.
 }
 ```
 
-<a name="method.getZOrder"></a>
-## *getZOrder [<sup>method</sup>](#head.Methods)*
+<a name="getZOrder"></a>
+## *getZOrder*
 
 Returns an array of clients in Z order, starting with the top most application client first. 
  
@@ -1638,8 +1638,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.hideSplashLogo"></a>
-## *hideSplashLogo [<sup>method</sup>](#head.Methods)*
+<a name="hideSplashLogo"></a>
+## *hideSplashLogo*
 
 Removes the splash screen. 
  
@@ -1682,8 +1682,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.kill"></a>
-## *kill [<sup>method</sup>](#head.Methods)*
+<a name="kill"></a>
+## *kill*
 
 Kills the specified client. 
  
@@ -1734,8 +1734,8 @@ Kills the specified client.
 }
 ```
 
-<a name="method.launch"></a>
-## *launch [<sup>method</sup>](#head.Methods)*
+<a name="launch"></a>
+## *launch*
 
 Launches an application. 
  
@@ -1744,7 +1744,7 @@ Launches an application.
 | :----------- | :----------- |
 | `onLaunched` | Triggers when the runtime of an application is launched successfully |.
 
-Also see: [onLaunched](#event.onLaunched)
+Also see: [onLaunched](#onLaunched)
 
 ### Parameters
 
@@ -1823,8 +1823,8 @@ Also see: [onLaunched](#event.onLaunched)
 }
 ```
 
-<a name="method.moveBehind"></a>
-## *moveBehind [<sup>method</sup>](#head.Methods)*
+<a name="moveBehind"></a>
+## *moveBehind*
 
 Moves the specified client behind the specified target client. 
  
@@ -1875,8 +1875,8 @@ Moves the specified client behind the specified target client.
 }
 ```
 
-<a name="method.moveToBack"></a>
-## *moveToBack [<sup>method</sup>](#head.Methods)*
+<a name="moveToBack"></a>
+## *moveToBack*
 
 Moves the specified client to the back or bottom of the Z order. 
  
@@ -1927,8 +1927,8 @@ Moves the specified client to the back or bottom of the Z order.
 }
 ```
 
-<a name="method.moveToFront"></a>
-## *moveToFront [<sup>method</sup>](#head.Methods)*
+<a name="moveToFront"></a>
+## *moveToFront*
 
 Moves the specified client to the front or top of the Z order. 
  
@@ -1979,8 +1979,8 @@ Moves the specified client to the front or top of the Z order.
 }
 ```
 
-<a name="method.removeAllKeyIntercepts"></a>
-## *removeAllKeyIntercepts [<sup>method</sup>](#head.Methods)*
+<a name="removeAllKeyIntercepts"></a>
+## *removeAllKeyIntercepts*
 
 Removes all key intercepts. 
  
@@ -2023,8 +2023,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.removeAllKeyListeners"></a>
-## *removeAllKeyListeners [<sup>method</sup>](#head.Methods)*
+<a name="removeAllKeyListeners"></a>
+## *removeAllKeyListeners*
 
 Removes all key listeners. 
  
@@ -2067,8 +2067,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.removeAnimation"></a>
-## *removeAnimation [<sup>method</sup>](#head.Methods)*
+<a name="removeAnimation"></a>
+## *removeAnimation*
 
 Removes the current animation for the specified client. 
  
@@ -2119,8 +2119,8 @@ Removes the current animation for the specified client.
 }
 ```
 
-<a name="method.removeKeyIntercept"></a>
-## *removeKeyIntercept [<sup>method</sup>](#head.Methods)*
+<a name="removeKeyIntercept"></a>
+## *removeKeyIntercept*
 
 Removes a key intercept. 
  
@@ -2176,8 +2176,8 @@ Removes a key intercept.
 }
 ```
 
-<a name="method.removeKeyListener"></a>
-## *removeKeyListener [<sup>method</sup>](#head.Methods)*
+<a name="removeKeyListener"></a>
+## *removeKeyListener*
 
 Removes a key listener for an application. 
  
@@ -2241,8 +2241,8 @@ Removes a key listener for an application.
 }
 ```
 
-<a name="method.scaleToFit"></a>
-## *scaleToFit [<sup>method</sup>](#head.Methods)*
+<a name="scaleToFit"></a>
+## *scaleToFit*
 
 Scales the specified client to fit the current bounds. 
  
@@ -2301,8 +2301,8 @@ Scales the specified client to fit the current bounds.
 }
 ```
 
-<a name="method.setBounds"></a>
-## *setBounds [<sup>method</sup>](#head.Methods)*
+<a name="setBounds"></a>
+## *setBounds*
 
 Sets the bounds of the specified client. 
  
@@ -2361,8 +2361,8 @@ Sets the bounds of the specified client.
 }
 ```
 
-<a name="method.setFocus"></a>
-## *setFocus [<sup>method</sup>](#head.Methods)*
+<a name="setFocus"></a>
+## *setFocus*
 
 Sets focus to the specified client. 
  
@@ -2413,8 +2413,8 @@ Sets focus to the specified client.
 }
 ```
 
-<a name="method.setHolePunch"></a>
-## *setHolePunch [<sup>method</sup>](#head.Methods)*
+<a name="setHolePunch"></a>
+## *setHolePunch*
 
 Enables or disables video hole punching for the specified client. 
  
@@ -2467,8 +2467,8 @@ Enables or disables video hole punching for the specified client.
 }
 ```
 
-<a name="method.setInactivityInterval"></a>
-## *setInactivityInterval [<sup>method</sup>](#head.Methods)*
+<a name="setInactivityInterval"></a>
+## *setInactivityInterval*
 
 Sets the inactivity notification interval. 
  
@@ -2477,7 +2477,7 @@ Sets the inactivity notification interval.
 | :----------- | :----------- |
 | `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.
 
-Also see: [onUserInactivity](#event.onUserInactivity)
+Also see: [onUserInactivity](#onUserInactivity)
 
 ### Parameters
 
@@ -2520,8 +2520,8 @@ Also see: [onUserInactivity](#event.onUserInactivity)
 }
 ```
 
-<a name="method.setLogLevel"></a>
-## *setLogLevel [<sup>method</sup>](#head.Methods)*
+<a name="setLogLevel"></a>
+## *setLogLevel*
 
 Sets the logging level. 
  
@@ -2570,8 +2570,8 @@ Sets the logging level.
 }
 ```
 
-<a name="method.setMemoryMonitor"></a>
-## *setMemoryMonitor [<sup>method</sup>](#head.Methods)*
+<a name="setMemoryMonitor"></a>
+## *setMemoryMonitor*
 
 Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. 
  
@@ -2626,8 +2626,8 @@ Enables or disables RAM memory monitoring on the device. Upon enabling, triggers
 }
 ```
 
-<a name="method.setOpacity"></a>
-## *setOpacity [<sup>method</sup>](#head.Methods)*
+<a name="setOpacity"></a>
+## *setOpacity*
 
 Sets the opacity of the specified client. 
  
@@ -2678,8 +2678,8 @@ Sets the opacity of the specified client.
 }
 ```
 
-<a name="method.setScale"></a>
-## *setScale [<sup>method</sup>](#head.Methods)*
+<a name="setScale"></a>
+## *setScale*
 
 Scales an application. 
  
@@ -2734,8 +2734,8 @@ Scales an application.
 }
 ```
 
-<a name="method.setScreenResolution"></a>
-## *setScreenResolution [<sup>method</sup>](#head.Methods)*
+<a name="setScreenResolution"></a>
+## *setScreenResolution*
 
 Sets the screen resolution. 
  
@@ -2786,8 +2786,8 @@ Sets the screen resolution.
 }
 ```
 
-<a name="method.setTopmost"></a>
-## *setTopmost [<sup>method</sup>](#head.Methods)*
+<a name="setTopmost"></a>
+## *setTopmost*
 
 Sets whether the specified client appears above all other clients on the display. 
  
@@ -2840,8 +2840,8 @@ Sets whether the specified client appears above all other clients on the display
 }
 ```
 
-<a name="method.setVirtualResolution"></a>
-## *setVirtualResolution [<sup>method</sup>](#head.Methods)*
+<a name="setVirtualResolution"></a>
+## *setVirtualResolution*
 
 Sets the virtual resolution for the specified client. 
  
@@ -2894,8 +2894,8 @@ Sets the virtual resolution for the specified client.
 }
 ```
 
-<a name="method.setVisibility"></a>
-## *setVisibility [<sup>method</sup>](#head.Methods)*
+<a name="setVisibility"></a>
+## *setVisibility*
 
 Sets whether the specified client should be visible. 
  
@@ -2948,8 +2948,8 @@ Sets whether the specified client should be visible.
 }
 ```
 
-<a name="method.showSplashLogo"></a>
-## *showSplashLogo [<sup>method</sup>](#head.Methods)*
+<a name="showSplashLogo"></a>
+## *showSplashLogo*
 
 Displays the splash screen. 
  
@@ -2998,8 +2998,8 @@ Displays the splash screen.
 }
 ```
 
-<a name="method.showWatermark"></a>
-## *showWatermark [<sup>method</sup>](#head.Methods)*
+<a name="showWatermark"></a>
+## *showWatermark*
 
 Sets whether a watermark shows on the display. 
  
@@ -3048,8 +3048,8 @@ Sets whether a watermark shows on the display.
 }
 ```
 
-<a name="method.suspend"></a>
-## *suspend [<sup>method</sup>](#head.Methods)*
+<a name="suspend"></a>
+## *suspend*
 
 Suspends an application. 
  
@@ -3058,7 +3058,7 @@ Suspends an application.
 | :----------- | :----------- |
 | `onSuspended` | Triggers when the runtime of an application is suspended |.
 
-Also see: [onSuspended](#event.onSuspended)
+Also see: [onSuspended](#onSuspended)
 
 ### Parameters
 
@@ -3101,8 +3101,8 @@ Also see: [onSuspended](#event.onSuspended)
 }
 ```
 
-<a name="method.getScreenshot"></a>
-## *getScreenshot [<sup>method</sup>](#head.Methods)*
+<a name="getScreenshot"></a>
+## *getScreenshot*
 
 Captures a screenshot. 
  
@@ -3111,7 +3111,7 @@ Captures a screenshot.
 | :----------- | :----------- |
 | `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
 
-Also see: [onScreenshotComplete](#event.onScreenshotComplete)
+Also see: [onScreenshotComplete](#onScreenshotComplete)
 
 ### Parameters
 
@@ -3148,8 +3148,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.hideAllClients"></a>
-## *hideAllClients [<sup>method</sup>](#head.Methods)*
+<a name="hideAllClients"></a>
+## *hideAllClients*
 
 Hides/Unhides all the clients. 
  
@@ -3198,8 +3198,8 @@ Hides/Unhides all the clients.
 }
 ```
 
-<a name="method.launchResidentApp"></a>
-## *launchResidentApp [<sup>method</sup>](#head.Methods)*
+<a name="launchResidentApp"></a>
+## *launchResidentApp*
 
 Launches the Resident application. 
  
@@ -3242,8 +3242,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.hideFullScreenImage"></a>
-## *hideFullScreenImage [<sup>method</sup>](#head.Methods)*
+<a name="hideFullScreenImage"></a>
+## *hideFullScreenImage*
 
 Hides the Full Screen Image. 
  
@@ -3286,8 +3286,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.showFullScreenImage"></a>
-## *showFullScreenImage [<sup>method</sup>](#head.Methods)*
+<a name="showFullScreenImage"></a>
+## *showFullScreenImage*
 
 Shows the Full Screen Image. 
  
@@ -3336,8 +3336,8 @@ Shows the Full Screen Image.
 }
 ```
 
-<a name="method.getSystemMemory"></a>
-## *getSystemMemory [<sup>method</sup>](#head.Methods)*
+<a name="getSystemMemory"></a>
+## *getSystemMemory*
 
 Gets the information of System Memory. 
  
@@ -3386,8 +3386,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.launchApplication"></a>
-## *launchApplication [<sup>method</sup>](#head.Methods)*
+<a name="launchApplication"></a>
+## *launchApplication*
 
 Launches an application. 
  
@@ -3396,7 +3396,7 @@ Launches an application.
 | :----------- | :----------- |
 | `onApplicationLaunched` | Triggers when an application is launched successfully |.
 
-Also see: [onApplicationLaunched](#event.onApplicationLaunched)
+Also see: [onApplicationLaunched](#onApplicationLaunched)
 
 ### Parameters
 
@@ -3447,8 +3447,8 @@ Also see: [onApplicationLaunched](#event.onApplicationLaunched)
 }
 ```
 
-<a name="method.suspendApplication"></a>
-## *suspendApplication [<sup>method</sup>](#head.Methods)*
+<a name="suspendApplication"></a>
+## *suspendApplication*
 
 Suspends an application. 
  
@@ -3457,7 +3457,7 @@ Suspends an application.
 | :----------- | :----------- |
 | `onApplicationSuspended` | Triggers when an application is suspended |.
 
-Also see: [onApplicationSuspended](#event.onApplicationSuspended)
+Also see: [onApplicationSuspended](#onApplicationSuspended)
 
 ### Parameters
 
@@ -3500,8 +3500,8 @@ Also see: [onApplicationSuspended](#event.onApplicationSuspended)
 }
 ```
 
-<a name="method.resumeApplication"></a>
-## *resumeApplication [<sup>method</sup>](#head.Methods)*
+<a name="resumeApplication"></a>
+## *resumeApplication*
 
 Resumes an application. 
  
@@ -3510,7 +3510,7 @@ Resumes an application.
 | :----------- | :----------- |
 | `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
 
-Also see: [onApplicationResumed](#event.onApplicationResumed)
+Also see: [onApplicationResumed](#onApplicationResumed)
 
 ### Parameters
 
@@ -3553,8 +3553,8 @@ Also see: [onApplicationResumed](#event.onApplicationResumed)
 }
 ```
 
-<a name="method.injectKey"></a>
-## *injectKey [<sup>method</sup>](#head.Methods)*
+<a name="injectKey"></a>
+## *injectKey*
 
 Injects the keys. 
  
@@ -3608,8 +3608,8 @@ Injects the keys.
 }
 ```
 
-<a name="method.addKeyMetadataListener"></a>
-## *addKeyMetadataListener [<sup>method</sup>](#head.Methods)*
+<a name="addKeyMetadataListener"></a>
+## *addKeyMetadataListener*
 
 Adds the key metadata listeners. 
  
@@ -3660,8 +3660,8 @@ Adds the key metadata listeners.
 }
 ```
 
-<a name="method.removeKeyMetadataListener"></a>
-## *removeKeyMetadataListener [<sup>method</sup>](#head.Methods)*
+<a name="removeKeyMetadataListener"></a>
+## *removeKeyMetadataListener*
 
 Removes the key metadata listeners. 
  
@@ -3712,8 +3712,8 @@ Removes the key metadata listeners.
 }
 ```
 
-<a name="method.addKeyIntercepts"></a>
-## *addKeyIntercepts [<sup>method</sup>](#head.Methods)*
+<a name="addKeyIntercepts"></a>
+## *addKeyIntercepts*
 
 Adds the list of key intercepts. 
  
@@ -3781,8 +3781,8 @@ Adds the list of key intercepts.
 }
 ```
 
-<a name="method.resetInactivityTime"></a>
-## *resetInactivityTime [<sup>method</sup>](#head.Methods)*
+<a name="resetInactivityTime"></a>
+## *resetInactivityTime*
 
 Resets the inactivity notification interval. 
  
@@ -3825,10 +3825,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.RDKShell plugin:
 
@@ -3836,31 +3836,31 @@ RDKShell interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onApplicationActivated](#event.onApplicationActivated) | Triggered when an application is activated |
-| [onApplicationConnected](#event.onApplicationConnected) | Triggered when a connection to an application succeeds |
-| [onApplicationDisconnected](#event.onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
-| [onApplicationFirstFrame](#event.onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
-| [onApplicationLaunched](#event.onApplicationLaunched) | Triggered when an application launches successfully |
-| [onApplicationResumed](#event.onApplicationResumed) | Triggered when an application resumes from a suspended state |
-| [onApplicationSuspended](#event.onApplicationSuspended) | Triggered when an application is suspended |
-| [onApplicationTerminated](#event.onApplicationTerminated) | Triggered when an application terminates |
-| [onDestroyed](#event.onDestroyed) | Triggered when a runtime is destroyed |
-| [onDeviceCriticallyLowRamWarning](#event.onDeviceCriticallyLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value |
-| [onDeviceCriticallyLowRamWarningCleared](#event.onDeviceCriticallyLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value |
-| [onDeviceLowRamWarning](#event.onDeviceLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value |
-| [onDeviceLowRamWarningCleared](#event.onDeviceLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value |
-| [onLaunched](#event.onLaunched) | Triggered when a runtime is launched |
-| [onSuspended](#event.onSuspended) | Triggered when a runtime is suspended |
-| [onUserInactivity](#event.onUserInactivity) | Triggered when a device has been inactive for a period of time |
-| [onWillDestroy](#event.onWillDestroy) | Triggered when an application is set to be destroyed |
-| [onPluginSuspended](#event.onPluginSuspended) | Triggered when a plugin is suspended |
-| [onScreenshotComplete](#event.onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
-| [onBlur](#event.onBlur) | Triggered when the focused client is blurred |
-| [onFocus](#event.onFocus) | Triggered when a client is set to focus |
+| [onApplicationActivated](#onApplicationActivated) | Triggered when an application is activated |
+| [onApplicationConnected](#onApplicationConnected) | Triggered when a connection to an application succeeds |
+| [onApplicationDisconnected](#onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
+| [onApplicationFirstFrame](#onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
+| [onApplicationLaunched](#onApplicationLaunched) | Triggered when an application launches successfully |
+| [onApplicationResumed](#onApplicationResumed) | Triggered when an application resumes from a suspended state |
+| [onApplicationSuspended](#onApplicationSuspended) | Triggered when an application is suspended |
+| [onApplicationTerminated](#onApplicationTerminated) | Triggered when an application terminates |
+| [onDestroyed](#onDestroyed) | Triggered when a runtime is destroyed |
+| [onDeviceCriticallyLowRamWarning](#onDeviceCriticallyLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value |
+| [onDeviceCriticallyLowRamWarningCleared](#onDeviceCriticallyLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value |
+| [onDeviceLowRamWarning](#onDeviceLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value |
+| [onDeviceLowRamWarningCleared](#onDeviceLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value |
+| [onLaunched](#onLaunched) | Triggered when a runtime is launched |
+| [onSuspended](#onSuspended) | Triggered when a runtime is suspended |
+| [onUserInactivity](#onUserInactivity) | Triggered when a device has been inactive for a period of time |
+| [onWillDestroy](#onWillDestroy) | Triggered when an application is set to be destroyed |
+| [onPluginSuspended](#onPluginSuspended) | Triggered when a plugin is suspended |
+| [onScreenshotComplete](#onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
+| [onBlur](#onBlur) | Triggered when the focused client is blurred |
+| [onFocus](#onFocus) | Triggered when a client is set to focus |
 
 
-<a name="event.onApplicationActivated"></a>
-## *onApplicationActivated [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationActivated"></a>
+## *onApplicationActivated*
 
 Triggered when an application is activated.
 
@@ -3883,8 +3883,8 @@ Triggered when an application is activated.
 }
 ```
 
-<a name="event.onApplicationConnected"></a>
-## *onApplicationConnected [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationConnected"></a>
+## *onApplicationConnected*
 
 Triggered when a connection to an application succeeds.
 
@@ -3907,8 +3907,8 @@ Triggered when a connection to an application succeeds.
 }
 ```
 
-<a name="event.onApplicationDisconnected"></a>
-## *onApplicationDisconnected [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationDisconnected"></a>
+## *onApplicationDisconnected*
 
 Triggered when an attempt to disconnect from an application succeeds.
 
@@ -3931,8 +3931,8 @@ Triggered when an attempt to disconnect from an application succeeds.
 }
 ```
 
-<a name="event.onApplicationFirstFrame"></a>
-## *onApplicationFirstFrame [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationFirstFrame"></a>
+## *onApplicationFirstFrame*
 
 Triggered when the first frame of an application is loaded.
 
@@ -3955,8 +3955,8 @@ Triggered when the first frame of an application is loaded.
 }
 ```
 
-<a name="event.onApplicationLaunched"></a>
-## *onApplicationLaunched [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationLaunched"></a>
+## *onApplicationLaunched*
 
 Triggered when an application launches successfully.
 
@@ -3979,8 +3979,8 @@ Triggered when an application launches successfully.
 }
 ```
 
-<a name="event.onApplicationResumed"></a>
-## *onApplicationResumed [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationResumed"></a>
+## *onApplicationResumed*
 
 Triggered when an application resumes from a suspended state.
 
@@ -4003,8 +4003,8 @@ Triggered when an application resumes from a suspended state.
 }
 ```
 
-<a name="event.onApplicationSuspended"></a>
-## *onApplicationSuspended [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationSuspended"></a>
+## *onApplicationSuspended*
 
 Triggered when an application is suspended.
 
@@ -4027,8 +4027,8 @@ Triggered when an application is suspended.
 }
 ```
 
-<a name="event.onApplicationTerminated"></a>
-## *onApplicationTerminated [<sup>event</sup>](#head.Notifications)*
+<a name="onApplicationTerminated"></a>
+## *onApplicationTerminated*
 
 Triggered when an application terminates.
 
@@ -4051,8 +4051,8 @@ Triggered when an application terminates.
 }
 ```
 
-<a name="event.onDestroyed"></a>
-## *onDestroyed [<sup>event</sup>](#head.Notifications)*
+<a name="onDestroyed"></a>
+## *onDestroyed*
 
 Triggered when a runtime is destroyed.
 
@@ -4075,8 +4075,8 @@ Triggered when a runtime is destroyed.
 }
 ```
 
-<a name="event.onDeviceCriticallyLowRamWarning"></a>
-## *onDeviceCriticallyLowRamWarning [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceCriticallyLowRamWarning"></a>
+## *onDeviceCriticallyLowRamWarning*
 
 Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
 
@@ -4099,8 +4099,8 @@ Triggered when the RAM memory on the device exceeds the configured `criticallyLo
 }
 ```
 
-<a name="event.onDeviceCriticallyLowRamWarningCleared"></a>
-## *onDeviceCriticallyLowRamWarningCleared [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceCriticallyLowRamWarningCleared"></a>
+## *onDeviceCriticallyLowRamWarningCleared*
 
 Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
 
@@ -4123,8 +4123,8 @@ Triggered when the RAM memory on the device no longer exceeds the configured `cr
 }
 ```
 
-<a name="event.onDeviceLowRamWarning"></a>
-## *onDeviceLowRamWarning [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceLowRamWarning"></a>
+## *onDeviceLowRamWarning*
 
 Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
 
@@ -4147,8 +4147,8 @@ Triggered when the RAM memory on the device exceeds the configured `lowRam` thre
 }
 ```
 
-<a name="event.onDeviceLowRamWarningCleared"></a>
-## *onDeviceLowRamWarningCleared [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceLowRamWarningCleared"></a>
+## *onDeviceLowRamWarningCleared*
 
 Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
 
@@ -4171,8 +4171,8 @@ Triggered when the RAM memory on the device no longer exceeds the configured `lo
 }
 ```
 
-<a name="event.onLaunched"></a>
-## *onLaunched [<sup>event</sup>](#head.Notifications)*
+<a name="onLaunched"></a>
+## *onLaunched*
 
 Triggered when a runtime is launched.
 
@@ -4197,8 +4197,8 @@ Triggered when a runtime is launched.
 }
 ```
 
-<a name="event.onSuspended"></a>
-## *onSuspended [<sup>event</sup>](#head.Notifications)*
+<a name="onSuspended"></a>
+## *onSuspended*
 
 Triggered when a runtime is suspended.
 
@@ -4221,8 +4221,8 @@ Triggered when a runtime is suspended.
 }
 ```
 
-<a name="event.onUserInactivity"></a>
-## *onUserInactivity [<sup>event</sup>](#head.Notifications)*
+<a name="onUserInactivity"></a>
+## *onUserInactivity*
 
 Triggered when a device has been inactive for a period of time. This event is broadcasted at the frequency specified by `setInactivityInterval` if the device is not active. The default frequency is 15 minutes.
 
@@ -4245,8 +4245,8 @@ Triggered when a device has been inactive for a period of time. This event is br
 }
 ```
 
-<a name="event.onWillDestroy"></a>
-## *onWillDestroy [<sup>event</sup>](#head.Notifications)*
+<a name="onWillDestroy"></a>
+## *onWillDestroy*
 
 Triggered when an application is set to be destroyed.
 
@@ -4269,8 +4269,8 @@ Triggered when an application is set to be destroyed.
 }
 ```
 
-<a name="event.onPluginSuspended"></a>
-## *onPluginSuspended [<sup>event</sup>](#head.Notifications)*
+<a name="onPluginSuspended"></a>
+## *onPluginSuspended*
 
 Triggered when a plugin is suspended.
 
@@ -4293,10 +4293,10 @@ Triggered when a plugin is suspended.
 }
 ```
 
-<a name="event.onScreenshotComplete"></a>
-## *onScreenshotComplete [<sup>event</sup>](#head.Notifications)*
+<a name="onScreenshotComplete"></a>
+## *onScreenshotComplete*
 
-Triggered when a screenshot is captured successfully using `getScreenshot` method.
+Triggered when a screenshot is captured successfully using `getScreenshot` 
 
 ### Parameters
 
@@ -4317,8 +4317,8 @@ Triggered when a screenshot is captured successfully using `getScreenshot` metho
 }
 ```
 
-<a name="event.onBlur"></a>
-## *onBlur [<sup>event</sup>](#head.Notifications)*
+<a name="onBlur"></a>
+## *onBlur*
 
 Triggered when the focused client is blurred.
 
@@ -4341,8 +4341,8 @@ Triggered when the focused client is blurred.
 }
 ```
 
-<a name="event.onFocus"></a>
-## *onFocus [<sup>event</sup>](#head.Notifications)*
+<a name="onFocus"></a>
+## *onFocus*
 
 Triggered when a client is set to focus.
 

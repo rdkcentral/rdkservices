@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.NetworkPlugin"></a>
+<a name="NetworkPlugin"></a>
 # NetworkPlugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.Network plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.Network plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `Network` plugin allows you to manage network interfaces on a set-top box.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkNetwork.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.Network plugin:
@@ -85,29 +85,29 @@ Network interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDefaultInterface](#method.getDefaultInterface) | Gets the default network interface |
-| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
-| [getIPSettings](#method.getIPSettings) | Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface |
-| [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
-| [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
-| [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
-| [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
-| [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
-| [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
-| [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
-| [pingNamedEndpoint](#method.pingNamedEndpoint) | Pings the specified named endpoint with the specified number of packets |
-| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
-| [setDefaultInterface](#method.setDefaultInterface) | Sets the default interface |
-| [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
-| [setIPSettings](#method.setIPSettings) | Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS |
-| [getPublicIP](#method.getPublicIP) | Determine WAN ip address |
-| [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
-| [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
-| [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
+| [getDefaultInterface](#getDefaultInterface) | Gets the default network interface |
+| [getInterfaces](#getInterfaces) | Returns a list of interfaces supported by this device including their state |
+| [getIPSettings](#getIPSettings) | Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface |
+| [getNamedEndpoints](#getNamedEndpoints) | Returns a list of endpoint names |
+| [getQuirks](#getQuirks) | Get standard string `RDK-20093` |
+| [getStbIp](#getStbIp) | Gets the IP address of the default interface |
+| [getSTBIPFamily](#getSTBIPFamily) | Gets the IP address of the default interface by address family |
+| [isConnectedToInternet](#isConnectedToInternet) | Whether the device has internet connectivity |
+| [isInterfaceEnabled](#isInterfaceEnabled) | Whether the specified interface is enabled |
+| [ping](#ping) | Pings the specified endpoint with the specified number of packets |
+| [pingNamedEndpoint](#pingNamedEndpoint) | Pings the specified named endpoint with the specified number of packets |
+| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
+| [setDefaultInterface](#setDefaultInterface) | Sets the default interface |
+| [setInterfaceEnabled](#setInterfaceEnabled) | Enables the specified interface |
+| [setIPSettings](#setIPSettings) | Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS |
+| [getPublicIP](#getPublicIP) | Determine WAN ip address |
+| [setStunEndPoint](#setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
+| [trace](#trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
+| [traceNamedEndpoint](#traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
 
-<a name="method.getDefaultInterface"></a>
-## *getDefaultInterface [<sup>method</sup>](#head.Methods)*
+<a name="getDefaultInterface"></a>
+## *getDefaultInterface*
 
 Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
 
@@ -148,8 +148,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getInterfaces"></a>
-## *getInterfaces [<sup>method</sup>](#head.Methods)*
+<a name="getInterfaces"></a>
+## *getInterfaces*
 
 Returns a list of interfaces supported by this device including their state.
 
@@ -202,8 +202,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getIPSettings"></a>
-## *getIPSettings [<sup>method</sup>](#head.Methods)*
+<a name="getIPSettings"></a>
+## *getIPSettings*
 
 Gets the IP settings of the interface. If the interface is not passed, it will return IP settings of the default interface
 
@@ -266,8 +266,8 @@ Gets the IP settings of the interface. If the interface is not passed, it will r
 }
 ```
 
-<a name="method.getNamedEndpoints"></a>
-## *getNamedEndpoints [<sup>method</sup>](#head.Methods)*
+<a name="getNamedEndpoints"></a>
+## *getNamedEndpoints*
 
 Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
 
@@ -311,8 +311,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getQuirks"></a>
-## *getQuirks [<sup>method</sup>](#head.Methods)*
+<a name="getQuirks"></a>
+## *getQuirks*
 
 Get standard string `RDK-20093`.
 
@@ -353,8 +353,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getStbIp"></a>
-## *getStbIp [<sup>method</sup>](#head.Methods)*
+<a name="getStbIp"></a>
+## *getStbIp*
 
 Gets the IP address of the default interface.
 
@@ -395,8 +395,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getSTBIPFamily"></a>
-## *getSTBIPFamily [<sup>method</sup>](#head.Methods)*
+<a name="getSTBIPFamily"></a>
+## *getSTBIPFamily*
 
 Gets the IP address of the default interface by address family.
 
@@ -443,8 +443,8 @@ Gets the IP address of the default interface by address family.
 }
 ```
 
-<a name="method.isConnectedToInternet"></a>
-## *isConnectedToInternet [<sup>method</sup>](#head.Methods)*
+<a name="isConnectedToInternet"></a>
+## *isConnectedToInternet*
 
 Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
@@ -485,8 +485,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.isInterfaceEnabled"></a>
-## *isInterfaceEnabled [<sup>method</sup>](#head.Methods)*
+<a name="isInterfaceEnabled"></a>
+## *isInterfaceEnabled*
 
 Whether the specified interface is enabled.
 
@@ -533,8 +533,8 @@ Whether the specified interface is enabled.
 }
 ```
 
-<a name="method.ping"></a>
-## *ping [<sup>method</sup>](#head.Methods)*
+<a name="ping"></a>
+## *ping*
 
 Pings the specified endpoint with the specified number of packets.
 
@@ -603,8 +603,8 @@ Pings the specified endpoint with the specified number of packets.
 }
 ```
 
-<a name="method.pingNamedEndpoint"></a>
-## *pingNamedEndpoint [<sup>method</sup>](#head.Methods)*
+<a name="pingNamedEndpoint"></a>
+## *pingNamedEndpoint*
 
 Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
@@ -673,8 +673,8 @@ Pings the specified named endpoint with the specified number of packets. Only na
 }
 ```
 
-<a name="method.setConnectivityTestEndpoints"></a>
-## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
+<a name="setConnectivityTestEndpoints"></a>
+## *setConnectivityTestEndpoints*
 
 Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
 
@@ -722,8 +722,8 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 }
 ```
 
-<a name="method.setDefaultInterface"></a>
-## *setDefaultInterface [<sup>method</sup>](#head.Methods)*
+<a name="setDefaultInterface"></a>
+## *setDefaultInterface*
 
 Sets the default interface. The call fails if the interface is not enabled.
 
@@ -770,8 +770,8 @@ Sets the default interface. The call fails if the interface is not enabled.
 }
 ```
 
-<a name="method.setInterfaceEnabled"></a>
-## *setInterfaceEnabled [<sup>method</sup>](#head.Methods)*
+<a name="setInterfaceEnabled"></a>
+## *setInterfaceEnabled*
 
 Enables the specified interface.
 
@@ -820,8 +820,8 @@ Enables the specified interface.
 }
 ```
 
-<a name="method.setIPSettings"></a>
-## *setIPSettings [<sup>method</sup>](#head.Methods)*
+<a name="setIPSettings"></a>
+## *setIPSettings*
 
 Sets the IP settings. All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS
 
@@ -882,8 +882,8 @@ Sets the IP settings. All the inputs are mandatory for v1. But for v2, the inter
 }
 ```
 
-<a name="method.getPublicIP"></a>
-## *getPublicIP [<sup>method</sup>](#head.Methods)*
+<a name="getPublicIP"></a>
+## *getPublicIP*
 
 Determine WAN ip address.
 
@@ -932,8 +932,8 @@ Determine WAN ip address.
 }
 ```
 
-<a name="method.setStunEndPoint"></a>
-## *setStunEndPoint [<sup>method</sup>](#head.Methods)*
+<a name="setStunEndPoint"></a>
+## *setStunEndPoint*
 
 Set the Stun Endpoint used for getPublicIP.
 
@@ -986,8 +986,8 @@ Set the Stun Endpoint used for getPublicIP.
 }
 ```
 
-<a name="method.trace"></a>
-## *trace [<sup>method</sup>](#head.Methods)*
+<a name="trace"></a>
+## *trace*
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
@@ -1040,8 +1040,8 @@ Traces the specified endpoint with the specified number of packets using `tracer
 }
 ```
 
-<a name="method.traceNamedEndpoint"></a>
-## *traceNamedEndpoint [<sup>method</sup>](#head.Methods)*
+<a name="traceNamedEndpoint"></a>
+## *traceNamedEndpoint*
 
 Traces the specified named endpoint with the specified number of packets using `traceroute`.
 
@@ -1094,10 +1094,10 @@ Traces the specified named endpoint with the specified number of packets using `
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.Network plugin:
 
@@ -1105,14 +1105,14 @@ Network interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
-| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
+| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when a connection is made or lost |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
+| [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
 
 
-<a name="event.onInterfaceStatusChanged"></a>
-## *onInterfaceStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onInterfaceStatusChanged"></a>
+## *onInterfaceStatusChanged*
 
 Triggered when an interface becomes enabled or disabled.
  
@@ -1121,9 +1121,9 @@ Triggered when an interface becomes enabled or disabled.
 | Method | Description | 
 | :----------- | :----------- |
 | `setInterfaceEnabled` |Triggers event onInterfaceStatusChanged only if this method call caused the interface's enabled/disabled status to change.|
-| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI) method.  2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) method.|
+| `setDefaultInterface` |1.Triggers onInterfaceStatusChanged(WIFI,TRUE) event if the WIFI interface is enabled as a result of calling setDefaultInterface(WIFI)   2.Triggers onInterfaceStatusChanged(WIFI,FALSE) event if the WIFI interface is disabled as a result of calling setDefaultInterface(ETHERNET) |
  
-Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabled](#method.setInterfaceEnabled).
+Also see: [setDefaultInterface](#setDefaultInterface), [setInterfaceEnabled](#setInterfaceEnabled).
 
 ### Parameters
 
@@ -1146,8 +1146,8 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setInterfaceEnabl
 }
 ```
 
-<a name="event.onConnectionStatusChanged"></a>
-## *onConnectionStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onConnectionStatusChanged"></a>
+## *onConnectionStatusChanged*
 
 Triggered when a connection is made or lost.
  
@@ -1155,9 +1155,9 @@ Triggered when a connection is made or lost.
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) method.|
+| `setDefaultInterface` |Triggers onConnectionStatusChanged event if the device  connects to WIFI SSID  as a result of calling setDefaultInterface(WIFI) |
  
-Also see: [setDefaultInterface](#method.setDefaultInterface).
+Also see: [setDefaultInterface](#setDefaultInterface).
 
 ### Parameters
 
@@ -1180,8 +1180,8 @@ Also see: [setDefaultInterface](#method.setDefaultInterface).
 }
 ```
 
-<a name="event.onIPAddressStatusChanged"></a>
-## *onIPAddressStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onIPAddressStatusChanged"></a>
+## *onIPAddressStatusChanged*
 
 Triggered when an IP Address is assigned or lost.
  
@@ -1189,10 +1189,10 @@ Triggered when an IP Address is assigned or lost.
   
 | Method | Description | 
 | :----------- | :----------- |
-| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
-| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this method.|
+| `setIPSettings` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this |
+| `setDefaultInterface` |Triggers onIPAddressStatusChanged event for each IP address that is lost or acquired following a call to this |
  
-Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#method.setIPSettings).
+Also see: [setDefaultInterface](#setDefaultInterface), [setIPSettings](#setIPSettings).
 
 ### Parameters
 
@@ -1219,10 +1219,10 @@ Also see: [setDefaultInterface](#method.setDefaultInterface), [setIPSettings](#m
 }
 ```
 
-<a name="event.onDefaultInterfaceChanged"></a>
-## *onDefaultInterfaceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onDefaultInterfaceChanged"></a>
+## *onDefaultInterfaceChanged*
 
-Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` 
  
 ### Methods
   
@@ -1230,7 +1230,7 @@ Triggered when the default interface changes, regardless if it's from a system o
 | :----------- | :----------- |
 | `setDefaultInterface` |Triggers onDefaultInterfaceChanged event if a call to this method causes the device's default interface to change.|
  
-Also see: [setDefaultInterface](#method.setDefaultInterface).
+Also see: [setDefaultInterface](#setDefaultInterface).
 
 ### Parameters
 

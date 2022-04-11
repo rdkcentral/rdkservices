@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.DisplayInfo_Plugin"></a>
+<a name="DisplayInfo_Plugin"></a>
 # DisplayInfo Plugin
 
 **Version: 1.0**
@@ -10,62 +10,62 @@ A DisplayInfo plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Properties](#head.Properties)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Properties](#Properties)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `DisplayInfo` plugin allows you to retrieve various display-related information.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -77,7 +77,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDisplayInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the DisplayInfo plugin:
@@ -86,13 +86,13 @@ DisplayInfo interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [edid](#method.edid) | Returns the TV's Extended Display Identification Data (EDID) |
-| [widthincentimeters](#method.widthincentimeters) | Horizontal size in centimeters |
-| [heightincentimeters](#method.heightincentimeters) | Vertical size in centimeters |
+| [edid](#edid) | Returns the TV's Extended Display Identification Data (EDID) |
+| [widthincentimeters](#widthincentimeters) | Horizontal size in centimeters |
+| [heightincentimeters](#heightincentimeters) | Vertical size in centimeters |
 
 
-<a name="method.edid"></a>
-## *edid [<sup>method</sup>](#head.Methods)*
+<a name="edid"></a>
+## *edid*
 
 Returns the TV's Extended Display Identification Data (EDID).
 
@@ -139,8 +139,8 @@ Returns the TV's Extended Display Identification Data (EDID).
 }
 ```
 
-<a name="method.widthincentimeters"></a>
-## *widthincentimeters [<sup>method</sup>](#head.Methods)*
+<a name="widthincentimeters"></a>
+## *widthincentimeters*
 
 Horizontal size in centimeters.
 
@@ -176,8 +176,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.heightincentimeters"></a>
-## *heightincentimeters [<sup>method</sup>](#head.Methods)*
+<a name="heightincentimeters"></a>
+## *heightincentimeters*
 
 Vertical size in centimeters.
 
@@ -213,7 +213,7 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Properties"></a>
+<a name="Properties"></a>
 # Properties
 
 The following properties are provided by the DisplayInfo plugin:
@@ -243,7 +243,7 @@ DisplayInfo interface properties:
 
 
 <a name="property.totalgpuram"></a>
-## *totalgpuram [<sup>property</sup>](#head.Properties)*
+## *totalgpuram [<sup>property</sup>](#Properties)*
 
 Provides access to the total GPU DRAM memory (in bytes).
 
@@ -278,7 +278,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 ```
 
 <a name="property.freegpuram"></a>
-## *freegpuram [<sup>property</sup>](#head.Properties)*
+## *freegpuram [<sup>property</sup>](#Properties)*
 
 Provides access to the free GPU DRAM memory (in bytes).
 
@@ -313,7 +313,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 ```
 
 <a name="property.isaudiopassthrough"></a>
-## *isaudiopassthrough [<sup>property</sup>](#head.Properties)*
+## *isaudiopassthrough [<sup>property</sup>](#Properties)*
 
 Provides access to the current audio passthrough status on HDMI.
 
@@ -348,7 +348,7 @@ Provides access to the current audio passthrough status on HDMI.
 ```
 
 <a name="property.connected"></a>
-## *connected [<sup>property</sup>](#head.Properties)*
+## *connected [<sup>property</sup>](#Properties)*
 
 Provides access to the current HDMI connection status.
 
@@ -383,7 +383,7 @@ Provides access to the current HDMI connection status.
 ```
 
 <a name="property.width"></a>
-## *width [<sup>property</sup>](#head.Properties)*
+## *width [<sup>property</sup>](#Properties)*
 
 Provides access to the horizontal resolution of the TV.
 
@@ -418,7 +418,7 @@ Provides access to the horizontal resolution of the TV.
 ```
 
 <a name="property.height"></a>
-## *height [<sup>property</sup>](#head.Properties)*
+## *height [<sup>property</sup>](#Properties)*
 
 Provides access to the vertical resolution of the TV.
 
@@ -453,7 +453,7 @@ Provides access to the vertical resolution of the TV.
 ```
 
 <a name="property.verticalfreq"></a>
-## *verticalfreq [<sup>property</sup>](#head.Properties)*
+## *verticalfreq [<sup>property</sup>](#Properties)*
 
 Provides access to the vertical Frequency.
 
@@ -488,7 +488,7 @@ Provides access to the vertical Frequency.
 ```
 
 <a name="property.hdcpprotection"></a>
-## *hdcpprotection [<sup>property</sup>](#head.Properties)*
+## *hdcpprotection [<sup>property</sup>](#Properties)*
 
 Provides access to the HDCP protocol used for transmission.
 
@@ -523,7 +523,7 @@ Provides access to the HDCP protocol used for transmission.
 ```
 
 <a name="property.portname"></a>
-## *portname [<sup>property</sup>](#head.Properties)*
+## *portname [<sup>property</sup>](#Properties)*
 
 Provides access to the video output port on the STB used for connecting to the TV.
 
@@ -558,7 +558,7 @@ Provides access to the video output port on the STB used for connecting to the T
 ```
 
 <a name="property.tvcapabilities"></a>
-## *tvcapabilities [<sup>property</sup>](#head.Properties)*
+## *tvcapabilities [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR formats supported by the TV.
 
@@ -593,7 +593,7 @@ Provides access to the HDR formats supported by the TV.
 ```
 
 <a name="property.stbcapabilities"></a>
-## *stbcapabilities [<sup>property</sup>](#head.Properties)*
+## *stbcapabilities [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR formats supported by the STB.
 
@@ -628,7 +628,7 @@ Provides access to the HDR formats supported by the STB.
 ```
 
 <a name="property.hdrsetting"></a>
-## *hdrsetting [<sup>property</sup>](#head.Properties)*
+## *hdrsetting [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR format in use.
 
@@ -663,7 +663,7 @@ Provides access to the HDR format in use.
 ```
 
 <a name="property.colorspace"></a>
-## *colorspace [<sup>property</sup>](#head.Properties)*
+## *colorspace [<sup>property</sup>](#Properties)*
 
 Provides access to the display color space (chroma subsampling format).
 
@@ -698,7 +698,7 @@ Provides access to the display color space (chroma subsampling format).
 ```
 
 <a name="property.framerate"></a>
-## *framerate [<sup>property</sup>](#head.Properties)*
+## *framerate [<sup>property</sup>](#Properties)*
 
 Provides access to the display frame rate.
 
@@ -733,7 +733,7 @@ Provides access to the display frame rate.
 ```
 
 <a name="property.colourdepth"></a>
-## *colourdepth [<sup>property</sup>](#head.Properties)*
+## *colourdepth [<sup>property</sup>](#Properties)*
 
 Provides access to the display colour depth.
 
@@ -768,7 +768,7 @@ Provides access to the display colour depth.
 ```
 
 <a name="property.quantizationrange"></a>
-## *quantizationrange [<sup>property</sup>](#head.Properties)*
+## *quantizationrange [<sup>property</sup>](#Properties)*
 
 Provides access to the display quantization range.
 
@@ -803,7 +803,7 @@ Provides access to the display quantization range.
 ```
 
 <a name="property.colorimetry"></a>
-## *colorimetry [<sup>property</sup>](#head.Properties)*
+## *colorimetry [<sup>property</sup>](#Properties)*
 
 Provides access to the display colorimetry.
 
@@ -838,7 +838,7 @@ Provides access to the display colorimetry.
 ```
 
 <a name="property.eotf"></a>
-## *eotf [<sup>property</sup>](#head.Properties)*
+## *eotf [<sup>property</sup>](#Properties)*
 
 Provides access to the display Electro Optical Transfer Function (EOTF).
 
@@ -872,10 +872,10 @@ Provides access to the display Electro Optical Transfer Function (EOTF).
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the DisplayInfo plugin:
 
@@ -883,11 +883,11 @@ DisplayInfo interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [updated](#event.updated) | Triggered when the connection changes or is updated |
+| [updated](#updated) | Triggered when the connection changes or is updated |
 
 
-<a name="event.updated"></a>
-## *updated [<sup>event</sup>](#head.Notifications)*
+<a name="updated"></a>
+## *updated*
 
 Triggered when the connection changes or is updated.
 
