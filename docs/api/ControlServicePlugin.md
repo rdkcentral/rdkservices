@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.ControlService_Plugin"></a>
+<a name="ControlService_Plugin"></a>
 # ControlService Plugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.ControlService plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.ControlService plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `ControlService` plugin provides the ability to manage the remote controls of a STB.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: ** |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.ControlService plugin:
@@ -85,22 +85,22 @@ ControlService interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [canFindMyRemote](#method.canFindMyRemote) | Checks if the Control Manager can search for the remote |
-| [checkRf4ceChipConnectivity](#method.checkRf4ceChipConnectivity) | Checks Rf4ce chip connectivity status |
-| [endPairingMode](#method.endPairingMode) | Leaves pairing mode |
-| [findLastUsedRemote](#method.findLastUsedRemote) | Searches for the last used remote |
-| [getAllRemoteData](#method.getAllRemoteData) | Returns all remote data |
-| [getLastKeypressSource](#method.getLastKeypressSource) | Returns last key press source data |
-| [getLastPairedRemoteData](#method.getLastPairedRemoteData) | Returns all remote data for the last paired remote |
-| [getQuirks](#method.getQuirks) | Gets quirks |
-| [getSingleRemoteData](#method.getSingleRemoteData) | Returns all remote data for the specified remote |
-| [getValues](#method.getValues) | Returns remote setting values |
-| [setValues](#method.setValues) | Sets remote setting values |
-| [startPairingMode](#method.startPairingMode) | Enters pairing mode |
+| [canFindMyRemote](#canFindMyRemote) | Checks if the Control Manager can search for the remote |
+| [checkRf4ceChipConnectivity](#checkRf4ceChipConnectivity) | Checks Rf4ce chip connectivity status |
+| [endPairingMode](#endPairingMode) | Leaves pairing mode |
+| [findLastUsedRemote](#findLastUsedRemote) | Searches for the last used remote |
+| [getAllRemoteData](#getAllRemoteData) | Returns all remote data |
+| [getLastKeypressSource](#getLastKeypressSource) | Returns last key press source data |
+| [getLastPairedRemoteData](#getLastPairedRemoteData) | Returns all remote data for the last paired remote |
+| [getQuirks](#getQuirks) | Gets quirks |
+| [getSingleRemoteData](#getSingleRemoteData) | Returns all remote data for the specified remote |
+| [getValues](#getValues) | Returns remote setting values |
+| [setValues](#setValues) | Sets remote setting values |
+| [startPairingMode](#startPairingMode) | Enters pairing mode |
 
 
-<a name="method.canFindMyRemote"></a>
-## *canFindMyRemote [<sup>method</sup>](#head.Methods)*
+<a name="canFindMyRemote"></a>
+## *canFindMyRemote*
 
 Checks if the Control Manager can search for the remote. 
  
@@ -148,8 +148,8 @@ Checks if the Control Manager can search for the remote.
 }
 ```
 
-<a name="method.checkRf4ceChipConnectivity"></a>
-## *checkRf4ceChipConnectivity [<sup>method</sup>](#head.Methods)*
+<a name="checkRf4ceChipConnectivity"></a>
+## *checkRf4ceChipConnectivity*
 
 Checks Rf4ce chip connectivity status. 
  
@@ -197,8 +197,8 @@ Checks Rf4ce chip connectivity status.
 }
 ```
 
-<a name="method.endPairingMode"></a>
-## *endPairingMode [<sup>method</sup>](#head.Methods)*
+<a name="endPairingMode"></a>
+## *endPairingMode*
 
 Leaves pairing mode. 
  
@@ -248,8 +248,8 @@ Leaves pairing mode.
 }
 ```
 
-<a name="method.findLastUsedRemote"></a>
-## *findLastUsedRemote [<sup>method</sup>](#head.Methods)*
+<a name="findLastUsedRemote"></a>
+## *findLastUsedRemote*
 
 Searches for the last used remote.
  
@@ -258,7 +258,7 @@ Searches for the last used remote.
 | :----------- | :----------- |
 | `onControl`| Triggered when the last used remote is successfully found |.
 
-Also see: [onControl](#event.onControl)
+Also see: [onControl](#onControl)
 
 ### Parameters
 
@@ -303,8 +303,8 @@ Also see: [onControl](#event.onControl)
 }
 ```
 
-<a name="method.getAllRemoteData"></a>
-## *getAllRemoteData [<sup>method</sup>](#head.Methods)*
+<a name="getAllRemoteData"></a>
+## *getAllRemoteData*
 
 Returns all remote data. 
  
@@ -539,8 +539,8 @@ Returns all remote data.
 }
 ```
 
-<a name="method.getLastKeypressSource"></a>
-## *getLastKeypressSource [<sup>method</sup>](#head.Methods)*
+<a name="getLastKeypressSource"></a>
+## *getLastKeypressSource*
 
 Returns last key press source data. The data, if any, is returned as part of the `result` object. 
  
@@ -602,8 +602,8 @@ Returns last key press source data. The data, if any, is returned as part of the
 }
 ```
 
-<a name="method.getLastPairedRemoteData"></a>
-## *getLastPairedRemoteData [<sup>method</sup>](#head.Methods)*
+<a name="getLastPairedRemoteData"></a>
+## *getLastPairedRemoteData*
 
 Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. 
  
@@ -802,8 +802,8 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 }
 ```
 
-<a name="method.getQuirks"></a>
-## *getQuirks [<sup>method</sup>](#head.Methods)*
+<a name="getQuirks"></a>
+## *getQuirks*
 
 Gets quirks. 
  
@@ -854,8 +854,8 @@ Gets quirks.
 }
 ```
 
-<a name="method.getSingleRemoteData"></a>
-## *getSingleRemoteData [<sup>method</sup>](#head.Methods)*
+<a name="getSingleRemoteData"></a>
+## *getSingleRemoteData*
 
 Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. 
  
@@ -1057,8 +1057,8 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 }
 ```
 
-<a name="method.getValues"></a>
-## *getValues [<sup>method</sup>](#head.Methods)*
+<a name="getValues"></a>
+## *getValues*
 
 Returns remote setting values. 
  
@@ -1122,8 +1122,8 @@ Returns remote setting values.
 }
 ```
 
-<a name="method.setValues"></a>
-## *setValues [<sup>method</sup>](#head.Methods)*
+<a name="setValues"></a>
+## *setValues*
 
 Sets remote setting values. 
  
@@ -1186,8 +1186,8 @@ Sets remote setting values.
 }
 ```
 
-<a name="method.startPairingMode"></a>
-## *startPairingMode [<sup>method</sup>](#head.Methods)*
+<a name="startPairingMode"></a>
+## *startPairingMode*
 
 Enters pairing mode. 
  
@@ -1240,10 +1240,10 @@ Enters pairing mode.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.ControlService plugin:
 
@@ -1251,15 +1251,15 @@ ControlService interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onControl](#event.onControl) | Triggered on control manager events |
-| [onXRConfigurationComplete](#event.onXRConfigurationComplete) | Triggered on control manager configuration complete event |
-| [onXRPairingStart](#event.onXRPairingStart) | Triggered on control manager validation/pairing key press event |
-| [onXRValidationComplete](#event.onXRValidationComplete) | Triggered on control manager validation/pairing end event |
-| [onXRValidationUpdate](#event.onXRValidationUpdate) | Triggered on control manager events |
+| [onControl](#onControl) | Triggered on control manager events |
+| [onXRConfigurationComplete](#onXRConfigurationComplete) | Triggered on control manager configuration complete event |
+| [onXRPairingStart](#onXRPairingStart) | Triggered on control manager validation/pairing key press event |
+| [onXRValidationComplete](#onXRValidationComplete) | Triggered on control manager validation/pairing end event |
+| [onXRValidationUpdate](#onXRValidationUpdate) | Triggered on control manager events |
 
 
-<a name="event.onControl"></a>
-## *onControl [<sup>event</sup>](#head.Notifications)*
+<a name="onControl"></a>
+## *onControl*
 
 Triggered on control manager events.
 
@@ -1290,10 +1290,10 @@ Triggered on control manager events.
 }
 ```
 
-<a name="event.onXRConfigurationComplete"></a>
-## *onXRConfigurationComplete [<sup>event</sup>](#head.Notifications)*
+<a name="onXRConfigurationComplete"></a>
+## *onXRConfigurationComplete*
 
-Triggered on control manager configuration complete event.
+Triggered on control manager configuration complete 
 
 ### Parameters
 
@@ -1320,10 +1320,10 @@ Triggered on control manager configuration complete event.
 }
 ```
 
-<a name="event.onXRPairingStart"></a>
-## *onXRPairingStart [<sup>event</sup>](#head.Notifications)*
+<a name="onXRPairingStart"></a>
+## *onXRPairingStart*
 
-Triggered on control manager validation/pairing key press event.
+Triggered on control manager validation/pairing key press 
 
 ### Parameters
 
@@ -1354,10 +1354,10 @@ Triggered on control manager validation/pairing key press event.
 }
 ```
 
-<a name="event.onXRValidationComplete"></a>
-## *onXRValidationComplete [<sup>event</sup>](#head.Notifications)*
+<a name="onXRValidationComplete"></a>
+## *onXRValidationComplete*
 
-Triggered on control manager validation/pairing end event.  
+Triggered on control manager validation/pairing end   
 Validation status codes:  
 * `0` - VALIDATION_SUCCESS   
 * `1` - VALIDATION_TIMEOUT  
@@ -1390,8 +1390,8 @@ Validation status codes:
 }
 ```
 
-<a name="event.onXRValidationUpdate"></a>
-## *onXRValidationUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="onXRValidationUpdate"></a>
+## *onXRValidationUpdate*
 
 Triggered on control manager events.
 

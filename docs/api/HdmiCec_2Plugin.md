@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.HdmiCec_2Plugin"></a>
+<a name="HdmiCec_2Plugin"></a>
 # HdmiCec_2Plugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.HdmiCec_2 plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.HdmiCec_2 plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkHdmiCec_2.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.HdmiCec_2 plugin:
@@ -85,21 +85,21 @@ HdmiCec_2 interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDeviceList](#method.getDeviceList) | Gets the list of CEC enabled devices connected and system information for each device |
-| [getEnabled](#method.getEnabled) | Returns HDMI-CEC driver enabled status |
-| [getOSDName](#method.getOSDName) | Returns the OSD name set by the application |
-| [getOTPEnabled](#method.getOTPEnabled) | Returns HDMI-CEC OTP option enabled status |
-| [getVendorId](#method.getVendorId) | Returns the vendor ID set by the application |
-| [performOTPAction](#method.performOTPAction) | Turns on the TV and takes back the input to the device |
-| [sendStandbyMessage](#method.sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
-| [setEnabled](#method.setEnabled) | Enables or disables HDMI-CEC driver |
-| [setOSDName](#method.setOSDName) | Sets the OSD name of the application |
-| [setOTPEnabled](#method.setOTPEnabled) | Enables or disables HDMI-CEC OTP option |
-| [setVendorId](#method.setVendorId) | Sets the vendor ID of the application |
+| [getDeviceList](#getDeviceList) | Gets the list of CEC enabled devices connected and system information for each device |
+| [getEnabled](#getEnabled) | Returns HDMI-CEC driver enabled status |
+| [getOSDName](#getOSDName) | Returns the OSD name set by the application |
+| [getOTPEnabled](#getOTPEnabled) | Returns HDMI-CEC OTP option enabled status |
+| [getVendorId](#getVendorId) | Returns the vendor ID set by the application |
+| [performOTPAction](#performOTPAction) | Turns on the TV and takes back the input to the device |
+| [sendStandbyMessage](#sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
+| [setEnabled](#setEnabled) | Enables or disables HDMI-CEC driver |
+| [setOSDName](#setOSDName) | Sets the OSD name of the application |
+| [setOTPEnabled](#setOTPEnabled) | Enables or disables HDMI-CEC OTP option |
+| [setVendorId](#setVendorId) | Sets the vendor ID of the application |
 
 
-<a name="method.getDeviceList"></a>
-## *getDeviceList [<sup>method</sup>](#head.Methods)*
+<a name="getDeviceList"></a>
+## *getDeviceList*
 
 Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.
   
@@ -156,8 +156,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getEnabled"></a>
-## *getEnabled [<sup>method</sup>](#head.Methods)*
+<a name="getEnabled"></a>
+## *getEnabled*
 
 Returns HDMI-CEC driver enabled status.
   
@@ -202,8 +202,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getOSDName"></a>
-## *getOSDName [<sup>method</sup>](#head.Methods)*
+<a name="getOSDName"></a>
+## *getOSDName*
 
 Returns the OSD name set by the application.
   
@@ -248,8 +248,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getOTPEnabled"></a>
-## *getOTPEnabled [<sup>method</sup>](#head.Methods)*
+<a name="getOTPEnabled"></a>
+## *getOTPEnabled*
 
 Returns HDMI-CEC OTP option enabled status.
   
@@ -294,8 +294,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getVendorId"></a>
-## *getVendorId [<sup>method</sup>](#head.Methods)*
+<a name="getVendorId"></a>
+## *getVendorId*
 
 Returns the vendor ID set by the application.
   
@@ -340,8 +340,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.performOTPAction"></a>
-## *performOTPAction [<sup>method</sup>](#head.Methods)*
+<a name="performOTPAction"></a>
+## *performOTPAction*
 
 Turns on the TV and takes back the input to the device.
   
@@ -384,8 +384,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.sendStandbyMessage"></a>
-## *sendStandbyMessage [<sup>method</sup>](#head.Methods)*
+<a name="sendStandbyMessage"></a>
+## *sendStandbyMessage*
 
 Sends a CEC \<Standby\> message to the logical address of the device.
   
@@ -428,8 +428,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setEnabled"></a>
-## *setEnabled [<sup>method</sup>](#head.Methods)*
+<a name="setEnabled"></a>
+## *setEnabled*
 
 Enables or disables HDMI-CEC driver.
   
@@ -478,8 +478,8 @@ Enables or disables HDMI-CEC driver.
 }
 ```
 
-<a name="method.setOSDName"></a>
-## *setOSDName [<sup>method</sup>](#head.Methods)*
+<a name="setOSDName"></a>
+## *setOSDName*
 
 Sets the OSD name of the application.
   
@@ -528,8 +528,8 @@ Sets the OSD name of the application.
 }
 ```
 
-<a name="method.setOTPEnabled"></a>
-## *setOTPEnabled [<sup>method</sup>](#head.Methods)*
+<a name="setOTPEnabled"></a>
+## *setOTPEnabled*
 
 Enables or disables HDMI-CEC OTP option.
   
@@ -578,8 +578,8 @@ Enables or disables HDMI-CEC OTP option.
 }
 ```
 
-<a name="method.setVendorId"></a>
-## *setVendorId [<sup>method</sup>](#head.Methods)*
+<a name="setVendorId"></a>
+## *setVendorId*
 
 Sets the vendor ID of the application.
   
@@ -628,10 +628,10 @@ Sets the vendor ID of the application.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.HdmiCec_2 plugin:
 
@@ -639,14 +639,14 @@ HdmiCec_2 interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDeviceAdded](#event.onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
-| [onDeviceInfoUpdated](#event.onDeviceInfoUpdated) | Triggered when device system information is updated (vendorID, osdName) |
-| [onDeviceRemoved](#event.onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
-| [standbyMessageReceived](#event.standbyMessageReceived) | Triggered when the source device changes status to `STANDBY` |
+| [onDeviceAdded](#onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
+| [onDeviceInfoUpdated](#onDeviceInfoUpdated) | Triggered when device system information is updated (vendorID, osdName) |
+| [onDeviceRemoved](#onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
+| [standbyMessageReceived](#standbyMessageReceived) | Triggered when the source device changes status to `STANDBY` |
 
 
-<a name="event.onDeviceAdded"></a>
-## *onDeviceAdded [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceAdded"></a>
+## *onDeviceAdded*
 
 Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information such as OSD name and vendor ID is collected. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.
 
@@ -669,8 +669,8 @@ Triggered when an HDMI cable is physically connected to the HDMI port on a TV, o
 }
 ```
 
-<a name="event.onDeviceInfoUpdated"></a>
-## *onDeviceInfoUpdated [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceInfoUpdated"></a>
+## *onDeviceInfoUpdated*
 
 Triggered when device system information is updated (vendorID, osdName).
 
@@ -693,8 +693,8 @@ Triggered when device system information is updated (vendorID, osdName).
 }
 ```
 
-<a name="event.onDeviceRemoved"></a>
-## *onDeviceRemoved [<sup>event</sup>](#head.Notifications)*
+<a name="onDeviceRemoved"></a>
+## *onDeviceRemoved*
 
 Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.
 
@@ -717,8 +717,8 @@ Triggered when HDMI cable is physically removed from the HDMI port on a TV or th
 }
 ```
 
-<a name="event.standbyMessageReceived"></a>
-## *standbyMessageReceived [<sup>event</sup>](#head.Notifications)*
+<a name="standbyMessageReceived"></a>
+## *standbyMessageReceived*
 
 Triggered when the source device changes status to `STANDBY`.
 
