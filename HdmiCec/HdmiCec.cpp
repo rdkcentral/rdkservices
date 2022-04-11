@@ -40,6 +40,7 @@
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
 #define HDMICEC_METHOD_GET_CEC_ADDRESSES "getCECAddresses"
 #define HDMICEC_METHOD_SEND_MESSAGE "sendMessage"
+#define HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
 
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_MESSAGE "onMessage"
@@ -56,13 +57,17 @@ enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
 	HDMICEC_EVENT_DEVICE_REMOVED,
 	HDMICEC_EVENT_DEVICE_INFO_UPDATED,
+        HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
 static char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
-	"onDeviceInfoUpdated"
+	"onDeviceInfoUpdated",
+        "onActiveSourceStatusUpdated"
 };
+
+static bool isDeviceActiveSource = false;
 
 #if defined(HAS_PERSISTENT_IN_HDD)
 #define CEC_SETTING_ENABLED_FILE "/tmp/mnt/diska3/persistent/ds/cecData.json"
@@ -162,6 +167,7 @@ namespace WPEFramework
             registerMethod(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
             registerMethod(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
             registerMethod(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
+            registerMethod(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
             registerMethod("getDeviceList", &HdmiCec::getDeviceList, this);
 
             physicalAddress = 0x0F0F0F0F;
@@ -187,10 +193,20 @@ namespace WPEFramework
 
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
+            isDeviceActiveSource = false;
+            HdmiCec::_instance->sendActiveSourceEvent();
             HdmiCec::_instance = nullptr;
 
             DeinitializeIARM();
 
+        }
+
+        uint32_t HdmiCec::getActiveSourceStatus(const JsonObject& parameters, JsonObject& response)
+        {
+
+            LOGINFO("getActiveSourceStatus isDeviceActiveSource: %d \n ",isDeviceActiveSource);
+            response["status"] = isDeviceActiveSource;
+            returnResponse(true);
         }
 
         const void HdmiCec::InitializeIARM()
@@ -349,7 +365,6 @@ namespace WPEFramework
             LOGINFOMETHOD();
 
             response["CECAddresses"] = getCECAddresses();
-
             returnResponse(true);
         }
 
@@ -620,21 +635,10 @@ namespace WPEFramework
         JsonObject HdmiCec::getCECAddresses()
         {
             JsonObject CECAddress;
-            LOGINFO("Entered getCECAddresses ");
-
-            char pa[32] = {0};
-            snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
-
-            CECAddress["physicalAddress"] = (const char *)pa;
-
-            JsonObject logical;
-            logical["deviceType"] = logicalAddressDeviceType;
-            logical["logicalAddress"] = logicalAddress;
-
-            CECAddress["logicalAddresses"] = logical;
-            LOGWARN("getCECAddresses: physicalAddress from QByteArray : %x %x %x %x ", (physicalAddress >> 24) & 0xFF, (physicalAddress >> 16) & 0xFF, (physicalAddress >> 8)  & 0xFF, (physicalAddress) & 0xFF);
-            LOGWARN("getCECAddresses: logical address: %x  ", logicalAddress);
-
+            CECAddress["physicalAddress"] = physicalAddress;
+            CECAddress["logicalAddress"] = logicalAddress;
+            CECAddress["deviceType"] = logicalAddressDeviceType;
+            LOGWARN("getCECAddresses: physicalAddress : %x logicalAddress :%x ", physicalAddress ,logicalAddress);
             return CECAddress;
         }
 
@@ -706,6 +710,15 @@ namespace WPEFramework
                 uint16_t decodedLen = message.size();
                 FromBase64String(message, (uint8_t*)buf.data(), decodedLen, NULL);
 
+                if(decodedLen>=2)
+                {
+                     if(buf.at(1)== ACTIVE_SOURCE)
+                     {
+                         LOGINFO("sendMessage  sending active source messages set isDeviceActiveSource to true \n ");
+                         isDeviceActiveSource = true;
+			 HdmiCec::_instance->sendActiveSourceEvent();
+                     }
+                }
                 CECFrame frame = CECFrame((const uint8_t *)buf.data(), decodedLen);
         //      SVCLOG_WARN("Frame to be sent from servicemanager in %s \n",__FUNCTION__);
         //      frame.hexDump();
@@ -716,6 +729,14 @@ namespace WPEFramework
             return;
         }
 
+        void HdmiCec::sendActiveSourceEvent()
+        {
+            JsonObject params;
+            params["status"] = isDeviceActiveSource;
+            LOGWARN("sendActiveSourceEvent isDeviceActiveSource: %d ",isDeviceActiveSource);
+            sendNotify(eventString[HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED], params);
+        }
+
         void HdmiCec::cecAddressesChanged(int changeStatus)
         {
             JsonObject params;
@@ -724,14 +745,12 @@ namespace WPEFramework
             LOGWARN(" cecAddressesChanged Change Status : %d ", changeStatus);
             if(PHYSICAL_ADDR_CHANGED == changeStatus)
             {
-                char pa[32] = {0};
-                snprintf(pa, sizeof(pa), "\\u00%02X\\u00%02X\\u00%02X\\u00%02X", (physicalAddress >> 24) & 0xff, (physicalAddress >> 16) & 0xff, (physicalAddress >> 8) & 0xff, physicalAddress & 0xff);
-
-                CECAddresses["physicalAddress"] = (const char *)pa;
+                CECAddresses["physicalAddress"] = physicalAddress;
             }
             else if(LOGICAL_ADDR_CHANGED == changeStatus)
             {
-                CECAddresses["logicalAddresses"] = logicalAddress;
+                CECAddresses["logicalAddress"] = logicalAddress;
+                CECAddresses["deviceType"] = logicalAddressDeviceType;
             }
             else
             {
@@ -752,22 +771,38 @@ namespace WPEFramework
             size_t length;
             const uint8_t *input_frameBuf = NULL;
             CECFrame Frame = in;
-        //  SVCLOG_WARN("Frame received by servicemanager is \n");
         //  Frame.hexDump();
             Frame.getBuffer(&input_frameBuf,&length);
 
+            if(length >=2)
+            {
+                 if(input_frameBuf[1] == ROUTING_CHANGE || input_frameBuf[1] == ROUTING_INFORMATION || input_frameBuf[1] == ACTIVE_SOURCE || input_frameBuf[1] == SET_STREAM_PATH)
+                 {
+		     int paIndex = (input_frameBuf[1]==ROUTING_CHANGE) ? 4: 2;
+                     unsigned int tempPhyAddres = ( ((input_frameBuf[paIndex] >> 4 & 0x0f) <<24) |((input_frameBuf[paIndex]  & 0x0f) <<16) |
+                                                    ((input_frameBuf[paIndex+1] >> 4 & 0x0f) <<8) | (input_frameBuf[paIndex+1]  & 0x0f));
+
+		     if(physicalAddress != tempPhyAddres)
+                         isDeviceActiveSource = false;
+		     else
+                         isDeviceActiveSource = true;
+                     HdmiCec::_instance->sendActiveSourceEvent();
+                     LOGINFO("Active Source Event : Device Physical Address :%x Physical Address from message :%x isDeviceActiveSource status :%d   ",physicalAddress,tempPhyAddres,isDeviceActiveSource);
+                 }
+            }
+
             std::vector <char> buf;
             buf.resize(length * 2);
+	    string bufbase64 = "";
+            Core::ToString((uint8_t*)input_frameBuf, length, true, bufbase64);
 
-            uint16_t encodedLen = Core::URL::Base64Encode(input_frameBuf, length, buf.data(), buf.size());
-            buf[encodedLen] = 0;
             if (HdmiCec::_instance) {
                 MessageDecoder((*(HdmiCec::_instance))).decode(in);
             } else {
                 LOGWARN("HdmiCec::_instance NULL Cec msg decoding failed.");
             }
-
-            (const_cast<HdmiCec*>(this))->onMessage(buf.data());
+            LOGINFO("recvMessage :%d  :%s ",bufbase64.length(),bufbase64.c_str());
+            (const_cast<HdmiCec*>(this))->onMessage(bufbase64.c_str());
             return;
         }
 

@@ -4,7 +4,7 @@
     "info": {
         "title": "HdmiCec_2 API", 
         "class": "HdmiCec_2", 
-        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box"
+        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box. HdmiCec_2 is meant to be used on the source devices where application will rely on the thunder plugin to handle protocol related messaging and plugin will proving API's and events to implement the CEC use cases. "
     },
     "definitions": {
         "vendorid": {
@@ -176,6 +176,25 @@
                 ]
             }
         },
+        "getActiveSourceStatus":{
+            "summary": "Get the active source status of the device.\n  \n### Event \n\n No Events",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "summary": "status true means device is active source and false means device is not active source",
+                       "type": "boolean",
+                       "example": "true"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "performOTPAction":{
             "summary": "Turns on the TV and takes back the input to the device.\n  \n### Events \n\n No Events",
             "result": {
@@ -311,6 +330,22 @@
                 },
                 "required": [
                     "logicalAddress"
+                ]
+            }
+        },
+        "onActiveSourceStatusUpdated":{
+            "summary": "Triggered when device active source status changes ",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "summary": "status true means device is active source and false means device is not active source",
+                       "type": "boolean",
+                       "example": "true"
+                    }
+                },
+                "required": [
+                    "status"
                 ]
             }
         }    
