@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.PersistentStore_Plugin"></a>
+<a name="PersistentStore_Plugin"></a>
 # PersistentStore Plugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.PersistentStore plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.PersistentStore plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `PersistentStore` plugin allows you to persist key/value pairs by namespace.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkPersistentStore.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.PersistentStore plugin:
@@ -85,18 +85,18 @@ PersistentStore interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [deleteKey](#method.deleteKey) | Deletes a key from the specified namespace |
-| [deleteNamespace](#method.deleteNamespace) | Deletes the specified namespace |
-| [flushCache](#method.flushCache) | Flushes the database cache by invoking `flush` in SQLite |
-| [getKeys](#method.getKeys) | Returns the keys that are stored in the specified namespace |
-| [getNamespaces](#method.getNamespaces) | Returns the namespaces in the datastore |
-| [getStorageSize](#method.getStorageSize) | Returns the size occupied by each namespace |
-| [getValue](#method.getValue) | Returns the value of a key from the specified namespace |
-| [setValue](#method.setValue) | Sets the value of a key in the the specified namespace |
+| [deleteKey](#deleteKey) | Deletes a key from the specified namespace |
+| [deleteNamespace](#deleteNamespace) | Deletes the specified namespace |
+| [flushCache](#flushCache) | Flushes the database cache by invoking `flush` in SQLite |
+| [getKeys](#getKeys) | Returns the keys that are stored in the specified namespace |
+| [getNamespaces](#getNamespaces) | Returns the namespaces in the datastore |
+| [getStorageSize](#getStorageSize) | Returns the size occupied by each namespace |
+| [getValue](#getValue) | Returns the value of a key from the specified namespace |
+| [setValue](#setValue) | Sets the value of a key in the the specified namespace |
 
 
-<a name="method.deleteKey"></a>
-## *deleteKey [<sup>method</sup>](#head.Methods)*
+<a name="deleteKey"></a>
+## *deleteKey*
 
 Deletes a key from the specified namespace.
  
@@ -147,8 +147,8 @@ Deletes a key from the specified namespace.
 }
 ```
 
-<a name="method.deleteNamespace"></a>
-## *deleteNamespace [<sup>method</sup>](#head.Methods)*
+<a name="deleteNamespace"></a>
+## *deleteNamespace*
 
 Deletes the specified namespace.
  
@@ -197,8 +197,8 @@ Deletes the specified namespace.
 }
 ```
 
-<a name="method.flushCache"></a>
-## *flushCache [<sup>method</sup>](#head.Methods)*
+<a name="flushCache"></a>
+## *flushCache*
 
 Flushes the database cache by invoking `flush` in SQLite.
  
@@ -241,8 +241,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getKeys"></a>
-## *getKeys [<sup>method</sup>](#head.Methods)*
+<a name="getKeys"></a>
+## *getKeys*
 
 Returns the keys that are stored in the specified namespace.
  
@@ -296,8 +296,8 @@ Returns the keys that are stored in the specified namespace.
 }
 ```
 
-<a name="method.getNamespaces"></a>
-## *getNamespaces [<sup>method</sup>](#head.Methods)*
+<a name="getNamespaces"></a>
+## *getNamespaces*
 
 Returns the namespaces in the datastore.
  
@@ -345,8 +345,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getStorageSize"></a>
-## *getStorageSize [<sup>method</sup>](#head.Methods)*
+<a name="getStorageSize"></a>
+## *getStorageSize*
 
 Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.
  
@@ -396,8 +396,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getValue"></a>
-## *getValue [<sup>method</sup>](#head.Methods)*
+<a name="getValue"></a>
+## *getValue*
 
 Returns the value of a key from the specified namespace.
  
@@ -450,8 +450,8 @@ Returns the value of a key from the specified namespace.
 }
 ```
 
-<a name="method.setValue"></a>
-## *setValue [<sup>method</sup>](#head.Methods)*
+<a name="setValue"></a>
+## *setValue*
 
 Sets the value of a key in the the specified namespace.
  
@@ -461,7 +461,7 @@ Sets the value of a key in the the specified namespace.
 | `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|
 | `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |.
 
-Also see: [onStorageExceeded](#event.onStorageExceeded), [onValueChanged](#event.onValueChanged)
+Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChanged)
 
 ### Parameters
 
@@ -508,10 +508,10 @@ Also see: [onStorageExceeded](#event.onStorageExceeded), [onValueChanged](#event
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.PersistentStore plugin:
 
@@ -519,12 +519,12 @@ PersistentStore interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStorageExceeded](#event.onStorageExceeded) | Triggered when the storage size has surpassed the storage capacity |
-| [onValueChanged](#event.onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
+| [onStorageExceeded](#onStorageExceeded) | Triggered when the storage size has surpassed the storage capacity |
+| [onValueChanged](#onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
 
 
-<a name="event.onStorageExceeded"></a>
-## *onStorageExceeded [<sup>event</sup>](#head.Notifications)*
+<a name="onStorageExceeded"></a>
+## *onStorageExceeded*
 
 Triggered when the storage size has surpassed the storage capacity. The total size of the datastore should not exceed more than 1MB in size.
 
@@ -541,8 +541,8 @@ This event carries no parameters.
 }
 ```
 
-<a name="event.onValueChanged"></a>
-## *onValueChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onValueChanged"></a>
+## *onValueChanged*
 
 Triggered whenever any of the values stored are changed using setValue.
 

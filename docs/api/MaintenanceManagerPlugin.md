@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.MaintenanceManagerPlugin"></a>
+<a name="MaintenanceManagerPlugin"></a>
 # MaintenanceManagerPlugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.MaintenanceManager plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.MaintenanceManager plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkMaintenanceManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.MaintenanceManager plugin:
@@ -85,16 +85,16 @@ MaintenanceManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getMaintenanceActivityStatus](#method.getMaintenanceActivityStatus) | Gets the maintenance activity status details |
-| [getMaintenanceStartTime](#method.getMaintenanceStartTime) | Gets the scheduled maintenance start time |
-| [setMaintenanceMode](#method.setMaintenanceMode) | Sets the maintenance mode and software upgrade opt-out mode |
-| [startMaintenance](#method.startMaintenance) | Starts maintenance activities |
-| [stopMaintenance](#method.stopMaintenance) | Stops maintenance activities |
-| [getMaintenanceMode](#method.getMaintenanceMode) | Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location |
+| [getMaintenanceActivityStatus](#getMaintenanceActivityStatus) | Gets the maintenance activity status details |
+| [getMaintenanceStartTime](#getMaintenanceStartTime) | Gets the scheduled maintenance start time |
+| [setMaintenanceMode](#setMaintenanceMode) | Sets the maintenance mode and software upgrade opt-out mode |
+| [startMaintenance](#startMaintenance) | Starts maintenance activities |
+| [stopMaintenance](#stopMaintenance) | Stops maintenance activities |
+| [getMaintenanceMode](#getMaintenanceMode) | Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location |
 
 
-<a name="method.getMaintenanceActivityStatus"></a>
-## *getMaintenanceActivityStatus [<sup>method</sup>](#head.Methods)*
+<a name="getMaintenanceActivityStatus"></a>
+## *getMaintenanceActivityStatus*
 
 Gets the maintenance activity status details.  
 **Maintenance Status**  
@@ -151,8 +151,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getMaintenanceStartTime"></a>
-## *getMaintenanceStartTime [<sup>method</sup>](#head.Methods)*
+<a name="getMaintenanceStartTime"></a>
+## *getMaintenanceStartTime*
 
 Gets the scheduled maintenance start time. 
  
@@ -197,8 +197,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setMaintenanceMode"></a>
-## *setMaintenanceMode [<sup>method</sup>](#head.Methods)*
+<a name="setMaintenanceMode"></a>
+## *setMaintenanceMode*
 
 Sets the maintenance mode and software upgrade opt-out mode.  
 *Opt-Out Modes*  
@@ -254,8 +254,8 @@ Sets the maintenance mode and software upgrade opt-out mode.
 }
 ```
 
-<a name="method.startMaintenance"></a>
-## *startMaintenance [<sup>method</sup>](#head.Methods)*
+<a name="startMaintenance"></a>
+## *startMaintenance*
 
 Starts maintenance activities. 
  
@@ -264,7 +264,7 @@ Starts maintenance activities.
 | :----------- | :----------- |
 | `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
 
-Also see: [onMaintenanceStatusChange](#event.onMaintenanceStatusChange)
+Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
 
 ### Parameters
 
@@ -301,8 +301,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.stopMaintenance"></a>
-## *stopMaintenance [<sup>method</sup>](#head.Methods)*
+<a name="stopMaintenance"></a>
+## *stopMaintenance*
 
 Stops maintenance activities. 
  
@@ -311,7 +311,7 @@ Stops maintenance activities.
 | :----------- | :----------- |
 | `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
 
-Also see: [onMaintenanceStatusChange](#event.onMaintenanceStatusChange)
+Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
 
 ### Parameters
 
@@ -348,8 +348,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getMaintenanceMode"></a>
-## *getMaintenanceMode [<sup>method</sup>](#head.Methods)*
+<a name="getMaintenanceMode"></a>
+## *getMaintenanceMode*
 
 Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location. 
  
@@ -367,7 +367,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.maintenanceMode | string | The maintenance mode. The `FOREGROUND` mode runs all maintenance tasks. The `BACKGROUND` mode aborts activities currently running, if the task can't run in the background (if maintenance was already started with FOREGROUND mode) and executes tasks without impacting the user experience, if it is set before calling startMaintenance. (must be one of the following: *FOREGROUND*, *BACKGROUND*) |
-| result.optOut | string | The opt-out mode. See [setMaintenanceMode](#method.setMaintenanceMode) for a description of each opt-out mode (must be one of the following: *NONE*, *ENFORCE_OPTOUT*, *BYPASS_OPTOUT*, *IGNORE_UPDATE*) |
+| result.optOut | string | The opt-out mode. See [setMaintenanceMode](#setMaintenanceMode) for a description of each opt-out mode (must be one of the following: *NONE*, *ENFORCE_OPTOUT*, *BYPASS_OPTOUT*, *IGNORE_UPDATE*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -396,10 +396,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.MaintenanceManager plugin:
 
@@ -407,11 +407,11 @@ MaintenanceManager interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onMaintenanceStatusChange](#event.onMaintenanceStatusChange) | Triggered when the maintenance manager status changes |
+| [onMaintenanceStatusChange](#onMaintenanceStatusChange) | Triggered when the maintenance manager status changes |
 
 
-<a name="event.onMaintenanceStatusChange"></a>
-## *onMaintenanceStatusChange [<sup>event</sup>](#head.Notifications)*
+<a name="onMaintenanceStatusChange"></a>
+## *onMaintenanceStatusChange*
 
 Triggered when the maintenance manager status changes. See `getMaintenanceActivityStatus` for a list of statuses.
 

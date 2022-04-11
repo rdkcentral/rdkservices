@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.UsbAccess_Plugin"></a>
+<a name="UsbAccess_Plugin"></a>
 # UsbAccess Plugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.UsbAccess plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.UsbAccess plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkUsbAccess.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.UsbAccess plugin:
@@ -85,19 +85,19 @@ UsbAccess interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [clearLink](#method.clearLink) | Clears or removes the symbolic link created by the `createLink` method |
-| [createLink](#method.createLink) | Creates a symbolic link to the root folder of the USB drive |
-| [getAvailableFirmwareFiles](#method.getAvailableFirmwareFiles) | (Version 2) Gets a list of firmware files on the device |
-| [getFileList](#method.getFileList) | Gets a list of files and folders from the specified directory or path |
-| [getMounted](#method.getMounted) | (Version 2) Returns a list of mounted USB devices |
-| [updateFirmware](#method.updateFirmware) | (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method |
-| [ArchiveLogs](#method.ArchiveLogs) | (Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format |
+| [clearLink](#clearLink) | Clears or removes the symbolic link created by the `createLink` method |
+| [createLink](#createLink) | Creates a symbolic link to the root folder of the USB drive |
+| [getAvailableFirmwareFiles](#getAvailableFirmwareFiles) | (Version 2) Gets a list of firmware files on the device |
+| [getFileList](#getFileList) | Gets a list of files and folders from the specified directory or path |
+| [getMounted](#getMounted) | (Version 2) Returns a list of mounted USB devices |
+| [updateFirmware](#updateFirmware) | (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method |
+| [ArchiveLogs](#ArchiveLogs) | (Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format |
 
 
-<a name="method.clearLink"></a>
-## *clearLink [<sup>method</sup>](#head.Methods)*
+<a name="clearLink"></a>
+## *clearLink*
 
-Clears or removes the symbolic link created by the `createLink` method.
+Clears or removes the symbolic link created by the `createLink` 
  
 ### Events 
 
@@ -140,8 +140,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.createLink"></a>
-## *createLink [<sup>method</sup>](#head.Methods)*
+<a name="createLink"></a>
+## *createLink*
 
 Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`. 
  
@@ -188,8 +188,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getAvailableFirmwareFiles"></a>
-## *getAvailableFirmwareFiles [<sup>method</sup>](#head.Methods)*
+<a name="getAvailableFirmwareFiles"></a>
+## *getAvailableFirmwareFiles*
 
 (Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  
 Firmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.
@@ -238,8 +238,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getFileList"></a>
-## *getFileList [<sup>method</sup>](#head.Methods)*
+<a name="getFileList"></a>
+## *getFileList*
 
 Gets a list of files and folders from the specified directory or path.
  
@@ -300,8 +300,8 @@ Gets a list of files and folders from the specified directory or path.
 }
 ```
 
-<a name="method.getMounted"></a>
-## *getMounted [<sup>method</sup>](#head.Methods)*
+<a name="getMounted"></a>
+## *getMounted*
 
 (Version 2) Returns a list of mounted USB devices.
  
@@ -349,10 +349,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.updateFirmware"></a>
-## *updateFirmware [<sup>method</sup>](#head.Methods)*
+<a name="updateFirmware"></a>
+## *updateFirmware*
 
-(Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method.
+(Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` 
  
 ### Events 
 
@@ -401,8 +401,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.ArchiveLogs"></a>
-## *ArchiveLogs [<sup>method</sup>](#head.Methods)*
+<a name="ArchiveLogs"></a>
+## *ArchiveLogs*
 
 (Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.
  
@@ -411,7 +411,7 @@ This method takes no parameters.
 | :----------- | :----------- |
 | `onArchiveLogs`| Triggered to archive the device logs and returns the status of the archive |.
 
-Also see: [onArchiveLogs](#event.onArchiveLogs)
+Also see: [onArchiveLogs](#onArchiveLogs)
 
 ### Parameters
 
@@ -448,10 +448,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.UsbAccess plugin:
 
@@ -459,12 +459,12 @@ UsbAccess interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onUSBMountChanged](#event.onUSBMountChanged) | (Version 2) Triggered when a USB drive is mounted or unmounted |
-| [onArchiveLogs](#event.onArchiveLogs) | (Version 2) Triggered to archive the device logs and returns the status of the archive |
+| [onUSBMountChanged](#onUSBMountChanged) | (Version 2) Triggered when a USB drive is mounted or unmounted |
+| [onArchiveLogs](#onArchiveLogs) | (Version 2) Triggered to archive the device logs and returns the status of the archive |
 
 
-<a name="event.onUSBMountChanged"></a>
-## *onUSBMountChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onUSBMountChanged"></a>
+## *onUSBMountChanged*
 
 (Version 2) Triggered when a USB drive is mounted or unmounted.
 
@@ -489,8 +489,8 @@ UsbAccess interface events:
 }
 ```
 
-<a name="event.onArchiveLogs"></a>
-## *onArchiveLogs [<sup>event</sup>](#head.Notifications)*
+<a name="onArchiveLogs"></a>
+## *onArchiveLogs*
 
 (Version 2) Triggered to archive the device logs and returns the status of the archive.
 
