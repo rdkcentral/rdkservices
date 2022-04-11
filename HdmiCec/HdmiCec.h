@@ -129,6 +129,7 @@ namespace WPEFramework {
             uint32_t getCECAddressesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t sendMessageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceList (const JsonObject& parameters, JsonObject& response);
+            uint32_t getActiveSourceStatus(const JsonObject& parameters, JsonObject& response);
             //End methods
 
 
@@ -140,6 +141,7 @@ namespace WPEFramework {
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
             void sendDeviceUpdateInfo(const int logicalAddress);
+            void sendActiveSourceEvent();
 
             void process (const ActiveSource &msg, const Header &header);
             void process (const ImageViewOn &msg, const Header &header);
