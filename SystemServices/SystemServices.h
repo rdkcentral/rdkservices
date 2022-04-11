@@ -49,6 +49,7 @@
 #define EVT_ONSYSTEMSAMPLEEVENT           "onSampleEvent"
 #define EVT_ONSYSTEMPOWERSTATECHANGED     "onSystemPowerStateChanged"
 #define EVT_ONSYSTEMMODECHANGED           "onSystemModeChanged"
+#define EVT_ONNETWORKSTANDBYMODECHANGED   "onNetworkStandbyModeChanged"
 #define EVT_ONFIRMWAREUPDATEINFORECEIVED  "onFirmwareUpdateInfoReceived"
 #define EVT_ONFIRMWAREUPDATESTATECHANGED  "onFirmwareUpdateStateChange"
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"

@@ -335,7 +335,7 @@ TEST_F(DataCaptureTest, ShouldUploadData)
 
     // Trigger event, curl message will be check by server thread
     iarmbus_notification_payload_t data;
-    data.dataLocator = dataLocator;
+    strncpy(data.dataLocator, dataLocator, sizeof(data.dataLocator));
     dataCapture_->eventHandler(owner, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY, static_cast<void*>(&data), sizeof(data));
 
     handler_.Unsubscribe(0, _T("onAudioClipReady"), _T("org.rdk.dataCapture"), message_);
