@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.FrontPanel_Plugin"></a>
+<a name="FrontPanel_Plugin"></a>
 # FrontPanel Plugin
 
 **Version: 2.0**
@@ -10,60 +10,60 @@ A org.rdk.FrontPanel plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.FrontPanel plugin. It includes detailed specification about its configuration and methods provided.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `FrontPanel` plugin allows you to control brightness and power state for LEDs on a set-top box.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -75,7 +75,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkFrontPanel.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.FrontPanel plugin:
@@ -84,24 +84,24 @@ FrontPanel interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getBrightness](#method.getBrightness) | Get the brightness of the specified LED or FrontPanel |
-| [getClockBrightness](#method.getClockBrightness) | Returns the current clock brightness value |
-| [getFrontPanelLights](#method.getFrontPanelLights) | Returns a list of supported Front Panel LEDs and their properties |
-| [getPreferences](#method.getPreferences) | Returns the preferences that are saved in the `/opt/fp_service_preferences |
-| [is24HourClock](#method.is24HourClock) | Gets the currently set clock mode (12 or 24 hour) |
-| [powerLedOff](#method.powerLedOff) | Switches the specified LED off |
-| [powerLedOn](#method.powerLedOn) | Switches the specified LED indicator on |
-| [set24HourClock](#method.set24HourClock) | Sets the clock mode to either 12 or 24 hour |
-| [setBlink](#method.setBlink) | Sets a blinking pattern for a particular LED indicator |
-| [setBrightness](#method.setBrightness) | Sets the brightness of the specified LED indicator |
-| [setClockBrightness](#method.setClockBrightness) | Sets the clock brightness |
-| [setClockTestPattern](#method.setClockTestPattern) | Allows you to set a test pattern on the STB clock (`88 88`) |
-| [setLED](#method.setLED) | Set preferences for the specified Front Panel LED indicator |
-| [setPreferences](#method.setPreferences) | Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences |
+| [getBrightness](#getBrightness) | Get the brightness of the specified LED or FrontPanel |
+| [getClockBrightness](#getClockBrightness) | Returns the current clock brightness value |
+| [getFrontPanelLights](#getFrontPanelLights) | Returns a list of supported Front Panel LEDs and their properties |
+| [getPreferences](#getPreferences) | Returns the preferences that are saved in the `/opt/fp_service_preferences |
+| [is24HourClock](#is24HourClock) | Gets the currently set clock mode (12 or 24 hour) |
+| [powerLedOff](#powerLedOff) | Switches the specified LED off |
+| [powerLedOn](#powerLedOn) | Switches the specified LED indicator on |
+| [set24HourClock](#set24HourClock) | Sets the clock mode to either 12 or 24 hour |
+| [setBlink](#setBlink) | Sets a blinking pattern for a particular LED indicator |
+| [setBrightness](#setBrightness) | Sets the brightness of the specified LED indicator |
+| [setClockBrightness](#setClockBrightness) | Sets the clock brightness |
+| [setClockTestPattern](#setClockTestPattern) | Allows you to set a test pattern on the STB clock (`88 88`) |
+| [setLED](#setLED) | Set preferences for the specified Front Panel LED indicator |
+| [setPreferences](#setPreferences) | Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences |
 
 
-<a name="method.getBrightness"></a>
-## *getBrightness [<sup>method</sup>](#head.Methods)*
+<a name="getBrightness"></a>
+## *getBrightness*
 
 Get the brightness of the specified LED or FrontPanel.
 
@@ -148,8 +148,8 @@ Get the brightness of the specified LED or FrontPanel.
 }
 ```
 
-<a name="method.getClockBrightness"></a>
-## *getClockBrightness [<sup>method</sup>](#head.Methods)*
+<a name="getClockBrightness"></a>
+## *getClockBrightness*
 
 Returns the current clock brightness value.
 
@@ -190,8 +190,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getFrontPanelLights"></a>
-## *getFrontPanelLights [<sup>method</sup>](#head.Methods)*
+<a name="getFrontPanelLights"></a>
+## *getFrontPanelLights*
 
 Returns a list of supported Front Panel LEDs and their properties.
 
@@ -256,8 +256,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPreferences"></a>
-## *getPreferences [<sup>method</sup>](#head.Methods)*
+<a name="getPreferences"></a>
+## *getPreferences*
 
 Returns the preferences that are saved in the `/opt/fp_service_preferences.json` file.
 
@@ -298,8 +298,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.is24HourClock"></a>
-## *is24HourClock [<sup>method</sup>](#head.Methods)*
+<a name="is24HourClock"></a>
+## *is24HourClock*
 
 Gets the currently set clock mode (12 or 24 hour).  
 **Note:** On Xi6, this method always returns `false` despite having successfully set the clock to 24 hour mode.
@@ -341,8 +341,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.powerLedOff"></a>
-## *powerLedOff [<sup>method</sup>](#head.Methods)*
+<a name="powerLedOff"></a>
+## *powerLedOff*
 
 Switches the specified LED off.
 
@@ -387,8 +387,8 @@ Switches the specified LED off.
 }
 ```
 
-<a name="method.powerLedOn"></a>
-## *powerLedOn [<sup>method</sup>](#head.Methods)*
+<a name="powerLedOn"></a>
+## *powerLedOn*
 
 Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.
 
@@ -433,8 +433,8 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 }
 ```
 
-<a name="method.set24HourClock"></a>
-## *set24HourClock [<sup>method</sup>](#head.Methods)*
+<a name="set24HourClock"></a>
+## *set24HourClock*
 
 Sets the clock mode to either 12 or 24 hour.
 
@@ -479,8 +479,8 @@ Sets the clock mode to either 12 or 24 hour.
 }
 ```
 
-<a name="method.setBlink"></a>
-## *setBlink [<sup>method</sup>](#head.Methods)*
+<a name="setBlink"></a>
+## *setBlink*
 
 Sets a blinking pattern for a particular LED indicator.  
 **Note:** This API does not currently work nor does it provide a meaningful error status.
@@ -549,8 +549,8 @@ Sets a blinking pattern for a particular LED indicator.
 }
 ```
 
-<a name="method.setBrightness"></a>
-## *setBrightness [<sup>method</sup>](#head.Methods)*
+<a name="setBrightness"></a>
+## *setBrightness*
 
 Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.
 
@@ -597,8 +597,8 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 }
 ```
 
-<a name="method.setClockBrightness"></a>
-## *setClockBrightness [<sup>method</sup>](#head.Methods)*
+<a name="setClockBrightness"></a>
+## *setClockBrightness*
 
 Sets the clock brightness.
 
@@ -643,8 +643,8 @@ Sets the clock brightness.
 }
 ```
 
-<a name="method.setClockTestPattern"></a>
-## *setClockTestPattern [<sup>method</sup>](#head.Methods)*
+<a name="setClockTestPattern"></a>
+## *setClockTestPattern*
 
 Allows you to set a test pattern on the STB clock (`88 88`).
 
@@ -691,8 +691,8 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 }
 ```
 
-<a name="method.setLED"></a>
-## *setLED [<sup>method</sup>](#head.Methods)*
+<a name="setLED"></a>
+## *setLED*
 
 Set preferences for the specified Front Panel LED indicator. Data are not validated in this call.
 
@@ -747,8 +747,8 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 }
 ```
 
-<a name="method.setPreferences"></a>
-## *setPreferences [<sup>method</sup>](#head.Methods)*
+<a name="setPreferences"></a>
+## *setPreferences*
 
 Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.
 

@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.FrameRate_Plugin"></a>
+<a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
 **Version: 2.0**
@@ -10,61 +10,61 @@ A org.rdk.FrameRate plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.FrameRate plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `FrameRate` plugin allows you to collect FPS data.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkFrameRate.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.FrameRate plugin:
@@ -85,18 +85,18 @@ FrameRate interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDisplayFrameRate](#method.getDisplayFrameRate) | (Version 2) Returns the current display frame rate values |
-| [getFrmMode](#method.getFrmMode) | (Version 2) Returns the current auto framerate mode |
-| [setCollectionFrequency](#method.setCollectionFrequency) | Sets the FPS data collection interval |
-| [setDisplayFrameRate](#method.setDisplayFrameRate) | (Version 2) Sets the display framerate values |
-| [setFrmMode](#method.setFrmMode) | (Version 2) Sets the auto framerate mode |
-| [startFpsCollection](#method.startFpsCollection) | Starts the FPS data collection |
-| [stopFpsCollection](#method.stopFpsCollection) | Stops the FPS data collection |
-| [updateFps](#method.updateFps) | Updates Fps values |
+| [getDisplayFrameRate](#getDisplayFrameRate) | (Version 2) Returns the current display frame rate values |
+| [getFrmMode](#getFrmMode) | (Version 2) Returns the current auto framerate mode |
+| [setCollectionFrequency](#setCollectionFrequency) | Sets the FPS data collection interval |
+| [setDisplayFrameRate](#setDisplayFrameRate) | (Version 2) Sets the display framerate values |
+| [setFrmMode](#setFrmMode) | (Version 2) Sets the auto framerate mode |
+| [startFpsCollection](#startFpsCollection) | Starts the FPS data collection |
+| [stopFpsCollection](#stopFpsCollection) | Stops the FPS data collection |
+| [updateFps](#updateFps) | Updates Fps values |
 
 
-<a name="method.getDisplayFrameRate"></a>
-## *getDisplayFrameRate [<sup>method</sup>](#head.Methods)*
+<a name="getDisplayFrameRate"></a>
+## *getDisplayFrameRate*
 
 (Version 2) Returns the current display frame rate values.
   
@@ -141,8 +141,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getFrmMode"></a>
-## *getFrmMode [<sup>method</sup>](#head.Methods)*
+<a name="getFrmMode"></a>
+## *getFrmMode*
 
 (Version 2) Returns the current auto framerate mode.
   
@@ -187,8 +187,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setCollectionFrequency"></a>
-## *setCollectionFrequency [<sup>method</sup>](#head.Methods)*
+<a name="setCollectionFrequency"></a>
+## *setCollectionFrequency*
 
 Sets the FPS data collection interval.
   
@@ -237,8 +237,8 @@ Sets the FPS data collection interval.
 }
 ```
 
-<a name="method.setDisplayFrameRate"></a>
-## *setDisplayFrameRate [<sup>method</sup>](#head.Methods)*
+<a name="setDisplayFrameRate"></a>
+## *setDisplayFrameRate*
 
 (Version 2) Sets the display framerate values. 
  
@@ -248,7 +248,7 @@ Sets the FPS data collection interval.
 | `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| 
 | `onDisplayFrameRateChanged`|Triggered when the framerate changed.|.
 
-Also see: [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged)
+Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#onDisplayFrameRateChanged)
 
 ### Parameters
 
@@ -291,8 +291,8 @@ Also see: [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging), [onDi
 }
 ```
 
-<a name="method.setFrmMode"></a>
-## *setFrmMode [<sup>method</sup>](#head.Methods)*
+<a name="setFrmMode"></a>
+## *setFrmMode*
 
 (Version 2) Sets the auto framerate mode.
   
@@ -341,17 +341,17 @@ Also see: [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging), [onDi
 }
 ```
 
-<a name="method.startFpsCollection"></a>
-## *startFpsCollection [<sup>method</sup>](#head.Methods)*
+<a name="startFpsCollection"></a>
+## *startFpsCollection*
 
 Starts the FPS data collection.
  
 ### Events 
 | Event | Description | 
 | :----------- | :----------- |
-| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` method.|.
+| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` |.
 
-Also see: [onFpsEvent](#event.onFpsEvent)
+Also see: [onFpsEvent](#onFpsEvent)
 
 ### Parameters
 
@@ -388,8 +388,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.stopFpsCollection"></a>
-## *stopFpsCollection [<sup>method</sup>](#head.Methods)*
+<a name="stopFpsCollection"></a>
+## *stopFpsCollection*
 
 Stops the FPS data collection.
  
@@ -398,7 +398,7 @@ Stops the FPS data collection.
 | :----------- | :----------- |
 | `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|.
 
-Also see: [onFpsEvent](#event.onFpsEvent)
+Also see: [onFpsEvent](#onFpsEvent)
 
 ### Parameters
 
@@ -435,8 +435,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.updateFps"></a>
-## *updateFps [<sup>method</sup>](#head.Methods)*
+<a name="updateFps"></a>
+## *updateFps*
 
 Updates Fps values.
   
@@ -485,10 +485,10 @@ Updates Fps values.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.FrameRate plugin:
 
@@ -496,13 +496,13 @@ FrameRate interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDisplayFrameRateChanging](#event.onDisplayFrameRateChanging) | Triggered when the framerate changes started |
-| [onDisplayFrameRateChanged](#event.onDisplayFrameRateChanged) | Triggered when the framerate changed |
-| [onFpsEvent](#event.onFpsEvent) | Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked |
+| [onDisplayFrameRateChanging](#onDisplayFrameRateChanging) | Triggered when the framerate changes started |
+| [onDisplayFrameRateChanged](#onDisplayFrameRateChanged) | Triggered when the framerate changed |
+| [onFpsEvent](#onFpsEvent) | Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked |
 
 
-<a name="event.onDisplayFrameRateChanging"></a>
-## *onDisplayFrameRateChanging [<sup>event</sup>](#head.Notifications)*
+<a name="onDisplayFrameRateChanging"></a>
+## *onDisplayFrameRateChanging*
 
 Triggered when the framerate changes started.
 
@@ -519,8 +519,8 @@ This event carries no parameters.
 }
 ```
 
-<a name="event.onDisplayFrameRateChanged"></a>
-## *onDisplayFrameRateChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onDisplayFrameRateChanged"></a>
+## *onDisplayFrameRateChanged*
 
 Triggered when the framerate changed.
 
@@ -537,8 +537,8 @@ This event carries no parameters.
 }
 ```
 
-<a name="event.onFpsEvent"></a>
-## *onFpsEvent [<sup>event</sup>](#head.Notifications)*
+<a name="onFpsEvent"></a>
+## *onFpsEvent*
 
 Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked.
 
