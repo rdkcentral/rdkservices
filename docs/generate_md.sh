@@ -22,8 +22,16 @@ cd $THUNDER_REPO
      echo >&2 "JsonGenerator.py is not available. Aborting."; exit 1; 
      }
  
- echo "Generating Plugin markdown documentation..."
+ echo "Generating plugin markdown documentation..."
  pwd
  ./JsonGenerator.py --docs $RDKSERVICES_REPO/*/*Plugin.json  -o ../docs/api --no-interfaces-section --verbose $files
 
- echo "Generation Complete."
+ echo "Generation complete."
+ echo "Processing links..."
+
+cd $RDKSERVICES_REPO/docs
+pwd
+
+python postprocessingscript.py
+
+echo "Link processing complete."

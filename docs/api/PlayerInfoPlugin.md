@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.Player_Info_Plugin"></a>
+<a name="Player_Info_Plugin"></a>
 # Player Info Plugin
 
 **Version: 1.0**
@@ -10,62 +10,62 @@ A PlayerInfo plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Properties](#head.Properties)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Properties](#Properties)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the PlayerInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `PlayerInfo` plugin helps to get system supported audio and video codecs.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -77,7 +77,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEPlayerInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the PlayerInfo plugin:
@@ -86,12 +86,12 @@ PlayerInfo interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [audiocodecs](#method.audiocodecs) | Returns the audio codec supported by the platform |
-| [videocodecs](#method.videocodecs) | Returns the video codec supported by the platform |
+| [audiocodecs](#audiocodecs) | Returns the audio codec supported by the platform |
+| [videocodecs](#videocodecs) | Returns the video codec supported by the platform |
 
 
-<a name="method.audiocodecs"></a>
-## *audiocodecs [<sup>method</sup>](#head.Methods)*
+<a name="audiocodecs"></a>
+## *audiocodecs*
 
 Returns the audio codec supported by the platform. 
  
@@ -134,8 +134,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.videocodecs"></a>
-## *videocodecs [<sup>method</sup>](#head.Methods)*
+<a name="videocodecs"></a>
+## *videocodecs*
 
 Returns the video codec supported by the platform.
  
@@ -178,7 +178,7 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Properties"></a>
+<a name="Properties"></a>
 # Properties
 
 The following properties are provided by the PlayerInfo plugin:
@@ -197,7 +197,7 @@ PlayerInfo interface properties:
 
 
 <a name="property.playerinfo"></a>
-## *playerinfo [<sup>property</sup>](#head.Properties)*
+## *playerinfo [<sup>property</sup>](#Properties)*
 
 Provides access to the player general information.
 
@@ -243,7 +243,7 @@ Provides access to the player general information.
 ```
 
 <a name="property.resolution"></a>
-## *resolution [<sup>property</sup>](#head.Properties)*
+## *resolution [<sup>property</sup>](#Properties)*
 
 Provides access to the current configured video output port resolution.
 
@@ -278,7 +278,7 @@ Provides access to the current configured video output port resolution.
 ```
 
 <a name="property.isaudioequivalenceenabled"></a>
-## *isaudioequivalenceenabled [<sup>property</sup>](#head.Properties)*
+## *isaudioequivalenceenabled [<sup>property</sup>](#Properties)*
 
 Provides access to the check for Loudness Equivalence in the platform.
 
@@ -313,7 +313,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 ```
 
 <a name="property.dolby_atmosmetadata"></a>
-## *dolby_atmosmetadata [<sup>property</sup>](#head.Properties)*
+## *dolby_atmosmetadata [<sup>property</sup>](#Properties)*
 
 Provides access to the atmos capabilities of Sink.
 
@@ -348,7 +348,7 @@ Provides access to the atmos capabilities of Sink.
 ```
 
 <a name="property.dolby_soundmode"></a>
-## *dolby_soundmode [<sup>property</sup>](#head.Properties)*
+## *dolby_soundmode [<sup>property</sup>](#Properties)*
 
 Provides access to the current sound mode.
 
@@ -383,7 +383,7 @@ Provides access to the current sound mode.
 ```
 
 <a name="property.dolby_enableatmosoutput"></a>
-## *dolby_enableatmosoutput [<sup>property</sup>](#head.Properties)*
+## *dolby_enableatmosoutput [<sup>property</sup>](#Properties)*
 
 Provides access to the audio output enablement for Atmos.
 
@@ -419,7 +419,7 @@ Provides access to the audio output enablement for Atmos.
 ```
 
 <a name="property.dolby_mode"></a>
-## *dolby_mode [<sup>property</sup>](#head.Properties)*
+## *dolby_mode [<sup>property</sup>](#Properties)*
 
 Provides access to the dolby mode.
 
@@ -472,10 +472,10 @@ Provides access to the dolby mode.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the PlayerInfo plugin:
 
@@ -483,11 +483,11 @@ PlayerInfo interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [dolby audiomodechanged](#event.dolby_audiomodechanged) | Triggered after the audio sound mode changes |
+| [dolby audiomodechanged](#dolby_audiomodechanged) | Triggered after the audio sound mode changes |
 
 
-<a name="event.dolby_audiomodechanged"></a>
-## *dolby_audiomodechanged [<sup>event</sup>](#head.Notifications)*
+<a name="dolby_audiomodechanged"></a>
+## *dolby_audiomodechanged*
 
 Triggered after the audio sound mode changes.
 
