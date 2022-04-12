@@ -29,29 +29,51 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-file(GLOB TESTS Tests/*.cpp)
+file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
-        Module.cpp
+        source/Module.cpp
         )
 
-include_directories(../LocationSync ../PersistentStore ../SecurityAgent ../helpers)
-link_directories(../LocationSync ../PersistentStore ../SecurityAgent)
+include_directories(../LocationSync
+        ../PersistentStore
+        ../SecurityAgent
+        ../DeviceIdentification
+        ../DeviceDiagnostics
+        ../FrameRate
+        ../AVInput
+        ../DataCapture
+        ../helpers
+        )
+link_directories(../LocationSync
+        ../PersistentStore
+        ../SecurityAgent
+        ../DeviceIdentification
+        ../DeviceDiagnostics
+        ../FrameRate
+        ../AVInput
+        ../DataCapture
+        )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DataCapture
+        ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
+        ${NAMESPACE}DeviceIdentification
+        ${NAMESPACE}FrameRate
+        ${NAMESPACE}AVInput
         )
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
-        Source
-        Mocks
+        source
+        mocks
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
