@@ -711,10 +711,13 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
-        void SystemServices::onNetorkModeChanged(bool betworkStandbyMode)
+        void SystemServices::onNetorkModeChanged(bool bNetworkStandbyMode)
         {
-            m_networkStandbyMode = betworkStandbyMode;
+            m_networkStandbyMode = bNetworkStandbyMode;
             m_networkStandbyModeValid = true;
+            JsonObject params;
+            params["nwStandby"] = bNetworkStandbyMode;
+            sendNotify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
         }
 
         /**

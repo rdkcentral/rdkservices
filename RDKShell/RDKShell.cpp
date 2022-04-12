@@ -189,6 +189,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define KEYCODE_INVALID -1
 #define RETRY_INTERVAL_250MS 250000
 
+#define RDKSHELL_SURFACECLIENT_DISPLAYNAME "rdkshell_display"
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -550,6 +551,44 @@ namespace WPEFramework {
             }
             return exist;
         }
+       
+        static void updateSurfaceClientIdentifiers( void)
+        {
+          uint32_t status = 0;
+          auto thunderController = getThunderControllerClient();
+          WPEFramework::Core::JSON::String configString;
+          Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
+          status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+          if(status > 0)
+	  {
+            std::cout<<"pluginfo status falied"<<std::endl;
+	  }
+	  else
+          {
+           for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
+           {
+            PluginHost::MetaData::Service service = availablePluginResult[i];
+	    std::string configLine;
+	    service.Configuration.ToString(configLine);
+	    JsonObject serviceConfig = JsonObject(configLine.c_str());
+	    if (serviceConfig.HasLabel("clientidentifier"))
+	    { 
+	     JsonObject configSet;
+             std::string method = "configuration@";
+             std::string pluginName = service.Callsign.Value();
+             method=method.append(pluginName);
+             status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+             configSet.FromString(configString.Value());
+             configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
+             status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+             if(status > 0)
+             {
+                std::cout<<"clientidentifier config set failed"<<std::endl;
+	     }
+            }
+	   }
+	  }
+       }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -1129,7 +1168,11 @@ namespace WPEFramework {
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
             m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
-
+            char* rdkshelltype = getenv("RDKSHELL_COMPOSITOR_TYPE");
+            if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
+            {
+	      updateSurfaceClientIdentifiers();       
+	    } 
             return "";
         }
 
@@ -6428,7 +6471,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool hideCursor()
+        bool RDKShell::hideCursor()
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::hideCursor();
@@ -6436,7 +6479,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool setCursorSize(uint32_t width, uint32_t height)
+        bool RDKShell::setCursorSize(uint32_t width, uint32_t height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::setCursorSize(width, height);
@@ -6444,7 +6487,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool getCursorSize(uint32_t& width, uint32_t& height)
+        bool RDKShell::getCursorSize(uint32_t& width, uint32_t& height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::getCursorSize(width, height);

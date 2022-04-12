@@ -19,10 +19,35 @@ env:
   THUNDER_PORT: "55555"
 
 jobs:
-  build:
+  all:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up cache
+        # Cache Thunder/ThunderInterfaces.
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            build
+            install
+            !build/rdkservices
+            !install/etc/WPEFramework/plugins
+            !install/usr/bin/RdkServicesTest
+            !install/usr/include/gmock
+            !install/usr/include/gtest
+            !install/usr/lib/libgmockd.a
+            !install/usr/lib/libgmock_maind.a
+            !install/usr/lib/libgtestd.a
+            !install/usr/lib/libgtest_maind.a
+            !install/usr/lib/cmake/GTest
+            !install/usr/lib/pkgconfig/gmock.pc
+            !install/usr/lib/pkgconfig/gmock_main.pc
+            !install/usr/lib/pkgconfig/gtest.pc
+            !install/usr/lib/pkgconfig/gtest_main.pc
+            !install/usr/lib/wpeframework/plugins
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
@@ -30,17 +55,18 @@ jobs:
       - run: pip install jsonref
 
       - name: Set up CMake
-        # To support flow control commands to be overridden.
+        # 3.16.x To support flow control commands to be overridden.
+        # Installs in: find /opt -ipath *bin/cmake
         uses: jwlawson/actions-setup-cmake@v1.12
         with:
           cmake-version: '3.16.x'
 
       - name: Install packages
         run: >
-          sudo apt-get install -y
-          libsqlite3-dev libcurl4-openssl-dev
+          sudo apt update && sudo apt install -y libsqlite3-dev libcurl4-openssl-dev
 
       - name: Checkout Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/Thunder
@@ -48,6 +74,7 @@ jobs:
           ref: ${{env.THUNDER_REF}}
 
       - name: Configure ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/Thunder/Tools"
@@ -57,16 +84,19 @@ jobs:
           -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
 
       - name: Build ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --build build/ThunderTools
 
       - name: Install ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --install build/ThunderTools
 
       - name: Configure Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/Thunder"
@@ -78,16 +108,19 @@ jobs:
           -DPORT=${{env.THUNDER_PORT}}
 
       - name: Build Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --build build/Thunder
 
       - name: Install Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --install build/Thunder
 
       - name: Checkout ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderInterfaces
@@ -95,6 +128,7 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
 
       - name: Configure ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/ThunderInterfaces"
@@ -103,11 +137,13 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
 
       - name: Build ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --build build/ThunderInterfaces
 
       - name: Install ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           --install build/ThunderInterfaces
@@ -124,7 +160,7 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/RdkServicesTest/Include --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -152,12 +188,12 @@ jobs:
 
       - name: Install valgrind
         run: >
-          sudo apt-get install -y
-          valgrind
+          sudo apt update && sudo apt install -y valgrind
 
       - name: Start servers
+        # nohup to keep it running.
         run: |
-          python rdkservices/RdkServicesTest/Scripts/DeviceDiagnosticMock.py &
+          nohup python rdkservices/test/source/tr69hostif.py &
           sleep 0.1
 
       - name: Run unit tests
@@ -175,12 +211,11 @@ jobs:
 
       - name: Stop servers
         run: |
-          pkill -f rdkservices/RdkServicesTest/Scripts/DeviceDiagnosticMock.py
+          pkill -f rdkservices/test/source/tr69hostif.py
 
       - name: Install lcov
         run: >
-          sudo apt-get install -y
-          lcov
+          sudo apt update && sudo apt install -y lcov
 
       - name: Generate coverage
         run: >
@@ -205,6 +240,8 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
+        # Optional, do not break if it fails.
+        continue-on-error: true
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
