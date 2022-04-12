@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkPersistentStore.so",
       "status": "production",
       "description": "The `PersistentStore` plugin allows you to persist key/value pairs by namespace",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "PersistentStore.json#"

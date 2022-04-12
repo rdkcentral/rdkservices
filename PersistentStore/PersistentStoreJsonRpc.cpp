@@ -34,6 +34,7 @@ void PersistentStore::RegisterAll()
     Register<JsonObject, JsonObject>(_T("getNamespaces"), &PersistentStore::endpoint_getNamespaces, this);
     Register<JsonObject, JsonObject>(_T("getStorageSize"), &PersistentStore::endpoint_getStorageSize, this);
     Register<JsonObject, JsonObject>(_T("flushCache"), &PersistentStore::endpoint_flushCache, this);
+    Property<JsonObject>(_T("version"), &PersistentStore::get_version, nullptr, this);
 }
 
 void PersistentStore::UnregisterAll()
@@ -46,6 +47,7 @@ void PersistentStore::UnregisterAll()
     Unregister(_T("getNamespaces"));
     Unregister(_T("getStorageSize"));
     Unregister(_T("flushCache"));
+    Unregister(_T("version"));
 }
 
 uint32_t PersistentStore::endpoint_setValue(const JsonObject &parameters, JsonObject &response)
@@ -223,6 +225,13 @@ uint32_t PersistentStore::endpoint_flushCache(const JsonObject &parameters, Json
     bool success = (_storeCache->FlushCache() == Core::ERROR_NONE);
 
     returnResponse(success);
+}
+
+uint32_t PersistentStore::get_version(JsonObject& response) const
+{
+    response[_T("version")] = SOLUTIONS_GENERICS_SYSTEM_PREPROCESSOR_2(PLUGIN_VERSION);
+
+    return (Core::ERROR_NONE);
 }
 
 void PersistentStore::event_onValueChanged(const string &ns, const string &key, const string &value)

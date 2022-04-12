@@ -53,6 +53,7 @@ TEST_F(PersistentStoreTestFixture, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getNamespaces")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStorageSize")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("flushCache")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("version")));
 }
 
 TEST_F(PersistentStoreTestFixture, paramsMissing)
@@ -168,6 +169,9 @@ TEST_F(PersistentStoreTestFixture, jsonRpc)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
     EXPECT_EQ(response,
         _T("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("version"), _T(""), response));
+    EXPECT_EQ(response,
+        _T("{\"version\":\"1.0.0\"}"));
 
     plugin->Deinitialize(&service);
 }

@@ -152,6 +152,8 @@ protected:
     uint32_t endpoint_getStorageSize(const JsonObject &parameters, JsonObject &response);
     uint32_t endpoint_flushCache(const JsonObject &parameters, JsonObject &response);
 
+    uint32_t get_version(JsonObject& response) const;
+
     virtual void event_onValueChanged(const string &ns, const string &key, const string &value);
     virtual void event_onStorageExceeded();
 

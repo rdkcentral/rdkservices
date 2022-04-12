@@ -50,6 +50,12 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+file(READ ${PLUGIN_NAME}Plugin.json PLUGIN_JSON)
+string(JSON PLUGIN_INFO GET ${PLUGIN_JSON} info)
+string(JSON PLUGIN_VERSION GET ${PLUGIN_INFO} version)
+
+target_compile_definitions(${MODULE_NAME} PRIVATE PLUGIN_VERSION=${PLUGIN_VERSION})
+
 add_definitions(${SQLITE_CFLAGS_OTHER} ${PLABELS_FLAGS})
 link_directories(${SQLITE_LIBRARY_DIRS})
 
