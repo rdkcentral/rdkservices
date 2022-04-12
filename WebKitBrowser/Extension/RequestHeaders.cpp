@@ -17,13 +17,8 @@
  * limitations under the License.
  */
 
+#include "Module.h"
 #include "RequestHeaders.h"
-
-#include <WPE/WebKit.h>
-#include <WPE/WebKit/WKType.h>
-#include <WPE/WebKit/WKString.h>
-#include <WPE/WebKit/WKBundleFrame.h>
-#include <WPE/WebKit/WKURL.h>
 
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 
@@ -33,8 +28,6 @@
 #include "AAMPJSBindings.h"
 #endif
 
-#include "Utils.h"
-
 namespace WPEFramework {
 namespace WebKit {
 
@@ -42,7 +35,7 @@ namespace
 {
 
 typedef std::vector<std::pair<std::string, std::string>> Headers;
-typedef std::unordered_map<WKBundlePageRef, Headers> PageHeaders;
+typedef std::unordered_map<WebKitWebPage*, Headers> PageHeaders;
 static PageHeaders s_pageHeaders;
 
 bool ParseHeaders(const string& json, Headers& out)
@@ -70,30 +63,35 @@ bool ParseHeaders(const string& json, Headers& out)
 
 } // namespace
 
-void RemoveRequestHeaders(WKBundlePageRef page)
+void RemoveRequestHeaders(WebKitWebPage* page)
 {
     s_pageHeaders.erase(page);
 }
 
-void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
+void SetRequestHeaders(WebKitWebPage* page, WebKitUserMessage* message)
 {
-    if (WKGetTypeID(messageBody) != WKStringGetTypeID())
-        return;
+    GVariant* parameters;
+    const char* headersPtr;
 
-    string message = WPEFramework::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
+    parameters = webkit_user_message_get_parameters(message);
+    if (!parameters) {
+        return;
+    }
+    g_variant_get(parameters, "&s", &headersPtr);
+    string headersStr = headersPtr;
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
     // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set
-    JavaScript::AAMP::SetHttpHeaders(message.c_str());
+    JavaScript::AAMP::SetHttpHeaders(headersStr.c_str());
 #endif
 
-    if (message.empty()) {
+    if (headersStr.empty()) {
         RemoveRequestHeaders(page);
         return;
     }
 
     Headers newHeaders;
-    if (ParseHeaders(message, newHeaders)) {
+    if (ParseHeaders(headersStr, newHeaders)) {
         if (newHeaders.empty()) {
             RemoveRequestHeaders(page);
         } else {
@@ -102,18 +100,18 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
     }
 }
 
-void ApplyRequestHeaders(WKBundlePageRef page, WKURLRequestRef requestRef)
+void ApplyRequestHeaders(WebKitWebPage* page, WebKitURIRequest* request)
 {
     auto it = s_pageHeaders.find(page);
     if (it == s_pageHeaders.end())
         return;
 
+    SoupMessageHeaders *headers = webkit_uri_request_get_http_headers(request);
+    if (!headers)
+        return;
+
     for (const auto& h : it->second) {
-        auto key = WKStringCreateWithUTF8CString(h.first.c_str());
-        auto value = WKStringCreateWithUTF8CString(h.second.c_str());
-        WKURLRequestSetHTTPHeaderField(requestRef, key, value);
-        WKRelease(key);
-        WKRelease(value);
+        soup_message_headers_append(headers, h.first.c_str(), h.second.c_str());
     }
 }
 

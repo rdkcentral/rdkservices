@@ -16,20 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#pragma once
+
+#include "Tags.h"
 
 namespace WPEFramework {
 
 namespace Tags {
 
-extern const char* const Config;
-extern const char* const Notification;
-extern const char* const URL;
-extern const char* const BridgeObjectQuery;
-extern const char* const BridgeObjectReply;
-extern const char* const BridgeObjectEvent;
-extern const char* const Headers;
+const char* const Config = "Config.";
+const char* const Notification = "Notification";
+const char* const URL = "URL";
+const char* const BridgeObjectQuery = "BridgeObjectQuery";
+const char* const BridgeObjectReply = "BridgeObjectReply";
+const char* const BridgeObjectEvent = "BridgeObjectEvent";
+const char* const Headers = "Headers";
 
 } } ;
-
