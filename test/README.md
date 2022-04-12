@@ -31,8 +31,8 @@ Create a [personal access token](https://docs.github.com/en/authentication/keepi
 Invoke the workflow.
 
 ```shell script
-sudo ./bin/act -W ./github/workflows/unit-tests.yml -s GITHUB_TOKEN=[token]
-````
+sudo ./bin/act -W .github/workflows/unit-tests.yml -s GITHUB_TOKEN=[token]
+```
 
 `-r, --reuse` to reuse the container.
 
@@ -41,4 +41,4 @@ Get a bash shell in the container.
 ```shell script
 sudo docker ps
 sudo docker exec -it <container name> /bin/bash
-````
+```
