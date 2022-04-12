@@ -4,7 +4,7 @@
 
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
 	    static constexpr const TCHAR* ChipsetInfo= _T("T962X3");
         static constexpr const TCHAR* VERSIONFile = _T("/version.txt");
 
@@ -52,7 +52,6 @@ namespace Plugin {
         }
 
         BEGIN_INTERFACE_MAP(DeviceImplementation)
-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
         END_INTERFACE_MAP
 
