@@ -195,6 +195,7 @@ namespace WPEFramework
         {
             isDeviceActiveSource = false;
             HdmiCec::_instance->sendActiveSourceEvent();
+            CECDisable();
             HdmiCec::_instance = nullptr;
 
             DeinitializeIARM();
