@@ -5308,8 +5308,11 @@ namespace WPEFramework {
 	uint32_t RDKShell::getFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            response["framerate"] = gCurrentFramerate;
-            returnResponse(true);
+	    gRdkShellMutex.lock();
+	    unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+	    returnResponse(true);
         }
 
         // Registered methods end
