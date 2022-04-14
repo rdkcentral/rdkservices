@@ -460,6 +460,15 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             sprintf( url, "https://www.youtube.com/tv/upg?");
         }
     }
+    else if(strcmp(app_name,"YouTubeKids") == 0) {
+        if ((payload != NULL) && (additional_data_url != NULL)){
+            sprintf( url, "https://www.youtube.com/tv_kids?%s&additionalDataUrl=%s", payload, additional_data_url);
+        }else if (payload != NULL){
+            sprintf( url, "https://www.youtube.com/tv_kids?%s", payload);
+        }else{
+            sprintf( url, "https://www.youtube.com/tv_kids?");
+        }
+    }
     else if(strcmp(app_name,"Netflix") == 0) {
         memset( url, 0, sizeof(url) );
         strcat( url, "source_type=12" );
