@@ -8,8 +8,10 @@
         2
     ]
 }
+
+
 // The initial request is ‘wrapped’ in another JSON/RPC request and then 
-// forwarded to the browser-based application that’s hosting the service
+// forwarded to the remote client that is  hosting the service implementation
 // Thunder should not care what the "request" is, it's just the original
 // request set in the "request" field. 
 {
@@ -33,7 +35,9 @@
         }
     }
 }
-// The browser-based application returns the response with the call_ctx unchanged. 
+
+
+// The service implementation returns the response with the call_ctx unchanged. 
 // The call_ctx is used internally by the RPC server and is implementation 
 // specific. It’s for internal use only. 
 {
@@ -50,6 +54,8 @@
         }
     }
 }
+
+
 // The response is then forwarded back to the client without any knowledge of 
 // the internal delegation that took place 
 {
