@@ -157,3 +157,5 @@ namespace Plugin {
 
 } // namespace Plugin
 } // namespace WPEFramework
+//This is a sample change
+Compile_fail_here
