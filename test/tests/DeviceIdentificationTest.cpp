@@ -62,12 +62,7 @@ protected:
     }
 };
 
-TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
-}
-
-TEST_F(DeviceIdentificationTestFixture, Property)
+void PrepareExpectCallsForMockMethods(ServiceMock& service, Core::Sink<SystemInfo>& subSystem)
 {
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
@@ -94,6 +89,25 @@ TEST_F(DeviceIdentificationTestFixture, Property)
 
     ON_CALL(service, COMLink())
         .WillByDefault(::testing::Return(&service));
+
+    return;
+}
+
+TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
+{
+
+    PrepareExpectCallsForMockMethods(service, subSystem);
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
+
+    plugin->Deinitialize(&service);
+}
+
+TEST_F(DeviceIdentificationTestFixture, Property)
+{
+    PrepareExpectCallsForMockMethods(service, subSystem);
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
