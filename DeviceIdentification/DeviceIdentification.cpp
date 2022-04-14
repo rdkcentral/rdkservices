@@ -54,7 +54,6 @@ namespace Plugin {
 
             _deviceId = GetDeviceId();
 
-            RegisterAll();
 
             if (_deviceId.empty() != true) {
                 service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
@@ -86,8 +85,6 @@ namespace Plugin {
         }
 
         if(_identifier != nullptr) {
-
-            UnregisterAll();
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);

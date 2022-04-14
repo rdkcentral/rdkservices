@@ -70,9 +70,13 @@ namespace Plugin {
             , _connectionId(0)
             , _notification(this)
         {
+            RegisterAll();
         }
 
-        ~DeviceIdentification() override = default;
+        ~DeviceIdentification() override
+        {
+            UnregisterAll();
+        }
 
         BEGIN_INTERFACE_MAP(DeviceIdentification)
         INTERFACE_ENTRY(PluginHost::IPlugin)
