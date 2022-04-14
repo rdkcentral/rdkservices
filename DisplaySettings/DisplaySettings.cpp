@@ -320,10 +320,10 @@ namespace WPEFramework {
                         //Set audio port config. ARC will be set up by onTimer()
                         #ifdef APP_CONTROL_AUDIOPORT_INIT
                         if(isPortPersistenceValEnabled ) {
-                            LOGWARN("Audio Port : HISENSE\n");
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
                         #else if
                         if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) {
-                            LOGWARN("Audio Port : LLAMA\n");
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
                         #endif 
                             m_audioOutputPortConfig["HDMI_ARC"] = true;
                         }
@@ -421,10 +421,10 @@ namespace WPEFramework {
                         //Get value from ds srv persistence
                         #ifdef APP_CONTROL_AUDIOPORT_INIT
                         if(isPortPersistenceValEnabled) {
-                           LOGWARN("Audio Port : HISENSE\n");
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
                         #else if
                         if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
-                           LOGWARN("Audio Port : LLAMA\n");
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
                         #endif
                             aPortHdmiEnableParam.Set(_T("enable"),true);
                         }
