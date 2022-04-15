@@ -774,7 +774,7 @@ namespace Plugin {
                             // Moreover it's the only only which now becomes active. This means probing
                             // has to be activated as well since it was stopped at point the last observee
                             // turned inactive
-                            _job.Submit();
+                            _job.Schedule(Core::Time::Now());
 
                             TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
                         }
@@ -801,7 +801,13 @@ namespace Plugin {
                                 _service->Notify(message);
                                 _parent.event_action(service->Callsign(), "Activate", "Automatic");
                                 TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), service->Callsign().c_str()));
-                                Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+
+                                Core::IWorkerPool::Instance().Schedule(
+                                    Core::Time::Now(),
+                                    PluginHost::IShell::Job::Create(
+                                        service,
+                                        PluginHost::IShell::ACTIVATED,
+                                        PluginHost::IShell::AUTOMATIC));
                             }
                         }
                     }

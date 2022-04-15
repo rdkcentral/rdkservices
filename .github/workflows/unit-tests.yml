@@ -55,7 +55,8 @@ jobs:
       - run: pip install jsonref
 
       - name: Set up CMake
-        # To support flow control commands to be overridden.
+        # 3.16.x To support flow control commands to be overridden.
+        # Installs in: find /opt -ipath *bin/cmake
         uses: jwlawson/actions-setup-cmake@v1.12
         with:
           cmake-version: '3.16.x'
