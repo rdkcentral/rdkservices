@@ -492,6 +492,7 @@ static GSourceFuncs _handlerIntervention =
                 , WatchDogCheckTimeoutInSeconds(0)
                 , WatchDogHangThresholdInSeconds(0)
                 , LoadBlankPageOnSuspendEnabled(false)
+                , UserScripts()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -545,6 +546,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
                 Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
+                Add(_T("userscripts"), &UserScripts);
             }
             ~Config()
             {
@@ -603,6 +605,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
             Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
+            Core::JSON::ArrayType<Core::JSON::String> UserScripts;
         };
 
         class HangDetector
@@ -2248,6 +2251,8 @@ static GSourceFuncs _handlerIntervention =
                 reinterpret_cast<GCallback>(wpeNotifyWPEFrameworkMessageReceivedCallback), this);
             webkit_user_content_manager_register_script_message_handler(userContentManager, "wpeNotifyWPEFramework");
 
+            TryLoadingUserScripts(userContentManager);
+
             if (_config.Transparent.Value() == true) {
                 WebKitColor transparent { 0, 0, 0, 0};
                 webkit_web_view_set_background_color(_view, &transparent);
@@ -2414,9 +2419,13 @@ static GSourceFuncs _handlerIntervention =
 
             WKPageGroupSetPreferences(pageGroup, preferences);
 
+            auto userContentController = WKUserContentControllerCreate();
             auto pageConfiguration = WKPageConfigurationCreate();
             WKPageConfigurationSetContext(pageConfiguration, wkContext);
             WKPageConfigurationSetPageGroup(pageConfiguration, pageGroup);
+            WKPageConfigurationSetUserContentController(pageConfiguration, userContentController);
+
+            TryLoadingUserScripts(userContentController);
 
             gchar* cookieDatabasePath;
 
@@ -2512,6 +2521,7 @@ static GSourceFuncs _handlerIntervention =
             if (_automationSession) WKRelease(_automationSession);
 
             WKRelease(_view);
+            WKRelease(userContentController);
             WKRelease(pageConfiguration);
             WKRelease(pageGroup);
             WKRelease(wkContext);
@@ -2524,6 +2534,56 @@ static GSourceFuncs _handlerIntervention =
             return Core::infinite;
         }
 #endif // WEBKIT_GLIB_API
+
+#ifdef WEBKIT_GLIB_API
+        void TryLoadingUserScripts(WebKitUserContentManager* userContentManager)
+#else
+        void TryLoadingUserScripts(WKUserContentControllerRef userContentController)
+#endif
+        {
+            if (_config.UserScripts.IsSet()) {
+                auto loadScript =
+                    [&](const std::string& path) {
+                        gchar* scriptContent;
+                        auto success = g_file_get_contents(path.c_str(), &scriptContent, nullptr, nullptr);
+                        if (!success) {
+                            SYSLOG(Trace::Error, (_T("Unable to read user script '%s'"), path.c_str()));
+                            return;
+                        }
+#ifdef WEBKIT_GLIB_API
+                        auto* script = webkit_user_script_new(
+                            scriptContent,
+                            WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+                            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
+                            nullptr,
+                            nullptr
+                        );
+                        webkit_user_content_manager_add_script(userContentManager, script);
+                        webkit_user_script_unref(script);
+#else
+                        auto scriptCs = WKStringCreateWithUTF8CString(scriptContent);
+                        WKUserContentControllerAddUserScript(
+                            userContentController,
+                            WKUserScriptCreateWithSource(
+                                scriptCs,
+                                kWKInjectAtDocumentStart,
+                                false
+                            )
+                        );
+                        WKRelease(scriptCs);
+#endif
+                        g_free(scriptContent);
+                    };
+                for (unsigned userScriptIndex = 0; userScriptIndex < _config.UserScripts.Length(); userScriptIndex++) {
+                    const auto& scriptPath = _config.UserScripts[userScriptIndex].Value();
+                    const auto fullScriptPath = (!scriptPath.empty() && scriptPath[0] == '/') || _dataPath.empty()
+                                                ? scriptPath
+                                                : _dataPath + "/" + scriptPath;
+                    TRACE(Trace::Information, (_T("Loading user script '%s'"), fullScriptPath.c_str()));
+                    loadScript(fullScriptPath);
+                }
+            }
+        }
 
         void CheckWebProcess()
         {
