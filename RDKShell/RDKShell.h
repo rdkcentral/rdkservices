@@ -362,7 +362,6 @@ namespace WPEFramework {
                   MonitorClients(RDKShell* shell)
                       : mShell(*shell)
                   {
-                      ASSERT(mShell != nullptr);
                   }
                   ~MonitorClients()
                   {
