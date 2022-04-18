@@ -1030,7 +1030,7 @@ namespace WPEFramework
                          response["interface"] = InternalResponse["interface"];
                          response["ipversion"] = InternalResponse["ipversion"];
                          response["autoconfig"] = InternalResponse["autoconfig"];
-                         response["ipaddress"] = InternalResponse["ipaddr"];
+                         response["ipaddr"] = InternalResponse["ipaddr"];
                          response["netmask"] = InternalResponse["netmask"];
                          response["gateway"] = InternalResponse["gateway"];
                          response["primarydns"] = InternalResponse["primarydns"];
