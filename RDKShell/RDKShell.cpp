@@ -123,6 +123,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FRAME_RATE = "getFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FRAME_RATE = "setFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -835,7 +836,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
-	    registerMethod(RDKSHELL_METHOD_GET_FRAME_RATE, &RDKShell::getFrameRateWrapper, this);
+	          registerMethod(RDKSHELL_METHOD_GET_FRAME_RATE, &RDKShell::getFrameRateWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_FRAME_RATE, &RDKShell::setFrameRateWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5304,15 +5306,35 @@ namespace WPEFramework {
             }
             returnResponse(ret);
         }
-
-	uint32_t RDKShell::getFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+      
+        uint32_t RDKShell::getFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-	    gRdkShellMutex.lock();
-	    unsigned int value = gCurrentFramerate;
+	          gRdkShellMutex.lock();
+	          unsigned int value = gCurrentFramerate;
             gRdkShellMutex.unlock();
             response["framerate"] = value;
-	    returnResponse(true);
+	          returnResponse(true);
+        }
+      
+        uint32_t RDKShell::setFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("framerate"))
+            {
+                result = false;
+                response["message"] = "please specify frame rate";
+            }
+            if (result)
+            {
+                unsigned int framerate = parameters["framerate"].Number();
+		            lockRdkShellMutex();
+		            gCurrentFramerate = framerate;
+		            gRdkShellMutex.unlock();
+            }
+            returnResponse(result);
         }
 
         // Registered methods end
