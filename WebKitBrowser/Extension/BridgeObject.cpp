@@ -30,7 +30,7 @@ window.ServiceManager = {
   version: 2.1,
   getServiceForJavaScript: function(name,readyCb) {
     if (name === 'com.comcast.BridgeObject_1')
-      readyCb({ JSMessageChanged: (msg) => window.ServiceManager.BridgeQuery(btoa(msg)) })
+      readyCb(window.ServiceManager.createBridgeObject())
     else
       console.error('Requested service not supported')
   }
@@ -38,13 +38,17 @@ window.ServiceManager = {
 )jssrc";
 
 const char kBadgerReplySrc[] = R"jssrc(
-  var obj = JSON.parse(atob(payload))
+(function(payload) {
+  var obj = JSON.parse(payload)
   window.$badger.callback(obj.pid, obj.success, obj.json)
+})
 )jssrc";
 
 const char kBadgerEventSrc[] = R"jssrc(
-  var obj = JSON.parse(atob(payload))
+(function(payload) {
+  var obj = JSON.parse(payload)
   window.$badger.event(obj.handlerId, obj.json)
+})
 )jssrc";
 
 static void CallBridge(WebKitWebPage* page, const char* scriptSrc, WebKitUserMessage* message)
@@ -58,25 +62,56 @@ static void CallBridge(WebKitWebPage* page, const char* scriptSrc, WebKitUserMes
     }
     g_variant_get(payload, "&s", &payloadPtr);
 
+    gsize decodedLen = 0;
+    gchar *decoded = reinterpret_cast<gchar*>(g_base64_decode(payloadPtr, &decodedLen));
+    if (g_utf8_validate(decoded, decodedLen, nullptr) == FALSE) {
+        TRACE_GLOBAL(Trace::Error, (_T("Decoded message is not a valid UTF8 string!")));
+        gchar *tmp = decoded;
+#if GLIB_CHECK_VERSION(2, 52, 0)
+        decoded = g_utf8_make_valid(tmp, decodedLen);
+#else
+        decoded = g_strdup("[Invalid UTF-8]");
+#endif
+        g_free(tmp);
+        decodedLen = strlen(decoded);
+    }
+
     WebKitFrame* frame = webkit_web_page_get_main_frame(page);
     JSCContext* jsContext = webkit_frame_get_js_context(frame);
 
-    JSCValue *payloadVal = jsc_value_new_string(jsContext, payloadPtr);
-    jsc_context_set_value(jsContext, "payload", payloadVal);
-    g_object_unref(payloadVal);
+    GBytes *payloadBytes = g_bytes_new_take(decoded, decodedLen);
+    JSCValue *payloadVal = jsc_value_new_string_from_bytes(jsContext, payloadBytes);
+    g_bytes_unref(payloadBytes);
 
     JSCValue* script = jsc_context_evaluate(jsContext, scriptSrc, -1);
-    g_object_unref(script);
+    JSCValue* ignore = jsc_value_function_call(script, JSC_TYPE_VALUE, payloadVal, G_TYPE_NONE);
 
+    g_object_unref(ignore);
+    g_object_unref(script);
+    g_object_unref(payloadVal);
     g_object_unref(jsContext);
 }
 
 static void OnBridgeQuery(const char* arg, gpointer userData)
 {
     WebKitWebPage* page = reinterpret_cast<WebKitWebPage*>(userData);
+    gchar *b64string = g_base64_encode(reinterpret_cast<const guchar*>(arg), strlen(arg));
     webkit_web_page_send_message_to_view(page,
             webkit_user_message_new(Tags::BridgeObjectQuery,
-                    g_variant_new("s", arg)), nullptr, nullptr, nullptr);
+                    g_variant_new_take_string(b64string)), nullptr, nullptr, nullptr);
+}
+
+static JSCValue* OnCreateBridgeObject(gpointer userData)
+{
+    JSCContext *jsContext = jsc_context_get_current();
+    JSCValue* jsObject = jsc_value_new_object(jsContext, nullptr, nullptr);
+    JSCValue* jsFunction = jsc_value_new_function(jsContext, nullptr,
+              reinterpret_cast<GCallback>(OnBridgeQuery), userData,
+              nullptr, G_TYPE_NONE, 1, G_TYPE_STRING);
+    jsc_value_object_set_property(jsObject, "JSMessageChanged", jsFunction);
+    g_object_unref(jsFunction);
+
+    return jsObject;
 }
 
 void InjectJS(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame)
@@ -91,9 +126,9 @@ void InjectJS(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame)
 
     JSCValue* jsObject = jsc_context_get_value(jsContext, "ServiceManager");
     JSCValue* jsFunction = jsc_value_new_function(jsContext, nullptr,
-            reinterpret_cast<GCallback>(OnBridgeQuery), (gpointer) page,
-            nullptr, G_TYPE_NONE, 1, G_TYPE_STRING);
-    jsc_value_object_set_property(jsObject, "BridgeQuery", jsFunction);
+            reinterpret_cast<GCallback>(OnCreateBridgeObject), (gpointer) page,
+            nullptr, JSC_TYPE_VALUE,  0, G_TYPE_NONE);
+    jsc_value_object_set_property(jsObject, "createBridgeObject", jsFunction);
     g_object_unref(jsFunction);
     g_object_unref(jsObject);
 
