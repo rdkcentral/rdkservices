@@ -159,3 +159,4 @@ namespace Plugin {
 } // namespace WPEFramework
 //This is a sample change
 Compile_fail_here
+Compile_will_fail_here_also
