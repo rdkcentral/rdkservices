@@ -22,8 +22,8 @@
 #include "SecurityAgent.h"
 
 #include "ServiceMock.h"
-#include "Source/SystemInfo.h"
-#include "Source/WorkerPoolImplementation.h"
+#include "source/SystemInfo.h"
+#include "source/WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
@@ -37,7 +37,7 @@ const string webPrefix = _T("/Service/SecurityAgent");
 const string persistentPath = _T("/tmp/");
 const string dataPath = _T("/tmp/");
 const string volatilePath = _T("/tmp/");
-const string proxyStubPath = _T("thunder/install/usr/lib/wpeframework/proxystubs");
+const string proxyStubPath = _T("install/usr/lib/wpeframework/proxystubs");
 }
 
 class SecurityAgentTestFixture : public ::testing::Test {

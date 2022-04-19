@@ -1,0 +1,65 @@
+// This is the request from the client (application) that goes into Thunder 
+{
+    "id": 23,
+    "jsonrpc": "2.0",
+    "method": "org.rdk.Calculator.1.add",
+    "params": [
+        2,
+        2
+    ]
+}
+
+
+// The initial request is ‘wrapped’ in another JSON/RPC request and then 
+// forwarded to the remote client that is  hosting the service implementation
+// Thunder should not care what the "request" is, it's just the original
+// request set in the "request" field. 
+{
+    "id": 1231,
+    "jsonrpc": "2.0",
+    "method": "org.rdk.Calculator",
+    "params": {
+        // implementation can insert anything in here. This object is opaque to clients
+        // and must be returned as-is. "for internal use only"
+        "context": {
+            "channel": 6,
+        },
+        "request": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "org.rdk.Calculator.1.add",
+            "params": [
+                2,
+                2
+            ]
+        }
+    }
+}
+
+
+// The service implementation returns the response with the call_ctx unchanged. 
+// The call_ctx is used internally by the RPC server and is implementation 
+// specific. It’s for internal use only. 
+{
+    "id": 1231,
+    "jsonrpc": "2.0",
+    "result": {
+        "context": {
+            "channel": 6
+        }
+    "response": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "result": 4
+        }
+    }
+}
+
+
+// The response is then forwarded back to the client without any knowledge of 
+// the internal delegation that took place 
+{
+    "jsonrpc": "2.0",
+    "id": 23,
+    "result": 4
+}

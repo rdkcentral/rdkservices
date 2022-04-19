@@ -123,6 +123,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FRAME_RATE = "getFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FRAME_RATE = "setFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -190,6 +192,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define KEYCODE_INVALID -1
 #define RETRY_INTERVAL_250MS 250000
 
+#define RDKSHELL_SURFACECLIENT_DISPLAYNAME "rdkshell_display"
 enum FactoryAppLaunchStatus
 {
     NOTLAUNCHED = 0,
@@ -551,6 +554,44 @@ namespace WPEFramework {
             }
             return exist;
         }
+       
+        static void updateSurfaceClientIdentifiers( void)
+        {
+          uint32_t status = 0;
+          auto thunderController = getThunderControllerClient();
+          WPEFramework::Core::JSON::String configString;
+          Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
+          status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+          if(status > 0)
+	  {
+            std::cout<<"pluginfo status falied"<<std::endl;
+	  }
+	  else
+          {
+           for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
+           {
+            PluginHost::MetaData::Service service = availablePluginResult[i];
+	    std::string configLine;
+	    service.Configuration.ToString(configLine);
+	    JsonObject serviceConfig = JsonObject(configLine.c_str());
+	    if (serviceConfig.HasLabel("clientidentifier"))
+	    { 
+	     JsonObject configSet;
+             std::string method = "configuration@";
+             std::string pluginName = service.Callsign.Value();
+             method=method.append(pluginName);
+             status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+             configSet.FromString(configString.Value());
+             configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
+             status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+             if(status > 0)
+             {
+                std::cout<<"clientidentifier config set failed"<<std::endl;
+	     }
+            }
+	   }
+	  }
+       }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -797,6 +838,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+	          registerMethod(RDKSHELL_METHOD_GET_FRAME_RATE, &RDKShell::getFrameRateWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_FRAME_RATE, &RDKShell::setFrameRateWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1079,7 +1122,7 @@ namespace WPEFramework {
                   if (needsScreenshot)
                   {
                       uint8_t* data = nullptr;
-                      size_t size;
+                      uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
                       size_t encodedImageSize = b64_get_encoded_buffer_size(size);
@@ -1131,7 +1174,11 @@ namespace WPEFramework {
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
             m_timer.start();
             std::cout << "Started SystemServices connection timer" << std::endl;
-
+            char* rdkshelltype = getenv("RDKSHELL_COMPOSITOR_TYPE");
+            if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
+            {
+	      updateSurfaceClientIdentifiers();       
+	    } 
             return "";
         }
 
@@ -5265,8 +5312,8 @@ namespace WPEFramework {
         uint32_t RDKShell::enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool result = true;
 
+            bool result = true;
             if (!parameters.HasLabel("clients"))
             {
                 response["message"] = "please specify clients parameter";
@@ -5284,6 +5331,37 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+         
+        uint32_t RDKShell::getFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+	          gRdkShellMutex.lock();
+	          unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+	          returnResponse(true);
+        }
+      
+        uint32_t RDKShell::setFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("framerate"))
+            {
+                result = false;
+                response["message"] = "please specify frame rate";
+            }
+            if (result)
+            {
+                unsigned int framerate = parameters["framerate"].Number();
+		            lockRdkShellMutex();
+		            gCurrentFramerate = framerate;
+		            gRdkShellMutex.unlock();
+            }
+            returnResponse(result);
+        }
+
         // Registered methods end
 
         // Events begin
@@ -6453,7 +6531,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool hideCursor()
+        bool RDKShell::hideCursor()
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::hideCursor();
@@ -6461,7 +6539,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool setCursorSize(uint32_t width, uint32_t height)
+        bool RDKShell::setCursorSize(uint32_t width, uint32_t height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::setCursorSize(width, height);
@@ -6469,7 +6547,7 @@ namespace WPEFramework {
             return ret;
         }
 
-        bool getCursorSize(uint32_t& width, uint32_t& height)
+        bool RDKShell::getCursorSize(uint32_t& width, uint32_t& height)
         {
             gRdkShellMutex.lock();
             bool ret = CompositorController::getCursorSize(width, height);

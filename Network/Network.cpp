@@ -1034,9 +1034,9 @@ namespace WPEFramework
                          std::string sIPVersion = InternalResponse["ipversion"].String();
                          response["autoconfig"] = InternalResponse["autoconfig"];
                          std::string sAutoconfig =  InternalResponse["autoconfig"].String();
-                         if (!sAutoconfig.compare("true") && !(sIPVersion.compare("IPv4")))
+                         if (!(strcasecmp(sAutoconfig.c_str(), "true")) && !(strcasecmp(sIPVersion.c_str(), "IPv4")))
                              response["dhcpserver"] = InternalResponse["dhcpserver"];
-                         response["ipaddress"] = InternalResponse["ipaddr"];
+                         response["ipaddr"] = InternalResponse["ipaddr"];
                          response["netmask"] = InternalResponse["netmask"];
                          response["gateway"] = InternalResponse["gateway"];
                          response["primarydns"] = InternalResponse["primarydns"];
