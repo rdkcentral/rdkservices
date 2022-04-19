@@ -264,7 +264,7 @@ namespace WPEFramework
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),100);
+                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),500);
                  } 
                  catch(...)
                  {
@@ -1932,7 +1932,7 @@ namespace WPEFramework
                        if(!(_instance->smConnection))
                            return;
 		       LOGINFO(" Sending FeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
-                       _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 100);
+                       _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 500);
                  }
 	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
         {
