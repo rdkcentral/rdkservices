@@ -1,0 +1,6 @@
+{
+ "locator":"libControlSettings.so",
+ "classname":"ControlSettings",
+ "callsign":"org.rdk.tv.ControlSettings",
+ "autostart":true
+}
