@@ -135,6 +135,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_EASTER_EGGS;
             static const string RDKSHELL_METHOD_GET_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_REPEAT_CONFIG;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -245,8 +246,9 @@ namespace WPEFramework {
             uint32_t addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
-	          uint32_t getFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
