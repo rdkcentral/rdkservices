@@ -32,6 +32,11 @@
             "type": "boolean",
             "example": true
         },
+        "dhcpserver": {
+            "summary": "The DHCP Server address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
         "ipaddr": {
             "summary": "The IP address",
             "type": "string",
@@ -268,6 +273,9 @@
                     },
                     "autoconfig": {
                         "$ref": "#/definitions/autoconfig"
+                    },
+                    "dhcpserver": {
+                        "$ref": "#/definitions/dhcpserver"
                     },
                     "ipaddr": {
                         "$ref": "#/definitions/ipaddr"
