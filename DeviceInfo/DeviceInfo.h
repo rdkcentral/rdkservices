@@ -27,6 +27,12 @@ namespace WPEFramework {
 namespace Plugin {
 
     class DeviceInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
+    private:
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::DistributoridData::DistributoridType> DistributoridJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::MakeData::MakeType> MakeJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::ModelidData::SkuType> SkuJsonEnum;
+
     public:
         class Data : public Core::JSON::Container {
         public:
@@ -38,6 +44,19 @@ namespace Plugin {
                 Add(_T("addresses"), &Addresses);
                 Add(_T("systeminfo"), &SystemInfo);
                 Add(_T("sockets"), &Sockets);
+                Add(_T("firmwareversion"), &FirmwareVersion);
+                Add(_T("serialnumber"), &SerialNumber);
+                Add(_T("sku"), &Sku);
+                Add(_T("make"), &Make);
+                Add(_T("model"), &Model);
+                Add(_T("devicetype"), &DeviceType);
+                Add(_T("distributorid"), &DistributorId);
+                Add(_T("estbmac"), &EstbMac);
+                Add(_T("wifimac"), &WifiMac);
+                Add(_T("bluetoothmac"), &BluetoothMac);
+                Add(_T("mocamac"), &MocaMac);
+                Add(_T("ethmac"), &EthMac);
+                Add(_T("rf4cemac"), &Rf4ceMac);
             }
 
             virtual ~Data()
@@ -48,27 +67,24 @@ namespace Plugin {
             Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData> Addresses;
             JsonData::DeviceInfo::SysteminfoData SystemInfo;
             JsonData::DeviceInfo::SocketinfoData Sockets;
+            JsonData::DeviceInfo::FirmwareversionData FirmwareVersion;
+            Core::JSON::String SerialNumber;
+            SkuJsonEnum Sku;
+            MakeJsonEnum Make;
+            Core::JSON::String Model;
+            DevicetypeJsonEnum DeviceType;
+            DistributoridJsonEnum DistributorId;
+            Core::JSON::String EstbMac;
+            Core::JSON::String WifiMac;
+            Core::JSON::String BluetoothMac;
+            Core::JSON::String MocaMac;
+            Core::JSON::String EthMac;
+            Core::JSON::String Rf4ceMac;
         };
 
     private:
         DeviceInfo(const DeviceInfo&) = delete;
         DeviceInfo& operator=(const DeviceInfo&) = delete;
-
-        uint32_t addresses(const Core::JSON::String& parameters, Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response)
-        {
-            AddressInfo(response);
-            return (Core::ERROR_NONE);
-        }
-        uint32_t system(const Core::JSON::String& parameters, JsonData::DeviceInfo::SysteminfoData& response)
-        {
-            SysInfo(response);
-            return (Core::ERROR_NONE);
-        }
-        uint32_t sockets(const Core::JSON::String& parameters, JsonData::DeviceInfo::SocketinfoData& response)
-        {
-            SocketPortInfo(response);
-            return (Core::ERROR_NONE);
-        }
 
     public:
         DeviceInfo()
@@ -76,7 +92,6 @@ namespace Plugin {
             , _service(nullptr)
             , _subSystem(nullptr)
             , _systemId()
-            , _deviceId()
         {
             RegisterAll();
         }
@@ -108,21 +123,46 @@ namespace Plugin {
         // JsonRpc
         void RegisterAll();
         void UnregisterAll();
+
         uint32_t get_systeminfo(JsonData::DeviceInfo::SysteminfoData& response) const;
         uint32_t get_addresses(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& response) const;
         uint32_t get_socketinfo(JsonData::DeviceInfo::SocketinfoData& response) const;
+        uint32_t get_firmwareversion(JsonData::DeviceInfo::FirmwareversionData& response) const;
+        uint32_t get_serialnumber(JsonData::DeviceInfo::SerialnumberData& response) const;
+        uint32_t get_modelid(JsonData::DeviceInfo::ModelidData& response) const;
+        uint32_t get_make(JsonData::DeviceInfo::MakeData& response) const;
+        uint32_t get_modelname(JsonData::DeviceInfo::ModelnameData& response) const;
+        uint32_t get_devicetype(JsonData::DeviceInfo::DevicetypeData& response) const;
+        uint32_t get_distributorid(JsonData::DeviceInfo::DistributoridData& response) const;
+        uint32_t get_estbmac(JsonData::DeviceInfo::EstbmacData& response) const;
+        uint32_t get_wifimac(JsonData::DeviceInfo::WifimacData& response) const;
+        uint32_t get_bluetoothmac(JsonData::DeviceInfo::BluetoothmacData& response) const;
+        uint32_t get_mocamac(JsonData::DeviceInfo::MocamacData& response) const;
+        uint32_t get_ethmac(JsonData::DeviceInfo::EthmacData& response) const;
+        uint32_t get_rf4cemac(JsonData::DeviceInfo::Rf4cemacData& response) const;
 
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
-        string GetDeviceId() const;
+        void FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const;
+        void SerialNumber(Core::JSON::String& serialNumber) const;
+        void Sku(SkuJsonEnum& sku) const;
+        void Make(MakeJsonEnum& make) const;
+        void Model(Core::JSON::String& model) const;
+        void DeviceType(DevicetypeJsonEnum& deviceType) const;
+        void DistributorId(DistributoridJsonEnum& distributorId) const;
+        void EstbMac(Core::JSON::String& estbMac) const;
+        void WifiMac(Core::JSON::String& wifiMac) const;
+        void BluetoothMac(Core::JSON::String& bluetoothMac) const;
+        void MocaMac(Core::JSON::String& mocaMac) const;
+        void EthMac(Core::JSON::String& ethMac) const;
+        void Rf4ceMac(Core::JSON::String& rf4ceMac) const;
 
     private:
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
-        mutable string _deviceId;
     };
 
 } // namespace Plugin

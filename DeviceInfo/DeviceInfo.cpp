@@ -19,8 +19,48 @@
 
 #include "DeviceInfo.h"
 
+#include <fstream>
+#include <regex>
+
+#include "rfcapi.h"
+
 namespace WPEFramework {
 namespace Plugin {
+
+    typedef Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType> DistributoridEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> MakeEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> SkuEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::FirmwareversionData::YoctoType> YoctoEnum;
+
+    namespace {
+        constexpr auto* kDevicePropsFile = _T("/etc/device.properties");
+        constexpr auto* kAuthServiceFile = _T("/etc/authService.conf");
+        constexpr auto* kVersionFile = _T("/version.txt");
+        constexpr auto* kSerialNumberFile = _T("/proc/device-tree/serial-number");
+        constexpr auto* kPartnerIdFile = _T("/opt/www/authService/partnerId3.dat");
+        constexpr auto* kDeviceMacFile = _T("/proc/device-tree/device-mac-addr");
+        constexpr auto* kWifiMacFile = _T("/proc/device-tree/wifi-mac-addr");
+        constexpr auto* kBluetoothMacFile = _T("/proc/device-tree/bluetooth-mac-addr");
+        constexpr auto* kRfcRf4ceMac = _T("Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceMACAddress");
+        constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
+        constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
+        constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
+        constexpr auto* kRf4ceSupport = _T("RF4CE_CAPABLE");
+        constexpr auto* kMocaSupport = _T("MOCA_SUPPORT");
+        constexpr auto* kBluetoothSupport = _T("BLUETOOTH_ENABLED");
+        constexpr auto* kWifiSupport = _T("WIFI_SUPPORT");
+        constexpr auto* kEthInterface = _T("ETHERNET_INTERFACE");
+        constexpr auto* kMocaInterface = _T("MOCA_INTERFACE");
+        constexpr auto* kDeviceType = _T("deviceType");
+        constexpr auto* kFriendlyId = _T("FRIENDLY_ID");
+        constexpr auto* kMfgName = _T("MFG_NAME");
+        constexpr auto* kModelNum = _T("MODEL_NUM");
+        constexpr auto* kImagename = _T("imagename");
+        constexpr auto* kYoctoVersion = _T("YOCTO_VERSION");
+        constexpr auto* kSdkVersion = _T("SDK_VERSION");
+        constexpr auto* kMediariteVersion = _T("MEDIARITE");
+    }
 
     SERVICE_REGISTRATION(DeviceInfo, 1, 0);
 
@@ -93,6 +133,19 @@ namespace Plugin {
                 AddressInfo(response->Addresses);
                 SysInfo(response->SystemInfo);
                 SocketPortInfo(response->Sockets);
+                FirmwareVersion(response->FirmwareVersion);
+                SerialNumber(response->SerialNumber);
+                Sku(response->Sku);
+                Make(response->Make);
+                Model(response->Model);
+                DeviceType(response->DeviceType);
+                DistributorId(response->DistributorId);
+                EstbMac(response->EstbMac);
+                WifiMac(response->WifiMac);
+                BluetoothMac(response->BluetoothMac);
+                MocaMac(response->MocaMac);
+                EthMac(response->EthMac);
+                Rf4ceMac(response->Rf4ceMac);
             } else if (index.Current() == "Adresses") {
                 AddressInfo(response->Addresses);
             } else if (index.Current() == "System") {
@@ -153,6 +206,350 @@ namespace Plugin {
     void DeviceInfo::SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const
     {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
+    }
+
+    void DeviceInfo::FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const
+    {
+        std::ifstream file(kVersionFile);
+
+        if (file) {
+            string line;
+
+            while (std::getline(file, line)) {
+                if (line.rfind(kImagename, 0) == 0) {
+                    firmwareVersion.Imagename = line.substr(line.find(':') + 1);
+                } else if (line.rfind(kYoctoVersion, 0) == 0) {
+                    firmwareVersion.Yocto = YoctoEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                } else if (line.rfind(kSdkVersion, 0) == 0) {
+                    firmwareVersion.Sdk = line.substr(line.find('=') + 1);
+                } else if (line.rfind(kMediariteVersion, 0) == 0) {
+                    firmwareVersion.Mediarite = line.substr(line.find('=') + 1);
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::SerialNumber(Core::JSON::String& serialNumber) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcSerialNumber, &param);
+
+        if (status == WDMP_SUCCESS) {
+            serialNumber = param.value;
+        } else {
+            std::ifstream file(kSerialNumberFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    serialNumber = line;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Sku(SkuJsonEnum& sku) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcModelName, &param);
+
+        if (status == WDMP_SUCCESS) {
+            sku = SkuEnum(param.value).Value();
+        } else {
+            std::ifstream file(kDevicePropsFile);
+
+            if (file) {
+                string line;
+                while (std::getline(file, line)) {
+                    if (line.rfind(kModelNum, 0) == 0) {
+                        sku = SkuEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Make(MakeJsonEnum& make) const
+    {
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kMfgName, 0) == 0) {
+                    make = MakeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Model(Core::JSON::String& model) const
+    {
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kFriendlyId, 0) == 0) {
+                    // trim quotes
+
+                    model = std::regex_replace(line, std::regex(_T("^\\w+=(?:\")?([^\"\\n]+)(?:\")?$")), _T("$1"));
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::DeviceType(DevicetypeJsonEnum& deviceType) const
+    {
+        std::ifstream file(kAuthServiceFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kDeviceType, 0) == 0) {
+                    deviceType = DevicetypeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::DistributorId(DistributoridJsonEnum& distributorId) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcPartnerId, &param);
+
+        if (status == WDMP_SUCCESS) {
+            distributorId = DistributoridEnum(param.value).Value();
+        } else {
+            std::ifstream file(kPartnerIdFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    distributorId = DistributoridEnum(line.c_str()).Value();
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::EstbMac(Core::JSON::String& estbMac) const
+    {
+        std::ifstream file(kDeviceMacFile);
+
+        if (file) {
+            string line;
+            if (std::getline(file, line)) {
+                estbMac = line;
+            }
+        }
+    }
+
+    void DeviceInfo::WifiMac(Core::JSON::String& wifiMac) const
+    {
+        bool supported = false;
+
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kWifiSupport, 0) == 0) {
+                    supported = (line.substr(line.find('=') + 1) == _T("true"));
+
+                    break;
+                }
+            }
+
+            file.close();
+        }
+
+        if (supported) {
+            std::ifstream file(kWifiMacFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    wifiMac = line;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::BluetoothMac(Core::JSON::String& bluetoothMac) const
+    {
+        bool supported = false;
+
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kBluetoothSupport, 0) == 0) {
+                    supported = (line.substr(line.find('=') + 1) == _T("true"));
+
+                    break;
+                }
+            }
+
+            file.close();
+        }
+
+        if (supported) {
+            std::ifstream file(kBluetoothMacFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    bluetoothMac = line;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::MocaMac(Core::JSON::String& mocaMac) const
+    {
+        bool supported = false;
+
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kMocaSupport, 0) == 0) {
+                    supported = (line.substr(line.find('=') + 1) == _T("true"));
+
+                    break;
+                }
+            }
+        }
+
+        string interface;
+
+        if (supported) {
+            file.seekg(0);
+
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kMocaInterface, 0) == 0) {
+                    interface = line.substr(line.find('=') + 1);
+
+                    break;
+                }
+            }
+
+            file.close();
+        }
+
+        if (!interface.empty()) {
+            int s = socket(AF_INET, SOCK_DGRAM, 0);
+
+            if (s != -1) {
+                struct ifreq buffer = { 0 };
+                strncpy(buffer.ifr_name, interface.c_str(), IFNAMSIZ);
+
+                if (ioctl(s, SIOCGIFHWADDR, &buffer) != -1) {
+                    // print as hex with colons
+
+                    auto sa = (unsigned char*)buffer.ifr_hwaddr.sa_data;
+                    char buff[18];
+                    sprintf(buff,
+                        "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
+                        sa[0], sa[1], sa[2], sa[3], sa[4], sa[5]);
+
+                    mocaMac = buff;
+                }
+
+                close(s);
+            }
+        }
+    }
+
+    void DeviceInfo::EthMac(Core::JSON::String& ethMac) const
+    {
+        std::ifstream file(kDevicePropsFile);
+
+        string interface;
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kEthInterface, 0) == 0) {
+                    interface = line.substr(line.find('=') + 1);
+
+                    break;
+                }
+            }
+
+            file.close();
+        }
+
+        if (!interface.empty()) {
+            int s = socket(AF_INET, SOCK_DGRAM, 0);
+
+            if (s != -1) {
+                struct ifreq buffer = { 0 };
+                strncpy(buffer.ifr_name, interface.c_str(), IFNAMSIZ);
+
+                if (ioctl(s, SIOCGIFHWADDR, &buffer) != -1) {
+                    // print as hex with colons
+
+                    auto sa = (unsigned char*)buffer.ifr_hwaddr.sa_data;
+                    char buff[18];
+                    sprintf(buff,
+                        "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
+                        sa[0], sa[1], sa[2], sa[3], sa[4], sa[5]);
+
+                    ethMac = buff;
+                }
+
+                close(s);
+            }
+        }
+    }
+
+    void DeviceInfo::Rf4ceMac(Core::JSON::String& rf4ceMac) const
+    {
+        bool supported = false;
+
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kRf4ceSupport, 0) == 0) {
+                    supported = (line.substr(line.find('=') + 1) == _T("true"));
+
+                    break;
+                }
+            }
+
+            file.close();
+        }
+
+        if (supported) {
+            RFC_ParamData_t param;
+
+            auto status = getRFCParameter(nullptr, kRfcRf4ceMac, &param);
+
+            if (status == WDMP_SUCCESS) {
+                // trim 0x, add colons
+
+                rf4ceMac = std::regex_replace(param.value,
+                    std::regex(_T("^(?:0x)?(.{2})(.{2})(.{2})(.{2})(.{2})(.{2})(.{2})(.{2})$")),
+                    _T("$1:$2:$3:$4:$5:$6:$7:$8"));
+            }
+        }
     }
 
 } // namespace Plugin
