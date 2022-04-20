@@ -235,6 +235,7 @@ Gets the IP setting for the given interface.
 | result.interface | string | An interface, such as `ETHERNET` or `WIFI`, depending upon availability of the given interface in `getInterfaces` |
 | result.ipversion | string | either IPv4 or IPv6 |
 | result.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
+| result.dhcpserver | string | The DHCP Server address |
 | result.ipaddr | string | The IP address |
 | result.netmask | string | The network mask address |
 | result.gateway | string | The gateway address |
@@ -268,6 +269,7 @@ Gets the IP setting for the given interface.
         "interface": "WIFI",
         "ipversion": "IPv4",
         "autoconfig": true,
+        "dhcpserver": "192.168.1.1",
         "ipaddr": "192.168.1.101",
         "netmask": "255.255.255.0",
         "gateway": "192.168.1.1",
