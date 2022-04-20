@@ -121,6 +121,11 @@
             "type": "number",
             "example": 255
         },
+	"framerate":{
+            "summary":"display the current framerate",
+            "type":"number",
+            "example":40
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -796,6 +801,24 @@
                 ]
             }   
         },
+	"getFrameRate":{
+            "summary":"Returns the current Frame Rate",
+            "result":{
+                "type":"object",
+                "properties":{
+                    "frameRate":{
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "frameRate",
+                    "success"
+                ]
+            }
+        },
         "getLogLevel": {
             "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
             "result": {
@@ -812,6 +835,25 @@
                     "logLevel",
                     "success"
                 ]
+            }
+        },
+        "setFrameRate":{
+            "summary": "Set Frame Rate.. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+			"summary": "Framerate to be set",
+			"type":"number",
+			"example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
             }
         },
         "getLogsFlushingEnabled": {
