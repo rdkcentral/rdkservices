@@ -1989,7 +1989,7 @@
                     }
                 },
                 "required": [
-                    "nwStandby",
+                    "nwStandby"
                 ]
             }
         },
