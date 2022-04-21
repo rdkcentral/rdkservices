@@ -3386,7 +3386,7 @@ namespace WPEFramework {
                 }
 
                 // One RFC controls all WPE-based apps
-                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp" || type == "SearchAndDiscoveryApp" ))
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp"))
                 {
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
@@ -3410,6 +3410,36 @@ namespace WPEFramework {
                     else
                     {
                         std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
+                }
+
+                if (!type.empty() && type == "SearchAndDiscoveryApp" )
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby SAD rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby SAD rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby SAD rfc failed - launching " << type << " in default mode" << std::endl;
                     }
 #else
                     std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
